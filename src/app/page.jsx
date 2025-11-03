@@ -1,10 +1,7 @@
-import Image from "next/image";
-import FoodList from "./components/users/FoodList/FoodList";
+"use client";
+
+import AuthLoader from "./components/AuthLoader";
 
 export default function Home() {
-  return (
-    <div className="flex min-h-screen bg-zinc-50 font-sans">
-      <FoodList/>
-    </div>
-  );
+  return <AuthLoader />;
 }
