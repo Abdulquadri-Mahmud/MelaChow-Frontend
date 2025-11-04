@@ -8,7 +8,7 @@ import {
   Check,
 } from "lucide-react";
 import axios from "axios";
-import showAnimatedToast from "../../toast/showAnimatedToast";
+import showAnimatedToast from "@/app/components/toast/showAnimatedToast";
 
 const CLOUDINARY_PRESET = "GrubDash"; // your Cloudinary preset
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";

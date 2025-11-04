@@ -4,37 +4,39 @@ import { useState, useEffect } from "react";
 
 /**
  * Hook for managing Vendor data in localStorage.
- * Provides utilities to set, get, update, and clear user payload.
+ * Provides utilities to set, get, update, and clear vendor payload.
  */
 export const useVendorStorage = () => {
+  const STORAGE_KEY = "VendorPayload"; // consistent key name
+
   const [vendor, setVendor] = useState(null);
 
   // Load from localStorage on mount
   useEffect(() => {
-    const storedVendor = localStorage.getItem("VendorPayload");
+    const storedVendor = localStorage.getItem(STORAGE_KEY);
     if (storedVendor) {
       setVendor(JSON.parse(storedVendor));
     }
   }, []);
 
-  // Save Vendor data to localStorage
+  // Save vendor data
   const saveVendor = (payload) => {
-    localStorage.setItem("vendorPayload", JSON.stringify(payload));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     setVendor(payload);
   };
 
-  // Update specific fields of the stored Vendor
+  // Update specific fields
   const updateVendor = (updates) => {
     setVendor((prev) => {
       const updated = { ...prev, ...updates };
-      localStorage.setItem("vendorPayload", JSON.stringify(updated));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
   };
 
-  // Remove Vendor data (e.g., on logout)
+  // Clear vendor data
   const clearVendor = () => {
-    localStorage.removeItem("vendorPayload");
+    localStorage.removeItem(STORAGE_KEY);
     setVendor(null);
   };
 

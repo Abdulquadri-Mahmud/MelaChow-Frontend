@@ -1,9 +1,10 @@
 "use client";
 
-import VendorProfileSkeleton from "@/app/components/skeletons/VendorProfileSkeleton";
+
 import VendorProfilePage from "@/app/components/vendors_component/profile/profile";
 import { useVendorById } from "@/app/hooks/useVendorQueries";
-import { getVendorId } from "@/app/utils/vendor/api/vendorId";
+import { getVendorId } from "@/app/lib/vendorId";
+import VendorProfileSkeleton from "@/app/skeleton/VendorProfileSkeleton";
 import { useEffect, useState } from "react";
 
 export default function ProfilePage() {

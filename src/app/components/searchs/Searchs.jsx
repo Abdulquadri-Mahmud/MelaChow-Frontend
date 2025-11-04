@@ -6,9 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Flame, MapPin, Search, SlidersHorizontal, Store, Truck } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useApi } from "@/app/context/ApiContext";
-import HomeFoodListSkeleton from "../skeletons/HomeFoodListSkeleton";
 import Link from "next/link";
-import NoFoodsFound from "../food/NoFoodsFound";
+import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
+import NoFoodsFound from "../NoFoodsFound";
 
 export const dynamic = "force-dynamic";
 

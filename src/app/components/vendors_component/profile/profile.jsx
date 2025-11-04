@@ -21,8 +21,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { updateVendor } from "@/app/utils/vendor/api/vendorProfileApi";
-import ScrollToTopButton from "../../ScrollToTopButton";
+import { updateVendor } from "@/app/lib/vendorProfileApi";
 
 const CLOUDINARY_PRESET = "GrubDash";
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
@@ -516,7 +515,6 @@ export default function VendorProfilePage({ vendor }) {
           </CardContent>
         )}
       </Card>
-      <ScrollToTopButton/>
     </div>
   );
 }

@@ -19,13 +19,13 @@
     Repeat,
     RefreshCcw,
   } from "lucide-react";
-  import PreviewModal from "@/app/components/modals/update/PreviewModal";
-  import VariantModal from "@/app/components/modals/update/VariantsModal";
-  import MetadataModal from "@/app/components/modals/update/MetadataModal";
-  import showAnimatedToast from "@/app/components/toast/showAnimatedToast";
-  import { updateFood } from "@/app/utils/vendor/api/vendorFoodApi";
-  import { useFoodById } from "@/app/hooks/useVendorFoodQuery";
-import UpdateFoodSkeleton from "@/app/components/skeletons/UpdateFoodSkeleton";
+import { useFoodById } from "@/app/hooks/useVendorFoodQuery";
+import UpdateFoodSkeleton from "@/app/skeleton/UpdateFoodSkeleton";
+import { updateFood } from "@/app/lib/vendorFoodApi";
+import showAnimatedToast from "@/app/components/toast/showAnimatedToast";
+import MetadataModal from "@/app/modals/update/MetadataModal";
+import VariantModal from "@/app/modals/update/VariantsModal";
+import PreviewModal from "@/app/modals/update/PreviewModal";
 
   /***** CONFIG *****/
   const ACCENT = "#FF6600";

@@ -15,9 +15,9 @@ import {
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import FoodListSkeleton from "@/app/components/skeletons/FoodListSkeleton";
-import FoodDetailsModal from "@/app/components/modals/FoodDetailsModal";
-import { getVendorId } from "@/app/utils/vendor/api/vendorId";
+import { getVendorId } from "@/app/lib/vendorId";
+import FoodDetailsModal from "@/app/modals/FoodDetailsModal";
+import FoodListSkeleton from "@/app/skeleton/FoodListSkeleton";
 
 export default function Page() {
   const { foods, isLoading, deleteFood } = useVendorFood(getVendorId());

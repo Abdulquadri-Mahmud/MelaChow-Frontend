@@ -18,11 +18,10 @@ import {
   Sun,
   Repeat,
 } from "lucide-react";
-import { createFood } from "@/app/utils/vendor/api/vendorFoodApi"; // your API wrapper
-import { getVendorId } from "@/app/utils/vendor/api/vendorId";
-import MetadataModal from "@/app/components/modals/create/MetadataModal";
-import VariantModal from "@/app/components/modals/create/VariantsModal";
-import PreviewModal from "@/app/components/modals/create/PreviewModal";
+import { getVendorId } from "@/app/lib/vendorId";
+import MetadataModal from "@/app/modals/create/MetadataModal";
+import VariantModal from "@/app/modals/create/VariantsModal";
+import PreviewModal from "@/app/modals/create/PreviewModal";
 
 /***** CONFIG *****/
 const ACCENT = "#FF6600";

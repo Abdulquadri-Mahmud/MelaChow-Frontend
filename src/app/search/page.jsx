@@ -1,12 +1,11 @@
 "use client";
 
 import React, { Suspense } from 'react'
-import SearchPageSkeleton from '../components/skeletons/SearchPageSkeleton';
 import dynamic from 'next/dynamic';
+import SearchPageSkeleton from '../skeleton/SearchPageSkeleton';
 
 const FoodSearchMobile = dynamic(
   () => import("../components/searchs/Searchs"),
-  // { ssr: false, suspense: true }
 );
 
 export default function page() {

@@ -1,7 +1,6 @@
 "use client";
 import { useVendors } from "@/app/hooks/useVendorQueries";
 import { FaBell } from "react-icons/fa";
-import VendorProfileImageSkeleton from "../../skeletons/VendorProfileImageSkeleton";
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -19,6 +18,7 @@ import {
 import Logo from "../../logo/Logo";
 import { useState } from "react";
 import { useApi } from "@/app/context/ApiContext";
+import VendorProfileImageSkeleton from "@/app/skeleton/VendorProfileImageSkeleton";
 
 const navItems = [
   {

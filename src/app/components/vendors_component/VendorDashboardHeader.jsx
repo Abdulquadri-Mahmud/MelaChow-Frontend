@@ -7,6 +7,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function VendorDashboardHeader({ vendor }) {
 
+  console.log("Vendor Data:", vendor);
+
   return (
     <div className="space-y-6 mb-5">
       {/* Header */}

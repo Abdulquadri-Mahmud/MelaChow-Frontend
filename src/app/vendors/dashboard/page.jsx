@@ -30,8 +30,8 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 
-import { getFoods } from "@/app/utils/vendor/api/vendorFoodApi";
 import VendorDashboardHeader from "@/app/components/vendors_component/VendorDashboardHeader";
+import { getFoods } from "@/app/lib/vendorFoodApi";
 
 export default function VendorDashboard() {
   const { vendors, isLoading } = useVendors();
