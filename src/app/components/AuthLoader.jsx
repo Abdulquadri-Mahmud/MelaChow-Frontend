@@ -15,7 +15,7 @@ export default function AuthLoader() {
 
       // 🚨 No token = not logged in
       if (!token) {
-        router.push("/login");
+        router.push("/auth/signin");
         return;
       }
 
