@@ -7,8 +7,8 @@ import { Clock, Flame, MapPin, Search, SlidersHorizontal, Store, Truck } from "l
 import { useSearchParams, useRouter } from "next/navigation";
 import { useApi } from "@/app/context/ApiContext";
 import Link from "next/link";
-import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
 import NoFoodsFound from "../NoFoodsFound";
+import SearchFoodSkeleton from "@/app/skeleton/SearchFoodSkeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -199,14 +199,14 @@ export default function FoodSearchMobile() {
   // console.log(foods);
 
   return (
-    <div className="pb-10 bg-gray-50">
-      <div className="sticky top-0 z-50 p-2 bg-white border-b shadow-sm shadow-gray-100">
+    <div className="pb-10">
+      <div className="sticky top-0 z-50 p-2 bg-orange-100">
         {/* Search Bar */}
         <form
           onSubmit={handleSearchSubmit}
-          className="relative flex bg-gray-50 items-center gap-2 p-2 rounded-lg"
+          className="relative flex bg-white items-center gap-2 p-1 rounded-lg"
         >
-          <Search className="text-gray-500" />
+          <Search size={16} className="text-gray-500" />
           <input
             type="text"
             placeholder="Search for food..."
@@ -221,7 +221,7 @@ export default function FoodSearchMobile() {
 
           <button
             type="submit"
-            className="p-2 bg-orange-500 rounded-lg text-white hover:bg-orange-600 transition-colors"
+            className="p-2 text-orange-500 rounded-lg hover:bg-orange-600 transition-colors"
           >
             <SlidersHorizontal size={18} />
           </button>
@@ -264,7 +264,7 @@ export default function FoodSearchMobile() {
               )} */}
 
               {/* Categories */}
-              <div className=" border-t border-gray-200 flex flex-wrap gap-1 pt-3">
+              <div className=" border-t border-orange-200 flex flex-wrap gap-1 pt-3">
                 {categories.map((cat) => (
                   <div
                     key={`cat-${cat}`}
@@ -280,7 +280,7 @@ export default function FoodSearchMobile() {
         </form>
 
         {/* Categories below search */}
-        <div className="flex scroll overflow-x-auto no-scrollbar gap-2 px-3 pb-3 mt-2">
+        <div className="flex bg-white rounded-full scroll w-[95%] mx-auto overflow-x-auto no-scrollbar gap-2 px-2 py-2 mt-3">
           {categories.map((category) => (
             <motion.button
               key={category}
@@ -291,7 +291,7 @@ export default function FoodSearchMobile() {
                 ${
                   activeCategory === category
                     ? "bg-orange-500 text-white border-orange-500 shadow-md"
-                    : "bg-white text-gray-700 border-gray-300 hover:border-orange-500 hover:bg-orange-50"
+                    : "bg-orange-200 text-gray-700 border-orange-300 hover:border-orange-500 hover:bg-orange-50"
                 }
               `}
               initial={{ opacity: 0.8 }}
@@ -312,9 +312,11 @@ export default function FoodSearchMobile() {
       {/* Results */}
       <div className="md:p-4 p-2">
         {loading ? (
-          <HomeFoodListSkeleton />
+          <SearchFoodSkeleton />
         ) : error ? (
-          <div className="text-center text-red-500 py-10">{error}</div>
+          <div className="mt-5">
+            <SearchFoodSkeleton />
+          </div>
         ) : foods.length === 0 ? (
           <div className="text-center text-gray-500 py-5">
             <NoFoodsFound />

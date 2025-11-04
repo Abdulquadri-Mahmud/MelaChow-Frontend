@@ -48,7 +48,7 @@ export default function FeatureSlider() {
   }, []);
 
   return (
-    <div className="relative w-full flex justify-center py-5 bg-zinc-300 rounded-xl">
+    <div className="relative w-full flex justify-center py-5 bg-orange-300 rounded-xl">
       <div className="w-[90%] md:w-[60%] relative">
         <AnimatePresence mode="wait">
           <motion.div
@@ -57,7 +57,7 @@ export default function FeatureSlider() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.6 }}
-            className="bg-white shadow-lg rounded-2xl p-6 flex flex-col items-center justify-center text-center"
+            className="bg-white shadow-lg rounded-2xl p-3 flex flex-col items-center justify-center text-center"
           >
             <div className="bg-zinc-100 p-3 rounded-full">
               {features[index].icon}

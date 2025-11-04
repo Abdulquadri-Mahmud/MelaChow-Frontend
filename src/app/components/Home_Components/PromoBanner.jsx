@@ -21,18 +21,18 @@ export default function PromoBanner() {
   }, []);
 
   return (
-    <motion.div className="mt-4 bg-zinc-100 py-2 rounded-2xl overflow-hidden px-3">
-      <motion.div className="scroll flex gap-4 pb-2 cursor-grab active:cursor-grabbing snap-x snap-mandatory overflow-x-auto scrollbar-none">
+    <motion.div className="mt-4 bg-white py-2 rounded-2xl overflow-hidden px-3">
+      <motion.div className="scroll flex gap-2 pb-2 cursor-grab active:cursor-grabbing snap-x snap-mandatory overflow-x-auto scrollbar-none">
         {banners.map((banner, index) => (
           <motion.div
             key={banner.id}
             whileTap={{ scale: 0.97 }}
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            className={`${banner.color} px-5 py-6 rounded-2xl min-w-[70%] font-semibold shadow-lg flex-shrink-0 snap-center flex items-center gap-4`}
+            className={`${banner.color} px-3 py-3 rounded-2xl min-w-[250px] font-semibold shadow-lg flex-shrink-0 snap-center flex items-center gap-4`}
           >
             {/* Emoji with white circular background */}
-            <div className="flex-shrink-0 w-14 h-14 rounded-full bg-white flex items-center justify-center text-2xl">
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-white flex items-center justify-center text-2xl">
               {banner.emoji}
             </div>
 

@@ -5,8 +5,19 @@ import { motion } from "framer-motion";
 import { MapPin, Star, StarHalf, Star as StarEmpty, Store } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import Skeleton from "react-loading-skeleton";
+// import Skeleton from "react-loading-skeleton";
 import { useApi } from "@/app/context/ApiContext";
+import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+
+const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
+  <div
+    className={`relative overflow-hidden scroll bg-gray-200 dark:bg-gray-700 rounded ${className}`}
+    style={{ width, height }}
+  >
+    <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-shimmer"></div>
+  </div>
+);
+
 
 // ✅ Get current day (e.g. "monday", "tuesday")
 const getCurrentDay = () => {
@@ -30,7 +41,7 @@ export default function VendorList() {
   const {baseUrl} = useApi();
 
   // ✅ Auto refresh every 60 seconds (60000 ms)
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["vendors"],
     queryFn: async () => {
       const res = await fetch(
@@ -49,6 +60,12 @@ export default function VendorList() {
       setWidth(scrollRef.current.scrollWidth - scrollRef.current.offsetWidth);
     }
   }, [data]);
+
+  console.log("✅ Fetched vendors:", data);
+  
+  const openingMessage = data?.vendor?.openingHours
+      ? getVendorOpenAndCloseStatus(data.vendor.openingHours)
+      : "Opening hours not available.";
 
   const renderStars = (rating) => {
     const stars = [];
@@ -78,8 +95,8 @@ export default function VendorList() {
   if (isLoading) {
     return (
       <div className="my-4 px-3">
-        <h2 className="font-semibold text-lg mb-3 text-gray-800">Top Restaurants</h2>
-        <div className="scroll flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+        <h2 className="font-semibold text-lg mb-3 text-gray-800">Featured</h2>
+        <div className="scroll flex gap-4 pb-3 overflow-x-auto no-scrollbar snap-x snap-mandatory">
           {[1, 2, 3].map((i) => (
             <div key={i} className="min-w-[220px] rounded-2xl overflow-hidden bg-white shadow-sm snap-center">
               <Skeleton height={80} />
@@ -94,9 +111,28 @@ export default function VendorList() {
     );
   }
 
+  if(isError) {
+    return (
+      <div className="my-4 px-3">
+        <h2 className="font-semibold text-lg mb-3 text-gray-800">Featured</h2>
+        <div className="scroll flex gap-4 pb-3 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="min-w-[220px] rounded-2xl overflow-hidden bg-white shadow-sm snap-center">
+              <Skeleton height={80} />
+              <div className="p-2 space-y-2">
+                <Skeleton width="70%" height={16} />
+                <Skeleton width="50%" height={14} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <motion.div className=" mt-4 overflow-hidden" initial={{ opacity: 0, y: 25 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-      <h2 className="pb-2 text-lg text-shadow-md font-medium text-gray-800">Top Restaurants</h2>
+      <h2 className="pb-2 text-lg text-shadow-md font-medium text-gray-800">Featured</h2>
 
       <motion.div ref={scrollRef} className="cursor-grab active:cursor-grabbing overflow-x-auto no-scrollbar snap-x snap-mandatory scroll" whileTap={{ cursor: "grabbing" }}>
         <motion.div drag="x" dragConstraints={{ right: 0, left: -width }} dragElastic={0.15} className="flex gap-4">

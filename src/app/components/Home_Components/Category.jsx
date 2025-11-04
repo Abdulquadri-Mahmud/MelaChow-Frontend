@@ -2,15 +2,25 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Skeleton from "react-loading-skeleton";
+import {motion} from 'framer-motion';
+import { Flame } from "lucide-react";
+
+// const categories = [
+//   { id: 1, name: "Rice Dishes", icon: "/category/rice.jpeg" },
+//   { id: 2, name: "Swallow", icon: "/category/swallow.jpg" },
+//   { id: 3, name: "Shawarma", icon: "/category/shawarma.jpg" },
+//   { id: 4, name: "Snacks", icon: "/category/snacks.webp" },
+//   { id: 5, name: "Drinks", icon: "/category/drinks.jpg" },
+//   { id: 6, name: "Local", icon: "/category/rice.jpeg" },
+// ];
 
 const categories = [
-  { id: 1, name: "Rice Dishes", icon: "/category/rice.jpeg" },
-  { id: 2, name: "Swallow", icon: "/category/swallow.jpg" },
-  { id: 3, name: "Shawarma", icon: "/category/shawarma.jpg" },
-  { id: 4, name: "Snacks", icon: "/category/snacks.webp" },
-  { id: 5, name: "Drinks", icon: "/category/drinks.jpg" },
-  { id: 6, name: "Local", icon: "/category/rice.jpeg" },
-];
+    "Rice Dishes", "Swallow", "Soups & Stews", "Beans Dishes", "Yam Dishes",
+    "Plantain Dishes", "Pasta", "Snacks", "Grills & Barbecue", "Shawarma",
+    "Breakfast", "Drinks", "Desserts", "Seafood", "Vegetarian", "Salads",
+    "Small Chops", "Porridge", "Native Delicacies", "Others",
+  ];
+
 
 export default function CategoryList() {
   const [loadedImages, setLoadedImages] = useState({});
@@ -30,41 +40,27 @@ export default function CategoryList() {
   };
 
   return (
-    <div className="mt-3 px-3">
-      <h2 className="font-semibold text-lg mb-3 text-gray-800">
-        Categories
-      </h2>
-      <div className="scroll flex gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory pb-3">
-        {categories.map((cat) => (
-          <div
-            key={cat.id}
-            onClick={() => handleCategoryClick(cat.name)}
-            className="flex flex-col items-center bg-white shadow p-3 rounded-xl min-w-[80px] flex-shrink-0 snap-center cursor-pointer hover:scale-105 transition-transform"
-          >
-            <div className="w-16 h-16 mb-1 relative">
-              {!loadedImages[cat.id] && pageLoaded && (
-                <Skeleton
-                  width={64}
-                  height={64}
-                  circle
-                  className="absolute top-0 left-0 animate-pulse"
-                />
-              )}
-              {pageLoaded && (
-                <img
-                  src={cat.icon}
-                  alt={cat.name}
-                  onLoad={() => handleImageLoad(cat.id)}
-                  className={`w-16 h-16 rounded-full object-cover transition-opacity duration-500 absolute top-0 left-0 ${
-                    loadedImages[cat.id] ? "opacity-100" : "opacity-0"
-                  }`}
-                  loading="lazy"
-                />
-              )}
-            </div>
-            <span className="text-xs font-medium text-gray-700">{cat.name}</span>
-          </div>
-        ))}
+    <div className="mt-2">
+      <div className="scroll mx-auto bg-white rounded-full w-[95%] flex gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory">
+        <div className="flex scroll overflow-x-auto no-scrollbar gap-2 px-3 pb-3 mt-2">
+          {categories.map((category) => (
+            <motion.button
+              key={category}
+              whileTap={{ scale: 0.9 }}
+              layout
+              onClick={() => handleCategoryClick(category)}
+              className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-full bg-orange-200 whitespace-nowrap border-2 border-white transition-all duration-300`}
+              initial={{ opacity: 0.8 }}
+              animate={{ opacity: 0.9 }}
+            >
+              <Flame
+                size={16}
+                className={"text-orange-500"}
+              />
+              <span className="text-sm font-medium">{category}</span>
+            </motion.button>
+          ))}
+        </div>
       </div>
     </div>
   );

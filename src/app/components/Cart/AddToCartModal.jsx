@@ -32,9 +32,9 @@ export default function AddToCartModal({ food, isOpen, onClose, onAdd }) {
           {/* Bottom Sheet Modal */}
           <motion.div
             initial={{ y: "100%" }}
-            animate={{ y: 0 }}
+            animate={{ y: 1 }}
             exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 80, damping: 18 }}
+            transition={{ type: "spring", stiffness: 100, damping: 10 }}
             className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-lg p-5 pb-20"
           >
             {/* Header */}
