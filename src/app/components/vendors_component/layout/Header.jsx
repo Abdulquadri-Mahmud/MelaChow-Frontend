@@ -98,7 +98,7 @@ export default function Header() {
       setLogoutLoading(false);
     }
   };
-
+  
   return (
     <header className="flex justify-between items-center bg-white p-4">
       {/* Mobile toggle button */}
@@ -156,46 +156,8 @@ export default function Header() {
                   </button>
                 </div>
 
-                {/* Vendor Info Card */}
-                <div className="bg-white rounded-xl shadow-md border border-gray-100 p-4 flex flex-col items-center text-center space-y-2 transition-all hover:shadow-lg hover:-translate-y-0.5">
-                  {/* Avatar or Logo */}
-                  <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-2xl">
-                    {vendors?.data?.storeName?.charAt(0)?.toUpperCase() || "V"}
-                  </div>
-
-                  {/* Vendor Details */}
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-800">{vendors?.data?.storeName}</h2>
-                    <p className="text-sm text-gray-500">
-                      {vendors?.data?.email || "vendor@email.com"}
-                    </p>
-                    <p className="text-sm mt-1 text-gray-500">
-                      {vendors?.data?.phone || "vendor@email.com"}
-                    </p>
-                  </div>
-
-                  {/* Stats / Quick Info */}
-                  {/* <div className="flex items-center justify-center gap-3 mt-2 text-xs">
-                    <div className="bg-orange-50 px-2 py-1 rounded-full text-orange-700 font-medium">
-                      Foods: {vendors?.data?.foods?.length || 0}
-                    </div>
-                    <div className="bg-green-50 px-2 py-1 rounded-full text-green-700 font-medium">
-                      Active: {vendors?.data?.isActive ? "Yes" : "No"}
-                    </div>
-                  </div> */}
-
-                  {/* Optional Button / Link */}
-                  {/* <button
-                    onClick={() => router.push("/vendors/profile")}
-                    className="mt-3 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 px-4 py-1.5 rounded-lg transition-all"
-                  >
-                    View Profile
-                  </button> */}
-                </div>
-
-
-
-                <nav className="mt-4">
+              
+                <nav className="mt-20">
                   <ul className="space-y-3">
                     {navItems.map((item) => {
                       const active = isSegmentActive(item.href);
@@ -206,8 +168,8 @@ export default function Header() {
                             onClick={() => setMobileOpen(false)}
                             className={`flex items-center gap-3 p-3 rounded-lg transition-all font-medium ${
                               active
-                                ? "bg-orange-500 text-white shadow-md"
-                                : "hover:bg-orange-50 bg-orange-50 text-gray-700 hover:text-orange-600"
+                                ? "bg-gray-300 text-white shadow-md"
+                                : "hover:bg-gray-50 bg-gray-50 text-gray-700 hover:text-gray-600"
                             }`}
                           >
                             <span className="text-lg">{item.icon}</span>

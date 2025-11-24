@@ -7,7 +7,8 @@ import { useVendorStorage } from "@/app/hooks/vendorStorage";
 export default function DashboardLayout({ children }) {
   const [active, setActive] = useState("My Foods");
 
-  const {vendor} = useVendorStorage();
+  const { vendorDetails } = useVendorStorage();
+  const vendor = vendorDetails?.vendor; 
 
   console.log("Vendor in DashboardLayout:", vendor);
 

@@ -12,7 +12,7 @@ const VerifyAccount = dynamic(
 export default function page() {
   return (
     <div className='bg-zinc-50 font-display text-[#181410]'>
-      <Suspense fallback={<div>Loading verify account...</div>}>
+      <Suspense fallback={''}>
         <VerifyAccount/>
       </Suspense>
     </div>

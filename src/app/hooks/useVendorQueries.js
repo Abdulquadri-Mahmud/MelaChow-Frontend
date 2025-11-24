@@ -19,11 +19,11 @@ export const useVendors = () => {
   } = useQuery({
     queryKey: ["vendors"],
     queryFn: getVendors,
-    staleTime: 1000 * 60 * 2, // 2 minutes
-    refetchInterval: 1000 * 30, // background refresh every 30s
-    refetchIntervalInBackground: true,
-    refetchOnWindowFocus: false,
-    keepPreviousData: true, // ✅ maintain UI during refetch
+    // staleTime: 1000 * 60 * 2, // 2 minutes
+    // refetchInterval: 1000 * 30, // background refresh every 30s
+    // refetchIntervalInBackground: true,
+    // refetchOnWindowFocus: false,
+    // keepPreviousData: true, // ✅ maintain UI during refetch
   });
 
   // 🔹 Optimistic update mutation for vendor profile
@@ -92,7 +92,7 @@ export const useVendorById = (id) => {
     queryKey: ["vendor", id],
     queryFn: () => getVendorById(id),
     enabled: !!id,
-    staleTime: 1000 * 60 * 2,
+    // staleTime: 1000 * 60 * 2,
     keepPreviousData: true,
   });
 

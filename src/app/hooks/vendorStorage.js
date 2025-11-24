@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 export const useVendorStorage = () => {
   const STORAGE_KEY = "VendorPayload"; // consistent key name
 
-  const [vendor, setVendor] = useState(null);
+  const [vendorDetails, setVendor] = useState(null);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -40,5 +40,5 @@ export const useVendorStorage = () => {
     setVendor(null);
   };
 
-  return { vendor, saveVendor, updateVendor, clearVendor };
+  return { vendorDetails, saveVendor, updateVendor, clearVendor };
 };
