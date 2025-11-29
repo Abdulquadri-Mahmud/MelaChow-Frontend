@@ -30,11 +30,22 @@ export const useUserStorage = () => {
     });
   };
 
+  // Full logout: clear user + token + anything else
+  const logout = () => {
+    localStorage.removeItem("userPayload");
+    localStorage.removeItem("userToken");
+    localStorage.removeItem("cart");   // optional: clear cart
+    localStorage.removeItem("addresses"); // optional
+
+    setUser(null);
+  };
+
+
   // Remove user data (e.g., on logout)
   const clearUser = () => {
     localStorage.removeItem("userPayload");
     setUser(null);
   };
 
-  return { user, saveUser, updateUser, clearUser };
+  return { user, saveUser, updateUser, clearUser, logout  };
 };

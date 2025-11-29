@@ -6,6 +6,8 @@ import { ProfileProvider } from "./context/ProfileContext";
 import AutoLogout from "./auto-logout/AutoLogout";
 import VendorsAutoLogout from "./auto-logout/VendorAutoLogout";
 import ConditionalBottomNav from "./components/conditional_bottom_nav/ConditionalBottomNav";
+import { CartProvider } from "./context/CartContext";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -71,11 +73,14 @@ export default function RootLayout({ children }) {
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ApiProvider>
           <QueryProvider>
-            <ProfileProvider>{children}</ProfileProvider>
+            <CartProvider>
+              <ProfileProvider>{children}</ProfileProvider>
+            </CartProvider>
           </QueryProvider>
         </ApiProvider>
         <AutoLogout />
         <VendorsAutoLogout />
+        <Toaster position="top-right" reverseOrder={false} />
         {/* 👇 This handles route-specific navbar visibility */}
         <ConditionalBottomNav />
       </body>

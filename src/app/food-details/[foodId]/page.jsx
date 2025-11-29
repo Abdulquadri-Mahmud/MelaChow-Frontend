@@ -19,12 +19,16 @@ import { useEffect, useRef, useState } from "react";
 import { TbCurrencyNaira } from "react-icons/tb";
 import axios from "axios";
 import { useApi } from "@/app/context/ApiContext";
+import { useCart } from "@/app/context/CartContext";
+
 
 export default function FoodDetails() {
   const router = useRouter();
   const { foodId } = useParams();
 
   const {baseUrl} = useApi();
+
+  const { addToCart } = useCart();
 
   const [food, setFood] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,6 +68,9 @@ export default function FoodDetails() {
   }, []);
 
   const data = food;
+
+  // console.log(food);
+
   const openingMessage = data?.vendor?.openingHours
     ? getVendorOpenStatus(data.vendor.openingHours)
     : "Opening hours not available.";
@@ -86,12 +93,52 @@ export default function FoodDetails() {
     }
   };
 
-  const handleAddClick = (food) => {
-    setSelectedFood(food);
+  const handleAddClick = (variant) => {
+    if (!variant) return;
+
+    // Build payload for AddToCartModal
+    const payload = {
+      // Basic identifiers
+      foodId: data._id,              // Main food ID
+      variantId: variant._id,        // Variant ID
+      restaurantId: data.vendor._id, // Vendor/restaurant ID
+
+      // Names & pricing
+      name: data.name,               // Food name
+      variantName: variant.name,     // Variant name
+      price: variant.price || 0,     // Price
+      image: variant.image || data.images?.[0]?.url || "", // Variant or food image
+      quantity: 1,                   // Default quantity
+      notes: "",                     // Optional notes
+
+      // Vendor & delivery info
+      estimatedDeliveryTime: {
+        min: (data.estimatedDeliveryTime - 5) || 0,
+        max: data.estimatedDeliveryTime || 0,
+      },
+      deliveryFee: data.deliveryFee || 0,
+      deliveryType: data.vendor?.acceptsDelivery ? "Instant Delivery" : "Pickup",
+
+      // Dish metadata
+      metadata: {
+        portionSize: data.metadata?.portionSize || "N/A",
+        spiceLevel: data.metadata?.spiceLevel || "Not specified",
+        chefSpecial: data.metadata?.chefSpecial || false,
+      },
+
+      // Optional category/tags
+      category: data.category || "Uncategorized",
+      tags: data.tags || [],
+    };
+
+    setSelectedFood(payload);
     setIsModalOpen(true);
   };
 
+
+
   const handleAddToCart = (item) => {
+    addToCart(item); // ✅ Add to global cart
     console.log("🛒 Added to cart:", item);
   };
 

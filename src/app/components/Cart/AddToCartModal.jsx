@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 export default function AddToCartModal({ food, isOpen, onClose, onAdd }) {
   const [quantity, setQuantity] = useState(1);
@@ -90,6 +91,10 @@ export default function AddToCartModal({ food, isOpen, onClose, onAdd }) {
               onClick={() => {
                 onAdd({ ...food, quantity });
                 onClose();
+                toast.success(`$(${food.name}) added to cart!`, {
+                  duration: 3000,
+                  position: "top-right",
+                });
               }}
               className="w-full flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-full font-semibold shadow-md transition"
             >

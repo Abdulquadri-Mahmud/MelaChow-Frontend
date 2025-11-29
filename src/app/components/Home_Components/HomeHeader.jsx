@@ -7,12 +7,17 @@ import { FaUser } from "react-icons/fa";
 import { fetchUser } from "@/app/lib/api";
 import Link from "next/link";
 import { BiCartAdd } from "react-icons/bi";
+import { useCart } from "@/app/context/CartContext";
 
 export default function HomeHeader() {
   const [token, setToken] = useState(null);
+  const [userData, setUserData] = useState(null);
+
+  const { cart } = useCart();
+  const totalItems = cart.length;
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+    const storedToken = localStorage.getItem("userToken");
     setToken(storedToken || null);
   }, []);
 
@@ -24,7 +29,6 @@ export default function HomeHeader() {
     retry: false,
   });
 
-  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     if (data?.user) {
@@ -32,6 +36,10 @@ export default function HomeHeader() {
       localStorage.setItem("user", JSON.stringify(data.user));
     }
   }, [data]);
+
+  
+  const defaultAddress = userData?.addresses?.find(addr => addr.isDefault);
+  console.log(defaultAddress)
 
   return (
     <motion.header
@@ -46,19 +54,25 @@ export default function HomeHeader() {
           <MapPin size={14} className="text-[#FF6B00]" />
           Deliver to
         </p>
+
         <h2 className="font-semibold text-gray-800 text-sm">
-          Lagos, Nigeria
+          {defaultAddress 
+            ? `${defaultAddress?.city}, ${defaultAddress?.state}`
+            : "Select your address"}
         </h2>
       </div>
 
+
       {/* Right Icons */}
       <div className="flex items-center gap-4">
-        <motion.div whileHover={{ rotate: 15 }} className="relative">
-          <BiCartAdd className="text-gray-700" size={22} />
-          <span className="absolute -top-1 -right-1 bg-[#FF6B00] animate-bounce animation-duration-0.1 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
-            0
-          </span>
-        </motion.div>
+        <Link href={'/cart'}>
+          <motion.div whileHover={{ rotate: 15 }} className="relative">
+            <BiCartAdd className="text-gray-700" size={22} />
+            <span className="absolute -top-1 -right-1 bg-[#FF6B00] animate-bounce animation-duration-0.1 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold text-md">
+              {totalItems}
+            </span>
+          </motion.div>
+        </Link>
 
         {isLoading ? (
           <div className="w-9 h-9 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
@@ -77,3 +91,9 @@ export default function HomeHeader() {
     </motion.header>
   );
 }
+
+{/* <h2 className="font-semibold text-gray-800 text-sm">
+  {defaultAddress 
+    ? defaultAddress.addressLine 
+    : "Select your address"}
+</h2> */}

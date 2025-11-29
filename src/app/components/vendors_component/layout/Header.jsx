@@ -19,6 +19,7 @@ import Logo from "../../logo/Logo";
 import { useState } from "react";
 import { useApi } from "@/app/context/ApiContext";
 import VendorProfileImageSkeleton from "@/app/skeleton/VendorProfileImageSkeleton";
+import { useCart } from "@/app/context/CartContext";
 
 const navItems = [
   {

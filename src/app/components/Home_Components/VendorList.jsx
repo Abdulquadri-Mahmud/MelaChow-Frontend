@@ -61,7 +61,7 @@ export default function VendorList() {
     }
   }, [data]);
 
-  console.log("✅ Fetched vendors:", data);
+  // console.log("✅ Fetched vendors:", data);
   
   const openingMessage = data?.vendor?.openingHours
       ? getVendorOpenAndCloseStatus(data.vendor.openingHours)

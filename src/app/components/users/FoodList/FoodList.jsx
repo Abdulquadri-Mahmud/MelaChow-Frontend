@@ -26,7 +26,7 @@ export default function FoodList() {
 
         const data = res?.data || [];
 
-        console.log("API response data:", data?.data);
+        // console.log("API response data:", data?.data);
 
         setFoods(data?.data || []);
     } catch (err) {
