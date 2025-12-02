@@ -18,11 +18,15 @@ import { useRouter } from "next/navigation";
 import { getVendorId } from "@/app/lib/vendorId";
 import FoodDetailsModal from "@/app/modals/FoodDetailsModal";
 import FoodListSkeleton from "@/app/skeleton/FoodListSkeleton";
+import { useVendorStorage } from "@/app/hooks/vendorStorage";
 
 export default function Page() {
-  const { foods, isLoading, deleteFood } = useVendorFood(getVendorId());
+  const { vendorDetails } = useVendorStorage();
+  const vendor = vendorDetails?.vendor?.id; 
 
-  console.log(getVendorId);
+  const { foods, isLoading, deleteFood } = useVendorFood(vendor);
+
+  // console.log(foods);
 
   const [deleting, setDeleting] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);

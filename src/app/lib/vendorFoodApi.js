@@ -62,6 +62,7 @@ export const getFoodById = async (id) => {
 // ✅ Create a new food item
 export const createFood = async (vendorId, data) => {
   const res = await api.post(`/create?vendorId=${vendorId}`, data);
+  console.log(res);
   return res.data;
 };
 

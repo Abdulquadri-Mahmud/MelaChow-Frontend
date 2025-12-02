@@ -22,6 +22,8 @@ import { getVendorId } from "@/app/lib/vendorId";
 import MetadataModal from "@/app/modals/create/MetadataModal";
 import VariantModal from "@/app/modals/create/VariantsModal";
 import PreviewModal from "@/app/modals/create/PreviewModal";
+import { createFood } from "@/app/lib/vendorFoodApi";
+import { useVendorStorage } from "@/app/hooks/vendorStorage";
 
 /***** CONFIG *****/
 const ACCENT = "#FF6600";
@@ -105,7 +107,10 @@ export default function CreateFoodPage() {
   const [dark, setDark] = useState(false);
 
   // ✅ get the vendor ID safely
-  const vendorId = getVendorId(); 
+  const vendorId = getVendorId();
+
+  const { vendorDetails } = useVendorStorage();
+    const vendor = vendorDetails?.vendor?.id; 
 
   // refs
   const fileRef = useRef(null);
@@ -299,7 +304,7 @@ export default function CreateFoodPage() {
     try {
       setLoading(true);
       // TODO: get real vendorId from auth/localStorage
-      await createFood(vendorId, payload);
+      await createFood(vendor, payload);
       showAnimatedToast("success", "Food created successfully!");
       // clear draft
       localStorage.removeItem("gd_create_food_draft");

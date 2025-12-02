@@ -41,13 +41,13 @@ const navItems = [
   {
     name: "Orders",
     icon: <FaClipboardList />,
-    href: "/vendors/orders",
+    href: "/vendors/order",
     tooltip: "Track and manage customer orders in real time",
   },
   {
     name: "Reviews",
     icon: <FaStar />,
-    href: "/vendors/reviews",
+    href: "/vendors/review",
     tooltip: "Check customer ratings and feedback",
   },
   {

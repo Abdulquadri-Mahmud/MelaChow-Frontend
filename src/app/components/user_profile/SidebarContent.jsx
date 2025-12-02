@@ -8,6 +8,7 @@ import { ChevronRight, BadgeQuestionMark, HeartHandshake, MapPinHouse } from "lu
 import { ArrowLeftOnRectangleIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import NeedHelp from "@/app/profile/need_help_contact_info/NeedHelp";
+import { AnimatePresence, motion } from "framer-motion";
 
 // ===================
 // SidebarContent Component

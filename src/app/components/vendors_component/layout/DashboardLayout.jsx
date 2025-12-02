@@ -10,7 +10,7 @@ export default function DashboardLayout({ children }) {
   const { vendorDetails } = useVendorStorage();
   const vendor = vendorDetails?.vendor; 
 
-  console.log("Vendor in DashboardLayout:", vendor);
+  // console.log("Vendor in DashboardLayout:", vendor);
 
   return (
     <div className="flex h-screen">
