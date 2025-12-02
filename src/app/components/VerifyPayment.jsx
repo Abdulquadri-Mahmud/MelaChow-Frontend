@@ -1,70 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { Loader2, CheckCircle2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { verifyPayment } from "../lib/api";
 import { useCart } from "../context/CartContext";
-import { fetchUser, verifyPayment } from "../lib/api";
 
 export default function OrderSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const reference = searchParams.get("reference");
 
-  const { cart, clearCart } = useCart();
-  const totalItems = cart.length;
-
+  const { cart } = useCart();
   const [loading, setLoading] = useState(true);
   const [order, setOrder] = useState(null);
   const [token, setToken] = useState(null);
-  const [userData, setUserData] = useState(null);
 
-  // 1️⃣ Get token from localStorage
+  // Prevent double verification
+  const verifiedRef = useRef(false);
+
+  // Get token once
   useEffect(() => {
     const storedToken = localStorage.getItem("userToken");
     setToken(storedToken || null);
   }, []);
 
-  // 2️⃣ Fetch user data
-  const { data, isLoading: userLoading, isError } = useQuery({
-    queryKey: ["userProfile", token],
-    queryFn: () => fetchUser(token),
-    enabled: !!token,
-    retry: false,
-  });
-
+  // Fetch order/payment status
   useEffect(() => {
-    if (data?.user) setUserData(data.user);
-  }, [data]);
+    if (!reference || !token || verifiedRef.current) return;
 
-  // 3️⃣ Verify payment
-  useEffect(() => {
-    if (!reference || !token || !userData) return;
-
-    const defaultAddress = userData.addresses?.find(addr => addr.isDefault);
-    if (!defaultAddress) {
-      toast.error("No default delivery address found");
-      setLoading(false);
-      return;
-    }
-
-    const confirmPayment = async () => {
+    const fetchOrder = async () => {
       setLoading(true);
       try {
-        const res = await verifyPayment(token, reference, {
-          items: cart,
-          deliveryFee: 800, // or compute dynamically
-          deliveryAddress: defaultAddress,
-          phone: userData.phone || defaultAddress.phone,
-        });
+        const res = await verifyPayment(token, reference);
+        verifiedRef.current = true; // Mark as verified
 
-        if (res?.order) {
+        if (res.order) {
           setOrder(res.order);
-          clearCart(); // clear cart after successful order
         } else {
-          toast.error(res?.message || "Payment verification failed");
+          toast.success("Payment verified! Your order is being processed...");
+          setOrder(null);
         }
       } catch (err) {
         console.error(err);
@@ -74,11 +50,10 @@ export default function OrderSuccessPage() {
       }
     };
 
-    confirmPayment();
-  }, [reference, token, userData, cart, clearCart]);
+    fetchOrder();
+  }, [reference, token]);
 
-  // 4️⃣ Loading state
-  if (loading || userLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
         <Toaster />
@@ -88,15 +63,22 @@ export default function OrderSuccessPage() {
     );
   }
 
-  // 5️⃣ Failed verification
   if (!order) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
         <Toaster />
-        <p className="text-red-500 font-semibold">Payment verification failed.</p>
+        <p className="text-gray-700 font-semibold mb-4">
+          Your payment was successful! Order will be created shortly.
+        </p>
+        <button
+          onClick={() => router.push("/orders")}
+          className="px-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition"
+        >
+          Check Orders
+        </button>
         <button
           onClick={() => router.push("/")}
-          className="mt-4 px-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition"
+          className="mt-2 px-6 py-3 border border-gray-300 rounded-xl font-semibold hover:bg-gray-100 transition"
         >
           Back to Home
         </button>
@@ -106,12 +88,13 @@ export default function OrderSuccessPage() {
 
   const deliveryAddress = order.deliveryAddress;
 
-  // 6️⃣ Success page
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <Toaster />
       <CheckCircle2 className="text-green-500 w-20 h-20 mb-6" />
-      <h1 className="text-2xl font-bold text-gray-800 mb-2">Order Placed Successfully!</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-2">
+        Order Placed Successfully!
+      </h1>
       <p className="text-gray-600 mb-4">
         Your order <span className="font-semibold">{order._id}</span> has been placed.
       </p>
@@ -125,18 +108,27 @@ export default function OrderSuccessPage() {
         <p className="text-gray-700 mt-1">Phone: {order.phone}</p>
 
         <h2 className="text-lg font-semibold text-gray-800 mt-4 mb-2">Order Summary</h2>
-        <ul className="text-gray-700 space-y-2">
-          {order.items.map(item => (
-            <li key={item._id} className="flex justify-between">
-              <div className="flex flex-col">
+        <ul className="text-gray-700 space-y-4">
+          {order.items.map((item) => (
+            <li key={item._id} className="flex items-center justify-between gap-4">
+              <img
+                src={item.foodId?.image || "/placeholder.png"}
+                alt={item.foodId?.name || "Food item"}
+                className="w-16 h-16 rounded-lg object-cover"
+              />
+              <div className="flex-1 flex flex-col">
                 <span className="font-medium">
-                  {item.foodId?.name || "Item"} {item.variantId?.name ? `(${item.variantId.name})` : ""}
+                  {item.foodId?.name || "Item"}{" "}
+                  {item.variantId?.name ? `(${item.variantId.name})` : ""}
                 </span>
-                <span className="text-sm text-gray-500">{item.quantity} x ₦{item.price.toLocaleString()}</span>
+                <span className="text-sm text-gray-500">
+                  {item.quantity} x ₦{item.price.toLocaleString()}
+                </span>
               </div>
               <span className="font-semibold">₦{(item.price * item.quantity).toLocaleString()}</span>
             </li>
           ))}
+
           <li className="flex justify-between mt-2 font-semibold border-t pt-2">
             <span>Subtotal</span>
             <span>₦{order.subtotal.toLocaleString()}</span>
@@ -150,16 +142,11 @@ export default function OrderSuccessPage() {
             <span>₦{order.total.toLocaleString()}</span>
           </li>
         </ul>
-
-        <p className="mt-4 text-sm text-gray-500">
-          Estimated delivery time: 25-40 mins
-        </p>
       </div>
 
-      {/* Actions */}
       <div className="flex flex-col gap-3 w-full max-w-md">
         <button
-          onClick={() => router.push("/orders")}
+          onClick={() => router.push("/track-orders")}
           className="w-full px-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition"
         >
           Track Your Order
