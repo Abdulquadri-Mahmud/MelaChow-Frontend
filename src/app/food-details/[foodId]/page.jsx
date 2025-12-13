@@ -20,6 +20,9 @@ import { TbCurrencyNaira } from "react-icons/tb";
 import axios from "axios";
 import { useApi } from "@/app/context/ApiContext";
 import { useCart } from "@/app/context/CartContext";
+import Link from "next/link";
+import { BiCartAdd } from "react-icons/bi";
+import toast, {Toaster} from 'react-hot-toast';
 
 
 export default function FoodDetails() {
@@ -28,7 +31,7 @@ export default function FoodDetails() {
 
   const {baseUrl} = useApi();
 
-  const { addToCart } = useCart();
+  const { addToCart, cart } = useCart();
 
   const [food, setFood] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -135,33 +138,46 @@ export default function FoodDetails() {
     setIsModalOpen(true);
   };
 
-
-
   const handleAddToCart = (item) => {
-    addToCart(item); // ✅ Add to global cart
-    console.log("🛒 Added to cart:", item);
+    addToCart(item); // ✅ Add to global 
+    // console.log(item)
+    // toast.success("🛒 Added to cart:", item)
   };
 
   if (!isClient) return <div className="min-h-screen bg-white">Loading...</div>;
 
+  const totalItems = cart.length;
+
   return (
     <>
+    <Toaster/>
     {/* <Header2 title={data?.category || "Food Details"}/> */}
      {/* 🧭 Custom Header */}
-      <header className="flex items-center px-3 py-2 bg-white sticky top-0 z-50">
-        <button
-          onClick={() => router.back()}
-          className="p-2 rounded-full hover:bg-gray-100 transition"
-          aria-label="Go back"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-700" />
-        </button>
+      <header className="flex items-center justify-between px-3 py-3 bg-white sticky top-0 z-50">
+        <div className="flex items-center">
+          <button
+            onClick={() => router.back()}
+            className="p-2 rounded-full hover:bg-gray-100 transition"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
+          </button>
 
-        <h1 className="md:text-lg text-sm font-semibold text-gray-800 capitalize">
-          {data?.vendor?.storeName || "Food Details"} - {data?.vendor?.address
-          ? ` ${data.vendor.address.city}`
-          : "Address not available"}
-        </h1>
+          <h1 className="md:text-lg text-sm font-semibold text-gray-800 capitalize">
+            {data?.vendor?.storeName || "Food Details"} - {data?.vendor?.address
+            ? ` ${data.vendor.address.city}`
+            : "Address not available"}
+          </h1>
+        </div>
+
+        <Link href={'/cart'}>
+          <motion.div whileHover={{ rotate: 15 }} className="relative">
+            <BiCartAdd className="text-gray-700" size={22} />
+            <span className="absolute -top-1 -right-1 bg-[#FF6B00] animate-bounce animation-duration-0.1 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold text-md">
+              {totalItems}
+            </span>
+          </motion.div>
+        </Link>
       </header>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="bg-white rounded-2xl shadow overflow-hidden mt-3">

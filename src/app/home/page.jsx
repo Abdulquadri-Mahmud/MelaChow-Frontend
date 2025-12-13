@@ -48,6 +48,7 @@ export default function HomePage() {
         <PromoBanner />
         <VendorList />
         <FoodList />
+        <div className=""/>
         <FeatureSlider />
       </div>
 

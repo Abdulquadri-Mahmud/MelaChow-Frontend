@@ -2,7 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Minus, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { BiCartAdd } from "react-icons/bi";
+import { motion } from "framer-motion";
 
 export default function CartPage() {
   const { cart, increaseQuantity, decreaseQuantity, removeFromCart } = useCart();
@@ -12,81 +15,113 @@ export default function CartPage() {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+  
+  const totalItems = cart.length;
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col pb-24">
       {/* Header */}
-      <div className="p-4 bg-white shadow-sm sticky top-0 z-10">
-        <h2 className="text-lg font-semibold text-gray-900">Your Cart</h2>
+      <div className="md:p-4 p-3 flex items-center justify-between bg-white shadow-sm sticky top-0 z-10">
+        <div className="flex items-center">
+          <button onClick={() => router.back()} className="p-2 rounded-full hover:bg-gray-100 transition" aria-label="Go back">
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
+          </button>
+          <h2 className="text-lg font-semibold text-gray-900">Your Cart</h2>
+        </div>
+        <Link href={'/cart'}>
+          <motion.div whileHover={{ rotate: 15 }} className="relative">
+            <BiCartAdd className="text-gray-700" size={22} />
+            <span className="absolute -top-1 -right-1 bg-[#FF6B00] animate-bounce animation-duration-0.1 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold text-md">
+              {totalItems}
+            </span>
+          </motion.div>
+        </Link>
       </div>
 
       {/* Cart Items */}
-      <div className="p-4 space-y-4 flex-1">
-        {cart.length === 0 ? (
-          <p className="text-gray-500 text-center mt-10">Your cart is empty</p>
-        ) : (
-          cart.map((item) => (
-            <div
-              key={item.foodId + item.variantId}
-              className="bg-white p-4 rounded-2xl shadow-sm flex gap-4"
-            >
-              {/* Image */}
-              <img
-                src={item.image}
-                alt={item.name}
-                className="w-24 h-24 rounded-xl object-cover shadow-sm"
-              />
+      <div className="flex-1 md:p-4 p-2">
+        <div className="max-h-[65vh] pb-5 scroll overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+          {cart.length === 0 ? (
+            <p className="text-gray-500 text-sm text-center mt-12">
+              Your cart is empty
+            </p>
+          ) : (
+            cart.map((item) => (
+              <div
+                key={item.foodId + item.variantId}
+                className="bg-white border border-gray-100 rounded-2xl p-3 flex gap-3 transition"
+              >
+                {/* Image */}
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="w-14 h-14 rounded-xl object-cover bg-gray-100"
+                />
 
-              <div className="flex-1 flex flex-col">
-                <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                <p className="text-xs text-gray-500">{item.variantName}</p>
+                {/* Content */}
+                <div className="flex-1 flex flex-col gap-1">
+                  {/* Title & Price */}
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-sm font-medium text-gray-800 leading-tight">
+                        {item.variantName}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        ₦{item.price.toLocaleString()}
+                      </p>
+                    </div>
 
-                {/* Price */}
-                <p className="font-semibold mt-2 text-gray-800">
-                  ₦{item.price}
-                </p>
+                    <span className="text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
+                      ₦{(item.price * item.quantity).toLocaleString()}
+                    </span>
+                  </div>
 
-                {/* Quantity Control */}
-                <div className="flex items-center gap-3 mt-2">
-                  <button
-                    onClick={() =>
-                      decreaseQuantity(item.foodId, item.variantId)
-                    }
-                    className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center"
-                  >
-                    <Minus size={16} />
-                  </button>
+                  {/* Quantity Controls */}
+                  <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-center gap-2 bg-gray-100 rounded-full px-2 py-1">
+                      <button
+                        onClick={() =>
+                          decreaseQuantity(item.foodId, item.variantId)
+                        }
+                        className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-200"
+                      >
+                        <Minus size={14} />
+                      </button>
 
-                  <span className="font-medium">{item.quantity}</span>
+                      <span className="text-sm font-medium text-gray-800">
+                        {item.quantity}
+                      </span>
 
-                  <button
-                    onClick={() =>
-                      increaseQuantity(item.foodId, item.variantId)
-                    }
-                    className="w-8 h-8 rounded-full bg-gray-800 text-white flex items-center justify-center"
-                  >
-                    <Plus size={16} />
-                  </button>
+                      <button
+                        onClick={() =>
+                          increaseQuantity(item.foodId, item.variantId)
+                        }
+                        className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-800 text-white hover:bg-gray-900"
+                      >
+                        <Plus size={14} />
+                      </button>
+                    </div>
 
-                  {/* Remove Button */}
-                  <button
-                    onClick={() =>
-                      removeFromCart(item.foodId, item.variantId)
-                    }
-                    className="text-red-500 ml-auto hover:text-red-600"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                    {/* Remove */}
+                    <button
+                      onClick={() =>
+                        removeFromCart(item.foodId, item.variantId)
+                      }
+                      className="ml-auto text-gray-400 hover:text-red-500 transition"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
 
       {/* Floating Checkout Bar */}
       {cart.length > 0 && (
-        <div className="fixed bottom-14 left-0 right-0 bg-white p-4 shadow-xl rounded-t-2xl border-t">
+        <div className="fixed bottom-14 left-0 right-0 bg-white p-3 shadow-xl rounded-t-2xl border-t">
           <div className="flex justify-between items-center mb-3">
             <span className="text-gray-600 text-sm">Subtotal</span>
             <span className="font-bold text-lg">₦{subtotal}</span>
@@ -95,7 +130,7 @@ export default function CartPage() {
           {/* Checkout Button */}
           <button
             onClick={() => router.push("/checkout")}
-            className="w-full bg-orange-500 text-white py-4 rounded-xl font-semibold text-base active:scale-95 transition-all"
+            className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold text-base active:scale-95 transition-all"
           >
             Proceed to Checkout
           </button>

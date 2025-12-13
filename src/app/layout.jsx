@@ -75,6 +75,7 @@ export default function RootLayout({ children }) {
           <QueryProvider>
             <CartProvider>
               <ProfileProvider>{children}</ProfileProvider>
+              <ConditionalBottomNav />
             </CartProvider>
           </QueryProvider>
         </ApiProvider>
@@ -82,7 +83,6 @@ export default function RootLayout({ children }) {
         <VendorsAutoLogout />
         <Toaster position="top-right" reverseOrder={false} />
         {/* 👇 This handles route-specific navbar visibility */}
-        <ConditionalBottomNav />
       </body>
     </html>
   );

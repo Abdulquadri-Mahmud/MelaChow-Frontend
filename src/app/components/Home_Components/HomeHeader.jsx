@@ -39,7 +39,7 @@ export default function HomeHeader() {
 
   
   const defaultAddress = userData?.addresses?.find(addr => addr.isDefault);
-  console.log(defaultAddress)
+  // console.log(defaultAddress)
 
   return (
     <motion.header

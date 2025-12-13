@@ -1,163 +1,184 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useRef, useState } from "react";
+import { useUserStorage } from "../hooks/useUserStorage";
+import axios from "axios";
+import { useApi } from "../context/ApiContext";
 import toast, { Toaster } from "react-hot-toast";
-import { Loader2, CheckCircle2 } from "lucide-react";
-import { verifyPayment } from "../lib/api";
-import { useCart } from "../context/CartContext";
+import Header2 from "./App_Header/Header2";
 
-export default function OrderSuccessPage() {
-  const router = useRouter();
+export default function VerifyPayment() {
   const searchParams = useSearchParams();
-  const reference = searchParams.get("reference");
-
-  const { cart } = useCart();
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("verifying");
   const [order, setOrder] = useState(null);
-  const [token, setToken] = useState(null);
 
-  // Prevent double verification
-  const verifiedRef = useRef(false);
+  const { user } = useUserStorage();
+  const router = useRouter();
+  const { baseUrl } = useApi();
 
-  // Get token once
+  const reference = searchParams.get("reference");
+  const didVerify = useRef(false);
+
   useEffect(() => {
-    const storedToken = localStorage.getItem("userToken");
-    setToken(storedToken || null);
-  }, []);
+    if (!reference || !user?.token || didVerify.current) return;
+    didVerify.current = true;
 
-  // Fetch order/payment status
-  useEffect(() => {
-    if (!reference || !token || verifiedRef.current) return;
-
-    const fetchOrder = async () => {
-      setLoading(true);
+    const verifyPayment = async () => {
       try {
-        const res = await verifyPayment(token, reference);
-        verifiedRef.current = true; // Mark as verified
+        const res = await axios.post(
+          `${baseUrl}/orders/verify/${reference}`,
+          {},
+          { headers: { Authorization: `Bearer ${user?.token}` } }
+        );
 
-        if (res.order) {
-          setOrder(res.order);
-        } else {
-          toast.success("Payment verified! Your order is being processed...");
-          setOrder(null);
+        if (!res.data.order) {
+          setStatus("failed");
+          toast.error("Payment verified but order was not created.");
+          return;
         }
-      } catch (err) {
-        console.error(err);
-        toast.error("Payment verification failed");
-      } finally {
-        setLoading(false);
+
+        setOrder(res.data.order);
+        setStatus("success");
+        toast.success(res.data.message || "Payment verified successfully!");
+      } catch (error) {
+        console.error("Verification error:", error);
+        setStatus("failed");
+        toast.error(
+          error.response?.data?.message || "Something went wrong during verification"
+        );
       }
     };
 
-    fetchOrder();
-  }, [reference, token]);
+    verifyPayment();
+  }, [reference, user?.token, baseUrl]);
 
-  if (loading) {
+  // console.log(order)
+
+  // Loading State
+  if (status === "verifying") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-        <Toaster />
-        <Loader2 className="animate-spin" size={40} />
-        <p className="mt-4 text-gray-700">Verifying payment...</p>
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
+        <div className="bg-white shadow-md border rounded-2xl p-6 max-w-sm w-full text-center animate-fadeIn">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
+          </div>
+          <h2 className="text-lg font-semibold text-gray-800">Verifying Payment</h2>
+          <p className="text-gray-600 text-sm mt-2 animate-pulse">
+            Please wait while we confirm your transaction...
+          </p>
+        </div>
       </div>
     );
   }
 
-  if (!order) {
+  // Failed State
+  if (status === "failed") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-        <Toaster />
-        <p className="text-gray-700 font-semibold mb-4">
-          Your payment was successful! Order will be created shortly.
-        </p>
-        <button
-          onClick={() => router.push("/orders")}
-          className="px-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition"
-        >
-          Check Orders
-        </button>
-        <button
-          onClick={() => router.push("/")}
-          className="mt-2 px-6 py-3 border border-gray-300 rounded-xl font-semibold hover:bg-gray-100 transition"
-        >
-          Back to Home
-        </button>
+      <div className="min-h-screen bg-white flex items-center justify-center px-4">
+        <div className="bg-white shadow-md border rounded-2xl p-6 max-w-md w-full text-center animate-fadeIn">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-4xl">
+              !
+            </div>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-800">Payment Failed</h2>
+          <p className="text-gray-600 mt-2">
+            Something went wrong while verifying your payment.
+          </p>
+          <button
+            onClick={() => router.push("/checkout")}
+            className="w-full mt-6 py-3 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition"
+          >
+            Return to Checkout
+          </button>
+        </div>
       </div>
     );
   }
 
-  const deliveryAddress = order.deliveryAddress;
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-      <Toaster />
-      <CheckCircle2 className="text-green-500 w-20 h-20 mb-6" />
-      <h1 className="text-2xl font-bold text-gray-800 mb-2">
-        Order Placed Successfully!
-      </h1>
-      <p className="text-gray-600 mb-4">
-        Your order <span className="font-semibold">{order._id}</span> has been placed.
-      </p>
-
-      {/* Delivery Summary */}
-      <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-2">Delivery Info</h2>
-        <p className="text-gray-700">
-          {deliveryAddress?.addressLine}, {deliveryAddress?.city}, {deliveryAddress?.state}
-        </p>
-        <p className="text-gray-700 mt-1">Phone: {order.phone}</p>
-
-        <h2 className="text-lg font-semibold text-gray-800 mt-4 mb-2">Order Summary</h2>
-        <ul className="text-gray-700 space-y-4">
-          {order.items.map((item) => (
-            <li key={item._id} className="flex items-center justify-between gap-4">
-              <img
-                src={item.foodId?.image || "/placeholder.png"}
-                alt={item.foodId?.name || "Food item"}
-                className="w-16 h-16 rounded-lg object-cover"
-              />
-              <div className="flex-1 flex flex-col">
-                <span className="font-medium">
-                  {item.foodId?.name || "Item"}{" "}
-                  {item.variantId?.name ? `(${item.variantId.name})` : ""}
-                </span>
-                <span className="text-sm text-gray-500">
-                  {item.quantity} x ₦{item.price.toLocaleString()}
-                </span>
+  // Success State
+  if (status === "success" && order) {
+    return (
+      <div className="">
+        <Header2/>
+        <div className=" pb-20 bg-white flex items-center justify-center md:px-4 p-2 md:py-6">
+          <div className="bg-white border rounded-2xl md:p-6 p-2 max-w-md w-full text-center animate-fadeIn">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-4xl">
+                ✓
               </div>
-              <span className="font-semibold">₦{(item.price * item.quantity).toLocaleString()}</span>
-            </li>
-          ))}
+            </div>
+            <h2 className="text-xl font-semibold text-gray-800">
+              Payment Verified Successfully!
+            </h2>
+            <p className="text-gray-600 mt-2">
+              Your order has been confirmed and is being processed.
+            </p>
 
-          <li className="flex justify-between mt-2 font-semibold border-t pt-2">
-            <span>Subtotal</span>
-            <span>₦{order.subtotal.toLocaleString()}</span>
-          </li>
-          <li className="flex justify-between font-semibold">
-            <span>Delivery Fee</span>
-            <span>₦{order.deliveryFee.toLocaleString()}</span>
-          </li>
-          <li className="flex justify-between mt-2 font-bold border-t pt-2">
-            <span>Total</span>
-            <span>₦{order.total.toLocaleString()}</span>
-          </li>
-        </ul>
-      </div>
+            {/* Order Details */}
+            <div className="space-y-4 mt-5 md:text-sm text-xs">
 
-      <div className="flex flex-col gap-3 w-full max-w-md">
-        <button
-          onClick={() => router.push("/track-orders")}
-          className="w-full px-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition"
-        >
-          Track Your Order
-        </button>
-        <button
-          onClick={() => router.push("/")}
-          className="w-full px-6 py-3 border border-gray-300 rounded-xl font-semibold hover:bg-gray-100 transition"
-        >
-          Back to Home
-        </button>
+              {/* Order Info */}
+              <div className="bg-white rounded-xl md:p-4 p-2 border border-gray-200 space-y-2">
+                <h3 className="font-semibold text-gray-800 text-lg">Order Information</h3>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 font-medium">Order ID:</span>
+                  <span className="text-gray-800">{order.orderId}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 font-medium">Status:</span>
+                  <span className="text-gray-800 capitalize">{order.orderStatus}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 font-medium">Payment Status:</span>
+                  <span className="text-gray-800 capitalize bg-green-200 px-3 py-1 rounded-md">{order.paymentStatus}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 font-medium">Subtotal:</span>
+                  <span className="text-gray-800">₦{order.subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 font-medium">Delivery Fee:</span>
+                  <span className="text-gray-800">₦{order.deliveryFee.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 font-medium">Total:</span>
+                  <span className="text-orange-500 font-bold">₦{order.total.toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Delivery Address */}
+              <div className="bg-white rounded-xl md:p-4 p-2 border border-gray-200 space-y-2">
+                <h3 className="font-semibold text-gray-800 text-lg">Delivery Address</h3>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 font-medium">Address:</span>
+                  <span className="text-gray-800">{order.deliveryAddress.addressLine}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 font-medium">City / State:</span>
+                  <span className="text-gray-800">{order.deliveryAddress.city}, {order.deliveryAddress.state}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 font-medium">Label:</span>
+                  <span className="text-gray-800">{order.deliveryAddress.label}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 font-medium">Phone:</span>
+                  <span className="text-gray-800">{order.deliveryAddress.phone}</span>
+                </div>
+              </div>
+
+            </div>
+
+            <button onClick={() => router.push(`/track-orders/${order.orderId}`)} className="w-full cursor-pointer mt-6 py-3 rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition">
+              View Orders
+            </button>
+          </div>
       </div>
-    </div>
-  );
+      </div>
+    );
+  }
+
+  return null;
 }
