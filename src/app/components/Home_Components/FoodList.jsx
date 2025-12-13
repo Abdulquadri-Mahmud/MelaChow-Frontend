@@ -64,13 +64,13 @@ export default function FoodList() {
   return (
     <div className="flex-1 pb-5">
       {Object.entries(foodsByCategory).map(([category, foods]) => (
-        <div key={category} className="space-y2 md:p-3 p-2 rounded-xl">
+        <div key={category} className=" md:p-3 p-2 rounded-xl">
           <h2 className="md:text-lg text-md font-semibold text-gray-800">
             {category}
           </h2>
 
           {/* Horizontal scroll container */}
-          <div className="flex gap-4 overflow-x-auto scroll pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar">
+          <div className="flex gap-2 overflow-x-auto scroll pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar">
             {foods.map((food) => (
               <div
                 key={food._id}
