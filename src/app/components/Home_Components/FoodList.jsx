@@ -74,7 +74,7 @@ export default function FoodList() {
             {foods.map((food) => (
               <div
                 key={food._id}
-                className="bg-white p-2 rounded-md shadow-md min-w-[250px] cursor-pointer snap-start hover:shadow-lg transition"
+                className="bg-white p-2 rounded-md min-w-[250px] cursor-pointer snap-start hover:shadow-lg transition"
                 onClick={() => router.push(`/food-details/${food._id}`)}
               >
                 {/* Image */}

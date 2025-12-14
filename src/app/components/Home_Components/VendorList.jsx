@@ -143,7 +143,7 @@ export default function VendorList() {
               whileTap={{ scale: 0.96 }}
               transition={{ duration: 0.3 }}
               className="bg-white mb-4 rounded-2xl shadow-sm min-w-[220px] overflow-hidden hover:shadow-md cursor-pointer snap-center flex-shrink-0"
-              onClick={() => router.push(`/view-vendor/${String(vendor._id)}`)}
+              onClick={() => router.push(`/restataurants/${String(vendor._id)}`)}
             >
               <div className="relative">
                 {!imgLoaded[vendor._id] && <Skeleton height={128} width="100%" />}
