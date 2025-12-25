@@ -64,9 +64,9 @@ export default function Signin() {
   return (
     <div className="fixed inset-0 bg-gray-50 flex items-center justify-center overflow-auto">
       <div className="bg-white w-full max-w-md p-6 rounded-2xl flex-shrink-0">
-        {/* <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-4">
           <LogoImage />
-        </div> */}
+        </div>
         <p className="text-center text-gray-600 text-sm mt-4 mb-6">
           Welcome back! Sign in to continue ordering
         </p>
