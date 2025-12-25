@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import {
@@ -52,11 +52,10 @@ const showAnimatedToast = (type, message) => {
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: 80, opacity: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 24 }}
-        className={`max-w-sm w-full rounded-xl px-4 py-3 shadow-lg flex items-start gap-3 ${
-          type === "success"
+        className={`max-w-sm w-full rounded-xl px-4 py-3 shadow-lg flex items-start gap-3 ${type === "success"
             ? "bg-white border-l-4 border-emerald-400"
             : "bg-white border-l-4 border-rose-400"
-        }`}
+          }`}
       >
         <div className="mt-0.5">{type === "success" ? <Check className="text-emerald-500" /> : <X className="text-rose-500" />}</div>
         <div className="flex-1">
@@ -70,7 +69,7 @@ const showAnimatedToast = (type, message) => {
 };
 
 /***** TAG SUGGESTIONS *****/
-const SUGGESTED_TAGS = ["popular", "spicy","delicious", "vegan", "new", "combo", "signature"];
+const SUGGESTED_TAGS = ["popular", "spicy", "delicious", "vegan", "new", "combo", "signature"];
 
 /***** MAIN PAGE *****/
 export default function CreateFoodPage() {
@@ -89,11 +88,11 @@ export default function CreateFoodPage() {
     images: [],
   });
 
-    const [metadata, setMetadata] = useState({
-        portionSize: "1",
-        spiceLevel: "Medium",
-        chefSpecial: false,
-    });
+  const [metadata, setMetadata] = useState({
+    portionSize: "1",
+    spiceLevel: "Medium",
+    chefSpecial: false,
+  });
 
 
   // UI state
@@ -110,7 +109,7 @@ export default function CreateFoodPage() {
   const vendorId = getVendorId();
 
   const { vendorDetails } = useVendorStorage();
-    const vendor = vendorDetails?.vendor?.id; 
+  const vendor = vendorDetails?.vendor?.id;
 
   // refs
   const fileRef = useRef(null);
@@ -137,8 +136,8 @@ export default function CreateFoodPage() {
     "Porridge",
     "Native Delicacies",
     "Others"
-    ]);
-  
+  ]);
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -229,34 +228,34 @@ export default function CreateFoodPage() {
   };
 
   /** Variant CRUD **/
-   const handleVariantSave = (v) => {
-        // if editing, replace the variant at that index
-        if (editingVariant?.index != null) {
-            setVariants(prev =>
-            prev.map((item, i) => (i === editingVariant.index ? v : item))
-            );
-            setEditingVariant(null);
-        } else {
-            // add new
-            setVariants(prev => [...prev, v]);
-        }
-        // close modal if still open
-        setVariantModalOpen(false);
-    };
+  const handleVariantSave = (v) => {
+    // if editing, replace the variant at that index
+    if (editingVariant?.index != null) {
+      setVariants(prev =>
+        prev.map((item, i) => (i === editingVariant.index ? v : item))
+      );
+      setEditingVariant(null);
+    } else {
+      // add new
+      setVariants(prev => [...prev, v]);
+    }
+    // close modal if still open
+    setVariantModalOpen(false);
+  };
 
 
 
-    const handleEditVariant = (idx) => {
-        // sanity check
-        if (typeof idx !== "number" || !variants[idx]) {
-            console.warn("handleEditVariant: invalid index", idx);
-            return;
-        }
+  const handleEditVariant = (idx) => {
+    // sanity check
+    if (typeof idx !== "number" || !variants[idx]) {
+      console.warn("handleEditVariant: invalid index", idx);
+      return;
+    }
 
-        setEditingVariant({ index: idx, data: variants[idx] });
-        console.log("Editing variant index", idx, "data:", variants[idx]);
-        setVariantModalOpen(true);
-    };
+    setEditingVariant({ index: idx, data: variants[idx] });
+    console.log("Editing variant index", idx, "data:", variants[idx]);
+    setVariantModalOpen(true);
+  };
 
 
   const handleRemoveVariant = (idx) => setVariants(prev => prev.filter((_, i) => i !== idx));
@@ -313,7 +312,7 @@ export default function CreateFoodPage() {
       router.push("/vendors/my-foods");
     } catch (err) {
       console.error(err.response);
-      showAnimatedToast("error", err?.response?.data.message );
+      showAnimatedToast("error", err?.response?.data.message);
     } finally {
       setLoading(false);
     }
@@ -345,7 +344,7 @@ export default function CreateFoodPage() {
 
   return (
     <div className="min-h-screen transition-colors">
-      <Toaster position="top-right" />
+
 
       {/* TOP BAR: progress + theme */}
       <div className="max-w-5xl mx-auto mb-3">
@@ -355,19 +354,19 @@ export default function CreateFoodPage() {
               <Utensils className="text-gray-200" />
             </div>
             <div className="space-y-2">
-                <h1 className="text-xl sm:text-3xl font-bold text-gray-900 ">
-                    <span className="text-orange-500 ">Create Food</span> - 
-                    <span className="text-orange-500"> GrubDash</span>
-                </h1>
-                <p className="text-sm sm:text-base text-gray-500">
-                    Step-by-step listing creation with validation & live preview
-                </p>
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 ">
+                <span className="text-orange-500 ">Create Food</span> -
+                <span className="text-orange-500"> GrubDash</span>
+              </h1>
+              <p className="text-sm sm:text-base text-gray-500">
+                Step-by-step listing creation with validation & live preview
+              </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <button onClick={() => setPreviewOpen(true)} 
-            className="absolute top-2 right-2 font-semibold bg-orange-500 px-3 py-2 text-gray-100 rounded-tl-2xl rounded-br-2xl text-sm hover:bg-gray-100">Preview</button>
+            <button onClick={() => setPreviewOpen(true)}
+              className="absolute top-2 right-2 font-semibold bg-orange-500 px-3 py-2 text-gray-100 rounded-tl-2xl rounded-br-2xl text-sm hover:bg-gray-100">Preview</button>
             {/* <button onClick={() => { setDark(d => !d); }} className="p-2 rounded-md border hover:bg-gray-100">
               {dark ? <Sun /> : <Moon />}
             </button> */}
@@ -512,40 +511,40 @@ export default function CreateFoodPage() {
 
           <div className="space-y-2">
             {variants.length ? variants.map((v, i) => {
-                
-                totalVariationPrice += v.price;
 
-                return (
-                    <div key={i} className="flex items-center justify-between bg-white border-2 border-dashed  border-orange-500 rounded-lg p-3">
-                        <div className="flex items-center gap-3">
-                            {v.image ? <img src={v.image} className="w-12 h-12 rounded-md object-cover" /> : <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center"><ImageIcon /></div>}
-                            <div>
-                                <div className="font-medium">{v.name}</div>
-                                <div className="text-xs text-gray-500">₦{Number(v.price).toLocaleString()}</div>
-                            </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <button onClick={() => handleEditVariant(i)} className="text-sm bg-green-500 text-white p-2 rounded-tl-2xl rounded-br-2xl">Edit</button>
-                            <button onClick={() => handleRemoveVariant(i)} className="text-sm bg-red-500 text-white p-2 rounded-tl-2xl rounded-br-2xl">Remove</button>
-                        </div>
+              totalVariationPrice += v.price;
+
+              return (
+                <div key={i} className="flex items-center justify-between bg-white border-2 border-dashed  border-orange-500 rounded-lg p-3">
+                  <div className="flex items-center gap-3">
+                    {v.image ? <img src={v.image} className="w-12 h-12 rounded-md object-cover" /> : <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center"><ImageIcon /></div>}
+                    <div>
+                      <div className="font-medium">{v.name}</div>
+                      <div className="text-xs text-gray-500">₦{Number(v.price).toLocaleString()}</div>
                     </div>
-                )
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => handleEditVariant(i)} className="text-sm bg-green-500 text-white p-2 rounded-tl-2xl rounded-br-2xl">Edit</button>
+                    <button onClick={() => handleRemoveVariant(i)} className="text-sm bg-red-500 text-white p-2 rounded-tl-2xl rounded-br-2xl">Remove</button>
+                  </div>
+                </div>
+              )
             }) : <p className="text-sm text-gray-400">No variants added yet.</p>}
             <div className="bg-orange-100 p-2 max-w-[200px] text-sm font-semibold rounded-tl-2xl rounded-br-2xl">
-                <p className="">Total variation price: <span className="font-bold text-orange-500">₦{totalVariationPrice.toLocaleString()}</span></p>
+              <p className="">Total variation price: <span className="font-bold text-orange-500">₦{totalVariationPrice.toLocaleString()}</span></p>
             </div>
           </div>
         </motion.div>
-        
-        
+
+
         <MetadataModal metadata={metadata} setMetadata={setMetadata} />
 
         {/* Small meta row */}
         <div className="flex items-center justify-between gap-1">
           <div className="max-w-[45%] w-full">
             <div className="flex items-center flex-wrap gap-3">
-                <label className="flex items-center gap-2"><input type="checkbox" className="bg-orange-500" checked={formData.available} onChange={(e) => setFormData(p => ({ ...p, available: e.target.checked }))} /> <span className="text-sm">Available</span></label>
-                <div className="text-xs text-gray-500">Est. Delivery: <input value={formData.estimatedDeliveryTime} onChange={(e) => setFormData(p => ({ ...p, estimatedDeliveryTime: e.target.value }))} className="w-20 ml-2 font-semibold border border-dashed border-orange-600 outline-0 text-gray-800 text-center p-1 rounded-tl-2xl rounded-br-2xl text-sm bg-orange-100" placeholder="25" required /></div>
+              <label className="flex items-center gap-2"><input type="checkbox" className="bg-orange-500" checked={formData.available} onChange={(e) => setFormData(p => ({ ...p, available: e.target.checked }))} /> <span className="text-sm">Available</span></label>
+              <div className="text-xs text-gray-500">Est. Delivery: <input value={formData.estimatedDeliveryTime} onChange={(e) => setFormData(p => ({ ...p, estimatedDeliveryTime: e.target.value }))} className="w-20 ml-2 font-semibold border border-dashed border-orange-600 outline-0 text-gray-800 text-center p-1 rounded-tl-2xl rounded-br-2xl text-sm bg-orange-100" placeholder="25" required /></div>
             </div>
             <p className="text-xs text-center text-gray-500">Estimated delivery time</p>
           </div>
@@ -570,13 +569,13 @@ export default function CreateFoodPage() {
       <VariantModal
         open={variantModalOpen}
         onClose={() => {
-            setVariantModalOpen(false);
-            setEditingVariant(null);
+          setVariantModalOpen(false);
+          setEditingVariant(null);
         }}
         initial={editingVariant?.data ?? null}
         onSave={(v) => handleVariantSave(v)}
         accent={ACCENT}
-        />
+      />
 
       {/* Preview modal */}
       <PreviewModal open={previewOpen} onClose={() => setPreviewOpen(false)} food={previewData} variants={variants} />

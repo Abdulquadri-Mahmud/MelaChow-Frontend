@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import axios from "axios";
 import {
   CheckCircle,
@@ -191,7 +191,7 @@ export default function VendorProfilePage({ vendor }) {
 
   return (
     <div className="max-w-7xl mx-auto min-h-screen space-y-6 relative pb-8">
-      <Toaster />
+
 
       {/* Header */}
       <div className="bg-white p-3 rounded-2xl flex flex-col sm:flex-row items-start md:items-center gap-6">
@@ -257,8 +257,8 @@ export default function VendorProfilePage({ vendor }) {
                 <input type="text" value={basicInfo.phone} onChange={(e) => setBasicInfo({ ...basicInfo, phone: e.target.value })} className="border p-2 rounded w-full" />
               </div>
             </div>
-            
-            
+
+
             <label className="flex items-center gap-2"><Mail className="text-orange-500" /> Email</label>
             <input type="email" value={basicInfo.email} disabled className="border p-2 rounded w-full bg-gray-100 cursor-not-allowed" />
 
@@ -496,10 +496,10 @@ export default function VendorProfilePage({ vendor }) {
           <CardContent className="space-y-2">
             <label>ID Type</label>
             <input type="text" value={kyc.idType} disabled className="border p-2 rounded w-full bg-gray-100 cursor-not-allowed" />
-            
+
             <label>ID Number</label>
             <input type="text" value={kyc.idNumber} onChange={(e) => setKyc({ ...kyc, idNumber: e.target.value })} className="border p-2 rounded w-full" />
-            
+
             <label>ID Front</label>
             <input type="file" onChange={(e) => handleFileChange("idFrontUrl", e)} className="border p-2 rounded w-full" />
 

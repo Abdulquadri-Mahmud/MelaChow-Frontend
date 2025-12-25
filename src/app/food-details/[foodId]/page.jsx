@@ -22,14 +22,14 @@ import { useApi } from "@/app/context/ApiContext";
 import { useCart } from "@/app/context/CartContext";
 import Link from "next/link";
 import { BiCartAdd } from "react-icons/bi";
-import toast, {Toaster} from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 
 export default function FoodDetails() {
   const router = useRouter();
   const { foodId } = useParams();
 
-  const {baseUrl} = useApi();
+  const { baseUrl } = useApi();
 
   const { addToCart, cart } = useCart();
 
@@ -151,9 +151,9 @@ export default function FoodDetails() {
 
   return (
     <>
-    <Toaster/>
-    {/* <Header2 title={data?.category || "Food Details"}/> */}
-     {/* 🧭 Custom Header */}
+
+      {/* <Header2 title={data?.category || "Food Details"}/> */}
+      {/* 🧭 Custom Header */}
       <header className="flex items-center justify-between px-3 py-3 bg-white sticky top-0 z-50">
         <div className="flex items-center">
           <button
@@ -166,8 +166,8 @@ export default function FoodDetails() {
 
           <h1 className="md:text-lg text-sm font-semibold text-gray-800 capitalize">
             {data?.vendor?.storeName || "Food Details"} - {data?.vendor?.address
-            ? ` ${data.vendor.address.city}`
-            : "Address not available"}
+              ? ` ${data.vendor.address.city}`
+              : "Address not available"}
           </h1>
         </div>
 
@@ -240,214 +240,213 @@ export default function FoodDetails() {
       </motion.div>
 
 
-        {/* Body */}
-        <div className="md:p-6 p-3 pb-20 space-y-3">
-          {isLoading ? (
-            <FoodDetailsSkeleton/>
-          ) : isError ? (
-            <p className="text-center text-red-500">
-              Failed to load food details.
-            </p>
-          ) : data ? (
-            <>
-              {/* Image Section */}
-              <div className="relative w-full h-45 rounded-3xl overflow-hidden">
-                {data?.images?.length > 1 ? (
-                  <>
-                    <motion.img
-                      key={currentImage}
-                      src={data.images[currentImage]?.url}
-                      alt={data?.name}
-                      className="w-full h-full object-cover"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5 }}
-                    />
-
-                    {/* Image Controls */}
-                    <button
-                      onClick={prevImage}
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-black/40 text-white p-2 rounded-full"
-                    >
-                      ‹
-                    </button>
-                    <button
-                      onClick={nextImage}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black/40 text-white p-2 rounded-full"
-                    >
-                      ›
-                    </button>
-
-                    {/* Dots */}
-                    <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-2">
-                      {data.images.map((_, i) => (
-                        <div
-                          key={i}
-                          className={`w-2 h-2 rounded-full ${
-                            i === currentImage
-                              ? "bg-orange-500"
-                              : "bg-white/60"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <img
-                    src={data?.images?.[0]?.url || "/placeholder.jpg"}
+      {/* Body */}
+      <div className="md:p-6 p-3 pb-20 space-y-3">
+        {isLoading ? (
+          <FoodDetailsSkeleton />
+        ) : isError ? (
+          <p className="text-center text-red-500">
+            Failed to load food details.
+          </p>
+        ) : data ? (
+          <>
+            {/* Image Section */}
+            <div className="relative w-full h-45 rounded-3xl overflow-hidden">
+              {data?.images?.length > 1 ? (
+                <>
+                  <motion.img
+                    key={currentImage}
+                    src={data.images[currentImage]?.url}
                     alt={data?.name}
                     className="w-full h-full object-cover"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.5 }}
                   />
-                )}
-              </div>
 
-              {/* Basic Info */}
-              <div>
-                <h3 className="md:text-3xl font-semibold text-gray-800 mb-2">
-                  {data?.name}
-                </h3>
-                <p className="text-gray-600 text-xs leading-relaxed">
-                  {data?.description ||
-                    "No description provided for this dish."}
-                </p>
-              </div>
+                  {/* Image Controls */}
+                  <button
+                    onClick={prevImage}
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-black/40 text-white p-2 rounded-full"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    onClick={nextImage}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black/40 text-white p-2 rounded-full"
+                  >
+                    ›
+                  </button>
 
-              {/* Meta Info */}
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center gap-2 text-gray-600 col-span-2">
-                  <Utensils size={16} color={accent} />
-                  Category:
-                  <span className="font-medium text-gray-800 ml-1">
-                    {data?.category}
-                  </span>
-                </div>
-              </div>
-
-              {/* Metadata Section */}
-              {data?.metadata && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="bg-orange-50 rounded-xl border border-orange-100 w-full">
-                  <div className="p-2">
-                    <h4 className="text-md font-semibold text-orange-700 mb-3 flex items-center gap-2">
-                      <Flame size={18} /> Dish Metadata
-                    </h4>
-                  </div>
-                  <div className="grid grid-cols-3 p-1 rounded-b-2xl gap-2 bg-white text-sm text-gray-700">
-                    <p>
-                      <strong className="text-orange-600 font-semibold">Portion Size:</strong>{" "}
-                      {data.metadata.portionSize || "N/A"}
-                    </p>
-                    <p>
-                      <strong className="text-orange-600 font-semibold">Spice Level:</strong>{" "}
-                      {data.metadata.spiceLevel || "Not specified"}
-                    </p>
-                    <p>
-                      <strong className="text-orange-600 font-semibold">Chef Special:</strong>{" "}
-                      {data.metadata.chefSpecial ? (
-                        <span className="text-green-600 font-semibold">
-                          Yes
-                        </span>
-                      ) : (
-                        "No"
-                      )}
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Tags */}
-              <div className="overflow-x-auto scroll">
-                {data?.tags?.length > 0 && (
-                  <div className="flex gap-2">
-                    {data.tags.map((tag, i) => (
-                      <span
+                  {/* Dots */}
+                  <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-2">
+                    {data.images.map((_, i) => (
+                      <div
                         key={i}
-                        className="bg-orange-50 border border-orange-100 text-orange-600 text-xs px-3 py-1 rounded-full flex items-center gap-1"
-                      >
-                        <Tag size={12} /> {tag}
-                      </span>
+                        className={`w-2 h-2 rounded-full ${i === currentImage
+                            ? "bg-orange-500"
+                            : "bg-white/60"
+                          }`}
+                      />
                     ))}
                   </div>
-                )}
+                </>
+              ) : (
+                <img
+                  src={data?.images?.[0]?.url || "/placeholder.jpg"}
+                  alt={data?.name}
+                  className="w-full h-full object-cover"
+                />
+              )}
+            </div>
+
+            {/* Basic Info */}
+            <div>
+              <h3 className="md:text-3xl font-semibold text-gray-800 mb-2">
+                {data?.name}
+              </h3>
+              <p className="text-gray-600 text-xs leading-relaxed">
+                {data?.description ||
+                  "No description provided for this dish."}
+              </p>
+            </div>
+
+            {/* Meta Info */}
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="flex items-center gap-2 text-gray-600 col-span-2">
+                <Utensils size={16} color={accent} />
+                Category:
+                <span className="font-medium text-gray-800 ml-1">
+                  {data?.category}
+                </span>
               </div>
+            </div>
 
-              {/* Variants */}
-              {data?.variants?.length > 0 && (
-                <div className="mt-4">
-                  <div className="grid gap-4">
-                    {data?.variants?.length > 0 ? (
-                      data.variants.map((variant, i) => (
-                        <motion.div
-                          key={i}
-                          whileHover={{ scale: 1.02 }}
-                          transition={{ type: "spring", stiffness: 200, damping: 12 }}
-                          className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl shadow-sm shadow-gray-100 hover:shadow-md p-3 md:p-4 transition-all"
-                        >
-                          {/* Left section — image + details */}
-                          <div className="flex items-center gap-4">
-                            {variant.image ? (
-                              <img
-                                src={variant.image}
-                                alt={variant.name}
-                                className="w-16 h-16 rounded-xl object-cover border border-gray-200"
-                              />
-                            ) : (
-                              <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
-                                No Image
-                              </div>
-                            )}
-                            <div>
-                              <h3 className="font-semibold text-gray-800 text-base leading-tight">
-                                {variant.name}
-                              </h3>
-                              <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                                {variant.description || "No description available"}
-                              </p>
-                              <p className="text-orange-600 font-semibold text-sm mt-1">
-                                ₦{(variant.price || 0).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Right section — Add button */}
-                          <div className="flex-shrink-0">
-                            <button
-                              onClick={() => handleAddClick(variant)}
-                              className="cursor-pointer bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-semibold text-xs md:text-sm px-5 py-2 rounded-full shadow-sm transition-all"
-                            >
-                              Add
-                            </button>
-                          </div>
-                        </motion.div>
-                      ))
+            {/* Metadata Section */}
+            {data?.metadata && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="bg-orange-50 rounded-xl border border-orange-100 w-full">
+                <div className="p-2">
+                  <h4 className="text-md font-semibold text-orange-700 mb-3 flex items-center gap-2">
+                    <Flame size={18} /> Dish Metadata
+                  </h4>
+                </div>
+                <div className="grid grid-cols-3 p-1 rounded-b-2xl gap-2 bg-white text-sm text-gray-700">
+                  <p>
+                    <strong className="text-orange-600 font-semibold">Portion Size:</strong>{" "}
+                    {data.metadata.portionSize || "N/A"}
+                  </p>
+                  <p>
+                    <strong className="text-orange-600 font-semibold">Spice Level:</strong>{" "}
+                    {data.metadata.spiceLevel || "Not specified"}
+                  </p>
+                  <p>
+                    <strong className="text-orange-600 font-semibold">Chef Special:</strong>{" "}
+                    {data.metadata.chefSpecial ? (
+                      <span className="text-green-600 font-semibold">
+                        Yes
+                      </span>
                     ) : (
-                      <div className="flex flex-col items-center justify-center py-10 text-center">
-                        <div className="bg-orange-100 text-orange-500 p-4 rounded-full mb-3">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-6 w-6"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 9h.008v.008H9.75V9zM4.5 12a7.5 7.5 0 1115 0 7.5 7.5 0 01-15 0z" />
-                          </svg>
-                        </div>
-                        <p className="text-gray-500 font-medium">No variants found.</p>
-                      </div>
+                      "No"
                     )}
-                  </div>
+                  </p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Tags */}
+            <div className="overflow-x-auto scroll">
+              {data?.tags?.length > 0 && (
+                <div className="flex gap-2">
+                  {data.tags.map((tag, i) => (
+                    <span
+                      key={i}
+                      className="bg-orange-50 border border-orange-100 text-orange-600 text-xs px-3 py-1 rounded-full flex items-center gap-1"
+                    >
+                      <Tag size={12} /> {tag}
+                    </span>
+                  ))}
                 </div>
               )}
-            </>
-          ) : (
-            <p className="text-center text-gray-500">No food found.</p>
-          )}
-        </div>
-        <AddToCartModal
-          food={selectedFood}
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onAdd={handleAddToCart}
+            </div>
+
+            {/* Variants */}
+            {data?.variants?.length > 0 && (
+              <div className="mt-4">
+                <div className="grid gap-4">
+                  {data?.variants?.length > 0 ? (
+                    data.variants.map((variant, i) => (
+                      <motion.div
+                        key={i}
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ type: "spring", stiffness: 200, damping: 12 }}
+                        className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl shadow-sm shadow-gray-100 hover:shadow-md p-3 md:p-4 transition-all"
+                      >
+                        {/* Left section — image + details */}
+                        <div className="flex items-center gap-4">
+                          {variant.image ? (
+                            <img
+                              src={variant.image}
+                              alt={variant.name}
+                              className="w-16 h-16 rounded-xl object-cover border border-gray-200"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
+                              No Image
+                            </div>
+                          )}
+                          <div>
+                            <h3 className="font-semibold text-gray-800 text-base leading-tight">
+                              {variant.name}
+                            </h3>
+                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                              {variant.description || "No description available"}
+                            </p>
+                            <p className="text-orange-600 font-semibold text-sm mt-1">
+                              ₦{(variant.price || 0).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Right section — Add button */}
+                        <div className="flex-shrink-0">
+                          <button
+                            onClick={() => handleAddClick(variant)}
+                            className="cursor-pointer bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-semibold text-xs md:text-sm px-5 py-2 rounded-full shadow-sm transition-all"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                      <div className="bg-orange-100 text-orange-500 p-4 rounded-full mb-3">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-6 w-6"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 9h.008v.008H9.75V9zM4.5 12a7.5 7.5 0 1115 0 7.5 7.5 0 01-15 0z" />
+                        </svg>
+                      </div>
+                      <p className="text-gray-500 font-medium">No variants found.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-center text-gray-500">No food found.</p>
+        )}
+      </div>
+      <AddToCartModal
+        food={selectedFood}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAdd={handleAddToCart}
       />
     </>
   );

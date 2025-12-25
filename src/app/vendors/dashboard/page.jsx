@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
-import { Loader2, Store, MapPin, Star, 
-  ShoppingBag, Wallet, Truck, Clock, 
+import toast from "react-hot-toast";
+import {
+  Loader2, Store, MapPin, Star,
+  ShoppingBag, Wallet, Truck, Clock,
   Utensils, Coffee, Sandwich, Pizza
 } from "lucide-react";
 import { useVendors } from "@/app/hooks/useVendorQueries";
@@ -49,7 +50,7 @@ export default function VendorDashboard() {
 
         const res = await getVendorFoods(vendorDetails.vendor.id);
         setFoods(res?.data || []);
-        
+
       } catch (err) {
         toast.error("Failed to fetch your foods");
       }
@@ -93,13 +94,13 @@ export default function VendorDashboard() {
 
   return (
     <div className="min-h-screen">
-      <Toaster position="top-right" />
+
 
       {/* Header */}
 
       {
         isLoading ? (
-          <VendorDashboardSkeleton/>
+          <VendorDashboardSkeleton />
         ) : (
           <>
             <VendorDashboardHeader vendor={vendorDetails?.vendor} />
@@ -413,9 +414,8 @@ export default function VendorDashboard() {
                   {Object.entries(vendor?.openingHours || {}).map(([day, hours]) => (
                     <div
                       key={day}
-                      className={`p-3 border rounded-lg ${
-                        hours.closed ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"
-                      }`}
+                      className={`p-3 border rounded-lg ${hours.closed ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"
+                        }`}
                     >
                       <p className="font-semibold capitalize">{day}</p>
                       {hours.closed ? (

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useApi } from "@/app/context/ApiContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 
@@ -183,15 +183,14 @@ export default function VerifyAccount() {
           <button
             onClick={handleResend}
             disabled={resending || timeLeft > 0} // only clickable if timer = 0
-            className={`border-2 border-orange-500 text-orange-500 py-2 rounded hover:bg-orange-100 transition ${
-              resending || timeLeft > 0 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-            }`}
+            className={`border-2 border-orange-500 text-orange-500 py-2 rounded hover:bg-orange-100 transition ${resending || timeLeft > 0 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+              }`}
           >
             {resending ? "Resending..." : "Resend OTP"}
           </button>
         </div>
       </div>
-      <Toaster />
+
     </div>
   );
 }

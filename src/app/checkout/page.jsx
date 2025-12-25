@@ -6,7 +6,7 @@ import { useCart } from "@/app/context/CartContext";
 import { Loader2, Bike, MapPin, Clock, DollarSign } from "lucide-react";
 import { createOrder, fetchUser } from "../lib/api";
 import Header2 from "../components/App_Header/Header2";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import CheckoutPageSkeleton from "../components/skeleton/CheckoutPageSkeleton";
 import { useRouter } from "next/navigation";
 
@@ -140,7 +140,7 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
       <Header2 />
-      <Toaster />
+
 
       <div className="max-w-xl mx-auto p-2 space-y-3 pb-8">
         {/* Quick Notice */}

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/app/context/CartContext";
 import Header2 from "../components/App_Header/Header2";
 import { ShoppingCart, Package } from "lucide-react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useApi } from "../context/ApiContext";
 import axios from "axios";
 import { OrderCardSkeleton } from "../components/skeleton/OrderCardSkeleton";
@@ -45,7 +45,7 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header2 />
-      <Toaster />
+
 
       <div className="flex-1 max-w-3xl w-full mx-auto md:p-4 p-2 py-3 flex flex-col h-[calc(100vh-80px)]">
         {/* Top bar */}
@@ -83,24 +83,22 @@ export default function OrdersPage() {
                     </span>
                   </div>
                   <span
-                    className={`text-xs px-3 py-1 rounded-full font-medium ${
-                      order.orderStatus === "pending"
+                    className={`text-xs px-3 py-1 rounded-full font-medium ${order.orderStatus === "pending"
                         ? "bg-yellow-100 text-yellow-800"
                         : order.orderStatus === "processing"
-                        ? "bg-blue-100 text-blue-800"
-                        : order.orderStatus === "delivered"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
+                          ? "bg-blue-100 text-blue-800"
+                          : order.orderStatus === "delivered"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-gray-100 text-gray-800"
+                      }`}
                   >
                     {order.orderStatus}
                   </span>
                   <span
-                    className={`text-xs px-3 py-1 rounded-full font-medium ml-2 ${
-                      order.paymentStatus === "paid"
+                    className={`text-xs px-3 py-1 rounded-full font-medium ml-2 ${order.paymentStatus === "paid"
                         ? "bg-green-100 text-green-800"
                         : "bg-red-100 text-red-800"
-                    }`}
+                      }`}
                   >
                     {order.paymentStatus.toUpperCase()}
                   </span>
