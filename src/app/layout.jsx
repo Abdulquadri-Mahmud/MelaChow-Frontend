@@ -74,13 +74,18 @@ export default function RootLayout({ children }) {
         <ApiProvider>
           <QueryProvider>
             <CartProvider>
-              <ProfileProvider>{children}</ProfileProvider>
-              <ConditionalBottomNav />
+              <ProfileProvider>
+                {children}
+
+                {/* ✅ MUST be inside ProfileProvider */}
+                <AutoLogout />
+                <VendorsAutoLogout />
+                <ConditionalBottomNav />
+              </ProfileProvider>
             </CartProvider>
           </QueryProvider>
         </ApiProvider>
-        <AutoLogout />
-        <VendorsAutoLogout />
+
         <Toaster position="top-right" reverseOrder={false} />
         {/* 👇 This handles route-specific navbar visibility */}
       </body>

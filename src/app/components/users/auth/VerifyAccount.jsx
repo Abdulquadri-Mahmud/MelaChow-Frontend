@@ -148,7 +148,7 @@ export default function VerifyAccount() {
   return (
     <div className="fixed inset-0 bg-gray-50 flex items-center justify-center overflow-auto">
       <div className="bg-white text-center p-6 w-full max-w-md rounded-2xl flex-shrink-0">
-        <LogoImage />
+        {/* <LogoImage /> */}
         <h2 className="text-2xl font-bold text-orange-500 mb-2">Email Verification</h2>
         <p className="text-sm text-gray-600 mb-2">
           Enter the 6-digit OTP sent to your email: <strong>{email || "example@example.com"}</strong>

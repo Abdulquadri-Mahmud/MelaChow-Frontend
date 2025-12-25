@@ -6,12 +6,21 @@ import { useState, useEffect } from "react";
  */
 export const useUserStorage = () => {
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // ✅ hydration state
 
   // Load from localStorage on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("userPayload");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    try {
+      const storedUser = localStorage.getItem("userPayload");
+
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error("Failed to parse userPayload:", error);
+      localStorage.removeItem("userPayload");
+    } finally {
+      setIsLoading(false); // ✅ hydration completed
     }
   }, []);
 
@@ -24,28 +33,39 @@ export const useUserStorage = () => {
   // Update specific fields of the stored user
   const updateUser = (updates) => {
     setUser((prev) => {
+      if (!prev) return prev;
+
       const updated = { ...prev, ...updates };
       localStorage.setItem("userPayload", JSON.stringify(updated));
       return updated;
     });
   };
 
-  // Full logout: clear user + token + anything else
+  // Full logout: clear user + token + optional data
   const logout = () => {
     localStorage.removeItem("userPayload");
     localStorage.removeItem("userToken");
-    localStorage.removeItem("cart");   // optional: clear cart
-    localStorage.removeItem("addresses"); // optional
+    localStorage.removeItem("cart");        // optional
+    localStorage.removeItem("addresses");   // optional
 
     setUser(null);
   };
 
-
-  // Remove user data (e.g., on logout)
+  // Clear only user payload
   const clearUser = () => {
     localStorage.removeItem("userPayload");
+    localStorage.removeItem("userToken");
+    localStorage.removeItem("cart");        // optional
+    localStorage.removeItem("addresses");   // optional
     setUser(null);
   };
 
-  return { user, saveUser, updateUser, clearUser, logout  };
+  return {
+    user,
+    isLoading, // ✅ expose loading state
+    saveUser,
+    updateUser,
+    clearUser,
+    logout,
+  };
 };

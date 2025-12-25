@@ -50,7 +50,7 @@ export default function ViewVendor() {
   return (
     <>
       {/* Header */}
-      <header className="flex items-center gap-2 px-3 py-3 bg-white sticky top-0 z-50 shadow-sm">
+      <header className="flex items-center gap-2 px-3 py-3 bg-white sticky top-0 z-50">
         <button
           onClick={() => router.back()}
           className="p-2 rounded-full hover:bg-gray-100 transition"
@@ -62,7 +62,7 @@ export default function ViewVendor() {
         </h1>
       </header>
 
-      <div className="px-3 pb-24 space-y-4">
+      <div className="px-3 pb-24 pt-3 space-y-4">
         {isLoading ? (
           <VendorSkeleton />
         ) : isError ? (
@@ -72,7 +72,7 @@ export default function ViewVendor() {
         ) : (
           <>
             {/* Vendor Info */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01 }} className="bg-white rounded-2xl border border-gray-100 shadow-md hover:shadow-lg transition overflow-hidden" >
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01 }} className="bg-white rounded-2xl border border-gray-100 transition overflow-hidden" >
                 {/* Vendor Banner */}
                 <div className="relative w-full h-32">
                     <img src={vendor.logo || "/vendor-banner-placeholder.jpg"} alt="Vendor Banner" className="w-full h-full object-cover" />
@@ -98,30 +98,30 @@ export default function ViewVendor() {
 
                     {/* Badges */}
                     <div className="flex gap-2 mt-2 flex-wrap">
-                    {vendor.isPopular && (
-                        <span className="bg-orange-50 text-orange-600 px-2 py-1 rounded-full text-[10px] font-semibold flex items-center gap-1">
-                        🔥 Popular
-                        </span>
-                    )}
-                    {vendor.isNew && (
-                        <span className="bg-green-50 text-green-600 px-2 py-1 rounded-full text-[10px] font-semibold">
-                        🌟 New
-                        </span>
-                    )}
-                    {vendor.discount && (
-                        <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-full text-[10px] font-semibold">
-                        {vendor.discount}% Off
-                        </span>
-                    )}
+                        {vendor.isPopular && (
+                            <span className="bg-orange-50 text-orange-600 px-2 py-1 rounded-full text-[10px] font-semibold flex items-center gap-1">
+                            🔥 Popular
+                            </span>
+                        )}
+                        {vendor.isNew && (
+                            <span className="bg-green-50 text-green-600 px-2 py-1 rounded-full text-[10px] font-semibold">
+                            🌟 New
+                            </span>
+                        )}
+                        {vendor.discount && (
+                            <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-full text-[10px] font-semibold">
+                            {vendor.discount}% Off
+                            </span>
+                        )}
                     </div>
 
                     {/* Delivery & Fee */}
                     <div className="flex items-center gap-3 text-xs text-gray-500 mt-2">
-                    <Clock size={12} />
-                    <span>{estimatedTime} mins</span>
-                    <span>•</span>
-                    <TbCurrencyNaira size={12} />
-                    <span>{deliveryFee}</span>
+                        <Clock size={12} />
+                        <span>{estimatedTime} mins</span>
+                        <span>•</span>
+                        <TbCurrencyNaira size={12} />
+                        <span>{deliveryFee}</span>
                     </div>
                     {vendor.acceptsDelivery && (
                     <div className="flex items-center gap-1 text-xs text-orange-600 mt-1">
@@ -164,13 +164,13 @@ export default function ViewVendor() {
                 placeholder="Search for foods..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent flex-1 outline-none text-sm text-gray-700 placeholder-gray-400"
+                className="bg-transparent flex-1 py-1 outline-none text-sm text-gray-700 placeholder-gray-400"
               />
             </div>
 
             {/* Sticky Category Filter */}
-            <div className="sticky top-[72px] bg-white py-2 z-40 shadow-sm">
-              <div className="flex gap-2 overflow-x-auto px-1 scrollbar-hide">
+            <div className="sticky top-[72px] bg-white rounded-2xl py-2 z-40">
+              <div className="flex gap-2 overflow-x-auto scroll px-1 scrollbar-hide">
                 {categories.map((cat) => (
                   <button
                     key={cat}
@@ -199,7 +199,7 @@ export default function ViewVendor() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => router.push(`/food-details/${food._id}`)}
-                      className="bg-white border border-gray-100 rounded-2xl cursor-pointer shadow hover:shadow-md transition"
+                      className="bg-white border border-gray-100 rounded-2xl cursor-pointer transition"
                     >
                       <img
                         src={food.images?.[0]?.url || "/placeholder.jpg"}

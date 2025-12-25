@@ -70,11 +70,11 @@ export default function FoodList() {
           </h2>
 
           {/* Horizontal scroll container */}
-          <div className="flex gap-2 overflow-x-auto scroll pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar">
+          <div className="flex gap-2 mt-2 overflow-x-auto scroll pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar">
             {foods.map((food) => (
               <div
                 key={food._id}
-                className="bg-white p-2 rounded-md min-w-[250px] cursor-pointer snap-start hover:shadow-lg transition"
+                className="bg-white rounded-md min-w-[220px] cursor-pointer snap-start hover:shadow-lg transition"
                 onClick={() => router.push(`/food-details/${food._id}`)}
               >
                 {/* Image */}
@@ -84,25 +84,16 @@ export default function FoodList() {
                     alt={food.name}
                     className="w-full h-30 object-cover rounded-md"
                   />
-                  <span
-                    className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full ${
-                      food.available
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-400 text-white"
-                    }`}
-                  >
-                    {food.available ? "Available" : "Unavailable"}
-                  </span>
                 </div>
 
                 {/* Details */}
-                <div>
-                  <h3 className="md:text-md text-sm font-semibold text-gray-800 truncate">
+                <div className="p-2">
+                  <h3 className="md:text-md text-sm mt-1 text-gray-800 truncate">
                     {food.name}
                   </h3>
                   <div className="flex items-center gap-2 mt-1">
-                    <p className="flex items-center gap-1 text-sm font-medium text-gray-600 truncate">
-                      <Store className="text-[#FF6600] w-4" />
+                    <p className="flex items-center gap-1 text-xs text-gray-600 truncate">
+                      <Store className="text-[#FF6600] w-3" />
                       {food?.vendor?.storeName || "Unknown Vendor"}
                     </p>
                   </div>

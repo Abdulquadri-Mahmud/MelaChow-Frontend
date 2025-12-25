@@ -232,10 +232,10 @@ const User_Profile = ({ userData, isLoading, onProfileUpdate }) => {
 
       {/* Mobile Sidebar Toggle */}
       <div className="md:hidden flex justify-between items-center z-50 bg-white px-4 py-3 rounded-xl sticky top-0">
-        <button onClick={() => router.back()} className="rounded-full cursor-pointer hover:bg-gray-100 transition" aria-label="Go back">
-          <ArrowLeft className="w-5 h-5 text-gray-700" />
+        <button onClick={() => router.back()} className="flex items-center gap-2 rounded-full cursor-pointer transition" aria-label="Go back">
+          <ArrowLeft className="w-5 h-5 text-gray-700" /> <span className="text-md font-semibold">My Profile</span>
         </button>
-        <button onClick={() => setMobileSidebarOpen(true)} className="text-orange-500 text-xl font-bold cursor-pointer">
+        <button onClick={() => setMobileSidebarOpen(true)} className="text-orange-500 bg-orange-100 p-1 rounded-md text-xl font-bold cursor-pointer">
           <Logs />
         </button>
       </div>

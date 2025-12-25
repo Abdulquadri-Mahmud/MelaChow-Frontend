@@ -200,7 +200,7 @@ export default function FoodSearchMobile() {
 
   return (
     <div className="pb-10">
-      <div className="sticky top-0 z-50 p-2 bg-orange-100">
+      <div className="sticky top-0 z-50 p-2 bg-orange-50">
         {/* Search Bar */}
         <form
           onSubmit={handleSearchSubmit}
@@ -287,11 +287,11 @@ export default function FoodSearchMobile() {
               whileTap={{ scale: 0.9 }}
               layout
               onClick={() => handleCategoryClick(category)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap border transition-all duration-300
+              className={`flex items-center gap-3 px-4 py-2 rounded-full whitespace-nowrap border transition-all duration-300
                 ${
                   activeCategory === category
                     ? "bg-orange-500 text-white border-orange-500 shadow-md"
-                    : "bg-orange-200 text-gray-700 border-orange-300 hover:border-orange-500 hover:bg-orange-50"
+                    : "bg-orange-100 text-gray-700 border-orange-300 hover:border-orange-500 hover:bg-orange-50"
                 }
               `}
               initial={{ opacity: 0.8 }}
@@ -310,7 +310,7 @@ export default function FoodSearchMobile() {
       </div>
 
       {/* Results */}
-      <div className="md:p-4 p-2">
+      <div className="md:p-4 p-2 bg-gray-50">
         {loading ? (
           <SearchFoodSkeleton />
         ) : error ? (
@@ -325,7 +325,7 @@ export default function FoodSearchMobile() {
           <AnimatePresence>
             <motion.div
               layout
-              className="grid grid-cols-2 md:gap-4 gap-1 mt-2 sm:grid-cols-3 md:grid-cols-4 pb-8"
+              className="grid grid-cols-2 md:gap-4 gap-2 mt-2 sm:grid-cols-3 md:grid-cols-4 pb-8"
             >
               {foods.map((food) => (
                 <Link key={food.slug} href={`/food-details/${food._id}`}>
@@ -337,7 +337,7 @@ export default function FoodSearchMobile() {
                       boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
                     }}
                     transition={{ duration: 0.25 }}
-                    className="bg-white md:p-3 p-2 rounded-xl shadow-sm shadow-gray-100 cursor-pointer"
+                    className="bg-white rounded-xl cursor-pointer"
                   >
                     <div className="relative rounded-md overflow-hidden">
                       <img
@@ -351,7 +351,7 @@ export default function FoodSearchMobile() {
                       />
                     </div>
 
-                    <div>
+                    <div className="p-3">
                       <h3 className="md:text-md text-sm font-semibold text-gray-800 truncate">
                         {food.name}
                       </h3>

@@ -105,6 +105,7 @@ export default function FoodDetails() {
       foodId: data._id,              // Main food ID
       variantId: variant._id,        // Variant ID
       restaurantId: data.vendor._id, // Vendor/restaurant ID
+      storeName: data?.vendor?.storeName, // Vendor/restaurant ID
 
       // Names & pricing
       name: data.name,               // Food name

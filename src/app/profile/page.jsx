@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchUser } from "../lib/api";
 import User_Profile from "../components/user_profile/User_Profile";
 import { useUserStorage } from "../hooks/useUserStorage";
+import ProtectedRoute from "../components/protected-route/ProtectedRoute";
 
 export default function ProfilePage() {
   const [token, setToken] = useState(undefined); // undefined while initializing
@@ -43,10 +44,12 @@ export default function ProfilePage() {
   // Show loading placeholder while initializing token
   if (token === undefined) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center">
-        {/* <Header2 /> */}
-        <p className="text-gray-500">Initializing...</p>
-      </div>
+      <ProtectedRoute>
+        <div className="min-h-screen flex flex-col items-center justify-center">
+          {/* <Header2 /> */}
+          <p className="text-gray-500">Initializing...</p>
+        </div>
+      </ProtectedRoute>
     );
   }
 
@@ -118,15 +121,17 @@ export default function ProfilePage() {
 
   // Show user profile once data is ready
   return (
-    <div className="bg-zinc-50 font-display text-[#181410]">
-      {/* <Header2 /> */}
-      <div className="p-2">
-        <User_Profile
-          userData={userData}
-          isLoading={isLoading}
-          onProfileUpdate={refreshUser}
-        />
+    <ProtectedRoute>
+      <div className="bg-zinc-50 font-display text-[#181410]">
+        {/* <Header2 /> */}
+        <div className="p-2">
+          <User_Profile
+            userData={userData}
+            isLoading={isLoading}
+            onProfileUpdate={refreshUser}
+          />
+        </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

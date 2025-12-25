@@ -37,7 +37,7 @@ export default function HomePage() {
     }
   }, [userData, isLoading]);
 
-  console.log(userData?.user);
+  // console.log(userData?.user);  
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
