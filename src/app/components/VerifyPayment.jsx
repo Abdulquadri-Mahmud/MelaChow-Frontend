@@ -32,6 +32,8 @@ export default function VerifyPayment() {
           { headers: { Authorization: `Bearer ${user?.token}` } }
         );
 
+        console.log(res);
+
         if (!res.data.order) {
           setStatus("failed");
           toast.error("Payment verified but order was not created.");
