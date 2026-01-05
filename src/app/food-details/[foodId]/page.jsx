@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   Truck,
   ChevronRight,
+  Store,
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -154,294 +155,218 @@ export default function FoodDetails() {
 
       {/* <Header2 title={data?.category || "Food Details"}/> */}
       {/* 🧭 Custom Header */}
-      <header className="flex items-center justify-between px-3 py-3 bg-white sticky top-0 z-50">
-        <div className="flex items-center">
+      <header className="flex items-center justify-between px-4 py-4 bg-white/80 backdrop-blur-xl sticky top-0 z-50 border-b border-gray-50">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => router.back()}
-            className="p-2 rounded-full hover:bg-gray-100 transition"
+            className="p-2.5 rounded-2xl bg-gray-50 hover:bg-orange-50 hover:text-orange-600 transition-all active:scale-90"
             aria-label="Go back"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
 
-          <h1 className="md:text-lg text-sm font-semibold text-gray-800 capitalize">
-            {data?.vendor?.storeName || "Food Details"} - {data?.vendor?.address
-              ? ` ${data.vendor.address.city}`
-              : "Address not available"}
-          </h1>
+          <div>
+            <h1 className="text-[10px] font-semibold text-orange-600 uppercase tracking-[0.2em]">Restaurant</h1>
+            <h2 className="text-sm font-bold text-gray-900 line-clamp-1 italic uppercase tracking-tighter">
+              {data?.vendor?.storeName || "Food Details"}
+            </h2>
+          </div>
         </div>
 
-        <Link href={'/cart'}>
-          <motion.div whileHover={{ rotate: 15 }} className="relative">
-            <BiCartAdd className="text-gray-700" size={22} />
-            <span className="absolute -top-1 -right-1 bg-[#FF6B00] animate-bounce animation-duration-0.1 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold text-md">
-              {totalItems}
-            </span>
+        <Link href={'/orders?activeTab=cart'}>
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-gray-900 p-2.5 rounded-2xl shadow-lg shadow-gray-200">
+            <BiCartAdd className="text-white" size={24} />
+            {totalItems > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-orange-500 ring-4 ring-white text-white text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-black">
+                {totalItems}
+              </span>
+            )}
           </motion.div>
         </Link>
       </header>
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="bg-white rounded-2xl shadow overflow-hidden mt-3">
-        {/* Rating + Open Hours */}
-        <div className="flex items-center justify-center py-3 px-3 bg-gradient-to-r from-orange-50 to-white">
-          {/* <div className="flex items-center gap-2 text-yellow-500 text-sm font-medium">
-            <Star size={16} fill="currentColor" />
-            <span>{data?.rating || 0}</span>
-            <span className="text-gray-400 text-xs">({data?.ratingCount || 0})</span>
-          </div> */}
-
-          {/* 🕘 Vendor Opening Time (Clickable) */}
-          <motion.div onClick={handleViewVendor} whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} className="flex items-center gap-2 text-gray-600 text-sm cursor-pointer group">
-            <Clock
-              className="text-orange-500 group-hover:text-orange-600 transition"
-              size={15}
-            />
-            <p className="text-sm font-medium text-gray-700 group-hover:text-orange-600 transition flex items-center">
-              {openingMessage}
-              <ChevronRight size={16} className="ml-1" />
-            </p>
-          </motion.div>
-        </div>
-
-        {/* Divider */}
-        <div className="border-t border-gray-100" />
-
-        {/* Preparation Time / Delivery Fee / Type */}
-        <div className="flex flex-wrap justify-between md:justify-evenly items-center px-5 py-3 text-center text-gray-700">
-          {/* Prep Time */}
-          <div className="flex flex-col items-center gap-1">
-            <p className="text-xs text-gray-400">Preparation Time</p>
-            <p className="flex items-center gap-1 text-sm font-semibold text-gray-700">
-              <Clock size={13} color={accent} />
-              {data?.estimatedDeliveryTime - 5 || "0"} - {data?.estimatedDeliveryTime || "0"} mins
-            </p>
-          </div>
-
-          {/* Delivery Fee */}
-          <div className="flex flex-col items-center gap-1">
-            <p className="text-xs text-gray-400">Delivery Fee</p>
-            <p className="flex items-center gap-1 text-sm font-semibold text-gray-700">
-              <TbCurrencyNaira size={13} />
-              {data?.deliveryFee}
-            </p>
-          </div>
-
-          {/* Delivery Type */}
-          {data?.vendor?.acceptsDelivery && (
-            <div className="flex flex-col items-center gap-1">
-              <p className="text-xs text-gray-400">Delivery Type</p>
-              <p className="flex items-center gap-1 text-sm font-semibold text-gray-700">
-                <Truck size={14} className="text-orange-500" />
-                Instant Delivery
-              </p>
-            </div>
-          )}
-        </div>
-      </motion.div>
-
-
-      {/* Body */}
-      <div className="md:p-6 p-3 pb-20 space-y-3">
+      <div className="max-w-4xl mx-auto pb-24">
         {isLoading ? (
-          <FoodDetailsSkeleton />
+          <div className="p-4"><FoodDetailsSkeleton /></div>
         ) : isError ? (
-          <p className="text-center text-red-500">
-            Failed to load food details.
-          </p>
+          <div className="text-center py-20 px-6">
+            <div className="bg-red-50 text-red-500 p-6 rounded-[32px] border border-dashed border-red-200">
+              <p className="font-bold">Oops! Failed to load the dish.</p>
+              <button onClick={() => window.location.reload()} className="mt-4 text-sm underline font-black">Try Again</button>
+            </div>
+          </div>
         ) : data ? (
-          <>
-            {/* Image Section */}
-            <div className="relative w-full h-45 rounded-3xl overflow-hidden">
-              {data?.images?.length > 1 ? (
-                <>
-                  <motion.img
-                    key={currentImage}
-                    src={data.images[currentImage]?.url}
-                    alt={data?.name}
-                    className="w-full h-full object-cover"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                  />
+          <div className="space-y-3">
+            {/* Main Info Card */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-3 pt-3">
+              <div className="bg-white rounded-[40px] border border-gray-100 overflow-hidden">
+                {/* Image Section */}
+                <div className="relative w-full bg-gray-100 p-2">
+                  <div className="w-full h-[200px] rounded-[32px] overflow-hidden relative shadow-inner">
+                    {data?.images?.length > 1 ? (
+                      <>
+                        <motion.img
+                          key={currentImage}
+                          src={data.images[currentImage]?.url}
+                          alt={data?.name}
+                          className="w-full h-full object-cover"
+                          initial={{ opacity: 0, scale: 1.1 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.6 }}
+                        />
 
-                  {/* Image Controls */}
-                  <button
-                    onClick={prevImage}
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 bg-black/40 text-white p-2 rounded-full"
-                  >
-                    ‹
-                  </button>
-                  <button
-                    onClick={nextImage}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-black/40 text-white p-2 rounded-full"
-                  >
-                    ›
-                  </button>
+                        {/* Image Navigation */}
+                        <div className="absolute inset-0 flex justify-between items-center px-4">
+                          <button onClick={prevImage} className="bg-white/20 backdrop-blur-md text-white w-10 h-10 rounded-2xl flex items-center justify-center border border-white/20 hover:bg-white/40 transition-colors">‹</button>
+                          <button onClick={nextImage} className="bg-white/20 backdrop-blur-md text-white w-10 h-10 rounded-2xl flex items-center justify-center border border-white/20 hover:bg-white/40 transition-colors">›</button>
+                        </div>
 
-                  {/* Dots */}
-                  <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex gap-2">
-                    {data.images.map((_, i) => (
-                      <div
-                        key={i}
-                        className={`w-2 h-2 rounded-full ${i === currentImage
-                            ? "bg-orange-500"
-                            : "bg-white/60"
-                          }`}
-                      />
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <img
-                  src={data?.images?.[0]?.url || "/placeholder.jpg"}
-                  alt={data?.name}
-                  className="w-full h-full object-cover"
-                />
-              )}
-            </div>
-
-            {/* Basic Info */}
-            <div>
-              <h3 className="md:text-3xl font-semibold text-gray-800 mb-2">
-                {data?.name}
-              </h3>
-              <p className="text-gray-600 text-xs leading-relaxed">
-                {data?.description ||
-                  "No description provided for this dish."}
-              </p>
-            </div>
-
-            {/* Meta Info */}
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="flex items-center gap-2 text-gray-600 col-span-2">
-                <Utensils size={16} color={accent} />
-                Category:
-                <span className="font-medium text-gray-800 ml-1">
-                  {data?.category}
-                </span>
-              </div>
-            </div>
-
-            {/* Metadata Section */}
-            {data?.metadata && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="bg-orange-50 rounded-xl border border-orange-100 w-full">
-                <div className="p-2">
-                  <h4 className="text-md font-semibold text-orange-700 mb-3 flex items-center gap-2">
-                    <Flame size={18} /> Dish Metadata
-                  </h4>
-                </div>
-                <div className="grid grid-cols-3 p-1 rounded-b-2xl gap-2 bg-white text-sm text-gray-700">
-                  <p>
-                    <strong className="text-orange-600 font-semibold">Portion Size:</strong>{" "}
-                    {data.metadata.portionSize || "N/A"}
-                  </p>
-                  <p>
-                    <strong className="text-orange-600 font-semibold">Spice Level:</strong>{" "}
-                    {data.metadata.spiceLevel || "Not specified"}
-                  </p>
-                  <p>
-                    <strong className="text-orange-600 font-semibold">Chef Special:</strong>{" "}
-                    {data.metadata.chefSpecial ? (
-                      <span className="text-green-600 font-semibold">
-                        Yes
-                      </span>
+                        {/* Progress Dots */}
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
+                          {data.images.map((_, i) => (
+                            <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === currentImage ? "w-6 bg-orange-500" : "w-1.5 bg-white/40"}`} />
+                          ))}
+                        </div>
+                      </>
                     ) : (
-                      "No"
+                      <img src={data?.images?.[0]?.url || "/placeholder.jpg"} alt={data?.name} className="w-full h-full object-cover" />
                     )}
+
+                    {/* Floating Badges */}
+                    <div className="absolute top-3 left-3 pr-6 flex justify-between w-full gap-2">
+                      <div className="bg-orange-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full shadow-lg uppercase tracking-widest">{data.category}</div>
+                        {data.metadata?.chefSpecial && (
+                          <div className="bg-white/95 backdrop-blur-md text-gray-900 text-[10px] font-semibold px-3 py-1 rounded-full shadow-lg uppercase tracking-widest border border-gray-100">👨‍🍳 Chef Special</div>
+                        )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Text Content */}
+                <div className="p-2">
+                  <div className="flex justify-between items-start gap-4">
+                    <h3 className="text-xl font-bold text-gray-700 leading-tight tracking-tight uppercase">
+                      {data?.name}
+                    </h3>
+                  </div>
+
+                  <p className="text-gray-500 text-sm leading-relaxed mt-2 italic font-medium">
+                    "{data?.description || "A masterfully crafted dish prepared with the finest ingredients and a touch of passion."}"
                   </p>
-                </div>
-              </motion.div>
-            )}
 
-            {/* Tags */}
-            <div className="overflow-x-auto scroll">
-              {data?.tags?.length > 0 && (
-                <div className="flex gap-2">
-                  {data.tags.map((tag, i) => (
-                    <span
-                      key={i}
-                      className="bg-orange-50 border border-orange-100 text-orange-600 text-xs px-3 py-1 rounded-full flex items-center gap-1"
-                    >
-                      <Tag size={12} /> {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Variants */}
-            {data?.variants?.length > 0 && (
-              <div className="mt-4">
-                <div className="grid gap-4">
-                  {data?.variants?.length > 0 ? (
-                    data.variants.map((variant, i) => (
-                      <motion.div
-                        key={i}
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ type: "spring", stiffness: 200, damping: 12 }}
-                        className="flex items-center justify-between bg-white border border-gray-100 rounded-2xl shadow-sm shadow-gray-100 hover:shadow-md p-3 md:p-4 transition-all"
-                      >
-                        {/* Left section — image + details */}
-                        <div className="flex items-center gap-4">
-                          {variant.image ? (
-                            <img
-                              src={variant.image}
-                              alt={variant.name}
-                              className="w-16 h-16 rounded-xl object-cover border border-gray-200"
-                            />
-                          ) : (
-                            <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
-                              No Image
-                            </div>
-                          )}
-                          <div>
-                            <h3 className="font-semibold text-gray-800 text-base leading-tight">
-                              {variant.name}
-                            </h3>
-                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                              {variant.description || "No description available"}
-                            </p>
-                            <p className="text-orange-600 font-semibold text-sm mt-1">
-                              ₦{(variant.price || 0).toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Right section — Add button */}
-                        <div className="flex-shrink-0">
-                          <button
-                            onClick={() => handleAddClick(variant)}
-                            className="cursor-pointer bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-semibold text-xs md:text-sm px-5 py-2 rounded-full shadow-sm transition-all"
-                          >
-                            Add
-                          </button>
-                        </div>
-                      </motion.div>
-                    ))
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-10 text-center">
-                      <div className="bg-orange-100 text-orange-500 p-4 rounded-full mb-3">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-6 w-6"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 9h.008v.008H9.75V9zM4.5 12a7.5 7.5 0 1115 0 7.5 7.5 0 01-15 0z" />
-                        </svg>
+                  {/* Quick Stats */}
+                  <div className="grid grid-cols-3 gap-4 mt-3 py-3 border-y border-gray-50">
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">Estimated</p>
+                      <div className="flex items-center gap-1.5 text-gray-900">
+                        <Clock size={14} className="text-orange-500" />
+                        <span className="text-sm font-semibold">{data?.estimatedDeliveryTime || 25} MINS</span>
                       </div>
-                      <p className="text-gray-500 font-medium">No variants found.</p>
+                    </div>
+                    <div className="space-y-1 border-x border-gray-50 px-4">
+                      <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">Delivery</p>
+                      <div className="flex items-center gap-1.5 text-gray-900">
+                        <TbCurrencyNaira size={18} className="text-orange-500" />
+                        <span className="text-sm font-semibold">{data?.deliveryFee || 0}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1 pl-4">
+                      <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">Spice</p>
+                      <div className="flex items-center gap-1.5 text-gray-900">
+                        <Flame size={14} className="text-orange-500" />
+                        <span className="text-sm font-semibold uppercase">{data.metadata?.spiceLevel || 'Mild'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tags */}
+                  {data?.tags?.length > 0 && (
+                    <div className="pb-2 flex flex-wrap gap-2 mt-3">
+                      {data.tags.map((tag, i) => (
+                        <span key={i} className="text-[9px] font-semibold text-gray-400 border border-gray-100 px-3 py-1 rounded-full uppercase tracking-widest group-hover:border-orange-200 group-hover:text-orange-600 transition-colors">#{tag}</span>
+                      ))}
                     </div>
                   )}
                 </div>
               </div>
-            )}
-          </>
-        ) : (
-          <p className="text-center text-gray-500">No food found.</p>
-        )}
+            </motion.div>
+
+            {/* Vendor Status Info */}
+            <div className="px-2">
+              <motion.div onClick={handleViewVendor} whileHover={{ x: 5 }} className="bg-gray-900 rounded-[32px] p-6 flex justify-between items-center cursor-pointer shadow-xl shadow-gray-200">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white">
+                    <Store size={24} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-semibold text-orange-400 uppercase tracking-widest">Provided by</p>
+                    <h4 className="text-white font-bold tracking-tight italic uppercase">{data?.vendor?.storeName}</h4>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className={`text-[10px] font-semibold px-3 py-1 rounded-full border shadow-sm ${openingMessage.includes('Open now') ? 'border-emerald-500/50 text-emerald-400' : 'border-rose-500/50 text-rose-400'}`}>
+                    {openingMessage}
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Selection Section */}
+            <div className="px-2 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-1.5 h-6 bg-gray-900 rounded-full"></div>
+                <h3 className="text-xl font-semibold text-gray-900 tracking-tight uppercase">Select Options</h3>
+              </div>
+
+              {data?.variants?.length > 0 ? (
+                <div className="grid gap-4">
+                  {data.variants.map((variant, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="group bg-white border border-gray-100 rounded-[32px] p-2 flex items-center justify-between hover:shadow-2xl hover:shadow-gray-100 transition-all duration-500"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="relative w-16 h-16 rounded-[16px] overflow-hidden bg-gray-50 flex-shrink-0">
+                          {variant.image ? (
+                            <img src={variant.image} alt={variant.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300"><Utensils size={32} /></div>
+                          )}
+                          <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-semibold text-gray-900 tracking-tight uppercase">{variant.name}</h4>
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-1 italic font-medium">{variant.description || "A premium variant crafted for your satisfaction."}</p>
+                          <div className="flex items-center gap-2 mt-3">
+                            <span className="font-bold text-gray-900 tabular-nums">₦{variant.price?.toLocaleString()}</span>
+                            <span className="text-[10px] font-semibold text-orange-500 bg-orange-50 px-2.5 py-0.5 rounded-lg uppercase tracking-tighter">Verified Price</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleAddClick(variant)}
+                        className="w-14 h-14 rounded-[20px] bg-gray-900 text-white flex items-center justify-center hover:bg-orange-600 active:scale-90 transition-all shadow-lg shadow-gray-200"
+                      >
+                        <BiCartAdd size={28} />
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16 bg-gray-50 rounded-[40px] border border-dashed border-gray-200 mx-4">
+                  <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No variations available for this dish</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
       </div>
+
       <AddToCartModal
         food={selectedFood}
         isOpen={isModalOpen}

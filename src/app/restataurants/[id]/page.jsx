@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Clock, Truck, ChevronRight } from "lucide-react";
+import { ArrowLeft, Clock, Truck, ChevronRight, MapPin, Search, Star, ArrowRight } from "lucide-react";
 import { TbCurrencyNaira } from "react-icons/tb";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -19,8 +19,9 @@ export default function ViewVendor() {
   const vendor = foodList?.[0]?.vendor;
   const deliveryFee = foodList?.[0]?.deliveryFee;
   const estimatedTime = foodList?.[0]?.estimatedDeliveryTime;
-  const openingMessage = vendor?.openingHours
-    ? getVendorOpenStatus(vendor.openingHours)
+  const hours = vendor?.openHours || vendor?.openingHours;
+  const openingMessage = hours
+    ? getVendorOpenStatus(hours)
     : "Opening hours not available.";
 
   // Filter & search state
@@ -62,123 +63,116 @@ export default function ViewVendor() {
         </h1>
       </header>
 
-      <div className="px-3 pb-24 pt-3 space-y-4">
+      <div className="max-w-4xl mx-auto px-3 pb-24 pt-3 space-y-6">
         {isLoading ? (
           <VendorSkeleton />
         ) : isError ? (
-          <p className="text-center text-red-500 mt-10">Failed to load restaurant</p>
+          <div className="text-center py-10 bg-red-50 rounded-3xl border border-dashed border-red-200 mx-3">
+            <p className="text-red-500 font-medium">Failed to load restaurant details</p>
+            <button onClick={() => window.location.reload()} className="mt-4 bg-red-500 text-white px-6 py-2 rounded-full font-bold shadow-md">Retry</button>
+          </div>
         ) : !vendor ? (
-          <p className="text-center text-gray-500 mt-10">Restaurant not found</p>
+          <div className="text-center py-10 bg-gray-50 rounded-3xl mx-3">
+            <p className="text-gray-500 font-medium">Restaurant not found</p>
+            <button onClick={() => router.push("/")} className="mt-4 text-orange-500 font-bold">Return Home</button>
+          </div>
         ) : (
           <>
-            {/* Vendor Info */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01 }} className="bg-white rounded-2xl border border-gray-100 transition overflow-hidden" >
-                {/* Vendor Banner */}
-                <div className="relative w-full h-32">
-                    <img src={vendor.logo || "/vendor-banner-placeholder.jpg"} alt="Vendor Banner" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/25"></div>
-                    <img src={vendor.logo || "/placeholder.jpg"} alt={vendor.storeName} className="w-16 h-16 rounded-xl object-cover border absolute left-4 bottom-[-20px]" />
+            {/* Vendor Info Section */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100" >
+              {/* Banner */}
+              <div className="relative w-full h-40">
+                <img src={vendor.logo || "/vendor-banner-placeholder.jpg"} alt="Vendor Banner" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+
+                {/* Floating Logo */}
+                <div className="absolute -bottom-6 left-6 p-1 bg-white rounded-2xl shadow-lg border border-gray-100">
+                  <img src={vendor.logo || "/placeholder.jpg"} alt={vendor.storeName} className="w-20 h-20 rounded-xl object-cover" />
                 </div>
 
-                {/* Vendor Info */}
-                <div className="pt-6 px-4 pb-4">
-                    <h2 className="font-semibold text-gray-800 text-lg">{vendor.storeName}</h2>
+                {/* Quick Badges */}
+                <div className="absolute top-4 right-4 flex gap-2">
+                  {vendor.isPopular && (
+                    <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-[10px] font-bold shadow-sm backdrop-blur-md">🔥 POPULAR</span>
+                  )}
+                </div>
+              </div>
 
-                    {/* Ratings */}
-                    <div className="flex items-center gap-2 mt-1">
-                    <div className="flex text-yellow-400">
-                        {Array.from({ length: Math.round(vendor.rating || 0) }).map((_, i) => (
-                        <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                            <path d="M10 15l-5.878 3.09 1.123-6.545L.49 6.91l6.561-.954L10 0l2.949 5.956 6.561.954-4.755 4.635 1.123 6.545z" />
-                        </svg>
-                        ))}
-                    </div>
-                    <span className="text-xs text-gray-500">{vendor.reviewsCount || 0} reviews</span>
-                    </div>
-
-                    {/* Badges */}
-                    <div className="flex gap-2 mt-2 flex-wrap">
-                        {vendor.isPopular && (
-                            <span className="bg-orange-50 text-orange-600 px-2 py-1 rounded-full text-[10px] font-semibold flex items-center gap-1">
-                            🔥 Popular
-                            </span>
-                        )}
-                        {vendor.isNew && (
-                            <span className="bg-green-50 text-green-600 px-2 py-1 rounded-full text-[10px] font-semibold">
-                            🌟 New
-                            </span>
-                        )}
-                        {vendor.discount && (
-                            <span className="bg-blue-50 text-blue-600 px-2 py-1 rounded-full text-[10px] font-semibold">
-                            {vendor.discount}% Off
-                            </span>
-                        )}
-                    </div>
-
-                    {/* Delivery & Fee */}
-                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-2">
-                        <Clock size={12} />
-                        <span>{estimatedTime} mins</span>
-                        <span>•</span>
-                        <TbCurrencyNaira size={12} />
-                        <span>{deliveryFee}</span>
-                    </div>
-                    {vendor.acceptsDelivery && (
-                    <div className="flex items-center gap-1 text-xs text-orange-600 mt-1">
-                        <Truck size={12} />
-                        Instant delivery
-                    </div>
-                    )}
-
-                    {/* Opening Status */}
-                    <motion.div
-                    onClick={() => router.push(`/view-vendor/${vendor._id}`)}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    className="flex items-center gap-2 text-gray-600 text-sm mt-2 cursor-pointer group"
-                    >
-                    <Clock className="text-orange-500 group-hover:text-orange-600 transition" size={15} />
-                    <p className="text-sm font-medium text-gray-700 group-hover:text-orange-600 transition flex items-center">
-                        {openingMessage}
-                        <ChevronRight size={16} className="ml-1" />
+              {/* Content */}
+              <div className="pt-10 p-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="font-bold text-gray-900 text-2xl tracking-tight">{vendor.storeName}</h2>
+                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <MapPin size={12} className="text-orange-500" />
+                      {vendor.address?.city}, {vendor.address?.state}
                     </p>
-                    </motion.div>
-
-                    {/* Delivery Progress Bar */}
-                    <div className="mt-2 flex items-center gap-2">
-                    <div className="h-1 flex-1 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                        className="h-1 bg-orange-500 rounded-full"
-                        style={{ width: `${Math.min(100, (estimatedTime / 60) * 100)}%` }}
-                        ></div>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center gap-1.5 justify-end mb-1">
+                      <Star size={14} className="text-yellow-400 fill-yellow-400" />
+                      <span className="font-bold text-gray-900 text-sm">{vendor.rating || 0}</span>
                     </div>
-                    <span className="text-xs text-gray-500">{estimatedTime} mins</span>
-                    </div>
+                    <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{vendor.reviewsCount || 0} REVIEWS</p>
+                  </div>
                 </div>
-                </motion.div>
 
-            {/* Search Bar */}
-            <div className="flex items-center bg-gray-100 rounded-full px-3 py-2 mt-2">
-              <input
-                type="text"
-                placeholder="Search for foods..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent flex-1 py-1 outline-none text-sm text-gray-700 placeholder-gray-400"
-              />
-            </div>
+                {/* Stats Row */}
+                <div className="flex items-center gap-4 mt-6 py-3 border-y border-gray-50">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Delivery Time</p>
+                    <div className="flex items-center gap-1.5">
+                      <Clock size={14} className="text-orange-500" />
+                      <span className="font-bold text-sm text-gray-800">{estimatedTime} mins</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1 border-l border-gray-50 pl-4">
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Delivery Fee</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold text-sm text-gray-800">from | ₦{deliveryFee || 0}</span>
+                    </div>
+                  </div>
+                  {vendor.acceptsDelivery && (
+                    <div className="flex flex-col gap-1 border-l border-gray-50 pl-4">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Method</p>
+                      <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] font-bold border border-emerald-100 w-fit">INSTANT</span>
+                    </div>
+                  )}
+                </div>
 
-            {/* Sticky Category Filter */}
-            <div className="sticky top-[72px] bg-white rounded-2xl py-2 z-40">
-              <div className="flex gap-2 overflow-x-auto scroll px-1 scrollbar-hide">
+                {/* Status Message */}
+                <div className={`mt-4 p-3 rounded-2xl flex items-center gap-3 border transition-colors ${openingMessage.includes('Open now') ? 'bg-emerald-50/50 border-emerald-100 text-emerald-700' : 'bg-rose-50/50 border-rose-100 text-rose-700'}`}>
+                  <div className={`p-2 rounded-xl ${openingMessage.includes('Open now') ? 'bg-emerald-100' : 'bg-rose-100'}`}>
+                    <Clock size={16} />
+                  </div>
+                  <p className="text-sm font-semibold leading-snug">{openingMessage}</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Filter & Search Section */}
+            <div className="space-y-4">
+              <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={18} />
+                <input
+                  type="text"
+                  placeholder="Search dishes or categories..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-4 py-3 outline-none text-sm transition-all focus:border-orange-500 focus:ring-4 focus:ring-orange-50 focus:bg-white"
+                />
+              </div>
+
+              {/* Categories Scroll */}
+              <div className="flex gap-2 overflow-x-auto scroll no-scrollbar pb-2">
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-3 py-1 rounded-full border text-sm font-medium whitespace-nowrap transition
+                    className={`px-5 py-2.5 rounded-xl border text-sm font-bold whitespace-nowrap transition-all
                       ${selectedCategory === cat
-                        ? "bg-orange-500 border-orange-500 text-white"
-                        : "bg-white border-gray-200 text-gray-600 hover:bg-orange-50 hover:border-orange-300"
+                        ? "bg-gray-900 border-gray-900 text-white shadow-lg shadow-gray-200"
+                        : "bg-white border-gray-200 text-gray-500 hover:border-orange-300 hover:text-orange-600"
                       }`}
                   >
                     {cat}
@@ -187,52 +181,50 @@ export default function ViewVendor() {
               </div>
             </div>
 
-            {/* Foods */}
-            <div className="space-y-4 mt-2">
+            {/* Foods Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5 mt-4">
               {filteredFoods.length === 0 ? (
-                <p className="text-gray-500 text-sm">No food matches your search.</p>
+                <div className="col-span-full py-8 text-center bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+                  <p className="text-gray-500 font-medium">No results found for "{searchQuery}"</p>
+                </div>
               ) : (
-                <div className="grid sm:grid-cols-2 grid-cols-1 gap-4">
-                  {filteredFoods.map((food) => (
-                    <motion.div
-                      key={food._id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={() => router.push(`/food-details/${food._id}`)}
-                      className="bg-white border border-gray-100 rounded-2xl cursor-pointer transition"
-                    >
+                filteredFoods.map((food, idx) => (
+                  <motion.div
+                    key={food._id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.05 }}
+                    onClick={() => router.push(`/food-details/${food._id}`)}
+                    className="bg-white border border-gray-100 rounded-[24px] p-3 cursor-pointer hover:shadow-xl hover:shadow-gray-100 hover:border-orange-100 transition-all flex gap-4 group h-fit"
+                  >
+                    <div className="relative w-28 h-28 rounded-2xl overflow-hidden flex-shrink-0">
                       <img
                         src={food.images?.[0]?.url || "/placeholder.jpg"}
                         alt={food.name}
-                        className="w-full h-32 rounded-xl object-cover"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
-                      <div className="mt-2 p-2">
-                        <p className="text-sm font-semibold text-gray-800 line-clamp-2 truncate">{food.name}</p>
-                        <p className="text-gray-500 text-xs mt-0.5">{food.category}</p>
-                        <p className="text-orange-600 font-semibold text-sm mt-1">₦{food.price?.toLocaleString()}</p>
+                    </div>
 
-                        <div className="mt-2 text-xs text-gray-600 space-y-1 flex justify-between">
-                          <p className="flex items-center gap-1">
-                            <Truck size={12} className="text-orange-500" />
-                            {food?.vendor?.address?.city || "Address not available"}
-                          </p>
-                          <p className="flex items-center gap-1">
-                            <Clock size={13} className="text-orange-500" />
-                            {food?.estimatedDeliveryTime - 5 || "0"} - {food?.estimatedDeliveryTime || "0"} mins
-                          </p>
+                    <div className="flex-1 flex flex-col justify-between py-1">
+                      <div>
+                        <div className="flex justify-between items-start gap-2">
+                          <h4 className="text-sm font-bold text-gray-900 line-clamp-1 leading-tight">{food.name}</h4>
+                          <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded capitalize">{food.category}</span>
                         </div>
-
-                        {food.metadata && (
-                          <div className="mt-2 bg-orange-50 p-2 rounded-lg border border-orange-100 text-xs text-gray-700">
-                            <p><strong>Portion:</strong> {food.metadata.portionSize}</p>
-                            <p><strong>Spice:</strong> {food.metadata.spiceLevel}</p>
-                            <p><strong>Chef Special:</strong> {food.metadata.chefSpecial ? "Yes" : "No"}</p>
-                          </div>
-                        )}
+                        <p className="text-[11px] text-gray-500 mt-1 line-clamp-2 leading-relaxed">
+                          {food.description || "The finest choice for your meal, prepared with fresh ingredients."}
+                        </p>
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
+
+                      <div className="flex justify-between items-end mt-2">
+                        <p className="text-base font-black text-gray-900 tabular-nums">₦{food.price?.toLocaleString()}</p>
+                        <div className="bg-gray-900 text-white p-2 rounded-xl shadow-lg group-hover:bg-orange-600 transition-colors">
+                          <ArrowRight size={16} />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))
               )}
             </div>
           </>

@@ -241,7 +241,7 @@ export default function FoodSearchMobile() {
                   onClick={() => handleDropdownSelect(item.name, "autocomplete")}
                   className="px-3 py-2 hover:bg-orange-50 cursor-pointer text-gray-700 text-sm"
                 >
-                  {item.name} 
+                  {item.name}
                   <span className="text-gray-400 text-xs">
                     {item.vendorName ? ` • ${item.vendorName}` : ""}
                   </span>
@@ -288,10 +288,9 @@ export default function FoodSearchMobile() {
               layout
               onClick={() => handleCategoryClick(category)}
               className={`flex items-center gap-3 px-4 py-2 rounded-full whitespace-nowrap border transition-all duration-300
-                ${
-                  activeCategory === category
-                    ? "bg-orange-500 text-white border-orange-500 shadow-md"
-                    : "bg-orange-100 text-gray-700 border-orange-300 hover:border-orange-500 hover:bg-orange-50"
+                ${activeCategory === category
+                  ? "bg-orange-500 text-white border-orange-500 shadow-md"
+                  : "bg-orange-100 text-gray-700 border-orange-300 hover:border-orange-500 hover:bg-orange-50"
                 }
               `}
               initial={{ opacity: 0.8 }}
