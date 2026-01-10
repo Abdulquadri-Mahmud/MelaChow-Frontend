@@ -59,7 +59,12 @@ export default function FoodList({ user }) {
     if (errorMsg === "Please provide both city and state query parameters.") {
       return (
         <div className="mt-4 px-3">
-          <h2 className="pb-3 text-lg font-bold text-gray-800 tracking-tight">Available Foods</h2>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="bg-orange-100 p-1.5 rounded-lg">
+              <Utensils className="text-orange-600" size={18} />
+            </div>
+            <h2 className="text-lg font-bold text-gray-800 tracking-tight">Available Foods</h2>
+          </div>
           <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
             <MapPin className="mx-auto text-gray-400 mb-2" size={24} />
             <p className="text-gray-500 text-sm font-medium">Please provide both city and state to see foods near you.</p>
@@ -84,11 +89,31 @@ export default function FoodList({ user }) {
 
   return (
     <div className="flex-1 pb-5">
+      <div className="flex items-center justify-between px-3 mb-2">
+        <div className="flex items-center gap-2">
+          <div className="bg-orange-100 p-1.5 rounded-lg">
+            <Utensils className="text-orange-600" size={18} />
+          </div>
+          <h2 className="text-lg font-bold text-gray-800 tracking-tight">Available Foods</h2>
+        </div>
+        <button
+          onClick={() => router.push('/all-foods')}
+          className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors"
+        >
+          See All
+        </button>
+      </div>
+
       {Object.entries(foodsByCategory).map(([category, foods]) => (
         <div key={category} className=" md:p-3 p-2 rounded-xl">
-          <h2 className="md:text-lg text-md font-semibold text-gray-800 tracking-tight">
-            {category}
-          </h2>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="bg-orange-100 p-1.5 rounded-lg">
+              <Utensils className="text-orange-600" size={16} />
+            </div>
+            <h2 className="md:text-lg text-md font-semibold text-gray-800 tracking-tight">
+              {category}
+            </h2>
+          </div>
 
           <div className="flex gap-2 mt-2 overflow-x-auto scroll pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar">
             {foods.map((food) => (

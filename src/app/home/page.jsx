@@ -8,6 +8,7 @@ import FoodList from "../components/Home_Components/FoodList";
 import HomeHeader from "../components/Home_Components/HomeHeader";
 import PromoBanner from "../components/Home_Components/PromoBanner";
 import SearchBar from "../components/Home_Components/SearchBar";
+import TrendingFoods from "../components/Home_Components/TrendingFoods";
 import VendorList from "../components/Home_Components/VendorList";
 import { fetchUser } from "../lib/api";
 import AddressModal from "../modals/AddressModal";
@@ -47,6 +48,7 @@ export default function HomePage() {
         <CategoryList />
         {/* <PromoBanner /> */}
         <VendorList user={userData?.user} />
+        <TrendingFoods user={userData?.user} />
         <FoodList user={userData?.user} />
         <div className="" />
         {/* <FeatureSlider /> */}

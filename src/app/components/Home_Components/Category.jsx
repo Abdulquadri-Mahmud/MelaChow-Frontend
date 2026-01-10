@@ -40,7 +40,14 @@ export default function CategoryList() {
   };
 
   return (
-    <div className="mt-2">
+    <div className="mt-4 px-3">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="bg-orange-100 p-1.5 rounded-lg">
+          <Flame className="text-orange-600 fill-orange-600" size={18} />
+        </div>
+        <h2 className="text-lg font-bold text-gray-800 tracking-tight">Browse Categories</h2>
+      </div>
+
       <div className="scroll mx-auto bg-white rounded-full w-[100%] flex gap-3 overflow-x-auto scrollbar-none snap-x snap-mandatory">
         <div className="flex scroll overflow-x-auto no-scrollbar gap-2 px-3 pb-3 mt-2">
           {categories.map((category) => (

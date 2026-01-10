@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchUser } from "../lib/api";
-import SplashScreen from "./SplashScreen/SplashScreen";
+import SplashScreen from "./SplashScreen";
 
 export default function AuthLoader() {
   const [loading, setLoading] = useState(true);

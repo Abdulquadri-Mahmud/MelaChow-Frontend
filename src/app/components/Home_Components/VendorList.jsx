@@ -78,7 +78,12 @@ export default function VendorList({ user }) {
   if (isLoading) {
     return (
       <div className="my-4 px-3">
-        <h2 className="font-semibold text-lg mb-3 text-gray-800">Featured Restaurants</h2>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="bg-orange-100 p-1.5 rounded-lg">
+            <Store className="text-orange-600" size={18} />
+          </div>
+          <h2 className="text-lg font-bold text-gray-800 tracking-tight">Featured Restaurants</h2>
+        </div>
         <div className="flex gap-4 pb-4 overflow-x-auto no-scrollbar snap-x snap-mandatory">
           {[1, 2, 3].map((i) => (
             <div key={i} className="min-w-[250px] rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-50 snap-center">
@@ -120,7 +125,12 @@ export default function VendorList({ user }) {
     if (errorMsg === "Please provide both city and state query parameters.") {
       return (
         <div className="mt-4 px-3">
-          <h2 className="pb-3 text-lg font-bold text-gray-800 tracking-tight">Featured Restaurants</h2>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="bg-orange-100 p-1.5 rounded-lg">
+              <Store className="text-orange-600" size={18} />
+            </div>
+            <h2 className="text-lg font-bold text-gray-800 tracking-tight">Featured Restaurants</h2>
+          </div>
           <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
             <MapPin className="mx-auto text-gray-400 mb-2" size={24} />
             <p className="text-gray-500 text-sm font-medium">Please provide both city and state to see restaurants near you.</p>
@@ -139,7 +149,12 @@ export default function VendorList({ user }) {
   if (!isLoading && !isError && (!data || data.length === 0)) {
     return (
       <div className="mt-4 px-3">
-        <h2 className="pb-3 text-lg font-bold text-gray-800 tracking-tight">Featured Restaurants</h2>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="bg-orange-100 p-1.5 rounded-lg">
+            <Store className="text-orange-600" size={18} />
+          </div>
+          <h2 className="text-lg font-bold text-gray-800 tracking-tight">Featured Restaurants</h2>
+        </div>
         <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
           <MapPin className="mx-auto text-gray-400 mb-2" size={24} />
           <p className="text-gray-500 text-sm font-medium">No restaurants found near you yet.</p>
@@ -151,7 +166,20 @@ export default function VendorList({ user }) {
 
   return (
     <div className="mt-4 px-3">
-      <h2 className="pb-3 text-lg font-bold text-gray-800 tracking-tight">Featured Restaurants</h2>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="bg-orange-100 p-1.5 rounded-lg">
+            <Store className="text-orange-600" size={18} />
+          </div>
+          <h2 className="text-lg font-bold text-gray-800 tracking-tight">Featured Restaurants</h2>
+        </div>
+        <button
+          onClick={() => router.push('/all-restaurants')}
+          className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors"
+        >
+          See All
+        </button>
+      </div>
 
       <div className="flex gap-4 overflow-x-auto scroll no-scrollbar snap-x snap-mandatory pb-4">
         {data?.map((vendor) => {
