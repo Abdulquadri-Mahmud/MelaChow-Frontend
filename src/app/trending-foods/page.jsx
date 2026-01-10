@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import {
     ArrowLeft, Utensils, Clock, Truck, Store, Plus, MapPin, Star,
-    Search, SlidersHorizontal, AlertCircle, SearchX, RefreshCw, X
+    Search, SlidersHorizontal, AlertCircle, SearchX, RefreshCw, X, Flame
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -24,7 +24,7 @@ const Skeleton = () => (
     </div>
 );
 
-export default function AllFoods() {
+export default function TrendingPage() {
     const router = useRouter();
     const { baseUrl } = useApi();
     const [isSearching, setIsSearching] = useState(false);
@@ -41,16 +41,16 @@ export default function AllFoods() {
     const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
 
     const { data: foods = [], isLoading, isError, refetch } = useQuery({
-        queryKey: ["all-foods", defaultAddr?.city, defaultAddr?.state],
+        queryKey: ["trending-all", defaultAddr?.city, defaultAddr?.state],
         queryFn: async () => {
-            const res = await axios.get(`${baseUrl}/user/foods`, {
+            const res = await axios.get(`${baseUrl}/user/trending`, {
                 params: {
                     city: defaultAddr?.city,
                     state: defaultAddr?.state,
                 },
                 headers: { Authorization: `Bearer ${token}` },
             });
-            return res.data.foods || [];
+            return res.data.trending || [];
         },
         enabled: !!defaultAddr,
     });
@@ -66,7 +66,7 @@ export default function AllFoods() {
     return (
         <div className="min-h-screen bg-zinc-50/50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-display pb-20 transition-colors duration-300">
             {/* Sticky Header */}
-            <header className="sticky top-0 z-50 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 shadow-sm transition-all">
+            <header className="sticky top-0 z-50 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 transition-all duration-300">
                 <div className="max-w-md mx-auto px-4 py-3">
                     {!isSearching ? (
                         <div className="flex items-center justify-between">
@@ -78,7 +78,7 @@ export default function AllFoods() {
                                     <ArrowLeft size={20} className="text-zinc-600 dark:text-zinc-400" />
                                 </button>
                                 <div className="flex flex-col">
-                                    <h1 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">Discover</h1>
+                                    <h1 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">Trending</h1>
                                     <div className="flex items-center gap-1 text-orange-600">
                                         <MapPin size={12} className="fill-orange-600/20" />
                                         <span className="text-[10px] font-bold uppercase tracking-widest truncate max-w-[120px]">
@@ -105,7 +105,7 @@ export default function AllFoods() {
                                 <input
                                     autoFocus
                                     type="text"
-                                    placeholder="Search dishes or kitchens..."
+                                    placeholder="Search trending dishes..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="w-full bg-zinc-100 dark:bg-zinc-800 border-none rounded-2xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-orange-500/20 transition-all outline-none"
@@ -137,11 +137,14 @@ export default function AllFoods() {
             <main className="max-w-md mx-auto px-4 pt-6">
                 {/* Intro */}
                 <div className="mb-6 px-1">
-                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white uppercase italic tracking-tight leading-none">
-                        {searchQuery ? `Dishes: ${searchQuery}` : "Available Menu"}
-                    </h2>
+                    <div className="flex items-center gap-2">
+                        <Flame className="text-orange-600 fill-orange-600" size={24} />
+                        <h2 className="text-2xl font-black text-zinc-900 dark:text-white uppercase italic tracking-tight leading-none">
+                            Hot Right Now
+                        </h2>
+                    </div>
                     <p className="text-zinc-500 dark:text-zinc-400 text-xs mt-1.5 font-bold uppercase tracking-widest">
-                        {filteredFoods.length} items found near your area
+                        The most popular tastes in {defaultAddr?.city || "your area"}
                     </p>
                 </div>
 
@@ -154,7 +157,7 @@ export default function AllFoods() {
                         <AlertCircle className="text-red-500 mx-auto" size={32} />
                         <div>
                             <p className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-tight">Sync Failure</p>
-                            <p className="text-xs text-zinc-500 mt-1">We couldn't reach our kitchen servers. Try again soon.</p>
+                            <p className="text-xs text-zinc-500 mt-1">We couldn't fetch the trending menu. Try again soon.</p>
                         </div>
                         <button onClick={() => refetch()} className="bg-orange-600 text-white text-[10px] font-black uppercase px-8 py-2.5 rounded-full shadow-lg">Retry Sync</button>
                     </div>
@@ -171,24 +174,14 @@ export default function AllFoods() {
                         </div>
 
                         <h2 className="text-lg font-black text-zinc-900 dark:text-white uppercase italic leading-none">
-                            Nothing's Cooking...
+                            No Trends Found
                         </h2>
                         <p className="text-zinc-500 text-sm mt-3 font-medium leading-relaxed max-w-[240px] mx-auto">
-                            No dishes match "{searchQuery}" in your current area. Reset search to see more.
+                            We don't have enough data for trending items in this area yet.
                         </p>
-
-                        <button
-                            onClick={() => {
-                                setIsSearching(false);
-                                setSearchQuery("");
-                            }}
-                            className="mt-8 px-10 py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-black uppercase tracking-widest text-[10px] rounded-2xl active:scale-95 transition-all"
-                        >
-                            Reset Search
-                        </button>
                     </div>
                 ) : (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         {filteredFoods.map((food) => (
                             <div
                                 key={food._id}

@@ -69,7 +69,7 @@ export default function TrendingFoods({ user }) {
                     <h2 className="text-lg font-bold text-gray-800 tracking-tight">Trending Near You</h2>
                 </div>
                 <button
-                    onClick={() => router.push('/all-foods')}
+                    onClick={() => router.push('/trending-foods')}
                     className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors"
                 >
                     See All
