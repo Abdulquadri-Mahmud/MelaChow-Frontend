@@ -3,7 +3,8 @@
 import { useMemo, useState, useEffect } from "react";
 import {
     ArrowLeft, Store, Clock, MapPin, Truck, Plus, Star, Heart,
-    Search, SlidersHorizontal, AlertCircle, RefreshCw, X, Utensils
+    Search, SlidersHorizontal, AlertCircle, RefreshCw, X, Utensils,
+    StarHalf, Star as StarEmpty
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -12,23 +13,19 @@ import { fetchUser } from "@/app/lib/api";
 import axios from "axios";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
-const Skeleton = () => (
-    <div className="flex flex-col gap-3 rounded-2xl bg-white dark:bg-zinc-900 p-3 shadow-sm border border-gray-100">
-        <div className="relative h-44 w-full overflow-hidden rounded-xl bg-gray-100 animate-pulse" />
-        <div className="flex justify-between items-start pt-1">
-            <div className="space-y-2 flex-1">
-                <div className="h-5 w-32 bg-gray-100 rounded animate-pulse" />
-                <div className="h-4 w-48 bg-gray-50 rounded animate-pulse" />
-            </div>
-            <div className="h-8 w-12 bg-gray-50 rounded animate-pulse" />
-        </div>
+const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
+    <div
+        className={`relative overflow-hidden scroll bg-gray-200 dark:bg-zinc-800 rounded ${className}`}
+        style={{ width, height }}
+    >
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
     </div>
 );
 
 export default function AllRestaurants() {
     const router = useRouter();
     const { baseUrl } = useApi();
-    const [favorites, setFavorites] = useState({});
+    const [imgLoaded, setImgLoaded] = useState({});
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
@@ -42,13 +39,18 @@ export default function AllRestaurants() {
     const user = userData?.user;
     const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
 
-    const { data: vendors = [], isLoading, isError, refetch } = useQuery({
+    const { data: vendors = [], isLoading, isError, error, refetch } = useQuery({
         queryKey: ["all-vendors", defaultAddr?.city, defaultAddr?.state],
         queryFn: async () => {
+            if (!defaultAddr?.city || !defaultAddr?.state) {
+                const err = new Error("Missing location");
+                err.response = { data: { message: "Please provide both city and state query parameters." } };
+                throw err;
+            }
             const res = await axios.get(`${baseUrl}/user/vendors/nearby`, {
                 params: {
-                    city: defaultAddr?.city,
-                    state: defaultAddr?.state,
+                    city: defaultAddr.city,
+                    state: defaultAddr.state,
                 },
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -56,6 +58,8 @@ export default function AllRestaurants() {
         },
         enabled: !!defaultAddr,
     });
+
+    console.log(vendors)
 
     const filteredVendors = useMemo(() => {
         if (!searchQuery) return vendors;
@@ -72,15 +76,10 @@ export default function AllRestaurants() {
         return { isOpen, status };
     };
 
-    const toggleFavorite = (e, id) => {
-        e.stopPropagation();
-        setFavorites(prev => ({ ...prev, [id]: !prev[id] }));
-    };
-
     return (
-        <div className="min-h-screen bg-gray-50/50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-display pb-24 transition-colors duration-300">
+        <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-display pb-24 transition-colors duration-300">
             {/* Header Section */}
-            <header className="sticky top-0 z-50 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 shadow-sm transition-all duration-300">
+            <header className="sticky top-0 z-50 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 transition-all duration-300">
                 <div className="max-w-md mx-auto px-4 py-3">
                     {!isSearching ? (
                         <div className="flex items-center justify-between">
@@ -160,8 +159,37 @@ export default function AllRestaurants() {
                 </div>
 
                 {isLoading ? (
-                    <div className="space-y-5">
-                        {[1, 2, 3].map(i => <Skeleton key={i} />)}
+                    <div className="grid grid-cols-1 gap-4">
+                        {[1, 2, 3].map((i) => (
+                            <div key={i} className="rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm border border-zinc-100 dark:border-zinc-800">
+                                <Skeleton height={176} />
+                                <div className="p-2.5">
+                                    <div className="flex justify-between items-start">
+                                        <div className="space-y-2 flex-1">
+                                            <div className="flex items-center gap-1.5">
+                                                <Skeleton width={14} height={14} className="rounded-sm" />
+                                                <Skeleton width="60%" height={14} />
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <Skeleton width={12} height={12} className="rounded-sm" />
+                                                <Skeleton width="40%" height={10} />
+                                            </div>
+                                        </div>
+                                        <Skeleton width={32} height={32} className="rounded-xl" />
+                                    </div>
+                                    <div className="mt-3 flex justify-between items-center bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded-xl">
+                                        <div className="flex items-center gap-1">
+                                            <Skeleton width={10} height={10} />
+                                            <Skeleton width={40} height={10} />
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Skeleton width={12} height={12} />
+                                            <Skeleton width={30} height={10} />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : isError ? (
                     <div className="p-6 bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center space-y-4">
@@ -170,7 +198,9 @@ export default function AllRestaurants() {
                         </div>
                         <div>
                             <p className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Syncing problem</p>
-                            <p className="text-xs text-zinc-500 font-medium mt-1">We couldn't reach the restaurants. Check your connection.</p>
+                            <p className="text-xs text-zinc-500 font-medium mt-1">
+                                {error?.response?.data?.message || "We couldn't reach the restaurants. Check your connection."}
+                            </p>
                         </div>
                         <button
                             onClick={() => refetch()}
@@ -215,59 +245,67 @@ export default function AllRestaurants() {
                             return (
                                 <div
                                     key={vendor._id}
-                                    onClick={() => router.push(`/restataurants/${vendor._id}`)}
-                                    className={`group relative flex flex-col gap-4 rounded-[2rem] bg-white dark:bg-zinc-900 p-2.5 shadow-sm border border-transparent hover:border-orange-600/10 hover:shadow-xl hover:shadow-zinc-200/30 dark:hover:shadow-none transition-all duration-300 cursor-pointer ${!isOpen ? '' : ''}`}
+                                    className="bg-white dark:bg-zinc-900 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-zinc-100 dark:border-zinc-800 transition-all duration-300 cursor-pointer group"
+                                    onClick={() => router.push(`/restataurants/${String(vendor._id)}`)}
                                 >
-                                    <div className="relative h-48 w-full overflow-hidden rounded-[1.75rem]">
-                                        <div className={`absolute top-4 left-4 z-10 px-3 py-1.5 rounded-xl backdrop-blur-md shadow-sm border border-white/20 ${isOpen ? 'bg-white/90 text-orange-600' : 'bg-zinc-900/90 text-zinc-400'}`}>
-                                            <p className="text-[10px] font-black uppercase tracking-widest">
-                                                {isOpen ? status : 'Closed'}
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={(e) => toggleFavorite(e, vendor._id)}
-                                            className="absolute top-4 right-4 z-10 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md size-10 flex items-center justify-center rounded-2xl text-zinc-400 hover:text-red-500 transition-all duration-300 shadow-sm border border-white/20"
-                                        >
-                                            <Heart size={20} className={favorites[vendor._id] ? 'fill-red-500 text-red-500' : ''} />
-                                        </button>
+                                    <div className="relative h-48">
+                                        {!imgLoaded[vendor._id] && <Skeleton height="100%" width="100%" />}
                                         <img
                                             src={vendor.logo}
                                             alt={vendor.storeName}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                            onLoad={() => setImgLoaded((prev) => ({ ...prev, [vendor._id]: true }))}
+                                            className={`h-full w-full object-cover transition-all duration-700 group-hover:scale-110 ${imgLoaded[vendor._id] ? "opacity-100" : "opacity-0"}`}
                                         />
-                                        {/* Status Icon */}
-                                        <div className="absolute bottom-4 right-4 bg-orange-600 p-2.5 rounded-2xl shadow-lg border border-white/20 transform translate-y-20 group-hover:translate-y-0 transition-transform duration-500">
-                                            <Plus size={20} className="text-white" />
+
+                                        {/* Badges */}
+                                        <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                                            <div className="flex flex-col gap-2">
+                                                {vendor.metadata?.featured && (
+                                                    <span className="bg-orange-600 text-white text-[9px] font-black px-3 py-1.5 rounded-xl shadow-lg uppercase tracking-widest italic">
+                                                        FEATURED
+                                                    </span>
+                                                )}
+                                                <span
+                                                    className={`${isOpen ? "bg-white/90 text-orange-600" : "bg-zinc-900/90 text-zinc-400"} text-[9px] font-black px-3 py-1.5 rounded-xl shadow-lg uppercase tracking-widest backdrop-blur-md`}
+                                                >
+                                                    {isOpen ? "OPEN" : "CLOSED"}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Rating */}
+                                        <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md text-zinc-900 dark:text-white text-[10px] font-black px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-lg border border-white/20">
+                                            <Star size={12} className="text-orange-500 fill-orange-500" />
+                                            <span>{vendor.rating || 0}</span>
                                         </div>
                                     </div>
 
-                                    <div className="px-3 pb-1 flex justify-between items-end">
-                                        <div className="space-y-1">
-                                            <h3 className="text-xl font-black tracking-tight uppercase italic text-zinc-900 dark:text-white leading-none">
-                                                {vendor.storeName}
-                                            </h3>
-                                            <div className="flex items-center gap-1.5 text-zinc-500 dark:text-zinc-400">
-                                                <div className="flex items-center gap-0.5">
-                                                    <Star size={14} className="text-orange-500 fill-orange-500" />
-                                                    <span className="text-xs font-black">{vendor.rating || "4.5"}</span>
+                                    <div className="p-4">
+                                        <div className="flex justify-between items-start">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center gap-2 mb-1.5">
+                                                    <Store size={18} className="text-orange-600" />
+                                                    <h3 className="font-black text-zinc-900 dark:text-white text-lg truncate uppercase tracking-tight italic leading-tight">{vendor.storeName}</h3>
                                                 </div>
-                                                <span className="text-[10px] font-bold uppercase tracking-widest opacity-60">•</span>
-                                                <div className="flex items-center gap-1">
-                                                    <MapPin size={12} className="text-zinc-400" />
-                                                    <span className="text-[10px] font-black uppercase tracking-tighter truncate max-w-[100px]">
-                                                        {vendor.address?.city}
-                                                    </span>
+                                                <div className="flex items-center text-[10px] text-zinc-500 font-bold tracking-widest uppercase">
+                                                    <Clock size={14} className="mr-1.5 text-orange-500" />
+                                                    <span className="truncate italic">{status}</span>
                                                 </div>
+                                            </div>
+                                            <div className="bg-orange-600 text-white p-2.5 rounded-2xl shadow-lg shadow-orange-600/20 transform group-hover:rotate-90 transition-transform duration-500">
+                                                <Plus size={20} strokeWidth={3} />
                                             </div>
                                         </div>
-                                        <div className="text-right space-y-0.5">
-                                            <div className="flex items-center gap-1 justify-end text-orange-600">
-                                                <Truck size={14} strokeWidth={2.5} />
-                                                <p className="text-sm font-black italic">
-                                                    {vendor.deliveryFee ? `₦${vendor.deliveryFee}` : "FREE"}
-                                                </p>
+
+                                        <div className="mt-4 flex justify-between items-center bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-2xl">
+                                            <div className="flex items-center gap-1.5 text-[10px] font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-tighter">
+                                                <MapPin size={12} className="text-orange-500" />
+                                                <span className="truncate">{vendor.address?.city}</span>
                                             </div>
-                                            <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest text-[8px]">Delivery</p>
+                                            <div className="flex items-center gap-1.5 text-[10px] font-black text-orange-600 uppercase tracking-tighter italic">
+                                                <Truck size={14} />
+                                                <span>₦{(vendor.deliveryFee || 0).toLocaleString()}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
