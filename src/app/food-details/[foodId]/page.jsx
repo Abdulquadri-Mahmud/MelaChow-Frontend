@@ -293,10 +293,10 @@ export default function FoodDetails() {
 
             {/* Vendor Status Info */}
             <div className="px-2">
-              <motion.div onClick={handleViewVendor} whileHover={{ x: 5 }} className="bg-gray-900 rounded-[32px] p-6 flex justify-between items-center cursor-pointer shadow-xl shadow-gray-200">
+              <motion.div onClick={handleViewVendor} whileHover={{ x: 5 }} className="bg-gray-900 rounded-[32px] p-3 flex justify-between items-center cursor-pointer shadow-xl shadow-gray-200">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white">
-                    <Store size={24} />
+                    <Store size={20} />
                   </div>
                   <div>
                     <p className="text-[10px] font-semibold text-orange-400 uppercase tracking-widest">Provided by</p>
@@ -339,7 +339,7 @@ export default function FoodDetails() {
                         </div>
 
                         <div>
-                          <h4 className="font-semibold text-gray-900 tracking-tight uppercase">{variant.name}</h4>
+                          <h4 className="font-semibold text-gray-900  text-sm">{variant.name}</h4>
                           <p className="text-xs text-gray-500 mt-1 line-clamp-1 italic font-medium">{variant.description || "A premium variant crafted for your satisfaction."}</p>
                           <div className="flex items-center gap-2 mt-3">
                             <span className="font-bold text-gray-900 tabular-nums">₦{variant.price?.toLocaleString()}</span>
@@ -350,9 +350,9 @@ export default function FoodDetails() {
 
                       <button
                         onClick={() => handleAddClick(variant)}
-                        className="w-14 h-14 rounded-[20px] bg-gray-900 text-white flex items-center justify-center hover:bg-orange-600 active:scale-90 transition-all shadow-lg shadow-gray-200"
+                        className="w-10 h-10 rounded-[20px] bg-gray-900 text-white flex items-center justify-center hover:bg-orange-600 active:scale-90 transition-all shadow-lg shadow-gray-200"
                       >
-                        <BiCartAdd size={28} />
+                        <BiCartAdd size={20} />
                       </button>
                     </motion.div>
                   ))}

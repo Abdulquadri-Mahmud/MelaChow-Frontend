@@ -59,7 +59,6 @@ export default function TrendingRestaurants() {
         enabled: !!defaultAddr,
     });
 
-    console.log("vendors,", vendors)
 
     const filteredVendors = useMemo(() => {
         if (!searchQuery) return vendors;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { getVendorOpenAndCloseStatus as checkVendorStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import { Star, Utensils, Clock, Truck, Store, Plus, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -52,6 +53,7 @@ export default function FoodList({ user }) {
     }, {});
   }, [foods]);
 
+
   if (isLoading) return <HomeFoodListSkeleton />;
 
   if (isError) {
@@ -94,7 +96,7 @@ export default function FoodList({ user }) {
           <div className="bg-orange-100 p-1.5 rounded-lg">
             <Utensils className="text-orange-600" size={18} />
           </div>
-          <h2 className="text-lg font-bold text-gray-800 tracking-tight">Available Foods</h2>
+          <h2 className="text-lg font-bold text-gray-800 tracking-tight">Near You</h2>
         </div>
         <button
           onClick={() => router.push('/all-foods')}
@@ -116,53 +118,64 @@ export default function FoodList({ user }) {
           </div>
 
           <div className="flex gap-2 mt-2 overflow-x-auto scroll pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar">
-            {foods.map((food) => (
-              <div
-                key={food._id}
-                className="bg-white rounded-md min-w-[250px] cursor-pointer snap-start hover:shadow-lg transition flex flex-col h-full border border-gray-50"
-                onClick={() => router.push(`/food-details/${food._id}`)}
-              >
-                {/* Image */}
-                <div className="relative rounded-md overflow-hidden">
-                  <img
-                    src={food.image || "/placeholder.jpg"}
-                    alt={food.name}
-                    className="w-full h-32 object-cover rounded-md"
-                  />
-                  <div className="absolute top-2 right-2 bg-white backdrop-blur-md text-orange-600 px-2 py-1 rounded text-[10px] font-bold shadow-sm border border-orange-100">
-                    from | ₦{food.price?.toLocaleString()}
+            {foods.map((food) => {
+              const hours = food?.restaurant?.openingHours || {};
+              const status = checkVendorStatus(hours);
+              const isOpen = status.startsWith("Open now");
+
+              return (
+                <div
+                  key={food._id}
+                  className="bg-white rounded-md min-w-[250px] cursor-pointer snap-start transition flex flex-col h-full border border-gray-50"
+                  onClick={() => router.push(`/food-details/${food._id}`)}
+                >
+                  {/* Image */}
+                  <div className="relative rounded-md overflow-hidden">
+                    <img
+                      src={food.image || "/placeholder.jpg"}
+                      alt={food.name}
+                      className="w-full h-32 object-cover rounded-md"
+                    />
+                    <div className="absolute top-2 left-2 flex flex-col gap-2">
+                      <span className={`${isOpen ? "bg-white/90 text-orange-600" : "bg-zinc-900/90 text-zinc-400"} text-[8px] font-black px-2 py-1 rounded shadow-lg uppercase tracking-widest backdrop-blur-md`}>
+                        {isOpen ? "OPEN" : "CLOSED"}
+                      </span>
+                    </div>
+                    <div className="absolute top-2 right-2 bg-white backdrop-blur-md text-orange-600 px-2 py-1 rounded text-[10px] font-bold shadow-sm border border-orange-100">
+                      from | ₦{food.price?.toLocaleString()}
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div className="p-2 flex flex-col flex-1">
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="text-sm font-bold text-gray-800 truncate flex-1 md:text-md uppercase tracking-tight">
+                        {food.name}
+                      </h3>
+                      <div className="bg-orange-50 p-1.5 rounded-lg text-orange-500">
+                        <Plus size={16} />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 mt-1 text-[11px] text-gray-500">
+                      <Store className="text-orange-500" size={12} />
+                      <span className="truncate">{food?.restaurant?.storeName || "Vendor"}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-gray-600">
+                        <Truck size={12} className="text-orange-400" />
+                        <span>from | ₦{food.deliveryFee || food?.restaurant?.deliveryFee || 0}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400">
+                        <Clock size={12} className="text-orange-400" />
+                        <span>{food?.estimatedDeliveryTime || "25"}m</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                {/* Details */}
-                <div className="p-2 flex flex-col flex-1">
-                  <div className="flex justify-between items-start gap-2">
-                    <h3 className="text-sm font-bold text-gray-800 truncate flex-1 md:text-md uppercase tracking-tight">
-                      {food.name}
-                    </h3>
-                    <div className="bg-orange-50 p-1.5 rounded-lg text-orange-500">
-                      <Plus size={16} />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1 mt-1 text-[11px] text-gray-500">
-                    <Store className="text-orange-500" size={12} />
-                    <span className="truncate">{food?.restaurant?.storeName || "Vendor"}</span>
-                  </div>
-
-                  <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-gray-600">
-                      <Truck size={12} className="text-orange-400" />
-                      <span>from | ₦{food.deliveryFee || food?.restaurant?.deliveryFee || 0}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400">
-                      <Clock size={12} className="text-orange-400" />
-                      <span>{food?.estimatedDeliveryTime || "25"}m</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ))}

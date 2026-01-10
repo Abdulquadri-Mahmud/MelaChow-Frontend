@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/app/context/ApiContext";
 import { fetchUser } from "@/app/lib/api";
 import axios from "axios";
+import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
 const Skeleton = () => (
     <div className="flex flex-col gap-3 rounded-[32px] bg-white dark:bg-zinc-900 p-2 shadow-sm border border-zinc-50 dark:border-zinc-800">
@@ -189,54 +190,65 @@ export default function AllFoods() {
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        {filteredFoods.map((food) => (
-                            <div
-                                key={food._id}
-                                onClick={() => router.push(`/food-details/${food._id}`)}
-                                className="bg-white dark:bg-zinc-900 rounded-xl border border-transparent shadow-sm hover:shadow-xl hover:shadow-zinc-200/40 dark:hover:shadow-none hover:border-orange-600/10 transition-all cursor-pointer group hover:-translate-y-1 active:scale-[0.98]"
-                            >
-                                {/* Image Section */}
-                                <div className="relative w-full h-32 rounded-xl overflow-hidden flex-shrink-0">
-                                    <img
-                                        src={food.image || "/placeholder.jpg"}
-                                        alt={food.name}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                    />
-                                    <div className="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-black text-orange-600 shadow-sm border border-orange-50 uppercase tracking-tighter italic">
-                                        ₦{food.price?.toLocaleString()}
+                        {filteredFoods.map((food) => {
+                            const hours = food?.restaurant?.openingHours || {};
+                            const status = getVendorOpenAndCloseStatus(hours);
+                            const isOpen = status.startsWith("Open now");
+
+                            return (
+                                <div
+                                    key={food._id}
+                                    onClick={() => router.push(`/food-details/${food._id}`)}
+                                    className="bg-white dark:bg-zinc-900 rounded-xl border border-transparent shadow-sm hover:shadow-xl hover:shadow-zinc-200/40 dark:hover:shadow-none hover:border-orange-600/10 transition-all cursor-pointer group hover:-translate-y-1 active:scale-[0.98]"
+                                >
+                                    {/* Image Section */}
+                                    <div className="relative w-full h-32 rounded-xl overflow-hidden flex-shrink-0">
+                                        <img
+                                            src={food.image || "/placeholder.jpg"}
+                                            alt={food.name}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                        />
+                                        <div className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-xl text-[10px] font-black text-orange-600 shadow-sm border border-orange-50 uppercase tracking-tighter italic">
+                                            ₦{food.price?.toLocaleString()}
+                                        </div>
+                                        <div className="absolute top-2.5 left-2.5 flex flex-col gap-2">
+                                            <span className={`${isOpen ? "bg-white/90 text-orange-600" : "bg-zinc-900/90 text-zinc-400"} text-[8px] font-black px-2 py-1 rounded shadow-lg uppercase tracking-widest backdrop-blur-md`}>
+                                                {isOpen ? "OPEN" : "CLOSED"}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Details Section */}
+                                    <div className="flex-1 p-3 flex flex-col min-w-0">
+                                        <div className="flex justify-between items-start gap-2 mb-1.5">
+                                            <h3 className="font-black text-zinc-900 dark:text-white text-sm uppercase tracking-tight italic line-clamp-2 leading-tight pr-4">
+                                                {food.name}
+                                            </h3>
+                                            <div className="bg-orange-600/5 dark:bg-zinc-800 p-2 rounded-[1rem] text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all shadow-sm">
+                                                <Plus size={18} strokeWidth={3} />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-1.5 text-[9px] font-black text-zinc-400 mb-auto uppercase tracking-wider italic">
+                                            <Store size={12} className="text-orange-500" />
+                                            <span className="truncate">{food?.restaurant?.storeName || food?.vendor?.storeName || "Vendor"}</span>
+                                        </div>
+
+                                        {/* Info Row */}
+                                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-zinc-50 dark:border-zinc-800/50">
+                                            <div className="flex items-center gap-1.5 text-[10px] font-black text-zinc-700 dark:text-zinc-300">
+                                                <Truck size={14} className="text-orange-600" />
+                                                <span>₦{food.deliveryFee || food?.restaurant?.deliveryFee || 0}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1 text-[10px] font-black text-zinc-400 uppercase italic">
+                                                <Clock size={14} className="text-orange-400" />
+                                                <span>{food?.estimatedDeliveryTime || 25}m</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-
-                                {/* Details Section */}
-                                <div className="flex-1 p-3 flex flex-col min-w-0">
-                                    <div className="flex justify-between items-start gap-2 mb-1.5">
-                                        <h3 className="font-black text-zinc-900 dark:text-white text-sm uppercase tracking-tight italic line-clamp-2 leading-tight pr-4">
-                                            {food.name}
-                                        </h3>
-                                        <div className="bg-orange-600/5 dark:bg-zinc-800 p-2 rounded-[1rem] text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all shadow-sm">
-                                            <Plus size={18} strokeWidth={3} />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-1.5 text-[9px] font-black text-zinc-400 mb-auto uppercase tracking-wider italic">
-                                        <Store size={12} className="text-orange-500" />
-                                        <span className="truncate">{food?.restaurant?.storeName || food?.vendor?.storeName || "Vendor"}</span>
-                                    </div>
-
-                                    {/* Info Row */}
-                                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-zinc-50 dark:border-zinc-800/50">
-                                        <div className="flex items-center gap-1.5 text-[10px] font-black text-zinc-700 dark:text-zinc-300">
-                                            <Truck size={14} className="text-orange-600" />
-                                            <span>₦{food.deliveryFee || food?.restaurant?.deliveryFee || 0}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-[10px] font-black text-zinc-400 uppercase italic">
-                                            <Clock size={14} className="text-orange-400" />
-                                            <span>{food?.estimatedDeliveryTime || 25}m</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </main>

@@ -1,4 +1,3 @@
-"use client";
 
 // utils/vendorTime.js
 export function getVendorOpenStatus(openingHours) {

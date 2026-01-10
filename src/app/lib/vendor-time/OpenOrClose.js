@@ -1,4 +1,3 @@
-"use client";
 
 // utils/vendorTime.js
 import { getVendorOpenStatus } from "./vendorTime";

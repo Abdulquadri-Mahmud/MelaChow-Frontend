@@ -2,7 +2,7 @@
 const LogoImage = () => (
   <img
     src="/logo.png"
-    alt="ChowConnect Logo"
+    alt="GrubDash Logo"
     className="md:w-[280px] w-[270px] object-contain"
   />
 );
@@ -10,7 +10,7 @@ const LogoImage = () => (
 export default function GrubDashLogo() {
   return (
     <div className="flex flex-col items-center justify-center space-y-4">
-      <LogoImage/>
+      <LogoImage />
 
       {/* Animated Bar Loader */}
       <div className="relative w-44 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full overflow-hidden mt-2">

@@ -187,7 +187,7 @@ export default function VendorList({ user }) {
           return (
             <div
               key={vendor._id}
-              className="bg-white rounded-2xl min-w-[250px] overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition-all cursor-pointer snap-center flex-shrink-0 group"
+              className="rounded-2xl min-w-[250px] overflow-hidden  transition-all cursor-pointer snap-center flex-shrink-0 group"
               onClick={() => router.push(`/restataurants/${String(vendor._id)}`)}
             >
               <div className="relative">
