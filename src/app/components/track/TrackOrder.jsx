@@ -60,6 +60,8 @@ export default function OrderTracking() {
   const { items, deliveryAddress, subtotal, deliveryFee, total, orderStatus, userId } = orderData;
   const currentStepIndex = statusSteps.findIndex((s) => s.key === orderStatus);
 
+  // console.log(orderData);
+
   return (
     <div className="bg-gray-50 min-h-screen">
       <Header2 />

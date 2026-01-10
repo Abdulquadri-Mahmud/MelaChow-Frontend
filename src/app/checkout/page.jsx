@@ -13,7 +13,7 @@ import { motion } from "framer-motion";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart } = useCart();
+  const { cart, clearCart } = useCart();
   const [token, setToken] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loadingInit, setLoadingInit] = useState(false);
@@ -96,7 +96,7 @@ export default function CheckoutPage() {
           variant: {
             name: item.name,
             price: item.price,
-            image: "", // Optimized to reduce payload size
+            image: item.image, // Optimized to reduce payload size
           },
           price: item.price,
           quantity: item.quantity,
@@ -120,12 +120,17 @@ export default function CheckoutPage() {
         referrer: "web", // Include referrer for backend validation
       };
 
-      console.log(payload);
+      // console.log(cart);
+      // console.log(payload);
 
       const res = await createOrder(token, payload);
 
-      if (res?.authorization_url) window.location.href = res.authorization_url;
-      else throw new Error("Payment initialization failed");
+      if (res?.authorization_url) {
+        clearCart();
+        window.location.href = res.authorization_url;
+      } else {
+        throw new Error("Payment initialization failed");
+      }
     } catch (err) {
       console.error(err);
       toast.error("Payment initialization failed");

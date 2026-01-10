@@ -45,11 +45,11 @@ export default function HomePage() {
       <div className="md:px-4 p-2">
         <SearchBar />
         <CategoryList />
-        <PromoBanner />
-        <VendorList />
-        <FoodList />
-        <div className=""/>
-        <FeatureSlider />
+        {/* <PromoBanner /> */}
+        <VendorList user={userData?.user} />
+        <FoodList user={userData?.user} />
+        <div className="" />
+        {/* <FeatureSlider /> */}
       </div>
 
       {/* Address Modal */}

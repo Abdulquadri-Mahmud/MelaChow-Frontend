@@ -1,38 +1,45 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
-import { Star, Utensils, Clock, Truck, Store, Plus } from "lucide-react";
+import { useMemo } from "react";
+import { Star, Utensils, Clock, Truck, Store, Plus, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
 import axios from "axios";
 import { useApi } from "@/app/context/ApiContext";
 
-export default function FoodList() {
+export default function FoodList({ user }) {
   const router = useRouter();
-  const [foods, setFoods] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
   const { baseUrl } = useApi();
 
-  // Fetch foods from API
-  useEffect(() => {
-    const fetchFoods = async () => {
-      try {
-        setIsLoading(true);
-        const res = await axios.get(`${baseUrl}/vendors/foods/get-foods`);
-        const data = res?.data?.data || [];
-        setFoods(data);
-      } catch (err) {
-        console.error("❌ Error fetching foods:", err);
-        setError("Failed to load foods. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
 
-    fetchFoods();
-  }, [baseUrl]);
+  const { data: foods = [], isLoading, isError, error } = useQuery({
+    queryKey: ["foods", defaultAddr?.city, defaultAddr?.state],
+    queryFn: async () => {
+      if (!defaultAddr?.city || !defaultAddr?.state) {
+        // Throw a mock axios-like error to trigger our custom error UI without a failed network request
+        const err = new Error("Missing location");
+        err.response = { data: { message: "Please provide both city and state query parameters." } };
+        throw err;
+      }
+
+      const token = localStorage.getItem("userToken");
+      const res = await axios.get(`${baseUrl}/user/foods`, {
+        params: {
+          city: defaultAddr.city,
+          state: defaultAddr.state,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return res?.data?.foods || [];
+    },
+    refetchInterval: 60000,
+    refetchOnWindowFocus: true,
+    retry: false, // Don't retry since location won't change without user action
+  });
 
   // Group foods by category
   const foodsByCategory = useMemo(() => {
@@ -47,14 +54,28 @@ export default function FoodList() {
 
   if (isLoading) return <HomeFoodListSkeleton />;
 
-  if (error)
+  if (isError) {
+    const errorMsg = error?.response?.data?.message || "Failed to load foods. Please try again later.";
+    if (errorMsg === "Please provide both city and state query parameters.") {
+      return (
+        <div className="mt-4 px-3">
+          <h2 className="pb-3 text-lg font-bold text-gray-800 tracking-tight">Available Foods</h2>
+          <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+            <MapPin className="mx-auto text-gray-400 mb-2" size={24} />
+            <p className="text-gray-500 text-sm font-medium">Please provide both city and state to see foods near you.</p>
+            <p className="text-xs text-gray-400 mt-1">Try changing your location!</p>
+          </div>
+        </div>
+      );
+    }
     return (
-      <div className="text-center text-red-500 py-6">
-        {error}
+      <div className="my-4 px-3 text-center py-6 bg-red-50 rounded-2xl">
+        <p className="text-red-500 text-sm">{errorMsg}</p>
       </div>
     );
+  }
 
-  if (!foods || foods.length === 0)
+  if (foods.length === 0)
     return (
       <div className="text-center text-gray-500 py-6">
         No foods available yet.
@@ -79,7 +100,7 @@ export default function FoodList() {
                 {/* Image */}
                 <div className="relative rounded-md overflow-hidden">
                   <img
-                    src={food.images?.[0]?.url || "/placeholder.jpg"}
+                    src={food.image || "/placeholder.jpg"}
                     alt={food.name}
                     className="w-full h-30 object-cover rounded-md"
                   />
@@ -101,13 +122,13 @@ export default function FoodList() {
 
                   <div className="flex items-center gap-1 mt-1 text-[11px] text-gray-500">
                     <Store className="text-orange-500" size={12} />
-                    <span className="truncate">{food?.vendor?.storeName || "Vendor"}</span>
+                    <span className="truncate">{food?.restaurant?.storeName || "Vendor"}</span>
                   </div>
 
                   <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
                     <div className="flex items-center gap-1 text-[10px] font-bold text-gray-600">
                       <Truck size={12} className="text-orange-400" />
-                      <span>from | ₦{food.deliveryFee || food?.vendor?.deliveryFee || 0}</span>
+                      <span>from | ₦{food.deliveryFee || food?.restaurant?.deliveryFee || 0}</span>
                     </div>
                     <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400">
                       <Clock size={12} className="text-orange-400" />

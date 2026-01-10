@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Star, StarHalf, Star as StarEmpty, Store, Clock, Plus, Truck } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 // import Skeleton from "react-loading-skeleton";
 import { useApi } from "@/app/context/ApiContext";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+import axios from "axios";
 
 const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
   <div
@@ -19,29 +20,41 @@ const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
 );
 
 
-export default function VendorList() {
+export default function VendorList({ user }) {
   const router = useRouter();
   const [imgLoaded, setImgLoaded] = useState({}); // track each vendor
   const { baseUrl } = useApi();
 
+  const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
+
   // ✅ Auto refresh every 60 seconds (60000 ms)
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["vendors"],
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["vendors", defaultAddr?.city, defaultAddr?.state],
     queryFn: async () => {
-      const res = await fetch(
-        `${baseUrl}/admin/vendors/get-all`
-      );
-      const json = await res.json();
-      return json.vendors || [];
+      if (!defaultAddr?.city || !defaultAddr?.state) {
+        const err = new Error("Missing location");
+        err.response = { data: { message: "Please provide both city and state query parameters." } };
+        throw err;
+      }
+
+      const token = localStorage.getItem("userToken");
+      const res = await axios.get(`${baseUrl}/user/vendors/nearby`, {
+        params: {
+          city: defaultAddr.city,
+          state: defaultAddr.state,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      // console.log(res.data);
+      return res.data.vendors || [];
     },
     refetchInterval: 60000,
     refetchOnWindowFocus: true,
+    retry: false,
   });
 
-
-  const openingMessage = data?.vendor?.openingHours
-    ? getVendorOpenAndCloseStatus(data.vendor.openingHours)
-    : "Opening hours not available.";
 
   const renderStars = (rating) => {
     const stars = [];
@@ -82,11 +95,37 @@ export default function VendorList() {
   }
 
   if (isError) {
+    const errorMsg = error?.response?.data?.message;
+    if (errorMsg === "Please provide both city and state query parameters.") {
+      return (
+        <div className="mt-4 px-3">
+          <h2 className="pb-3 text-lg font-bold text-gray-800 tracking-tight">Featured Restaurants</h2>
+          <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+            <MapPin className="mx-auto text-gray-400 mb-2" size={24} />
+            <p className="text-gray-500 text-sm font-medium">Please provide both city and state to see restaurants near you.</p>
+            <p className="text-xs text-gray-400 mt-1">Try changing your location or check back later!</p>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="my-4 px-3 text-center py-6 bg-red-50 rounded-2xl">
         <p className="text-red-500 text-sm">Failed to load restaurants. Please try again.</p>
       </div>
-    )
+    );
+  }
+
+  if (!isLoading && !isError && (!data || data.length === 0)) {
+    return (
+      <div className="mt-4 px-3">
+        <h2 className="pb-3 text-lg font-bold text-gray-800 tracking-tight">Featured Restaurants</h2>
+        <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+          <MapPin className="mx-auto text-gray-400 mb-2" size={24} />
+          <p className="text-gray-500 text-sm font-medium">No restaurants found near you yet.</p>
+          <p className="text-xs text-gray-400 mt-1">Try changing your location or check back later!</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -99,7 +138,7 @@ export default function VendorList() {
           return (
             <div
               key={vendor._id}
-              className="bg-white rounded-2xl min-w-[220px] overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition-all cursor-pointer snap-center flex-shrink-0 group"
+              className="bg-white rounded-2xl w-[220px] overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition-all cursor-pointer snap-center flex-shrink-0 group"
               onClick={() => router.push(`/restataurants/${String(vendor._id)}`)}
             >
               <div className="relative">
@@ -133,7 +172,7 @@ export default function VendorList() {
                 </div>
               </div>
 
-              <div className="p-3">
+              <div className="p-2">
                 <div className="flex justify-between items-start">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5 mb-1">
