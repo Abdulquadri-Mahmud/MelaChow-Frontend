@@ -17,7 +17,7 @@ export default function Header2() {
     .replace(/\b\w/g, (char) => char.toUpperCase()) || "Home";
 
   return (
-    <header className="flex items-center gap-3 px-4 py-3 bg-white shadow-xs sticky top-0 z-50">
+    <header className="flex items-center gap-3 px-4 py-3 bg-white sticky top-0 z-50">
       {/* Back Button */}
       <button
         onClick={() => router.back()}
