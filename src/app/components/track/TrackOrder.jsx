@@ -48,10 +48,10 @@ export default function OrderTracking() {
   if (loading)
     return (
       <>
-        <Header2/>
-        <OrderTrackingSkeleton/>
+        <Header2 />
+        <OrderTrackingSkeleton />
       </>
-  );
+    );
   if (error)
     return <div className="md:p-6 p-2 text-center text-red-500 font-medium">{error}</div>;
   if (!orderData)
@@ -96,11 +96,17 @@ export default function OrderTracking() {
           <h3 className="text-gray-700 font-semibold">Items</h3>
           {items.map((item, idx) => (
             <div key={idx} className="flex gap-3 items-center bg-orange-50 rounded-lg p-2 shadow-sm">
-              <img
-                src={item.variant.image}
-                alt={item.variant.name}
-                className="w-12 h-12 object-cover rounded-md"
-              />
+              {item.variant.image ? (
+                <img
+                  src={item.variant.image}
+                  alt={item.variant.name}
+                  className="w-12 h-12 object-cover rounded-md"
+                />
+              ) : (
+                <div className="w-12 h-12 bg-orange-200 rounded-md flex items-center justify-center flex-shrink-0">
+                  <Package size={20} className="text-orange-500" />
+                </div>
+              )}
               <div className="flex-1">
                 <p className="text-gray-800 text-sm font-semibold">{item.variant.name}</p>
                 <p className="text-gray-600 text-xs">
@@ -151,7 +157,7 @@ export default function OrderTracking() {
           </div>
         </div>
 
-      {/* Status Timeline */}
+        {/* Status Timeline */}
         <div className="bg-white rounded-xl md:p-4 p-2 border border-gray-200">
           <h3 className="text-gray-700 font-semibold mb-4">Order Status</h3>
 
@@ -180,18 +186,16 @@ export default function OrderTracking() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: idx * 0.3 }}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md ${
-                      isActive ? "bg-orange-500 text-white" : "bg-gray-300 text-gray-500"
-                    }`}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md ${isActive ? "bg-orange-500 text-white" : "bg-gray-300 text-gray-500"
+                      }`}
                   >
                     {/* Always render icon */}
                     {isCompleted ? <CheckCircle size={18} /> : <Icon size={18} />}
                   </motion.div>
 
                   <span
-                    className={`mt-2 text-xs text-center font-medium ${
-                      isActive ? "text-orange-600" : "text-gray-500"
-                    }`}
+                    className={`mt-2 text-xs text-center font-medium ${isActive ? "text-orange-600" : "text-gray-500"
+                      }`}
                   >
                     {step.label}
                   </span>

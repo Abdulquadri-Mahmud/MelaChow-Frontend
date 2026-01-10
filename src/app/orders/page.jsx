@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/app/context/CartContext";
@@ -12,7 +12,7 @@ import axios from "axios";
 import { OrderCardSkeleton } from "../components/skeleton/OrderCardSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function OrdersPage() {
+function OrdersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("activeTab") || "orders";
@@ -272,5 +272,17 @@ export default function OrdersPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <OrdersContent />
+    </Suspense>
   );
 }
