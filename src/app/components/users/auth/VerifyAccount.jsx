@@ -66,6 +66,22 @@ export default function VerifyAccount() {
     }
   };
 
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").trim();
+
+    // Check if pasted data is exactly 6 digits
+    if (/^\d{6}$/.test(pastedData)) {
+      const newOtp = pastedData.split("");
+      setOtp(newOtp);
+      // Focus the last input after pasting
+      inputRefs.current[5]?.focus();
+      toast.success("OTP pasted successfully!");
+    } else {
+      toast.error("Please paste a valid 6-digit OTP");
+    }
+  };
+
   const handleVerify = async () => {
     const otpString = otp.join("");
     if (otpString.length !== 6) {
@@ -167,6 +183,7 @@ export default function VerifyAccount() {
               value={digit}
               onChange={(e) => handleChange(e.target.value, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
+              onPaste={index === 0 ? handlePaste : undefined}
               className="w-12 h-12 text-xl text-center border-2 border-orange-500 rounded-md focus:outline-none focus:border-orange-600 focus:shadow-md"
             />
           ))}

@@ -96,7 +96,7 @@ export default function CheckoutPage() {
           variant: {
             name: item.name,
             price: item.price,
-            image: item.image || "",
+            image: "", // Optimized to reduce payload size
           },
           price: item.price,
           quantity: item.quantity,
@@ -117,14 +117,15 @@ export default function CheckoutPage() {
         vendorDeliveryFees: vendorFees, // Proportional vendor delivery calculations support
         total,
         email: userData.email,
+        referrer: "web", // Include referrer for backend validation
       };
 
       console.log(payload);
 
-      // const res = await createOrder(token, payload);
+      const res = await createOrder(token, payload);
 
-      // if (res?.authorization_url) window.location.href = res.authorization_url;
-      // else throw new Error("Payment initialization failed");
+      if (res?.authorization_url) window.location.href = res.authorization_url;
+      else throw new Error("Payment initialization failed");
     } catch (err) {
       console.error(err);
       toast.error("Payment initialization failed");

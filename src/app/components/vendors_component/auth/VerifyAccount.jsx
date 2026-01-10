@@ -47,6 +47,23 @@ export default function VerifyAccount() {
     }
   };
 
+  // Handle paste functionality
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").trim();
+
+    // Check if pasted data is exactly 6 digits
+    if (/^\d{6}$/.test(pastedData)) {
+      const newOtp = pastedData.split("");
+      setOtp(newOtp);
+      // Focus the last input after pasting
+      inputRefs.current[5]?.focus();
+      setMessage("✅ OTP pasted successfully!");
+    } else {
+      setMessage("⚠️ Please paste a valid 6-digit OTP");
+    }
+  };
+
   // Verify OTP
   const handleVerify = async () => {
     const otpString = otp.join("");
@@ -147,6 +164,7 @@ export default function VerifyAccount() {
               value={digit}
               onChange={(e) => handleChange(e.target.value, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
+              onPaste={index === 0 ? handlePaste : undefined}
               className="w-10 h-10 text-center border-2 border-orange-500 rounded-md text-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           ))}
@@ -160,11 +178,10 @@ export default function VerifyAccount() {
         <button
           onClick={handleVerify}
           disabled={loading}
-          className={`w-full py-2 rounded-md text-white font-medium ${
-            loading
+          className={`w-full py-2 rounded-md text-white font-medium ${loading
               ? "bg-orange-400 cursor-not-allowed"
               : "bg-orange-500 hover:bg-orange-600 transition"
-          }`}
+            }`}
         >
           {loading ? "Verifying..." : "Verify OTP"}
         </button>
