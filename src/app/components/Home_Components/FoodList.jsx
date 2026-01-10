@@ -94,7 +94,7 @@ export default function FoodList({ user }) {
             {foods.map((food) => (
               <div
                 key={food._id}
-                className="bg-white rounded-md min-w-[220px] cursor-pointer snap-start hover:shadow-lg transition flex flex-col h-full border border-gray-50"
+                className="bg-white rounded-md min-w-[250px] cursor-pointer snap-start hover:shadow-lg transition flex flex-col h-full border border-gray-50"
                 onClick={() => router.push(`/food-details/${food._id}`)}
               >
                 {/* Image */}
@@ -102,7 +102,7 @@ export default function FoodList({ user }) {
                   <img
                     src={food.image || "/placeholder.jpg"}
                     alt={food.name}
-                    className="w-full h-30 object-cover rounded-md"
+                    className="w-full h-32 object-cover rounded-md"
                   />
                   <div className="absolute top-2 right-2 bg-white backdrop-blur-md text-orange-600 px-2 py-1 rounded text-[10px] font-bold shadow-sm border border-orange-100">
                     from | ₦{food.price?.toLocaleString()}

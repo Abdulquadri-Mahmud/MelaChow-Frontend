@@ -78,14 +78,35 @@ export default function VendorList({ user }) {
   if (isLoading) {
     return (
       <div className="my-4 px-3">
-        <h2 className="font-semibold text-lg mb-3 text-gray-800">Featured</h2>
-        <div className="flex gap-4 pb-3 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+        <h2 className="font-semibold text-lg mb-3 text-gray-800">Featured Restaurants</h2>
+        <div className="flex gap-4 pb-4 overflow-x-auto no-scrollbar snap-x snap-mandatory">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="min-w-[220px] rounded-2xl overflow-hidden bg-white shadow-sm snap-center">
-              <Skeleton height={120} />
+            <div key={i} className="min-w-[250px] rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-50 snap-center">
+              <Skeleton height={128} />
               <div className="p-2">
-                <Skeleton width="70%" height={16} />
-                <Skeleton width="50%" height={14} />
+                <div className="flex justify-between items-start">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <Skeleton width={14} height={14} className="rounded-sm" />
+                      <Skeleton width="60%" height={14} />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Skeleton width={12} height={12} className="rounded-sm" />
+                      <Skeleton width="40%" height={10} />
+                    </div>
+                  </div>
+                  <Skeleton width={28} height={28} className="rounded-lg" />
+                </div>
+                <div className="mt-2 flex justify-between items-center bg-gray-50/50 p-1.5 rounded-lg">
+                  <div className="flex items-center gap-1">
+                    <Skeleton width={10} height={10} />
+                    <Skeleton width={40} height={10} />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Skeleton width={12} height={12} />
+                    <Skeleton width={30} height={10} />
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -138,7 +159,7 @@ export default function VendorList({ user }) {
           return (
             <div
               key={vendor._id}
-              className="bg-white rounded-2xl w-[220px] overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition-all cursor-pointer snap-center flex-shrink-0 group"
+              className="bg-white rounded-2xl min-w-[250px] overflow-hidden shadow-sm hover:shadow-md border border-gray-100 transition-all cursor-pointer snap-center flex-shrink-0 group"
               onClick={() => router.push(`/restataurants/${String(vendor._id)}`)}
             >
               <div className="relative">
@@ -181,7 +202,7 @@ export default function VendorList({ user }) {
                     </div>
                     <div className="flex items-center text-[10px] text-gray-500 font-medium tracking-tight">
                       <Clock size={12} className="mr-1 text-gray-400" />
-                      <span className="truncate italic">{status}</span>
+                      <span className="truncate italic w-[220px]">{status}</span>
                     </div>
                   </div>
                   <div className="bg-orange-50 p-1.5 rounded-lg text-orange-500">
