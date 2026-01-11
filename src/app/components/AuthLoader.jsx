@@ -11,29 +11,39 @@ export default function AuthLoader() {
 
   useEffect(() => {
     const verifyUser = async () => {
+      const startTime = Date.now();
       const token = localStorage.getItem("userToken");
 
       // 🚨 No token = not logged in
       if (!token) {
-        router.push("/auth/signin");
+        // Ensure even if no token, we wait for the onboarding feel
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 5000 - elapsed);
+        setTimeout(() => {
+          router.push("/auth/signin");
+          setLoading(false);
+        }, remaining);
         return;
       }
 
       try {
         const data = await fetchUser(token);
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 5000 - elapsed);
 
-        if (data) {
-          // ✅ Valid token → proceed to home/dashboard
-          router.push("/home");
-        } else {
-          // 🚫 Invalid token → redirect to login
-          router.push("/auth/signin");
-        }
+        setTimeout(() => {
+          if (data) router.push("/home");
+          else router.push("/auth/signin");
+          setLoading(false);
+        }, remaining);
       } catch (err) {
         console.error("❌ Auth verification failed:", err);
-        router.push("/auth/signin");
-      } finally {
-        setLoading(false);
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 5000 - elapsed);
+        setTimeout(() => {
+          router.push("/auth/signin");
+          setLoading(false);
+        }, remaining);
       }
     };
 

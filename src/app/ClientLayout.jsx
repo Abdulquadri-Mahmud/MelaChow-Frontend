@@ -26,7 +26,7 @@ export default function ClientLayout({ children }) {
         const timer = setTimeout(() => {
             setShowSplash(false);
             sessionStorage.setItem("hasShownSplash", "true");
-        }, 3000);
+        }, 5000);
         return () => clearTimeout(timer);
     }, []);
 
