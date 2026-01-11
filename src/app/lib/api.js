@@ -3,7 +3,7 @@ import axios from "axios";
 export const fetchUser = async (token) => {
   if (!token) throw new Error("No token provided!");
 
-  const res = await fetch("http://localhost:3001/api/user/auth/profile", {
+  const res = await fetch("https://grub-dash-api.vercel.app/api/user/auth/profile", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -33,7 +33,7 @@ export const createOrder = async (token, orderData) => {
   // console.log('orderData: ', orderData)
   try {
     const res = await axios.post(
-      "http://localhost:3001/api/orders/create",
+      "https://grub-dash-api.vercel.app/api/orders/create",
       orderData,
       {
         headers: {
@@ -62,7 +62,7 @@ export const verifyPayment = async (token, reference, body = {}) => {
 
   try {
     const res = await axios.post(
-      `http://localhost:3001/api/orders/verify/${reference}`,
+      `https://grub-dash-api.vercel.app/api/orders/verify/${reference}`,
       body, // send items, deliveryFee, deliveryAddress, phone here
       {
         headers: {
