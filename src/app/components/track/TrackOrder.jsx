@@ -9,6 +9,7 @@ import { useUserStorage } from "@/app/hooks/useUserStorage";
 import Header2 from "../App_Header/Header2";
 import OrderTrackingSkeleton from "../skeleton/OrderTrackingSkeleton";
 import { motion } from "framer-motion";
+import ReviewModal from "@/app/modals/ReviewModal";
 
 const statusSteps = [
   {
@@ -46,6 +47,8 @@ export default function OrderTracking() {
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [selectedFoodForReview, setSelectedFoodForReview] = useState(null);
 
   const { baseUrl } = useApi();
   const { user } = useUserStorage();
@@ -166,7 +169,15 @@ export default function OrderTracking() {
           <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-zinc-800/50 shadow-lg">
             <span className="text-[10px] font-black text-orange-600 uppercase italic">Arrival ~ 22:45</span>
           </div>
-          <button className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-zinc-800/50 shadow-lg text-[10px] font-black text-zinc-500 uppercase">
+          <button
+            onClick={() => {
+              if (orderData?.items?.length > 0) {
+                setSelectedFoodForReview(orderData.items[0]);
+                setIsReviewModalOpen(true);
+              }
+            }}
+            className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-zinc-800/50 shadow-lg text-[10px] font-black text-zinc-500 uppercase hover:text-orange-600 transition-colors"
+          >
             Review Order
           </button>
         </div>
@@ -323,8 +334,19 @@ export default function OrderTracking() {
                       <h4 className="text-sm font-black text-zinc-900 dark:text-white italic uppercase">{item.variant.name}</h4>
                       <p className="text-[10px] font-black text-zinc-400 mt-0.5 opacity-60">QTY: {item.quantity} • ₦{item.price.toLocaleString()}</p>
                     </div>
-                    <div className="font-black text-sm text-zinc-900 dark:text-white">
-                      ₦{(item.price * item.quantity).toLocaleString()}
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="font-black text-sm text-zinc-900 dark:text-white">
+                        ₦{(item.price * item.quantity).toLocaleString()}
+                      </div>
+                      <button
+                        onClick={() => {
+                          setSelectedFoodForReview(item);
+                          setIsReviewModalOpen(true);
+                        }}
+                        className="text-[9px] font-black uppercase text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded-lg hover:bg-orange-100 transition-colors"
+                      >
+                        Review
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -380,12 +402,12 @@ export default function OrderTracking() {
       </div>
 
       {/* Floating Action Button - Support */}
-      <motion.div 
+      <motion.div
         className="fixed bottom-8 right-8 z-[100] flex items-center gap-3"
         initial={{ x: 100 }}
         animate={{ x: 0 }}
       >
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 2 }}
@@ -393,16 +415,28 @@ export default function OrderTracking() {
         >
           <p className="text-[10px] font-black uppercase text-zinc-500">Need help?</p>
         </motion.div>
-        
-        <motion.button 
+
+        <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           className="w-16 h-16 bg-orange-600 text-white rounded-[24px] shadow-[0_20px_40px_-10px_rgba(255,102,0,0.5)] flex items-center justify-center border-4 border-white/20 backdrop-blur-sm group relative"
         >
-           <Truck size={28} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />
-           <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
+          <Truck size={28} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
         </motion.button>
       </motion.div>
+
+      {/* Review Modal */}
+      {selectedFoodForReview && (
+        <ReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          food={selectedFoodForReview}
+          vendorId={orderData.items[0].restaurantId}
+          baseUrl={baseUrl}
+          token={localStorage.getItem("userToken")}
+        />
+      )}
     </div>
   );
 }

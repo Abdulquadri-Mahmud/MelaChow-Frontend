@@ -3,13 +3,16 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/app/context/CartContext";
-import { Loader2, Bike, MapPin, Clock, DollarSign } from "lucide-react";
+import { Loader2, Bike, MapPin, Clock, DollarSign, ShoppingBag } from "lucide-react";
 import { createOrder, fetchUser } from "../lib/api";
 import Header2 from "../components/App_Header/Header2";
 import toast from "react-hot-toast";
 import CheckoutPageSkeleton from "../components/skeleton/CheckoutPageSkeleton";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import axios from "axios";
+import { useApi } from "../context/ApiContext";
+import { getVendorOpenAndCloseStatus } from "../lib/vendor-time/OpenOrClose";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -18,6 +21,7 @@ export default function CheckoutPage() {
   const [userData, setUserData] = useState(null);
   const [loadingInit, setLoadingInit] = useState(false);
   const [notes, setNotes] = useState({}); // notes per restaurant
+  const { baseUrl } = useApi();
 
   /* ---------------- AUTH TOKEN ---------------- */
   useEffect(() => {
@@ -84,6 +88,32 @@ export default function CheckoutPage() {
     setLoadingInit(true);
 
     try {
+      // 1. Check if all restaurants are open before proceeding
+      const uniqueRestaurantIds = Object.keys(restaurantDeliveryMap);
+
+      for (const restaurantId of uniqueRestaurantIds) {
+        try {
+          // Fetch vendor foods to get vendor details (including opening hours)
+          const vendorRes = await axios.get(`${baseUrl}/vendors/foods/get-foods?vendorId=${restaurantId}`);
+          const vendorData = vendorRes.data.data?.[0]?.vendor;
+
+          if (vendorData) {
+            const statusInfo = getVendorOpenAndCloseStatus(vendorData.openHours || vendorData.openingHours);
+            const isOpen = statusInfo.startsWith("Open now");
+
+            if (!isOpen) {
+              toast.error(`${vendorData.storeName} is currently closed. ${statusInfo}`, { duration: 4000 });
+              setLoadingInit(false);
+              return;
+            }
+          }
+        } catch (err) {
+          console.error(`Error checking status for vendor ${restaurantId}:`, err);
+          // If we can't check, we might want to proceed or block. Usually safer to let it try to create if check fails.
+        }
+      }
+
+      // 2. Continue with order creation if all are open
       // Calculate one delivery fee per restaurant for the payload
       const vendorFees = Object.entries(restaurantDeliveryMap).map(([id, fee]) => ({
         restaurantId: id,
@@ -154,82 +184,114 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-gray-50/50 pb-32">
       <Header2 />
 
-      <div className="max-w-xl mx-auto p-2 space-y-4 pb-8">
-        {/* Quick Notice */}
+      <div className="max-w-xl mx-auto px-4 py-6 space-y-6 pb-20">
+        {/* Immersive Header Fragment */}
+        <div className="flex flex-col gap-1 mb-2">
+          <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-600">Checkout</h2>
+          <h3 className="text-2xl font-black text-zinc-900 dark:text-white italic uppercase tracking-tighter">Review & Pay</h3>
+        </div>
+
+        {/* High-Fidelity Quick Notice */}
         {cart.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-orange-50/40 backdrop-blur-sm border border-orange-100 text-orange-700 text-xs p-2 rounded-xl flex items-center gap-2 shadow-sm shadow-orange-100/20"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 p-4 rounded-[28px] flex items-center gap-4 shadow-2xl relative overflow-hidden group"
           >
-            <div className="w-1 h-full bg-orange-500 rounded-full" />
-            <p>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-orange-600/20 rounded-full blur-2xl -translate-y-12 translate-x-12" />
+            <div className="w-10 h-10 bg-orange-600 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:rotate-12 transition-transform">
+              <ShoppingBag size={20} className="text-white" />
+            </div>
+            <p className="text-[11px] font-black uppercase tracking-tight leading-relaxed opacity-90">
               You're ordering {cart.length} {cart.length > 1 ? "items" : "item"} from {Object.keys(groupedCart).length}{" "}
-              {Object.keys(groupedCart).length > 1 ? "restaurants" : "restaurant"}. Delivery fee is charged once per restaurant.
+              {Object.keys(groupedCart).length > 1 ? "restaurants" : "restaurant"}.
             </p>
           </motion.div>
         )}
 
-        {/* Address */}
-        <div className="bg-white rounded-2xl md:p-4 p-2 flex gap-3 border border-orange-50 shadow-sm hover:border-orange-200 transition-all duration-300">
-          <div className="bg-orange-50 p-2 rounded-xl">
-            <MapPin className="text-orange-500" size={20} />
-          </div>
-          {defaultAddress ? (
-            <div>
-              <p className="font-medium text-gray-800">Delivery Address</p>
-              <p className="text-xs text-gray-600">
-                {defaultAddress.addressLine}, {defaultAddress.city}, {defaultAddress.state}
-              </p>
+        {/* Address & Delivery Cards */}
+        <div className="grid grid-cols-1 gap-4">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white dark:bg-zinc-900 rounded-[32px] p-4 flex gap-4 border border-zinc-100 dark:border-zinc-800 shadow-sm"
+          >
+            <div className="bg-orange-50 dark:bg-orange-500/10 p-3 rounded-2xl flex-shrink-0">
+              <MapPin className="text-orange-600" size={20} />
             </div>
-          ) : (
-            <p className="text-sm text-gray-500">No default address found</p>
-          )}
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest leading-none mb-1">Delivery Address</p>
+              {defaultAddress ? (
+                <p className="text-xs font-black text-zinc-900 dark:text-white truncate uppercase italic">
+                  {defaultAddress.addressLine}, {defaultAddress.city}
+                </p>
+              ) : (
+                <p className="text-xs text-rose-500 font-black uppercase italic">No default address found</p>
+              )}
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-white dark:bg-zinc-900 rounded-[32px] p-4 flex gap-4 border border-zinc-100 dark:border-zinc-800 shadow-sm"
+          >
+            <div className="bg-zinc-50 dark:bg-zinc-800 p-3 rounded-2xl flex-shrink-0">
+              <Bike className="text-zinc-400" size={20} />
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] font-black uppercase text-zinc-400 tracking-widest leading-none mb-1">Delivery Policy</p>
+              <p className="text-xs font-black text-zinc-900 dark:text-white uppercase italic">Charged once per restaurant</p>
+            </div>
+          </motion.div>
         </div>
 
-        {/* Delivery Info */}
-        <div className="bg-white rounded-2xl md:p-4 p-2 flex gap-3 items-center border border-orange-50 shadow-sm hover:border-orange-200 transition-all duration-300">
-          <div className="bg-orange-50 p-2 rounded-xl">
-            <Bike className="text-orange-500" size={20} />
-          </div>
-          <div>
-            <p className="font-medium text-gray-800">Delivery Fee</p>
-            <p className="text-xs text-gray-600">Charged once per restaurant in your cart</p>
-          </div>
+        {/* Sub-Section Title */}
+        <div className="flex items-center gap-3 pt-2">
+          <div className="w-1.5 h-6 bg-orange-600 rounded-full" />
+          <h3 className="text-lg font-black text-zinc-900 dark:text-white italic uppercase tracking-tighter">Your Items</h3>
         </div>
 
         {/* Items Grouped by Restaurant */}
         {Object.entries(groupedCart).map(([storeName, items]) => {
           const estTime = getEstimatedTime(items);
           return (
-            <div key={storeName} className="bg-white p-4 rounded-2xl space-y-3 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
-              <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-50/50">
-                <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-tight italic">{storeName}</h3>
-                <div className="text-xs text-gray-500 flex flex-col items-end">
-                  <span className="flex items-center gap-1 font-bold text-orange-600">
-                    ₦{restaurantDeliveryMap[items[0].restaurantId].toLocaleString()}
-                  </span>
+            <motion.div
+              key={storeName}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-zinc-900 p-5 rounded-[40px] space-y-4 border border-zinc-100 dark:border-zinc-800 shadow-sm"
+            >
+              <div className="flex justify-between items-center mb-4 pb-3 border-b border-zinc-50 dark:border-zinc-800">
+                <div>
+                  <h3 className="text-[11px] font-black text-zinc-900 dark:text-white uppercase tracking-widest italic">{storeName}</h3>
                   {estTime && (
-                    <span className="flex items-center gap-1 mt-1 font-medium bg-gray-50 px-2 py-0.5 rounded-full text-[10px]">
-                      <Clock size={10} className="text-orange-500" /> {estTime.min}-{estTime.max} mins
-                    </span>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Clock size={10} className="text-orange-500" />
+                      <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">{estTime.min}-{estTime.max} MINS</span>
+                    </div>
                   )}
+                </div>
+                <div className="text-right">
+                  <span className="text-[9px] font-black text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded-lg uppercase tracking-tight">
+                    ₦{restaurantDeliveryMap[items[0].restaurantId].toLocaleString()} DEL
+                  </span>
                 </div>
               </div>
 
               {/* Items */}
               {items.map(item => (
-                <div key={item.foodId + item.variantId} className="flex gap-3 border-b border-b-gray-50/50 last:border-0 pb-3 items-center group">
-                  <div className="relative overflow-hidden rounded-xl">
-                    <img src={item.image} alt={item.name} className="w-12 h-12 object-cover transition-transform group-hover:scale-110" />
+                <div key={item.foodId + item.variantId} className="flex gap-4 items-center group">
+                  <div className="relative overflow-hidden rounded-2xl w-14 h-14 flex-shrink-0 bg-zinc-50 dark:bg-zinc-800">
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                   </div>
-                  <div className="flex-1 flex flex-col gap-0.5">
-                    <p className="text-sm text-gray-800 truncate font-semibold uppercase italic">{item.variantName}</p>
-                    <p className="text-[10px] text-gray-400 truncate font-bold uppercase tracking-tighter">{item.storeName}</p>
-                    <p className="text-xs text-gray-500 font-medium">₦{(item.price * item.quantity).toLocaleString()}</p>
-                  </div>
-                  <div className="bg-orange-50 px-2 py-1 rounded-lg">
-                    <span className="text-sm font-black text-orange-600 italic">x{item.quantity}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start">
+                      <p className="text-xs font-black text-zinc-900 dark:text-white truncate uppercase italic leading-tight">{item.variantName}</p>
+                      <p className="text-xs font-black text-zinc-900 dark:text-white tabular-nums">₦{(item.price * item.quantity).toLocaleString()}</p>
+                    </div>
+                    <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest mt-0.5">Quantity: {item.quantity}</p>
                   </div>
                 </div>
               ))}
@@ -237,57 +299,77 @@ export default function CheckoutPage() {
               {/* Notes */}
               <div className="pt-2">
                 <textarea
-                  placeholder="Add a note for this restaurant (optional)"
+                  placeholder="Special instructions or notes..."
                   value={notes[storeName] || ""}
                   onChange={(e) => setNotes({ ...notes, [storeName]: e.target.value })}
-                  className="mt-2 w-full p-3 bg-gray-50/50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-orange-400 focus:bg-white transition-all placeholder:text-[10px] placeholder:font-black placeholder:uppercase placeholder:tracking-widest"
+                  className="w-full p-4 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl text-xs outline-none focus:border-orange-500/50 transition-all placeholder:text-[9px] placeholder:font-black placeholder:uppercase placeholder:tracking-[0.2em] resize-none h-20"
                 />
               </div>
-            </div>
+            </motion.div>
           );
         })}
 
-        {/* Summary */}
-        <div className="bg-gray-900 rounded-2xl p-4 space-y-3 shadow-xl">
-          <div className="flex justify-between items-center text-sm">
-            <span className="flex items-center gap-1 font-semibold text-gray-400 uppercase tracking-widest text-[10px]">Subtotal</span>
-            <span className="text-white font-medium">₦{subtotal.toLocaleString()}</span>
+        {/* Sophisticated Summary */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-[40px] p-8 space-y-4 shadow-2xl relative overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 w-full h-1 bg-orange-600" />
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.2em]">Merchandise Subtotal</span>
+              <span className="text-sm font-black tabular-nums">₦{subtotal.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-[10px] font-black uppercase text-zinc-500 tracking-[0.2em]">Delivery Service</span>
+              <span className="text-sm font-black text-orange-500 tabular-nums">+₦{deliveryFee.toLocaleString()}</span>
+            </div>
           </div>
-          <div className="flex justify-between items-center text-sm">
-            <span className="flex items-center gap-1 font-semibold text-gray-400 uppercase tracking-widest text-[10px]">Delivery Fee</span>
-            <span className="text-white font-medium">₦{deliveryFee.toLocaleString()}</span>
+          <div className="border-t border-white/10 dark:border-zinc-100 pt-6 flex justify-between items-end">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-500 mb-1 leading-none">Total Payment</p>
+              <h4 className="text-4xl font-black italic tracking-tighter leading-none">₦{total.toLocaleString()}</h4>
+            </div>
+            <div className="text-right">
+              <span className="text-[9px] font-black uppercase tracking-widest bg-white/10 dark:bg-zinc-900/10 px-3 py-1.5 rounded-xl">
+                Secure Link
+              </span>
+            </div>
           </div>
-          <div className="border-t border-white/10 pt-3 flex justify-between items-center text-lg font-bold">
-            <span className="flex items-center gap-1 font-semibold text-white uppercase italic">Total</span>
-            <span className="text-orange-500 italic">₦{total.toLocaleString()}</span>
-          </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Sticky Pay Button */}
-      <div className="fixed bottom-16 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 p-4 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] z-40">
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleInitializePayment}
-          disabled={loadingInit}
-          className="max-w-xl mx-auto w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-gray-200"
-        >
-          {loadingInit ? (
-            <>
-              <Loader2 className="animate-spin" size={20} />
-              <span className="uppercase tracking-widest">Processing…</span>
-            </>
-          ) : (
-            <div className="flex items-center justify-between w-full px-4 italic">
-              <span className="uppercase tracking-tight">Complete Order</span>
-              <div className="flex items-center gap-2">
-                <span className="w-1 h-4 bg-orange-500 rounded-full" />
-                <span>₦{total.toLocaleString()}</span>
+      <div className="fixed bottom-17 left-0 right-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border-t border-zinc-100 dark:border-zinc-800 p-3 z-40">
+        <div className="max-w-2xl mx-auto">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleInitializePayment}
+            disabled={loadingInit}
+            className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 h-16 rounded-[24px] font-black text-sm flex items-center justify-between px-6 active:scale-95 transition-all shadow-2xl relative overflow-hidden group"
+          >
+            {loadingInit ? (
+              <div className="flex items-center justify-center w-full gap-3">
+                <Loader2 className="animate-spin" size={20} />
+                <span className="uppercase tracking-[0.3em] font-black italic">Verifying...</span>
               </div>
-            </div>
-          )}
-        </motion.button>
+            ) : (
+              <>
+                <div className="flex flex-col items-start leading-none">
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">Pay with Paystack</span>
+                  <span className="text-lg font-black italic uppercase tracking-tighter">Complete Order</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-[1px] h-8 bg-white/20 dark:bg-zinc-200" />
+                  <div className="flex items-center gap-2 bg-orange-600 dark:bg-orange-500 px-4 py-2 rounded-xl text-white shadow-lg">
+                    <span className="text-sm font-black italic">₦{total.toLocaleString()}</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </motion.button>
+        </div>
       </div>
     </div>
   );
