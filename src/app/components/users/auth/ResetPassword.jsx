@@ -135,7 +135,7 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center p-4 overflow-hidden relative">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center overflow-hidden relative">
       {/* Background Decorative Elements */}
       <div className="absolute top-[10%] right-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] animate-pulse" />
       <div className="absolute bottom-[10%] left-[5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] animate-pulse delay-700" />
