@@ -11,43 +11,37 @@ export default function AuthLoader() {
 
   useEffect(() => {
     const verifyUser = async () => {
-      const startTime = Date.now();
       const token = localStorage.getItem("userToken");
 
       // 🚨 No token = not logged in
       if (!token) {
-        // Ensure even if no token, we wait for the onboarding feel
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, 5000 - elapsed);
-        setTimeout(() => {
-          router.push("/auth/signin");
-          setLoading(false);
-        }, remaining);
+        router.push("/auth/signin");
         return;
       }
 
       try {
         const data = await fetchUser(token);
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, 5000 - elapsed);
 
-        setTimeout(() => {
-          if (data) router.push("/home");
-          else router.push("/auth/signin");
-          setLoading(false);
-        }, remaining);
+        if (data) {
+          // ✅ Valid token → proceed to home/dashboard
+          router.push("/home");
+        } else {
+          // 🚫 Invalid token → redirect to login
+          router.push("/auth/signin");
+        }
       } catch (err) {
         console.error("❌ Auth verification failed:", err);
-        const elapsed = Date.now() - startTime;
-        const remaining = Math.max(0, 5000 - elapsed);
-        setTimeout(() => {
-          router.push("/auth/signin");
-          setLoading(false);
-        }, remaining);
+        router.push("/auth/signin");
+      } finally {
+        setLoading(false);
       }
     };
 
-    verifyUser();
+    const timer = setTimeout(() => {
+      verifyUser();
+    }, 5000);
+
+    return () => clearTimeout(timer);
   }, [router]);
 
   if (loading) return <SplashScreen />;

@@ -127,7 +127,7 @@ function OrdersContent() {
                     <div
                       key={order._id}
                       onClick={() => router.push(`/track-orders/${order.orderId}`)}
-                      className="bg-white rounded-2xl p-3 cursor-pointer transition-all group"
+                      className="bg-white rounded-2xl p-3 cursor-pointer border border-gray-100 hover:shadow-md hover:border-orange-100 transition-all group"
                     >
                       <div className="flex justify-between items-start mb-3">
                         <div className="space-y-0.5">
@@ -204,7 +204,7 @@ function OrdersContent() {
                   <>
                     <div className="space-y-4">
                       {Object.entries(groupedCart).map(([storeName, items]) => (
-                        <div key={storeName} className="bg-white dark:bg-zinc-900 rounded-[32px] p-4 overflow-hidden relative">
+                        <div key={storeName} className="bg-white dark:bg-zinc-900 rounded-[32px] p-4 border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden relative">
                           {/* Store Header */}
                           <div className="flex justify-between items-center mb-5 pb-3 border-b border-zinc-50 dark:border-zinc-800">
                             <div className="flex items-center gap-2">
@@ -219,7 +219,7 @@ function OrdersContent() {
                           <div className="space-y-4">
                             {items.map((item) => (
                               <div key={item.foodId + item.variantId} className="flex gap-4 group">
-                                <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-zinc-50 dark:bg-zinc-800 flex-shrink-0">
+                                <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-zinc-50 dark:bg-zinc-800 flex-shrink-0 shadow-inner">
                                   <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
                                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                                 </div>
@@ -262,7 +262,7 @@ function OrdersContent() {
 
                       {/* Summary Section */}
                       <div className="mt-12 space-y-4">
-                        <div className="bg-white dark:bg-zinc-900 rounded-[32px] p-3">
+                        <div className="bg-white dark:bg-zinc-900 rounded-[32px] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm">
                           <div className="flex justify-between items-center mb-6">
                             <div className="flex items-center gap-2">
                               <div className="p-2 bg-orange-50 dark:bg-orange-500/10 rounded-xl">
