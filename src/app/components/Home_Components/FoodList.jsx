@@ -93,9 +93,7 @@ export default function FoodList({ user }) {
     <div className="flex-1 pb-5">
       <div className="flex items-center justify-between px-3 mb-2">
         <div className="flex items-center gap-2">
-          <div className="bg-orange-100 p-1.5 rounded-lg">
-            <Utensils className="text-orange-600" size={18} />
-          </div>
+          
           <h2 className="text-lg font-bold text-gray-800 tracking-tight">Near You</h2>
         </div>
         <button

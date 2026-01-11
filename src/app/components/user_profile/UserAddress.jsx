@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { ArrowLeft, MapPin, Trash2, Edit3, CheckCircle, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, MapPin, Trash2, Edit3, CheckCircle, X, Plus, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -141,159 +141,239 @@ export default function AddressPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50/50">
       {/* Header */}
-      <header className="flex items-center gap-3 px-4 py-4 bg-white border-b sticky top-0 z-40">
-        <button onClick={() => router.back()} className="p-2 rounded-full hover:bg-gray-100">
-          <ArrowLeft size={18} />
-        </button>
+      <header className="flex items-center gap-4 px-6 py-5 bg-white border-b border-gray-100 sticky top-0 z-40 shadow-sm">
+        <motion.button
+          whileHover={{ x: -2 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => router.back()}
+          className="p-2.5 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
+        >
+          <ArrowLeft size={20} />
+        </motion.button>
         <div>
-          <h1 className="text-base font-semibold text-gray-900">Delivery Addresses</h1>
-          <p className="text-xs text-gray-500">Manage where your orders should be delivered</p>
+          <h1 className="text-lg font-bold text-gray-900 tracking-tight">Delivery Addresses</h1>
+          <p className="text-xs font-medium text-gray-400">Manage your saved locations</p>
         </div>
       </header>
 
-      <div className="max-w-md mx-auto md:p-6 p-2 space-y-3 pb-22">
-        {fetching && <AddressSkeleton count={2} />}
+      <div className="max-w-xl mx-auto md:p-8 p-4 space-y-4 pb-24">
+        {fetching && <AddressSkeleton count={3} />}
 
-        {!fetching && addresses.length === 0 && (
-          <div className="bg-white border rounded-xl p-4 text-center">
-            <MapPin className="mx-auto text-orange-400 mb-2" size={20} />
-            <p className="text-sm font-medium text-gray-800">No address added yet</p>
-            <p className="text-xs text-gray-500 mt-1">Add at least one delivery address to continue</p>
-          </div>
-        )}
-
-        {/* Address List */}
-        {addresses.map(addr => (
-          <motion.div
-            key={addr._id}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white border rounded-xl p-4 flex justify-between gap-3"
-          >
-            <div>
-              <div className="flex items-center gap-2">
-                <MapPin size={14} className="text-orange-500" />
-                <p className="text-sm text-gray-800">{addr.addressLine}</p>
+        <AnimatePresence mode="popLayout">
+          {!fetching && addresses.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white border border-dashed border-gray-200 rounded-3xl p-10 text-center"
+            >
+              <div className="mx-auto w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-4">
+                <MapPin className="text-orange-500" size={32} />
               </div>
-              <p className="text-xs text-gray-500 mt-1">{addr.city}, {addr.state}</p>
+              <h3 className="text-base font-bold text-gray-800">No addresses yet</h3>
+              <p className="text-sm text-gray-400 mt-2 max-w-[200px] mx-auto">Add a delivery address to start ordering your favorite meals</p>
+            </motion.div>
+          )}
 
-              {addr.isDefault && (
-                <span className="inline-flex items-center gap-1 text-xs text-green-600 mt-2">
-                  <CheckCircle size={12} /> Default address
-                </span>
-              )}
-            </div>
+          {/* Address List */}
+          {addresses.map((addr, index) => (
+            <motion.div
+              key={addr._id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className={`group relative bg-white border transition-all duration-300 rounded-2xl p-5 flex justify-between items-start gap-4 ${addr.isDefault
+                ? "border-orange-200 shadow-md shadow-orange-500/5 ring-1 ring-orange-100"
+                : "border-gray-100 hover:border-orange-100 hover:shadow-lg hover:shadow-gray-200/50"
+                }`}
+            >
+              <div className="flex-1">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div className={`p-2 rounded-lg ${addr.isDefault ? "bg-orange-500 text-white" : "bg-gray-50 text-gray-400 group-hover:bg-orange-50 group-hover:text-orange-500"} transition-colors`}>
+                    <MapPin size={18} />
+                  </div>
+                  <h3 className="font-bold text-gray-800 text-[15px]">{addr.addressLine}</h3>
+                </div>
+                <p className="text-[13px] font-medium text-gray-400 ml-10">{addr.city}, {addr.state}</p>
 
-            <div className="flex flex-col items-end gap-2">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setEditingId(addr._id);
-                    setForm({ state: addr.state, city: addr.city, addressLine: addr.addressLine });
-                  }}
-                  className="p-2 rounded-full hover:bg-gray-100"
-                >
-                  <Edit3 size={14} />
-                </button>
-                <button
-                  onClick={() => confirmDelete(addr._id)}
-                  disabled={deletingId === addr._id}
-                  className={`p-2 rounded-full ${deletingId === addr._id ? "bg-red-50" : "hover:bg-red-50"} text-red-500`}
-                >
-                  {deletingId === addr._id ? "Deleting..." : <Trash2 size={14} />}
-                </button>
+                {addr.isDefault && (
+                  <div className="ml-10 mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                    <CheckCircle size={12} strokeWidth={3} /> Default Delivery Location
+                  </div>
+                )}
               </div>
 
-              {!addr.isDefault && (
-                <button
-                  onClick={() => setDefault(addr._id)}
-                  disabled={settingDefaultId === addr._id}
-                  className={`text-xs text-orange-500 hover:underline ${settingDefaultId === addr._id ? "opacity-50" : ""}`}
-                >
-                  {settingDefaultId === addr._id ? "Updating..." : "Set as default"}
-                </button>
-              )}
-            </div>
-          </motion.div>
-        ))}
+              <div className="flex flex-col items-end gap-3">
+                <div className="flex gap-1.5 bg-gray-50/50 p-1 rounded-xl">
+                  <button
+                    onClick={() => {
+                      setEditingId(addr._id);
+                      setForm({ state: addr.state, city: addr.city, addressLine: addr.addressLine });
+                    }}
+                    className="p-2 rounded-lg text-gray-400 hover:text-orange-500 hover:bg-white transition-all shadow-sm shadow-transparent hover:shadow-gray-200/50"
+                  >
+                    <Edit3 size={16} />
+                  </button>
+                  <button
+                    onClick={() => confirmDelete(addr._id)}
+                    disabled={deletingId === addr._id}
+                    className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-white transition-all shadow-sm shadow-transparent hover:shadow-gray-200/50 disabled:opacity-50"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+
+                {!addr.isDefault && (
+                  <button
+                    onClick={() => setDefault(addr._id)}
+                    disabled={settingDefaultId === addr._id}
+                    className={`text-[11px] font-bold text-orange-500 hover:text-orange-600 px-3 py-1.5 rounded-lg border border-orange-100 hover:bg-orange-50 transition-all ${settingDefaultId === addr._id ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    {settingDefaultId === addr._id ? "Updating..." : "Set as Default"}
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
         {/* Add / Edit Section */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="bg-white border rounded-2xl p-4">
-          <h2 className="text-sm font-semibold text-center text-gray-900">{editingId ? "Edit Address" : "Add New Address"}</h2>
-          <p className="text-xs text-center text-gray-500 mb-4">
-            {editingId
-              ? "Update the address details for accurate delivery"
-              : "Add a new delivery address to receive orders at this location"}
-          </p>
+        <motion.div
+          layout
+          className="bg-white border border-gray-100 rounded-3xl p-6 shadow-xl shadow-gray-200/40 relative overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 w-1 h-full bg-orange-500" />
 
-          <div className="space-y-3">
-            <select
-              value={form.state}
-              onChange={e => setForm({ ...form, state: e.target.value, city: "" })}
-              className="w-full border rounded-lg p-2 text-sm"
-            >
-              <option value="">Select state</option>
-              {states.map(s => <option key={s}>{s}</option>)}
-            </select>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+              <Plus className="w-5 h-5 text-orange-500" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900">{editingId ? "Update Address" : "Add New Address"}</h2>
+              <p className="text-[11px] font-medium text-gray-400">
+                {editingId ? "Modify your current address details" : "Register a new location for your deliveries"}
+              </p>
+            </div>
+          </div>
 
-            <select
-              value={form.city}
-              disabled={!form.state}
-              onChange={e => setForm({ ...form, city: e.target.value })}
-              className="w-full border rounded-lg p-2 text-sm"
-            >
-              <option value="">Select city</option>
-              {form.state && citiesByState[form.state].map(c => <option key={c}>{c}</option>)}
-            </select>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider ml-1">State</label>
+                <div className="relative">
+                  <select
+                    value={form.state}
+                    onChange={e => setForm({ ...form, state: e.target.value, city: "" })}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-medium outline-none focus:border-orange-500 focus:bg-white transition-all appearance-none cursor-pointer pr-10"
+                  >
+                    <option value="">Select state</option>
+                    {states.map(s => <option key={s}>{s}</option>)}
+                  </select>
+                  <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90 pointer-events-none" />
+                </div>
+              </div>
 
-            <input
-              placeholder="House number, street, area"
-              value={form.addressLine}
-              onChange={e => setForm({ ...form, addressLine: e.target.value })}
-              className="w-full border rounded-lg p-2 text-sm"
-            />
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider ml-1">City</label>
+                <div className="relative">
+                  <select
+                    value={form.city}
+                    disabled={!form.state}
+                    onChange={e => setForm({ ...form, city: e.target.value })}
+                    className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-medium outline-none focus:border-orange-500 focus:bg-white transition-all appearance-none disabled:opacity-50 cursor-pointer pr-10"
+                  >
+                    <option value="">Select city</option>
+                    {form.state && citiesByState[form.state].map(c => <option key={c}>{c}</option>)}
+                  </select>
+                  <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90 pointer-events-none" />
+                </div>
+              </div>
+            </div>
 
-            <button
-              disabled={loading}
-              onClick={saveAddress}
-              className="w-full bg-orange-500 text-white py-2 rounded-lg text-sm hover:bg-orange-600 disabled:opacity-50"
-            >
-              {loading ? "Saving..." : editingId ? "Update Address" : "Save Address"}
-            </button>
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider ml-1">House/Street/Area</label>
+              <textarea
+                placeholder="e.g. 42, Aruna Estate, Ikorodu"
+                value={form.addressLine}
+                onChange={e => setForm({ ...form, addressLine: e.target.value })}
+                rows={2}
+                className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm font-medium outline-none focus:border-orange-500 focus:bg-white transition-all resize-none"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              {editingId && (
+                <button
+                  onClick={() => {
+                    setEditingId(null);
+                    setForm({ state: "", city: "", addressLine: "" });
+                  }}
+                  className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl text-sm font-bold hover:bg-gray-200 transition-all"
+                >
+                  Cancel
+                </button>
+              )}
+              <button
+                disabled={loading}
+                onClick={saveAddress}
+                className="flex-[2] bg-orange-500 text-white py-3 rounded-xl text-sm font-bold shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <CheckCircle className="w-4 h-4" />
+                )}
+                <span>{editingId ? "Update Address" : "Save Address"}</span>
+              </button>
+            </div>
           </div>
         </motion.div>
       </div>
 
       {/* ---------------- DELETE MODAL ---------------- */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/70 bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-80 text-center relative">
-            <button
+      <AnimatePresence>
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               onClick={() => setShowDeleteModal(false)}
-              className="absolute top-3 right-3 p-1 hover:bg-gray-100 rounded-full"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            />
+
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white rounded-[32px] p-8 w-full max-w-sm text-center relative z-10 shadow-2xl"
             >
-              <X size={16} />
-            </button>
-            <p className="text-sm text-gray-800 mb-4">Are you sure you want to delete this address?</p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={deleteAddress}
-                className="bg-red-500 text-white py-1 px-4 rounded-lg hover:bg-red-600"
-              >
-                {deletingId ? "Deleting..." : "Yes, delete"}
-              </button>
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="bg-gray-200 text-gray-800 py-1 px-4 rounded-lg hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-            </div>
+              <div className="mx-auto w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
+                <Trash2 className="text-red-500" size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Delete Address?</h3>
+              <p className="text-sm font-medium text-gray-400 mb-8 px-4">This action cannot be undone. Are you sure you want to remove this location?</p>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={deleteAddress}
+                  className="bg-red-500 text-white py-3.5 rounded-2xl font-bold hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
+                >
+                  {deletingId ? "Removing..." : "Yes, Remove"}
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="bg-gray-50 text-gray-500 py-3.5 rounded-2xl font-bold hover:bg-gray-100 transition-all"
+                >
+                  Keep it
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
+
   );
 }

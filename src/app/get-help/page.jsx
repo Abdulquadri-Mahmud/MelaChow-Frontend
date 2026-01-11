@@ -9,8 +9,7 @@ const GetHelp = dynamic(() => import("../components/support_component/GetHelp"))
 export default function page() {
   return (
     <div>
-        <Header2 />
-        <GetHelp/>
+      <GetHelp />
     </div>
   )
 }
