@@ -2,74 +2,69 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
-  FaUtensils,
-  FaClipboardList,
-  FaUser,
-  FaStar,
-  FaSignOutAlt,
-  FaHome,
-  FaBars,
-  FaTimes,
-} from "react-icons/fa";
+  LayoutDashboard,
+  UtensilsCrossed,
+  PlusCircle,
+  ClipboardList,
+  Star,
+  User,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  Wallet
+} from "lucide-react";
 import Logo from "../../logo/Logo";
-import { PanelLeftClose, PanelRightClose } from "lucide-react";
-import { useVendors } from "@/app/hooks/useVendorQueries";
 import { useApi } from "@/app/context/ApiContext";
-import { useVendorStorage } from "@/app/hooks/vendorStorage";
 
 const navItems = [
   {
     name: "Dashboard",
-    icon: <FaHome />,
+    icon: LayoutDashboard,
     href: "/vendors/dashboard",
-    tooltip: "View key metrics and insights at a glance",
   },
   {
-    name: "My Foods",
-    icon: <FaUtensils />,
-    href: "/vendors/my-foods",
-    tooltip: "Manage, edit, and view all your food items",
-  },
-  {
-    name: "Create Food",
-    icon: <FaUtensils />,
-    href: "/vendors/create-food",
-    tooltip: "Create food items",
+    name: "Transactions",
+    icon: Wallet,
+    href: "/vendors/transactions",
   },
   {
     name: "Orders",
-    icon: <FaClipboardList />,
+    icon: ClipboardList,
     href: "/vendors/order",
-    tooltip: "Track and manage customer orders in real time",
+  },
+  {
+    name: "My Foods",
+    icon: UtensilsCrossed,
+    href: "/vendors/my-foods",
+  },
+  {
+    name: "Create Food",
+    icon: PlusCircle,
+    href: "/vendors/create-food",
   },
   {
     name: "Reviews",
-    icon: <FaStar />,
+    icon: Star,
     href: "/vendors/review",
-    tooltip: "Check customer ratings and feedback",
   },
   {
     name: "Profile",
-    icon: <FaUser />,
+    icon: User,
     href: "/vendors/profile",
-    tooltip: "View and edit your vendor profile details",
   },
 ];
 
 export default function Sidebar() {
-  const [open, setOpen] = useState(true); // expanded by default
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [hovered, setHovered] = useState(null); // tooltip state (nav name)
-  const pathname = usePathname(); // e.g. "/vendors/my-foods"
+  const [open, setOpen] = useState(true);
+  const pathname = usePathname();
+  const router = useRouter();
+  const { baseUrl } = useApi();
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const {vendors, isLoading} = useVendors();
-  const {baseUrl} = useApi();
 
-  // determine active by checking if any path segment equals the nav href
-  const pathSegments = (pathname || "") // ["vendors","my-foods"]
-  const isSegmentActive = (href) => pathSegments.includes(href);
+  // Check active path
+  const isSegmentActive = (href) => pathname?.includes(href);
 
   const handleLogout = async () => {
     try {
@@ -77,18 +72,11 @@ export default function Sidebar() {
       const res = await fetch(`${baseUrl}/vendor/auth/logout`, {
         method: "POST",
         credentials: "include",
-        // headers: {
-        //   Authorization: `Bearer ${token}`,
-        // },
       });
       const data = await res.json();
-
       if (data.success) {
         localStorage.removeItem("vendorToken");
-        localStorage.removeItem("vendorToken");
         router.push("/vendors/auth/login");
-      } else {
-        console.error("Logout failed:", data);
       }
     } catch (err) {
       console.error("Logout error:", err);
@@ -98,93 +86,130 @@ export default function Sidebar() {
   };
 
   return (
-    <>
-      {/* Desktop Sidebar */}
-      <motion.aside
-        initial={{ width: 80 }}
-        animate={{ width: open ? 300 : 80 }}
-        transition={{ duration: 0.28 }}
-        className=" bg-white h-screen p-4 flex flex-col justify-between shadow-sm shadow-gray-100 hidden md:flex z-40"
-        aria-label="Sidebar"
-      >
-        {/* Top: Logo + toggle */}
-        <div>
-          <div className="flex items-center justify-between mb-8">
-            {open ? <Logo /> : <div className="w-8" aria-hidden />}
-            <button
-              onClick={() => setOpen((v) => !v)}
-              className="text-gray-500 hover:text-[#FF6600] p-1 rounded focus:outline-none focus:ring-2 focus:ring-orange-200"
-              aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
+    <motion.aside
+      initial={{ width: 80 }}
+      animate={{ width: open ? 280 : 80 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="hidden md:flex flex-col h-screen bg-white dark:bg-[#0F172A] border-r border-slate-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm"
+    >
+      {/* Header */}
+      <div className="h-20 flex items-center justify-between px-3 border-b border-slate-100 dark:border-slate-800/50">
+        <AnimatePresence mode="wait">
+          {open ? (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              className="flex items-center gap-3 w-full"
             >
-              {open ? <PanelLeftClose /> : <PanelRightClose />}
-            </button>
-          </div>
+              <div className="scale-75 origin-left">
+                <Logo />
+              </div>
+              <div className="flex flex-col -ml-4">
+                <span className="font-bold text-slate-800 dark:text-white text-xl leading-tight">Premium Eats</span>
+                <span className="text-[10px] font-bold text-[#FF6B00] tracking-wider uppercase">VENDOR PRO</span>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="w-10 h-10 bg-gradient-to-br from-[#FF6B00] to-orange-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-orange-500/30 mx-auto"
+            >
+              G
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          {/* Vendor Info Card */}
-          
-          {/* Nav list */}
-          <nav aria-label="Main navigation">
-            <ul className="border-t border-gray-100 space-y-4 pt-10">
-              {navItems.map((item) => {
-                const active = isSegmentActive(item.href);
-                return (
-                  <li key={item.name} className="relative">
-                    <Link
-                      href={item.href}
-                      className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-150 ease-in-out font-medium ${
-                        active
-                          ? "bg-orange-500/80 text-gray-100"
-                          : "hover:bg-orange-50 bg-orange-50 text-gray-700 hover:text-orange-600"
-                      }`}
-                      onMouseEnter={() => setHovered(item.name)}
-                      onMouseLeave={() => setHovered((h) => (h === item.name ? null : h))}
-                      aria-current={active ? "page" : undefined}
-                    >
-                      <span className="text-lg">{item.icon}</span>
+        {open && (
+          <button
+            onClick={() => setOpen(false)}
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+          >
+            <ChevronLeft size={18} />
+          </button>
+        )}
+      </div>
 
-                      {/* label: animate in/out */}
-                      <AnimatePresence mode="popLayout">
-                        {open && (
-                          <motion.span
-                            key="label"
-                            initial={{ opacity: 0, x: -6 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -6 }}
-                            transition={{ duration: 0.18 }}
-                            className="whitespace-nowrap"
-                          >
-                            {item.name}
-                          </motion.span>
-                        )}
-                      </AnimatePresence>
-                    </Link>
-
-                    {/* JS tooltip (shows when collapsed AND hovered) */}
-                    {!open && hovered === item.name && (
-                      <div
-                        className="absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50"
-                        style={{ pointerEvents: "none" }}
-                      >
-                        <div className="bg-[#FF6600] text-white text-xs px-3 py-2 rounded-md shadow-lg max-w-xs">
-                          {item.tooltip}
-                        </div>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-        </div>
-
-        {/* Bottom: Logout */}
-        <div>
-          <button type="button" className="flex items-center gap-3 text-gray-600 hover:text-red-600 mt-6 transition px-2 py-2 rounded-md w-full justify-start" onClick={handleLogout}>
-            <FaSignOutAlt className="text-lg" />
-            {open && <span className="font-medium">Logout</span>}
+      {!open && (
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={() => setOpen(true)}
+            className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+          >
+            <ChevronRight size={18} />
           </button>
         </div>
-      </motion.aside>
-    </>
+      )}
+
+      {/* Navigation */}
+      <nav className="flex-1 px-4 mt-6 space-y-1.5 overflow-y-auto custom-scrollbar">
+        {navItems.map((item) => {
+          const active = isSegmentActive(item.href);
+          const Icon = item.icon;
+
+          return (
+            <Link key={item.name} href={item.href} className="block group">
+              <div
+                className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${active
+                  ? "bg-[#FF6B00] text-white shadow-lg shadow-orange-500/25"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white"
+                  }`}
+              >
+                <Icon
+                  size={20}
+                  strokeWidth={active ? 2.5 : 2}
+                  className={`flex-shrink-0 transition-colors duration-300 ${active ? "text-white" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"}`}
+                />
+
+                <AnimatePresence>
+                  {open && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      className={`font-medium text-sm whitespace-nowrap ${active ? 'font-semibold' : ''}`}
+                    >
+                      {item.name}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+
+                {/* Collapsed Tooltip Indicator - Optional polish */}
+                {!open && !active && (
+                  <div className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 -translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all pointer-events-none z-50 whitespace-nowrap hidden md:block">
+                    {item.name}
+                  </div>
+                )}
+              </div>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Footer / Logout */}
+      <div className="p-4 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-[#0F172A]">
+        <button
+          onClick={handleLogout}
+          disabled={logoutLoading}
+          className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group ${open
+            ? "hover:bg-red-50 dark:hover:bg-red-500/10 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400"
+            : "justify-center text-slate-500 hover:text-red-500"
+            } ${logoutLoading ? "cursor-not-allowed opacity-70" : ""}`}
+        >
+          {logoutLoading ? (
+            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin flex-shrink-0" />
+          ) : (
+            <LogOut size={20} className="flex-shrink-0 transition-transform group-hover:-translate-x-1" />
+          )}
+
+          {open && (
+            <span className="font-semibold text-sm">
+              {logoutLoading ? "Signing out..." : "Sign Out"}
+            </span>
+          )}
+        </button>
+      </div>
+    </motion.aside>
   );
 }

@@ -5,13 +5,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useApi } from "@/app/context/ApiContext";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { X, Mail, ShieldCheck, ArrowRight, Loader2, RefreshCw } from "lucide-react";
 
 /**
  * Enhanced Logo Component
  */
 const LogoImage = () => (
-  <div className="relative group mx-auto mb-6">
+  <div className="relative group mx-auto mb-6 w-fit">
     <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full scale-125 transition-transform duration-700" />
     <img
       src="/logo.png"
@@ -98,7 +99,12 @@ export default function VerifyAccount() {
       // Save token and user
       if (data?.token) {
         localStorage.setItem("vendorToken", data.token);
-        saveVendor(data);
+        saveVendor({
+          vendor: {
+            id: data.vendor.id,
+            slug: data.vendor.slug,
+          },
+        });
       }
 
       setMessage("✅ Verified successfully! Redirecting...");
@@ -149,7 +155,7 @@ export default function VerifyAccount() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[40px] p-4 md:p-10 shadow-2xl border border-zinc-100 dark:border-zinc-800 relative z-10"
+        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[40px] p-2 md:p-6 shadow-2xl border border-zinc-100 dark:border-zinc-800 relative z-10"
       >
         <div className="text-center">
           <LogoImage />
@@ -167,7 +173,7 @@ export default function VerifyAccount() {
         </div>
 
         {/* OTP Inputs */}
-        <div className="flex justify-center gap-2 mb-8">
+        <div className="flex justify-center gap-2 mb-3">
           {otp.map((digit, index) => (
             <motion.input
               key={index}
@@ -238,7 +244,7 @@ export default function VerifyAccount() {
           </motion.button>
         </div>
 
-        <div className="mt-10 pt-8 border-t border-zinc-50 dark:border-zinc-800 text-center">
+        <div className="mt-4 pt-4 border-t border-zinc-50 dark:border-zinc-800 text-center">
           <Link
             href="/vendors/auth/login"
             className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-orange-500 transition-colors"

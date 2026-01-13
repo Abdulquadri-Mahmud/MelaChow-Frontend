@@ -1,19 +1,20 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   User, Mail, Phone, Lock, Store, FileText, MapPin,
   Clock, CreditCard, ChevronRight, ChevronLeft, Upload,
-  CheckCircle2, AlertCircle, X, Loader2
+  CheckCircle2, AlertCircle, X, Loader2, ChevronDown
 } from "lucide-react";
+import { nigeriaStates } from "@/app/lib/nigeriaStates";
 
 /**
  * Cuisine & Tag Options
  */
 const CUISINES = ["Rice", "Swallow", "Peppered Chicken Fries", "Pasta", "Snacks", "Drinks"];
-const TAGS = ["Nigerian", "Spicy", "Affordable", "Swallow", "Jollof", "Vegan"];
 
 const LogoImage = () => (
   <div className="relative group mx-auto mb-2">
@@ -39,24 +40,77 @@ const uploadToCloudinary = async (file) => {
   }
 };
 
+// Helper Components - Defined outside to prevent re-creation on every render
+const InputWrap = ({ label, icon: Icon, error, children }) => (
+  <div className="space-y-1.5 group">
+    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{label}</label>
+    <div className="relative">
+      {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />}
+      {children}
+    </div>
+    {error && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-tight ml-1">{error}</p>}
+  </div>
+);
+
+const TextInput = ({ path, placeholder, type = "text", icon, error, payload, setField }) => (
+  <InputWrap label={placeholder} icon={icon} error={error}>
+    <input
+      type={type}
+      placeholder={`Enter ${placeholder.toLowerCase()}`}
+      value={path.split('.').reduce((o, i) => o[i], payload)}
+      onChange={(e) => setField(path, e.target.value)}
+      className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
+    />
+  </InputWrap>
+);
+
+const SelectInput = ({ path, label, options, icon, error, payload, setField, onChange }) => (
+  <InputWrap label={label} icon={icon} error={error}>
+    <div className="relative">
+      <select
+        value={path.split('.').reduce((o, i) => o[i], payload)}
+        onChange={(e) => {
+          setField(path, e.target.value);
+          if (onChange) onChange(e.target.value);
+        }}
+        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none"
+      >
+        <option value="">Select {label}</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 pointer-events-none" />
+    </div>
+  </InputWrap>
+);
+
+const StepHeader = ({ title, desc }) => (
+  <div className="text-center space-y-2 mb-8 mt-2">
+    <h2 className="text-3xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none">
+      {title.split(' ')[0]} <span className="text-orange-600">{title.split(' ').slice(1).join(' ')}</span>
+    </h2>
+    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+      {desc}
+    </p>
+  </div>
+);
+
 export default function VendorRegisterPage() {
-  const TOTAL_STEPS = 6;
+  const router = useRouter();
+  const TOTAL_STEPS = 5;
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [modal, setModal] = useState({ open: false, title: "", message: "", type: "info" });
 
   const [previews, setPreviews] = useState({
     logo: null,
-    kycFront: null,
-    kycBack: null,
-    businessDoc: null,
   });
 
   const [files, setFiles] = useState({
     logo: null,
-    kycFront: null,
-    kycBack: null,
-    businessDoc: null,
   });
 
   const [errors, setErrors] = useState({});
@@ -86,13 +140,6 @@ export default function VendorRegisterPage() {
       saturday: { open: "09:00", close: "04:00", closed: false },
       sunday: { open: "00:00", close: "00:00", closed: true },
     },
-    kyc: {
-      idType: "",
-      idNumber: "",
-      idFrontUrl: "",
-      idBackUrl: "",
-      businessRegistrationDoc: "",
-    },
     payoutDetails: {
       bankName: "",
       accountName: "",
@@ -101,10 +148,30 @@ export default function VendorRegisterPage() {
       payoutEnabled: true,
     },
     acceptsDelivery: true,
-    deliveryRadiusKm: 5,
-    tags: [],
+    flatRateDeliveryFee: 0,
     metadata: { featured: true },
   });
+
+  // Persist form data to session storage
+  useEffect(() => {
+    const savedData = sessionStorage.getItem("vendor_reg_data");
+    const savedStep = sessionStorage.getItem("vendor_reg_step");
+    if (savedData) {
+      try {
+        setPayload(prev => ({ ...prev, ...JSON.parse(savedData) }));
+      } catch (e) {
+        console.error("Error parsing saved data", e);
+      }
+    }
+    if (savedStep) {
+      setStep(Number(savedStep));
+    }
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem("vendor_reg_data", JSON.stringify(payload));
+    sessionStorage.setItem("vendor_reg_step", step.toString());
+  }, [payload, step]);
 
   const setField = (path, value) => {
     if (!path.includes(".")) {
@@ -156,24 +223,19 @@ export default function VendorRegisterPage() {
       if (!payload.address.postalCode) e["address.postalCode"] = "Postal required";
     }
     if (s === 4) {
-      if (!payload.cuisineTypes || payload.cuisineTypes.length === 0) e.cuisineTypes = "Select cuisine types";
+      // Operations step - simplified
       Object.keys(payload.openingHours).forEach((d) => {
         const day = payload.openingHours[d];
         if (!day.closed && (!day.open || !day.close)) e[`openingHours.${d}`] = "Required";
       });
     }
     if (s === 5) {
-      if (!payload.kyc.idType) e["kyc.idType"] = "ID type required";
-      if (!payload.kyc.idNumber) e["kyc.idNumber"] = "ID number required";
-      if (!files.kycFront && !payload.kyc.idFrontUrl) e.kycFront = "Upload ID front";
-      if (!files.kycBack && !payload.kyc.idBackUrl) e.kycBack = "Upload ID back";
-      if (!files.businessDoc && !payload.kyc.businessRegistrationDoc) e.businessDoc = "Upload business doc";
-    }
-    if (s === 6) {
       if (!payload.payoutDetails.bankName) e["payoutDetails.bankName"] = "Bank name required";
       if (!payload.payoutDetails.accountName) e["payoutDetails.accountName"] = "Account name required";
       if (!payload.payoutDetails.accountNumber) e["payoutDetails.accountNumber"] = "Account number required";
-      if (!payload.tags || payload.tags.length === 0) e.tags = "Select tags";
+      if (payload.acceptsDelivery) {
+        if (!payload.flatRateDeliveryFee || Number(payload.flatRateDeliveryFee) <= 0) e.flatRateDeliveryFee = "Fee required";
+      }
     }
 
     setErrors(e);
@@ -195,23 +257,26 @@ export default function VendorRegisterPage() {
       return;
     }
     setSubmitting(true);
+    // Show slick loading modal
+    setModal({ open: true, title: "Creating Store", message: "Please wait while we set everything up...", type: "loading" });
 
     try {
       const uploaded = {};
       if (files.logo) uploaded.logo = await uploadToCloudinary(files.logo);
-      if (files.kycFront) uploaded.kycFront = await uploadToCloudinary(files.kycFront);
-      if (files.kycBack) uploaded.kycBack = await uploadToCloudinary(files.kycBack);
-      if (files.businessDoc) uploaded.businessDoc = await uploadToCloudinary(files.businessDoc);
 
       const finalPayload = JSON.parse(JSON.stringify(payload));
       if (uploaded.logo) finalPayload.logo = uploaded.logo;
-      if (uploaded.kycFront) finalPayload.kyc.idFrontUrl = uploaded.kycFront;
-      if (uploaded.kycBack) finalPayload.kyc.idBackUrl = uploaded.kycBack;
-      if (uploaded.businessDoc) finalPayload.kyc.businessRegistrationDoc = uploaded.businessDoc;
 
       const res = await axios.post("https://grub-dash-api.vercel.app/api/vendors/create", finalPayload);
       if (res.status === 200 || res.status === 201) {
         setModal({ open: true, title: "Registration Successful", message: res.data?.message || "Account created.", type: "success" });
+        sessionStorage.removeItem("vendor_reg_data");
+        sessionStorage.removeItem("vendor_reg_step");
+
+        // Redirect after 3s
+        setTimeout(() => {
+          router.push("/vendors/auth/login");
+        }, 3000);
       } else {
         setModal({ open: true, title: "Registration Failed", message: res.data?.message || "Server error.", type: "error" });
       }
@@ -221,40 +286,6 @@ export default function VendorRegisterPage() {
       setSubmitting(false);
     }
   };
-
-  const InputWrap = ({ label, icon: Icon, error, children }) => (
-    <div className="space-y-1.5 group">
-      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{label}</label>
-      <div className="relative">
-        {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />}
-        {children}
-      </div>
-      {error && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-tight ml-1">{error}</p>}
-    </div>
-  );
-
-  const TextInput = ({ path, placeholder, type = "text", icon, error }) => (
-    <InputWrap label={placeholder} icon={icon} error={error}>
-      <input
-        type={type}
-        placeholder={`Enter ${placeholder.toLowerCase()}`}
-        value={path.split('.').reduce((o, i) => o[i], payload)}
-        onChange={(e) => setField(path, e.target.value)}
-        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
-      />
-    </InputWrap>
-  );
-
-  const StepHeader = ({ title, desc }) => (
-    <div className="text-center space-y-2 mb-8 mt-2">
-      <h2 className="text-3xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none">
-        {title.split(' ')[0]} <span className="text-orange-600">{title.split(' ').slice(1).join(' ')}</span>
-      </h2>
-      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
-        {desc}
-      </p>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-2 overflow-x-hidden relative">
@@ -304,10 +335,10 @@ export default function VendorRegisterPage() {
                 <div className="space-y-6">
                   <StepHeader title="Account Information" desc="The keys to your business dashboard" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <TextInput path="name" placeholder="Owner Name" icon={User} error={errors.name} />
-                    <TextInput path="email" placeholder="Business Email" icon={Mail} type="email" error={errors.email} />
-                    <TextInput path="phone" placeholder="Phone Number" icon={Phone} error={errors.phone} />
-                    <TextInput path="password" placeholder="Secure Password" icon={Lock} type="password" error={errors.password} />
+                    <TextInput path="name" placeholder="Owner Name" icon={User} error={errors.name} payload={payload} setField={setField} />
+                    <TextInput path="email" placeholder="Business Email" icon={Mail} type="email" error={errors.email} payload={payload} setField={setField} />
+                    <TextInput path="phone" placeholder="Phone Number" icon={Phone} error={errors.phone} payload={payload} setField={setField} />
+                    <TextInput path="password" placeholder="Secure Password" icon={Lock} type="password" error={errors.password} payload={payload} setField={setField} />
                   </div>
                 </div>
               )}
@@ -316,7 +347,7 @@ export default function VendorRegisterPage() {
                 <div className="space-y-6">
                   <StepHeader title="Store Details" desc="Tell your future customers your brand story" />
                   <div className="space-y-6">
-                    <TextInput path="storeName" placeholder="Store Name" icon={Store} error={errors.storeName} />
+                    <TextInput path="storeName" placeholder="Store Name" icon={Store} error={errors.storeName} payload={payload} setField={setField} />
                     <InputWrap label="Store Description" icon={FileText} error={errors.storeDescription}>
                       <textarea
                         value={payload.storeDescription}
@@ -347,39 +378,44 @@ export default function VendorRegisterPage() {
                 <div className="space-y-6">
                   <StepHeader title="Business Location" desc="Where do we send the orders?" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <TextInput path="address.street" placeholder="Street Address" icon={MapPin} error={errors["address.street"]} />
-                    <TextInput path="address.city" placeholder="City" icon={MapPin} error={errors["address.city"]} />
-                    <TextInput path="address.state" placeholder="State/Region" icon={MapPin} error={errors["address.state"]} />
-                    <TextInput path="address.postalCode" placeholder="Postal / Zip Code" icon={MapPin} error={errors["address.postalCode"]} />
+                    <TextInput path="address.street" placeholder="Street Address" icon={MapPin} error={errors["address.street"]} payload={payload} setField={setField} />
+
+                    <SelectInput
+                      path="address.state"
+                      label="State"
+                      icon={MapPin}
+                      error={errors["address.state"]}
+                      payload={payload}
+                      setField={setField}
+                      options={nigeriaStates.map(s => s.state)}
+                      onChange={(newState) => {
+                        // Reset city when state changes
+                        setField("address.city", "");
+                      }}
+                    />
+
+                    <SelectInput
+                      path="address.city"
+                      label="City"
+                      icon={MapPin}
+                      error={errors["address.city"]}
+                      payload={payload}
+                      setField={setField}
+                      options={
+                        payload.address.state
+                          ? nigeriaStates.find(s => s.state === payload.address.state)?.districts || []
+                          : []
+                      }
+                    />
+
+                    <TextInput path="address.postalCode" placeholder="Postal / Zip Code" icon={MapPin} error={errors["address.postalCode"]} payload={payload} setField={setField} />
                   </div>
                 </div>
               )}
 
               {step === 4 && (
                 <div className="space-y-8">
-                  <StepHeader title="Operations & Cuisine" desc="Define your menu style and working hours" />
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Menu Focus (Select multiple)</label>
-                    <div className="flex flex-wrap gap-2.5">
-                      {CUISINES.map((c) => {
-                        const active = payload.cuisineTypes.includes(c);
-                        return (
-                          <motion.button
-                            whileHover={{ y: -2 }}
-                            whileTap={{ scale: 0.95 }}
-                            key={c}
-                            type="button"
-                            onClick={() => toggleArrayValue("cuisineTypes", c)}
-                            className={`px-5 py-2.5 rounded-xl border text-[10px] font-black uppercase italic tracking-widest transition-all
-                                                            ${active ? "bg-orange-600 border-orange-500 text-white shadow-lg shadow-orange-500/20" : "bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-100 dark:border-zinc-700"}`}
-                          >
-                            {c}
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-                    {errors.cuisineTypes && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-tight ml-1">{errors.cuisineTypes}</p>}
-                  </div>
+                  <StepHeader title="Operations" desc="Define your working hours" />
 
                   <div className="space-y-4">
                     <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Weekly Operating Schedule</label>
@@ -412,94 +448,65 @@ export default function VendorRegisterPage() {
 
               {step === 5 && (
                 <div className="space-y-8">
-                  <StepHeader title="KYC Verification" desc="Government compliance & trust markers" />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <InputWrap label="Identity Type" icon={FileText} error={errors["kyc.idType"]}>
-                      <select
-                        value={payload.kyc.idType}
-                        onChange={(e) => setField("kyc.idType", e.target.value)}
-                        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none"
-                      >
-                        <option value="">Select Identity Type</option>
-                        <option value="NIN">NIN</option>
-                        <option value="Driver's License">Driver's License</option>
-                        <option value="International Passport">International Passport</option>
-                      </select>
-                    </InputWrap>
-                    <TextInput path="kyc.idNumber" placeholder="ID Number / Reference" icon={FileText} error={errors["kyc.idNumber"]} />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="p-4 border-2 border-dashed border-zinc-100 dark:border-zinc-800 rounded-[28px] text-center space-y-3">
-                      <p className="text-[10px] font-black uppercase italic tracking-widest leading-none">ID Front</p>
-                      <div className="w-full aspect-video bg-zinc-50 dark:bg-zinc-800 rounded-2xl flex items-center justify-center overflow-hidden border border-zinc-100 dark:border-zinc-700">
-                        {previews.kycFront ? <img src={previews.kycFront} className="w-full h-full object-cover" /> : <Upload className="text-zinc-200" />}
-                      </div>
-                      <input type="file" id="idf" className="hidden" accept="image/*" onChange={(e) => handleFileSelect("kycFront", e.target.files[0])} />
-                      <label htmlFor="idf" className="inline-block px-4 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-[9px] font-black uppercase tracking-widest cursor-pointer hover:bg-orange-500 hover:text-white transition-all">Choose File</label>
-                      {errors.kycFront && <p className="text-[8px] font-bold text-rose-500 uppercase">{errors.kycFront}</p>}
-                    </div>
-                    <div className="p-4 border-2 border-dashed border-zinc-100 dark:border-zinc-800 rounded-[28px] text-center space-y-3">
-                      <p className="text-[10px] font-black uppercase italic tracking-widest leading-none">ID Back</p>
-                      <div className="w-full aspect-video bg-zinc-50 dark:bg-zinc-800 rounded-2xl flex items-center justify-center overflow-hidden border border-zinc-100 dark:border-zinc-700">
-                        {previews.kycBack ? <img src={previews.kycBack} className="w-full h-full object-cover" /> : <Upload className="text-zinc-200" />}
-                      </div>
-                      <input type="file" id="idb" className="hidden" accept="image/*" onChange={(e) => handleFileSelect("kycBack", e.target.files[0])} />
-                      <label htmlFor="idb" className="inline-block px-4 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-[9px] font-black uppercase tracking-widest cursor-pointer hover:bg-orange-500 hover:text-white transition-all">Choose File</label>
-                      {errors.kycBack && <p className="text-[8px] font-bold text-rose-500 uppercase">{errors.kycBack}</p>}
-                    </div>
-                    <div className="p-4 border-2 border-dashed border-zinc-100 dark:border-zinc-800 rounded-[28px] text-center space-y-3">
-                      <p className="text-[10px] font-black uppercase italic tracking-widest leading-none">Business Doc</p>
-                      <div className="w-full aspect-video bg-zinc-50 dark:bg-zinc-800 rounded-2xl flex items-center justify-center overflow-hidden border border-zinc-100 dark:border-zinc-700 text-xs">
-                        {previews.businessDoc ? (previews.businessDoc.startsWith('blob:') ? 'File Selected' : <img src={previews.businessDoc} className="w-full h-full object-cover" />) : <Upload className="text-zinc-200" />}
-                      </div>
-                      <input type="file" id="biz" className="hidden" accept="application/pdf,image/*" onChange={(e) => handleFileSelect("businessDoc", e.target.files[0])} />
-                      <label htmlFor="biz" className="inline-block px-4 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-[9px] font-black uppercase tracking-widest cursor-pointer hover:bg-orange-500 hover:text-white transition-all">Choose File</label>
-                      {errors.businessDoc && <p className="text-[8px] font-bold text-rose-500 uppercase">{errors.businessDoc}</p>}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {step === 6 && (
-                <div className="space-y-8">
                   <StepHeader title="Payout & Delivery" desc="Final details before we launch your store" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <TextInput path="payoutDetails.bankName" placeholder="Bank Name" icon={CreditCard} error={errors["payoutDetails.bankName"]} />
-                    <TextInput path="payoutDetails.accountName" placeholder="Account Name" icon={User} error={errors["payoutDetails.accountName"]} />
-                    <TextInput path="payoutDetails.accountNumber" placeholder="Account Number" icon={CreditCard} error={errors["payoutDetails.accountNumber"]} />
-                    <TextInput path="deliveryRadiusKm" placeholder="Delivery Radius (KM)" icon={MapPin} type="number" error={errors.deliveryRadiusKm} />
+                    <TextInput path="payoutDetails.bankName" placeholder="Bank Name" icon={CreditCard} error={errors["payoutDetails.bankName"]} payload={payload} setField={setField} />
+                    <TextInput path="payoutDetails.accountName" placeholder="Account Name" icon={User} error={errors["payoutDetails.accountName"]} payload={payload} setField={setField} />
+                    <TextInput path="payoutDetails.accountNumber" placeholder="Account Number" icon={CreditCard} error={errors["payoutDetails.accountNumber"]} payload={payload} setField={setField} />
                   </div>
 
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Business Tags</label>
-                    <div className="flex flex-wrap gap-2.5">
-                      {TAGS.map((t) => {
-                        const active = payload.tags.includes(t);
-                        return (
-                          <motion.button
-                            whileHover={{ y: -2 }}
-                            whileTap={{ scale: 0.95 }}
-                            key={t}
-                            type="button"
-                            onClick={() => toggleArrayValue("tags", t)}
-                            className={`px-5 py-2.5 rounded-xl border text-[10px] font-black uppercase italic tracking-widest transition-all
-                                                            ${active ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-xl" : "bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-100 dark:border-zinc-700"}`}
-                          >
-                            {t}
-                          </motion.button>
-                        );
-                      })}
+                  <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                    <h3 className="text-sm font-black uppercase italic tracking-widest text-zinc-900 dark:text-white">Delivery Configuration</h3>
+
+                    <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300">Do you handle your own delivery?</p>
+                        <p className="text-[9px] font-bold text-zinc-400 mt-1 max-w-xs">Enable this if you have your own riders. If disabled, customers will only be able to pick up or use platform riders (if available).</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={payload.acceptsDelivery}
+                          onChange={(e) => {
+                            setField("acceptsDelivery", e.target.checked);
+                            if (!e.target.checked) setField("flatRateDeliveryFee", 0);
+                          }}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                      </label>
                     </div>
-                    {errors.tags && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-tight ml-1">{errors.tags}</p>}
+
+                    <AnimatePresence>
+                      {payload.acceptsDelivery && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <TextInput
+                            path="flatRateDeliveryFee"
+                            placeholder="Flat Rate Delivery Fee (₦)"
+                            icon={CreditCard}
+                            type="number"
+                            error={errors.flatRateDeliveryFee}
+                            payload={payload}
+                            setField={setField}
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
+
+
                 </div>
               )}
             </motion.div>
           </AnimatePresence>
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-between mt-12 pt-10 border-t border-zinc-50 dark:border-zinc-800">
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-zinc-50 dark:border-zinc-800">
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={goBack}
@@ -527,69 +534,87 @@ export default function VendorRegisterPage() {
             </motion.button>
           </div>
 
-          <div className="text-center mt-8">
+          <div className="text-center mt-4">
             <Link href="/vendors/auth/login" className="text-[10px] font-black uppercase italic tracking-[0.2em] text-zinc-400 hover:text-orange-600 transition-colors underline-offset-4 decoration-orange-600/30">
               Already a Partner? SIGN IN
             </Link>
           </div>
         </motion.div>
-      </div>
+      </div >
 
       {/* Premium Response Modal */}
-      <AnimatePresence>
-        {modal.open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4"
-          >
+      < AnimatePresence >
+        {
+          modal.open && (
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white dark:bg-zinc-900 rounded-[40px] p-8 md:p-12 w-full max-w-lg text-center shadow-2xl relative border border-zinc-100 dark:border-zinc-800"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4"
             >
-              <button
-                onClick={() => setModal({ ...modal, open: false })}
-                className="absolute top-6 right-6 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors"
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="bg-white dark:bg-zinc-900 rounded-[40px] p-8 md:p-12 w-full max-w-lg text-center shadow-2xl relative border border-zinc-100 dark:border-zinc-800"
               >
-                <X size={24} />
-              </button>
+                {modal.type === 'loading' ? (
+                  <div className="flex flex-col items-center py-6">
+                    <div className="w-24 h-24 relative mb-8">
+                      <div className="absolute inset-0 border-4 border-zinc-100 dark:border-zinc-800 rounded-full"></div>
+                      <div className="absolute inset-0 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                      <Store className="absolute inset-0 m-auto text-orange-500 animate-pulse" size={32} />
+                    </div>
+                    <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2 text-zinc-900 dark:text-white animate-pulse">
+                      {modal.title}
+                    </h2>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed">{modal.message}</p>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setModal({ ...modal, open: false })}
+                      className="absolute top-6 right-6 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors"
+                    >
+                      <X size={24} />
+                    </button>
 
-              <div className="mb-6 flex justify-center">
-                <div className={`w-20 h-20 rounded-full flex items-center justify-center ${modal.type === 'success' ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500" : "bg-rose-50 dark:bg-rose-500/10 text-rose-500"
-                  }`}>
-                  {modal.type === 'success' ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
-                </div>
-              </div>
+                    <div className="mb-6 flex justify-center">
+                      <div className={`w-20 h-20 rounded-full flex items-center justify-center ${modal.type === 'success' ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500" : "bg-rose-50 dark:bg-rose-500/10 text-rose-500"
+                        }`}>
+                        {modal.type === 'success' ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
+                      </div>
+                    </div>
 
-              <h2 className={`text-2xl font-black uppercase italic tracking-tighter mb-4 ${modal.type === 'success' ? "text-emerald-600" : "text-rose-500"
-                }`}>
-                {modal.title.split(' ')[0]} <span className={modal.type === 'success' ? 'text-zinc-900 dark:text-white' : ''}>{modal.title.split(' ').slice(1).join(' ')}</span>
-              </h2>
-              <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed mb-8">{modal.message}</p>
+                    <h2 className={`text-2xl font-black uppercase italic tracking-tighter mb-4 ${modal.type === 'success' ? "text-emerald-600" : "text-rose-500"
+                      }`}>
+                      {modal.title.split(' ')[0]} <span className={modal.type === 'success' ? 'text-zinc-900 dark:text-white' : ''}>{modal.title.split(' ').slice(1).join(' ')}</span>
+                    </h2>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed mb-8">{modal.message}</p>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setModal({ ...modal, open: false })}
-                  className="flex-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:bg-zinc-200 transition-all"
-                >
-                  Review Details
-                </button>
-                {modal.type === 'success' && (
-                  <Link
-                    href="/vendors/auth/login"
-                    className="flex-1 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest flex items-center justify-center hover:scale-[1.02] shadow-lg transition-all"
-                  >
-                    GOTO DASHBOARD
-                  </Link>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setModal({ ...modal, open: false })}
+                        className="flex-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:bg-zinc-200 transition-all"
+                      >
+                        Review Details
+                      </button>
+                      {modal.type === 'success' && (
+                        <Link
+                          href="/vendors/auth/login"
+                          className="flex-1 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest flex items-center justify-center hover:scale-[1.02] shadow-lg transition-all"
+                        >
+                          GOTO DASHBOARD
+                        </Link>
+                      )}
+                    </div>
+                  </>
                 )}
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          )
+        }
+      </AnimatePresence >
+    </div >
   );
 }

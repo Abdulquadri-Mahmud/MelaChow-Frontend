@@ -7,7 +7,7 @@ export default function Logo() {
       <img
         src="/logo.png"
         alt="GrubDash Logo"
-        className="w-[170px] object-contain"
+        className="w-[70px] object-contain"
       />
     </div>
   )

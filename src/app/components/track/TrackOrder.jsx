@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Clock, Truck, Package, Home, CheckCircle } from "lucide-react";
+import { Clock, Truck, Package, Home, CheckCircle, Star } from "lucide-react";
 import { useApi } from "@/app/context/ApiContext";
 import { useParams } from "next/navigation";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
@@ -20,18 +20,39 @@ const statusSteps = [
     icon: Clock
   },
   {
-    key: "processing",
+    key: "accepted",
+    label: "Confirmed",
+    subtitle: "Restaurant accepted",
+    description: "The restaurant has confirmed your order and will start preparing soon.",
+    icon: CheckCircle
+  },
+  {
+    key: "preparing",
     label: "Preparing",
     subtitle: "Kitchen is busy",
-    description: "The restaurant has started preparing your delicious meal.",
+    description: "The restaurant is preparing your delicious meal with care.",
+    icon: Package
+  },
+  {
+    key: "ready_for_pickup",
+    label: "Ready",
+    subtitle: "Food is ready",
+    description: "Your order is ready and waiting for the delivery rider.",
+    icon: CheckCircle
+  },
+  {
+    key: "rider_assigned",
+    label: "Rider Assigned",
+    subtitle: "Driver on the way",
+    description: "A delivery rider has been assigned and is heading to the restaurant.",
     icon: Truck
   },
   {
-    key: "in_transit",
+    key: "out_for_delivery",
     label: "On the way",
     subtitle: "Rider is heading to you",
     description: "Our delivery partner has picked up your order and is en route.",
-    icon: Package
+    icon: Truck
   },
   {
     key: "delivered",
@@ -39,6 +60,13 @@ const statusSteps = [
     subtitle: "Hope you enjoy it!",
     description: "Your meal has been dropped off. Thank you for using GrubDash!",
     icon: Home
+  },
+  {
+    key: "completed",
+    label: "Completed",
+    subtitle: "Order closed",
+    description: "This order has been successfully completed. Enjoy your meal!",
+    icon: CheckCircle
   },
 ];
 
@@ -198,7 +226,7 @@ export default function OrderTracking() {
                 <h3 className="text-zinc-900 dark:text-white font-black text-xl italic uppercase tracking-tight">Track Progress</h3>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs font-bold text-zinc-400 px-2 py-0.5 bg-zinc-50 dark:bg-zinc-800 rounded-lg">#{orderData.orderId.substring(0, 8)}</span>
-                  <span className="text-[10px] font-black text-orange-500 uppercase">{currentStepIndex + 1} of 4 Steps Done</span>
+                  <span className="text-[10px] font-black text-orange-500 uppercase">{currentStepIndex + 1} of {statusSteps.length} Steps Done</span>
                 </div>
               </div>
               <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-3xl">

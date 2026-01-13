@@ -1,439 +1,465 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import { useEffect, useState, useMemo } from "react";
+import Link from "next/link";
 import {
-  Loader2, Store, MapPin, Star,
-  ShoppingBag, Wallet, Truck, Clock,
-  Utensils, Coffee, Sandwich, Pizza
+  CreditCard,
+  TrendingUp,
+  Star,
+  MoreHorizontal,
+  ArrowUpRight,
+  Package,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
-import { useVendors } from "@/app/hooks/useVendorQueries";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-
-// ✅ Shadcn + Recharts components
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
+  AreaChart,
+  Area,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
+  Tooltip
 } from "recharts";
 import { motion } from "framer-motion";
 
-import VendorDashboardHeader from "@/app/components/vendors_component/VendorDashboardHeader";
-import { getFoods, getVendorFoods } from "@/app/lib/vendorFoodApi";
+import { getVendorFoods } from "@/app/lib/vendorFoodApi";
+import { getVendorDetails } from "@/app/lib/vendorApi";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import VendorDashboardSkeleton from "@/app/skeleton/VendorDashboardSkeleton";
 
 export default function VendorDashboard() {
-  const { vendors, isLoading } = useVendors();
+  const [vendorData, setVendorData] = useState(null);
   const [foods, setFoods] = useState([]);
-
+  const [isLoading, setIsLoading] = useState(true);
   const { vendorDetails } = useVendorStorage();
 
-  // ✅ Count foods by category
   useEffect(() => {
-    const fetchFoods = async () => {
+    const fetchData = async () => {
       try {
         if (!vendorDetails?.vendor?.id) return;
-
-        const res = await getVendorFoods(vendorDetails.vendor.id);
-        setFoods(res?.data || []);
-
+        setIsLoading(true);
+        const [vendorRes, foodsRes] = await Promise.all([
+          getVendorDetails(vendorDetails.vendor.id),
+          getVendorFoods(vendorDetails.vendor.id)
+        ]);
+        setVendorData(vendorRes.data || vendorRes);
+        setFoods(foodsRes?.data || []);
       } catch (err) {
-        toast.error("Failed to fetch your foods");
+        console.error("Dashboard fetch error:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchFoods();
+    if (vendorDetails?.vendor?.id) fetchData();
   }, [vendorDetails]);
 
+  // Derived Values & Calculations
+  const calculations = useMemo(() => {
+    if (!vendorData) return null;
 
-  const foodsByCategory = foods.reduce((acc, food) => {
-    const category = food.category || "Uncategorized";
-    acc[category] = (acc[category] || 0) + 1;
-    return acc;
-  }, {});
+    const orders = vendorData.vendorOrders || [];
+    const transactions = vendorData.wallet?.transactions || [];
 
-  // ✅ Format for chart
-  const categoryData = Object.entries(foodsByCategory).map(([name, count]) => ({
-    name,
-    count,
-  }));
+    // 1. Basic Stats
+    const walletBalance = vendorData.wallet?.balance || 0;
 
-  const vendor = vendors?.data;
+    // Use derived totals if backend summaries are 0 (often the case with fresh/demo data)
+    const storedTotalOrders = vendorData.totalOrders || 0;
+    const realTotalOrders = storedTotalOrders === 0 && orders.length > 0 ? orders.length : storedTotalOrders;
 
-  // Dummy chart data (replace with your API stats if available)
-  const salesData = [
-    { month: "Jan", sales: 12000 },
-    { month: "Feb", sales: 8000 },
-    { month: "Mar", sales: 15500 },
-    { month: "Apr", sales: 9000 },
-    { month: "May", sales: 20000 },
-    { month: "Jun", sales: 14000 },
-  ];
+    const storedTotalSales = vendorData.totalSales || 0;
+    const computedTotalSales = orders.reduce((acc, order) => acc + (order.vendorTotal || 0), 0);
+    const realTotalSales = storedTotalSales === 0 && computedTotalSales > 0 ? computedTotalSales : storedTotalSales;
 
-  const ordersData = [
-    { name: "Delivered", value: 75 },
-    { name: "Processing", value: 15 },
-    { name: "Cancelled", value: 10 },
-  ];
+    const rating = vendorData.rating || 0;
+    const ratingCount = vendorData.ratingCount || 0;
+    const isVerified = vendorData.verified;
 
-  const COLORS = ["#FF6600", "#FFB84C", "#FF4D4D"];
+    // 2. Chart Data - Process Last 7 Days of Transactions
+    const processChartData = () => {
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const today = new Date();
+      const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(today);
+        d.setDate(d.getDate() - (6 - i));
+        return {
+          date: d.toISOString().split('T')[0],
+          name: days[d.getDay()],
+          value: 0
+        };
+      });
+
+      transactions.forEach(txn => {
+        if (txn.type === 'credit' && txn.date) {
+          const txnDate = txn.date.split('T')[0];
+          const dayEntry = last7Days.find(d => d.date === txnDate);
+          if (dayEntry) {
+            dayEntry.value += txn.amount;
+          }
+        }
+      });
+      return last7Days;
+    };
+
+    // 3. Top Items - Aggregate from Orders
+    const processTopItems = () => {
+      const itemCounts = {};
+      orders.forEach(order => {
+        if (order.items && Array.isArray(order.items)) {
+          order.items.forEach(item => {
+            const foodId = typeof item.foodId === 'object' ? item.foodId._id : item.foodId;
+            if (!itemCounts[foodId]) itemCounts[foodId] = 0;
+            itemCounts[foodId] += (item.quantity || 1);
+          });
+        }
+      });
+
+      // Map back to food details
+      const sortedItems = Object.entries(itemCounts)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 3)
+        .map(([id, count]) => {
+          const food = foods.find(f => f._id === id);
+          return {
+            name: food?.name || "Unknown Item",
+            sold: count,
+            image: food?.image || "/placeholder-food.png",
+            percent: "w-[70%]" // Dynamic width could be calculated relative to max
+          };
+        });
+
+      return sortedItems.length > 0 ? sortedItems : [];
+    };
+
+    // 4. Live Orders Mapping
+    const lastOrders = [...orders]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5) // Recent 5
+      .map(order => {
+        // Determine status color
+        let statusConfig = { status: order.orderStatus, color: "text-slate-500", bgColor: "bg-slate-100", barColor: "bg-slate-300", progress: 0 };
+
+        switch (order.orderStatus) {
+          case 'pending':
+            statusConfig = { status: 'Pending', color: 'text-amber-500', bgColor: 'bg-amber-400/20', barColor: 'bg-amber-500', progress: 10 };
+            break;
+          case 'preparing': // Assuming this status exists
+          case 'accepted':
+            statusConfig = { status: 'Preparing', color: 'text-[#FF6B00]', bgColor: 'bg-[#FF6B00]/20', barColor: 'bg-[#FF6B00]', progress: 50 };
+            break;
+          case 'ready':
+            statusConfig = { status: 'Ready', color: 'text-blue-500', bgColor: 'bg-blue-400/20', barColor: 'bg-blue-500', progress: 80 };
+            break;
+          case 'completed':
+          case 'delivered':
+            statusConfig = { status: 'Completed', color: 'text-green-500', bgColor: 'bg-green-400/20', barColor: 'bg-green-500', progress: 100 };
+            break;
+          case 'cancelled':
+            statusConfig = { status: 'Cancelled', color: 'text-red-500', bgColor: 'bg-red-400/20', barColor: 'bg-red-500', progress: 0 };
+            break;
+          default:
+          // Keep default
+        }
+
+        const userName = order.userOrderId?.userId
+          ? `${order.userOrderId.userId.firstname} ${order.userOrderId.userId.lastname}`
+          : "Guest Customer";
+
+        // Resolve item names
+        const itemNames = order.items?.map(item => {
+          const fId = typeof item.foodId === 'object' ? item.foodId._id : item.foodId;
+          const food = foods.find(f => f._id === fId);
+          return food?.name;
+        }).filter(Boolean);
+
+        const itemsSummary = itemNames?.length > 0
+          ? `${itemNames[0]}${itemNames.length > 1 ? ` +${itemNames.length - 1}` : ''}`
+          : `${order.items?.length || 0} items`;
+
+        const orderId = order.userOrderId?.orderId || order._id.slice(-6).toUpperCase();
+        const note = new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        return {
+          id: orderId,
+          name: userName,
+          items: itemsSummary,
+          ...statusConfig,
+          note: `Updated ${note}`
+        };
+      });
+
+    return {
+      walletBalance,
+      totalSales: realTotalSales,
+      totalOrders: realTotalOrders,
+      rating,
+      ratingCount,
+      isVerified,
+      chartData: processChartData(),
+      topItems: processTopItems(),
+      recentOrders: lastOrders
+    };
+
+  }, [vendorData, foods]);
+
+  if (isLoading) return <VendorDashboardSkeleton />;
+
+  // Default values to prevent crash if calculations return null (shouldn't happen if !isLoading)
+  const {
+    walletBalance,
+    totalSales,
+    totalOrders,
+    rating,
+    ratingCount,
+    isVerified,
+    chartData,
+    topItems,
+    recentOrders
+  } = calculations || {
+    walletBalance: 0, totalSales: 0, totalOrders: 0, rating: 0, ratingCount: 0,
+    isVerified: false, chartData: [], topItems: [], recentOrders: []
+  };
 
   return (
-    <div className="min-h-screen">
+    <div className="font-sans text-slate-900 dark:text-white min-h-screen bg-slate-50 dark:bg-[#0F172A]">
 
+      <div className="space-y-4">
 
-      {/* Header */}
+        {/* TOP METRICS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <MetricCard
+            title="Total Sales"
+            value={`₦${totalSales.toLocaleString()}`}
+            trend="+12.4%" // Keep mock trend for now or calculate if history available
+            sub="All time revenue"
+          />
+          <div className="bg-white dark:bg-[#1E293B] p-3 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col gap-2 shadow-sm">
+            <div className="flex justify-between items-start">
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Orders</p>
+              <span className="text-blue-500 text-xs font-bold bg-blue-500/10 px-2 py-1 rounded-lg">High Volume</span>
+            </div>
+            <h3 className="text-3xl font-bold tracking-tight">{totalOrders}</h3>
+            <div className="flex gap-1 mt-2">
+              <div className="h-1 flex-1 bg-[#FF6B00] rounded-full"></div>
+              <div className="h-1 flex-1 bg-[#FF6B00] rounded-full"></div>
+              <div className="h-1 flex-1 bg-[#FF6B00]/20 rounded-full"></div>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-[#1E293B] p-3 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col gap-2 shadow-sm">
+            <div className="flex justify-between items-start">
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Customer Rating</p>
+              <span className="text-[#FF6B00] text-xs font-bold bg-[#FF6B00]/10 px-2 py-1 rounded-lg">
+                {isVerified ? "Verified Vendor" : "Unverified"}
+              </span>
+            </div>
+            <h3 className="text-3xl font-bold tracking-tight">{rating.toFixed(1)}</h3>
+            <div className="flex gap-0.5 mt-2 text-[#FF6B00]">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <Star key={s} size={16} fill={s <= Math.round(rating) ? "currentColor" : "none"} className={s <= Math.round(rating) ? "text-[#FF6B00]" : "text-slate-300 dark:text-slate-700"} />
+              ))}
+            </div>
+            <p className="text-xs text-slate-500 mt-1">{ratingCount} reviews</p>
+          </div>
+        </div>
 
-      {
-        isLoading ? (
-          <VendorDashboardSkeleton />
-        ) : (
-          <>
-            <VendorDashboardHeader vendor={vendorDetails?.vendor} />
-            {/* Stats */}
-            <div className="bg-white p-3 rounded-xl grid md:grid-cols-4 grid-cols-2 md:gap-4 gap-2 mb-8">
-              <Card className="shadow-md bg-orange-50 border-t-4 border-[#FF6600]">
-                <CardHeader>
-                  <CardTitle className="text-sm text-gray-500">Total Foods</CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center gap-2">
-                  <ShoppingBag className="text-[#FF6600]" />
-                  <p className="text-2xl font-semibold">{foods?.length || 0}</p>
-                </CardContent>
-              </Card>
+        {/* REVENUE COMMAND */}
+        <div className="relative overflow-hidden bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 p-4 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-[#FF6B00]/10 to-transparent opacity-50 pointer-events-none"></div>
+          <div className="z-10 w-full md:w-auto">
+            <h2 className="text-2xl font-bold mb-2 text-slate-900 dark:text-white">Revenue Command</h2>
+            <p className="text-slate-500 dark:text-slate-400 max-w-md text-sm">Your payout for the last 24 hours is ready. Withdraw funds to your primary bank account instantly.</p>
+            <div className="flex items-center gap-4 mt-6">
+              <div>
+                <p className="text-xs uppercase text-slate-500 font-bold tracking-widest mb-1">Available Balance</p>
+                <p className="text-3xl font-bold text-[#FF6B00]">₦{walletBalance.toLocaleString()}</p>
+              </div>
+              <div className="h-10 w-px bg-slate-200 dark:bg-white/10"></div>
+              <div>
+                <p className="text-xs uppercase text-slate-500 font-bold tracking-widest mb-1">Pending Clearance</p>
+                <p className="text-3xl font-bold text-slate-400">₦0.00</p>
+              </div>
+            </div>
+          </div>
+          <div className="z-10 flex flex-col gap-3 min-w-[240px] w-full md:w-auto">
+            <button className="w-full bg-[#FF6B00] text-white font-bold py-3 px-6 rounded-xl hover:shadow-[0_0_20px_rgba(255,107,0,0.3)] transition-all flex items-center justify-center gap-2">
+              <CreditCard size={20} />
+              Withdraw Funds
+            </button>
+            <Link href="/vendors/transactions" className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-medium py-3 px-6 rounded-xl hover:bg-slate-200 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+              View Transaction History
+            </Link>
+          </div>
+        </div>
 
-              <Card className="shadow-md bg-orange-50 border-t-4 border-[#FF6600]">
-                <CardHeader>
-                  <CardTitle className="text-sm text-gray-500">Total Orders</CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center gap-2">
-                  <Truck className="text-[#FF6600]" />
-                  <p className="text-2xl font-semibold">{vendor?.totalOrders || 0}</p>
-                </CardContent>
-              </Card>
+        {/* MAIN GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-              <Card className="shadow-md bg-orange-50 border-t-4 border-[#FF6600]">
-                <CardHeader>
-                  <CardTitle className="text-sm text-gray-500">Wallet Balance</CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center gap-2">
-                  <Wallet className="text-[#FF6600]" />
-                  <p className="text-2xl font-semibold">₦{vendor?.wallet?.balance?.toLocaleString() || 0}</p>
-                </CardContent>
-              </Card>
+          {/* LEFT: LIVE ORDERS */}
+          <div className="lg:col-span-4 bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 overflow-hidden flex flex-col h-[600px] shadow-sm">
+            <div className="p-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between">
+              <h3 className="font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+                <span className="size-2 bg-[#FF6B00] rounded-full animate-pulse"></span>
+                Live Order Flow
+              </h3>
+              <button className="text-xs text-[#FF6B00] font-bold hover:underline">View All</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+              {recentOrders.length > 0 ? (
+                recentOrders.map((order, idx) => (
+                  <OrderCard
+                    key={idx}
+                    id={order.id}
+                    name={order.name}
+                    items={order.items}
+                    status={order.status}
+                    progress={order.progress}
+                    color={order.color}
+                    bgColor={order.bgColor}
+                    barColor={order.barColor}
+                    note={order.note}
+                  />
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                  <Package size={40} className="mb-2 opacity-50" />
+                  <p className="text-sm">No recent orders</p>
+                </div>
+              )}
+            </div>
+          </div>
 
-              <Card className="shadow-md bg-orange-50 border-t-4 border-[#FF6600]">
-                <CardHeader>
-                  <CardTitle className="text-sm text-gray-500">Rating</CardTitle>
-                </CardHeader>
-                <CardContent className="flex items-center gap-2">
-                  <Star className="text-[#FF6600]" />
-                  <p className="text-2xl font-semibold">{vendor?.rating || 0}</p>
-                </CardContent>
-              </Card>
+          {/* RIGHT: CHART & LISTS */}
+          <div className="lg:col-span-8 flex flex-col gap-8">
+
+            {/* CHART */}
+            <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 p-6 flex flex-col h-[340px] shadow-sm">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">Sales Performance</h3>
+                  <p className="text-xs text-slate-400">Weekly sales trend (Last 7 Days)</p>
+                </div>
+                <div className="flex bg-slate-100 dark:bg-white/5 rounded-lg p-1">
+                  <button className="px-3 py-1 text-xs font-bold rounded-md bg-white dark:bg-white/10 text-[#FF6B00] shadow-sm">7D</button>
+                  <button className="px-3 py-1 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400">1M</button>
+                  <button className="px-3 py-1 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400">3M</button>
+                </div>
+              </div>
+              <div className="flex-1 w-full h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#FF6B00" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#FF6B00" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <Tooltip
+                      formatter={(value) => [`₦${value.toLocaleString()}`, 'Revenue']}
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px -2px rgba(0,0,0,0.1)', background: '#1E293B', color: 'white' }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#FF6B00"
+                      strokeWidth={3}
+                      fillOpacity={1}
+                      fill="url(#chartGradient)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
 
-            {/* 🍱 Foods by Category */}
-            <div className="mb-10">
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-[#FF6600] text-lg flex items-center gap-2">
-                    <Utensils className="text-[#FF6600]" /> Foods by Category
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Category Summary Cards */}
-                  {categoryData.length > 0 ? (
-                    <motion.div
-                      className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-                      initial="hidden"
-                      animate="visible"
-                      variants={{
-                        hidden: { opacity: 0, y: 20 },
-                        visible: {
-                          opacity: 1,
-                          y: 0,
-                          transition: { staggerChildren: 0.1 },
-                        },
-                      }}
-                    >
-                      {categoryData.map((item, index) => {
-                        // Category color palette
-                        const COLORS = [
-                          "#FF6600", "#FFA559", "#FFC107", "#4CAF50", "#03A9F4",
-                          "#E91E63", "#9C27B0", "#00BCD4", "#FF4D4D", "#8BC34A"
-                        ];
-                        const color = COLORS[index % COLORS.length];
+            {/* LOWER GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                        // Icon per category
-                        const getCategoryIcon = (category) => {
-                          const icons = {
-                            "Drinks": <Coffee className="text-[#FF6600]" />,
-                            "Rice Dishes": <Utensils className="text-[#FF6600]" />,
-                            "Snacks": <Sandwich className="text-[#FF6600]" />,
-                            "Pizza": <Pizza className="text-[#FF6600]" />,
-                            "Shawarma": <Sandwich className="text-[#FF6600]" />,
-                            "Grills & Barbecue": <Utensils className="text-[#FF6600]" />,
-                            "Desserts": <Star className="text-[#FF6600]" />,
-                            "Breakfast": <Coffee className="text-[#FF6600]" />,
-                            "Swallow": <Utensils className="text-[#FF6600]" />,
-                            "Soups & Stews": <Utensils className="text-[#FF6600]" />,
-                            "Beans Dishes": <Utensils className="text-[#FF6600]" />,
-                            "Yam Dishes": <Utensils className="text-[#FF6600]" />,
-                            "Plantain Dishes": <Utensils className="text-[#FF6600]" />,
-                            "Pasta": <Utensils className="text-[#FF6600]" />,
-                            "Seafood": <Utensils className="text-[#FF6600]" />,
-                            "Vegetarian": <Utensils className="text-[#FF6600]" />,
-                            "Salads": <Utensils className="text-[#FF6600]" />,
-                            "Small Chops": <Utensils className="text-[#FF6600]" />,
-                            "Porridge": <Utensils className="text-[#FF6600]" />,
-                            "Native Delicacies": <Utensils className="text-[#FF6600]" />,
-                            "Others": <Utensils className="text-[#FF6600]" />,
-                          };
-                          return icons[category] || <Utensils className="text-[#FF6600]" />;
-                        };
-
-                        return (
-                          <motion.div
-                            key={index}
-                            className="p-4 bg-orange-50 rounded-xl border border-orange-200 flex flex-col justify-between hover:shadow-md transition-all cursor-pointer"
-                            whileHover={{ scale: 1.03 }}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                {getCategoryIcon(item.name)}
-                                <h3 className="font-semibold text-gray-800 text-sm">
-                                  {item.name}
-                                </h3>
-                              </div>
-                              <Badge
-                                className="bg-[#FF6600]/10 text-[#FF6600] text-xs font-medium rounded-md"
-                                variant="outline"
-                              >
-                                {item.count}
-                              </Badge>
-                            </div>
-                          </motion.div>
-                        );
-                      })}
-                    </motion.div>
-                  ) : (
-                    <p className="text-gray-500 text-center py-10">
-                      No foods added yet — your categories will appear here.
-                    </p>
+              {/* TOP ITEMS */}
+              <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 p-6 shadow-sm">
+                <h3 className="font-bold text-sm mb-4 text-slate-900 dark:text-white">Top Selling Items</h3>
+                <div className="space-y-4">
+                  {topItems.length > 0 ? topItems.map((item, i) => (
+                    <TopItem
+                      key={i}
+                      name={item.name}
+                      sold={item.sold}
+                      percent={item.percent}
+                      image={item.image}
+                    />
+                  )) : (
+                    <p className="text-sm text-slate-400">No sales data yet.</p>
                   )}
+                </div>
+              </div>
 
-                  {/* Charts Section */}
-                  {/* Charts Section */}
-                  {categoryData.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className="grid md:grid-cols-2 gap-6 mt-8"
-                    >
-                      {/* 📊 Bar Chart */}
-                      <Card className="shadow-none border cursor-pointer">
-                        <CardHeader>
-                          <CardTitle className="text-[#FF6600] text-md">
-                            Category Distribution (Bar)
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="h-[300px]">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={categoryData}>
-                              <XAxis dataKey="name" stroke="#888" tick={{ fontSize: 12 }} />
-                              <YAxis />
-                              <Tooltip cursor={{ fill: "#f9f9f9" }} />
-                              <Bar
-                                dataKey="count"
-                                radius={[6, 6, 0, 0]}
-                                animationDuration={800}
-                              >
-                                {categoryData.map((entry, index) => (
-                                  <Cell
-                                    key={`bar-${index}`}
-                                    fill={COLORS[index % COLORS.length]}
-                                    onClick={() =>
-                                      setFilteredCategory(filteredCategory === entry.name ? null : entry.name)
-                                    }
-                                    style={{ cursor: "pointer" }}
-                                  />
-                                ))}
-                              </Bar>
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </CardContent>
-                      </Card>
+              {/* SENTIMENT */}
+              <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 p-6 flex flex-col shadow-sm">
+                <h3 className="font-bold text-sm mb-4 text-slate-900 dark:text-white">Customer Sentiment</h3>
+                <div className="flex-1 flex flex-col justify-center items-center text-center">
+                  <div className="size-20 rounded-full border-4 border-[#FF6B00] flex items-center justify-center mb-3">
+                    <span className="text-xl font-bold text-slate-900 dark:text-white">96%</span>
+                  </div>
+                  <p className="font-bold text-sm text-slate-900 dark:text-white">Highly Positive</p>
+                  <p className="text-xs text-slate-400 mt-1 max-w-[150px]">Based on {ratingCount} reviews this month.</p>
+                  <button className="mt-4 text-xs font-bold text-[#FF6B00] hover:bg-[#FF6B00]/10 px-4 py-2 rounded-lg transition-all border border-[#FF6B00]/20">
+                    View Feedback
+                  </button>
+                </div>
+              </div>
 
-                      {/* 🥧 Pie Chart */}
-                      <Card className="shadow-none border cursor-pointer">
-                        <CardHeader>
-                          <CardTitle className="text-[#FF6600] text-md">
-                            Category Distribution (Pie)
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="h-[300px]">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie
-                                data={categoryData}
-                                dataKey="count"
-                                nameKey="name"
-                                cx="50%"
-                                cy="50%"
-                                outerRadius={90}
-                                label
-                                onClick={(data) =>
-                                  setFilteredCategory(
-                                    filteredCategory === data.name ? null : data.name
-                                  )
-                                }
-                              >
-                                {categoryData.map((entry, index) => (
-                                  <Cell
-                                    key={`cell-${index}`}
-                                    fill={COLORS[index % COLORS.length]}
-                                    style={{ cursor: "pointer" }}
-                                  />
-                                ))}
-                              </Pie>
-                              <Tooltip />
-                              <Legend />
-                            </PieChart>
-                          </ResponsiveContainer>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  )}
-                </CardContent>
-              </Card>
             </div>
+          </div>
+        </div>
 
-            {/* 🧭 Analytics Section */}
-            <div className="grid md:grid-cols-3 gap-6 mb-10">
-              {/* Sales Overview */}
-              <Card className="shadow-sm md:col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-[#FF6600] text-lg">Sales Overview</CardTitle>
-                </CardHeader>
-                <CardContent className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={salesData}>
-                      <XAxis dataKey="month" stroke="#888" />
-                      <YAxis />
-                      <Tooltip cursor={{ fill: "#f9f9f9" }} />
-                      <Bar dataKey="sales" fill="#FF6600" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-
-              {/* Orders Distribution */}
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-[#FF6600] text-lg">Orders Distribution</CardTitle>
-                </CardHeader>
-                <CardContent className="flex justify-center h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={ordersData}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={90}
-                        fill="#FF6600"
-                        dataKey="value"
-                        label
-                      >
-                        {ordersData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* 🏪 Store Info */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-[#FF6600] text-lg">Store Details</CardTitle>
-                </CardHeader>
-                <CardContent className="text-gray-700 space-y-2">
-                  <p><strong>Cuisine Types:</strong> {vendor?.cuisineTypes?.join(", ") || "N/A"}</p>
-                  <p><strong>Tags:</strong> {vendor?.tags?.join(", ") || "N/A"}</p>
-                  <p><strong>Delivery Radius:</strong> {vendor?.deliveryRadiusKm} km</p>
-                  <p><strong>Accepts Delivery:</strong> {vendor?.acceptsDelivery ? "Yes" : "No"}</p>
-                  <p><strong>Commission Rate:</strong> {(vendor?.commissionRate * 100).toFixed(0)}%</p>
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-[#FF6600] text-lg">Store Location</CardTitle>
-                </CardHeader>
-                <CardContent className="text-gray-700 space-y-2">
-                  <p className="flex items-center gap-2">
-                    <MapPin className="text-[#FF6600]" /> {vendor?.fullAddress || "No address provided"}
-                  </p>
-                  <p><strong>State:</strong> {vendor?.address?.state}</p>
-                  <p><strong>City:</strong> {vendor?.address?.city}</p>
-                  <p><strong>Postal Code:</strong> {vendor?.address?.postalCode}</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* 🕓 Opening Hours */}
-            <div className="mt-8">
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-[#FF6600] text-lg flex items-center gap-2">
-                    <Clock className="text-[#FF6600]" /> Opening Hours
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-gray-700">
-                  {Object.entries(vendor?.openingHours || {}).map(([day, hours]) => (
-                    <div
-                      key={day}
-                      className={`p-3 border rounded-lg ${hours.closed ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"
-                        }`}
-                    >
-                      <p className="font-semibold capitalize">{day}</p>
-                      {hours.closed ? (
-                        <p className="text-red-600 text-sm">Closed</p>
-                      ) : (
-                        <p className="text-gray-600 text-sm">
-                          {hours.open} - {hours.close}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-          </>
-        )
-      }
-
+      </div>
     </div>
   );
 }
+
+// --- SUB COMPONENTS ---
+
+const MetricCard = ({ title, value, trend, sub }) => (
+  <div className="bg-white dark:bg-[#1E293B] p-3 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col gap-2 shadow-sm">
+    <div className="flex justify-between items-start">
+      <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{title}</p>
+      <span className="text-[#FF6B00] text-xs font-bold bg-[#FF6B00]/10 px-2 py-1 rounded-lg">{trend}</span>
+    </div>
+    <h3 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">{value}</h3>
+    <p className="text-xs text-slate-500 mt-2 italic">{sub}</p>
+  </div>
+);
+
+const OrderCard = ({ id, name, items, status, progress, color, bgColor, barColor, note, opacity = "" }) => (
+  <div className={`p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 ${opacity}`}>
+    <div className="flex justify-between items-start mb-3">
+      <div>
+        <p className="font-bold text-sm text-slate-900 dark:text-white">#{id}</p>
+        <p className="text-xs text-slate-400">{name} • {items}</p>
+      </div>
+      <span className={`text-[10px] font-bold ${bgColor} ${color} px-2 py-0.5 rounded uppercase`}>{status}</span>
+    </div>
+    <div className="space-y-2">
+      <div className="flex justify-between text-[10px] font-medium text-slate-400">
+        <span>Status</span>
+        <span>{progress}%</span>
+      </div>
+      <div className="h-1 bg-[#FF6B00]/10 rounded-full overflow-hidden">
+        <div className={`h-full ${barColor}`} style={{ width: `${progress}%` }}></div>
+      </div>
+      <p className="text-[10px] text-slate-500 mt-1">{note}</p>
+    </div>
+  </div>
+);
+
+const TopItem = ({ name, sold, percent, image }) => (
+  <div className="flex items-center gap-4">
+    <div className="size-10 rounded-lg bg-slate-200 dark:bg-slate-700 bg-cover bg-center" style={{ backgroundImage: `url('${image}')` }}></div>
+    <div className="flex-1">
+      <div className="flex justify-between mb-1">
+        <span className="text-xs font-bold text-slate-900 dark:text-white">{name}</span>
+        <span className="text-xs text-slate-400">{sold} sold</span>
+      </div>
+      <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+        <div className={`h-full bg-[#FF6B00] ${percent}`}></div>
+      </div>
+    </div>
+  </div>
+);

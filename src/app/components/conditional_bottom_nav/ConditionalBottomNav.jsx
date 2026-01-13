@@ -16,16 +16,21 @@ export default function ConditionalBottomNav() {
     "/auth/reset-password",
     "/vendors/auth/register",
     "/vendors/auth/login",
+    "/vendors/auth/verify-account",
     "/vendors/dashboard",
     "/vendors/profile",
     "/vendors/my-foods",
     "/vendors/create-food",
+    "/vendors/transactions",
+    "/vendors/order",
+    "/vendors/reviews",
   ];
 
-  // ✅ Hide nav also on dynamic edit routes like /vendors/update-food/[id]
+  // ✅ Hide nav also on dynamic routes
   const shouldHideNav =
     noNavRoutes.includes(pathname) ||
-    pathname.startsWith("/vendors/update-food/");
+    pathname.startsWith("/vendors/update-food/") ||
+    pathname.startsWith("/vendors/orders/");
 
   const showNav = !shouldHideNav;
 
