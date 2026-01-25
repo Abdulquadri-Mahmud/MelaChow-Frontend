@@ -91,27 +91,27 @@ export default function CheckoutPage() {
       // 1. Check if all restaurants are open before proceeding
       const uniqueRestaurantIds = Object.keys(restaurantDeliveryMap);
 
-      for (const restaurantId of uniqueRestaurantIds) {
-        try {
-          // Fetch vendor foods to get vendor details (including opening hours)
-          const vendorRes = await axios.get(`${baseUrl}/vendors/foods/get-foods?vendorId=${restaurantId}`);
-          const vendorData = vendorRes.data.data?.[0]?.vendor;
+      // for (const restaurantId of uniqueRestaurantIds) {
+      //   try {
+      //     // Fetch vendor foods to get vendor details (including opening hours)
+      //     const vendorRes = await axios.get(`${baseUrl}/vendors/foods/get-foods?vendorId=${restaurantId}`);
+      //     const vendorData = vendorRes.data.data?.[0]?.vendor;
 
-          if (vendorData) {
-            const statusInfo = getVendorOpenAndCloseStatus(vendorData.openHours || vendorData.openingHours);
-            const isOpen = statusInfo.startsWith("Open now");
+      //     if (vendorData) {
+      //       const statusInfo = getVendorOpenAndCloseStatus(vendorData.openHours || vendorData.openingHours);
+      //       const isOpen = statusInfo.startsWith("Open now");
 
-            if (!isOpen) {
-              toast.error(`${vendorData.storeName} is currently closed. ${statusInfo}`, { duration: 4000 });
-              setLoadingInit(false);
-              return;
-            }
-          }
-        } catch (err) {
-          console.error(`Error checking status for vendor ${restaurantId}:`, err);
-          // If we can't check, we might want to proceed or block. Usually safer to let it try to create if check fails.
-        }
-      }
+      //       if (!isOpen) {
+      //         toast.error(`${vendorData.storeName} is currently closed. ${statusInfo}`, { duration: 4000 });
+      //         setLoadingInit(false);
+      //         return;
+      //       }
+      //     }
+      //   } catch (err) {
+      //     console.error(`Error checking status for vendor ${restaurantId}:`, err);
+      //     // If we can't check, we might want to proceed or block. Usually safer to let it try to create if check fails.
+      //   }
+      // }
 
       // 2. Continue with order creation if all are open
       // Calculate one delivery fee per restaurant for the payload

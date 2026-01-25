@@ -38,7 +38,7 @@ const ActionCard = ({ icon: Icon, title, description, onClick, href, color = "or
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.98 }}
       onClick={handleClick}
-      className={`cursor-pointer group relative overflow-hidden bg-white border border-gray-100 rounded-[28px] p-6 transition-all duration-300 shadow-sm ${hoverClass} hover:shadow-xl`}
+      className={`cursor-pointer group relative overflow-hidden bg-white border border-gray-100 rounded-[28px] p-4 transition-all duration-300 ${hoverClass} hover:shadow-xl`}
     >
       <div className="flex items-center gap-5">
         <div className={`p-4 rounded-2xl transition-colors ${baseColorClass}`}>
@@ -93,11 +93,10 @@ const User_Profile = ({ userData, isLoading }) => {
       const res = await fetch(`${baseUrl}/user/auth/logout`, {
         method: "POST",
         credentials: "include",
-        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (data.success) {
-        localStorage.removeItem("userToken");
+        // localStorage.removeItem("userToken"); // Removed
         clearUser();
         router.push("/auth/signin");
       }
@@ -113,10 +112,11 @@ const User_Profile = ({ userData, isLoading }) => {
       setDeleteLoading(true);
       const res = await fetch(`${baseUrl}/user/auth/delete`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include", // ✅ Send cookies
+        // headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        localStorage.removeItem("userToken");
+        // localStorage.removeItem("userToken"); // Removed
         clearUser();
         router.push("/auth/signup");
       }
@@ -136,11 +136,11 @@ const User_Profile = ({ userData, isLoading }) => {
           whileHover={{ x: -2 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => router.push("/")}
-          className="p-3 rounded-2xl bg-white border border-gray-100 text-gray-600 shadow-sm hover:bg-gray-50 transition-colors"
+          className="p-3 rounded-2xl bg-white border border-gray-100 text-gray-600 hover:bg-gray-50 transition-colors"
         >
           <ArrowLeft size={20} />
         </motion.button>
-        <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-full shadow-sm">
+        <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-full">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
           <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Account Hub</span>
         </div>

@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { getVendorOpenAndCloseStatus as checkVendorStatus } from "@/app/lib/vendor-time/OpenOrClose";
-import { Star, Utensils, Clock, Truck, Store, Plus, MapPin } from "lucide-react";
+import { Utensils, Clock, Truck, Store, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
@@ -25,149 +24,188 @@ export default function FoodList({ user }) {
         throw err;
       }
 
-      const token = localStorage.getItem("userToken");
       const res = await axios.get(`${baseUrl}/user/foods`, {
         params: {
           city: defaultAddr.city,
           state: defaultAddr.state,
         },
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        withCredentials: true, // ✅ Use cookie-based auth
       });
       return res?.data?.foods || [];
     },
     refetchInterval: 60000,
-    refetchOnWindowFocus: true,
-    retry: false, // Don't retry since location won't change without user action
+    retry: false,
   });
 
+  // console.log(foods)
+
   // Group foods by category
+  // Using the primary category (first element of categories array)
   const foodsByCategory = useMemo(() => {
     if (!Array.isArray(foods) || foods.length === 0) return {};
     return foods.reduce((acc, food) => {
-      const category = food.category || "Uncategorized";
-      if (!acc[category]) acc[category] = [];
-      acc[category].push(food);
+      // Handle both array 'categories' and legacy string 'category'
+      const primaryCategory = (Array.isArray(food.categories) && food.categories[0])
+        || food.category
+        || "Recommended";
+
+      if (!acc[primaryCategory]) acc[primaryCategory] = [];
+      acc[primaryCategory].push(food);
       return acc;
     }, {});
   }, [foods]);
 
-
   if (isLoading) return <HomeFoodListSkeleton />;
 
   if (isError) {
-    const errorMsg = error?.response?.data?.message || "Failed to load foods. Please try again later.";
-    if (errorMsg === "Please provide both city and state query parameters.") {
+    const errorMsg = error?.response?.data?.message || "Failed to load foods.";
+    if (errorMsg.includes("city and state")) {
       return (
-        <div className="mt-4 px-3">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="bg-orange-100 p-1.5 rounded-lg">
-              <Utensils className="text-orange-600" size={18} />
+        <div className="mt-8 px-4">
+          <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 text-center">
+            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-3">
+              <MapPin className="text-orange-500" size={24} />
             </div>
-            <h2 className="text-lg font-bold text-gray-800 tracking-tight">Available Foods</h2>
-          </div>
-          <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-            <MapPin className="mx-auto text-gray-400 mb-2" size={24} />
-            <p className="text-gray-500 text-sm font-medium">Please provide both city and state to see foods near you.</p>
-            <p className="text-xs text-gray-400 mt-1">Try changing your location!</p>
+            <h3 className="font-bold text-gray-900 mb-1">Location Required</h3>
+            <p className="text-xs text-gray-500 max-w-[200px]">Please set your City and State to discover amazing food near you.</p>
           </div>
         </div>
       );
     }
-    return (
-      <div className="my-4 px-3 text-center py-6 bg-red-50 rounded-2xl">
-        <p className="text-red-500 text-sm">{errorMsg}</p>
-      </div>
-    );
+    return null; // Silent fail for other errors
   }
 
-  if (foods.length === 0)
-    return (
-      <div className="text-center text-gray-500 py-6">
-        No foods available yet.
-      </div>
-    );
+  if (foods.length === 0) return null;
 
   return (
-    <div className="flex-1 pb-5">
-      <div className="flex items-center justify-between px-3 mb-2">
-        <div className="flex items-center gap-2">
-          
-          <h2 className="text-lg font-bold text-gray-800 tracking-tight">Near You</h2>
-        </div>
-        <button
-          onClick={() => router.push('/all-foods')}
-          className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors"
-        >
-          See All
-        </button>
-      </div>
+    <div className="space-y-8 pb-10">
 
-      {Object.entries(foodsByCategory).map(([category, foods]) => (
-        <div key={category} className=" md:p-3 p-2 rounded-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="bg-orange-100 p-1.5 rounded-lg">
-              <Utensils className="text-orange-600" size={16} />
+      {Object.entries(foodsByCategory).map(([category, categoryFoods]) => (
+        <div key={category} className="px-0">
+
+          {/* Category Header */}
+          <div className="flex items-center justify-between px-4 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
+              <h2 className="text-lg font-bold text-gray-900 tracking-tight capitalize">{category}</h2>
             </div>
-            <h2 className="md:text-lg text-md font-semibold text-gray-800 tracking-tight">
-              {category}
-            </h2>
           </div>
 
-          <div className="flex gap-2 mt-2 overflow-x-auto scroll pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar">
-            {foods.map((food) => {
-              const hours = food?.restaurant?.openingHours || {};
-              const status = checkVendorStatus(hours);
-              const isOpen = status.startsWith("Open now");
+          {/* Horizontal Scroll List */}
+          <div className="flex gap-2 overflow-x-auto scroll snap-x snap-mandatory scrollbar-hide">
+            {categoryFoods.map((food) => {
+              // --- 1. Discount Logic ---
+              const hasDiscount = food.discount?.active && new Date(food.discount.expiresAt) > new Date();
+              let finalPrice = Number(food.price);
+              let discountLabel = null;
+
+              if (hasDiscount) {
+                if (food.discount.flatAmount > 0) {
+                  finalPrice = Math.max(0, finalPrice - food.discount.flatAmount);
+                  discountLabel = `₦${food.discount.flatAmount} OFF`;
+                } else if (food.discount.percentage > 0) {
+                  finalPrice = Math.max(0, finalPrice - (finalPrice * (food.discount.percentage / 100)));
+                  discountLabel = `-${food.discount.percentage}%`;
+                }
+              }
+
+              // --- 2. Availability Logic ---
+              let isOpen = true;
+              if (food.availabilitySchedule?.enabled) {
+                const now = new Date();
+                const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                const currentDay = daysMap[now.getDay()];
+
+                // Check Day
+                if (!food.availabilitySchedule.days.includes(currentDay)) {
+                  isOpen = false;
+                } else {
+                  // Check Time
+                  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                  const [startH, startM] = food.availabilitySchedule.startTime.split(':').map(Number);
+                  const [endH, endM] = food.availabilitySchedule.endTime.split(':').map(Number);
+
+                  const startTotal = startH * 60 + startM;
+                  const endTotal = endH * 60 + endM;
+
+                  if (currentMinutes < startTotal || currentMinutes >= endTotal) {
+                    isOpen = false;
+                  }
+                }
+              }
 
               return (
                 <div
                   key={food._id}
-                  className="bg-white rounded-md min-w-[250px] cursor-pointer snap-start transition flex flex-col h-full border border-gray-50"
                   onClick={() => router.push(`/food-details/${food._id}`)}
+                  className={`group relative flex-none w-[250px] bg-white rounded-[24px] transition-all duration-300 cursor-pointer snap-start overflow-hidden border border-gray-100 ${!isOpen ? 'opacity-80 grayscale-[0.5]' : ''}`}
                 >
-                  {/* Image */}
-                  <div className="relative rounded-md overflow-hidden">
+                  {/* Image Container */}
+                  <div className="relative h-[140px] w-full bg-gray-100 overflow-hidden">
                     <img
                       src={food.image || "/placeholder.jpg"}
                       alt={food.name}
-                      className="w-full h-32 object-cover rounded-md"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute top-2 left-2 flex flex-col gap-2">
-                      <span className={`${isOpen ? "bg-white/90 text-orange-600" : "bg-zinc-900/90 text-zinc-400"} text-[8px] font-black px-2 py-1 rounded shadow-lg uppercase tracking-widest backdrop-blur-md`}>
-                        {isOpen ? "OPEN" : "CLOSED"}
+
+                    {/* Closed Overlay */}
+                    {!isOpen && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
+                        <span className="text-white font-black uppercase tracking-widest text-xs border-2 border-white px-3 py-1 rounded">
+                          Closed
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Discount Badge */}
+                    {hasDiscount && isOpen && (
+                      <div className="absolute top-3 left-3 bg-red-500 shadow-red-500/30 shadow-lg px-2 py-1 rounded-lg z-10">
+                        <span className="text-[10px] font-black text-white tracking-wide">
+                          {discountLabel}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Price Badge */}
+                    <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-xl flex flex-col items-end leading-none gap-0.5 shadow-sm">
+                      <span className="text-[12px] font-black text-gray-900 tracking-tighter">
+                        ₦{finalPrice.toLocaleString()}
                       </span>
+                      {hasDiscount && (
+                        <span className="text-[9px] font-bold text-gray-400 line-through decoration-red-400">
+                          ₦{Number(food.price).toLocaleString()}
+                        </span>
+                      )}
                     </div>
-                    <div className="absolute top-2 right-2 bg-white backdrop-blur-md text-orange-600 px-2 py-1 rounded text-[10px] font-bold shadow-sm border border-orange-100">
-                      from | ₦{food.price?.toLocaleString()}
-                    </div>
+
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60 pointer-events-none" />
                   </div>
 
-                  {/* Details */}
-                  <div className="p-2 flex flex-col flex-1">
-                    <div className="flex justify-between items-start gap-2">
-                      <h3 className="text-sm font-bold text-gray-800 truncate flex-1 md:text-md uppercase tracking-tight">
-                        {food.name}
-                      </h3>
-                      <div className="bg-orange-50 p-1.5 rounded-lg text-orange-500">
-                        <Plus size={16} />
+                  {/* Content */}
+                  <div className="p-3">
+                    <div className="mb-2">
+                      <h3 className="font-bold text-gray-900 text-sm truncate leading-tight tracking-tight mb-0.5">{food.name}</h3>
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                        <Store size={10} className="text-orange-500" />
+                        <span className="truncate max-w-[140px] font-medium opacity-80">{food?.restaurant?.storeName || "GrubDash Vendor"}</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 mt-1 text-[11px] text-gray-500">
-                      <Store className="text-orange-500" size={12} />
-                      <span className="truncate">{food?.restaurant?.storeName || "Vendor"}</span>
-                    </div>
-
-                    <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
-                      <div className="flex items-center gap-1 text-[10px] font-bold text-gray-600">
-                        <Truck size={12} className="text-orange-400" />
-                        <span>from | ₦{food.deliveryFee || food?.restaurant?.deliveryFee || 0}</span>
+                    {/* Footer Info */}
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                      <div className="flex items-center gap-1">
+                        <Truck size={12} className="text-gray-400" />
+                        <span className="text-[10px] font-bold text-gray-400">
+                          ₦{food.deliveryFee || food?.restaurant?.deliveryFee || 0}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400">
-                        <Clock size={12} className="text-orange-400" />
-                        <span>{food?.estimatedDeliveryTime || "25"}m</span>
+
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${!isOpen ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-700'}`}>
+                        <Clock size={10} className={!isOpen ? "text-red-500" : "text-orange-500"} />
+                        <span className="text-[9px] font-bold">
+                          {isOpen ? `${food?.estimatedDeliveryTime || "25"}m` : "Opens Later"}
+                        </span>
                       </div>
                     </div>
                   </div>

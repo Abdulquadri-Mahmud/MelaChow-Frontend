@@ -1,28 +1,28 @@
 "use client";
 
-
+import { useRouter } from "next/navigation";
 import VendorProfilePage from "@/app/components/vendors_component/profile/profile";
-import { useVendorById } from "@/app/hooks/useVendorQueries";
-import { getVendorId } from "@/app/lib/vendorId";
+import { useVendors } from "@/app/hooks/useVendorQueries";
 import VendorProfileSkeleton from "@/app/skeleton/VendorProfileSkeleton";
-import { useEffect, useState } from "react";
 
 export default function ProfilePage() {
-  const { vendor, isLoading } = useVendorById(getVendorId());
-  const [localVendor, setLocalVendor] = useState(null);
+  const { vendors: vendor, isLoading, isError } = useVendors();
+  // 'vendors' variable holds the data from getVendors, which is now the single vendor profile
 
-  useEffect(() => {
-    if (vendor) setLocalVendor(vendor); // only set when vendor is loaded
-  }, [vendor]);
-  
-  // console.log(localVendor)
-  if (isLoading || !localVendor) {
-    return <VendorProfileSkeleton/>;
+  if (isLoading) {
+    return <VendorProfileSkeleton />;
+  }
+
+  // If error or no vendor, maybe redirect? Access control should be handled by middleware or api error
+  if (isError || !vendor) {
+    // Optional: Redirect to login or show error
+    // router.push("/vendors/auth/login");
+    return <div>Error loading profile. Please log in again.</div>;
   }
 
   return (
     <div>
-      <VendorProfilePage vendor={localVendor} />
+      <VendorProfilePage vendor={vendor} />
     </div>
   );
 }

@@ -34,15 +34,8 @@ const uploadToCloudinary = async (file) => {
 export default function EditProfilePage() {
     const { baseUrl } = useApi();
     const router = useRouter();
-    const { user } = useUserStorage();
+    const { user, isLoading } = useUserStorage();
     const fileInputRef = useRef(null);
-    const token = user?.token;
-
-    const { data: userData, isLoading, refetch } = useQuery({
-        queryKey: ["user", token],
-        queryFn: () => fetchUser(token),
-        enabled: !!token,
-    });
 
     const [userState, setUserState] = useState({
         firstname: "",
@@ -58,25 +51,25 @@ export default function EditProfilePage() {
     const [openProfileMessage, setOpenProfileMessage] = useState(false);
 
     useEffect(() => {
-        if (userData?.user) {
+        if (user) {
             setUserState({
-                firstname: userData.user.firstname || "",
-                lastname: userData.user.lastname || "",
-                email: userData.user.email || "",
-                phone: userData.user.phone || "",
-                avatar: userData.user.avatar || "",
+                firstname: user.firstname || "",
+                lastname: user.lastname || "",
+                email: user.email || "",
+                phone: user.phone || "",
+                avatar: user.avatar || "",
             });
         }
-    }, [userData]);
+    }, [user]);
 
     const handleSaveProfile = async () => {
         try {
             setLoading(true);
             const res = await fetch(`${baseUrl}/user/auth/update-profile`, {
                 method: "PATCH",
+                credentials: "include", // ✅ Use cookie-based auth
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     firstname: userState.firstname,
@@ -88,10 +81,12 @@ export default function EditProfilePage() {
             const data = await res.json();
             if (data.status) {
                 setAvatarSuccess("Profile updated successfully!");
-                localStorage.setItem("user", JSON.stringify(data.user));
                 setOpenProfileMessage(true);
-                refetch();
-                setTimeout(() => setOpenProfileMessage(false), 3000);
+                // Refresh user data by reloading
+                setTimeout(() => {
+                    setOpenProfileMessage(false);
+                    window.location.reload();
+                }, 2000);
             } else {
                 setAvatarSuccess("Failed to update profile");
                 setOpenProfileMessage(true);
@@ -117,9 +112,9 @@ export default function EditProfilePage() {
 
             const res = await fetch(`${baseUrl}/user/auth/update-profile`, {
                 method: "PATCH",
+                credentials: "include", // ✅ Use cookie-based auth
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({ avatar: url }),
             });
@@ -127,10 +122,9 @@ export default function EditProfilePage() {
 
             if (data.status) {
                 setUserState((prev) => ({ ...prev, avatar: url }));
-                localStorage.setItem("user", JSON.stringify(data.user));
                 setAvatarSuccess("Profile image updated!");
                 setOpenProfileMessage(true);
-                refetch();
+                setTimeout(() => window.location.reload(), 2000);
             } else {
                 setAvatarSuccess("Failed to update profile image.");
                 setOpenProfileMessage(true);
@@ -145,7 +139,7 @@ export default function EditProfilePage() {
         }
     };
 
-    if (isLoading || !userData) {
+    if (isLoading || !user) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="animate-pulse flex flex-col items-center gap-4">

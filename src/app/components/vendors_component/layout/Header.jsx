@@ -61,18 +61,18 @@ const navItems = [
 ];
 
 export default function Header() {
-  const {vendors, isLoading} = useVendors()
+  const { vendors, isLoading } = useVendors()
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname(); // e.g. "/vendors/my-foods"
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const {baseUrl} = useApi();
+  const { baseUrl } = useApi();
 
   const router = useRouter();
 
   // determine active by checking if any path segment equals the nav href
   const pathSegments = (pathname || "/vendors") // ["vendors","my-foods"]
   const isSegmentActive = (href) => pathSegments.includes(href);
-  
+
   const handleLogout = async () => {
     try {
       setLogoutLoading(true);
@@ -87,8 +87,8 @@ export default function Header() {
       const data = await res.json();
 
       if (data.success) {
-        localStorage.removeItem("vendorToken");
-        localStorage.removeItem("vendorToken");
+        // localStorage.removeItem("vendorToken"); // Removed
+        // localStorage.removeItem("vendorToken");
         router.push("/vendors/auth/login");
       } else {
         console.error("Logout failed:", data);
@@ -99,7 +99,7 @@ export default function Header() {
       setLogoutLoading(false);
     }
   };
-  
+
   return (
     <header className="flex justify-between items-center bg-white p-4">
       {/* Mobile toggle button */}
@@ -115,7 +115,7 @@ export default function Header() {
         </button>
         {
           isLoading ? <>
-            <VendorProfileImageSkeleton/>
+            <VendorProfileImageSkeleton />
           </> : <>
             <img
               src={`${vendors ? `${vendors?.data?.logo}` : `${vendors?.data?.logo}`}`}
@@ -157,7 +157,7 @@ export default function Header() {
                   </button>
                 </div>
 
-              
+
                 <nav className="mt-20">
                   <ul className="space-y-3">
                     {navItems.map((item) => {
@@ -167,11 +167,10 @@ export default function Header() {
                           <Link
                             href={item.href}
                             onClick={() => setMobileOpen(false)}
-                            className={`flex items-center gap-3 p-3 rounded-lg transition-all font-medium ${
-                              active
+                            className={`flex items-center gap-3 p-3 rounded-lg transition-all font-medium ${active
                                 ? "bg-gray-300 text-white shadow-md"
                                 : "hover:bg-gray-50 bg-gray-50 text-gray-700 hover:text-gray-600"
-                            }`}
+                              }`}
                           >
                             <span className="text-lg">{item.icon}</span>
                             <span className="text-sm">{item.name}</span>

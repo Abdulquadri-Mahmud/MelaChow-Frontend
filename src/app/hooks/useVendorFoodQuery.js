@@ -22,7 +22,7 @@ export const useFoods = () => {
 
   // 🔹 Create new food
   const createMutation = useMutation({
-    mutationFn: ({ vendorId, data }) => createFood(vendorId, data),
+    mutationFn: (data) => createFood(data),
     onSuccess: () => {
       toast.success("🍛 Food created successfully!");
       queryClient.invalidateQueries(["foods"]);

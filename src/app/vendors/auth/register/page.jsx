@@ -119,7 +119,7 @@ export default function VendorRegisterPage() {
     name: "",
     email: "",
     phone: "",
-    password: "",
+    // password: "", // Removed
     storeName: "",
     storeDescription: "",
     logo: "",
@@ -209,7 +209,7 @@ export default function VendorRegisterPage() {
       if (!payload.name) e.name = "Owner name required";
       if (!payload.email) e.email = "Email required";
       if (!payload.phone) e.phone = "Phone required";
-      if (!payload.password) e.password = "Password required";
+      // if (!payload.password) e.password = "Password required";
     }
     if (s === 2) {
       if (!payload.storeName) e.storeName = "Store name required";
@@ -338,7 +338,7 @@ export default function VendorRegisterPage() {
                     <TextInput path="name" placeholder="Owner Name" icon={User} error={errors.name} payload={payload} setField={setField} />
                     <TextInput path="email" placeholder="Business Email" icon={Mail} type="email" error={errors.email} payload={payload} setField={setField} />
                     <TextInput path="phone" placeholder="Phone Number" icon={Phone} error={errors.phone} payload={payload} setField={setField} />
-                    <TextInput path="password" placeholder="Secure Password" icon={Lock} type="password" error={errors.password} payload={payload} setField={setField} />
+                    {/* <TextInput path="password" placeholder="Secure Password" icon={Lock} type="password" error={errors.password} payload={payload} setField={setField} /> */}
                   </div>
                 </div>
               )}

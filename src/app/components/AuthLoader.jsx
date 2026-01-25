@@ -2,49 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { fetchUser } from "../lib/api";
+import { useUserStorage } from "../hooks/useUserStorage";
 import SplashScreen from "./SplashScreen";
 
 export default function AuthLoader() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const { user, isLoading } = useUserStorage();
 
   useEffect(() => {
-    const verifyUser = async () => {
-      const token = localStorage.getItem("userToken");
-
-      // 🚨 No token = not logged in
-      if (!token) {
-        router.push("/auth/signin");
-        return;
-      }
-
-      try {
-        const data = await fetchUser(token);
-
-        if (data) {
-          // ✅ Valid token → proceed to home/dashboard
-          router.push("/home");
-        } else {
-          // 🚫 Invalid token → redirect to login
-          router.push("/auth/signin");
-        }
-      } catch (err) {
-        console.error("❌ Auth verification failed:", err);
-        router.push("/auth/signin");
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Wait for user data to load
+    if (isLoading) return;
 
     const timer = setTimeout(() => {
-      verifyUser();
-    }, 5000);
+      // If user is authenticated, go to home
+      // If not authenticated (guest), also go to home (they can browse as guest)
+      router.push("/home");
+      setLoading(false);
+    }, 2000); // Short delay for splash screen
 
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [isLoading, user, router]);
 
-  if (loading) return <SplashScreen />;
+  if (loading || isLoading) return <SplashScreen />;
 
-  return null; // You can also render children if you want this as a layout wrapper
+  return null;
 }

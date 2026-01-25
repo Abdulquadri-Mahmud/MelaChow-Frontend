@@ -14,23 +14,54 @@ import {
   ImageIcon,
   Check,
   Eye,
-  Moon,
-  Sun,
-  Repeat,
+  Trash2,
+  Edit,
+  ChevronDown,
+  AlertCircle,
+  Package,
+  DollarSign,
+  Layers,
+  Menu,
   RefreshCcw,
 } from "lucide-react";
 import { useFoodById } from "@/app/hooks/useVendorFoodQuery";
-import UpdateFoodSkeleton from "@/app/skeleton/UpdateFoodSkeleton";
 import { updateFood } from "@/app/lib/vendorFoodApi";
-import showAnimatedToast from "@/app/components/toast/showAnimatedToast";
-import MetadataModal from "@/app/modals/update/MetadataModal";
-import VariantModal from "@/app/modals/update/VariantsModal";
-import PreviewModal from "@/app/modals/update/PreviewModal";
+import UpdateFoodSkeleton from "@/app/skeleton/UpdateFoodSkeleton";
+
+// Reusing components from create-food
+import VariantModal from "@/app/modals/create/VariantsModal";
+import PreviewModal from "@/app/modals/create/PreviewModal";
+import PortionsSection from "@/app/components/create-food/PortionsSection";
+import ChoiceGroupsSection from "@/app/components/create-food/ChoiceGroupsSection";
+import ImagesSection from "@/app/components/create-food/ImagesSection";
+import TagsSection from "@/app/components/create-food/TagsSection";
+import MetadataSection from "@/app/components/create-food/MetadataSection";
+import PricingSection from "@/app/components/create-food/PricingSection";
+import InventorySection from "@/app/components/create-food/InventorySection";
+import DetailsSection from "@/app/components/create-food/DetailsSection";
+import SectionHeader from "@/app/components/create-food/SectionHeader";
+import BackButton from "@/app/components/BackButton";
 
 /***** CONFIG *****/
 const ACCENT = "#FF6600";
-const CLOUDINARY_PRESET = "GrubDash"; // your preset
+const CLOUDINARY_PRESET = "GrubDash";
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
+
+/***** HIERARCHICAL CATEGORIES *****/
+const CATEGORY_HIERARCHY = {
+  "African Cuisine": ["Rice Dishes", "Swallow", "Soups & Stews", "Beans Dishes", "Yam Dishes", "Plantain Dishes", "Porridge", "Native Delicacies"],
+  "Fast Food": ["Burgers", "Pizza", "Shawarma", "Sandwiches", "Fried Chicken", "Hot Dogs"],
+  "Asian Cuisine": ["Chinese", "Japanese", "Thai", "Indian", "Korean"],
+  "Pasta & Italian": ["Pasta", "Pizza", "Risotto", "Italian Specials"],
+  "Grills & BBQ": ["Grilled Chicken", "Grilled Fish", "Beef BBQ", "Suya", "Asun"],
+  "Breakfast": ["Continental", "Local Breakfast", "Cereals", "Pancakes"],
+  "Snacks": ["Small Chops", "Pastries", "Finger Foods", "Appetizers"],
+  "Seafood": ["Fish Dishes", "Prawns", "Crab", "Mixed Seafood"],
+  "Vegetarian": ["Salads", "Veggie Bowls", "Plant-Based Meals"],
+  "Drinks": ["Soft Drinks", "Juices", "Smoothies", "Traditional Drinks"],
+  "Desserts": ["Cakes", "Ice Cream", "Puddings", "Sweet Treats"],
+  "Others": ["Miscellaneous"]
+};
 
 /***** HELPERS *****/
 const uploadToCloudinary = async (file) => {
@@ -39,38 +70,100 @@ const uploadToCloudinary = async (file) => {
   formData.append("upload_preset", CLOUDINARY_PRESET);
   try {
     const res = await axios.post(CLOUDINARY_HOST, formData);
-    return res.data.secure_url;
+    return { url: res.data.secure_url, publicId: res.data.public_id };
   } catch (err) {
     console.error("Cloudinary upload error:", err);
     return null;
   }
 };
 
-/***** TAG SUGGESTIONS *****/
-const SUGGESTED_TAGS = ["popular", "spicy", "delicious", "vegan", "new", "combo", "signature"];
+const showAnimatedToast = (type, message) => {
+  toast.custom(
+    (t) => (
+      <motion.div
+        initial={{ x: 80, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: 80, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 24 }}
+        className={`max-w-sm w-full rounded-xl px-4 py-3 shadow-lg flex items-start gap-3 ${type === "success"
+          ? "bg-white border-l-4 border-emerald-400"
+          : "bg-white border-l-4 border-rose-400"
+          }`}
+      >
+        <div className="mt-0.5">
+          {type === "success" ? (
+            <Check className="text-emerald-500" />
+          ) : (
+            <AlertCircle className="text-rose-500" />
+          )}
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-medium text-gray-900">{message}</p>
+        </div>
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          className="text-gray-400 hover:text-gray-600"
+        >
+          <X size={16} />
+        </button>
+      </motion.div>
+    ),
+    { position: "top-right", duration: 4000 }
+  );
+};
 
 /***** MAIN PAGE *****/
 export default function UpdateFoodPage() {
   const router = useRouter();
   const { id } = useParams();
 
+  // Fetch Existing Data
+  const { food: foodData, isLoading: fetching } = useFoodById(id);
+
   // Form state
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    category: "",
+    rootCategory: "",
+    subCategory: "",
     price: "",
     deliveryFee: "",
-    estimatedDeliveryTime: "",
+    estimatedDeliveryTime: "30",
     tags: [],
     available: true,
     images: [],
+    // New Fields
+    stock: "",
+    packagingFee: "",
+    prepTime: "",
+    foodType: "",
+    allowNotes: true,
+    discount: { enabled: false, type: "percentage", value: "", expiresAt: "" },
+    availabilitySchedule: {
+      enabled: false,
+      days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      startTime: "09:00",
+      endTime: "22:00",
+    },
+    nutrition: {
+      calories: "",
+      protein: "",
+      carbs: "",
+      fat: "",
+      fiber: "",
+      sugar: "",
+    },
   });
 
-  const [metadata, setMetadata] = useState({});
+  const [metadata, setMetadata] = useState({
+    spicyLevel: "medium",
+    allergens: [],
+    dietaryInfo: "",
+    preparationTime: "",
+  });
 
-  // --- FETCH FOOD BY ID ---
-  const { food: foodData, isLoading } = useFoodById(id);
+  const [portions, setPortions] = useState([]);
+  const [choiceGroups, setChoiceGroups] = useState([]);
 
   // UI state
   const [tagInput, setTagInput] = useState("");
@@ -80,127 +173,101 @@ export default function UpdateFoodPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploadingMain, setUploadingMain] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [initialized, setInitialized] = useState(false);
-
-  const [refreshing, setRefreshing] = useState(false);
-
-  const refreshData = async () => {
-    try {
-      setRefreshing(true);
-
-      if (foodData?.data) {
-        setFormData({
-          name: foodData.data.name || "",
-          description: foodData.data.description || "",
-          category: foodData.data.category || "",
-          price: foodData.data.price?.toString() || "",
-          deliveryFee: foodData.data.deliveryFee?.toString() || "",
-          estimatedDeliveryTime: foodData.data.estimatedDeliveryTime?.toString() || "",
-          tags: foodData.data.tags || [],
-          available: foodData.data.available ?? true,
-          images: Array.isArray(foodData.data.images)
-            ? foodData.data.images.map((img) =>
-              typeof img === "string" ? img : img.url
-            )
-            : [],
-        });
-
-        setVariants(
-          Array.isArray(foodData.data.variants)
-            ? foodData.data.variants.map((v) => ({
-              _id: v._id,
-              name: v.name || "",
-              price: v.price || 0,
-              image:
-                typeof v.image === "string"
-                  ? v.image
-                  : v.image?.url || "",
-            }))
-            : []
-        );
-
-        setMetadata({
-          portionSize: foodData.data.metadata?.portionSize || "1",
-          spiceLevel: foodData.data.metadata?.spiceLevel || "Medium",
-          chefSpecial: foodData.data.metadata?.chefSpecial || false,
-        });
-      }
-      toast.success("Food data reloaded successfully!");
-    } catch (error) {
-      console.error("Failed to refresh data:", error);
-      toast.error("No food data found to refresh.");
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
+  // Initialize Data
   useEffect(() => {
     if (foodData?.data) {
-      refreshData();
-      // setInitialized(true);
+      const d = foodData.data;
+      setFormData({
+        name: d.name || "",
+        description: d.description || "",
+        rootCategory: d.categories?.[0] || "",
+        subCategory: d.categories?.[1] || "",
+        price: d.price?.toString() || "",
+        deliveryFee: d.deliveryFee?.toString() || "",
+        estimatedDeliveryTime: d.estimatedDeliveryTime?.toString() || "30",
+        tags: d.tags || [],
+        available: d.available ?? true,
+        images: d.images?.map(img => typeof img === 'string' ? { url: img } : img) || [],
+        // New Fields
+        stock: d.stock?.toString() || "",
+        packagingFee: d.packagingFee?.toString() || "",
+        prepTime: d.prepTime?.toString() || "",
+        foodType: d.foodType || "",
+        allowNotes: d.allowCustomerInstructions ?? true,
+        discount: {
+          enabled: d.discount?.active || false,
+          type: d.discount?.percentage > 0 ? "percentage" : "flatAmount",
+          value: (d.discount?.percentage || d.discount?.flatAmount || "").toString(),
+          expiresAt: d.discount?.expiresAt || "",
+        },
+        availabilitySchedule: d.availabilitySchedule || {
+          enabled: false,
+          days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+          startTime: "09:00",
+          endTime: "22:00",
+        },
+        nutrition: d.nutrition || {
+          calories: "",
+          protein: "",
+          carbs: "",
+          fat: "",
+          fiber: "",
+          sugar: "",
+        },
+      });
+      setVariants(d.variants || []);
+      setPortions(d.portions || []);
+      setChoiceGroups(d.choiceGroups || []);
+      setMetadata(d.metadata || { spicyLevel: "medium", allergens: [], dietaryInfo: "", preparationTime: "" });
     }
   }, [foodData]);
 
-  useEffect(() => {
-    if (metadata && Object.keys(metadata).length > 0) {
-      // console.log("Updated metadata:", metadata);
-    }
-  }, [metadata]);
+  // Collapsible sections
+  const [expandedSections, setExpandedSections] = useState({
+    basic: true,
+    pricing: true,
+    images: true,
+    variants: false,
+    portions: false,
+    choiceGroups: false,
+    tags: false,
+    metadata: false,
+    // New Sections
+    pricing_advanced: false,
+    inventory: false,
+    details: false,
+  });
 
-  // refs
   const fileRef = useRef(null);
 
-  // Fetch dynamic categories (optional) - gracefully fails
-  const [categories, setCategories] = useState([
-    "Rice Dishes",
-    "Swallow",
-    "Soups & Stews",
-    "Beans Dishes",
-    "Yam Dishes",
-    "Plantain Dishes",
-    "Pasta",
-    "Snacks",
-    "Grills & Barbecue",
-    "Shawarma",
-    "Breakfast",
-    "Drinks",
-    "Desserts",
-    "Seafood",
-    "Vegetarian",
-    "Salads",
-    "Small Chops",
-    "Porridge",
-    "Native Delicacies",
-    "Others"
-  ]);
+  const toggleSection = (section) => {
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
 
-  /** Validation helpers and inline feedback **/
+  /** Validation helpers **/
   const validations = useMemo(() => {
     return {
       name: formData.name.trim().length >= 3,
-      category: !!formData.category,
+      categories: formData.rootCategory && formData.subCategory,
       price: Number(formData.price) > 0,
       description: formData.description.trim().length >= 10,
-      // images: formData.images.length > 0,
-      tags: formData.tags.length > 0,
+      images: formData.images.length > 0,
     };
   }, [formData]);
 
   const completedCount = useMemo(() => {
-    const checks = Object.values(validations).filter(Boolean).length;
-    return checks;
+    return Object.values(validations).filter(Boolean).length;
   }, [validations]);
 
-  const totalChecks = 6; // name, category, price, description, images, tags
+  const totalChecks = 5;
   const progressPercent = Math.round((completedCount / totalChecks) * 100);
 
-  /** Real-time price breakdown **/
+  /** Price breakdown **/
   const subtotal = Number(formData.price) || 0;
   const delivery = Number(formData.deliveryFee) || 0;
   const total = subtotal + delivery;
-
-  let totalVariationPrice = 0;
 
   /** Tag helpers **/
   const handleAddTag = (t) => {
@@ -213,24 +280,21 @@ export default function UpdateFoodPage() {
     setFormData((p) => ({ ...p, tags: [...p.tags, tag] }));
     setTagInput("");
   };
-  const handleTagKey = (e) => {
-    if (e.key === "Enter" || e.key === ",") { e.preventDefault(); handleAddTag(); }
-    else if (e.key === "Backspace" && !tagInput) {
-      setFormData(p => ({ ...p, tags: p.tags.slice(0, -1) }));
-    }
-  };
-  const removeTag = (t) => setFormData(p => ({ ...p, tags: p.tags.filter(x => x !== t) }));
 
-  /** Image upload (main) **/
+  /** Image upload **/
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
+    if (formData.images.length + files.length > 5) {
+      showAnimatedToast("error", "Maximum 5 images allowed");
+      return;
+    }
     setUploadingMain(true);
     const id = toast.loading("Uploading images...", { id: "img-upload" });
     try {
-      const urls = await Promise.all(files.map(uploadToCloudinary));
-      const valid = urls.filter(Boolean);
-      setFormData(p => ({ ...p, images: [...p.images, ...valid] }));
+      const results = await Promise.all(files.map(uploadToCloudinary));
+      const valid = results.filter(Boolean);
+      setFormData((p) => ({ ...p, images: [...p.images, ...valid] }));
       toast.dismiss(id);
       showAnimatedToast("success", "Images uploaded");
     } catch (err) {
@@ -243,360 +307,458 @@ export default function UpdateFoodPage() {
 
   /** Variant CRUD **/
   const handleVariantSave = (v) => {
-    // if editing, replace the variant at that index
     if (editingVariant?.index != null) {
-      setVariants(prev =>
+      setVariants((prev) =>
         prev.map((item, i) => (i === editingVariant.index ? v : item))
       );
       setEditingVariant(null);
     } else {
-      // add new
-      setVariants(prev => [...prev, v]);
+      setVariants((prev) => [...prev, v]);
     }
-    // close modal if still open
     setVariantModalOpen(false);
   };
 
   const handleEditVariant = (idx) => {
-    // sanity check
-    if (typeof idx !== "number" || !variants[idx]) {
-      console.warn("handleEditVariant: invalid index", idx);
-      return;
-    }
-
+    if (typeof idx !== "number" || !variants[idx]) return;
     setEditingVariant({ index: idx, data: variants[idx] });
-    console.log("Editing variant index", idx, "data:", variants[idx]);
     setVariantModalOpen(true);
   };
 
-  const handleRemoveVariant = (idx) => setVariants(prev => prev.filter((_, i) => i !== idx));
+  const handleRemoveVariant = (idx) =>
+    setVariants((prev) => prev.filter((_, i) => i !== idx));
 
-  /** Variant auto-sync helper **/
-  const autoSyncVariants = () => {
-    if (!variants.length) { showAnimatedToast("error", "No variants to sync"); return; }
-    const confirmSync = confirm("Sync variant names to include food name? This will prefix each variant with the food name. Continue?");
-    if (!confirmSync) return;
-    setVariants(prev => prev.map(v => ({ ...v, name: `${formData.name} - ${v.name}` })));
-    showAnimatedToast("success", "Variants synced");
-  };
-
-  /** Preview modal data **/
-  const previewData = {
-    ...formData,
-    price: subtotal,
-    deliveryFee: delivery,
-  };
-
-  // --- HANDLE UPDATE ---
+  /** Submit / Update **/
   const handleUpdate = async (e) => {
     e.preventDefault();
 
-    console.log()
-    setLoading(true);
+    // Validation
+    if (!validations.name) return showAnimatedToast("error", "Name must be at least 3 characters");
+    if (!validations.categories) return showAnimatedToast("error", "Select both root and sub category");
+    if (!validations.price) return showAnimatedToast("error", "Price must be greater than 0");
+    if (!validations.description) return showAnimatedToast("error", "Description must be at least 10 characters");
+    if (!validations.images) return showAnimatedToast("error", "Add at least one image");
+
+    // Validate portions
+    for (let i = 1; i < portions.length; i++) {
+      if (Number(portions[i].price) <= Number(portions[i - 1].price)) {
+        return showAnimatedToast("error", "Portion prices must increase with portion size");
+      }
+    }
+
+    // Build payload
+    const payload = {
+      name: formData.name,
+      description: formData.description,
+      images: formData.images,
+      price: Number(formData.price) || 0,
+      deliveryFee: Number(formData.deliveryFee) || 0,
+      categories: [formData.rootCategory, formData.subCategory],
+      variants: variants.map((v) => ({
+        ...v,
+        price: Number(v.price) || 0,
+        stock: v.stock ? Number(v.stock) : null,
+      })),
+      portions: portions.map((p) => ({
+        portionNumber: Number(p.portionNumber),
+        price: Number(p.price),
+        label: p.label,
+      })),
+      choiceGroups: choiceGroups.map((g) => ({
+        name: g.name,
+        minSelect: Number(g.minSelect),
+        maxSelect: Number(g.maxSelect),
+        options: g.options.map((o) => ({
+          name: o.name,
+          price: Number(o.price),
+          stock: o.stock ? Number(o.stock) : null,
+          image: o.image || undefined,
+        })),
+      })),
+      available: !!formData.available,
+      tags: formData.tags,
+      estimatedDeliveryTime: Number(formData.estimatedDeliveryTime) || 30,
+      metadata: metadata,
+      // New Payload Fields
+      stock: formData.stock ? Number(formData.stock) : null,
+      packagingFee: Number(formData.packagingFee) || 0,
+      prepTime: Number(formData.prepTime) || 0,
+      foodType: formData.foodType,
+      nutrition: formData.nutrition,
+      allowCustomerInstructions: !!formData.allowNotes,
+      discount: formData.discount.enabled
+        ? {
+          active: true,
+          ...(formData.discount.type === "percentage"
+            ? { percentage: Number(formData.discount.value) || 0, flatAmount: 0 }
+            : { flatAmount: Number(formData.discount.value) || 0, percentage: 0 }),
+          expiresAt: formData.discount.expiresAt || null,
+        }
+        : {
+          active: false,
+          percentage: 0,
+          flatAmount: 0,
+          expiresAt: null,
+        },
+      availabilitySchedule: formData.availabilitySchedule.enabled
+        ? {
+          days: formData.availabilitySchedule.days,
+          startTime: formData.availabilitySchedule.startTime,
+          endTime: formData.availabilitySchedule.endTime,
+        }
+        : null,
+    };
+
     try {
-      const payload = {
-        ...formData,
-        metadata,
-        variants: variants.map((v) => ({
-          _id: v._id || undefined,
-          name: v.name,
-          price: v.price,
-          image: v.image,
-        })),
-        images: formData.images.map((img) => ({
-          _id: img._id || undefined,
-          url: typeof img === "string" ? img : img.url,
-        })),
-      };
-
-      // const token = localStorage.getItem("vendorToken");
-
-      const { data } = await updateFood(id, payload);
-
-
-      console.log(data);
-
-      // toast.success("✅ Food updated successfully!");
-      showAnimatedToast("success", "✅ Food updated successfully!");
-      // router.push("/vendors/my-foods");
-    } catch (error) {
-      console.error("Update error:", error || error.message);
-      toast.error(error.response?.data.message || "❌ Failed to update food");
+      setLoading(true);
+      await updateFood(id, payload);
+      showAnimatedToast("success", "Food updated successfully!");
+      router.push("/vendors/my-foods");
+    } catch (err) {
+      console.error(err.response);
+      showAnimatedToast("error", err?.response?.data?.message || "Failed to update food");
     } finally {
       setLoading(false);
     }
   };
 
-  /** Small helper UI indicators **/
-  const fieldIndicator = (ok) => {
-    return ok ? <span className="text-emerald-500 text-xs flex items-center gap-1"><Check size={12} /> Looks good</span> : <span className="text-rose-500 text-xs">Required</span>;
+  /** Scroll helper **/
+  const scrollToSection = (section) => {
+    setExpandedSections((prev) => ({ ...prev, [section]: true }));
+    setMobileMenuOpen(false);
+    setTimeout(() => {
+      const element = document.getElementById(`section-${section}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
-  if (isLoading)
-    return <UpdateFoodSkeleton />;
+  const NavItem = ({ section, label, icon: Icon, isValid }) => (
+    <button
+      type="button"
+      onClick={() => scrollToSection(section)}
+      className={`w-full flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${expandedSections[section]
+        ? "bg-orange-50 dark:bg-orange-500/10 text-[#FF6600]"
+        : "text-gray-600 dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+        }`}
+    >
+      <div className="flex items-center gap-3">
+        <Icon size={18} className={expandedSections[section] ? "text-[#FF6600]" : "text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300"} />
+        <span className="font-medium text-sm">{label}</span>
+      </div>
+      {isValid !== undefined && (
+        isValid ? (
+          <Check size={14} className="text-emerald-500" />
+        ) : (
+          <div className="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700" />
+        )
+      )}
+    </button>
+  );
+
+  if (fetching) return <UpdateFoodSkeleton />;
 
   return (
-    <div className="min-h-screen transition-colors">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0B1121] pb-32">
+      {/* Background decoration */}
+      {/* <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-3xl" />
+      </div> */}
 
+      <div className="max-w-7xl mx-auto relative z-10">
+        <BackButton label="Back" className="mb-4" />
 
-      {/* TOP BAR: progress + theme */}
-      <div className="max-w-5xl mx-auto mb-3">
-        <div className="relative bg-white rounded-xl p-3 mb-3">
-          <div className="flex items-center flex-col gap-4">
-            <div className="bg-orange-500/70 p-3 rounded-full">
-              <Utensils className="text-gray-200" />
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 ">
-                <span className="text-orange-500 ">Update Food</span> -
-                <span className="text-orange-500"> GrubDash</span>
-              </h1>
-              <p className="text-sm sm:text-base text-gray-500">
-                Step-by-step listing creation with validation & live preview
-              </p>
-            </div>
-          </div>
-
-          <button onClick={refreshData} disabled={refreshing} className="absolute top-2 left-2 px-4 py-2 bg-orange-500 text-white rounded-md flex items-center gap-2">
-            {refreshing ? (
-              <>
-                <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
-                <RefreshCcw />
-              </>
-            ) : (
-              <RefreshCcw />
-            )}
-          </button>
-
-
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={() => setPreviewOpen(true)}
-              className="absolute top-2 right-2 font-semibold bg-orange-500 px-3 py-2 text-white rounded-tl-2xl rounded-br-2xl text-sm cursor-pointer hover:bg-orange-700">Preview</button>
-            {/* <button type="button" onClick={() => { setDark(d => !d); }} className="p-2 rounded-md border hover:bg-gray-100">
-                {dark ? <Sun /> : <Moon />}
-              </button> */}
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        {/* <div className="mb-4 bg-white p-3 rounded-full">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-xs text-gray-600 dark:text-gray-300">Form completion</div>
-              <div className="text-xs font-medium text-gray-700">{completedCount} of {totalChecks} • {progressPercent}%</div>
-            </div>
-            <div className="w-full h-2 bg-gray-300 rounded-full overflow-hidden">
-              <motion.div initial={{ width: 0 }} animate={{ width: `${progressPercent}%` }} transition={{ duration: 0.5, ease: "easeOut" }} className="h-full" style={{ background: ACCENT }} />
-            </div>
-          </div> */}
-
-      </div>
-
-      {/* MAIN FORM */}
-      <motion.form onSubmit={handleUpdate} className="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-3 sm:p-3 space-y-8" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-        {/* Section: Basic */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.02 }} className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">Basic Info</h2>
-            <div className="text-sm">{fieldIndicator(validations.name)}</div>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">Food name *</label>
-            <input value={formData.name} onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))} className="w-full border border-gray-200 p-3 rounded-lg mt-2 bg-white focus:ring-2 focus:ring-[#FF6600]/30" placeholder="Pounded Yam with Egusi Soup" />
-            {!validations.name ? <p className="text-xs text-rose-500 mt-1">Name must be at least 3 characters</p> : <p className="text-xs text-green-600 mt-1">Looks good ✅</p>}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">Description</label>
-            <textarea value={formData.description} onChange={(e) => setFormData(p => ({ ...p, description: e.target.value }))} rows={3} className="w-full border border-gray-200 p-3 rounded-lg mt-2 bg-white focus:ring-2 focus:ring-[#FF6600]/30" placeholder="Describe the dish..." />
-            {!validations.description ? <p className="text-xs text-rose-500 mt-1">Make it a little longer (10+ chars)</p> : <p className="text-xs text-green-600 mt-1">Good description</p>}
-          </div>
-        </motion.div>
-
-        {/* Section: Pricing */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }} className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">Pricing & Delivery</h2>
-            <div className="text-sm">{fieldIndicator(validations.price)}</div>
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-3">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
+          <div className="w-full md:w-auto flex items-center gap-4">
+            <button type="button" onClick={() => setMobileMenuOpen(true)} className="lg:hidden p-3 bg-white dark:bg-[#1E293B] hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-800 text-gray-600 dark:text-gray-300 transition-colors">
+              <Menu size={24} />
+            </button>
             <div>
-              <label className="text-sm text-gray-700">Category *</label>
-              <select value={formData.category} onChange={(e) => setFormData(p => ({ ...p, category: e.target.value }))} className="w-full border border-gray-200 p-3 rounded-lg mt-2 bg-white focus:ring-2 focus:ring-[#FF6600]/30">
-                <option value="">Select category</option>
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              {!validations.category ? <p className="text-xs text-rose-500 mt-1">Choose a category</p> : <p className="text-xs text-green-600 mt-1">Set</p>}
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-700">Price (₦) *</label>
-              <input type="number" value={formData.price} onChange={(e) => setFormData(p => ({ ...p, price: e.target.value }))} className="w-full border border-gray-200 p-3 rounded-lg mt-2 bg-white focus:ring-2 focus:ring-[#FF6600]/30" placeholder="3500" />
-              {!validations.price ? <p className="text-xs text-rose-500 mt-1">Price must be '' 0</p> : <p className="text-xs text-green-600 mt-1">Good</p>}
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-700">Delivery fee (₦)</label>
-              <input type="number" value={formData.deliveryFee} onChange={(e) => setFormData(p => ({ ...p, deliveryFee: e.target.value }))} className="w-full border border-gray-200 p-3 rounded-lg mt-2 bg-white focus:ring-2 focus:ring-[#FF6600]/30" placeholder="500" />
+              <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">Update Food</h1>
+              <p className="text-sm md:text-lg text-gray-500 dark:text-gray-400 mt-1 md:mt-2">Edit your delicious offering details</p>
             </div>
           </div>
-
-          {/* Price breakdown */}
-          <div className="flex items-center justify-between mt-2 bg-orange-50 p-3 rounded-lg">
-            <div className="text-sm text-gray-600">Subtotal <span className="font-semibold">₦{subtotal.toLocaleString()}</span> + Delivery <span className="font-semibold">₦{delivery.toLocaleString()}</span></div>
-            <motion.div initial={{ x: 8, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 260, damping: 24 }} className="text-lg font-semibold text-gray-900">Total ₦{total.toLocaleString()}</motion.div>
-          </div>
-        </motion.div>
-
-        {/* Section: Tags + suggestions */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }} className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">Tags</h2>
-            <div className="text-xs text-gray-500">Click suggestions or type your own</div>
-          </div>
-
-          <div className="flex gap-2 items-center">
-            <input value={tagInput} onChange={(e) => setTagInput(e.target.value)} onKeyDown={handleTagKey} className="flex-1 border border-gray-200 p-3 rounded-lg bg-white focus:ring-2 focus:ring-[#FF6600]/30" placeholder="Type tag and press Enter" />
-            <button type="button" onClick={() => handleAddTag()} className="px-4 py-2 bg-orange-500 text-white rounded-tl-2xl rounded-br-2xl">Add</button>
-          </div>
-
-          <div className="flex flex-wrap gap-2 mt-2">
-            {SUGGESTED_TAGS.map(tag => (
-              <button type="button" key={tag} onClick={() => handleAddTag(tag)} className="text-xs px-3 py-1 rounded-full border border-gray-200 hover:bg-orange-50 text-[#FF6600]">{tag}</button>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-2 mt-3">
-            {formData.tags.length ? formData.tags.map(t => (
-              <span key={t} className="px-3 py-1 bg-orange-50 text-[#FF6600] rounded-full flex items-center gap-2">
-                <span className="text-sm">{t}</span>
-                <button type="button" onClick={() => removeTag(t)} className="p-0.5"><X size={14} /></button>
-              </span>
-            )) : <p className="text-xs text-gray-400">Tags help customers find your dish (e.g., "spicy")</p>}
-          </div>
-        </motion.div>
-
-        {/* Section: Images */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">Images</h2>
-            <div className="text-xs text-gray-500">{fieldIndicator(validations.images)}</div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3">
-            <label className="col-span-1 flex items-center justify-center border-2 border-dashed border-gray-800 p-6 rounded-lg cursor-pointer hover:bg-gray-50">
-              <div className="flex flex-col items-center text-gray-900">
-                {uploadingMain ? <Loader2 className="animate-spin" /> : <Upload />}
-                <span className="text-sm mt-2">Upload images</span>
-                <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageUpload} />
+          <div className="flex items-center gap-4 bg-white dark:bg-[#1E293B] p-2 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="px-4 py-2">
+              <div className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">Completion</div>
+              <div className="flex items-center gap-2">
+                <div className="text-2xl font-bold text-[#FF6600]">{progressPercent}%</div>
+                <div className="text-xs text-gray-400 font-medium">{completedCount}/{totalChecks} steps</div>
               </div>
-            </label>
-
-            <div className="col-span-2 flex gap-3 flex-wrap">
-              {formData.images.length ? formData.images.map((url, i) => (
-                <div key={i} className="w-28 h-28 rounded-lg overflow-hidden border relative">
-                  <img src={typeof url === "string" ? url : url.url} alt={`img-${i}`} className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    className="absolute top-1 right-1 bg-white/80 rounded p-1"
-                    onClick={() =>
-                      setFormData((p) => ({
-                        ...p,
-                        images: p.images.filter((_, idx) => idx !== i),
-                      }))
-                    }
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              )) : (
-                <div className="text-gray-400 text-sm">No images yet — upload clear photos.</div>
-              )}
+            </div>
+            <div className="h-12 w-12 relative flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-slate-100 dark:text-slate-800" />
+                <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="4" fill="transparent" strokeDasharray={125.6} strokeDashoffset={125.6 - (125.6 * progressPercent) / 100} className="text-[#FF6600] transition-all duration-500 ease-out" />
+              </svg>
             </div>
           </div>
         </motion.div>
 
-        {/* Section: Variants */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-3">
-          <div className="w-full flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-800">Variants</h2>
-            <div className="flex items-center gap-2">
-              <button type="button" className="flex items-center px-2 py-2 gap-2 bg-green-500 text-white rounded-tl-2xl rounded-br-2xl text-sm" onClick={() => setVariantModalOpen(true)}><Plus /> Add</button>
-              <button type="button" className="flex items-center px-2 py-2 gap-3 bg-orange-500 text-white rounded-tl-2xl rounded-br-2xl text-sm" onClick={() => autoSyncVariants()}><Repeat /> Sync names</button>
+        <div className="grid lg:grid-cols-[280px_1fr] xl:grid-cols-[320px_1fr] gap-4 items-start">
+          {/* SIDEBAR NAVIGATION */}
+          <div className="hidden lg:block sticky top-8 space-y-6">
+            <div className="bg-white dark:bg-[#1E293B] rounded-2xl border border-slate-200 dark:border-slate-800 p-2 overflow-hidden">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl mb-2">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Navigation</h3>
+              </div>
+              <div className="space-y-1">
+                <NavItem section="basic" label="Basic Info" icon={Utensils} isValid={validations.name && validations.description} />
+                <NavItem section="pricing" label="Categories & Pricing" icon={DollarSign} isValid={validations.categories && validations.price} />
+                <NavItem section="images" label="Images" icon={ImageIcon} isValid={validations.images} />
+                <NavItem section="pricing_advanced" label="Pricing & Deals" icon={DollarSign} />
+                <NavItem section="inventory" label="Inventory & Schedule" icon={Package} />
+                <NavItem section="details" label="Item Details" icon={Menu} />
+                <NavItem section="variants" label="Variants" icon={Layers} />
+                <NavItem section="portions" label="Portions" icon={Package} />
+                <NavItem section="choiceGroups" label="Add-ons" icon={Plus} />
+                <NavItem section="tags" label="Tags" icon={Check} />
+                <NavItem section="metadata" label="Preferences" icon={AlertCircle} />
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            {variants.length ? variants.map((v, i) => {
-
-              totalVariationPrice += v.price;
-
-              return (
-                <div key={i} className="flex items-center justify-between bg-white border-2 border-dashed  border-orange-500 rounded-lg p-3">
-                  <div className="flex items-center gap-3">
-                    {v.image ? <img src={v.image} className="w-12 h-12 rounded-md object-cover" /> : <div className="w-12 h-12 bg-gray-100 rounded-md flex items-center justify-center"><ImageIcon /></div>}
-                    <div>
-                      <div className="font-medium">{v.name}</div>
-                      <div className="text-xs text-gray-500">₦{Number(v.price).toLocaleString()}</div>
+            {/* LIVE PREVIEW CARD */}
+            <div className="bg-white dark:bg-[#1E293B] rounded-3xl shadow-lg shadow-orange-500/5 border border-slate-200 dark:border-slate-800 p-5 sticky top-24">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Eye size={16} className="text-[#FF6600]" /> Live Preview
+                </h3>
+                <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-1 rounded-full font-bold uppercase tracking-wide">Card View</span>
+              </div>
+              <div className="relative bg-gray-900 rounded-[2rem] p-2 shadow-2xl border-4 border-gray-900">
+                <div className="bg-white dark:bg-gray-800 rounded-[1.5rem] overflow-hidden relative aspect-[9/16]">
+                  <div className="absolute top-0 left-0 right-0 h-6 bg-black/20 z-10 flex justify-between px-3 items-center">
+                    <div className="w-10 h-1 bg-white/50 rounded-full" />
+                    <div className="flex gap-1"><div className="w-1 h-1 rounded-full bg-white/50" /><div className="w-1 h-1 rounded-full bg-white/50" /></div>
+                  </div>
+                  <div className="absolute top-8 left-3 right-3 bg-white dark:bg-gray-700 rounded-xl shadow-lg overflow-hidden pb-2">
+                    <div className="h-24 bg-gray-200 dark:bg-gray-600 relative">
+                      {formData.images[0] ? (
+                        <img src={formData.images[0].url} alt="Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400"><ImageIcon size={24} /></div>
+                      )}
+                      <div className="absolute bottom-2 right-2 bg-white/90 dark:bg-black/80 px-1.5 py-0.5 rounded text-[10px] font-bold backdrop-blur-sm">
+                        {formData.estimatedDeliveryTime} min
+                      </div>
+                    </div>
+                    <div className="p-2">
+                      <div className="flex justify-between items-start mb-1">
+                        <div className="w-2/3 h-3 bg-gray-100 dark:bg-gray-500 rounded-md">
+                          {formData.name && <div className="text-xs font-bold text-gray-900 dark:text-white truncate leading-3">{formData.name}</div>}
+                        </div>
+                        <div className="text-[#FF6600] font-bold text-xs">₦{Number(formData.price || 0).toLocaleString()}</div>
+                      </div>
+                      <div className="w-full h-2 bg-gray-50 dark:bg-gray-600 rounded mt-1 mb-2">
+                        {formData.description && <div className="text-[9px] text-gray-400 truncate leading-2">{formData.description}</div>}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button type="button" onClick={() => handleEditVariant(i)} className="text-sm bg-green-500 text-white p-2 rounded-tl-2xl rounded-br-2xl">Edit</button>
-                    <button type="button" onClick={() => handleRemoveVariant(i)} className="text-sm bg-red-500 text-white p-2 rounded-tl-2xl rounded-br-2xl">Remove</button>
-                  </div>
                 </div>
-              )
-            }) : <p className="text-sm text-gray-400">No variants added yet.</p>}
-            <div className="bg-orange-100 p-2 max-w-[200px] text-sm font-semibold rounded-tl-2xl rounded-br-2xl">
-              <p className="">Total variation price: <span className="font-bold text-orange-500">₦{totalVariationPrice.toLocaleString()}</span></p>
+              </div>
             </div>
           </div>
-        </motion.div>
 
+          {/* MAIN FORM CONTENT */}
+          <motion.form onSubmit={handleUpdate} className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
 
-        <MetadataModal metadata={metadata} setMetadata={setMetadata} />
+            {/* Basic Info */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800">
+              <SectionHeader title="Basic Information" subtitle="The core details of your dish" icon={Utensils} section="basic" isExpanded={expandedSections.basic} onToggle={() => toggleSection("basic")} isValid={validations.name && validations.description} />
+              <AnimatePresence>
+                {expandedSections.basic && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="p-6 md:p-8 space-y-8">
+                    <div>
+                      <div className="flex justify-between items-baseline mb-2">
+                        <label className="text-sm font-bold text-gray-900 dark:text-white">Food Name <span className="text-rose-500">*</span></label>
+                        <span className={`text-xs ${formData.name.length >= 3 ? "text-emerald-500" : "text-gray-400"}`}>{formData.name.length}/100</span>
+                      </div>
+                      <input value={formData.name} onChange={(e) => setFormData((p) => ({ ...p, name: e.target.value }))} className="w-full border-2 border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 p-4 rounded-2xl focus:border-[#FF6600] focus:ring-4 focus:ring-[#FF6600]/10 outline-none transition-all text-lg font-medium text-gray-900 dark:text-white placeholder:text-gray-400" placeholder="e.g., Jollof Rice" maxLength={100} />
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-baseline mb-2">
+                        <label className="text-sm font-bold text-gray-900 dark:text-white">Description <span className="text-rose-500">*</span></label>
+                        <span className={`text-xs ${formData.description.length >= 10 ? "text-emerald-500" : "text-gray-400"}`}>{formData.description.length}/500</span>
+                      </div>
+                      <textarea value={formData.description} onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))} rows={4} className="w-full border-2 border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 p-4 rounded-2xl focus:border-[#FF6600] focus:ring-4 focus:ring-[#FF6600]/10 outline-none transition-all text-gray-900 dark:text-white placeholder:text-gray-400 resize-none" placeholder="Describe your dish..." maxLength={500} />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
 
-        {/* Small meta row */}
-        <div className="flex items-center justify-between gap-1">
-          <div className="max-w-[45%] w-full">
-            <div className="flex items-center flex-wrap gap-3">
-              <label className="flex items-center gap-2"><input type="checkbox" className="bg-orange-500" checked={formData.available} onChange={(e) => setFormData(p => ({ ...p, available: e.target.checked }))} /> <span className="text-sm">Available</span></label>
-              <div className="text-xs text-gray-500">Est. Delivery: <input value={formData.estimatedDeliveryTime} onChange={(e) => setFormData(p => ({ ...p, estimatedDeliveryTime: e.target.value }))} className="w-20 ml-2 font-semibold border border-dashed border-orange-600 outline-0 text-gray-800 text-center p-1 rounded-tl-2xl rounded-br-2xl text-sm bg-orange-100" placeholder="25" required /></div>
+            {/* Categories & Pricing */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800">
+              <SectionHeader title="Categories & Pricing" subtitle="Where and how much?" icon={DollarSign} section="pricing" isExpanded={expandedSections.pricing} onToggle={() => toggleSection("pricing")} isValid={validations.categories && validations.price} />
+              <AnimatePresence>
+                {expandedSections.pricing && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="p-6 md:p-8 space-y-8">
+                    <div className="grid sm:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Root Category <span className="text-rose-500">*</span></label>
+                        <div className="relative">
+                          <select value={formData.rootCategory} onChange={(e) => setFormData((p) => ({ ...p, rootCategory: e.target.value, subCategory: "" }))} className="w-full appearance-none border-2 border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 p-4 pr-10 rounded-2xl focus:border-[#FF6600] focus:ring-4 focus:ring-[#FF6600]/10 outline-none transition-all text-gray-900 dark:text-white font-medium">
+                            <option value="">Select Category</option>
+                            {Object.keys(CATEGORY_HIERARCHY).map((cat) => (<option key={cat} value={cat}>{cat}</option>))}
+                          </select>
+                          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Sub Category <span className="text-rose-500">*</span></label>
+                        <div className="relative">
+                          <select value={formData.subCategory} onChange={(e) => setFormData((p) => ({ ...p, subCategory: e.target.value }))} disabled={!formData.rootCategory} className="w-full appearance-none border-2 border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 p-4 pr-10 rounded-2xl focus:border-[#FF6600] focus:ring-4 focus:ring-[#FF6600]/10 outline-none transition-all text-gray-900 dark:text-white font-medium disabled:opacity-50">
+                            <option value="">Select Sub-Category</option>
+                            {formData.rootCategory && CATEGORY_HIERARCHY[formData.rootCategory]?.map((sub) => (<option key={sub} value={sub}>{sub}</option>))}
+                          </select>
+                          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={20} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      <div className="grid sm:grid-cols-3 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Base Price (₦) <span className="text-rose-500">*</span></label>
+                          <input type="number" value={formData.price} onChange={(e) => setFormData((p) => ({ ...p, price: e.target.value }))} className="w-full border-2 border-gray-200 dark:border-gray-600 p-3 rounded-xl bg-white dark:bg-gray-800 focus:border-[#FF6600] focus:ring-4 focus:ring-[#FF6600]/10 outline-none text-xl font-bold text-gray-900 dark:text-white" placeholder="0" min="100" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Delivery Fee (₦)</label>
+                          <input type="number" value={formData.deliveryFee} onChange={(e) => setFormData((p) => ({ ...p, deliveryFee: e.target.value }))} className="w-full border-2 border-gray-200 dark:border-gray-600 p-3 rounded-xl bg-white dark:bg-gray-800 focus:border-[#FF6600] focus:ring-4 focus:ring-[#FF6600]/10 outline-none text-xl font-bold text-gray-900 dark:text-white" placeholder="0" min="0" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Prep Time (min)</label>
+                          <input type="number" value={formData.estimatedDeliveryTime} onChange={(e) => setFormData((p) => ({ ...p, estimatedDeliveryTime: e.target.value }))} className="w-full border-2 border-gray-200 dark:border-gray-600 p-3 rounded-xl bg-white dark:bg-gray-800 focus:border-[#FF6600] focus:ring-4 focus:ring-[#FF6600]/10 outline-none text-xl font-bold text-gray-900 dark:text-white" placeholder="30" min="10" />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Images */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+              <ImagesSection images={formData.images} setImages={(images) => setFormData((p) => ({ ...p, images }))} uploading={uploadingMain} onUpload={handleImageUpload} expanded={expandedSections.images} toggleExpanded={() => toggleSection("images")} isValid={validations.images} />
+            </motion.div>
+
+            {/* Pricing Advanced */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+              <PricingSection
+                formData={formData}
+                setFormData={setFormData}
+                expanded={expandedSections.pricing_advanced}
+                toggleExpanded={() => toggleSection("pricing_advanced")}
+              />
+            </motion.div>
+
+            {/* Inventory */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}>
+              <InventorySection
+                formData={formData}
+                setFormData={setFormData}
+                expanded={expandedSections.inventory}
+                toggleExpanded={() => toggleSection("inventory")}
+              />
+            </motion.div>
+
+            {/* Details */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
+              <DetailsSection
+                formData={formData}
+                setFormData={setFormData}
+                expanded={expandedSections.details}
+                toggleExpanded={() => toggleSection("details")}
+              />
+            </motion.div>
+
+            {/* Variants */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }} className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800">
+              <SectionHeader title="Variants" subtitle="Offer different sizes or types" icon={Layers} section="variants" isExpanded={expandedSections.variants} onToggle={() => toggleSection("variants")} />
+              <AnimatePresence>
+                {expandedSections.variants && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="p-6 pb-6 space-y-4">
+                    <div className="flex justify-between gap-4 mb-4">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Create variants like "Small", "Medium".</p>
+                      <button type="button" onClick={() => setVariantModalOpen(true)} className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-600 shadow-lg shadow-emerald-500/30"><Plus size={18} /> Add Variant</button>
+                    </div>
+                    <div className="grid gap-4">
+                      {variants.map((v, i) => (
+                        <motion.div key={i} className="flex items-center justify-between bg-white dark:bg-gray-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100">{v.image && <img src={v.image} className="w-full h-full object-cover" />}</div>
+                            <div><div className="font-bold text-gray-900 dark:text-white text-lg">{v.name}</div><div className="text-emerald-600 font-bold">₦{Number(v.price).toLocaleString()}</div></div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => handleEditVariant(i)} className="p-2.5 bg-slate-100 dark:bg-slate-700 rounded-xl"><Edit size={16} /></button>
+                            <button type="button" onClick={() => handleRemoveVariant(i)} className="p-2.5 bg-rose-50 text-rose-600 rounded-xl"><Trash2 size={16} /></button>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+
+            {/* Portions */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+              <PortionsSection portions={portions} setPortions={setPortions} basePrice={Number(formData.price) || 0} expanded={expandedSections.portions} toggleExpanded={() => toggleSection("portions")} />
+            </motion.div>
+
+            {/* Choice Groups */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+              <ChoiceGroupsSection choiceGroups={choiceGroups} setChoiceGroups={setChoiceGroups} expanded={expandedSections.choiceGroups} toggleExpanded={() => toggleSection("choiceGroups")} />
+            </motion.div>
+
+            {/* Tags */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+              <TagsSection tags={formData.tags} setTags={(tags) => setFormData((p) => ({ ...p, tags }))} expanded={expandedSections.tags} toggleExpanded={() => toggleSection("tags")} />
+            </motion.div>
+
+            {/* Metadata */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}>
+              <MetadataSection metadata={metadata} setMetadata={setMetadata} expanded={expandedSections.metadata} toggleExpanded={() => toggleSection("metadata")} />
+            </motion.div>
+
+          </motion.form>
+        </div>
+      </div>
+
+      {/* Sub-modals */}
+      <VariantModal open={variantModalOpen} onClose={() => { setVariantModalOpen(false); setEditingVariant(null); }} initial={editingVariant?.data ?? null} onSave={handleVariantSave} accent={ACCENT} />
+      <PreviewModal open={previewOpen} onClose={() => setPreviewOpen(false)} food={{ ...formData, metadata, price: subtotal, deliveryFee: delivery }} variants={variants} portions={portions} choiceGroups={choiceGroups} />
+
+      {/* Floating Footer */}
+      <motion.div initial={{ y: 100 }} animate={{ y: 0 }} className="fixed bottom-0 left-0 right-0 z-50 p-4">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="mx-auto max-w-4xl bg-white/90 dark:bg-[#1E293B]/90 backdrop-blur-lg border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-4 flex items-center justify-between gap-4">
+            <button type="button" onClick={() => router.back()} className="px-6 py-3 font-bold text-gray-500 hover:text-gray-800 dark:hover:text-white transition-colors">Cancel</button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-bold"
+              >
+                <Eye size={18} />
+                <span>Preview</span>
+              </button>
+              <label className="hidden sm:flex items-center gap-2 cursor-pointer bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${formData.available ? "bg-[#FF6600] border-[#FF6600]" : "border-gray-400"}`}>
+                  {formData.available && <Check size={12} className="text-white" />}
+                </div>
+                <input type="checkbox" checked={formData.available} onChange={(e) => setFormData((p) => ({ ...p, available: e.target.checked }))} className="hidden" />
+                <span className="text-sm font-bold text-gray-700 dark:text-gray-300">Available</span>
+              </label>
+              <button type="button" onClick={handleUpdate} disabled={loading} className="px-8 py-3 bg-gradient-to-r from-[#FF6600] to-[#FF8C00] text-white rounded-xl font-bold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                {loading ? <Loader2 className="animate-spin" size={20} /> : <Check size={20} />}
+                {loading ? "Updating..." : "Update Food"}
+              </button>
             </div>
-            <p className="text-xs text-center text-gray-500">Estimated delivery time</p>
-          </div>
-
-          <div className="max-w-[45%] w-full flex items-center flex-wrap gap-4">
-            <button type="button" onClick={() => setPreviewOpen(true)} className="px-3 py-2 border rounded-tl-2xl rounded-br-2xl text-sm flex items-center gap-3 bg-green-500 text-white"><Eye /> Preview</button>
-            <div className="text-sm text-gray-600">Subtotal <span className="font-semibold">₦{subtotal.toLocaleString()}</span> • Delivery <span className="font-semibold">₦{delivery.toLocaleString()}</span></div>
           </div>
         </div>
-
-        {/* Actions / sticky on mobile */}
-        <div className="flex items-center justify-between gap-3 border-t border-gray-300 pb-8 pt-4">
-          <button type="button" onClick={() => router.back()} className="px-4 py-2 bg-red-500 text-white rounded-tl-2xl rounded-br-2xl">Cancel</button>
-          <button type="button" onClick={() => { setPreviewOpen(true); }} className="px-4 py-2 bg-gray-800 text-white font-medium rounded-tl-2xl rounded-br-2xl">Preview</button>
-          <button type="submit" disabled={loading} className="px-6 py-2 bg-[#FF6600] text-white rounded-tl-2xl rounded-br-2xl flex items-center gap-2">
-            {loading ? <Loader2 className="animate-spin" /> : <span>Update Food</span>}
-          </button>
-        </div>
-      </motion.form>
-
-      {/* Variant modal (pass initial state when editing) */}
-      <VariantModal
-        open={variantModalOpen}
-        onClose={() => {
-          setVariantModalOpen(false);
-          setEditingVariant(null);
-        }}
-        initial={editingVariant?.data ?? null}
-        onSave={(v) => handleVariantSave(v)}
-        accent={ACCENT}
-      />
-
-      {/* Preview modal */}
-      <PreviewModal open={previewOpen} onClose={() => setPreviewOpen(false)} food={previewData} variants={variants} />
+      </motion.div>
     </div>
   );
 }

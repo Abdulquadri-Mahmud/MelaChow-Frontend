@@ -85,6 +85,7 @@ export default function VerifyAccount() {
 
       const res = await fetch(`${baseUrl}/vendor/auth/verify-otp`, {
         method: "POST",
+        credentials: "include", // ✅ CRITICAL: Required to save vendorToken cookie
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp: otpString }),
       });
@@ -97,12 +98,13 @@ export default function VerifyAccount() {
       }
 
       // Save token and user
-      if (data?.token) {
-        localStorage.setItem("vendorToken", data.token);
+      // Save user/vendor details (but NOT token)
+      if (data?.vendor || data?.user) {
+        // localStorage.setItem("vendorToken", data.token); // Removed
         saveVendor({
           vendor: {
-            id: data.vendor.id,
-            slug: data.vendor.slug,
+            id: data.vendor?.id,
+            slug: data.vendor?.slug,
           },
         });
       }

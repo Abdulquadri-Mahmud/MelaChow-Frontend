@@ -24,13 +24,18 @@ export default function ConditionalBottomNav() {
     "/vendors/transactions",
     "/vendors/order",
     "/vendors/reviews",
+    "/admin/login",
+    "/admin/dashboard",
+    "/admin/categories",
   ];
 
   // ✅ Hide nav also on dynamic routes
   const shouldHideNav =
     noNavRoutes.includes(pathname) ||
     pathname.startsWith("/vendors/update-food/") ||
-    pathname.startsWith("/vendors/orders/");
+    pathname.startsWith("/vendors/orders/") ||
+    pathname.startsWith("/vendors/order/") ||
+    pathname.startsWith("/vendors/food-details/");
 
   const showNav = !shouldHideNav;
 

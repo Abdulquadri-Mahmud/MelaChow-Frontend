@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, X, ImageIcon, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Upload, X, ImageIcon, Loader2 } from "lucide-react";
+import SectionHeader from "./SectionHeader";
 
 export default function ImagesSection({
     images,
@@ -15,41 +16,17 @@ export default function ImagesSection({
     };
 
     return (
-        <div className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <button
-                type="button"
-                onClick={toggleExpanded}
-                className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-transparent dark:from-green-900/10 rounded-xl hover:from-green-100 dark:hover:from-green-900/20 transition-colors"
-            >
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 dark:bg-green-500/10 rounded-lg text-green-600">
-                        <ImageIcon size={20} />
-                    </div>
-                    <div className="text-left">
-                        <h2 className="text-lg font-bold text-gray-800 dark:text-white">
-                            Images *
-                        </h2>
-                        <p className="text-xs text-gray-500">
-                            {images.length} image{images.length !== 1 ? "s" : ""} uploaded (max 5)
-                        </p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    {isValid !== undefined && (
-                        <span
-                            className={`text-xs ${isValid ? "text-emerald-500" : "text-rose-500"
-                                }`}
-                        >
-                            {isValid ? "✓ Valid" : "Required"}
-                        </span>
-                    )}
-                    {expanded ? (
-                        <ChevronUp size={20} className="text-gray-400" />
-                    ) : (
-                        <ChevronDown size={20} className="text-gray-400" />
-                    )}
-                </div>
-            </button>
+        <div className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+            <SectionHeader
+                title="Images"
+                subtitle={`${images.length} image${images.length !== 1 ? "s" : ""} uploaded (max 5)`}
+                icon={ImageIcon}
+                section="images"
+                isExpanded={expanded}
+                onToggle={toggleExpanded}
+                isValid={isValid}
+                accentColor="emerald"
+            />
 
             <AnimatePresence>
                 {expanded && (

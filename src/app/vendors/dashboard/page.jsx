@@ -20,7 +20,7 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 
-import { getVendorFoods } from "@/app/lib/vendorFoodApi";
+import { getFoods } from "@/app/lib/vendorFoodApi";
 import { getVendorDetails } from "@/app/lib/vendorApi";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import VendorDashboardSkeleton from "@/app/skeleton/VendorDashboardSkeleton";
@@ -34,11 +34,14 @@ export default function VendorDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (!vendorDetails?.vendor?.id) return;
+        // if (!vendorDetails?.vendor?.id) return; // Removed ID check strictness if cookie is enough? 
+        // But layout might need vendorDetails for other things. 
+        // For data fetching, cookie is source.
+
         setIsLoading(true);
         const [vendorRes, foodsRes] = await Promise.all([
-          getVendorDetails(vendorDetails.vendor.id),
-          getVendorFoods(vendorDetails.vendor.id)
+          getVendorDetails(),
+          getFoods()
         ]);
         setVendorData(vendorRes.data || vendorRes);
         setFoods(foodsRes?.data || []);
@@ -49,8 +52,16 @@ export default function VendorDashboard() {
       }
     };
 
-    if (vendorDetails?.vendor?.id) fetchData();
-  }, [vendorDetails]);
+    fetchData();
+  }, []); // Run once on mount 
+  // If we rely on cookie, we don't strictly *need* `vendorDetails` in dependency if the cookie is set. 
+  // But typically `useVendorStorage` implies session state.
+  // I will leave it empty dependency or minimal. 
+  // Wait, `vendorDetails` might be null initially. 
+  // `useVendorStorage` usually hydrates from localStorage.
+  // If we are logged in, we have cookie.
+  // I will just call fetchData.
+
 
   // Derived Values & Calculations
   const calculations = useMemo(() => {

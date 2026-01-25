@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import { useApi } from "../context/ApiContext";
 import axios from "axios";
 
-export default function AddressModal({ user, token, isOpen, setIsOpen }) {
+export default function AddressModal({ user, isOpen, setIsOpen }) {
   const [loading, setLoading] = useState(false);
   const { baseUrl } = useApi();
 
@@ -43,9 +43,7 @@ export default function AddressModal({ user, token, isOpen, setIsOpen }) {
           isDefault: true,
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true, // ✅ Use cookie-based auth
         }
       );
 

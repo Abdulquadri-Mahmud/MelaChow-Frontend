@@ -22,11 +22,10 @@ export default function Signin() {
 
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  // const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -52,7 +51,7 @@ export default function Signin() {
           `/auth/verify-account?email=${encodeURIComponent(formData.email)}`
         );
       } else {
-        setMessage(data.message || "Invalid email or password.");
+        setMessage(data.message || "Invalid email.");
       }
     } catch (err) {
       setMessage("Network error. Please try again.");
@@ -104,7 +103,8 @@ export default function Signin() {
             </div>
           </div>
 
-          {/* Password Input */}
+          {/* Password Input (Removed) */}
+          {/* 
           <div className="space-y-1.5 group">
             <div className="flex justify-between items-center ml-1">
               <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Password</label>
@@ -113,25 +113,10 @@ export default function Signin() {
               </Link>
             </div>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-4 pl-12 pr-12 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-orange-600 transition-colors"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+               ...
             </div>
-          </div>
+          </div> 
+          */}
 
           <motion.button
             whileHover={{ scale: 1.01 }}
@@ -158,8 +143,8 @@ export default function Signin() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               className={`text-center mt-6 text-[11px] font-bold tracking-tight py-3 px-4 rounded-xl ${message.includes("successful")
-                  ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20"
-                  : "bg-rose-50 text-rose-500 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20"
+                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20"
+                : "bg-rose-50 text-rose-500 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20"
                 }`}
             >
               {message}

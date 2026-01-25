@@ -28,20 +28,24 @@ export const useVendors = () => {
 
   // 🔹 Optimistic update mutation for vendor profile
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => updateVendor(id, data),
+    mutationFn: ({ data }) => updateVendor({ data }),
 
     // ⚙️ Optimistic update
-    onMutate: async ({ id, data }) => {
+    onMutate: async ({ data }) => {
       await queryClient.cancelQueries(["vendors"]);
 
       const previousVendors = queryClient.getQueryData(["vendors"]);
 
       // Update cached vendor data immediately
-      queryClient.setQueryData(["vendors"], (old) =>
-        old?.map((vendor) =>
-          vendor._id === id ? { ...vendor, ...data } : vendor
-        )
-      );
+      // Assuming 'vendors' is an array or object. If array:
+      if (Array.isArray(previousVendors)) {
+        queryClient.setQueryData(["vendors"], (old) =>
+          old?.map((vendor) => ({ ...vendor, ...data }))
+        );
+      } else {
+        // If single object
+        queryClient.setQueryData(["vendors"], (old) => ({ ...old, ...data }));
+      }
 
       return { previousVendors };
     },
@@ -68,7 +72,7 @@ export const useVendors = () => {
 
   // 🔹 Delete vendor profile
   const deleteMutation = useMutation({
-    mutationFn: (id) => deleteVendor(id),
+    mutationFn: () => deleteVendor(),
     onSuccess: () => {
       toast.success("🗑️ Vendor deleted successfully!");
       queryClient.invalidateQueries(["vendors"]);

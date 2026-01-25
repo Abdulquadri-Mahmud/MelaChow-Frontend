@@ -21,9 +21,7 @@ const LogoImage = () => (
 export default function VendorLoginPage() {
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const { baseUrl } = useApi();
@@ -48,7 +46,7 @@ export default function VendorLoginPage() {
           )}`
         );
       } else {
-        setMessage(res.data.message || "Invalid email or password.");
+        setMessage(res.data.message || "Invalid email.");
       }
     } catch (err) {
       setMessage(
@@ -77,7 +75,7 @@ export default function VendorLoginPage() {
             <h1 className="text-3xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none">
               Vendor <span className="text-orange-600">Login</span>
             </h1>
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+            <p className="text-sm font-bold uppercase tracking-widest text-zinc-400">
               Manage your store dashboard
             </p>
           </div>
@@ -98,35 +96,6 @@ export default function VendorLoginPage() {
                 required
                 className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-4 pl-12 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
               />
-            </div>
-          </div>
-
-          {/* Password Field */}
-          <div className="space-y-1.5 group">
-            <div className="flex justify-between items-center ml-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Password</label>
-              <Link href="/vendor/forgot-password" size="sm" className="text-[9px] font-black uppercase tracking-widest text-orange-600 hover:text-orange-700 transition">
-                Forgot?
-              </Link>
-            </div>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-4 pl-12 pr-12 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-orange-600 transition-colors"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
             </div>
           </div>
 

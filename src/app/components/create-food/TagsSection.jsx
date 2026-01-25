@@ -1,6 +1,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Tag, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Tag } from "lucide-react";
+import SectionHeader from "./SectionHeader";
 
 const SUGGESTED_TAGS = [
     "Popular",
@@ -46,31 +47,16 @@ export default function TagsSection({
     const removeTag = (t) => setTags(tags.filter((x) => x !== t));
 
     return (
-        <div className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <button
-                type="button"
-                onClick={toggleExpanded}
-                className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-pink-50 to-transparent dark:from-pink-900/10 rounded-xl hover:from-pink-100 dark:hover:from-pink-900/20 transition-colors"
-            >
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-pink-100 dark:bg-pink-500/10 rounded-lg text-pink-600">
-                        <Tag size={20} />
-                    </div>
-                    <div className="text-left">
-                        <h2 className="text-lg font-bold text-gray-800 dark:text-white">
-                            Tags (Optional)
-                        </h2>
-                        <p className="text-xs text-gray-500">
-                            {tags.length} tag{tags.length !== 1 ? "s" : ""} added
-                        </p>
-                    </div>
-                </div>
-                {expanded ? (
-                    <ChevronUp size={20} className="text-gray-400" />
-                ) : (
-                    <ChevronDown size={20} className="text-gray-400" />
-                )}
-            </button>
+        <div className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+            <SectionHeader
+                title="Tags"
+                subtitle={`${tags.length} tag${tags.length !== 1 ? "s" : ""} added`}
+                icon={Tag}
+                section="tags"
+                isExpanded={expanded}
+                onToggle={toggleExpanded}
+                accentColor="pink"
+            />
 
             <AnimatePresence>
                 {expanded && (

@@ -1,13 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
-import { Star, Flame, Clock, Truck, Store, Plus, MapPin } from "lucide-react";
+import { Flame, Clock, Truck, Store, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
 import axios from "axios";
 import { useApi } from "@/app/context/ApiContext";
-import { getVendorOpenAndCloseStatus as checkVendorStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
 export default function TrendingFoods({ user }) {
     const router = useRouter();
@@ -18,17 +17,13 @@ export default function TrendingFoods({ user }) {
     const { data: trendingFoods = [], isLoading, isError, error } = useQuery({
         queryKey: ["trendingFoods", defaultAddr?.city, defaultAddr?.state],
         queryFn: async () => {
-            const token = localStorage.getItem("userToken");
-
             // Using the user's location if available to get relevant trending foods
             const res = await axios.get(`${baseUrl}/user/trending`, {
                 params: {
                     city: defaultAddr?.city,
                     state: defaultAddr?.state,
                 },
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+                withCredentials: true, // ✅ Use cookie-based auth
             });
             return res?.data?.trending || [];
         },
@@ -37,105 +32,105 @@ export default function TrendingFoods({ user }) {
     });
 
     if (isLoading) return (
-        <div className="mt-4 px-3">
-            <div className="flex items-center gap-2 mb-3">
+        <div className="mt-8 px-4">
+            <div className="flex items-center gap-2 mb-4">
                 <Flame className="text-orange-600 fill-orange-600" size={20} />
-                <h2 className="text-lg font-bold text-gray-800 tracking-tight">Trending Near You</h2>
+                <h2 className="text-lg font-bold text-gray-900 tracking-tight">Trending Near You</h2>
             </div>
             <HomeFoodListSkeleton categories={1} itemsPerCategory={3} />
         </div>
     );
 
-    // If there's a location error, we handle it gracefully or show nothing if targeted at "Trending"
-    // but usually trending should show something even if location is off.
-    // We'll follow the pattern of the other components if the backend requires location.
-
     if (isError) {
-        const errorMsg = error?.response?.data?.message;
-        if (errorMsg === "Please provide both city and state query parameters.") {
-            return null; // Don't show trending if location is missing, let the main list handle the prompt
-        }
-        return null; // Silent fail for trending to keep UI clean
+        // Silent fail for trending or minimal logs
+        return null;
     }
+
+    // console.log(trendingFoods)
 
     if (trendingFoods.length === 0) return null;
 
     return (
-        <div className="mt-6 px-3">
-            <div className="flex items-center justify-between mb-3">
+        <div className="mt-8 px-0">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 mb-4">
                 <div className="flex items-center gap-2">
                     <div className="bg-orange-100 p-1.5 rounded-lg">
                         <Flame className="text-orange-600 fill-orange-600" size={18} />
                     </div>
-                    <h2 className="text-lg font-bold text-gray-800 tracking-tight">Trending Near You</h2>
+                    <h2 className="text-lg font-bold text-gray-900 tracking-tight">Trending Near You</h2>
                 </div>
                 <button
                     onClick={() => router.push('/trending-foods')}
-                    className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors"
+                    className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors bg-orange-50 px-3 py-1.5 rounded-full"
                 >
-                    See All
+                    View All
                 </button>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto scroll no-scrollbar snap-x snap-mandatory pb-4 scroll-smooth">
-                {trendingFoods.map((food) => {
-                    const hours = food?.restaurant?.openingHours || {};
-                    const status = checkVendorStatus(hours);
-                    const isOpen = status.startsWith("Open now");
+            {/* Horizontal Scroll List */}
+            <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+                {trendingFoods.map((food) => (
+                    <div
+                        key={food._id}
+                        onClick={() => router.push(`/food-details/${food._id}`)}
+                        className="group relative flex-none w-[250px] bg-white rounded-[24px] transition-all duration-300 cursor-pointer snap-start overflow-hidden"
+                    >
+                        {/* Image Container */}
+                        <div className="relative h-[140px] w-full bg-gray-100 overflow-hidden">
+                            <img
+                                src={food.image || "/placeholder.jpg"}
+                                alt={food.name}
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            />
 
-                    return (
-                        <div
-                            key={food._id}
-                            className="bg-white rounded-md min-w-[250px] cursor-pointer snap-start hover:shadow-lg transition flex flex-col h-full border border-gray-50"
-                            onClick={() => router.push(`/food-details/${food._id}`)}
-                        >
-                            {/* Image Section */}
-                            <div className="relative rounded-md overflow-hidden">
-                                <img
-                                    src={food.image || "/placeholder.jpg"}
-                                    alt={food.name}
-                                    className="w-full h-32 object-cover rounded-md"
-                                />
-                                <div className="absolute top-2 left-2 flex flex-col gap-2">
-                                    <span className={`${isOpen ? "bg-white/90 text-orange-600" : "bg-zinc-900/90 text-zinc-400"} text-[8px] font-black px-2 py-1 rounded shadow-lg uppercase tracking-widest backdrop-blur-md`}>
-                                        {isOpen ? "OPEN" : "CLOSED"}
-                                    </span>
-                                </div>
-                                <div className="absolute top-2 right-2 bg-white backdrop-blur-md text-orange-600 px-2 py-1 rounded text-[10px] font-bold shadow-sm border border-orange-100">
-                                    from | ₦{food.price?.toLocaleString()}
+                            {/* Price Badge */}
+                            <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2.5 rounded-xl">
+                                <span className="text-[10px] font-black text-gray-900 tracking-tighter">
+                                    ₦{Number(food.price).toLocaleString()}
+                                </span>
+                            </div>
+
+                            {/* Trending Badge (Rank) */}
+                            <div className="absolute top-3 left-3 bg-orange-500 text-white px-2 py-0.5 rounded-lg">
+                                <span className="text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                    <Flame size={8} fill="currentColor" /> HOT
+                                </span>
+                            </div>
+
+                            {/* Gradient Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60" />
+                        </div>
+
+                        {/* Content */}
+                        <div className="p-3">
+                            <div className="mb-2">
+                                <h3 className="font-bold text-gray-900 text-sm truncate leading-tight tracking-tight mb-0.5">{food.name}</h3>
+                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                    <Store size={10} className="text-orange-500" />
+                                    <span className="truncate max-w-[140px] font-medium opacity-80">{food?.restaurant?.storeName || "GrubDash Vendor"}</span>
                                 </div>
                             </div>
 
-                            {/* Details */}
-                            <div className="p-2 flex flex-col flex-1">
-                                <div className="flex justify-between items-start gap-2">
-                                    <h3 className="text-sm font-bold text-gray-800 truncate flex-1 uppercase tracking-tight">
-                                        {food.name}
-                                    </h3>
-                                    <div className="bg-orange-50 p-1.5 rounded-lg text-orange-500">
-                                        <Plus size={16} />
-                                    </div>
+                            {/* Footer Info */}
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                                <div className="flex items-center gap-1">
+                                    <Truck size={12} className="text-gray-400" />
+                                    <span className="text-[10px] font-bold text-gray-400">
+                                        ₦{food.deliveryFee || food?.restaurant?.deliveryFee || 0}
+                                    </span>
                                 </div>
 
-                                <div className="flex items-center gap-1 mt-1 text-[11px] text-gray-500">
-                                    <Store className="text-orange-500" size={12} />
-                                    <span className="truncate">{food?.restaurant?.storeName || "Vendor"}</span>
-                                </div>
-
-                                <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
-                                    <div className="flex items-center gap-1 text-[10px] font-bold text-gray-600">
-                                        <Truck size={12} className="text-orange-400" />
-                                        <span>from | ₦{food.deliveryFee || food?.restaurant?.deliveryFee || 0}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400">
-                                        <Clock size={12} className="text-orange-400" />
-                                        <span>{food?.estimatedDeliveryTime || "25"}m</span>
-                                    </div>
+                                <div className="flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-md">
+                                    <Clock size={10} className="text-orange-500" />
+                                    <span className="text-[9px] font-bold text-gray-700">
+                                        {food?.estimatedDeliveryTime || "25"}m
+                                    </span>
                                 </div>
                             </div>
                         </div>
-                    );
-                })}
+                    </div>
+                ))}
             </div>
         </div>
     );

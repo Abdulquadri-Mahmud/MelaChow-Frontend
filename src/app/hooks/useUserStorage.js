@@ -1,68 +1,59 @@
-import { useState, useEffect } from "react";
+import { useApi } from "../context/ApiContext";
+import { useProfile } from "../context/ProfileContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 /**
- * Hook for managing user data in localStorage.
- * Provides utilities to set, get, update, and clear user payload.
+ * Hook for managing user data via ProfileContext (Server-Sourced Identity).
+ * Replaces legacy localStorage implementation.
  */
 export const useUserStorage = () => {
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // ✅ hydration state
+  const { baseUrl } = useApi();
+  const { userProfile, isLoading, refetchProfile } = useProfile();
+  const queryClient = useQueryClient();
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("userPayload");
-
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
-    } catch (error) {
-      console.error("Failed to parse userPayload:", error);
-      localStorage.removeItem("userPayload");
-    } finally {
-      setIsLoading(false); // ✅ hydration completed
-    }
-  }, []);
-
-  // Save user data to localStorage
+  // Legacy compatibility: saveUser now optimistically updates the cache
   const saveUser = (payload) => {
-    localStorage.setItem("userPayload", JSON.stringify(payload));
-    setUser(payload);
+    // Normalize payload: if it contains 'user' property, unwrap it (e.g. from VerifyAccount)
+    const data = payload?.user || payload;
+    queryClient.setQueryData(["userProfile"], data);
   };
 
-  // Update specific fields of the stored user
+  // Update specific fields of the stored user (Optimistic)
   const updateUser = (updates) => {
-    setUser((prev) => {
+    queryClient.setQueryData(["userProfile"], (prev) => {
       if (!prev) return prev;
-
-      const updated = { ...prev, ...updates };
-      localStorage.setItem("userPayload", JSON.stringify(updated));
-      return updated;
+      return { ...prev, ...updates };
     });
   };
 
-  // Full logout: clear user + token + optional data
-  const logout = () => {
-    localStorage.removeItem("userPayload");
-    localStorage.removeItem("userToken");
-    localStorage.removeItem("cart");        // optional
+  // Full logout: clear user + optional data
+  const logout = async () => {
+    try {
+      await fetch(`${baseUrl}/user/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+
+    // Clear state
+    queryClient.setQueryData(["userProfile"], null);
+    localStorage.removeItem("cart");        // optional, keep client preferences
     localStorage.removeItem("addresses");   // optional
 
-    setUser(null);
+    // Invalidate to be sure
+    queryClient.invalidateQueries(["userProfile"]);
   };
 
-  // Clear only user payload
+  // Clear only user payload (client-side only clearance)
   const clearUser = () => {
-    localStorage.removeItem("userPayload");
-    localStorage.removeItem("userToken");
-    localStorage.removeItem("cart");        // optional
-    localStorage.removeItem("addresses");   // optional
-    setUser(null);
+    queryClient.setQueryData(["userProfile"], null);
   };
 
   return {
-    user,
-    isLoading, // ✅ expose loading state
+    user: userProfile,
+    isLoading,
     saveUser,
     updateUser,
     clearUser,

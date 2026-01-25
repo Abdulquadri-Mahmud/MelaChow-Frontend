@@ -1,51 +1,64 @@
 "use client";
 
-import Header2 from "@/app/components/App_Header/Header2";
-import AddToCartModal from "@/app/components/Cart/AddToCartModal";
-import { getVendorOpenStatus } from "@/app/lib/vendor-time/vendorTime";
-import FoodDetailsSkeleton from "@/app/skeleton/FoodDetailsSkeleton";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
+import axios from "axios";
+import Link from "next/link";
+import toast from 'react-hot-toast';
 import {
-  Utensils,
   Clock,
-  Tag,
-  Flame,
   ArrowLeft,
   Truck,
-  ChevronRight,
   Store,
+  Star,
+  Leaf,
+  AlertTriangle,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  Calendar
 } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
 import { TbCurrencyNaira } from "react-icons/tb";
-import axios from "axios";
+import { BiCartAdd } from "react-icons/bi";
+import { Utensils } from "lucide-react";
+
 import { useApi } from "@/app/context/ApiContext";
 import { useCart } from "@/app/context/CartContext";
-import Link from "next/link";
-import { BiCartAdd } from "react-icons/bi";
-import toast from 'react-hot-toast';
-
+import { getVendorOpenStatus } from "@/app/lib/vendor-time/vendorTime";
+import FoodDetailsSkeleton from "@/app/skeleton/FoodDetailsSkeleton";
+import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
 
 export default function FoodDetails() {
   const router = useRouter();
   const { foodId } = useParams();
-
   const { baseUrl } = useApi();
-
   const { addToCart, cart } = useCart();
 
+  // Data State
   const [food, setFood] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [isClient, setIsClient] = useState(false);
+
+  // UI State
   const [currentImage, setCurrentImage] = useState(0);
-  const [selectedFood, setSelectedFood] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [nutritionOpen, setNutritionOpen] = useState(false);
 
-  const dragRef = useRef(null);
-  const accent = "#FF6600";
+  // Modal State
+  const [modalDetails, setModalDetails] = useState({
+    isOpen: false,
+    variant: null,
+    portion: null
+  });
 
-  // ✅ Fetch food by ID
+  // Initialize Client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Fetch Food
   useEffect(() => {
     const fetchFood = async () => {
       try {
@@ -53,7 +66,8 @@ export default function FoodDetails() {
         const res = await axios.get(
           `${baseUrl}/vendors/foods/get-food?id=${foodId}`
         );
-        setFood(res?.data?.data);
+        const foodData = res?.data?.data;
+        setFood(foodData);
         setIsError(false);
       } catch (err) {
         console.error("❌ Failed to fetch food:", err);
@@ -64,97 +78,155 @@ export default function FoodDetails() {
     };
 
     if (foodId) fetchFood();
-  }, [foodId]);
+  }, [foodId, baseUrl]);
 
-  // ✅ Ensure this runs client-side
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
+  console.log(food);
 
-  const data = food;
-
-  // console.log(food);
-
-  const openingMessage = data?.vendor?.openingHours
-    ? getVendorOpenStatus(data.vendor.openingHours)
-    : "Opening hours not available.";
-
+  // Image Navigation
   const nextImage = () => {
-    if (!data?.images?.length) return;
-    setCurrentImage((prev) => (prev + 1) % data.images.length);
+    if (!food?.images?.length) return;
+    setCurrentImage((prev) => (prev + 1) % food.images.length);
   };
 
   const prevImage = () => {
-    if (!data?.images?.length) return;
+    if (!food?.images?.length) return;
     setCurrentImage((prev) =>
-      prev === 0 ? data.images.length - 1 : prev - 1
+      prev === 0 ? food.images.length - 1 : prev - 1
     );
   };
 
+  // Handlers
+  const openModal = (variant = null, portion = null) => {
+    setModalDetails({
+      isOpen: true,
+      variant,
+      portion
+    });
+  };
+
+  const closeModal = () => {
+    setModalDetails(prev => ({ ...prev, isOpen: false }));
+  };
+
+  const handleAddToCart = (payload) => {
+    addToCart(payload);
+    toast.success("Added to Order!");
+  };
+
   const handleViewVendor = () => {
-    if (data?.vendor?._id) {
-      router.push(`/view-vendor/${data.vendor._id}`);
+    if (food?.vendor?._id) {
+      router.push(`/view-vendor/${food.vendor._id}`);
     }
   };
 
-  const handleAddClick = (variant) => {
-    if (!variant) return;
 
-    // Build payload for AddToCartModal
-    const payload = {
-      // Basic identifiers
-      foodId: data._id,              // Main food ID
-      variantId: variant._id,        // Variant ID
-      restaurantId: data.vendor._id, // Vendor/restaurant ID
-      storeName: data?.vendor?.storeName, // Vendor/restaurant ID
-
-      // Names & pricing
-      name: data.name,               // Food name
-      variantName: variant.name,     // Variant name
-      price: variant.price || 0,     // Price
-      image: variant.image || data.images?.[0]?.url || "", // Variant or food image
-      quantity: 1,                   // Default quantity
-      notes: "",                     // Optional notes
-
-      // Vendor & delivery info
-      estimatedDeliveryTime: {
-        min: (data.estimatedDeliveryTime - 5) || 0,
-        max: data.estimatedDeliveryTime || 0,
-      },
-      deliveryFee: data.deliveryFee || 0,
-      deliveryType: data.vendor?.acceptsDelivery ? "Instant Delivery" : "Pickup",
-
-      // Dish metadata
-      metadata: {
-        portionSize: data.metadata?.portionSize || "N/A",
-        spiceLevel: data.metadata?.spiceLevel || "Not specified",
-        chefSpecial: data.metadata?.chefSpecial || false,
-      },
-
-      // Optional category/tags
-      category: data.category || "Uncategorized",
-      tags: data.tags || [],
+  // --- RENDER HELPERS ---
+  const renderSpicyLevel = (level) => {
+    if (!level) return null;
+    const config = {
+      mild: { color: "text-emerald-500", label: "Mild", icon: "🌱" },
+      medium: { color: "text-yellow-500", label: "Medium", icon: "🌶️" },
+      hot: { color: "text-orange-500", label: "Hot", icon: "🔥" },
+      "extra-hot": { color: "text-red-500", label: "Extra Hot", icon: "💥" },
     };
-
-    setSelectedFood(payload);
-    setIsModalOpen(true);
+    const c = config[level] || config.medium;
+    return (
+      <div className={`flex items-center gap-1 text-xs font-bold ${c.color} bg-white px-2 py-1 rounded-md border border-slate-100`}>
+        <span>{c.icon}</span>
+        <span>{c.label} Spiciness</span>
+      </div>
+    );
   };
 
-  const handleAddToCart = (item) => {
-    addToCart(item); // ✅ Add to global 
-    // console.log(item)
-    // toast.success("🛒 Added to cart:", item)
+  const renderDietaryInfo = (info) => {
+    if (!info) return null;
+    const config = {
+      vegetarian: { label: "Vegetarian", icon: "🥗" },
+      vegan: { label: "Vegan", icon: "🌱" },
+      "contains-meat": { label: "Contains Meat", icon: "🍖" },
+      halal: { label: "Halal", icon: "☪️" },
+      keto: { label: "Keto", icon: "🥑" },
+      "low-carb": { label: "Low Carb", icon: "🥦" },
+    };
+    const c = config[info] || { label: info, icon: "Leaf" };
+    return (
+      <div className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md border border-green-100">
+        <span>{c.icon === "Leaf" ? <Leaf size={12} /> : c.icon}</span>
+        <span>{c.label}</span>
+      </div>
+    );
   };
 
-  if (!isClient) return <div className="min-h-screen bg-white">Loading...</div>;
+  const getDiscountedPrice = (price) => {
+    if (!food?.discount?.active) return null;
+    if (food.discount.expiresAt && new Date(food.discount.expiresAt) < new Date()) return null;
+
+    let finalPrice = Number(price);
+    if (food.discount.flatAmount > 0) {
+      finalPrice = Math.max(0, finalPrice - Number(food.discount.flatAmount));
+    } else if (food.discount.percentage > 0) {
+      finalPrice = Math.max(0, finalPrice - (finalPrice * (Number(food.discount.percentage) / 100)));
+    } else {
+      return null;
+    }
+
+    return finalPrice;
+  };
+
+  const checkAvailability = () => {
+    if (!food) return { available: false, reason: "Loading..." };
+
+    // 1. Manual switch
+    if (food.available === false) {
+      return { available: false, reason: "Currently Unavailable" };
+    }
+
+    // 2. Global Stock
+    if (food.stock !== null && food.stock !== undefined && Number(food.stock) <= 0) {
+      return { available: false, reason: "Sold Out" };
+    }
+
+    // 3. Schedule
+    if (food.availabilitySchedule?.enabled) {
+      const now = new Date();
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const currentDay = days[now.getDay()];
+
+      if (!food.availabilitySchedule.days.includes(currentDay)) {
+        return { available: false, reason: "Not Available Today" };
+      }
+
+      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const [startH, startM] = food.availabilitySchedule.startTime.split(':').map(Number);
+      const [endH, endM] = food.availabilitySchedule.endTime.split(':').map(Number);
+      const startMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+
+      if (currentMinutes < startMinutes || currentMinutes >= endMinutes) {
+        return { available: false, reason: `Order between ${food.availabilitySchedule.startTime} - ${food.availabilitySchedule.endTime}` };
+      }
+    }
+
+    return { available: true };
+  };
+
+
+  if (!isClient) return <div className="min-h-screen bg-white"></div>;
 
   const totalItems = cart.length;
+  const openingMessage = food?.vendor?.openingHours
+    ? getVendorOpenStatus(food.vendor.openingHours)
+    : "Opening hours not available.";
+
+  const itemAvailability = checkAvailability();
+
+  // Calculate display price (base)
+  const basePrice = Number(food?.price) || 0;
+  const discountedBasePrice = getDiscountedPrice(basePrice);
 
   return (
     <>
-
-      {/* <Header2 title={data?.category || "Food Details"}/> */}
-      {/* 🧭 Custom Header */}
+      {/* 🧭 Header */}
       <header className="flex items-center justify-between px-4 py-4 bg-white/80 backdrop-blur-xl sticky top-0 z-50 border-b border-gray-50">
         <div className="flex items-center gap-3">
           <button
@@ -168,13 +240,13 @@ export default function FoodDetails() {
           <div>
             <h1 className="text-[10px] font-semibold text-orange-600 uppercase tracking-[0.2em]">Restaurant</h1>
             <h2 className="text-sm font-bold text-gray-900 line-clamp-1 italic uppercase tracking-tighter">
-              {data?.vendor?.storeName || "Food Details"}
+              {food?.vendor?.storeName || "Food Details"}
             </h2>
           </div>
         </div>
 
         <Link href={'/orders?activeTab=cart'}>
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-gray-900 p-2.5 rounded-2xl shadow-lg shadow-gray-200">
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-gray-900 p-2.5 rounded-2xl">
             <BiCartAdd className="text-white" size={24} />
             {totalItems > 0 && (
               <span className="absolute -top-1.5 -right-1.5 bg-orange-500 ring-4 ring-white text-white text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-black">
@@ -185,7 +257,7 @@ export default function FoodDetails() {
         </Link>
       </header>
 
-      <div className="max-w-4xl mx-auto pb-24">
+      <div className="max-w-4xl mx-auto pb-20">
         {isLoading ? (
           <div className="p-4"><FoodDetailsSkeleton /></div>
         ) : isError ? (
@@ -195,183 +267,316 @@ export default function FoodDetails() {
               <button onClick={() => window.location.reload()} className="mt-4 text-sm underline font-black">Try Again</button>
             </div>
           </div>
-        ) : data ? (
-          <div className="space-y-3">
+        ) : food ? (
+          <div className="space-y-6">
+
             {/* Main Info Card */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-3 pt-3">
               <div className="bg-white rounded-[40px] border border-gray-100 overflow-hidden">
                 {/* Image Section */}
                 <div className="relative w-full bg-gray-100 p-2">
-                  <div className="w-full h-[200px] rounded-[32px] overflow-hidden relative shadow-inner">
-                    {data?.images?.length > 1 ? (
+                  <div className="w-full h-[250px] md:h-[300px] rounded-[32px] overflow-hidden relative">
+                    {food?.images?.length > 1 ? (
                       <>
                         <motion.img
                           key={currentImage}
-                          src={data.images[currentImage]?.url}
-                          alt={data?.name}
+                          src={food.images[currentImage]?.url || food.images[currentImage]}
+                          alt={food?.name}
                           className="w-full h-full object-cover"
                           initial={{ opacity: 0, scale: 1.1 }}
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ duration: 0.6 }}
                         />
-
-                        {/* Image Navigation */}
                         <div className="absolute inset-0 flex justify-between items-center px-4">
-                          <button onClick={prevImage} className="bg-white/20 backdrop-blur-md text-white w-10 h-10 rounded-2xl flex items-center justify-center border border-white/20 hover:bg-white/40 transition-colors">‹</button>
-                          <button onClick={nextImage} className="bg-white/20 backdrop-blur-md text-white w-10 h-10 rounded-2xl flex items-center justify-center border border-white/20 hover:bg-white/40 transition-colors">›</button>
+                          <button onClick={prevImage} className="bg-black/20 backdrop-blur-md text-white w-10 h-10 rounded-2xl flex items-center justify-center hover:bg-black/40 transition-colors">‹</button>
+                          <button onClick={nextImage} className="bg-black/20 backdrop-blur-md text-white w-10 h-10 rounded-2xl flex items-center justify-center hover:bg-black/40 transition-colors">›</button>
                         </div>
-
-                        {/* Progress Dots */}
                         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
-                          {data.images.map((_, i) => (
+                          {food.images.map((_, i) => (
                             <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === currentImage ? "w-6 bg-orange-500" : "w-1.5 bg-white/40"}`} />
                           ))}
                         </div>
                       </>
                     ) : (
-                      <img src={data?.images?.[0]?.url || "/placeholder.jpg"} alt={data?.name} className="w-full h-full object-cover" />
+                      <img src={food?.images?.[0]?.url || food?.images?.[0] || "/placeholder.jpg"} alt={food?.name} className="w-full h-full object-cover" />
                     )}
 
-                    {/* Floating Badges */}
-                    <div className="absolute top-3 left-3 pr-6 flex justify-between w-full gap-2">
-                      <div className="bg-orange-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full shadow-lg uppercase tracking-widest">{data.category}</div>
-                        {data.metadata?.chefSpecial && (
-                          <div className="bg-white/95 backdrop-blur-md text-gray-900 text-[10px] font-semibold px-3 py-1 rounded-full shadow-lg uppercase tracking-widest border border-gray-100">👨‍🍳 Chef Special</div>
-                        )}
+                    <div className="absolute top-3 left-3 pr-6 flex flex-wrap gap-2">
+                      <div className="bg-orange-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest">{food.category}</div>
+                      {food.foodType && (
+                        <div className={`text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-white/20 backdrop-blur-md ${food.foodType === 'veg' ? 'bg-green-500 text-white' :
+                          food.foodType === 'non-veg' ? 'bg-red-500 text-white' : 'bg-gray-800 text-white'
+                          }`}>
+                          {food.foodType === 'veg' ? 'Veg 🟢' : food.foodType === 'non-veg' ? 'Non-Veg 🔴' : food.foodType}
+                        </div>
+                      )}
+                      {food.metadata?.chefSpecial && (
+                        <div className="bg-white/95 backdrop-blur-md text-gray-900 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-gray-100">👨‍🍳 Chef Special</div>
+                      )}
+                      {!itemAvailability.available && (
+                        <div className="bg-black/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-white/20">
+                          items: {itemAvailability.reason}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 {/* Text Content */}
-                <div className="p-2">
-                  <div className="flex justify-between items-start gap-4">
-                    <h3 className="text-xl font-bold text-gray-700 leading-tight tracking-tight uppercase">
-                      {data?.name}
-                    </h3>
-                  </div>
-
-                  <p className="text-gray-500 text-sm leading-relaxed mt-2 italic font-medium">
-                    "{data?.description || "A masterfully crafted dish prepared with the finest ingredients and a touch of passion."}"
+                <div className="md:p-5 p-3">
+                  <h3 className="text-2xl font-bold text-gray-800 leading-tight tracking-tight uppercase mb-2">
+                    {food?.name}
+                  </h3>
+                  <p className="text-gray-500 text-sm leading-relaxed italic font-medium">
+                    "{food?.description || "A masterfully crafted dish prepared with the finest ingredients."}"
                   </p>
 
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    {renderSpicyLevel(food.metadata?.spiceLevel)}
+                    {renderDietaryInfo(food.metadata?.dietaryInfo)}
+                    {food.metadata?.allergens?.length > 0 && (
+                      food.metadata.allergens.map((alg, i) => (
+                        <div key={i} className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md border border-rose-100">
+                          <AlertTriangle size={12} />
+                          {typeof alg === 'string' ? alg : alg.label}
+                        </div>
+                      ))
+                    )}
+                    <div className="flex items-center gap-1 text-xs font-bold text-amber-500 bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
+                      <Star size={12} fill="currentColor" />
+                      4.8 (120+)
+                    </div>
+                  </div>
+
                   {/* Quick Stats */}
-                  <div className="grid grid-cols-3 gap-4 mt-3 py-3 border-y border-gray-50">
-                    <div className="space-y-1">
-                      <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">Estimated</p>
-                      <div className="flex items-center gap-1.5 text-gray-900">
-                        <Clock size={14} className="text-orange-500" />
-                        <span className="text-sm font-semibold">{data?.estimatedDeliveryTime || 25} MINS</span>
+                  <div className="grid grid-cols-2 gap-4 mt-6 py-4 border-t border-gray-50">
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-orange-50 rounded-xl text-orange-500"><Clock size={16} /></div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Time</p>
+                        <p className="text-sm font-bold text-gray-900">{food?.prepTime ? `${food.prepTime} MIN` : `${food?.estimatedDeliveryTime || 25} MIN`}</p>
                       </div>
                     </div>
-                    <div className="space-y-1 border-x border-gray-50 px-4">
-                      <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">Delivery</p>
-                      <div className="flex items-center gap-1.5 text-gray-900">
-                        <TbCurrencyNaira size={18} className="text-orange-500" />
-                        <span className="text-sm font-semibold">{data?.deliveryFee || 0}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-1 pl-4">
-                      <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest">Spice</p>
-                      <div className="flex items-center gap-1.5 text-gray-900">
-                        <Flame size={14} className="text-orange-500" />
-                        <span className="text-sm font-semibold uppercase">{data.metadata?.spiceLevel || 'Mild'}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-orange-50 rounded-xl text-orange-500"><Truck size={16} /></div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Delivery</p>
+                        <p className="text-sm font-bold text-gray-900">₦{food?.deliveryFee || 0}</p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Tags */}
-                  {data?.tags?.length > 0 && (
-                    <div className="pb-2 flex flex-wrap gap-2 mt-3">
-                      {data.tags.map((tag, i) => (
-                        <span key={i} className="text-[9px] font-semibold text-gray-400 border border-gray-100 px-3 py-1 rounded-full uppercase tracking-widest group-hover:border-orange-200 group-hover:text-orange-600 transition-colors">#{tag}</span>
-                      ))}
+                  {/* Discount Banner */}
+                  {discountedBasePrice !== null && (
+                    <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3">
+                      <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg">
+                        {food.discount.percentage > 0 ? `-${food.discount.percentage}% OFF` : `₦${food.discount.flatAmount} OFF`}
+                      </div>
+                      <p className="text-xs text-red-600 font-medium">
+                        Discount applied! Ends {new Date(food.discount.expiresAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Nutrition Info (Collapsible) */}
+                  {food.nutrition && Object.values(food.nutrition).some(v => v) && (
+                    <div className="mt-4 border border-gray-100 rounded-2xl overflow-hidden">
+                      <button
+                        onClick={() => setNutritionOpen(!nutritionOpen)}
+                        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Info size={16} className="text-gray-400" />
+                          <span className="text-xs font-bold text-gray-700 uppercase tracking-widest">Nutrition Info</span>
+                        </div>
+                        {nutritionOpen ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+                      </button>
+                      <AnimatePresence>
+                        {nutritionOpen && (
+                          <motion.div
+                            initial={{ height: 0 }}
+                            animate={{ height: "auto" }}
+                            exit={{ height: 0 }}
+                            className="bg-white"
+                          >
+                            <div className="p-4 grid grid-cols-3 gap-4">
+                              {Object.entries(food.nutrition).map(([key, val]) => val && (
+                                <div key={key} className="text-center">
+                                  <div className="text-[10px] text-gray-400 uppercase font-bold">{key}</div>
+                                  <div className="text-sm font-bold text-gray-900">{val}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   )}
                 </div>
               </div>
             </motion.div>
 
+
+            {/* AVAILABLE OPTIONS SELECTION */}
+            <div className="px-4 space-y-4">
+
+              {/* If no variants and no portions, use Base Item */}
+              {(!food.variants?.length && !food.portions?.length) && (
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => openModal(null, null)}
+                  className="bg-white rounded-[24px] p-4 flex items-center justify-between border border-gray-100 cursor-pointer group"
+                >
+                  <div>
+                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Standard Portion</p>
+                    <div className="flex items-center gap-2">
+                      {discountedBasePrice !== null ? (
+                        <>
+                          <p className="text-lg font-bold text-orange-600">₦{discountedBasePrice.toLocaleString()}</p>
+                          <p className="text-xs font-bold text-gray-400 line-through">₦{Number(food.price).toLocaleString()}</p>
+                        </>
+                      ) : (
+                        <p className="text-lg font-bold text-gray-900">₦{Number(food.price).toLocaleString()}</p>
+                      )}
+                    </div>
+                  </div>
+                  {(!itemAvailability.available) ? (
+                    <button disabled className="px-4 py-2 rounded-full bg-gray-100 text-gray-400 text-xs font-bold uppercase cursor-not-allowed">
+                      {itemAvailability.reason}
+                    </button>
+                  ) : (
+                    <button className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center group-hover:bg-orange-600 transition-colors">
+                      <Plus size={24} />
+                    </button>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Variants Grid */}
+              {food.variants?.length > 0 && (
+                <>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
+                    <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight">Select Variant</h3>
+                  </div>
+                  <div className="grid gap-3">
+                    {food.variants.map((variant, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="bg-white rounded-[24px] p-3 border border-gray-100 flex items-center gap-4 overflow-hidden"
+                      >
+                        {/* Variant Image */}
+                        <div className="w-20 h-20 shrink-0 bg-gray-100 rounded-2xl overflow-hidden">
+                          <img
+                            src={variant.image || variant.images?.[0]?.url || "/placeholder.jpg"}
+                            alt={variant.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-gray-900 truncate">{variant.name}</h4>
+                          <p className="text-xs text-gray-500 line-clamp-1 italic">{variant.description || "Tasty variant"}</p>
+                          <p className="text-sm font-bold text-orange-600 mt-1">₦{Number(variant.price).toLocaleString()}</p>
+                        </div>
+
+                        {/* Add Button */}
+                        {(() => {
+                          const isVariantStockOut = variant.stock !== null && variant.stock !== undefined && Number(variant.stock) <= 0;
+                          const showPrice = isVariantStockOut ? "Sold Out" : `₦${Number(variant.price).toLocaleString()}`;
+
+                          return (
+                            <button
+                              onClick={() => !isVariantStockOut && itemAvailability.available && openModal(variant, null)}
+                              disabled={isVariantStockOut || !itemAvailability.available}
+                              className={`w-auto px-4 py-2 shrink-0 rounded-xl flex items-center justify-center transition-all font-bold text-xs ${isVariantStockOut || !itemAvailability.available
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                : "bg-gray-900 text-white active:scale-95"
+                                }`}
+                            >
+                              {isVariantStockOut ? "Sold Out" : !itemAvailability.available ? "Unavail" : <Plus size={20} />}
+                            </button>
+                          );
+                        })()}
+                      </motion.div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Portions List (If Valid) */}
+              {food.portions?.length > 0 && (
+                <>
+                  <div className="flex items-center gap-2 mb-2 mt-4">
+                    <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
+                    <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight">Select Portion</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {food.portions.map((portion, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        onClick={() => openModal(null, portion)}
+                        className="bg-white rounded-[20px] p-4 flex items-center justify-between border border-gray-100 cursor-pointer group hover:border-orange-200 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 text-xs font-bold">
+                            {portion.label.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <span className="font-bold text-gray-900">{portion.label}</span>
+                            <div className="text-xs text-gray-400 font-medium">Portion Size</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold text-gray-900">₦{Number(portion.price).toLocaleString()}</span>
+                          <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-gray-900 group-hover:text-white transition-colors flex items-center justify-center">
+                            <Plus size={16} />
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+            </div>
+
             {/* Vendor Status Info */}
-            <div className="px-2">
-              <motion.div onClick={handleViewVendor} whileHover={{ x: 5 }} className="bg-gray-900 rounded-[32px] p-3 flex justify-between items-center cursor-pointer shadow-xl shadow-gray-200">
+            <div className="px-4 pb-4">
+              <motion.div onClick={handleViewVendor} whileHover={{ scale: 1.01 }} className="bg-gray-900/5 dark:bg-gray-800 rounded-[24px] p-4 flex justify-between items-center cursor-pointer border border-gray-900/5">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white">
-                    <Store size={20} />
+                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-900">
+                    <Store size={18} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold text-orange-400 uppercase tracking-widest">Provided by</p>
-                    <h4 className="text-white font-bold tracking-tight italic uppercase">{data?.vendor?.storeName}</h4>
+                    <h4 className="text-gray-900 font-bold text-sm tracking-tight uppercase">{food?.vendor?.storeName}</h4>
+                    <p className={`text-[10px] font-bold ${openingMessage.includes('Open now') ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      {openingMessage}
+                    </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`text-[10px] font-semibold px-3 py-1 rounded-full border shadow-sm ${openingMessage.includes('Open now') ? 'border-emerald-500/50 text-emerald-400' : 'border-rose-500/50 text-rose-400'}`}>
-                    {openingMessage}
-                  </p>
-                </div>
+                <ArrowLeft size={16} className="rotate-180 text-gray-400" />
               </motion.div>
             </div>
 
-            {/* Selection Section */}
-            <div className="px-2 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-1.5 h-6 bg-gray-900 rounded-full"></div>
-                <h3 className="text-xl font-semibold text-gray-900 tracking-tight uppercase">Select Options</h3>
-              </div>
-
-              {data?.variants?.length > 0 ? (
-                <div className="grid gap-4">
-                  {data.variants.map((variant, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                      className="group bg-white border border-gray-100 rounded-[32px] p-2 flex items-center justify-between hover:shadow-2xl hover:shadow-gray-100 transition-all duration-500"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="relative w-16 h-16 rounded-[16px] overflow-hidden bg-gray-50 flex-shrink-0">
-                          {variant.image ? (
-                            <img src={variant.image} alt={variant.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-300"><Utensils size={32} /></div>
-                          )}
-                          <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        </div>
-
-                        <div>
-                          <h4 className="font-semibold text-gray-900  text-sm">{variant.name}</h4>
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-1 italic font-medium">{variant.description || "A premium variant crafted for your satisfaction."}</p>
-                          <div className="flex items-center gap-2 mt-3">
-                            <span className="font-bold text-gray-900 tabular-nums">₦{variant.price?.toLocaleString()}</span>
-                            <span className="text-[10px] font-semibold text-orange-500 bg-orange-50 px-2.5 py-0.5 rounded-lg uppercase tracking-tighter">Verified Price</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => handleAddClick(variant)}
-                        className="w-10 h-10 rounded-[20px] bg-gray-900 text-white flex items-center justify-center hover:bg-orange-600 active:scale-90 transition-all shadow-lg shadow-gray-200"
-                      >
-                        <BiCartAdd size={20} />
-                      </button>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-[40px] border border-dashed border-gray-200 mx-4">
-                  <p className="text-gray-400 font-bold uppercase tracking-widest text-xs">No variations available for this dish</p>
-                </div>
-              )}
-            </div>
           </div>
         ) : null}
       </div>
 
-      <AddToCartModal
-        food={selectedFood}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+      <FoodCustomizationModal
+        food={food}
+        isOpen={modalDetails.isOpen}
+        onClose={closeModal}
         onAdd={handleAddToCart}
+        initialVariant={modalDetails.variant}
+        initialPortion={modalDetails.portion}
       />
     </>
   );

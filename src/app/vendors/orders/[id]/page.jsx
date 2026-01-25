@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,7 +29,7 @@ export default function VendorOrderDetailsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
     const [showSuccessToast, setShowSuccessToast] = useState(false);
-    const { vendorDetails } = useVendorStorage();
+    // const { vendorDetails } = useVendorStorage(); // Unused if we don't need ID
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -54,7 +53,7 @@ export default function VendorOrderDetailsPage() {
     const handleStatusUpdate = async (newStatus) => {
         try {
             setIsUpdating(true);
-            await updateOrderStatus(order.userOrderId.orderId, newStatus);
+            await updateOrderStatus(id, newStatus);
             // Refresh order data
             const res = await getVendorOrderById(id);
             const data = res.data || res;

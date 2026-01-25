@@ -1,44 +1,63 @@
-"use client";
-
-import { useState, useEffect } from "react";
+import { useVendors } from "./useVendorQueries";
+import { useApi } from "../context/ApiContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 /**
- * Hook for managing Vendor data in localStorage.
- * Provides utilities to set, get, update, and clear vendor payload.
+ * Hook for managing Vendor data via useVendors (Server-Sourced Identity).
+ * Replaces legacy localStorage implementation.
  */
 export const useVendorStorage = () => {
-  const STORAGE_KEY = "VendorPayload"; // consistent key name
+  const { vendors: vendorData, isLoading } = useVendors(); // 'vendors' is the single vendor profile
+  const queryClient = useQueryClient();
 
-  const [vendorDetails, setVendor] = useState(null);
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const storedVendor = localStorage.getItem(STORAGE_KEY);
-    if (storedVendor) {
-      setVendor(JSON.parse(storedVendor));
-    }
-  }, []);
-
-  // Save vendor data
+  // Legacy: optimistically update cache
   const saveVendor = (payload) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-    setVendor(payload);
+    // If payload has nested structure (e.g. from VerifyAccount), normalize it
+    // But VerifyAccount sends { vendor: { id, slug } }.
+    // If the API returns full vendor, we might want to be careful not to overwrite with partial data if we can avoid it.
+    // Ideally, we refetch.
+    queryClient.setQueryData(["vendors"], payload?.vendor || payload);
+    queryClient.invalidateQueries(["vendors"]);
   };
 
   // Update specific fields
   const updateVendor = (updates) => {
-    setVendor((prev) => {
-      const updated = { ...prev, ...updates };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      return updated;
+    queryClient.setQueryData(["vendors"], (prev) => {
+      if (!prev) return prev;
+      return { ...prev, ...updates };
     });
   };
 
   // Clear vendor data
   const clearVendor = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    setVendor(null);
+    queryClient.setQueryData(["vendors"], null);
   };
 
-  return { vendorDetails, saveVendor, updateVendor, clearVendor };
+  // Ensure legacy structure { vendor: ... } for dashboard compatibility
+  // Normalize: If vendorData has a 'data' property (API response wrapper), use it.
+  const actualVendor = vendorData?.data || vendorData;
+  const vendorDetails = actualVendor ? { vendor: actualVendor } : null;
+  const { baseUrl } = useApi();
+
+  const logout = async () => {
+    try {
+      await fetch(`${baseUrl}/vendor/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+    queryClient.setQueryData(["vendors"], null);
+    queryClient.invalidateQueries(["vendors"]);
+  };
+
+  return {
+    vendorDetails,
+    isLoading,
+    saveVendor,
+    updateVendor,
+    clearVendor,
+    logout
+  };
 };
