@@ -23,6 +23,7 @@ function OrdersContent() {
   const { baseUrl } = useApi();
   const [activeTab, setActiveTab] = useState(initialTab);
 
+  console.log(cart);
   const fetchUserOrders = async () => {
     if (!user) return { orders: [] };
     const res = await axios.get(`${baseUrl}/orders/my-orders`, {

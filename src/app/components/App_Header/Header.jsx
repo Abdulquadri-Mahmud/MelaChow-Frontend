@@ -93,7 +93,7 @@ export default function Header() {
               </motion.div>
             </Link>
           ) : (
-            <Link href="/user-auth/login">
+            <Link href="/auth/signin">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

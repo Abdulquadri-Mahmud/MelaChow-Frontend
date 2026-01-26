@@ -5,10 +5,12 @@ import { MapPin, ChevronDown, ShoppingBag } from "lucide-react";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
+import { useRouter } from "next/navigation";
 
 export default function HomeHeader() {
   const { user, isLoading } = useUserStorage();
   const { cart } = useCart();
+  const router = useRouter();
   const totalItems = cart.length;
   const [greeting, setGreeting] = useState("Hello");
 
@@ -20,6 +22,17 @@ export default function HomeHeader() {
   }, []);
 
   const defaultAddress = user?.addresses?.find(addr => addr.isDefault);
+
+  const handleLocationClick = () => {
+    // Check if user is authenticated (has user data)
+    if (user) {
+      // User is authenticated, redirect to address location page
+      router.push('/address-location');
+    } else {
+      // User is not authenticated (cookies expired or never logged in), redirect to login
+      router.push('/auth/signin');
+    }
+  };
 
   return (
     <motion.header
@@ -37,7 +50,10 @@ export default function HomeHeader() {
           <span className="text-lg">👋</span>
         </div>
 
-        <div className="flex items-center gap-1 cursor-pointer group">
+        <div
+          onClick={handleLocationClick}
+          className="flex items-center gap-1 cursor-pointer group"
+        >
           <span className="text-sm font-black text-gray-800 dark:text-gray-100 truncate max-w-[200px]">
             {defaultAddress
               ? `${defaultAddress.city}, ${defaultAddress.state}`

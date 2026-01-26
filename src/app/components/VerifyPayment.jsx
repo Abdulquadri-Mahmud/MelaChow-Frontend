@@ -2,58 +2,66 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
-import { useUserStorage } from "../hooks/useUserStorage";
-import axios from "axios";
-import { useApi } from "../context/ApiContext";
-import toast, { Toaster } from "react-hot-toast";
+import { verifyPaymentV2 } from "../lib/orderService";
+import toast from "react-hot-toast";
 import Header2 from "./App_Header/Header2";
 
 export default function VerifyPayment() {
   const searchParams = useSearchParams();
   const [status, setStatus] = useState("verifying");
   const [order, setOrder] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const { user } = useUserStorage();
   const router = useRouter();
-  const { baseUrl } = useApi();
 
   const reference = searchParams.get("reference");
   const didVerify = useRef(false);
 
   useEffect(() => {
-    if (!reference || !user?.token || didVerify.current) return;
+    // Prevent double verification
+    if (!reference || didVerify.current) return;
     didVerify.current = true;
 
     const verifyPayment = async () => {
       try {
-        const res = await axios.post(
-          `${baseUrl}/orders/verify/${reference}`,
-          {},
-          { headers: { Authorization: `Bearer ${user?.token}` } }
-        );
+        // Use V2 API with cookie-based authentication
+        const res = await verifyPaymentV2(reference);
 
-        console.log(res);
+        console.log("V2 Payment Verification Response:", res);
 
-        if (!res.data.order) {
+        // Check if order was created successfully
+        if (!res.order) {
           setStatus("failed");
+          setErrorMessage("Payment verified but order was not created.");
           toast.error("Payment verified but order was not created.");
           return;
         }
 
-        setOrder(res.data.order);
+        // Set order data and success status
+        setOrder(res.order);
         setStatus("success");
-        toast.success(res.data.message || "Payment verified successfully!");
+        toast.success(res.message || "Payment verified successfully!");
       } catch (error) {
         console.error("Verification error:", error);
         setStatus("failed");
-        toast.error(
-          error.response?.data?.message || "Something went wrong during verification"
-        );
+
+        let msg = "Something went wrong while verifying your payment.";
+
+        // Handle specific Business Logic Failures (e.g. Insufficient Funds)
+        if (error.code === "PAYMENT_FAILED") {
+          msg = error.message; // "Payment not successful" or detailed msg
+          // We could also access error.failedOrder here if we wanted to show the ID
+        } else if (error.message) {
+          msg = error.message;
+        }
+
+        setErrorMessage(msg);
+        toast.error(msg);
       }
     };
 
     verifyPayment();
-  }, [reference, user?.token, baseUrl]);
+  }, [reference]);
 
   // console.log(order)
 
@@ -86,7 +94,7 @@ export default function VerifyPayment() {
           </div>
           <h2 className="text-xl font-semibold text-gray-800">Payment Failed</h2>
           <p className="text-gray-600 mt-2">
-            Something went wrong while verifying your payment.
+            {errorMessage || "Payment failed. Please try again."}
           </p>
           <button
             onClick={() => router.push("/checkout")}
@@ -103,7 +111,7 @@ export default function VerifyPayment() {
   if (status === "success" && order) {
     return (
       <div className="">
-        <Header2/>
+        <Header2 />
         <div className=" pb-20 bg-white flex items-center justify-center md:px-4 p-2 md:py-6">
           <div className="bg-white border rounded-2xl md:p-6 p-2 max-w-md w-full text-center animate-fadeIn">
             <div className="flex justify-center mb-4">
@@ -177,7 +185,7 @@ export default function VerifyPayment() {
               View Orders
             </button>
           </div>
-      </div>
+        </div>
       </div>
     );
   }

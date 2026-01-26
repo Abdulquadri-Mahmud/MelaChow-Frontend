@@ -26,7 +26,7 @@ export default function GlobalLogoutHandler() {
             logoutUser();
             // Only redirect to user login if we are NOT in admin or vendor context
             if (!pathname.includes("/auth") && !pathname.startsWith("/admin") && !pathname.startsWith("/vendors")) {
-                router.push("/user-auth/login");
+                router.push("/auth/signin");
                 toast.error("Session expired. Please login again.");
             }
         };
@@ -79,7 +79,7 @@ export default function GlobalLogoutHandler() {
             logoutUser();
             loggedOut = true;
             if (!pathname.startsWith("/vendors") && !pathname.startsWith("/admin")) {
-                router.push("/user-auth/login");
+                router.push("/auth/signin");
             }
         }
 

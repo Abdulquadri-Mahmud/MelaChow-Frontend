@@ -244,10 +244,10 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, i
                         animate={{ translateY: "0%", opacity: 1 }}
                         exit={{ translateY: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="relative w-full max-w-lg bg-zinc-50 dark:bg-[#0B1121] rounded-tl-[2rem] rounded-tr-[2rem] overflow-hidden flex flex-col max-h-[90vh]"
+                        className="relative w-full max-w-lg bg-zinc-50 dark:bg-[#0B1121] rounded-tl-[2rem] rounded-tr-[2rem] overflow-hidden flex flex-col max-h-[95vh]"
                     >
                         {/* Header Image */}
-                        <div className="relative h-[250px] w-full shrink-0">
+                        <div className="relative h-[220px] w-full shrink-0">
                             <img
                                 src={
                                     activeItem.image ||
@@ -271,6 +271,40 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, i
                                 <p className="text-white/90 text-sm font-medium mt-1">
                                     Base Price: ₦{basePrice.toLocaleString()}
                                 </p>
+                            </div>
+                        </div>
+
+                        {/* Sticky Quantity Controls - Positioned below header */}
+                        <div className="sticky top-0 z-30 bg-white dark:bg-[#0B1121] border-b border-zinc-200 dark:border-zinc-800 shadow-sm">
+                            <div className="flex items-center justify-between px-4 py-3">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                                        Order Quantity
+                                    </span>
+                                    <span className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                                        {quantity} {quantity === 1 ? 'item' : 'items'}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1.5 border border-zinc-200 dark:border-zinc-800">
+                                    <button
+                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                        className="w-9 h-9 rounded-lg border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-zinc-800 active:scale-95 transition-all"
+                                    >
+                                        <Minus size={16} strokeWidth={2.5} />
+                                    </button>
+
+                                    <span className="text-xl font-black tabular-nums text-gray-900 dark:text-white min-w-[2rem] text-center">
+                                        {quantity}
+                                    </span>
+
+                                    <button
+                                        onClick={() => setQuantity(quantity + 1)}
+                                        className="w-9 h-9 rounded-lg bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600 active:scale-95 transition-all shadow-md shadow-orange-500/20"
+                                    >
+                                        <Plus size={16} strokeWidth={2.5} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -326,85 +360,126 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, i
                                                 return (
                                                     <div
                                                         key={oIdx}
-                                                        onClick={(e) => {
-                                                            if (isOutOfStock) return;
-                                                            if (isMulti) {
-                                                                if (optionQty === 0) handleOptionIncrement(e, gIdx, group, option);
-                                                            } else {
-                                                                toggleChoice(gIdx, group, option);
-                                                            }
-                                                        }}
-                                                        className={`relative rounded-xl border transition-all ${hasImages
-                                                            ? "flex items-center justify-between p-2 gap-3"
-                                                            : "flex items-center justify-between p-3"
-                                                            } ${isSelected
+                                                        className={`relative rounded-xl border transition-all ${isSelected
                                                                 ? "border-orange-500 bg-orange-50 dark:bg-orange-900/10 ring-1 ring-orange-500/20"
-                                                                : "border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/50 hover:border-orange-200"
-                                                            } ${isOutOfStock ? "opacity-50 grayscale cursor-not-allowed" : "cursor-pointer active:scale-[0.99]"}`}
+                                                                : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-orange-200"
+                                                            } ${isOutOfStock ? "opacity-50 grayscale cursor-not-allowed" : ""}`}
                                                     >
-                                                        {hasImages && (
-                                                            <div className="w-16 h-16 shrink-0 bg-gray-50 rounded-lg overflow-hidden relative">
+                                                        {/* 3-Column Layout: Image | Name/Price | Add Button */}
+                                                        <div className="grid grid-cols-[auto_1fr_auto] gap-3 items-center p-3">
+                                                            {/* Column 1: Image */}
+                                                            <div className="w-14 h-14 shrink-0 bg-zinc-100 dark:bg-zinc-800 rounded-lg overflow-hidden">
                                                                 {option.image ? (
-                                                                    <img src={option.image} alt={option.name} className="w-full h-full object-contain" />
+                                                                    <img
+                                                                        src={option.image}
+                                                                        alt={option.name}
+                                                                        className="w-full h-full object-cover"
+                                                                    />
                                                                 ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                                                        <span>No Image</span>
+                                                                    <div className="w-full h-full flex items-center justify-center">
+                                                                        <span className="text-2xl">🍽️</span>
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                        )}
 
-                                                        <div className={hasImages ? "p-3" : "flex items-center gap-3 w-full"}>
-                                                            {!hasImages && !isMulti && (
-                                                                <div className={`w-5 h-5 shrink-0 rounded-md border-2 flex items-center justify-center transition-all ${isSelected ? "bg-orange-500 border-orange-500 text-white" : "border-gray-200 dark:border-gray-600 bg-white"
+                                                            {/* Column 2: Name & Price */}
+                                                            <div className="flex flex-col justify-center min-w-0">
+                                                                <span className={`text-sm font-semibold leading-tight truncate ${isSelected
+                                                                        ? "text-gray-900 dark:text-white"
+                                                                        : "text-gray-700 dark:text-gray-300"
                                                                     }`}>
-                                                                    {isSelected && <Check size={12} strokeWidth={4} />}
-                                                                </div>
-                                                            )}
-
-                                                            <div className="flex-1 flex justify-between items-stretch gap-2">
-                                                                <div className="flex flex-col justify-center">
-                                                                    <span className={`text-sm font-medium leading-tight ${isSelected ? "text-gray-900 dark:text-white font-bold" : "text-gray-600 dark:text-gray-400"}`}>
-                                                                        {option.name}
+                                                                    {option.name}
+                                                                </span>
+                                                                {Number(option.price) > 0 && (
+                                                                    <span className="text-xs font-bold text-orange-600 dark:text-orange-500 mt-0.5">
+                                                                        +₦{Number(option.price).toLocaleString()}
                                                                     </span>
-                                                                    {Number(option.price) > 0 && (
-                                                                        <span className="text-xs font-bold text-gray-500 dark:text-gray-500 mt-1">
-                                                                            +₦{Number(option.price).toLocaleString()}
-                                                                        </span>
-                                                                    )}
-                                                                </div>
+                                                                )}
+                                                                {isOutOfStock && (
+                                                                    <span className="text-[9px] font-black text-red-500 uppercase mt-1">
+                                                                        Sold Out
+                                                                    </span>
+                                                                )}
+                                                            </div>
 
-                                                                <div className="flex items-center gap-2">
-                                                                    {isOutOfStock ? (
-                                                                        <span className="text-[9px] font-black text-red-500 uppercase self-center">SOLD OUT</span>
-                                                                    ) : (
-                                                                        <>
-                                                                            {isMulti && (
-                                                                                isSelected ? (
-                                                                                    <div className="flex items-center gap-2 bg-white dark:bg-zinc-800 rounded-lg p-1 shadow-sm border border-zinc-200 dark:border-zinc-700 h-full" onClick={e => e.stopPropagation()}>
-                                                                                        <button
-                                                                                            onClick={(e) => handleOptionDecrement(e, gIdx, group, option)}
-                                                                                            className="w-6 h-full flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 text-gray-600 dark:text-white transition-colors"
-                                                                                        >
-                                                                                            <Minus size={12} strokeWidth={3} />
-                                                                                        </button>
-                                                                                        <span className="text-xs font-bold w-4 text-center tabular-nums">{optionQty}</span>
-                                                                                        <button
-                                                                                            onClick={(e) => handleOptionIncrement(e, gIdx, group, option)}
-                                                                                            className="w-6 h-full flex items-center justify-center rounded-md bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-900/30 dark:hover:bg-orange-900/50 transition-colors"
-                                                                                        >
-                                                                                            <Plus size={12} strokeWidth={3} />
-                                                                                        </button>
-                                                                                    </div>
-                                                                                ) : (
-                                                                                    <button className="w-10 h-10 rounded-lg bg-gray-800 text-white hover:bg-gray-700 flex items-center justify-center transition-colors shadow-sm">
-                                                                                        <Plus size={18} />
+                                                            {/* Column 3: Add/Quantity Button */}
+                                                            <div className="flex items-center shrink-0">
+                                                                {isOutOfStock ? (
+                                                                    <div className="w-20 h-9 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg">
+                                                                        <span className="text-[10px] font-black text-gray-400 uppercase">
+                                                                            Out
+                                                                        </span>
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
+                                                                        {isMulti ? (
+                                                                            // Multi-select: Show quantity controls or Add button
+                                                                            optionQty > 0 ? (
+                                                                                <div
+                                                                                    className="flex items-center gap-2 bg-white dark:bg-zinc-800 rounded-lg p-1 shadow-sm border border-orange-200 dark:border-orange-700"
+                                                                                    onClick={e => e.stopPropagation()}
+                                                                                >
+                                                                                    <button
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation();
+                                                                                            handleOptionDecrement(e, gIdx, group, option);
+                                                                                        }}
+                                                                                        className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 text-gray-600 dark:text-white transition-colors"
+                                                                                    >
+                                                                                        <Minus size={14} strokeWidth={3} />
                                                                                     </button>
-                                                                                )
-                                                                            )}
-                                                                        </>
-                                                                    )}
-                                                                </div>
+                                                                                    <span className="text-sm font-bold w-6 text-center tabular-nums text-gray-900 dark:text-white">
+                                                                                        {optionQty}
+                                                                                    </span>
+                                                                                    <button
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation();
+                                                                                            handleOptionIncrement(e, gIdx, group, option);
+                                                                                        }}
+                                                                                        className="w-7 h-7 flex items-center justify-center rounded-md bg-orange-500 text-white hover:bg-orange-600 transition-colors"
+                                                                                    >
+                                                                                        <Plus size={14} strokeWidth={3} />
+                                                                                    </button>
+                                                                                </div>
+                                                                            ) : (
+                                                                                <button
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        handleOptionIncrement(e, gIdx, group, option);
+                                                                                    }}
+                                                                                    className="w-20 h-9 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 flex items-center justify-center gap-1.5 transition-colors shadow-sm font-semibold text-xs"
+                                                                                >
+                                                                                    <Plus size={14} strokeWidth={2.5} />
+                                                                                    Add
+                                                                                </button>
+                                                                            )
+                                                                        ) : (
+                                                                            // Single-select: Show checkbox/radio
+                                                                            <button
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    toggleChoice(gIdx, group, option);
+                                                                                }}
+                                                                                className={`w-20 h-9 rounded-lg flex items-center justify-center gap-1.5 transition-all font-semibold text-xs ${isSelected
+                                                                                        ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
+                                                                                        : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 shadow-sm"
+                                                                                    }`}
+                                                                            >
+                                                                                {isSelected ? (
+                                                                                    <>
+                                                                                        <Check size={14} strokeWidth={2.5} />
+                                                                                        Selected
+                                                                                    </>
+                                                                                ) : (
+                                                                                    <>
+                                                                                        <Plus size={14} strokeWidth={2.5} />
+                                                                                        Select
+                                                                                    </>
+                                                                                )}
+                                                                            </button>
+                                                                        )}
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -434,39 +509,18 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, i
 
                         {/* Footer Actions */}
                         <div className="p-5 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#0B1121] z-20 shadow-[0_-5px_20px_rgba(0,0,0,0.02)]">
-                            {/* Master Quantity */}
-                            <div className="flex items-center justify-center gap-6 mb-5">
-                                <button
-                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="w-12 h-12 rounded-2xl border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-600 hover:bg-gray-50 active:scale-95 transition-all"
-                                >
-                                    <Minus size={20} />
-                                </button>
-                                <div className="text-center">
-                                    <span className="block text-2xl font-black tabular-nums text-gray-900 dark:text-white leading-none">
-                                        {quantity}
+                            {/* Packaging Fee Display */}
+                            {packingFee > 0 && (
+                                <div className="mb-4 flex justify-between items-center text-sm font-medium text-gray-600 dark:text-gray-400 bg-zinc-50 dark:bg-zinc-900 rounded-xl p-3 border border-zinc-200 dark:border-zinc-800">
+                                    <span className="flex items-center gap-2">
+                                        <ShoppingBag size={16} />
+                                        Packaging Fee
                                     </span>
-                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Quantity</span>
+                                    <span className="font-bold text-gray-900 dark:text-white">₦{packingFee.toLocaleString()}</span>
                                 </div>
-                                <button
-                                    onClick={() => setQuantity(quantity + 1)}
-                                    className="w-12 h-12 rounded-2xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg"
-                                >
-                                    <Plus size={20} />
-                                </button>
-                            </div>
+                            )}
 
-                            <div className="space-y-2 mb-4">
-                                {packingFee > 0 && (
-                                    <div className="flex justify-between items-center text-xs font-medium text-gray-500 dark:text-gray-400">
-                                        <span className="flex items-center gap-1.5">
-                                            <ShoppingBag size={14} /> Packaging Fee
-                                        </span>
-                                        <span>₦{packingFee.toLocaleString()}</span>
-                                    </div>
-                                )}
-                            </div>
-
+                            {/* Add to Cart Button */}
                             <button
                                 onClick={handleConfirm}
                                 className="w-full py-4 bg-[#FF6600] text-white rounded-2xl font-black text-lg hover:bg-[#ff7b24] active:scale-[0.98] transition-all flex items-center justify-between px-6 shadow-xl shadow-orange-500/20"

@@ -80,7 +80,7 @@ export default function FoodDetails() {
     if (foodId) fetchFood();
   }, [foodId, baseUrl]);
 
-  console.log(food);
+  // console.log(food);
 
   // Image Navigation
   const nextImage = () => {
@@ -242,6 +242,9 @@ export default function FoodDetails() {
             <h2 className="text-sm font-bold text-gray-900 line-clamp-1 italic uppercase tracking-tighter">
               {food?.vendor?.storeName || "Food Details"}
             </h2>
+            <p className={`text-[10px] font-bold ${openingMessage.includes('Open now') ? 'text-emerald-500' : 'text-rose-500'}`}>
+              {openingMessage}
+            </p>
           </div>
         </div>
 
@@ -547,25 +550,6 @@ export default function FoodDetails() {
               )}
 
             </div>
-
-            {/* Vendor Status Info */}
-            <div className="px-4 pb-4">
-              <motion.div onClick={handleViewVendor} whileHover={{ scale: 1.01 }} className="bg-gray-900/5 dark:bg-gray-800 rounded-[24px] p-4 flex justify-between items-center cursor-pointer border border-gray-900/5">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-gray-900">
-                    <Store size={18} />
-                  </div>
-                  <div>
-                    <h4 className="text-gray-900 font-bold text-sm tracking-tight uppercase">{food?.vendor?.storeName}</h4>
-                    <p className={`text-[10px] font-bold ${openingMessage.includes('Open now') ? 'text-emerald-500' : 'text-rose-500'}`}>
-                      {openingMessage}
-                    </p>
-                  </div>
-                </div>
-                <ArrowLeft size={16} className="rotate-180 text-gray-400" />
-              </motion.div>
-            </div>
-
           </div>
         ) : null}
       </div>

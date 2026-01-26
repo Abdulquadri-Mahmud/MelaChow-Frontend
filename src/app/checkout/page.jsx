@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/app/context/CartContext";
 import { Loader2, Bike, MapPin, Clock, DollarSign } from "lucide-react";
-import { createOrder, fetchUser } from "../lib/api";
+import { fetchUser } from "../lib/api";
+import { createOrderV2 } from "../lib/orderService";
+import { transformCartToOrderV2, validateCartItems } from "../lib/orderTransformers";
 import Header2 from "../components/App_Header/Header2";
 import toast from "react-hot-toast";
 import CheckoutPageSkeleton from "../components/skeleton/CheckoutPageSkeleton";
@@ -13,26 +15,29 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { useApi } from "../context/ApiContext";
 import { getVendorOpenAndCloseStatus } from "../lib/vendor-time/OpenOrClose";
+import OrderErrorDisplay from "../components/Checkout/OrderErrorDisplay";
+import OrderProcessingLoader from "../components/Checkout/OrderProcessingLoader";
+import { useCartValidation, CartValidationErrors } from "../components/Cart/CartValidator";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart } = useCart();
-  const [token, setToken] = useState(null);
   const [userData, setUserData] = useState(null);
   const [loadingInit, setLoadingInit] = useState(false);
   const [notes, setNotes] = useState({}); // notes per restaurant
   const { baseUrl } = useApi();
 
-  /* ---------------- AUTH TOKEN ---------------- */
-  useEffect(() => {
-    setToken(localStorage.getItem("userToken"));
-  }, []);
+  // V2 API Integration - Enhanced State Management
+  const [orderError, setOrderError] = useState(null);
+  const [processingStep, setProcessingStep] = useState("validating");
+
+  // Cart validation hook
+  const { validateCart, validationErrors, isValid } = useCartValidation(cart);
 
   /* ---------------- FETCH USER ---------------- */
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["userProfile", token],
-    queryFn: () => fetchUser(token),
-    enabled: !!token,
+    queryKey: ["userProfile"],
+    queryFn: () => fetchUser(),
     retry: false,
   });
 
@@ -71,106 +76,119 @@ export default function CheckoutPage() {
     return { min: Math.min(...mins), max: Math.max(...maxs) };
   };
 
-  /* ---------------- PAYMENT ---------------- */
+  /* ---------------- PAYMENT INITIALIZATION (V2 API) ---------------- */
   const handleInitializePayment = async () => {
-    if (!token) return;
+    // Clear any previous errors
+    setOrderError(null);
 
+    // 1. Validate delivery address
     if (!defaultAddress) {
       toast.error("Please set a default delivery address.", { duration: 1500 });
       setTimeout(() => {
-        router.push("/profile/address"); // navigate to profile/address page
+        router.push("/profile/address");
       }, 1500);
       return;
     }
 
-    if (cart.length === 0) return toast.error("Your cart is empty.");
+    // 2. Validate cart is not empty
+    if (cart.length === 0) {
+      toast.error("Your cart is empty.");
+      return;
+    }
+
+    // 3. Validate cart items
+    setProcessingStep("validating");
+    const cartValidation = validateCartItems(cart);
+
+    if (!cartValidation.isValid) {
+      const errorMessage = cartValidation.errors[0]?.message || "Please fix cart issues before checkout";
+      setOrderError(errorMessage);
+      toast.error(errorMessage);
+      return;
+    }
 
     setLoadingInit(true);
 
     try {
-      // 1. Check if all restaurants are open before proceeding
+      // 4. Check if all restaurants are open (optional - commented out in original)
+      setProcessingStep("checking");
       const uniqueRestaurantIds = Object.keys(restaurantDeliveryMap);
 
+      // Uncomment if you want to enforce restaurant hours
       // for (const restaurantId of uniqueRestaurantIds) {
       //   try {
-      //     // Fetch vendor foods to get vendor details (including opening hours)
       //     const vendorRes = await axios.get(`${baseUrl}/vendors/foods/get-foods?vendorId=${restaurantId}`);
       //     const vendorData = vendorRes.data.data?.[0]?.vendor;
-
+      //
       //     if (vendorData) {
       //       const statusInfo = getVendorOpenAndCloseStatus(vendorData.openHours || vendorData.openingHours);
       //       const isOpen = statusInfo.startsWith("Open now");
-
+      //
       //       if (!isOpen) {
-      //         toast.error(`${vendorData.storeName} is currently closed. ${statusInfo}`, { duration: 4000 });
-      //         setLoadingInit(false);
-      //         return;
+      //         throw new Error(`${vendorData.storeName} is currently closed. ${statusInfo}`);
       //       }
       //     }
       //   } catch (err) {
       //     console.error(`Error checking status for vendor ${restaurantId}:`, err);
-      //     // If we can't check, we might want to proceed or block. Usually safer to let it try to create if check fails.
+      //     throw err;
       //   }
       // }
 
-      // 2. Continue with order creation if all are open
-      // Calculate one delivery fee per restaurant for the payload
-      const vendorFees = Object.entries(restaurantDeliveryMap).map(([id, fee]) => ({
-        restaurantId: id,
-        deliveryFee: fee
-      }));
+      // 5. Transform cart data to V2 format
+      setProcessingStep("calculating");
+      const orderPayload = transformCartToOrderV2(
+        cart,
+        defaultAddress,
+        userData.phone,
+        notes
+      );
 
-      const payload = {
-        items: cart.map(item => ({
-          foodId: item.foodId,
-          variant: {
-            name: item.name,
-            price: item.price,
-            image: item.image, // Optimized to reduce payload size
-          },
-          price: item.price,
-          quantity: item.quantity,
-          restaurantId: item.restaurantId,
-          metadata: item.metadata || {},
-          note: notes[item.storeName] || "",
-        })),
-        deliveryAddress: {
-          addressLine: defaultAddress.addressLine,
-          city: defaultAddress.city,
-          state: defaultAddress.state,
-          label: defaultAddress.label || "Home",
-          phone: defaultAddress.phone || userData.phone,
-        },
-        phone: userData.phone,
-        subtotal,
-        deliveryFee, // Total delivery fee (sum of one fee per restaurant)
-        vendorDeliveryFees: vendorFees, // Proportional vendor delivery calculations support
-        total,
-        email: userData.email,
-        referrer: "web", // Include referrer for backend validation
-      };
+      console.log("V2 Order Payload:", orderPayload);
 
-      // console.log(cart);
-      // console.log(payload);
+      // 6. Create order using V2 API
+      setProcessingStep("preparing");
+      const response = await createOrderV2(orderPayload);
 
-      const res = await createOrder(token, payload);
+      console.log("V2 Order Response:", response);
 
-      if (res?.authorization_url) {
+      // 7. Redirect to Paystack payment page
+      // 7. Redirect to Paystack payment page
+      if (response?.authorization_url) {
+        // Store pending order ID if provided (New Flow)
+        if (response.orderId) {
+          sessionStorage.setItem("pendingOrderId", response.orderId);
+        }
+
+        // Clear cart before redirecting
         clearCart();
-        window.location.href = res.authorization_url;
+
+        // Show success message with Order ID
+        const msg = response.orderId
+          ? `Processing Order #${response.orderId}... Redirecting!`
+          : "Redirecting to payment...";
+        toast.success(msg, { duration: 2000 });
+
+        // Redirect to Paystack
+        window.location.href = response.authorization_url;
       } else {
-        throw new Error("Payment initialization failed");
+        throw new Error("Payment initialization failed - no authorization URL");
       }
     } catch (err) {
-      console.error(err);
-      toast.error("Payment initialization failed");
+      console.error("Order Creation Error:", err);
+
+      // Set error for display
+      const errorMessage = err.message || "Failed to initialize payment";
+      setOrderError(errorMessage);
+
+      // Show toast notification
+      toast.error(errorMessage, { duration: 4000 });
     } finally {
       setLoadingInit(false);
     }
   };
 
   /* ---------------- UI STATES ---------------- */
-  if (isLoading || token === null) return <CheckoutPageSkeleton />;
+  if (isLoading) return <CheckoutPageSkeleton />;
 
   if (isError)
     return (
@@ -184,7 +202,28 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-gray-50/50 pb-32">
       <Header2 />
 
+      {/* Order Error Display */}
+      <OrderErrorDisplay
+        error={orderError}
+        onRetry={handleInitializePayment}
+        onClose={() => setOrderError(null)}
+      />
+
+      {/* Processing Loader */}
+      {loadingInit && <OrderProcessingLoader currentStep={processingStep} />}
+
       <div className="max-w-xl mx-auto p-2 space-y-4 pb-8">
+        {/* Cart Validation Errors */}
+        {validationErrors.length > 0 && (
+          <CartValidationErrors
+            errors={validationErrors}
+            onFixItem={(index) => {
+              // Navigate to cart or show item details
+              router.push("/orders?activeTab=cart");
+            }}
+          />
+        )}
+
         {/* Quick Notice */}
         {cart.length > 0 && (
           <motion.div
