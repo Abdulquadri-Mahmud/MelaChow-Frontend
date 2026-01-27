@@ -114,6 +114,7 @@ export const getUserReviews = async () => {
         withCredentials: true, // ✅ Send cookies
       }
     );
+    console.log(res.data)
     return res.data;
   } catch (error) {
     console.error("Get User Reviews Error:", error);
