@@ -132,4 +132,101 @@ export const getUserReviews = async () => {
   }
 };
 
+/**
+ * Get User Wallet
+ * @returns {Object} - wallet data { balance, transactions }
+ */
+export const getWallet = async () => {
+  try {
+    const res = await axios.get("https://grub-dash-api.vercel.app/api/wallet", {
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Get Wallet Error:", error);
+    if (error.response && error.response.status === 401) {
+      dispatchUserUnauthorized();
+    }
+    throw error;
+  }
+};
+
+/**
+ * Fund User Wallet
+ * @param {Object} data - { amount, email }
+ * @returns {Object} - { success, authorization_url, reference }
+ */
+export const fundWallet = async (data) => {
+  try {
+    const res = await axios.post("https://grub-dash-api.vercel.app/api/wallet/fund", data, {
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Fund Wallet Error:", error);
+    if (error.response && error.response.status === 401) {
+      dispatchUserUnauthorized();
+    }
+    throw error;
+  }
+};
+
+/**
+ * Verify Wallet Transaction
+ * @param {string} reference 
+ * @returns {Object} - result
+ */
+export const verifyWalletTransaction = async (reference) => {
+  try {
+    const res = await axios.get(`https://grub-dash-api.vercel.app/api/wallet/verify/${reference}`, {
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Verify Wallet Error:", error);
+    if (error.response && error.response.status === 401) {
+      dispatchUserUnauthorized();
+    }
+    throw error;
+  }
+};
+
+/**
+ * Create a Review for Vendor/Food
+ * @param {Object} data - { vendorId, foodId (optional), rating, comment }
+ * @returns {Object}
+ */
+export const createReview = async (data) => {
+  try {
+    const res = await axios.post("https://grub-dash-api.vercel.app/api/admin/user/reviews/create-reviews", data, {
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    // console.error("Create Review Error:", error);
+    if (error.response && error.response.status === 401) {
+      dispatchUserUnauthorized();
+    }
+    throw error;
+  }
+};
+
+/**
+ * Get Vendor Reviews
+ * @param {string} vendorId 
+ * @returns {Object}
+ */
+export const getVendorReviews = async (vendorId) => {
+  try {
+    const res = await axios.get(`https://grub-dash-api.vercel.app/api/admin/user/reviews/vendor-reviews?vendorId=${vendorId}`, {
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Get Vendor Reviews Error:", error);
+    // If 403/401, we might handle it gracefully in the UI or let it fail
+    throw error;
+  }
+};
+
 

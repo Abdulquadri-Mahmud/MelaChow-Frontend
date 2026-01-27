@@ -19,7 +19,8 @@ import {
   Settings,
   Bell,
   ArrowLeft,
-  Star
+  Star,
+  Wallet
 } from "lucide-react";
 import DeleteModal from "./DeleteModal";
 import NeedHelp from "@/app/profile/need_help_contact_info/NeedHelp";
@@ -204,6 +205,12 @@ const User_Profile = ({ userData, isLoading }) => {
           title="Delivery Addresses"
           description="Manage your saved home and office locations"
           href="/profile/address"
+        />
+        <ActionCard
+          icon={Wallet}
+          title="My Wallet"
+          description="Manage funds and view transaction history"
+          href="/profile/wallet"
         />
         <ActionCard
           icon={Star}
