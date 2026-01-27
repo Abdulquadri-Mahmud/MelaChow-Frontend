@@ -6,7 +6,6 @@ import User_Address from "@/app/components/user_profile/UserAddress";
 export default function page() {
   return (
     <div>
-      <Header2/>
       <User_Address/>
     </div>
   )

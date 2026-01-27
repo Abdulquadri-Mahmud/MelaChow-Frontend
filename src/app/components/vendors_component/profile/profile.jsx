@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import axios from "axios";
 import {
   CheckCircle,
@@ -50,17 +50,9 @@ export default function VendorProfilePage({ vendor }) {
     accountName: "",
     accountNumber: "",
     acceptsDelivery: false,
-    deliveryRadiusKm: 0,
+    flatRateDeliveryFee: 0,
   });
-  const [tags, setTags] = useState([]);
   const [logo, setLogo] = useState("");
-  const [kyc, setKyc] = useState({
-    idType: "NIN",
-    idNumber: "",
-    idFrontUrl: "",
-    idBackUrl: "",
-    businessRegistrationDoc: "",
-  });
   const [collapsed, setCollapsed] = useState({});
   const [loadingSection, setLoadingSection] = useState("");
 
@@ -86,17 +78,9 @@ export default function VendorProfilePage({ vendor }) {
         accountName: vendor.payoutDetails?.accountName || "",
         accountNumber: vendor.payoutDetails?.accountNumber || "",
         acceptsDelivery: vendor.acceptsDelivery || false,
-        deliveryRadiusKm: vendor.deliveryRadiusKm || 0,
+        flatRateDeliveryFee: vendor.flatRateDeliveryFee || 0,
       });
-      setTags(vendor.tags || []);
       setLogo(vendor.logo || "");
-      setKyc({
-        idType: vendor.kyc?.idType || "NIN",
-        idNumber: vendor.kyc?.idNumber || "",
-        idFrontUrl: vendor.kyc?.idFrontUrl || "",
-        idBackUrl: vendor.kyc?.idBackUrl || "",
-        businessRegistrationDoc: vendor.kyc?.businessRegistrationDoc || "",
-      });
     }
   }, [vendor]);
 
@@ -129,14 +113,10 @@ export default function VendorProfilePage({ vendor }) {
             accountNumber: data.accountNumber,
           },
           acceptsDelivery: data.acceptsDelivery,
-          deliveryRadiusKm: data.deliveryRadiusKm,
+          flatRateDeliveryFee: data.flatRateDeliveryFee,
         };
-      } else if (section === "tags") {
-        payload = { tags: data };
       } else if (section === "logo") {
         payload = { logo: data };
-      } else if (section === "kyc") {
-        payload = { kyc: data };
       }
 
       await updateVendor({ id: vendor._id, data: payload });
@@ -149,15 +129,7 @@ export default function VendorProfilePage({ vendor }) {
     }
   };
 
-  const handleFileChange = async (fileKey, e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const url = await uploadToCloudinary(file);
-    if (url) {
-      setKyc({ ...kyc, [fileKey]: url });
-      updateSection("kyc", { ...kyc, [fileKey]: url });
-    }
-  };
+
 
   const handleLogoChange = async (e) => {
     const file = e.target.files[0];
@@ -191,7 +163,7 @@ export default function VendorProfilePage({ vendor }) {
 
   return (
     <div className="max-w-7xl mx-auto min-h-screen space-y-6 relative pb-8">
-      <Toaster />
+
 
       {/* Header */}
       <div className="bg-white p-3 rounded-2xl flex flex-col sm:flex-row items-start md:items-center gap-6">
@@ -257,8 +229,8 @@ export default function VendorProfilePage({ vendor }) {
                 <input type="text" value={basicInfo.phone} onChange={(e) => setBasicInfo({ ...basicInfo, phone: e.target.value })} className="border p-2 rounded w-full" />
               </div>
             </div>
-            
-            
+
+
             <label className="flex items-center gap-2"><Mail className="text-orange-500" /> Email</label>
             <input type="email" value={basicInfo.email} disabled className="border p-2 rounded w-full bg-gray-100 cursor-not-allowed" />
 
@@ -439,6 +411,49 @@ export default function VendorProfilePage({ vendor }) {
               onChange={(e) => setPayoutDetails({ ...payoutDetails, accountNumber: e.target.value })}
               className="border p-2 rounded w-full"
             />
+
+            <div className="pt-4 mt-4 border-t border-gray-100">
+              <h3 className="font-bold text-sm mb-2 text-gray-700">Delivery Configuration</h3>
+
+              <div className="flex items-center justify-between mb-4 bg-gray-50 p-3 rounded-lg">
+                <div>
+                  <p className="text-sm font-semibold text-gray-700">Self Delivery</p>
+                  <p className="text-xs text-gray-500">Do you handle your own delivery?</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={payoutDetails.acceptsDelivery}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setPayoutDetails(prev => ({
+                        ...prev,
+                        acceptsDelivery: checked,
+                        flatRateDeliveryFee: !checked ? 0 : prev.flatRateDeliveryFee
+                      }));
+                    }}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                </label>
+              </div>
+
+              {payoutDetails.acceptsDelivery && (
+                <div className="mb-4">
+                  <label className="flex items-center gap-2 text-sm text-gray-700 mb-1">
+                    Flat Rate Delivery Fee (₦)
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="e.g. 1500"
+                    value={payoutDetails.flatRateDeliveryFee || ''}
+                    onChange={(e) => setPayoutDetails({ ...payoutDetails, flatRateDeliveryFee: e.target.value })}
+                    className="border p-2 rounded w-full"
+                  />
+                </div>
+              )}
+            </div>
+
             <button
               onClick={() => updateSection("payoutDetails", payoutDetails)}
               disabled={loadingSection === "payoutDetails"}
@@ -450,71 +465,8 @@ export default function VendorProfilePage({ vendor }) {
         )}
       </Card>
 
-      {/* Tags */}
-      <Card className="p-0 pb-4 border-0">
-        <CardHeader className="bg-orange-100 w- p-3 rounded-tl-xl rounded-tr-2xl flex justify-between items-center cursor-pointer" onClick={() => toggleCollapse("tags")}>
-          <CardTitle className="flex items-center gap-2">
-            <BadgeCheck className="text-orange-500" /> Tags
-          </CardTitle>
-          <span>{collapsed.tags ? "+" : "-"}</span>
-        </CardHeader>
-        {!collapsed.tags && (
-          <CardContent className="space-y-2">
-            <div className="flex flex-wrap gap-2">
-              {tags.map((tag, idx) => (
-                <div key={idx} className="flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
-                  <input
-                    type="text"
-                    value={tag}
-                    onChange={(e) => handleTagChange(idx, e.target.value)}
-                    className="border p-1 rounded"
-                  />
-                  <button onClick={() => handleRemoveTag(idx)} className="text-red-500 font-bold">×</button>
-                </div>
-              ))}
-              <button onClick={handleAddTag} className="px-2 py-1 bg-orange-500 text-white rounded">+ Add</button>
-            </div>
-            <button
-              onClick={() => updateSection("tags", tags)}
-              disabled={loadingSection === "tags"}
-              className="rounded-tl-2xl rounded-br-2xl bg-orange-500 text-white px-4 py-2 rounded"
-            >
-              {loadingSection === "tags" ? "Updating..." : "Update Tags"}
-            </button>
-          </CardContent>
-        )}
-      </Card>
-      {/* KYC Section */}
-      <Card className="p-0 pb-4 border-0">
-        <CardHeader className="bg-orange-100 w- p-3 rounded-tl-xl rounded-tr-2xl flex justify-between items-center cursor-pointer" onClick={() => toggleCollapse("kyc")}>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="text-orange-500" /> KYC Documents
-          </CardTitle>
-          <span>{collapsed.kyc ? "+" : "-"}</span>
-        </CardHeader>
-        {!collapsed.kyc && (
-          <CardContent className="space-y-2">
-            <label>ID Type</label>
-            <input type="text" value={kyc.idType} disabled className="border p-2 rounded w-full bg-gray-100 cursor-not-allowed" />
-            
-            <label>ID Number</label>
-            <input type="text" value={kyc.idNumber} onChange={(e) => setKyc({ ...kyc, idNumber: e.target.value })} className="border p-2 rounded w-full" />
-            
-            <label>ID Front</label>
-            <input type="file" onChange={(e) => handleFileChange("idFrontUrl", e)} className="border p-2 rounded w-full" />
-
-            <label>ID Back</label>
-            <input type="file" onChange={(e) => handleFileChange("idBackUrl", e)} className="border p-2 rounded w-full" />
-
-            <label>Business Registration Doc</label>
-            <input type="file" onChange={(e) => handleFileChange("businessRegistrationDoc", e)} className="border p-2 rounded w-full" />
-
-            <button onClick={() => updateSection("kyc", kyc)} disabled={loadingSection === "kyc"} className="rounded-tl-2xl rounded-br-2xl bg-orange-500 text-white px-4 py-2 rounded">
-              {loadingSection === "kyc" ? "Updating..." : "Update KYC"}
-            </button>
-          </CardContent>
-        )}
-      </Card>
     </div>
+
+
   );
 }

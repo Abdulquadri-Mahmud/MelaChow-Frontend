@@ -1,7 +1,9 @@
 "use client";
+
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode"; // ✅ fixed import
+import { jwtDecode } from "jwt-decode";
+import { useUserStorage } from "../hooks/useUserStorage";
 
 /**
  * AutoLogout Component
@@ -9,24 +11,41 @@ import { jwtDecode } from "jwt-decode"; // ✅ fixed import
  */
 const AutoLogout = () => {
   const router = useRouter();
+  const {user, clearUser } = useUserStorage(); 
+  // ⬆️ token must come from context
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!user?.token) return;
+
+    let logoutTimer;
 
     try {
-      const decoded = jwtDecode(token);
+      const decoded = jwtDecode(user?.token);
       const currentTime = Date.now() / 1000;
-      if (decoded.exp < currentTime) {
-        localStorage.removeItem("token");
-        router.push("/login");
+      const timeLeft = decoded.exp - currentTime;
+
+      // user.token already expired
+      if (timeLeft <= 0) {
+        clearUser();
+        router.replace("/auth/signin");
+        return;
       }
+
+      // Schedule auto logout
+      logoutTimer = setTimeout(() => {
+        clearUser();
+        router.replace("/auth/signin");
+      }, timeLeft * 1000);
     } catch (error) {
       console.error("Invalid token:", error);
-      localStorage.removeItem("token");
-      router.push("/login");
+      clearUser();
+      router.replace("/auth/signin");
     }
-  }, [router]);
+
+    return () => {
+      if (logoutTimer) clearTimeout(logoutTimer);
+    };
+  }, [user?.token, router, clearUser]);
 
   return null;
 };

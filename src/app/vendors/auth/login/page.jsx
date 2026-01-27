@@ -4,15 +4,18 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useApi } from "@/app/context/ApiContext";
-import { Eye, EyeOff, X } from "lucide-react";
+import { Eye, EyeOff, X, Mail, Lock, ArrowRight, Loader2, Store } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 const LogoImage = () => (
-  <img
-    src="/logo.png"
-    alt="GrubDash Logo"
-    className="w-[170px] object-contain mx-auto"
-  />
+  <div className="relative group">
+    <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full scale-150 group-hover:scale-175 transition-transform duration-700" />
+    <img
+      src="/logo.png"
+      alt="GrubDash Logo"
+      className="w-[180px] object-contain relative z-10 mx-auto"
+    />
+  </div>
 );
 
 export default function VendorLoginPage() {
@@ -37,8 +40,6 @@ export default function VendorLoginPage() {
 
     try {
       const res = await axios.post(`${baseUrl}/vendor/auth/login`, formData);
-      console.log(res);
-
       if (res.status === 200) {
         setMessage("Signin successful! 🎉 Redirecting...");
         router.push(
@@ -59,131 +60,154 @@ export default function VendorLoginPage() {
   };
 
   return (
-    <div className="min-h-screen fixed inset-0 bg-gray-50 flex items-center justify-center overflow-auto">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center p-2 overflow-hidden relative">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-[10%] left-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] animate-pulse" />
+      <div className="absolute bottom-[10%] right-[5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] animate-pulse delay-700" />
+
       <motion.div
-        initial={{ opacity: 0, y: 40 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md bg-white rounded-xl md:p-6 p-3 relative"
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[40px] p-2 md:p-4 shadow-2xl shadow-zinc-200/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 relative z-10"
       >
-        <div className="flex flex-col items-center mb-6">
+        <div className="flex flex-col items-center mb-10">
           <LogoImage />
-          <h1 className="text-2xl font-bold text-gray-800 mt-3">
-            Vendor Login
-          </h1>
-          <p className="text-sm text-gray-600">
-            Sign in to manage your GrubDash store
-          </p>
+          <div className="text-center mt-8 space-y-2">
+            <h1 className="text-3xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none">
+              Vendor <span className="text-orange-600">Login</span>
+            </h1>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+              Manage your store dashboard
+            </p>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email Field */}
-          <div>
-            <label className="block text-sm text-gray-700">Email</label>
-            <input
-              type="email"
-              name="email"
-              placeholder="vendor@example.com"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="mt-1 p-3 w-full border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 outline-none text-sm"
-            />
+          <div className="space-y-1.5 group">
+            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Business Email</label>
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />
+              <input
+                type="email"
+                name="email"
+                placeholder="vendor@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-4 pl-12 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
+              />
+            </div>
           </div>
 
           {/* Password Field */}
-          <div>
-            <label className="block text-sm text-gray-700">Password</label>
+          <div className="space-y-1.5 group">
+            <div className="flex justify-between items-center ml-1">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Password</label>
+              <Link href="/vendor/forgot-password" size="sm" className="text-[9px] font-black uppercase tracking-widest text-orange-600 hover:text-orange-700 transition">
+                Forgot?
+              </Link>
+            </div>
             <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                placeholder="********"
+                placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="mt-1 p-3 w-full border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 outline-none text-sm pr-10"
+                className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-4 pl-12 pr-12 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-orange-500"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-orange-600 transition-colors"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
-          {/* Submit Button */}
-          <button
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 rounded-md transition disabled:opacity-70"
+            className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50 mt-4 active:scale-95 group"
           >
-            {loading ? "Signing in..." : "Login"}
-          </button>
+            {loading ? (
+              <Loader2 className="animate-spin" size={20} />
+            ) : (
+              <>
+                <span>Sign In</span>
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
+          </motion.button>
         </form>
 
-        {/* Forgot Password */}
-        <div className="text-center mt-4">
-          <Link
-            href="/vendor/forgot-password"
-            className="text-sm text-orange-600 hover:underline"
-          >
-            Forgot Password?
-          </Link>
-        </div>
+        <div className="mt-4 pt-4 border-t border-zinc-50 dark:border-zinc-800 text-center space-y-4">
+          <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-tight">
+            Don’t have a vendor account?{" "}
+            <Link
+              href="/vendors/auth/register"
+              className="text-orange-600 hover:text-orange-700 transition font-black tracking-widest italic"
+            >
+              REGISTER NOW
+            </Link>
+          </p>
 
-        {/* Register */}
-        <div className="text-center mt-3 text-sm">
-          Don’t have a vendor account?{" "}
           <Link
-            href="/vendors/auth/register"
-            className="text-orange-600 font-semibold hover:underline"
+            href="/auth/signin"
+            className="inline-block p-1 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-4 border border-zinc-100 dark:border-zinc-700 text-[9px] font-black uppercase text-zinc-400 hover:text-orange-500 hover:border-orange-500/20 transition-all tracking-[0.2em]"
           >
-            Register
+            Switch to Customer Login
           </Link>
         </div>
       </motion.div>
 
-      {/* ✅ Notification Modal */}
+      {/* ✅ Premium Notification Modal */}
       <AnimatePresence>
         {message && (
           <motion.div
-            key="notification-modal"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4"
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white rounded-xl p-6 w-[90%] max-w-sm text-center shadow-lg"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white dark:bg-zinc-900 rounded-[32px] p-8 w-full max-w-sm text-center shadow-2xl relative border border-zinc-100 dark:border-zinc-800"
             >
               <button
                 onClick={() => setMessage("")}
-                className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+                className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
-              <h2
-                className={`text-lg font-semibold mb-2 ${
-                  message.includes("successful")
-                    ? "text-green-600"
-                    : "text-red-500"
-                }`}
-              >
+
+              <div className="mb-4 flex justify-center">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center ${message.includes("successful") ? "bg-emerald-50 text-emerald-500" : "bg-rose-50 text-rose-500"
+                  }`}>
+                  {message.includes("successful") ? <Store size={32} /> : <X size={32} />}
+                </div>
+              </div>
+
+              <h2 className={`text-xl font-black uppercase italic tracking-tighter mb-2 ${message.includes("successful") ? "text-emerald-600" : "text-rose-500"
+                }`}>
                 {message.includes("successful") ? "Success" : "Notice"}
               </h2>
-              <p className="text-gray-600 text-sm">{message}</p>
+              <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-tight leading-relaxed">{message}</p>
+
               <button
                 onClick={() => setMessage("")}
-                className="mt-4 bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 text-sm"
+                className="mt-8 w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black uppercase italic tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg"
               >
-                OK
+                Dismiss
               </button>
             </motion.div>
           </motion.div>

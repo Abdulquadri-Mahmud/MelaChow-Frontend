@@ -1,25 +1,30 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  User, Mail, Phone, Lock, Store, FileText, MapPin,
+  Clock, CreditCard, ChevronRight, ChevronLeft, Upload,
+  CheckCircle2, AlertCircle, X, Loader2, ChevronDown
+} from "lucide-react";
+import { nigeriaStates } from "@/app/lib/nigeriaStates";
 
 /**
- * Put your cuisine + tag options here (adjust as needed)
+ * Cuisine & Tag Options
  */
 const CUISINES = ["Rice", "Swallow", "Peppered Chicken Fries", "Pasta", "Snacks", "Drinks"];
-const TAGS = ["Nigerian", "Spicy", "Affordable", "Swallow", "Jollof", "Vegan"];
-
-/**
- * Cloudinary upload helper (uses your upload preset 'GrubDash')
- */
 
 const LogoImage = () => (
-  <img
-    src="/logo.png"
-    alt="GrubDash Logo"
-    className="w-[170px] object-contain"
-  />
+  <div className="relative group mx-auto mb-2">
+    <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full scale-125 transition-transform duration-700" />
+    <img
+      src="/logo.png"
+      alt="GrubDash Logo"
+      className="w-[160px] object-contain relative z-10"
+    />
+  </div>
 );
 
 const uploadToCloudinary = async (file) => {
@@ -35,29 +40,81 @@ const uploadToCloudinary = async (file) => {
   }
 };
 
+// Helper Components - Defined outside to prevent re-creation on every render
+const InputWrap = ({ label, icon: Icon, error, children }) => (
+  <div className="space-y-1.5 group">
+    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{label}</label>
+    <div className="relative">
+      {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />}
+      {children}
+    </div>
+    {error && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-tight ml-1">{error}</p>}
+  </div>
+);
+
+const TextInput = ({ path, placeholder, type = "text", icon, error, payload, setField }) => (
+  <InputWrap label={placeholder} icon={icon} error={error}>
+    <input
+      type={type}
+      placeholder={`Enter ${placeholder.toLowerCase()}`}
+      value={path.split('.').reduce((o, i) => o[i], payload)}
+      onChange={(e) => setField(path, e.target.value)}
+      className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
+    />
+  </InputWrap>
+);
+
+const SelectInput = ({ path, label, options, icon, error, payload, setField, onChange }) => (
+  <InputWrap label={label} icon={icon} error={error}>
+    <div className="relative">
+      <select
+        value={path.split('.').reduce((o, i) => o[i], payload)}
+        onChange={(e) => {
+          setField(path, e.target.value);
+          if (onChange) onChange(e.target.value);
+        }}
+        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none"
+      >
+        <option value="">Select {label}</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 pointer-events-none" />
+    </div>
+  </InputWrap>
+);
+
+const StepHeader = ({ title, desc }) => (
+  <div className="text-center space-y-2 mb-8 mt-2">
+    <h2 className="text-3xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none">
+      {title.split(' ')[0]} <span className="text-orange-600">{title.split(' ').slice(1).join(' ')}</span>
+    </h2>
+    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+      {desc}
+    </p>
+  </div>
+);
+
 export default function VendorRegisterPage() {
-  const TOTAL_STEPS = 6;
+  const router = useRouter();
+  const TOTAL_STEPS = 5;
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
-  const [modal, setModal] = useState({ open: false, title: "", message: "" });
+  const [modal, setModal] = useState({ open: false, title: "", message: "", type: "info" });
 
   const [previews, setPreviews] = useState({
     logo: null,
-    kycFront: null,
-    kycBack: null,
-    businessDoc: null,
   });
 
   const [files, setFiles] = useState({
     logo: null,
-    kycFront: null,
-    kycBack: null,
-    businessDoc: null,
   });
 
   const [errors, setErrors] = useState({});
 
-  // The payload-stable state that will be submitted (matches your payload)
   const [payload, setPayload] = useState({
     name: "",
     email: "",
@@ -65,13 +122,13 @@ export default function VendorRegisterPage() {
     password: "",
     storeName: "",
     storeDescription: "",
-    logo: "", // will be url after cloudinary upload
+    logo: "",
     address: {
       street: "",
       city: "",
       state: "",
       postalCode: "",
-      coordinates: { type: "Point", coordinates: [0, 0] }, // [lon, lat]
+      coordinates: { type: "Point", coordinates: [0, 0] },
     },
     cuisineTypes: [],
     openingHours: {
@@ -83,13 +140,6 @@ export default function VendorRegisterPage() {
       saturday: { open: "09:00", close: "04:00", closed: false },
       sunday: { open: "00:00", close: "00:00", closed: true },
     },
-    kyc: {
-      idType: "",
-      idNumber: "",
-      idFrontUrl: "",
-      idBackUrl: "",
-      businessRegistrationDoc: "",
-    },
     payoutDetails: {
       bankName: "",
       accountName: "",
@@ -98,15 +148,32 @@ export default function VendorRegisterPage() {
       payoutEnabled: true,
     },
     acceptsDelivery: true,
-    deliveryRadiusKm: 5,
-    tags: [],
+    flatRateDeliveryFee: 0,
     metadata: { featured: true },
   });
 
-  /* ------------------------- helpers ------------------------- */
+  // Persist form data to session storage
+  useEffect(() => {
+    const savedData = sessionStorage.getItem("vendor_reg_data");
+    const savedStep = sessionStorage.getItem("vendor_reg_step");
+    if (savedData) {
+      try {
+        setPayload(prev => ({ ...prev, ...JSON.parse(savedData) }));
+      } catch (e) {
+        console.error("Error parsing saved data", e);
+      }
+    }
+    if (savedStep) {
+      setStep(Number(savedStep));
+    }
+  }, []);
+
+  useEffect(() => {
+    sessionStorage.setItem("vendor_reg_data", JSON.stringify(payload));
+    sessionStorage.setItem("vendor_reg_step", step.toString());
+  }, [payload, step]);
 
   const setField = (path, value) => {
-    // path: "name" or "address.street" or "openingHours.monday.open" etc.
     if (!path.includes(".")) {
       setPayload((p) => ({ ...p, [path]: value }));
       return;
@@ -131,26 +198,15 @@ export default function VendorRegisterPage() {
   const handleFileSelect = (fileKey, file) => {
     if (!file) return;
     setFiles((f) => ({ ...f, [fileKey]: file }));
-
-    // preview
-    if (file.type === "application/pdf") {
-      const url = URL.createObjectURL(file);
-      setPreviews((p) => ({ ...p, [fileKey]: url }));
-    } else {
-      const url = URL.createObjectURL(file);
-      setPreviews((p) => ({ ...p, [fileKey]: url }));
-    }
-    // clear error for that field
+    const url = URL.createObjectURL(file);
+    setPreviews((p) => ({ ...p, [fileKey]: url }));
     setErrors((e) => ({ ...e, [fileKey]: "" }));
   };
 
-  /* ------------------------- validation ------------------------- */
-
   const validateStep = async (s = step) => {
-    // Returns true if valid
-    const e = {}; 
+    const e = {};
     if (s === 1) {
-      if (!payload.name) e.name = "Owner / contact name required";
+      if (!payload.name) e.name = "Owner name required";
       if (!payload.email) e.email = "Email required";
       if (!payload.phone) e.phone = "Phone required";
       if (!payload.password) e.password = "Password required";
@@ -158,482 +214,407 @@ export default function VendorRegisterPage() {
     if (s === 2) {
       if (!payload.storeName) e.storeName = "Store name required";
       if (!payload.storeDescription) e.storeDescription = "Store description required";
-      // require logo file or already uploaded url
       if (!files.logo && !payload.logo) e.logo = "Store logo required";
     }
     if (s === 3) {
       if (!payload.address.street) e["address.street"] = "Street required";
       if (!payload.address.city) e["address.city"] = "City required";
       if (!payload.address.state) e["address.state"] = "State required";
-      if (!payload.address.postalCode) e["address.postalCode"] = "Postal / ZIP required";
-      // coordinates: require both lon & lat
-    //   const [lon, lat] = payload.address.coordinates.coordinates;
-    //   if (!lon || !lat) e["address.coordinates"] = "Longitude and latitude required";
+      if (!payload.address.postalCode) e["address.postalCode"] = "Postal required";
     }
     if (s === 4) {
-      if (!payload.cuisineTypes || payload.cuisineTypes.length === 0) e.cuisineTypes = "Select at least one cuisine type";
-      // openingHours - basic check: each day has open/close unless closed true
+      // Operations step - simplified
       Object.keys(payload.openingHours).forEach((d) => {
         const day = payload.openingHours[d];
-        if (!day.closed && (!day.open || !day.close)) {
-          e[`openingHours.${d}`] = `${d} needs open & close times or mark closed`;
-        }
+        if (!day.closed && (!day.open || !day.close)) e[`openingHours.${d}`] = "Required";
       });
     }
     if (s === 5) {
-      if (!payload.kyc.idType) e["kyc.idType"] = "ID type required";
-      if (!payload.kyc.idNumber) e["kyc.idNumber"] = "ID number required";
-      if (!files.kycFront && !payload.kyc.idFrontUrl) e.kycFront = "Upload ID front";
-      if (!files.kycBack && !payload.kyc.idBackUrl) e.kycBack = "Upload ID back";
-      if (!files.businessDoc && !payload.kyc.businessRegistrationDoc) e.businessDoc = "Upload business registration document";
-    }
-    if (s === 6) {
       if (!payload.payoutDetails.bankName) e["payoutDetails.bankName"] = "Bank name required";
       if (!payload.payoutDetails.accountName) e["payoutDetails.accountName"] = "Account name required";
       if (!payload.payoutDetails.accountNumber) e["payoutDetails.accountNumber"] = "Account number required";
-      if (!payload.deliveryRadiusKm && payload.acceptsDelivery) e.deliveryRadiusKm = "Delivery radius required";
-      if (!payload.tags || payload.tags.length === 0) e.tags = "Select at least one tag";
+      if (payload.acceptsDelivery) {
+        if (!payload.flatRateDeliveryFee || Number(payload.flatRateDeliveryFee) <= 0) e.flatRateDeliveryFee = "Fee required";
+      }
     }
 
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  /* ------------------------- navigation ------------------------- */
-
   const goNext = async () => {
     const ok = await validateStep(step);
-    if (!ok) return;
-    if (step < TOTAL_STEPS) setStep((s) => s + 1);
+    if (ok && step < TOTAL_STEPS) setStep((s) => s + 1);
   };
   const goBack = () => {
     if (step > 1) setStep((s) => s - 1);
   };
 
-  /* ------------------------- submit ------------------------- */
-
   const handleSubmit = async () => {
-    // final validation for last step
     const ok = await validateStep(TOTAL_STEPS);
     if (!ok) {
       setStep(TOTAL_STEPS);
       return;
     }
     setSubmitting(true);
+    // Show slick loading modal
+    setModal({ open: true, title: "Creating Store", message: "Please wait while we set everything up...", type: "loading" });
 
     try {
-      // Upload pending files (logo, kyc front/back, business doc) if provided
       const uploaded = {};
+      if (files.logo) uploaded.logo = await uploadToCloudinary(files.logo);
 
-      if (files.logo) {
-        const url = await uploadToCloudinary(files.logo);
-        if (!url) throw new Error("Logo upload failed");
-        uploaded.logo = url;
-      }
-      if (files.kycFront) {
-        const url = await uploadToCloudinary(files.kycFront);
-        if (!url) throw new Error("KYC front upload failed");
-        uploaded.kycFront = url;
-      }
-      if (files.kycBack) {
-        const url = await uploadToCloudinary(files.kycBack);
-        if (!url) throw new Error("KYC back upload failed");
-        uploaded.kycBack = url;
-      }
-      if (files.businessDoc) {
-        // business doc may be pdf or image
-        const url = await uploadToCloudinary(files.businessDoc);
-        if (!url) throw new Error("Business doc upload failed");
-        uploaded.businessDoc = url;
-      }
-
-      // Merge uploaded URLs into finalPayload (prefer existing payload urls if provided)
       const finalPayload = JSON.parse(JSON.stringify(payload));
       if (uploaded.logo) finalPayload.logo = uploaded.logo;
-      if (uploaded.kycFront) finalPayload.kyc.idFrontUrl = uploaded.kycFront;
-      if (uploaded.kycBack) finalPayload.kyc.idBackUrl = uploaded.kycBack;
-      if (uploaded.businessDoc) finalPayload.kyc.businessRegistrationDoc = uploaded.businessDoc;
 
-      // Ensure payoutMethod & payoutEnabled, acceptsDelivery etc. (already in state, but ensure default)
-      finalPayload.payoutDetails = {
-        ...finalPayload.payoutDetails,
-        payoutMethod: finalPayload.payoutDetails.payoutMethod || "paystack",
-        payoutEnabled: finalPayload.payoutDetails.payoutEnabled === undefined ? true : finalPayload.payoutDetails.payoutEnabled,
-      };
-      finalPayload.acceptsDelivery = !!finalPayload.acceptsDelivery;
-      finalPayload.deliveryRadiusKm = finalPayload.deliveryRadiusKm || 5;
-      finalPayload.metadata = finalPayload.metadata || { featured: true };
-
-    //   console.log(finalPayload);
-      // POST to API
-      const res = await axios.post("https://grub-dash-api.vercel.app/api/vendors/create", finalPayload, {
-        headers: { "Content-Type": "application/json" },
-      });
-      
-    //   console.log(res.data);
-
+      const res = await axios.post("https://grub-dash-api.vercel.app/api/vendors/create", finalPayload);
       if (res.status === 200 || res.status === 201) {
-        // success — show a success modal then optionally redirect
-        setModal({ open: true, title: "Registration Successful", message: `${res.data?.message || "Your vendor account has been created. Check email for verification next steps."}` });
-        // optionally reset form or redirect
+        setModal({ open: true, title: "Registration Successful", message: res.data?.message || "Account created.", type: "success" });
+        sessionStorage.removeItem("vendor_reg_data");
+        sessionStorage.removeItem("vendor_reg_step");
+
+        // Redirect after 3s
+        setTimeout(() => {
+          router.push("/vendors/auth/login");
+        }, 3000);
       } else {
-        // show server error in modal
-        setModal({ open: true, title: "Registration Failed", message: res.data?.message || "Server returned an error." });
+        setModal({ open: true, title: "Registration Failed", message: res.data?.message || "Server error.", type: "error" });
       }
     } catch (err) {
-      console.error("Submission error:", err);
-      setModal({ open: true, title: "Registration Failed", message: (err?.response?.data?.message) || err.message || "Network or upload error" });
+      setModal({ open: true, title: "Registration Failed", message: err?.response?.data?.message || err.message, type: "error" });
     } finally {
       setSubmitting(false);
     }
   };
 
-  /* ------------------------- small UI components ------------------------- */
-
-  const StepHeader = ({ title, desc }) => (
-    <div className="mb-4 text-center">
-      <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
-      {desc && <p className="text-sm  text-gray-600 mt-1">{desc}</p>}
-    </div>
-  );
-
-  /* ------------------------- render ------------------------- */
-
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center md:p-6 p-3">
-      <div className="w-full max-w-4xl">
-        {/* Top header */}
-        <div className=" gap-4 mb-3 bg-white py-2 px-4 rounded-xl">
-            <div className="flex justify-center">
-                <LogoImage/>
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-2 overflow-x-hidden relative">
+      {/* Decorative Background */}
+      <div className="absolute top-[5%] right-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] animate-pulse" />
+      <div className="absolute bottom-[20%] left-[5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] animate-pulse delay-700" />
+
+      <div className="w-full max-w-4xl relative z-10 my-8">
+        {/* Visual Progress Bar */}
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 mb-8 border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 md:flex items-center gap-8 hidden">
+          <LogoImage />
+          <div className="flex-1">
+            <div className="flex justify-between items-center mb-3 px-1">
+              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Registration Progress</span>
+              <span className="text-[10px] font-black uppercase italic tracking-widest text-orange-600">Step {step} of {TOTAL_STEPS}</span>
             </div>
-            <div className="text-center">
-                <h1 className="text-2xl font-bold text-gray-800">Vendor Registration</h1>
-                <p className="text-sm text-gray-600">Complete these steps to create your vendor account</p>
+            <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-2.5 rounded-full p-0.5 border border-zinc-50 dark:border-zinc-700">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+                className="h-full bg-gradient-to-r from-orange-500 to-orange-600 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.3)]"
+              />
             </div>
-            {/* Progress bar */}
-            <div className="mt-2">
-                <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-                    <div className="h-2 bg-orange-500 transition-all" style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
-                </div>
-                <p className="text-right text-sm text-gray-600 mt-1">Step {step} of {TOTAL_STEPS}</p>
-            </div>
+          </div>
         </div>
 
+        <motion.div
+          layout
+          className="bg-white dark:bg-zinc-900 rounded-[40px] shadow-2xl shadow-zinc-200/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 p-2 md:p-12"
+        >
+          <div className="flex flex-col md:hidden items-center mb-8">
+            <LogoImage />
+            <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full mt-4">
+              <div className="h-full bg-orange-500 rounded-full" style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
+            </div>
+          </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-xl shadow md:p-6 p-4">
           <AnimatePresence mode="wait">
-            {step === 1 && (
-              <motion.div key="s1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                <StepHeader title="Account Information" desc="Your contact & login details" />
-                <div className="grid grid-cols-2 md:grid-cols-2 md:gap-4 gap-2">
-                  <div>
-                    <label className="block text-sm text-gray-700">Owner / Contact Name *</label>
-                    <input value={payload.name} onChange={(e) => setField("name", e.target.value)} className="mt-1 p-2 border border-gray-100 rounded w-full" />
-                    {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-700">Email *</label>
-                    <input type="email" value={payload.email} onChange={(e) => setField("email", e.target.value)} className="mt-1 p-2 border border-gray-100 rounded w-full" />
-                    {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm text-gray-700">Phone *</label>
-                    <input type="phone" value={payload.phone} onChange={(e) => setField("phone", e.target.value)} className="mt-1 p-2 border border-gray-100 rounded w-full" />
-                    {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-700">Password *</label>
-                    <input type="password" value={payload.password} onChange={(e) => setField("password", e.target.value)} className="mt-1 p-2 border border-gray-100 rounded w-full" />
-                    {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {step === 1 && (
+                <div className="space-y-6">
+                  <StepHeader title="Account Information" desc="The keys to your business dashboard" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <TextInput path="name" placeholder="Owner Name" icon={User} error={errors.name} payload={payload} setField={setField} />
+                    <TextInput path="email" placeholder="Business Email" icon={Mail} type="email" error={errors.email} payload={payload} setField={setField} />
+                    <TextInput path="phone" placeholder="Phone Number" icon={Phone} error={errors.phone} payload={payload} setField={setField} />
+                    <TextInput path="password" placeholder="Secure Password" icon={Lock} type="password" error={errors.password} payload={payload} setField={setField} />
                   </div>
                 </div>
-              </motion.div>
-            )}
+              )}
 
-            {step === 2 && (
-              <motion.div key="s2" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                <StepHeader title="Store Details" desc="How your store will appear on GrubDash" />
-                <div className="grid grid-cols-1 gap-4">
-                  <div>
-                    <label className="block text-sm text-gray-700">Store Name *</label>
-                    <input placeholder="GrubDash Restaurant" value={payload.storeName} onChange={(e) => setField("storeName", e.target.value)} className="mt-1 p-2 border border-gray-100 outline-0 rounded w-full" />
-                    {errors.storeName && <p className="text-red-500 text-sm mt-1">{errors.storeName}</p>}
-                  </div>
+              {step === 2 && (
+                <div className="space-y-6">
+                  <StepHeader title="Store Details" desc="Tell your future customers your brand story" />
+                  <div className="space-y-6">
+                    <TextInput path="storeName" placeholder="Store Name" icon={Store} error={errors.storeName} payload={payload} setField={setField} />
+                    <InputWrap label="Store Description" icon={FileText} error={errors.storeDescription}>
+                      <textarea
+                        value={payload.storeDescription}
+                        onChange={(e) => setField("storeDescription", e.target.value)}
+                        rows={3}
+                        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-4 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
+                      />
+                    </InputWrap>
 
-                  <div>
-                    <label className="block text-sm text-gray-700">Store Description *</label>
-                    <textarea placeholder="Delicious Nigerian dishes with home vibes" value={payload.storeDescription} onChange={(e) => setField("storeDescription", e.target.value)} rows={3} className="mt-1 p-2 border border-gray-100 outline-0 rounded w-full" />
-                    {errors.storeDescription && <p className="text-red-500 text-sm mt-1">{errors.storeDescription}</p>}
-                  </div>
-
-                  <div className="w-full flex justify-between">
-                    <div className="">
-                        <label className="block text-sm text-gray-700">Store Logo (upload) *</label>
-                        <input type="file" accept="image/*" onChange={(e) => handleFileSelect("logo", e.target.files[0])} className="mt-1 border border-gray-100 outline-0 text-sm p-3 rounded" />
+                    <div className="flex flex-col md:flex-row gap-6 p-6 border-2 border-dashed border-zinc-100 dark:border-zinc-800 rounded-[32px] hover:border-orange-500/30 transition-colors">
+                      <div className="flex-1 space-y-2">
+                        <h3 className="text-sm font-black uppercase italic tracking-widest text-zinc-900 dark:text-white">Store Logo</h3>
+                        <p className="text-[10px] font-bold text-zinc-400 leading-relaxed uppercase tracking-widest">Recommended: 512x512px, transparent BG</p>
+                        <input type="file" accept="image/*" id="logo-up" className="hidden" onChange={(e) => handleFileSelect("logo", e.target.files[0])} />
+                        <label htmlFor="logo-up" className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl text-[10px] font-black uppercase italic tracking-widest cursor-pointer hover:bg-orange-600 transition-colors">
+                          <Upload size={14} /> Upload Image
+                        </label>
+                      </div>
+                      <div className="w-24 h-24 bg-zinc-50 dark:bg-zinc-800 rounded-3xl flex items-center justify-center border border-zinc-100 dark:border-zinc-700 overflow-hidden shadow-inner">
+                        {previews.logo ? <img src={previews.logo} className="w-full h-full object-cover" /> : <Store className="text-zinc-300" size={32} />}
+                      </div>
                     </div>
-                    <div className="">
-                        {previews.logo && <img src={previews.logo} alt="logo preview" className="w-20 h-20 object-contain rounded" />}
-                        {/* if already have url in state show it */}
-                        {payload.logo && !previews.logo && <img src={payload.logo} alt="logo url" className="mt-2 w-20 h-20 object-contain rounded" />}
-                    </div>
-                    {errors.logo && <p className="text-red-500 text-sm mt-1">{errors.logo}</p>}
                   </div>
                 </div>
-              </motion.div>
-            )}
+              )}
 
-            {step === 3 && (
-              <motion.div key="s3" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                <StepHeader title="Address" desc="Where your store is located (coordinates required)" />
-                <div className="grid grid-cols-2 md:grid-cols-2 md:gap-4 gap-2">
-                  <div>
-                    <label className="block text-sm text-gray-700">Street *</label>
-                    <input placeholder="E.g Akin Ogunlewe Str" value={payload.address.street} onChange={(e) => setField("address.street", e.target.value)} className="mt-1 p-2 border border border-gray-100 outline-0 rounded w-full" />
-                    {errors["address.street"] && <p className="text-red-500 text-sm mt-1">{errors["address.street"]}</p>}
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-700">City *</label>
-                    <input placeholder="E.g Ikorodu" value={payload.address.city} onChange={(e) => setField("address.city", e.target.value)} className="mt-1 p-2 border border border-gray-100 outline-0 rounded w-full" />
-                    {errors["address.city"] && <p className="text-red-500 text-sm mt-1">{errors["address.city"]}</p>}
-                  </div>
+              {step === 3 && (
+                <div className="space-y-6">
+                  <StepHeader title="Business Location" desc="Where do we send the orders?" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <TextInput path="address.street" placeholder="Street Address" icon={MapPin} error={errors["address.street"]} payload={payload} setField={setField} />
 
-                  <div>
-                    <label className="block text-sm text-gray-700">State *</label>
-                    <input placeholder="E.g Lagos" value={payload.address.state} onChange={(e) => setField("address.state", e.target.value)} className="mt-1 p-2 border border border-gray-100 outline-0 rounded w-full" />
-                    {errors["address.state"] && <p className="text-red-500 text-sm mt-1">{errors["address.state"]}</p>}
-                  </div>
+                    <SelectInput
+                      path="address.state"
+                      label="State"
+                      icon={MapPin}
+                      error={errors["address.state"]}
+                      payload={payload}
+                      setField={setField}
+                      options={nigeriaStates.map(s => s.state)}
+                      onChange={(newState) => {
+                        // Reset city when state changes
+                        setField("address.city", "");
+                      }}
+                    />
 
-                  <div>
-                    <label className="block text-sm text-gray-700">Postal Code *</label>
-                    <input placeholder="E.g 101010" value={payload.address.postalCode} onChange={(e) => setField("address.postalCode", e.target.value)} className="mt-1 p-2 border border border-gray-100 outline-0 rounded w-full" />
-                    {errors["address.postalCode"] && <p className="text-red-500 text-sm mt-1">{errors["address.postalCode"]}</p>}
-                  </div>
+                    <SelectInput
+                      path="address.city"
+                      label="City"
+                      icon={MapPin}
+                      error={errors["address.city"]}
+                      payload={payload}
+                      setField={setField}
+                      options={
+                        payload.address.state
+                          ? nigeriaStates.find(s => s.state === payload.address.state)?.districts || []
+                          : []
+                      }
+                    />
 
-                  {/* <div>
-                    <label className="block text-sm text-gray-700">Longitude (coordinates[0]) *</label>
-                    <input value={payload.address.coordinates.coordinates[0]} onChange={(e) => setField("address.coordinates.coordinates.0", e.target.value)} className="mt-1 p-2 border border border-gray-100 outline-0 rounded w-full" />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm text-gray-700">Latitude (coordinates[1]) *</label>
-                    <input value={payload.address.coordinates.coordinates[1]} onChange={(e) => setField("address.coordinates.coordinates.1", e.target.value)} className="mt-1 p-2 border border border-gray-100 outline-0 rounded w-full" />
-                  </div> */}
-
-                  {errors["address.coordinates"] && <p className="text-red-500 text-sm mt-1 col-span-2">{errors["address.coordinates"]}</p>}
-                </div>
-              </motion.div>
-            )}
-
-            {step === 4 && (
-              <motion.div key="s4" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                <StepHeader title="Cuisine & Opening Hours" desc="Select cuisine types and set opening hours" />
-                <div className="mb-4">
-                  <p className="text-sm text-gray-700 mb-2">Cuisine Types *</p>
-                  <div className="flex flex-wrap gap-2">
-                    {CUISINES.map((c) => {
-                      const active = payload.cuisineTypes.includes(c);
-                      return (
-                        <button key={c} type="button" onClick={() => toggleArrayValue("cuisineTypes", c)}
-                          className={`px-3 py-1 rounded-full border ${active ? "bg-orange-500 text-white" : "bg-white text-gray-800 border-gray-300"}`}>
-                          {c}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {errors.cuisineTypes && <p className="text-red-500 text-sm mt-2">{errors.cuisineTypes}</p>}
-                </div>
-
-                <div>
-                  <p className="text-sm text-gray-700 mb-2">Opening Hours (set times or mark closed)</p>
-                  <div className="space-y-2 grid gricol2">
-                    {Object.keys(payload.openingHours).map((day) => {
-                      const d = payload.openingHours[day];
-                      return (
-                        <div key={day} className="flex items-center gap-3">
-                          <div className="w-24 capitalize text-sm text-gray-700">{day}</div>
-                          <input type="time" value={d.open} onChange={(e) => setField(`openingHours.${day}.open`, e.target.value)} className="p-1 border rounded" />
-                          <input type="time" value={d.close} onChange={(e) => setField(`openingHours.${day}.close`, e.target.value)} className="p-1 border rounded" />
-                          <label className="flex items-center gap-1 text-sm text-gray-700">
-                            <input type="checkbox" checked={d.closed} onChange={(e) => setField(`openingHours.${day}.closed`, e.target.checked)} />
-                            Closed
-                          </label>
-                          {errors[`openingHours.${day}`] && <p className="text-red-500 text-xs">{errors[`openingHours.${day}`]}</p>}
-                        </div>
-                      );
-                    })}
+                    <TextInput path="address.postalCode" placeholder="Postal / Zip Code" icon={MapPin} error={errors["address.postalCode"]} payload={payload} setField={setField} />
                   </div>
                 </div>
-              </motion.div>
-            )}
+              )}
 
-            {step === 5 && (
-              <motion.div key="s5" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                <StepHeader title="KYC (IDs & Business Doc)" desc="Upload ID front/back and business registration doc" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm text-gray-700">ID Type *</label>
-                    <select value={payload.kyc.idType} onChange={(e) => setField("kyc.idType", e.target.value)} className="mt-1 p-2 border border-gray-100 outline-0 text-sm rounded w-full">
-                      <option value="">Select ID Type</option>
-                      <option value="NIN">NIN</option>
-                      <option value="Driver's License">Driver's License</option>
-                      <option value="International Passport">International Passport</option>
-                    </select>
-                    {errors["kyc.idType"] && <p className="text-red-500 text-sm mt-1">{errors["kyc.idType"]}</p>}
-                  </div>
+              {step === 4 && (
+                <div className="space-y-8">
+                  <StepHeader title="Operations" desc="Define your working hours" />
 
-                  <div>
-                    <label className="block text-sm text-gray-700">ID Number *</label>
-                    <input value={payload.kyc.idNumber} onChange={(e) => setField("kyc.idNumber", e.target.value)} className="mt-1 p-2 border border-gray-100 outline-0 text-sm rounded w-full" />
-                    {errors["kyc.idNumber"] && <p className="text-red-500 text-sm mt-1">{errors["kyc.idNumber"]}</p>}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="">
-                        <label className="block text-sm text-gray-700">Upload ID Front *</label>
-                        <input type="file" accept="image/*" onChange={(e) => handleFileSelect("kycFront", e.target.files[0])} className=" rounded mt-1 border border-gray-100 w-[95%] p-2" />
-                        {previews.kycFront && <img src={previews.kycFront} alt="kyc front" className="mt-2 w-20 h-20 object-contain rounded" />}
-                        {errors.kycFront && <p className="text-red-500 text-sm mt-1">{errors.kycFront}</p>}
-                    </div>
-
-                    <div className="">
-                        <label className="block text-sm text-gray-700">Upload ID Back *</label>
-                        <input type="file" accept="image/*" onChange={(e) => handleFileSelect("kycBack", e.target.files[0])} className=" rounded mt-1 border border-gray-100 w-[95%] p-2" />
-                        {previews.kycBack && <img src={previews.kycBack} alt="kyc back" className="mt-2 w-20 h-20 object-contain rounded" />}
-                        {errors.kycBack && <p className="text-red-500 text-sm mt-1">{errors.kycBack}</p>}
-                    </div>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm text-gray-700">Business Registration Document (pdf/image) *</label>
-                    <input type="file" accept="application/pdf,image/*" onChange={(e) => handleFileSelect("businessDoc", e.target.files[0])} className=" rounded mt-1 border border-gray-100 p-2 w-full" />
-                    {previews.businessDoc && previews.businessDoc.endsWith(".pdf") ? (
-                      // embed pdf preview
-                      <embed src={previews.businessDoc} className="mt-2 w-full h-40 rounded" />
-                    ) : (
-                      previews.businessDoc && <img src={previews.businessDoc} alt="doc" className="mt-2 w-36 h-36 object-cover rounded" />
-                    )}
-                    {errors.businessDoc && <p className="text-red-500 text-sm mt-1">{errors.businessDoc}</p>}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {step === 6 && (
-              <motion.div key="s6" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                <StepHeader title="Payout, Delivery & Tags" desc="Bank details, delivery options and tags" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                        <label className="block text-sm text-gray-700">Bank Name *</label>
-                        <input value={payload.payoutDetails.bankName} onChange={(e) => setField("payoutDetails.bankName", e.target.value)} className="mt-1 p-2 border border border-gray-100 outline-0 rounded w-full" />
-                        {errors["payoutDetails.bankName"] && <p className="text-red-500 text-sm mt-1">{errors["payoutDetails.bankName"]}</p>}
-                    </div>
-
-                    <div>
-                        <label className="block text-sm text-gray-700">Account Name *</label>
-                        <input value={payload.payoutDetails.accountName} onChange={(e) => setField("payoutDetails.accountName", e.target.value)} className="mt-1 p-2 border border border-gray-100 outline-0 rounded w-full" />
-                        {errors["payoutDetails.accountName"] && <p className="text-red-500 text-sm mt-1">{errors["payoutDetails.accountName"]}</p>}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                        <label className="block text-sm text-gray-700">Account Number *</label>
-                        <input value={payload.payoutDetails.accountNumber} onChange={(e) => setField("payoutDetails.accountNumber", e.target.value)} className="mt-1 p-2 border border border-gray-100 outline-0 rounded w-full" />
-                        {errors["payoutDetails.accountNumber"] && <p className="text-red-500 text-sm mt-1">{errors["payoutDetails.accountNumber"]}</p>}
-                    </div>
-
-                    <div>
-                        <label className="block text-sm text-gray-700">Payout Method</label>
-                        <select value={payload.payoutDetails.payoutMethod} onChange={(e) => setField("payoutDetails.payoutMethod", e.target.value)} className="mt-1 p-2 border border border-gray-100 outline-0 rounded w-full">
-                        <option value="paystack">Paystack</option>
-                        </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center gap-3 border border-gray-100 px-3 rounded">
-                        <label className="text-sm text-gray-700">Accepts Delivery</label>
-                        <input type="checkbox" checked={payload.acceptsDelivery} onChange={(e) => setField("acceptsDelivery", e.target.checked)} />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm text-gray-700">Delivery Radius (km)</label>
-                        <input type="number" value={payload.deliveryRadiusKm} onChange={(e) => setField("deliveryRadiusKm", Number(e.target.value))} className="mt-1 p-2 border border border-gray-100 outline-0 rounded w-full" />
-                        {errors.deliveryRadiusKm && <p className="text-red-500 text-sm mt-1">{errors.deliveryRadiusKm}</p>}
-                    </div>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <p className="text-sm text-gray-700 mb-2">Select Tags *</p>
-                    <div className="flex flex-wrap gap-2">
-                      {TAGS.map((t) => {
-                        const active = payload.tags.includes(t);
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Weekly Operating Schedule</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {Object.keys(payload.openingHours).map((day) => {
+                        const d = payload.openingHours[day];
                         return (
-                          <button key={t} type="button" onClick={() => toggleArrayValue("tags", t)}
-                            className={`px-3 py-1 rounded-full border ${active ? "bg-orange-500 text-white" : "bg-gray-50 cursor-pointer text-gray-800 border-gray-300"}`}>
-                            {t}
-                          </button>
+                          <div key={day} className={`flex items-center gap-3 p-4 rounded-2xl border transition-colors ${d.closed ? 'bg-zinc-50 dark:bg-zinc-800/40 border-zinc-100 dark:border-zinc-800 opacity-60' : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 shadow-sm'}`}>
+                            <div className="w-16 capitalize text-[10px] font-black uppercase italic tracking-widest text-zinc-900 dark:text-white flex items-center gap-2">
+                              <Clock size={12} className="text-orange-500" /> {day.slice(0, 3)}
+                            </div>
+                            <div className="flex flex-1 items-center gap-2">
+                              <input type="time" disabled={d.closed} value={d.open} onChange={(e) => setField(`openingHours.${day}.open`, e.target.value)} className="bg-zinc-50 dark:bg-zinc-800 p-1.5 rounded-lg text-[10px] font-bold outline-none border border-zinc-100 dark:border-zinc-700" />
+                              <span className="text-zinc-300 dark:text-zinc-600">-</span>
+                              <input type="time" disabled={d.closed} value={d.close} onChange={(e) => setField(`openingHours.${day}.close`, e.target.value)} className="bg-zinc-50 dark:bg-zinc-800 p-1.5 rounded-lg text-[10px] font-bold outline-none border border-zinc-100 dark:border-zinc-700" />
+                            </div>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input type="checkbox" className="hidden" checked={d.closed} onChange={(e) => setField(`openingHours.${day}.closed`, e.target.checked)} />
+                              <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${d.closed ? 'bg-orange-500' : 'bg-zinc-200 dark:bg-zinc-700'}`}>
+                                <div className={`w-3 h-3 bg-white rounded-full transition-transform ${d.closed ? 'translate-x-4' : ''}`} />
+                              </div>
+                            </label>
+                          </div>
                         );
                       })}
                     </div>
-                    {errors.tags && <p className="text-red-500 text-sm mt-2">{errors.tags}</p>}
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="flex items-center gap-2">
-                      <input type="checkbox" checked={payload.metadata?.featured} onChange={(e) => setField("metadata.featured", e.target.checked)} />
-                      <span className="text-sm text-gray-700">Mark as featured (metadata.featured)</span>
-                    </label>
                   </div>
                 </div>
-              </motion.div>
-            )}
+              )}
+
+              {step === 5 && (
+                <div className="space-y-8">
+                  <StepHeader title="Payout & Delivery" desc="Final details before we launch your store" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <TextInput path="payoutDetails.bankName" placeholder="Bank Name" icon={CreditCard} error={errors["payoutDetails.bankName"]} payload={payload} setField={setField} />
+                    <TextInput path="payoutDetails.accountName" placeholder="Account Name" icon={User} error={errors["payoutDetails.accountName"]} payload={payload} setField={setField} />
+                    <TextInput path="payoutDetails.accountNumber" placeholder="Account Number" icon={CreditCard} error={errors["payoutDetails.accountNumber"]} payload={payload} setField={setField} />
+                  </div>
+
+                  <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                    <h3 className="text-sm font-black uppercase italic tracking-widest text-zinc-900 dark:text-white">Delivery Configuration</h3>
+
+                    <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300">Do you handle your own delivery?</p>
+                        <p className="text-[9px] font-bold text-zinc-400 mt-1 max-w-xs">Enable this if you have your own riders. If disabled, customers will only be able to pick up or use platform riders (if available).</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={payload.acceptsDelivery}
+                          onChange={(e) => {
+                            setField("acceptsDelivery", e.target.checked);
+                            if (!e.target.checked) setField("flatRateDeliveryFee", 0);
+                          }}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-zinc-200 peer-focus:outline-none rounded-full peer dark:bg-zinc-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                      </label>
+                    </div>
+
+                    <AnimatePresence>
+                      {payload.acceptsDelivery && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <TextInput
+                            path="flatRateDeliveryFee"
+                            placeholder="Flat Rate Delivery Fee (₦)"
+                            icon={CreditCard}
+                            type="number"
+                            error={errors.flatRateDeliveryFee}
+                            payload={payload}
+                            setField={setField}
+                          />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+
+                </div>
+              )}
+            </motion.div>
           </AnimatePresence>
 
-          {/* nav */}
-          <div className="flex items-center justify-between mt-6">
-            <div>
-              <button onClick={goBack} disabled={step === 1} className={`px-4 py-2 rounded ${step === 1 ? "bg-gray-200 text-gray-400" : "bg-white text-gray-800 border"}`}>
-                Back
-              </button>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {step < TOTAL_STEPS ? (
-                <button onClick={goNext} className="px-4 py-2 rounded bg-orange-500 text-white hover:bg-orange-600">Next</button>
-              ) : (
-                <button onClick={handleSubmit} disabled={submitting} className="px-4 py-2 rounded bg-orange-500 text-white hover:bg-orange-600">
-                  {submitting ? "Submitting..." : "Submit Registration"}
-                </button>
-              )}
-            </div>
-          </div>
-          <p className="text-start text-gray-500 text-sm mt-3">
-            Already a vendor?{" "}
-            <Link
-              href="/vendors/auth/login"
-              className="text-[#FF6B00] font-medium hover:underline"
+          {/* Navigation Buttons */}
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-zinc-50 dark:border-zinc-800">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={goBack}
+              disabled={step === 1}
+              className={`flex items-center gap-2 px-6 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest transition-all
+                                ${step === 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400"}`}
             >
-              Sign in to your dashboard
-            </Link>
-          </p>
-        </div>
+              <ChevronLeft size={16} /> Back
+            </motion.button>
 
-        {/* modal */}
-        {modal.open && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-lg">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">{modal.title}</h3>
-              <p className="text-gray-600">{modal.message}</p>
-              <div className="mt-4 text-right">
-                <button onClick={() => setModal({ open: false, title: "", message: "" })} className="px-4 py-2 rounded bg-orange-500 text-white">Close</button>
-              </div>
-            </div>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={step < TOTAL_STEPS ? goNext : handleSubmit}
+              disabled={submitting}
+              className="flex items-center gap-3 px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white rounded-[24px] text-[10px] font-black uppercase italic tracking-widest transition-all shadow-xl shadow-orange-500/20 disabled:opacity-50"
+            >
+              {submitting ? (
+                <Loader2 className="animate-spin" size={16} />
+              ) : step < TOTAL_STEPS ? (
+                <>Next Step <ChevronRight size={16} /></>
+              ) : (
+                <>LAUNCH STORE <CheckCircle2 size={16} /></>
+              )}
+            </motion.button>
           </div>
-        )}
-      </div>
-    </div>
+
+          <div className="text-center mt-4">
+            <Link href="/vendors/auth/login" className="text-[10px] font-black uppercase italic tracking-[0.2em] text-zinc-400 hover:text-orange-600 transition-colors underline-offset-4 decoration-orange-600/30">
+              Already a Partner? SIGN IN
+            </Link>
+          </div>
+        </motion.div>
+      </div >
+
+      {/* Premium Response Modal */}
+      < AnimatePresence >
+        {
+          modal.open && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="bg-white dark:bg-zinc-900 rounded-[40px] p-8 md:p-12 w-full max-w-lg text-center shadow-2xl relative border border-zinc-100 dark:border-zinc-800"
+              >
+                {modal.type === 'loading' ? (
+                  <div className="flex flex-col items-center py-6">
+                    <div className="w-24 h-24 relative mb-8">
+                      <div className="absolute inset-0 border-4 border-zinc-100 dark:border-zinc-800 rounded-full"></div>
+                      <div className="absolute inset-0 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                      <Store className="absolute inset-0 m-auto text-orange-500 animate-pulse" size={32} />
+                    </div>
+                    <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2 text-zinc-900 dark:text-white animate-pulse">
+                      {modal.title}
+                    </h2>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed">{modal.message}</p>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setModal({ ...modal, open: false })}
+                      className="absolute top-6 right-6 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors"
+                    >
+                      <X size={24} />
+                    </button>
+
+                    <div className="mb-6 flex justify-center">
+                      <div className={`w-20 h-20 rounded-full flex items-center justify-center ${modal.type === 'success' ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500" : "bg-rose-50 dark:bg-rose-500/10 text-rose-500"
+                        }`}>
+                        {modal.type === 'success' ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
+                      </div>
+                    </div>
+
+                    <h2 className={`text-2xl font-black uppercase italic tracking-tighter mb-4 ${modal.type === 'success' ? "text-emerald-600" : "text-rose-500"
+                      }`}>
+                      {modal.title.split(' ')[0]} <span className={modal.type === 'success' ? 'text-zinc-900 dark:text-white' : ''}>{modal.title.split(' ').slice(1).join(' ')}</span>
+                    </h2>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed mb-8">{modal.message}</p>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setModal({ ...modal, open: false })}
+                        className="flex-1 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:bg-zinc-200 transition-all"
+                      >
+                        Review Details
+                      </button>
+                      {modal.type === 'success' && (
+                        <Link
+                          href="/vendors/auth/login"
+                          className="flex-1 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest flex items-center justify-center hover:scale-[1.02] shadow-lg transition-all"
+                        >
+                          GOTO DASHBOARD
+                        </Link>
+                      )}
+                    </div>
+                  </>
+                )}
+              </motion.div>
+            </motion.div>
+          )
+        }
+      </AnimatePresence >
+    </div >
   );
 }

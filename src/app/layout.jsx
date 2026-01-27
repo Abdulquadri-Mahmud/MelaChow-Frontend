@@ -1,13 +1,6 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import { ApiProvider } from "./context/ApiContext";
-import QueryProvider from "./providers/QueryProvider";
-import { ProfileProvider } from "./context/ProfileContext";
-import AutoLogout from "./auto-logout/AutoLogout";
-import VendorsAutoLogout from "./auto-logout/VendorAutoLogout";
-import ConditionalBottomNav from "./components/conditional_bottom_nav/ConditionalBottomNav";
-import { CartProvider } from "./context/CartContext";
-import { Toaster } from "react-hot-toast";
+import ClientLayout from "./ClientLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,6 +9,16 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta-sans",
+  subsets: ["latin"],
+});
+
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair-display",
   subsets: ["latin"],
 });
 
@@ -70,19 +73,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ApiProvider>
-          <QueryProvider>
-            <CartProvider>
-              <ProfileProvider>{children}</ProfileProvider>
-              <ConditionalBottomNav />
-            </CartProvider>
-          </QueryProvider>
-        </ApiProvider>
-        <AutoLogout />
-        <VendorsAutoLogout />
-        <Toaster position="top-right" reverseOrder={false} />
-        {/* 👇 This handles route-specific navbar visibility */}
+      <body className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${playfairDisplay.variable} antialiased`}>
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   );

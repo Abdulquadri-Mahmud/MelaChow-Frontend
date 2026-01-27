@@ -1,38 +1,46 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
-import { Star, Utensils, Clock, Truck, Store } from "lucide-react";
+import { useMemo } from "react";
+import { getVendorOpenAndCloseStatus as checkVendorStatus } from "@/app/lib/vendor-time/OpenOrClose";
+import { Star, Utensils, Clock, Truck, Store, Plus, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
 import axios from "axios";
 import { useApi } from "@/app/context/ApiContext";
 
-export default function FoodList() {
+export default function FoodList({ user }) {
   const router = useRouter();
-  const [foods, setFoods] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
   const { baseUrl } = useApi();
 
-  // Fetch foods from API
-  useEffect(() => {
-    const fetchFoods = async () => {
-      try {
-        setIsLoading(true);
-        const res = await axios.get(`${baseUrl}/vendors/foods/get-foods`);
-        const data = res?.data?.data || [];
-        setFoods(data);
-      } catch (err) {
-        console.error("❌ Error fetching foods:", err);
-        setError("Failed to load foods. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
 
-    fetchFoods();
-  }, [baseUrl]);
+  const { data: foods = [], isLoading, isError, error } = useQuery({
+    queryKey: ["foods", defaultAddr?.city, defaultAddr?.state],
+    queryFn: async () => {
+      if (!defaultAddr?.city || !defaultAddr?.state) {
+        // Throw a mock axios-like error to trigger our custom error UI without a failed network request
+        const err = new Error("Missing location");
+        err.response = { data: { message: "Please provide both city and state query parameters." } };
+        throw err;
+      }
+
+      const token = localStorage.getItem("userToken");
+      const res = await axios.get(`${baseUrl}/user/foods`, {
+        params: {
+          city: defaultAddr.city,
+          state: defaultAddr.state,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return res?.data?.foods || [];
+    },
+    refetchInterval: 60000,
+    refetchOnWindowFocus: true,
+    retry: false, // Don't retry since location won't change without user action
+  });
 
   // Group foods by category
   const foodsByCategory = useMemo(() => {
@@ -45,16 +53,36 @@ export default function FoodList() {
     }, {});
   }, [foods]);
 
+
   if (isLoading) return <HomeFoodListSkeleton />;
 
-  if (error)
+  if (isError) {
+    const errorMsg = error?.response?.data?.message || "Failed to load foods. Please try again later.";
+    if (errorMsg === "Please provide both city and state query parameters.") {
+      return (
+        <div className="mt-4 px-3">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="bg-orange-100 p-1.5 rounded-lg">
+              <Utensils className="text-orange-600" size={18} />
+            </div>
+            <h2 className="text-lg font-bold text-gray-800 tracking-tight">Available Foods</h2>
+          </div>
+          <div className="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+            <MapPin className="mx-auto text-gray-400 mb-2" size={24} />
+            <p className="text-gray-500 text-sm font-medium">Please provide both city and state to see foods near you.</p>
+            <p className="text-xs text-gray-400 mt-1">Try changing your location!</p>
+          </div>
+        </div>
+      );
+    }
     return (
-      <div className="text-center text-red-500 py-6">
-        {error}
+      <div className="my-4 px-3 text-center py-6 bg-red-50 rounded-2xl">
+        <p className="text-red-500 text-sm">{errorMsg}</p>
       </div>
     );
+  }
 
-  if (!foods || foods.length === 0)
+  if (foods.length === 0)
     return (
       <div className="text-center text-gray-500 py-6">
         No foods available yet.
@@ -63,65 +91,89 @@ export default function FoodList() {
 
   return (
     <div className="flex-1 pb-5">
+      <div className="flex items-center justify-between px-3 mb-2">
+        <div className="flex items-center gap-2">
+          
+          <h2 className="text-lg font-bold text-gray-800 tracking-tight">Near You</h2>
+        </div>
+        <button
+          onClick={() => router.push('/all-foods')}
+          className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors"
+        >
+          See All
+        </button>
+      </div>
+
       {Object.entries(foodsByCategory).map(([category, foods]) => (
         <div key={category} className=" md:p-3 p-2 rounded-xl">
-          <h2 className="md:text-lg text-md font-semibold text-gray-800">
-            {category}
-          </h2>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="bg-orange-100 p-1.5 rounded-lg">
+              <Utensils className="text-orange-600" size={16} />
+            </div>
+            <h2 className="md:text-lg text-md font-semibold text-gray-800 tracking-tight">
+              {category}
+            </h2>
+          </div>
 
-          {/* Horizontal scroll container */}
-          <div className="flex gap-2 overflow-x-auto scroll pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar">
-            {foods.map((food) => (
-              <div
-                key={food._id}
-                className="bg-white p-2 rounded-md shadow-md min-w-[250px] cursor-pointer snap-start hover:shadow-lg transition"
-                onClick={() => router.push(`/food-details/${food._id}`)}
-              >
-                {/* Image */}
-                <div className="relative rounded-md overflow-hidden">
-                  <img
-                    src={food.images?.[0]?.url || "/placeholder.jpg"}
-                    alt={food.name}
-                    className="w-full h-30 object-cover rounded-md"
-                  />
-                  <span
-                    className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full ${
-                      food.available
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-400 text-white"
-                    }`}
-                  >
-                    {food.available ? "Available" : "Unavailable"}
-                  </span>
-                </div>
+          <div className="flex gap-2 mt-2 overflow-x-auto scroll pb-2 snap-x snap-mandatory scroll-smooth no-scrollbar">
+            {foods.map((food) => {
+              const hours = food?.restaurant?.openingHours || {};
+              const status = checkVendorStatus(hours);
+              const isOpen = status.startsWith("Open now");
 
-                {/* Details */}
-                <div>
-                  <h3 className="md:text-md text-sm font-semibold text-gray-800 truncate">
-                    {food.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="flex items-center gap-1 text-sm font-medium text-gray-600 truncate">
-                      <Store className="text-[#FF6600] w-4" />
-                      {food?.vendor?.storeName || "Unknown Vendor"}
-                    </p>
+              return (
+                <div
+                  key={food._id}
+                  className="bg-white rounded-md min-w-[250px] cursor-pointer snap-start transition flex flex-col h-full border border-gray-50"
+                  onClick={() => router.push(`/food-details/${food._id}`)}
+                >
+                  {/* Image */}
+                  <div className="relative rounded-md overflow-hidden">
+                    <img
+                      src={food.image || "/placeholder.jpg"}
+                      alt={food.name}
+                      className="w-full h-32 object-cover rounded-md"
+                    />
+                    <div className="absolute top-2 left-2 flex flex-col gap-2">
+                      <span className={`${isOpen ? "bg-white/90 text-orange-600" : "bg-zinc-900/90 text-zinc-400"} text-[8px] font-black px-2 py-1 rounded shadow-lg uppercase tracking-widest backdrop-blur-md`}>
+                        {isOpen ? "OPEN" : "CLOSED"}
+                      </span>
+                    </div>
+                    <div className="absolute top-2 right-2 bg-white backdrop-blur-md text-orange-600 px-2 py-1 rounded text-[10px] font-bold shadow-sm border border-orange-100">
+                      from | ₦{food.price?.toLocaleString()}
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
-                    <p className="flex items-center gap-1">
-                      <Truck size={12} className="text-orange-500" />
-                      {food?.vendor?.address
-                        ? ` ${food.vendor.address.city}`
-                        : "Address not available"}
-                    </p>
-                    <p className="flex items-center gap-1">
-                      <Clock size={13} className="text-orange-500" />
-                      {food?.estimatedDeliveryTime - 5 || "0"} -{" "}
-                      {food?.estimatedDeliveryTime || "0"} mins
-                    </p>
+
+                  {/* Details */}
+                  <div className="p-2 flex flex-col flex-1">
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className="text-sm font-bold text-gray-800 truncate flex-1 md:text-md uppercase tracking-tight">
+                        {food.name}
+                      </h3>
+                      <div className="bg-orange-50 p-1.5 rounded-lg text-orange-500">
+                        <Plus size={16} />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 mt-1 text-[11px] text-gray-500">
+                      <Store className="text-orange-500" size={12} />
+                      <span className="truncate">{food?.restaurant?.storeName || "Vendor"}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-gray-600">
+                        <Truck size={12} className="text-orange-400" />
+                        <span>from | ₦{food.deliveryFee || food?.restaurant?.deliveryFee || 0}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400">
+                        <Clock size={12} className="text-orange-400" />
+                        <span>{food?.estimatedDeliveryTime || "25"}m</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ))}

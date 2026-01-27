@@ -19,15 +19,32 @@ export default function HomeFoodListSkeleton({ categories = 2, itemsPerCategory 
             {Array.from({ length: itemsPerCategory }).map((_, itemIdx) => (
               <div
                 key={itemIdx}
-                className="min-w-[220px] rounded-2xl overflow-hidden bg-white shadow-sm snap-start"
+                className="min-w-[220px] rounded-md overflow-hidden bg-white border border-gray-50 flex flex-col h-full snap-start"
               >
-                <Skeleton height={140} />
-                <div className="p-2 space-y-1">
-                  <Skeleton width="70%" height={16} />
-                  <Skeleton width="50%" height={14} />
-                  <div className="flex justify-between items-center mt-1">
-                    <Skeleton width="30%" height={12} />
-                    <Skeleton width="20%" height={12} />
+                <div className="relative">
+                  <Skeleton height={120} />
+                  <div className="absolute top-2 right-2">
+                    <Skeleton width={80} height={20} className="rounded" />
+                  </div>
+                </div>
+                <div className="p-2 space-y-2 flex-1">
+                  <div className="flex justify-between items-start gap-2">
+                    <Skeleton width="70%" height={16} />
+                    <Skeleton width={28} height={28} className="rounded-lg" />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Skeleton width={12} height={12} className="rounded-sm" />
+                    <Skeleton width="50%" height={12} />
+                  </div>
+                  <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
+                    <div className="flex items-center gap-1">
+                      <Skeleton width={12} height={12} />
+                      <Skeleton width={40} height={10} />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Skeleton width={12} height={12} />
+                      <Skeleton width={30} height={10} />
+                    </div>
                   </div>
                 </div>
               </div>

@@ -11,7 +11,7 @@ export const ProfileProvider = ({ children }) => {
 
   // Function used by React Query to fetch the user profile
   const fetchProfile = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("userToken");
 
     if (!token) throw new Error("No authentication token found.");
 

@@ -1,66 +1,55 @@
 "use client";
 
-import { Store, Star, ShoppingBag, DollarSign, Clock, Utensils } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Search, Bell, Zap, Menu } from "lucide-react";
 
 export default function VendorDashboardHeader({ vendor }) {
-
-  console.log("Vendor Data:", vendor);
-
   return (
-    <div className="space-y-6 mb-5">
-      {/* Header */}
-      <div className="bg-white p-5 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center shadow-sm">
-        <div className="flex flex-col md:flex-row md:items-center gap-4">
-          <img
-            src={vendor?.logo || "/placeholder-logo.png"}
-            alt="Vendor Logo"
-            className="w-14 h-14 rounded-full object-cover border border-gray-200"
-          />
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2">
-              <Store className="text-[#FF6600]" /> {vendor?.storeName}
-            </h1>
+    <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-4 bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
+      <div className="flex items-center gap-6 flex-1">
+        {/* Mobile Toggle (Visible on small screens) */}
+        <button className="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+          <Menu size={20} />
+        </button>
 
-            <div className="flex items-center gap-1 py-2 text-yellow-500">
-                {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={16} fill={i < Math.round(vendor?.rating ?? 0) ? "currentColor" : "none"}
-                    />
-                ))}
-                <span className="text-sm text-gray-600 ml-1">
-                    {vendor?.rating?.toFixed(1) ?? "0.0"}
-                </span>
-            </div>
-
-            <p className="text-gray-600 mt-1">{vendor?.storeDescription}</p>
-            <p className="text-gray-400 text-sm mt-1">
-              Joined: {new Date(vendor?.createdAt).toLocaleDateString()} •{" "}
-              Location: {vendor?.address?.city}, {vendor?.address?.state}
-              <span> • Sales: {vendor?.totalSales ?? 0} </span>
-            </p>
-
-            <div className="flex gap-2 mt-3">
-              <button className="px-4 py-1.5 bg-[#FF6600] text-white rounded hover:bg-[#e55a00] transition text-sm">
-                Edit Store
-              </button>
-              <button className="px-4 py-1.5 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 transition text-sm">
-                View Orders
-              </button>
-            </div>
-          </div>
+        <div className="flex flex-col">
+          <h1 className="text-lg font-bold text-slate-900 dark:text-white leading-tight">
+            {vendor?.storeName || "Vendor Dashboard"}
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Welcome back, {vendor?.name?.split(" ")[0] || "Partner"}
+          </p>
         </div>
 
-        <Badge
-          variant="outline"
-          className={`mt-4 md:mt-0 px-3 py-1 border ${
-            vendor?.active ? "border-green-500 text-green-600" : "border-red-500 text-red-600"
-          }`}
-        >
-          {vendor?.active ? "Active" : "Inactive"}
-        </Badge>
+        <div className="relative w-full max-w-sm hidden md:block ml-8">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input
+            className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-[#FF6B00] placeholder:text-slate-500 text-slate-900 dark:text-white outline-none transition-all"
+            placeholder="Search..."
+            type="text"
+          />
+        </div>
       </div>
-    </div>
+
+      <div className="flex items-center gap-3">
+        <button className="hidden md:flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-[#FF6B00]/50 transition-all">
+          <Zap size={14} className="text-[#FF6B00] fill-[#FF6B00]" />
+          Quick Actions
+        </button>
+
+        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden md:block"></div>
+
+        <button className="relative size-9 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 transition-colors">
+          <Bell size={20} />
+          <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0F172A]"></span>
+        </button>
+
+        <div className="flex items-center gap-3 pl-2 cursor-pointer hover:opacity-80 transition-opacity">
+          <div
+            className="size-9 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center border border-slate-200 dark:border-slate-700"
+            style={{ backgroundImage: `url('${vendor?.logo || "/placeholder-logo.png"}')` }}
+          ></div>
+        </div>
+      </div>
+    </header>
   );
 }

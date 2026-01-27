@@ -2,19 +2,72 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Clock, Truck, Package, Home, CheckCircle } from "lucide-react";
+import { Clock, Truck, Package, Home, CheckCircle, Star } from "lucide-react";
 import { useApi } from "@/app/context/ApiContext";
 import { useParams } from "next/navigation";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import Header2 from "../App_Header/Header2";
 import OrderTrackingSkeleton from "../skeleton/OrderTrackingSkeleton";
 import { motion } from "framer-motion";
+import ReviewModal from "@/app/modals/ReviewModal";
 
 const statusSteps = [
-  { key: "pending", label: "Pending", icon: Clock },
-  { key: "processing", label: "Processing", icon: Truck },
-  { key: "in_transit", label: "In Transit", icon: Package },
-  { key: "delivered", label: "Delivered", icon: Home },
+  {
+    key: "pending",
+    label: "Order Placed",
+    subtitle: "We've received your order",
+    description: "Your order has been received and is waiting for restaurant confirmation.",
+    icon: Clock
+  },
+  {
+    key: "accepted",
+    label: "Confirmed",
+    subtitle: "Restaurant accepted",
+    description: "The restaurant has confirmed your order and will start preparing soon.",
+    icon: CheckCircle
+  },
+  {
+    key: "preparing",
+    label: "Preparing",
+    subtitle: "Kitchen is busy",
+    description: "The restaurant is preparing your delicious meal with care.",
+    icon: Package
+  },
+  {
+    key: "ready_for_pickup",
+    label: "Ready",
+    subtitle: "Food is ready",
+    description: "Your order is ready and waiting for the delivery rider.",
+    icon: CheckCircle
+  },
+  {
+    key: "rider_assigned",
+    label: "Rider Assigned",
+    subtitle: "Driver on the way",
+    description: "A delivery rider has been assigned and is heading to the restaurant.",
+    icon: Truck
+  },
+  {
+    key: "out_for_delivery",
+    label: "On the way",
+    subtitle: "Rider is heading to you",
+    description: "Our delivery partner has picked up your order and is en route.",
+    icon: Truck
+  },
+  {
+    key: "delivered",
+    label: "Delivered",
+    subtitle: "Hope you enjoy it!",
+    description: "Your meal has been dropped off. Thank you for using GrubDash!",
+    icon: Home
+  },
+  {
+    key: "completed",
+    label: "Completed",
+    subtitle: "Order closed",
+    description: "This order has been successfully completed. Enjoy your meal!",
+    icon: CheckCircle
+  },
 ];
 
 export default function OrderTracking() {
@@ -22,6 +75,8 @@ export default function OrderTracking() {
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [selectedFoodForReview, setSelectedFoodForReview] = useState(null);
 
   const { baseUrl } = useApi();
   const { user } = useUserStorage();
@@ -48,10 +103,10 @@ export default function OrderTracking() {
   if (loading)
     return (
       <>
-        <Header2/>
-        <OrderTrackingSkeleton/>
+        <Header2 />
+        <OrderTrackingSkeleton />
       </>
-  );
+    );
   if (error)
     return <div className="md:p-6 p-2 text-center text-red-500 font-medium">{error}</div>;
   if (!orderData)
@@ -60,147 +115,356 @@ export default function OrderTracking() {
   const { items, deliveryAddress, subtotal, deliveryFee, total, orderStatus, userId } = orderData;
   const currentStepIndex = statusSteps.findIndex((s) => s.key === orderStatus);
 
+  // console.log(orderData);
+
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-[#fcfcff] dark:bg-zinc-950 min-h-screen font-display pb-32">
       <Header2 />
 
-      <div className="max-w-lg mx-auto md:p-6 p-2 pb-20 space-y-2">
-        {/* Customer Info */}
-        <div className="bg-white rounded-xl md:p-4 p-3 space-y-3 border border-gray-200">
-          <h3 className="text-gray-700 font-semibold text-lg mb-2">Customer Information</h3>
-
-          <div className="flex justify-between border-b border-gray-100 pb-2">
-            <span className="font-semibold text-xs text-gray-600">Full Name:</span>
-            <span className="text-gray-800 text-xs">{userId.firstname} {userId.lastname}</span>
-          </div>
-
-          <div className="flex justify-between border-b border-gray-100 pb-2">
-            <span className="font-semibold text-xs text-gray-600">Email:</span>
-            <span className="text-gray-800 text-xs">{userId.email}</span>
-          </div>
-
-          <div className="flex justify-between">
-            <span className="font-semibold text-xs text-gray-600">Phone Number:</span>
-            <span className="text-gray-800 text-xs">{userId.phone}</span>
-          </div>
+      {/* Dynamic Map Header Section */}
+      <div className="relative h-[75vh] w-full overflow-hidden bg-orange-50 dark:bg-orange-950/10">
+        {/* Premium Map Stylized Pattern */}
+        <div className="absolute inset-0 opacity-10 dark:opacity-20 pointer-events-none">
+          <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <defs>
+              <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="currentColor" strokeWidth="0.1" />
+              </pattern>
+            </defs>
+            <rect width="100" height="100" fill="url(#grid)" />
+            <path d="M 0 50 C 20 40, 40 60, 60 40 S 80 60, 100 50" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="2,2" />
+            <path d="M 20 0 L 20 100 M 50 0 L 50 100 M 80 0 L 80 100" fill="none" stroke="currentColor" strokeWidth="0.1" />
+          </svg>
         </div>
 
+        {/* Floating Elements for "Map" Feel */}
+        <motion.div
+          animate={{ x: [0, 20, 0], y: [0, -10, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+          className="absolute top-1/4 left-1/4 w-32 h-32 bg-orange-400/5 dark:bg-orange-500/10 rounded-full blur-3xl"
+        />
 
-        {/* Order ID */}
-        <div className="bg-white rounded-xl md:p-4 px-2 py-4 border border-gray-200">
-          <h2 className="text-gray-600 font-bold">Order ID: {orderData.orderId}</h2>
+        <div className="absolute inset-0 flex flex-col items-center justify-center -translate-y-12">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="relative"
+          >
+            {/* Center Pulse */}
+            <div className="absolute inset-0 animate-ping bg-orange-500/20 rounded-full scale-110" />
+            <div className="absolute inset-0 animate-pulse bg-orange-500/10 rounded-full scale-150" />
+
+            <div className="relative w-40 h-40 bg-white dark:bg-zinc-900 rounded-[48px] shadow-[0_30px_70px_-15px_rgba(255,102,0,0.3)] border-4 border-white dark:border-zinc-800 flex items-center justify-center overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-600 opacity-90" />
+              <motion.div
+                animate={{
+                  rotate: [0, 5, -5, 0],
+                  scale: [1, 1.05, 1]
+                }}
+                transition={{ repeat: Infinity, duration: 4 }}
+                className="z-10 text-white"
+              >
+                {currentStepIndex === 3 ? (
+                  <CheckCircle size={64} strokeWidth={1.5} />
+                ) : (
+                  <Truck size={64} strokeWidth={1.5} />
+                )}
+              </motion.div>
+
+              {/* Glossy Effect */}
+              <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent" />
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-8 text-center"
+          >
+            <h2 className="text-3xl font-black text-zinc-900 dark:text-white italic uppercase tracking-tighter">
+              {statusSteps[currentStepIndex]?.label}
+            </h2>
+            <div className="flex items-center gap-2 justify-center mt-2">
+              <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Live Updates Enabled</p>
+            </div>
+          </motion.div>
         </div>
 
-        {/* Items */}
-        <div className="bg-white rounded-xl md:p-4 p-2 border border-gray-200 space-y-3">
-          <h3 className="text-gray-700 font-semibold">Items</h3>
-          {items.map((item, idx) => (
-            <div key={idx} className="flex gap-3 items-center bg-orange-50 rounded-lg p-2 shadow-sm">
-              <img
-                src={item.variant.image}
-                alt={item.variant.name}
-                className="w-12 h-12 object-cover rounded-md"
-              />
-              <div className="flex-1">
-                <p className="text-gray-800 text-sm font-semibold">{item.variant.name}</p>
-                <p className="text-gray-600 text-xs">
-                  Qty: {item.quantity} | ₦{item.price.toLocaleString()}
-                </p>
-                <p className="text-gray-500 text-xs mt-1">From: {item.restaurantId.storeName}</p>
+        {/* Top Actions */}
+        <div className="absolute top-6 left-4 right-4 flex justify-between items-center z-10">
+          <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-zinc-800/50 shadow-lg">
+            <span className="text-[10px] font-black text-orange-600 uppercase italic">Arrival ~ 22:45</span>
+          </div>
+          <button
+            onClick={() => {
+              if (orderData?.items?.length > 0) {
+                setSelectedFoodForReview(orderData.items[0]);
+                setIsReviewModalOpen(true);
+              }
+            }}
+            className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-zinc-800/50 shadow-lg text-[10px] font-black text-zinc-500 uppercase hover:text-orange-600 transition-colors"
+          >
+            Review Order
+          </button>
+        </div>
+      </div>
+
+      {/* Overlapping Content Section */}
+      <div className="relative max-w-2xl mx-auto -mt-[9rem] px-4">
+        <div className="space-y-6">
+
+          {/* Main Status & Progress Card */}
+          <motion.div
+            initial={{ y: 40, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="bg-white dark:bg-zinc-900 rounded-[48px] p-4 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.12)] border border-zinc-100 dark:border-zinc-800"
+          >
+            <div className="flex justify-between items-start mb-10">
+              <div>
+                <h3 className="text-zinc-900 dark:text-white font-black text-xl italic uppercase tracking-tight">Track Progress</h3>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs font-bold text-zinc-400 px-2 py-0.5 bg-zinc-50 dark:bg-zinc-800 rounded-lg">#{orderData.orderId.substring(0, 8)}</span>
+                  <span className="text-[10px] font-black text-orange-500 uppercase">{currentStepIndex + 1} of {statusSteps.length} Steps Done</span>
+                </div>
+              </div>
+              <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-3xl">
+                <Package size={24} className="text-zinc-400" />
               </div>
             </div>
-          ))}
-        </div>
 
-        {/* Delivery Address */}
-        <div className="bg-white rounded-xl md:p-4 p-2 border border-gray-200 space-y-1">
-          <h3 className="text-gray-700 font-semibold">Delivery Address</h3>
-          <p className="text-xs">{deliveryAddress.addressLine}</p>
-          <p className="text-xs">
-            {deliveryAddress.city}, {deliveryAddress.state}
-          </p>
-          {/* <p>Phone: {deliveryAddress.phone}</p> */}
-        </div>
+            <div className="relative space-y-12">
+              {/* Refined Vertical Timeline */}
+              <div className="absolute left-[23px] top-6 bottom-6 w-[2px] bg-zinc-50 dark:bg-zinc-800" />
+              <motion.div
+                initial={{ height: 0 }}
+                animate={{ height: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%` }}
+                className="absolute left-[23px] top-6 w-[2px] bg-gradient-to-b from-orange-400 to-orange-600 shadow-[0_0_15px_rgba(255,102,0,0.4)]"
+              />
 
-        {/* Payment Summary */}
-        <div className="bg-white w-full rounded-xl md:p-4 p-2 border border-gray-200 space-y-3">
-          <h3 className="text-gray-700 font-semibold mb-2">Payment</h3>
+              {statusSteps.map((step, idx) => {
+                const Icon = step.icon;
+                const isActive = idx === currentStepIndex;
+                const isPast = idx < currentStepIndex;
 
-          {/* Subtotal */}
-          <div className="flex justify-between items-center text-xs py-1 border-b border-gray-100">
-            <span className="text-gray-700">Subtotal</span>
-            <span className="text-gray-800 font-medium">₦{subtotal.toLocaleString()}</span>
-          </div>
+                return (
+                  <div key={idx} className="flex gap-4 relative">
+                    <div className="relative z-10">
+                      <motion.div
+                        animate={{
+                          scale: isActive ? [1, 1.1, 1] : 1,
+                          backgroundColor: isActive || isPast ? "#ff6600" : "#ffffff"
+                        }}
+                        transition={{ repeat: isActive ? Infinity : 0, duration: 2 }}
+                        className={`w-12 h-12 rounded-[22px] flex items-center justify-center shadow-2xl transition-all duration-500 border-2 ${isActive || isPast
+                          ? "text-white border-transparent shadow-orange-500/40"
+                          : "text-zinc-300 border-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
+                          }`}
+                      >
+                        {isPast ? <CheckCircle size={20} /> : <Icon size={20} />}
+                      </motion.div>
+                    </div>
 
-          {/* Delivery Fee */}
-          <div className="flex justify-between items-center text-xs py-1 border-b border-gray-100">
-            <span className="text-gray-700">Delivery Fee</span>
-            <span className="text-gray-800 font-medium">₦{deliveryFee.toLocaleString()}</span>
-          </div>
+                    <div className={`flex-1 transition-all duration-700 ${idx > currentStepIndex ? "opacity-30 blur-[0.5px]" : "opacity-100"}`}>
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-3">
+                          <h4 className={`text-[13px] font-black uppercase tracking-tight ${isActive ? "text-orange-600" : "text-zinc-900 dark:text-white"}`}>
+                            {step.label}
+                          </h4>
+                          {isActive && (
+                            <motion.span
+                              animate={{ opacity: [1, 0.5, 1] }}
+                              transition={{ repeat: Infinity, duration: 1.5 }}
+                              className="px-2 py-0.5 bg-orange-500 text-[8px] font-black text-white rounded-full uppercase italic tracking-widest"
+                            >
+                              Ongoing
+                            </motion.span>
+                          )}
+                        </div>
+                        <p className="text-zinc-500 dark:text-zinc-400 text-[11px] mt-1 font-bold italic uppercase tracking-wider opacity-60">
+                          {step.subtitle}
+                        </p>
+                        <p className="text-zinc-400 text-xs mt-2 font-medium leading-relaxed max-w-[200px]">
+                          {step.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
 
-          {/* Total */}
-          <div className="flex justify-between items-center text-xs py-1 border-b border-gray-100">
-            <span className="text-gray-700 font-semibold">Total</span>
-            <span className="text-orange-500 font-bold text-lg">₦{total.toLocaleString()}</span>
-          </div>
+          {/* Rider & Bag Detailed Card */}
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-3">
 
-          {/* Payment Status */}
-          <div className="flex justify-between items-center text-xs py-1">
-            <span className="text-gray-700">Payment Status</span>
-            <span className="text-gray-700 text-sm bg-green-300  px-3 py-1 rounded-md capitalize">{orderData.paymentStatus}</span>
-          </div>
-        </div>
+            {/* Rider Information Section */}
+            {currentStepIndex >= 2 && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-orange-600 rounded-[40px] p-3 text-white relative overflow-hidden"
+              >
+                {/* Decorative Pattern */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-12 translate-x-12 blur-2xl" />
 
-      {/* Status Timeline */}
-        <div className="bg-white rounded-xl md:p-4 p-2 border border-gray-200">
-          <h3 className="text-gray-700 font-semibold mb-4">Order Status</h3>
-
-          <div className="relative flex items-center justify-between">
-            {/* Gray background line */}
-            <div className="absolute top-5 left-0 right-0 h-1 bg-gray-300 rounded z-0" />
-
-            {/* Orange animated progress line */}
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%` }}
-              transition={{ duration: 0.7, ease: "easeInOut" }}
-              className="absolute top-5 left-0 h-1 bg-orange-400 rounded z-10"
-            />
-
-            {/* Step icons */}
-            {statusSteps.map((step, idx) => {
-              const Icon = step.icon;
-              const isActive = idx <= currentStepIndex;
-              const isCompleted = idx < currentStepIndex;
-
-              return (
-                <div key={idx} className="flex-1 flex flex-col items-center relative z-20">
-                  {/* Icon background with motion */}
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: idx * 0.3 }}
-                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md ${
-                      isActive ? "bg-orange-500 text-white" : "bg-gray-300 text-gray-500"
-                    }`}
-                  >
-                    {/* Always render icon */}
-                    {isCompleted ? <CheckCircle size={18} /> : <Icon size={18} />}
-                  </motion.div>
-
-                  <span
-                    className={`mt-2 text-xs text-center font-medium ${
-                      isActive ? "text-orange-600" : "text-gray-500"
-                    }`}
-                  >
-                    {step.label}
-                  </span>
+                <div className="flex items-center gap-5 relative z-10">
+                  <div className="w-16 h-16 rounded-[24px] overflow-hidden border-2 border-white/30 p-1 bg-white/10 backdrop-blur-md">
+                    <img src="/rider-placeholder.jpg" alt="Rider" className="w-full h-full object-cover rounded-[20px]" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-black italic tracking-tight leading-tight">Abdulsalam Mahmud</h3>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mt-1">Professional Rider • Yamaha R1</p>
+                    <div className="flex items-center gap-3 mt-3">
+                      <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg">
+                        <Star size={10} className="fill-white" />
+                        <span className="text-[10px] font-black">4.98</span>
+                      </div>
+                      <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg">
+                        <span className="text-[10px] font-black uppercase">500+ Trips</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button className="p-4 bg-white text-orange-600 rounded-2xl shadow-xl hover:scale-105 transition-transform">
+                      <Clock size={24} strokeWidth={2.5} />
+                    </button>
+                  </div>
                 </div>
-              );
-            })}
+              </motion.div>
+            )}
+
+            {/* Bag/Items Section */}
+            <motion.div
+              className="bg-white dark:bg-zinc-900 rounded-[40px] p-4 border border-zinc-100 dark:border-zinc-800"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="flex justify-between items-center mb-8">
+                <h3 className="text-zinc-900 dark:text-white font-black text-sm uppercase italic tracking-[0.2em]">Order Summary</h3>
+                <span className="text-zinc-300 text-xs font-bold uppercase">{items.length} Items</span>
+              </div>
+
+              <div className="space-y-6">
+                {items.map((item, idx) => (
+                  <div key={idx} className="flex gap-5 items-center bg-zinc-50/50 dark:bg-zinc-800/50 p-3 rounded-[28px] border border-zinc-100/50 dark:border-zinc-700/50">
+                    <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-inner">
+                      <img
+                        src={item.variant.image || "/placeholder.jpg"}
+                        alt={item.variant.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-black text-zinc-900 dark:text-white italic uppercase">{item.variant.name}</h4>
+                      <p className="text-[10px] font-black text-zinc-400 mt-0.5 opacity-60">QTY: {item.quantity} • ₦{item.price.toLocaleString()}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="font-black text-sm text-zinc-900 dark:text-white">
+                        ₦{(item.price * item.quantity).toLocaleString()}
+                      </div>
+                      <button
+                        onClick={() => {
+                          setSelectedFoodForReview(item);
+                          setIsReviewModalOpen(true);
+                        }}
+                        className="text-[9px] font-black uppercase text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded-lg hover:bg-orange-100 transition-colors"
+                      >
+                        Review
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Enhanced Pricing Breakdown */}
+              <div className="mt-10 pt-8 border-t-2 border-zinc-50 dark:border-zinc-800 space-y-4">
+                <div className="flex justify-between items-center text-zinc-400 text-[11px] font-black uppercase tracking-widest">
+                  <span>Subtotal</span>
+                  <span className="text-zinc-900 dark:text-white">₦{subtotal.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-zinc-400 text-[11px] font-black uppercase tracking-widest">
+                  <span>Delivery Service</span>
+                  <span className="text-orange-600">+ ₦{deliveryFee.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-end pt-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300 mb-1 leading-none">Total Payment</p>
+                    <h4 className="text-4xl font-black text-zinc-900 dark:text-white italic tracking-tighter leading-none">₦{total.toLocaleString()}</h4>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] font-black text-green-500 bg-green-500/10 px-3 py-1.5 rounded-xl uppercase tracking-widest">
+                      Completed
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Location & Details Mini Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white dark:bg-zinc-900 p-6 rounded-[32px] border border-zinc-100 dark:border-zinc-800 flex items-center gap-4">
+              <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-2xl">
+                <Home size={20} className="text-zinc-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest opacity-60">Home Address</h3>
+                <p className="text-xs font-black text-zinc-900 dark:text-white truncate uppercase italic mt-0.5">{deliveryAddress.addressLine}</p>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-zinc-900 p-6 rounded-[32px] border border-zinc-100 dark:border-zinc-800 flex items-center gap-4">
+              <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-2xl">
+                <Clock size={20} className="text-zinc-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest opacity-60">Placed On</h3>
+                <p className="text-xs font-black text-zinc-900 dark:text-white truncate uppercase italic mt-0.5">Today • 21:05</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Floating Action Button - Support */}
+      <motion.div
+        className="fixed bottom-8 right-8 z-[100] flex items-center gap-3"
+        initial={{ x: 100 }}
+        animate={{ x: 0 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 2 }}
+          className="bg-white dark:bg-zinc-900 px-4 py-2 rounded-2xl shadow-xl border border-zinc-100 dark:border-zinc-800 hidden md:block"
+        >
+          <p className="text-[10px] font-black uppercase text-zinc-500">Need help?</p>
+        </motion.div>
+
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="w-16 h-16 bg-orange-600 text-white rounded-[24px] shadow-[0_20px_40px_-10px_rgba(255,102,0,0.5)] flex items-center justify-center border-4 border-white/20 backdrop-blur-sm group relative"
+        >
+          <Truck size={28} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
+        </motion.button>
+      </motion.div>
+
+      {/* Review Modal */}
+      {selectedFoodForReview && (
+        <ReviewModal
+          isOpen={isReviewModalOpen}
+          onClose={() => setIsReviewModalOpen(false)}
+          food={selectedFoodForReview}
+          vendorId={orderData.items[0].restaurantId}
+          baseUrl={baseUrl}
+          token={localStorage.getItem("userToken")}
+        />
+      )}
     </div>
   );
 }

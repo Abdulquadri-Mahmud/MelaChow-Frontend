@@ -12,9 +12,9 @@ export const fetchUser = async (token) => {
 
   // console.log(res)
 
-  if (!res.ok){
+  if (!res.ok) {
     throw new Error("Unauthorized or fetch failed!");
-  } 
+  }
 
   const data = await res.json();
   return data; // expected { user: ... }

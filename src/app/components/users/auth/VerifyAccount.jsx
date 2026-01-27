@@ -2,17 +2,21 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useApi } from "@/app/context/ApiContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShieldCheck, ArrowRight, Loader2, RefreshCw, X, Clock } from "lucide-react";
 
-// GrubDash Logo Component
 const LogoImage = () => (
-  <img
-    src="/logo.png"
-    alt="GrubDash Logo"
-    className="w-[170px] mx-auto mb-4 object-contain"
-  />
+  <div className="relative group mx-auto mb-6">
+    <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full scale-125 transition-transform duration-700" />
+    <img
+      src="/logo.png"
+      alt="GrubDash Logo"
+      className="w-[160px] object-contain relative z-10"
+    />
+  </div>
 );
 
 export default function VerifyAccount() {
@@ -28,7 +32,6 @@ export default function VerifyAccount() {
   const { baseUrl } = useApi();
   const { saveUser } = useUserStorage();
 
-  // Start timer immediately on page load
   useEffect(() => {
     if (timeLeft <= 0) return;
 
@@ -66,6 +69,20 @@ export default function VerifyAccount() {
     }
   };
 
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").trim();
+
+    if (/^\d{6}$/.test(pastedData)) {
+      const newOtp = pastedData.split("");
+      setOtp(newOtp);
+      inputRefs.current[5]?.focus();
+      toast.success("OTP pasted successfully!");
+    } else {
+      toast.error("Please paste a valid 6-digit OTP");
+    }
+  };
+
   const handleVerify = async () => {
     const otpString = otp.join("");
     if (otpString.length !== 6) {
@@ -89,7 +106,6 @@ export default function VerifyAccount() {
 
       saveUser(data);
 
-      // ✅ Extract token and save to localStorage
       if (data?.token) {
         localStorage.setItem("userToken", data.token);
       }
@@ -105,7 +121,7 @@ export default function VerifyAccount() {
   };
 
   const handleResend = async () => {
-    if (resending || timeLeft > 0) return; // allow resend only if timer reached 0
+    if (resending || timeLeft > 0) return;
 
     try {
       setResending(true);
@@ -124,20 +140,7 @@ export default function VerifyAccount() {
       toast.success("OTP Sent! Check your email.");
       setOtp(Array(6).fill(""));
       inputRefs.current[0]?.focus();
-
-      // Reset countdown after resend
       setTimeLeft(600);
-
-      // Start countdown again
-      const interval = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
     } catch (error) {
       toast.error("Something went wrong. Try again later.");
     } finally {
@@ -146,52 +149,106 @@ export default function VerifyAccount() {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-50 flex items-center justify-center overflow-auto">
-      <div className="bg-white text-center p-6 w-full max-w-md rounded-2xl flex-shrink-0">
-        <LogoImage />
-        <h2 className="text-2xl font-bold text-orange-500 mb-2">Email Verification</h2>
-        <p className="text-sm text-gray-600 mb-2">
-          Enter the 6-digit OTP sent to your email: <strong>{email || "example@example.com"}</strong>
-        </p>
-        <p className="text-sm text-gray-500 mb-4">
-          OTP expires in {formatTime(timeLeft)}
-        </p>
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center overflow-hidden relative">
+      <div className="absolute top-[10%] left-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] animate-pulse" />
+      <div className="absolute bottom-[10%] right-[5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] animate-pulse delay-700" />
 
-        <div className="flex justify-center gap-2 mb-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[40px] p-4 md:p-10 shadow-2xl border border-zinc-100 dark:border-zinc-800 relative z-10"
+      >
+        <div className="text-center">
+          <LogoImage />
+          <div className="w-16 h-16 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <ShieldCheck size={32} />
+          </div>
+
+          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none mb-3">
+            Verify <span className="text-orange-600">Account</span>
+          </h1>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 leading-relaxed mb-6">
+            A 6-digit code has been sent to<br />
+            <span className="text-zinc-600 dark:text-zinc-200 mt-1 inline-block">{email || "your-email@example.com"}</span>
+          </p>
+
+          <div className="flex items-center justify-center gap-2 mb-8 bg-zinc-50 dark:bg-zinc-800/50 py-2 px-4 rounded-full w-fit mx-auto border border-zinc-100 dark:border-zinc-800">
+            <Clock size={12} className="text-orange-500" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+              Expires in {formatTime(timeLeft)}
+            </span>
+          </div>
+        </div>
+
+        {/* OTP Inputs */}
+        <div className="flex justify-center gap-2 mb-8">
           {otp.map((digit, index) => (
-            <input
+            <motion.input
               key={index}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: index * 0.05 }}
               ref={(el) => (inputRefs.current[index] = el)}
               type="text"
               maxLength={1}
               value={digit}
               onChange={(e) => handleChange(e.target.value, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
-              className="w-12 h-12 text-xl text-center border-2 border-orange-500 rounded-md focus:outline-none focus:border-orange-600 focus:shadow-md"
+              onPaste={index === 0 ? handlePaste : undefined}
+              className="w-12 h-14 text-center bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl text-xl font-black text-zinc-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all"
             />
           ))}
         </div>
 
-        <div className="flex flex-col gap-4">
-          <button
+        <div className="space-y-4">
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleVerify}
             disabled={loading}
-            className="bg-orange-500 cursor-pointer text-white py-2 rounded hover:bg-orange-600 transition"
+            className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50 active:scale-95 group"
           >
-            {loading ? "Verifying..." : "Verify OTP"}
-          </button>
-          <button
+            {loading ? (
+              <Loader2 className="animate-spin" size={20} />
+            ) : (
+              <>
+                <span>Complete Setup</span>
+                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
+          </motion.button>
+
+          <motion.button
+            whileHover={timeLeft === 0 ? { scale: 1.01 } : {}}
+            whileTap={timeLeft === 0 ? { scale: 0.98 } : {}}
             onClick={handleResend}
-            disabled={resending || timeLeft > 0} // only clickable if timer = 0
-            className={`border-2 border-orange-500 text-orange-500 py-2 rounded hover:bg-orange-100 transition ${
-              resending || timeLeft > 0 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-            }`}
+            disabled={resending || timeLeft > 0}
+            className={`w-full py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 transition-all ${resending || timeLeft > 0
+                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed border border-transparent"
+                : "bg-white dark:bg-zinc-900 text-orange-600 border border-orange-100 dark:border-orange-500/20 hover:bg-orange-50 dark:hover:bg-orange-500/5 shadow-lg active:scale-95"
+              }`}
           >
-            {resending ? "Resending..." : "Resend OTP"}
+            {resending ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : (
+              <>
+                <RefreshCw size={16} />
+                <span>Resend OTP</span>
+              </>
+            )}
+          </motion.button>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-zinc-50 dark:border-zinc-800 text-center">
+          <button
+            onClick={() => router.push("/auth/signin")}
+            className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-orange-500 transition-colors"
+          >
+            Cancel and return to Sign In
           </button>
         </div>
-      </div>
-      <Toaster />
+      </motion.div>
     </div>
   );
 }

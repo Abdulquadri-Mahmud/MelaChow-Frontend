@@ -11,17 +11,6 @@ export default function Error({ error, reset }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-orange-50 via-white to-orange-100 text-center px-6">
-      {/* Logo / Illustration */}
-      <div className="mb-6">
-        <Image
-          src="/logo.png" // 👈 replace with your actual GrubDash logo path
-          alt="GrubDash Logo"
-          width={80}
-          height={80}
-          className="rounded-full shadow-md"
-        />
-      </div>
-
       {/* Title */}
       <h1 className="text-3xl font-extrabold text-orange-600 mb-3">
         Oops! Something went wrong

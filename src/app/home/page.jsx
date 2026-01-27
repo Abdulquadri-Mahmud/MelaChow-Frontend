@@ -8,6 +8,7 @@ import FoodList from "../components/Home_Components/FoodList";
 import HomeHeader from "../components/Home_Components/HomeHeader";
 import PromoBanner from "../components/Home_Components/PromoBanner";
 import SearchBar from "../components/Home_Components/SearchBar";
+import TrendingFoods from "../components/Home_Components/TrendingFoods";
 import VendorList from "../components/Home_Components/VendorList";
 import { fetchUser } from "../lib/api";
 import AddressModal from "../modals/AddressModal";
@@ -37,19 +38,20 @@ export default function HomePage() {
     }
   }, [userData, isLoading]);
 
-  console.log(userData?.user);
+  // console.log(userData?.user);  
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <HomeHeader />
-      <div className="md:px-4 p-2">
+      <div className="md:px-4 p-2 space-y-4">
         <SearchBar />
         <CategoryList />
-        <PromoBanner />
-        <VendorList />
-        <FoodList />
-        <div className=""/>
-        <FeatureSlider />
+        {/* <PromoBanner /> */}
+        <VendorList user={userData?.user} />
+        <TrendingFoods user={userData?.user} />
+        <FoodList user={userData?.user} />
+        <div className="" />
+        {/* <FeatureSlider /> */}
       </div>
 
       {/* Address Modal */}

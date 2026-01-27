@@ -6,9 +6,9 @@ export default function Logo() {
     <div>
       <img
         src="/logo.png"
-        alt="ChowConnect Logo"
-        className="w-[170px] object-contain"
-    />
+        alt="GrubDash Logo"
+        className="w-[70px] object-contain"
+      />
     </div>
   )
 }

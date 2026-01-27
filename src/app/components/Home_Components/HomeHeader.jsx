@@ -65,7 +65,7 @@ export default function HomeHeader() {
 
       {/* Right Icons */}
       <div className="flex items-center gap-4">
-        <Link href={'/cart'}>
+        <Link href={'/orders'}>
           <motion.div whileHover={{ rotate: 15 }} className="relative">
             <BiCartAdd className="text-gray-700" size={22} />
             <span className="absolute -top-1 -right-1 bg-[#FF6B00] animate-bounce animation-duration-0.1 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold text-md">

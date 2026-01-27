@@ -1,34 +1,37 @@
 "use client";
 
-// Skeleton with shimmer
-const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
-  <div
-    className={`relative overflow-hidden scroll bg-gray-200 dark:bg-gray-700 rounded ${className}`}
-    style={{ width, height }}
-  >
-    <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-shimmer"></div>
-  </div>
+import { motion } from "framer-motion";
+
+const Skeleton = ({ className = "" }) => (
+  <div className={`relative overflow-hidden bg-zinc-100 dark:bg-zinc-800 animate-pulse ${className}`} />
 );
 
-export default function SearchFoodSkeleton({ categories = 2, itemsPerCategory = 3 }) {
+export default function SearchFoodSkeleton({ items = 6 }) {
   return (
-    <div className="space-y-5 flex-1 scroll">
-      {Array.from({ length: categories }).map((_, catIdx) => (
-        <div key={catIdx}>
-          {Array.from({ length: itemsPerCategory }).map((_, itemIdx) => (
-            <div key={itemIdx}  className="min-w-[250px] flex p-2 mb-3 rounded-2xl overflow-hidden bg-white border border-gray-100 snap-start">
-              <Skeleton height={70} width={70} />
-              <div className="p-2 space-y-1 flex justify-between items-center flex-1">
-                <Skeleton width={100} height={20} />
-                <Skeleton width={100} height={20} />
-                <div className="flex justify-between gap-3 items-center mt-1">
-                  <Skeleton width={50} height={20} />
-                  <Skeleton width={50} height={20} />
-                </div>
-              </div>
+    <div className="space-y-4">
+      {Array.from({ length: items }).map((_, idx) => (
+        <motion.div
+          key={idx}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white dark:bg-zinc-900 rounded-[32px] p-2 pr-4 border border-zinc-100 dark:border-zinc-800 flex items-center gap-4"
+        >
+          {/* Image skeleton */}
+          <Skeleton className="w-28 h-28 rounded-[24px] flex-shrink-0" />
+
+          {/* Details skeleton */}
+          <div className="flex-1 space-y-3">
+            <div className="flex justify-between items-start">
+              <Skeleton className="h-5 w-32 rounded-lg" />
+              <Skeleton className="h-4 w-12 rounded-lg" />
             </div>
-          ))}
-        </div>
+            <Skeleton className="h-4 w-24 rounded-lg" />
+            <div className="flex justify-between pt-2 border-t border-zinc-50 dark:border-zinc-800">
+              <Skeleton className="h-4 w-20 rounded-lg" />
+              <Skeleton className="h-4 w-16 rounded-lg" />
+            </div>
+          </div>
+        </motion.div>
       ))}
     </div>
   );

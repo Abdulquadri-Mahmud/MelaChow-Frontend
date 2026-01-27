@@ -32,6 +32,8 @@ export default function VerifyPayment() {
           { headers: { Authorization: `Bearer ${user?.token}` } }
         );
 
+        console.log(res);
+
         if (!res.data.order) {
           setStatus("failed");
           toast.error("Payment verified but order was not created.");
@@ -58,8 +60,8 @@ export default function VerifyPayment() {
   // Loading State
   if (status === "verifying") {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center px-4">
-        <div className="bg-white shadow-md border rounded-2xl p-6 max-w-sm w-full text-center animate-fadeIn">
+      <div className="py-20 bg-white flex items-center justify-center px-4">
+        <div className="bg-white border rounded-2xl p-6 max-w-sm w-full text-center animate-fadeIn">
           <div className="flex justify-center mb-4">
             <div className="w-12 h-12 border-4 border-orange-200 border-t-orange-500 rounded-full animate-spin"></div>
           </div>
