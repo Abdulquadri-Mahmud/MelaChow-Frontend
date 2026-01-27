@@ -27,7 +27,7 @@ export default function HomeHeader() {
     // Check if user is authenticated (has user data)
     if (user) {
       // User is authenticated, redirect to address location page
-      router.push('/address-location');
+      router.push('/profile/address');
     } else {
       // User is not authenticated (cookies expired or never logged in), redirect to login
       router.push('/auth/signin');
@@ -45,7 +45,7 @@ export default function HomeHeader() {
       <div className="flex flex-col">
         <div className="flex items-center gap-1.5 mb-0.5">
           <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
-            {greeting}, {user?.firstName || 'Guest'}
+            {greeting}, {user?.firstname || user?.firstName || 'Guest'}
           </span>
           <span className="text-lg">👋</span>
         </div>
@@ -97,7 +97,7 @@ export default function HomeHeader() {
         ) : (
           <Link href='/profile'>
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center shadow-sm text-orange-600 font-bold border-2 border-white">
-              {user?.firstName?.[0] || "G"}
+              {user?.firstname?.[0] || user?.firstName?.[0] || "G"}
             </div>
           </Link>
         )}

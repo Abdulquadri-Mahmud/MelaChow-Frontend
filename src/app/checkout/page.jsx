@@ -105,24 +105,24 @@ export default function CheckoutPage() {
       const uniqueRestaurantIds = Object.keys(restaurantDeliveryMap);
 
       // Uncomment if you want to enforce restaurant hours
-      for (const restaurantId of uniqueRestaurantIds) {
-        try {
-          const vendorRes = await axios.get(`${baseUrl}/vendors/foods/get-foods?vendorId=${restaurantId}`);
-          const vendorData = vendorRes.data.data?.[0]?.vendor;
+      // for (const restaurantId of uniqueRestaurantIds) {
+      //   try {
+      //     const vendorRes = await axios.get(`${baseUrl}/vendors/foods/get-foods?vendorId=${restaurantId}`);
+      //     const vendorData = vendorRes.data.data?.[0]?.vendor;
       
-          if (vendorData) {
-            const statusInfo = getVendorOpenAndCloseStatus(vendorData.openHours || vendorData.openingHours);
-            const isOpen = statusInfo.startsWith("Open now");
+      //     if (vendorData) {
+      //       const statusInfo = getVendorOpenAndCloseStatus(vendorData.openHours || vendorData.openingHours);
+      //       const isOpen = statusInfo.startsWith("Open now");
       
-            if (!isOpen) {
-              throw new Error(`${vendorData.storeName} is currently closed. ${statusInfo}`);
-            }
-          }
-        } catch (err) {
-          console.error(`Error checking status for vendor ${restaurantId}:`, err);
-          throw err;
-        }
-      }
+      //       if (!isOpen) {
+      //         throw new Error(`${vendorData.storeName} is currently closed. ${statusInfo}`);
+      //       }
+      //     }
+      //   } catch (err) {
+      //     console.error(`Error checking status for vendor ${restaurantId}:`, err);
+      //     throw err;
+      //   }
+      // }
 
       // 5. Transform cart data to V2 format
       setProcessingStep("calculating");
