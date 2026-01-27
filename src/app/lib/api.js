@@ -138,7 +138,7 @@ export const getUserReviews = async () => {
  */
 export const getWallet = async () => {
   try {
-    const res = await axios.get("https://grub-dash-api.vercel.app/api/wallet", {
+    const res = await axios.get("https://grub-dash-api.vercel.app/api/user/wallet", {
       withCredentials: true,
     });
     return res.data;
@@ -158,7 +158,7 @@ export const getWallet = async () => {
  */
 export const fundWallet = async (data) => {
   try {
-    const res = await axios.post("https://grub-dash-api.vercel.app/api/wallet/fund", data, {
+    const res = await axios.post("https://grub-dash-api.vercel.app/api/user/wallet/fund", data, {
       withCredentials: true,
     });
     return res.data;
@@ -178,7 +178,7 @@ export const fundWallet = async (data) => {
  */
 export const verifyWalletTransaction = async (reference) => {
   try {
-    const res = await axios.get(`https://grub-dash-api.vercel.app/api/wallet/verify/${reference}`, {
+    const res = await axios.get(`https://grub-dash-api.vercel.app/api/user/wallet/verify/${reference}`, {
       withCredentials: true,
     });
     return res.data;
