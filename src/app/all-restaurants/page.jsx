@@ -272,7 +272,7 @@ export default function AllRestaurants() {
                                         {/* Rating */}
                                         <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md text-zinc-900 dark:text-white text-[10px] font-black px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-lg border border-white/20">
                                             <Star size={12} className="text-orange-500 fill-orange-500" />
-                                            <span>{vendor.rating || 0}</span>
+                                            <span>{vendor.ratingCount || 0}</span>
                                         </div>
                                     </div>
 

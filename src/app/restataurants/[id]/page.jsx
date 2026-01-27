@@ -53,6 +53,7 @@ export default function ViewVendor() {
     return filtered;
   }, [foodList, selectedCategory, searchQuery]);
 
+  // console.log(vendor)
   return (
     <>
       {/* Header */}
@@ -121,7 +122,7 @@ export default function ViewVendor() {
                         <span className="text-gray-500 font-normal text-xs ml-1">({vendor.ratingCount || 0})</span>
                       </span>
                     </div>
-                    <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{vendor.reviewsCount || 0} REVIEWS</p>
+                    <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{vendor.ratingCount || 0} REVIEWS</p>
                   </div>
                 </div>
 

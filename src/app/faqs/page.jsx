@@ -3,242 +3,350 @@
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ChevronDownIcon,
-  MagnifyingGlassIcon,
-  ChatBubbleLeftRightIcon,
-  EnvelopeIcon,
-  PhoneIcon,
-  PaperAirplaneIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
+  ChevronDown,
+  Search,
+  MessageCircle,
+  Mail,
+  Phone,
+  ArrowRight,
+  ShoppingBag,
+  CreditCard,
+  MapPin,
+  User,
+  Sparkles,
+  ShieldCheck,
+  Store
+} from "lucide-react";
 import Link from "next/link";
 import Header2 from "../components/App_Header/Header2";
 
-const faqData = [
+// Comprehensive FAQ Data
+const FAQ_DATA = [
+  // General
   {
-    question: "How do I create an account?",
-    answer:
-      "Click the profile button at the bottom nav bar, fill in your details, and verify your email to activate your account.",
+    category: "general",
+    question: "What is GrubDash?",
+    answer: "GrubDash is your premium local food delivery companion. We connect you with the best restaurants, hidden gems, and local favorites in your city, delivering authentic flavors right to your doorstep with speed and care."
   },
   {
-    question: "How can I reset my password?",
-    answer:
-      "Go to the Sign In page, click on 'Forgot Password', and follow the steps to reset your password via email.",
+    category: "general",
+    question: "Where does GrubDash operate?",
+    answer: "We currently operate in major cities across the region. You can check if we deliver to your area by entering your delivery address on the home page."
+  },
+
+  // Orders
+  {
+    category: "orders",
+    question: "How do I place an order?",
+    answer: "Simply browse through our curated list of restaurants, select your favorite dishes, add them to your cart, and proceed to checkout. You'll need to create an account or log in to finalize your purchase."
   },
   {
-    question: "How do I track my order?",
-    answer:
-      "After logging in, go to 'My Orders' under your profile to view the order status and tracking details.",
-  },
-  {
-    question: "What payment methods do you accept?",
-    answer:
-      "We accept credit/debit cards, Paystack, Flutterwave, and other major online payment methods.",
-  },
-  {
-    question: "How can I contact customer support?",
-    answer:
-      "You can reach out to us via the 'Get Help' page or email support@grubdash.com for assistance.",
-  },
-  {
+    category: "orders",
     question: "Can I cancel my order?",
-    answer:
-      "Yes, you can cancel your order before it’s shipped by going to 'My Orders' and selecting 'Cancel Order'.",
+    answer: "Yes, you can cancel your order within the first 5 minutes of placing it without any charge. After the restaurant has started preparing your food, cancellation may be subject to a fee. Go to 'Orders' > 'Track Order' to see your options."
   },
+  {
+    category: "orders",
+    question: "What if something is missing from my order?",
+    answer: "We're sorry about that! Please go to your Orders page, select the specific order, and use the 'Get Help' button to report missing items. We will process a refund or credit for the missing items immediately."
+  },
+  {
+    category: "orders",
+    question: "Can I schedule an order for later?",
+    answer: "Absolutely. At checkout, you can toggle 'Schedule for later' and select your preferred delivery date and time window."
+  },
+
+  // Payments
+  {
+    category: "payment",
+    question: "What payment methods do you accept?",
+    answer: "We accept all major credit and debit cards (Visa, Mastercard, Verve), Paystack, Flutterwave, and direct bank transfers. We also offer a secure Digital Wallet for faster checkouts."
+  },
+  {
+    category: "payment",
+    question: "Is my payment information secure?",
+    answer: "Yes, 100%. We use industry-standard encryption and do not store your full card details. All transactions are processed through secure, PCI-DSS compliant payment gateways."
+  },
+  {
+    category: "payment",
+    question: "How do refunds work?",
+    answer: "Refunds are processed to your GrubDash Wallet instantly or to your original payment method within 3-5 business days, depending on your bank."
+  },
+
+  // Delivery
+  {
+    category: "delivery",
+    question: "How much is the delivery fee?",
+    answer: "Delivery fees vary based on the distance between you and the restaurant. You will always see the exact fee at checkout before you pay. We also offer free delivery promotions occasionally!"
+  },
+  {
+    category: "delivery",
+    question: "Can I track my rider?",
+    answer: "Yes! Once your order is picked up, you can track your rider in real-time on the map via the 'Track Order' page."
+  },
+  {
+    category: "delivery",
+    question: "Do you offer contactless delivery?",
+    answer: "Yes. You can select 'Leave at door' instructions at checkout for a contactless experience. Our rider will drop off your food and notify you."
+  },
+
+  // Account
+  {
+    category: "account",
+    question: "How do I reset my password?",
+    answer: "Go to the Sign In page and click 'Forgot Password'. detailed instructions will be sent to your registered email address."
+  },
+  {
+    category: "account",
+    question: "Can I change my phone number?",
+    answer: "Yes, you can update your profile details including phone number and email address from the 'Profile' section in the app."
+  },
+
+  // Vendors
+  {
+    category: "vendors",
+    question: "How can I become a vendor partner?",
+    answer: "We'd love to have you! Click on 'Join as Vendor' in the footer or visit our Vendor Registration page to submit your application. Our team will review it within 48 hours."
+  }
+];
+
+const CATEGORIES = [
+  { id: 'all', label: 'All Questions', icon: Sparkles },
+  { id: 'orders', label: 'Orders', icon: ShoppingBag },
+  { id: 'payment', label: 'Payments', icon: CreditCard },
+  { id: 'delivery', label: 'Delivery', icon: MapPin },
+  { id: 'account', label: 'Account', icon: User },
+  { id: 'vendors', label: 'Vendors', icon: Store },
 ];
 
 export default function FAQs() {
-  const [activeIndex, setActiveIndex] = useState(null);
-  const [search, setSearch] = useState("");
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [chatHistory, setChatHistory] = useState([]);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [openIndex, setOpenIndex] = useState(null);
 
-  const filteredFAQs = useMemo(() => {
-    return faqData.filter(
-      (faq) =>
-        faq.question.toLowerCase().includes(search.toLowerCase()) ||
-        faq.answer.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [search]);
+  // Filter Logic
+  const filteredData = useMemo(() => {
+    let data = FAQ_DATA;
 
-  const toggleFAQ = (index) => {
-    setActiveIndex(activeIndex === index ? null : index);
-  };
+    // 1. Filter by Category
+    if (activeCategory !== 'all') {
+      data = data.filter(item => item.category === activeCategory);
+    }
 
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
-    setChatHistory((prev) => [...prev, message]);
-    setMessage("");
+    // 2. Filter by Search
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      data = data.filter(item =>
+        item.question.toLowerCase().includes(query) ||
+        item.answer.toLowerCase().includes(query)
+      );
+    }
+
+    return data;
+  }, [activeCategory, searchQuery]);
+
+  const toggleAccordion = (index) => {
+    setOpenIndex(openIndex === index ? null : index);
   };
 
   return (
-    <div className="bg-zinc-50 min-h-screen">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20">
       <Header2 />
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="max-w-3xl bg-white md:mx-auto m-3 rounded-xl md:py-6 py-4 md:px-6 px-4 font-display shadow-sm md:mb-[6rem] mb-[6rem]"
-      >
-        <h2 className="text-3xl font-semibold text-center mb-8 text-orange-600">
-          Frequently Asked Questions
-        </h2>
 
-        {/* Search Bar */}
-        <div className="relative mb-8">
-          <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search for a question..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400"
-          />
+      {/* Hero Section */}
+      <div className="relative bg-zinc-900 pt-12 pb-24 px-6 mb-10 overflow-hidden">
+        {/* Abstract Background Shapes */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/10 rounded-full blur-[100px] translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[80px] -translate-x-1/2 translate-y-1/2" />
+
+        <div className="relative z-10 max-w-2xl mx-auto text-center space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight italic mb-2">
+              Frequently Asked <span className="text-orange-500">Questions</span>
+            </h1>
+            <p className="text-zinc-400 text-sm md:text-base font-medium max-w-md mx-auto">
+              Everything you need to know about ordering, payments, delivery, and more.
+            </p>
+          </motion.div>
+
+          {/* Search Bar */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="relative group max-w-lg mx-auto"
+          >
+            <div className="absolute inset-0 bg-orange-500/20 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative flex items-center bg-white dark:bg-zinc-800 p-2 rounded-2xl shadow-xl">
+              <Search className="ml-3 text-zinc-400" size={20} />
+              <input
+                type="text"
+                placeholder="Search for answers..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-transparent border-none outline-none px-4 py-3 text-sm font-medium text-zinc-900 dark:text-white placeholder:text-zinc-400 w-full"
+              />
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 -mt-16 relative z-20">
+
+        {/* Category Filters */}
+        <div className="flex flex-wrap gap-2 justify-center mb-8">
+          {CATEGORIES.map((cat, idx) => {
+            const Icon = cat.icon;
+            const isActive = activeCategory === cat.id;
+            return (
+              <motion.button
+                key={cat.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 * idx }}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`
+                  flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all border
+                  ${isActive
+                    ? 'bg-orange-500 text-white border-orange-500 shadow-lg shadow-orange-500/20'
+                    : 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:border-orange-500/50 hover:text-orange-500'
+                  }
+                `}
+              >
+                <Icon size={14} />
+                {cat.label}
+              </motion.button>
+            )
+          })}
         </div>
 
         {/* FAQ List */}
-        {filteredFAQs.length > 0 ? (
-          <div className="space-y-4">
-            {filteredFAQs.map((faq, index) => (
-              <div
+        <div className="space-y-4 min-h-[400px]">
+          {filteredData.length > 0 ? (
+            filteredData.map((item, index) => (
+              <motion.div
                 key={index}
-                className="border border-gray-100 rounded-lg bg-white"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className={`
+                  bg-white dark:bg-zinc-900 rounded-xl border transition-all overflow-hidden
+                  ${openIndex === index
+                    ? 'border-orange-500/30 shadow-md ring-1 ring-orange-500/10'
+                    : 'border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700'
+                  }
+                `}
               >
                 <button
-                  onClick={() => toggleFAQ(index)}
-                  className="w-full flex justify-between items-center px-4 py-3 text-left text-gray-700 cursor-pointer font-medium focus:outline-none"
+                  onClick={() => toggleAccordion(index)}
+                  className="w-full flex items-center justify-between p-5 text-left group"
                 >
-                  <span>{faq.question}</span>
-                  <motion.div
-                    animate={{ rotate: activeIndex === index ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ChevronDownIcon className="w-5 h-5 text-orange-500" />
-                  </motion.div>
+                  <span className={`font-bold text-sm md:text-base transition-colors ${openIndex === index ? 'text-orange-600' : 'text-zinc-800 dark:text-zinc-200 group-hover:text-zinc-900 dark:group-hover:text-white'}`}>
+                    {item.question}
+                  </span>
+                  <div className={`
+                    w-8 h-8 rounded-full flex items-center justify-center transition-all bg-zinc-50 dark:bg-zinc-800 
+                    ${openIndex === index ? 'bg-orange-50 dark:bg-orange-900/20 rotate-180' : 'group-hover:bg-zinc-100 dark:group-hover:bg-zinc-700'}
+                  `}>
+                    <ChevronDown size={16} className={openIndex === index ? 'text-orange-500' : 'text-zinc-500'} />
+                  </div>
                 </button>
 
-                <AnimatePresence initial={false}>
-                  {activeIndex === index && (
+                <AnimatePresence>
+                  {openIndex === index && (
                     <motion.div
-                      key="content"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
                     >
-                      <div className="px-4 pb-4 text-gray-600 text-sm leading-relaxed">
-                        {faq.answer}
+                      <div className="px-5 pb-5 pt-0">
+                        <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed border-t border-dashed border-zinc-100 dark:border-zinc-800 pt-4">
+                          {item.answer}
+                        </p>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
+              </motion.div>
+            ))
+          ) : (
+            <div className="text-center py-20 bg-white dark:bg-zinc-900 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+              <div className="w-16 h-16 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-400">
+                <Search size={24} />
               </div>
-            ))}
+              <p className="text-zinc-900 dark:text-white font-bold mb-1">No results found</p>
+              <p className="text-zinc-400 text-xs">Try adjusting your search terms</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer CTA */}
+        <div className="mt-20 text-center space-y-8">
+          <div className="inline-flex flex-col items-center">
+            <div className="w-12 h-1 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full mb-4" />
+            <h3 className="text-2xl font-black italic tracking-tight text-zinc-900 dark:text-white">Still have questions?</h3>
+            <p className="text-zinc-500 text-sm mt-2 max-w-sm mx-auto">
+              Can't find the answer you're looking for? Please chat to our friendly team.
+            </p>
           </div>
-        ) : (
-          <p className="text-center text-gray-500 italic mt-8">
-            No results found for “{search}”.
-          </p>
-        )}
 
-        {/* Contact Support Section */}
-        <div className="mt-12 border-t border-gray-100 pt-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">
-            Still need help?
-          </h3>
-          <p className="text-center text-gray-500 mb-6 text-sm">
-            Our support team is available 24/7 to assist you with your questions.
-          </p>
-
-          <div className="flex flex-col md:flex-row gap-4 justify-center">
-            <button
-              onClick={() => setIsChatOpen(true)}
-              className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-md w-full md:w-auto transition"
-            >
-              <ChatBubbleLeftRightIcon className="w-5 h-5" />
-              Live Chat
-            </button>
-            <Link href="mailto:support@grubdash.com">
-              <button className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-md w-full md:w-auto transition">
-                <EnvelopeIcon className="w-5 h-5" />
-                Email Support
-              </button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+            {/* Live Chat */}
+            <Link href="/support" className="group">
+              <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-emerald-500/30 transition-all text-center space-y-4">
+                <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <MessageCircle size={24} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-zinc-900 dark:text-white text-sm">Live Chat</h4>
+                  <p className="text-xs text-zinc-500 mt-1">Available 24/7</p>
+                </div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 flex items-center justify-center gap-1">
+                  Chat Now <ArrowRight size={12} />
+                </div>
+              </div>
             </Link>
-            <Link href="tel:+2340000000000">
-              <button className="flex items-center justify-center gap-2 bg-gray-700 hover:bg-gray-800 text-white px-5 py-2 rounded-md w-full md:w-auto transition">
-                <PhoneIcon className="w-5 h-5" />
-                Call Us
-              </button>
+
+            {/* Email */}
+            <Link href="mailto:support@grubdash.com" className="group">
+              <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-blue-500/30 transition-all text-center space-y-4">
+                <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-500 mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Mail size={24} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-zinc-900 dark:text-white text-sm">Send Email</h4>
+                  <p className="text-xs text-zinc-500 mt-1">Response in 24h</p>
+                </div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-blue-600 flex items-center justify-center gap-1">
+                  Write Us <ArrowRight size={12} />
+                </div>
+              </div>
+            </Link>
+
+            {/* Call */}
+            <Link href="tel:+23400000000" className="group">
+              <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-purple-500/30 transition-all text-center space-y-4">
+                <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-500 mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Phone size={24} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-zinc-900 dark:text-white text-sm">Call Us</h4>
+                  <p className="text-xs text-zinc-500 mt-1">Mon-Fri, 9am-6pm</p>
+                </div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-purple-600 flex items-center justify-center gap-1">
+                  Call Now <ArrowRight size={12} />
+                </div>
+              </div>
             </Link>
           </div>
         </div>
-      </motion.div>
 
-      {/* Chat Modal */}
-      <AnimatePresence>
-        {isChatOpen && (
-          <motion.div
-            className="fixed bottom-14 inset-0 bg-black bg-opacity-40 flex justify-center items-end md:items-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              initial={{ y: 100 }}
-              animate={{ y: 0 }}
-              exit={{ y: 100 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white rounded-t-2xl md:rounded-xl shadow-lg w-full md:w-[400px] h-[70vh] md:h-[500px] flex flex-col"
-            >
-              <div className="flex items-center justify-between p-4 border-b border-gray-100">
-                <h4 className="font-semibold text-gray-700 flex items-center gap-2">
-                  <ChatBubbleLeftRightIcon className="w-5 h-5 text-green-500" />
-                  Live Chat Support
-                </h4>
-                <button onClick={() => setIsChatOpen(false)}>
-                  <XMarkIcon className="w-5 h-5 text-gray-500 hover:text-gray-700" />
-                </button>
-              </div>
-
-              {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-2 text-sm">
-                {chatHistory.length > 0 ? (
-                  chatHistory.map((msg, i) => (
-                    <div
-                      key={i}
-                      className="bg-green-100 text-gray-800 p-2 rounded-lg self-end max-w-[80%] ml-auto"
-                    >
-                      {msg}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-center text-gray-400 mt-10">
-                    Start a conversation 👋
-                  </p>
-                )}
-              </div>
-
-              {/* Chat Input */}
-              <div className="border-t border-gray-100 p-3 flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="Type your message..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="flex-1 border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-green-500"
-                />
-                <button
-                  onClick={handleSendMessage}
-                  className="bg-green-500 hover:bg-green-600 text-white rounded-md px-3 py-2 flex items-center justify-center"
-                >
-                  <PaperAirplaneIcon className="w-4 h-4" />
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
     </div>
   );
 }

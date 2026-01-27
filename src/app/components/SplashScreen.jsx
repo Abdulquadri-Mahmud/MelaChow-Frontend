@@ -1,19 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useUserStorage } from "@/app/hooks/useUserStorage";
-import { useVendorStorage } from "@/app/hooks/vendorStorage";
+import { motion } from "framer-motion";
+import Image from "next/image"; // Optimization 1: Use next/image
 
-export default function SplashScreen({ onComplete }) {
-    const { user, isLoading: isUserLoading } = useUserStorage();
-    const { vendorDetails, isLoading: isVendorLoading } = useVendorStorage();
-    const [loadingText, setLoadingText] = useState("Initializing experience...");
-    const [showNextStep, setShowNextStep] = useState(false);
-
+export default function SplashScreen({ user, vendorDetails }) {
     // Determine if user is authenticated
     const isAuthenticated = !!user || !!vendorDetails;
-    const isLoading = isUserLoading || isVendorLoading;
+
+    const [loadingText, setLoadingText] = useState("Initializing experience...");
+    const [showNextStep, setShowNextStep] = useState(false);
 
     // Cycle through realistic product-driven statuses
     useEffect(() => {
@@ -42,22 +38,16 @@ export default function SplashScreen({ onComplete }) {
         };
     }, []);
 
-    // Effect to handle splash dismissal logic based on auth state
-    // Note: The parent ClientLayout controls the hard unmount, but we can influence animations here or visual cues.
-    // Ideally, ClientLayout should pass down 'onComplete' or we rely on the timer there.
-    // Given the constraints to preserve existing logic, we assume ClientLayout handles the unmount timer.
-    // However, we can adapt the visual message based on state immediately.
-
+    // Update text based on auth status
     useEffect(() => {
-        if (!isLoading) {
-            if (isAuthenticated) {
-                setLoadingText("Welcome back!");
-            } else {
-                setLoadingText("Discover food around you");
-            }
+        if (isAuthenticated) {
+            setLoadingText("Welcome back!");
+        } else {
+            setLoadingText("Discover food around you");
         }
-    }, [isAuthenticated, isLoading]);
+    }, [isAuthenticated]);
 
+    // OPTIMIZATION: Motion variants kept identical to preserve animation feel
     const dotVariants = {
         initial: { y: 0, opacity: 0.4 },
         animate: {
@@ -77,7 +67,7 @@ export default function SplashScreen({ onComplete }) {
             opacity: 1,
             transition: {
                 staggerChildren: 0.2,
-                delayChildren: 0.4 // Slightly faster start
+                delayChildren: 0.4
             },
         },
     };
@@ -98,19 +88,29 @@ export default function SplashScreen({ onComplete }) {
                 initial={{ height: "100%" }}
                 animate={{ height: "55%" }}
                 transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                className="relative w-full overflow-hidden rounded-b-[60px] shadow-2xl z-20"
+                className="relative w-full overflow-hidden rounded-b-[60px] shadow-2xl z-20 bg-zinc-200 dark:bg-zinc-900"
+            // Optimization 2: Added background color to prevent jarring shift if image takes ms to load
             >
-                <motion.img
+                {/* Optimization 3: Wrapped Image in motion.div instead of motion.img to use next/image */}
+                <motion.div
+                    className="relative w-full h-full"
                     initial={{ scale: 1.2, filter: "blur(10px)" }}
                     animate={{ scale: 1, filter: "blur(0px)" }}
                     transition={{ duration: 1.5, ease: "easeOut" }}
-                    src="/splashscreen.jpg"
-                    alt="GrubDash Experience"
-                    className="w-full h-full object-cover"
-                />
+                >
+                    <Image
+                        src="/splashscreen.jpg"
+                        alt="GrubDash Experience"
+                        fill
+                        priority // Optimization 4: Eager load this critical asset
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 50vw" // Optimization 5: Proper sizing for performance
+                    />
+                </motion.div>
+
                 {/* Advanced Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                <div className="absolute inset-0 bg-orange-600/10 mix-blend-overlay" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-orange-600/10 mix-blend-overlay pointer-events-none" />
             </motion.div>
 
             {/* Bottom Half - Premium Content */}
