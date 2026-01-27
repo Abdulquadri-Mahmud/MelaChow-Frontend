@@ -40,10 +40,13 @@ const ActionCard = ({ icon: Icon, title, description, onClick, href, color = "or
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.98 }}
       onClick={handleClick}
-      className={`cursor-pointer group relative overflow-hidden bg-white border border-gray-100 rounded-[28px] p-4 transition-all duration-300 ${hoverClass} hover:shadow-xl`}
+      className={`cursor-pointer group relative overflow-hidden bg-white border border-gray-100 rounded-[28px] p-4 transition-all duration-300 ${hoverClass} hover:shadow-2xl shadow-gray-100/50`}
     >
-      <div className="flex items-center gap-5">
-        <div className={`p-4 rounded-2xl transition-colors ${baseColorClass}`}>
+      {/* Glow Effects */}
+      <div className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity ${isRed ? 'bg-red-500/10' : 'bg-orange-500/10'} -translate-y-1/2 translate-x-1/2`}></div>
+
+      <div className="flex items-center gap-5 relative z-10">
+        <div className={`p-4 rounded-2xl transition-colors ${baseColorClass} shadow-sm group-hover:shadow-md`}>
           <Icon size={24} strokeWidth={2.5} />
         </div>
         <div className="flex-1">
@@ -54,8 +57,8 @@ const ActionCard = ({ icon: Icon, title, description, onClick, href, color = "or
             {description}
           </p>
         </div>
-        <div className="text-gray-300 group-hover:text-gray-500 transition-colors">
-          <ChevronRight size={20} strokeWidth={3} />
+        <div className="text-gray-300 group-hover:text-gray-500 transition-colors bg-gray-50 p-2 rounded-full group-hover:bg-white group-hover:shadow-sm">
+          <ChevronRight size={18} strokeWidth={3} />
         </div>
       </div>
     </motion.div>
@@ -137,41 +140,50 @@ const User_Profile = ({ userData, isLoading }) => {
         <motion.button
           whileHover={{ x: -2 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => router.push("/")}
-          className="p-3 rounded-2xl bg-white border border-gray-100 text-gray-600 hover:bg-gray-50 transition-colors"
+          onClick={() => router.back()}
+          className="p-3 rounded-2xl bg-white border border-gray-100 text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
         >
           <ArrowLeft size={20} />
         </motion.button>
-        <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-full">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Account Hub</span>
+        <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-100 rounded-full shadow-sm">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Account Hub</span>
         </div>
         <div className="w-11 h-11" />
       </div>
 
       {/* Profile Hero / Header */}
       <section className="relative p-6 pt-10 text-center flex flex-col items-center">
+        {/* Background Decor */}
+        <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-orange-50/50 to-transparent pointer-events-none -z-10" />
+
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="relative"
+          className="relative group cursor-pointer"
         >
-          <div className="relative w-32 h-32 rounded-[40px] border-4 border-white shadow-2xl overflow-hidden bg-gray-50">
+          <div className="relative w-36 h-36 rounded-[48px] border-[6px] border-white shadow-2xl overflow-hidden bg-white transition-transform duration-500 group-hover:scale-105">
             {userData.avatar ? (
               <img src={userData.avatar} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <User className="w-12 h-12 text-gray-300" />
+              <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                <User className="w-14 h-14 text-orange-200" />
               </div>
             )}
+
+            {/* Hover overlay hint */}
+            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <Settings className="text-white drop-shadow-lg" />
+            </div>
           </div>
+
           <motion.div
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="absolute -bottom-1 -right-1 bg-green-500 text-white p-2 rounded-2xl border-4 border-white shadow-lg"
+            className="absolute -bottom-2 -right-2 bg-green-500 text-white p-2.5 rounded-2xl border-[6px] border-white shadow-lg"
           >
-            <ShieldCheck size={18} strokeWidth={3} />
+            <ShieldCheck size={20} strokeWidth={3} />
           </motion.div>
         </motion.div>
 
@@ -179,21 +191,29 @@ const User_Profile = ({ userData, isLoading }) => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mt-6"
+          className="mt-6 space-y-2"
         >
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">
             {userData.firstname} {userData.lastname}
           </h1>
-          <p className="flex items-center justify-center gap-2 text-gray-400 font-bold text-sm mt-1">
-            <Mail size={14} className="text-orange-500" /> {userData.email}
-            <span className="w-1 h-1 bg-gray-300 rounded-full" />
-            <Phone size={14} className="text-orange-500" /> {userData.phone || "No phone added"}
-          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
+              <Mail size={14} className="text-orange-500" />
+              <span className="text-xs font-bold text-gray-600">{userData.email}</span>
+            </div>
+            {userData.phone && (
+              <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
+                <Phone size={14} className="text-orange-500" />
+                <span className="text-xs font-bold text-gray-600">{userData.phone}</span>
+              </div>
+            )}
+          </div>
         </motion.div>
       </section>
 
       {/* Action Grid */}
-      <div className="mt-10 px-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="mt-8 px-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         <ActionCard
           icon={User}
           title="Personal Details"
@@ -218,18 +238,7 @@ const User_Profile = ({ userData, isLoading }) => {
           description="View your past ratings and feedback"
           href="/profile/reviews"
         />
-        {/* <ActionCard 
-            icon={Bell} 
-            title="Notifications" 
-            description="Control how you receive order updates" 
-            href="/profile/notifications"
-        />
-        <ActionCard 
-            icon={Settings} 
-            title="App Settings" 
-            description="Manage your themes and preferences" 
-            href="/profile/settings"
-        /> */}
+
         <ActionCard
           icon={LifeBuoy}
           title="Get Help"
@@ -245,8 +254,8 @@ const User_Profile = ({ userData, isLoading }) => {
       </div>
 
       {/* Danger Zone */}
-      <div className="mt-8 px-4 space-y-4">
-        <div className="h-[1px] bg-gray-100 w-full mb-8" />
+      <div className="mt-10 px-6 space-y-4">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-2">Session & Data</p>
 
         <ActionCard
           icon={LogOut}
@@ -264,7 +273,7 @@ const User_Profile = ({ userData, isLoading }) => {
         />
       </div>
 
-      <div className="mt-8 px-4">
+      <div className="mt-10 px-4">
         <NeedHelp />
       </div>
 

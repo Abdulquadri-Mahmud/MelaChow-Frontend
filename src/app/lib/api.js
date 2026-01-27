@@ -138,7 +138,7 @@ export const getUserReviews = async () => {
  */
 export const getWallet = async () => {
   try {
-    const res = await axios.get("https://grub-dash-api.vercel.app/api/user/wallet", {
+    const res = await axios.get("https://grub-dash-api.vercel.app/api/user/my-wallet", {
       withCredentials: true,
     });
     return res.data;
