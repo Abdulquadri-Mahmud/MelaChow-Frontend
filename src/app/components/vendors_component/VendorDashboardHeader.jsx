@@ -1,13 +1,20 @@
 "use client";
 
-import { Search, Bell, Zap, Menu } from "lucide-react";
+import { useState } from "react";
+import { Search, Bell, Zap, Menu, Utensils, ShoppingBag, Monitor } from "lucide-react";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function VendorDashboardHeader({ vendor }) {
+export default function VendorDashboardHeader({ vendor, onMenuClick }) {
+  const [showQuickActions, setShowQuickActions] = useState(false);
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-4 bg-white/90 dark:bg-[#0F172A]/90 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800">
       <div className="flex items-center gap-6 flex-1">
         {/* Mobile Toggle (Visible on small screens) */}
-        <button className="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+        <button
+          onClick={onMenuClick}
+          className="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+        >
           <Menu size={20} />
         </button>
 
@@ -31,10 +38,66 @@ export default function VendorDashboardHeader({ vendor }) {
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="hidden md:flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-[#FF6B00]/50 transition-all">
-          <Zap size={14} className="text-[#FF6B00] fill-[#FF6B00]" />
-          Quick Actions
-        </button>
+        <div className="relative">
+          <button
+            onClick={() => setShowQuickActions(!showQuickActions)}
+            className="hidden md:flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-[#FF6B00]/50 hover:bg-slate-100 transition-all"
+          >
+            <Zap size={14} className="text-[#FF6B00] fill-[#FF6B00]" />
+            Quick Actions
+          </button>
+
+          <AnimatePresence>
+            {showQuickActions && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setShowQuickActions(false)}
+                />
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#1E293B] rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-20"
+                >
+                  <div className="p-1">
+                    <Link
+                      href="/vendors/create-food"
+                      onClick={() => setShowQuickActions(false)}
+                      className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors group"
+                    >
+                      <div className="bg-orange-100 dark:bg-orange-500/20 p-1.5 rounded-md text-orange-600 dark:text-orange-400 group-hover:text-[#FF6B00]">
+                        <Utensils size={14} />
+                      </div>
+                      Add New Item
+                    </Link>
+                    <Link
+                      href="/vendors/order"
+                      onClick={() => setShowQuickActions(false)}
+                      className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors group"
+                    >
+                      <div className="bg-blue-100 dark:bg-blue-500/20 p-1.5 rounded-md text-blue-600 dark:text-blue-400">
+                        <ShoppingBag size={14} />
+                      </div>
+                      Manage Orders
+                    </Link>
+                    <Link
+                      href="/vendors/profile"
+                      onClick={() => setShowQuickActions(false)}
+                      className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-colors group"
+                    >
+                      <div className="bg-slate-100 dark:bg-slate-700 p-1.5 rounded-md text-slate-600 dark:text-slate-400">
+                        <Monitor size={14} />
+                      </div>
+                      Store Settings
+                    </Link>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </div>
 
         <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden md:block"></div>
 

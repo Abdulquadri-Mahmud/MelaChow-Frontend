@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext } from "react";
 
-const ApiContext = createContext({ baseUrl: ""});
+const ApiContext = createContext({ baseUrl: "" });
 
 export const ApiProvider = ({ children }) => {
   // const baseUrl = "http://localhost:3001/api";

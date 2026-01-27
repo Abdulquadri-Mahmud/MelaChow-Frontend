@@ -1,134 +1,162 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from 'framer-motion';
+import { useApi } from "../../context/ApiContext";
 import {
     Flame,
-    Coffee,
-    Beer,
     UtensilsCrossed,
-    Pizza,
-    Sandwich,
-    Fish,
-    Leaf,
-    IceCream,
-    Soup,
-    ChefHat,
-    ChevronRight
+    ChevronRight,
+    ImageIcon
 } from "lucide-react";
-
-const categoryData = [
-    { name: "Rice Dishes", icon: UtensilsCrossed, color: "bg-orange-500" },
-    { name: "Swallow", icon: Flame, color: "bg-amber-600" },
-    { name: "Soups & Stews", icon: Soup, color: "bg-red-500" },
-    { name: "Beans Dishes", icon: UtensilsCrossed, color: "bg-amber-800" },
-    { name: "Yam Dishes", icon: UtensilsCrossed, color: "bg-yellow-700" },
-    { name: "Plantain Dishes", icon: Flame, color: "bg-yellow-500" },
-    { name: "Pasta", icon: Pizza, color: "bg-orange-400" },
-    { name: "Snacks", icon: Sandwich, color: "bg-blue-500" },
-    { name: "Grills & Barbecue", icon: Flame, color: "bg-rose-600" },
-    { name: "Shawarma", icon: Sandwich, color: "bg-purple-500" },
-    { name: "Breakfast", icon: Coffee, color: "bg-emerald-500" },
-    { name: "Drinks", icon: Beer, color: "bg-cyan-500" },
-    { name: "Desserts", icon: IceCream, color: "bg-pink-500" },
-    { name: "Seafood", icon: Fish, color: "bg-indigo-500" },
-    { name: "Vegetarian", icon: Leaf, color: "bg-green-600" },
-    { name: "Salads", icon: Leaf, color: "bg-lime-500" },
-    { name: "Small Chops", icon: Pizza, color: "bg-orange-600" },
-    { name: "Native Delicacies", icon: ChefHat, color: "bg-stone-700" },
-    { name: "Others", icon: UtensilsCrossed, color: "bg-gray-500" },
-];
 
 export default function CategoryList() {
     const router = useRouter();
+    const { baseUrl } = useApi();
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState(null);
 
-    const handleCategoryClick = (categoryName) => {
-        setActiveCategory(categoryName);
-        router.push(`/search?category=${encodeURIComponent(categoryName)}`);
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                // Fetch public categories
+                const res = await fetch(`${baseUrl}/categories/public`);
+                const data = await res.json();
+
+                if (data.success) {
+                    setCategories(data.data || []);
+                }
+            } catch (error) {
+                console.error("Failed to fetch categories", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCategories();
+    }, [baseUrl]);
+
+    const handleCategoryClick = (category) => {
+        setActiveCategory(category.name);
+        // Prefer slug for URL, fallback to name
+        const query =  category.name;
+        router.push(`/search?category=${encodeURIComponent(query)}`);
     };
 
+    // Skeleton loader component
+    if (loading) {
+        return (
+            <div className="mt-6">
+                <div className="flex items-center justify-between mb-4 px-1">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-zinc-200 animate-pulse" />
+                        <div className="space-y-2">
+                            <div className="h-5 w-40 bg-zinc-200 rounded animate-pulse" />
+                            <div className="h-3 w-32 bg-zinc-100 rounded animate-pulse" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="relative -mx-2">
+                    <div className="flex gap-4 scroll overflow-x-auto no-scrollbar pb-6 pt-2 px-4">
+                        {[...Array(6)].map((_, i) => (
+                            <div key={i} className="flex flex-col items-center gap-3 min-w-[85px]">
+                                <div className="w-20 h-20 rounded-[28px] bg-zinc-200 animate-pulse" />
+                                <div className="h-3 w-16 bg-zinc-100 rounded animate-pulse" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!loading && categories.length === 0) {
+        return null; // Hide section if no categories found
+    }
+
     return (
-        <div className="mt-4">
-            <div className="flex items-center justify-between mb-2">
+        <div className="mt-6">
+            <div className="flex items-center justify-between mb-4 px-1">
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <div className="absolute inset-0 bg-orange-500/20 blur-lg rounded-full" />
-                        <div className="relative bg-orange-500 p-2 rounded-xl shadow-lg shadow-orange-500/20">
-                            <Flame className="text-white fill-white/20" size={20} />
+                        <div className="relative bg-orange-500 p-2.5 rounded-2xl shadow-lg shadow-orange-500/20">
+                            <Flame className="text-white fill-white/20" size={24} />
                         </div>
                     </div>
                     <div>
-                        <h2 className="text-xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none">
+                        <h2 className="text-2xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none">
                             Explore <span className="text-orange-600">Categories</span>
                         </h2>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 mt-1">
+                        <p className="text-xs font-bold uppercase tracking-[0.15em] text-zinc-400 mt-1">
                             Find your favorite flavors
                         </p>
                     </div>
                 </div>
-
-                {/* <button
-                    onClick={() => router.push('/all-restaurants')}
-                    className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-orange-600 hover:gap-2 transition-all group"
-                >
-                    View All
-                    <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                </button> */}
             </div>
 
-            <div className="relative">
+            <div className="relative -mx-2">
                 {/* Subtle Side Fades for scroll indication */}
-                <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-zinc-950 to-transparent z-10 pointer-events-none" />
-                <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-zinc-950 to-transparent z-10 pointer-events-none" />
+                <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-zinc-100 dark:from-zinc-950 to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-zinc-100 dark:from-zinc-950 to-transparent z-10 pointer-events-none" />
 
-                <div className="flex gap- scroll overflow-x-auto no-scrollbar pb-2 pt-2 snap-x">
-                    {categoryData.map((category, idx) => (
+                <div className="flex gap-4 scroll overflow-x-auto no-scrollbar pt-2 snap-x px-4">
+                    {categories.map((category, idx) => (
                         <motion.button
-                            key={category.name}
+                            key={category._id}
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: idx * 0.05, duration: 0.5 }}
-                            whileHover={{ y: -5, scale: 1.02 }}
+                            whileHover={{ y: -5, scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => handleCategoryClick(category.name)}
-                            className={`flex flex-col items-center gap-2 min-w-[60px] group snap-start`}
+                            onClick={() => handleCategoryClick(category)}
+                            className={`flex flex-col items-center gap-3 min-w-[85px] group snap-center`}
                         >
-                            {/* Icon Container with Multi-layer Glow */}
+                            {/* Icon/Image Container with Multi-layer Glow */}
                             <div className="relative">
                                 {/* Active/Hover Background Glow */}
                                 <div
-                                    className={`absolute inset-0 rounded-[24px] blur-md transition-all duration-500
+                                    className={`absolute inset-0 rounded-[30px] blur-xl transition-all duration-500
                     ${activeCategory === category.name
-                                            ? 'bg-orange-500/40 opacity-100 scale-110'
+                                            ? 'bg-orange-500/30 opacity-100 scale-110'
                                             : 'bg-zinc-200 dark:bg-zinc-800 opacity-0 group-hover:opacity-100 group-hover:scale-105'}
                   `}
                                 />
 
                                 {/* Main Icon Box */}
                                 <div
-                                    className={`relative w-12 h-12 flex items-center justify-center rounded-[20px] transition-all duration-300 border
+                                    className={`relative w-20 h-20 flex items-center justify-center rounded-[28px] transition-all duration-300 border overflow-hidden
                     ${activeCategory === category.name
-                                            ? 'bg-orange-500 border-orange-400 shadow-xl shadow-orange-500/20'
+                                            ? 'bg-orange-500 border-orange-400 shadow-xl shadow-orange-500/30 translate-y-[-2px]'
                                             : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 group-hover:border-orange-200 dark:group-hover:border-orange-900 group-hover:shadow-lg shadow-sm'}
                   `}
                                 >
-                                    <category.icon
-                                        size={20}
-                                        className={`transition-colors duration-300
+                                    {category.image ? (
+                                        <img
+                                            src={category.image}
+                                            alt={category.name}
+                                            className="w-full h-full object-cover p-1.5 rounded-[28px]"
+                                        />
+                                    ) : (
+                                        <UtensilsCrossed
+                                            size={32}
+                                            className={`transition-colors duration-300
                       ${activeCategory === category.name
-                                                ? 'text-white'
-                                                : 'text-zinc-600 dark:text-zinc-400 group-hover:text-orange-500'}
+                                                    ? 'text-white'
+                                                    : 'text-zinc-300 group-hover:text-orange-500'}
                     `}
-                                        strokeWidth={2.5}
-                                    />
+                                            strokeWidth={1.5}
+                                        />
+                                    )}
 
                                     {/* Decorative Sparkle for Active */}
                                     {activeCategory === category.name && (
                                         <motion.div
                                             layoutId="activeCategoryDot"
-                                            className="absolute -top-1 -right-1 w-3 h-3 bg-orange-600 border-2 border-white dark:border-zinc-900 rounded-full shadow-sm"
+                                            className="absolute top-2 right-2 w-2.5 h-2.5 bg-white rounded-full shadow-sm z-10"
                                         />
                                     )}
                                 </div>
@@ -136,10 +164,10 @@ export default function CategoryList() {
 
                             {/* Text Label */}
                             <span
-                                className={`text-[10px] font-black uppercase tracking-tighter text-center transition-all duration-300 leading-tight max-w-[70px]
+                                className={`text-xs font-bold capitalize text-center transition-all duration-300 leading-tight max-w-[90px] line-clamp-2
                   ${activeCategory === category.name
-                                        ? 'text-orange-600 scale-110'
-                                        : 'text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white'}
+                                        ? 'text-orange-600 font-black'
+                                        : 'text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white'}
                 `}
                             >
                                 {category.name}
@@ -150,7 +178,7 @@ export default function CategoryList() {
             </div>
 
             {/* Modern Divider */}
-            <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-100 dark:via-zinc-800 to-transparent my-2" />
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent my-4" />
         </div>
     );
 }

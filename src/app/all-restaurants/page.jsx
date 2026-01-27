@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/app/context/ApiContext";
 import { fetchUser } from "@/app/lib/api";
+import { useUserStorage } from "@/app/hooks/useUserStorage";
 import axios from "axios";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
@@ -28,15 +29,10 @@ export default function AllRestaurants() {
     const [imgLoaded, setImgLoaded] = useState({});
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
 
-    const { data: userData } = useQuery({
-        queryKey: ["userProfile", token],
-        queryFn: () => fetchUser(token),
-        enabled: !!token,
-    });
+    // Use cookie-based authentication via useUserStorage
+    const { user, isLoading: isUserLoading } = useUserStorage();
 
-    const user = userData?.user;
     const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
 
     const { data: vendors = [], isLoading, isError, error, refetch } = useQuery({
@@ -52,11 +48,11 @@ export default function AllRestaurants() {
                     city: defaultAddr.city,
                     state: defaultAddr.state,
                 },
-                headers: { Authorization: `Bearer ${token}` },
+                withCredentials: true, // Use cookies for authentication
             });
             return res.data.vendors || [];
         },
-        enabled: !!defaultAddr,
+        enabled: !!defaultAddr && !isUserLoading,
     });
 
     console.log(vendors)

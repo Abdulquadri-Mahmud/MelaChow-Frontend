@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import { useApi } from "../context/ApiContext";
 import axios from "axios";
 
-export default function AddressModal({ user, token, isOpen, setIsOpen }) {
+export default function AddressModal({ user, isOpen, setIsOpen }) {
   const [loading, setLoading] = useState(false);
   const { baseUrl } = useApi();
 
@@ -43,9 +43,7 @@ export default function AddressModal({ user, token, isOpen, setIsOpen }) {
           isDefault: true,
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          withCredentials: true, // ✅ Use cookie-based auth
         }
       );
 
@@ -68,7 +66,7 @@ export default function AddressModal({ user, token, isOpen, setIsOpen }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto px-4 py-6 sm:p-0">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto px-2 py-6 sm:p-0">
           <motion.div
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             initial={{ opacity: 0 }}
@@ -78,14 +76,14 @@ export default function AddressModal({ user, token, isOpen, setIsOpen }) {
           />
 
           <motion.div
-            className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-2xl"
+            className="relative w-full max-w-lg mx-auto overflow-hidden rounded-3xl bg-white shadow-2xl"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
             {/* Header with Background Pattern */}
-            <div className="relative bg-orange-500 px-6 py-8 text-white overflow-hidden">
+            <div className="relative bg-orange-500 px-3 py-2 text-white overflow-hidden">
               <div className="absolute top-0 right-0 -mr-10 -mt-10 h-40 w-40 rounded-full bg-orange-400/20 blur-3xl" />
               <div className="absolute bottom-0 left-0 -ml-10 -mb-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
 
@@ -101,7 +99,7 @@ export default function AddressModal({ user, token, isOpen, setIsOpen }) {
                   <MapPin className="h-8 w-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                  Add Delivery Address
+                  Add Address
                 </h2>
                 <p className="mt-2 text-orange-50/90 text-sm sm:text-base max-w-xs">
                   Tell us where to bring your delicious meals!
@@ -110,7 +108,7 @@ export default function AddressModal({ user, token, isOpen, setIsOpen }) {
             </div>
 
             {/* Form Section */}
-            <div className="p-6 sm:p-8 space-y-6">
+            <div className="p-3 sm:p-3 space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* State Selection */}
                 <div className="space-y-2">

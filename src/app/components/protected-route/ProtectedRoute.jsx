@@ -12,13 +12,13 @@ const ProtectedRoute = ({ children }) => {
     // wait for hydration
     if (isLoading) return;
 
-    if (!user?.token) {
+    if (!user) {
       router.replace("/auth/signin");
     }
   }, [user, isLoading, router]);
 
   // While checking auth
-  if (isLoading || !user?.token) {
+  if (isLoading || !user) {
     return (
       <div className="flex items-center justify-center h-screen">
         <p className="text-sm text-gray-500">Checking authentication…</p>

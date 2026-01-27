@@ -5,6 +5,7 @@ import { getVendorOrders } from "@/app/lib/vendorApi";
 import VendorOrderCard from "@/app/components/order/VendorOrderCard";
 import { ChevronLeft, ChevronRight, Package, Search, Filter, TrendingUp, Clock, CheckCircle2 } from "lucide-react";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
+import BackButton from "@/app/components/BackButton";
 
 export default function VendorOrdersPage() {
   const [orders, setOrders] = useState([]);
@@ -18,14 +19,16 @@ export default function VendorOrdersPage() {
   const itemsPerPage = 6;
 
   const fetchOrders = async () => {
-    if (!vendorDetails?.vendor?.id) return;
+    // if (!vendorDetails?.vendor?.id) return; // Removed ID check strictness if cookie is sufficient
     try {
       setIsLoading(true);
-      const res = await getVendorOrders(vendorDetails.vendor.id);
-      const data = res.data || res || [];
+      const res = await getVendorOrders();
+      const data = res.vendorOrders || res || [];
       const orderData = Array.isArray(data) ? data : [];
       setOrders(orderData);
       setFilteredOrders(orderData);
+
+      // console.log(res.vendorOrders)
     } catch (error) {
       console.error("Failed to fetch orders:", error);
     } finally {
@@ -35,7 +38,7 @@ export default function VendorOrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-  }, [vendorDetails]);
+  }, []);
 
   // Combined Search & Status Filter
   useEffect(() => {
@@ -112,6 +115,7 @@ export default function VendorOrdersPage() {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6"
       >
+        <BackButton label="Back" className="mb-2" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Orders</h1>
@@ -220,15 +224,15 @@ export default function VendorOrdersPage() {
                 whileTap={{ scale: 0.98 }}
                 onClick={() => setStatusFilter(tab.id)}
                 className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${statusFilter === tab.id
-                    ? "bg-[#FF6B00] text-white shadow-lg shadow-orange-500/20"
-                    : "bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  ? "bg-[#FF6B00] text-white shadow-lg shadow-orange-500/20"
+                  : "bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                   }`}
               >
                 <TabIcon size={16} />
                 {tab.label}
                 <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${statusFilter === tab.id
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                  ? "bg-white/20 text-white"
+                  : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                   }`}>
                   {count}
                 </span>
@@ -297,8 +301,8 @@ export default function VendorOrdersPage() {
                           whileTap={{ scale: 0.9 }}
                           onClick={() => handlePageChange(page)}
                           className={`w-10 h-10 rounded-xl text-sm font-bold transition-colors ${currentPage === page
-                              ? "bg-[#FF6B00] text-white shadow-lg shadow-orange-500/20"
-                              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            ? "bg-[#FF6B00] text-white shadow-lg shadow-orange-500/20"
+                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                             }`}
                         >
                           {page}

@@ -81,6 +81,33 @@ export const CartProvider = ({ children }) => {
     showAnimatedToast("error", "Item removed from cart", "cart-remove");
   };
 
+  // Update item (for editing options)
+  const updateCartItem = (foodId, variantId, updatedItem) => {
+    setCart((prev) => {
+      // 1. Remove the old item
+      const filtered = prev.filter(c => !(c.foodId === foodId && c.variantId === variantId));
+
+      // 2. Check if the updated item already exists in the remaining items
+      const existingIndex = filtered.findIndex(c =>
+        c.foodId === updatedItem.foodId && c.variantId === updatedItem.variantId
+      );
+
+      if (existingIndex > -1) {
+        // Merge quantities
+        const newCart = [...filtered];
+        newCart[existingIndex] = {
+          ...newCart[existingIndex],
+          quantity: newCart[existingIndex].quantity + updatedItem.quantity
+        };
+        return newCart;
+      } else {
+        // Add updated item
+        return [...filtered, updatedItem];
+      }
+    });
+    showAnimatedToast("success", "Cart updated", "cart-update");
+  };
+
   // Clear cart
   const clearCart = () => {
     setCart([]);
@@ -95,6 +122,7 @@ export const CartProvider = ({ children }) => {
         increaseQuantity,
         decreaseQuantity,
         removeFromCart,
+        updateCartItem,
         clearCart,
       }}
     >

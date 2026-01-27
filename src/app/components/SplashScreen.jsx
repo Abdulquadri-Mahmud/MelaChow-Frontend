@@ -1,9 +1,63 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useUserStorage } from "@/app/hooks/useUserStorage";
+import { useVendorStorage } from "@/app/hooks/vendorStorage";
 
-export default function SplashScreen() {
+export default function SplashScreen({ onComplete }) {
+    const { user, isLoading: isUserLoading } = useUserStorage();
+    const { vendorDetails, isLoading: isVendorLoading } = useVendorStorage();
+    const [loadingText, setLoadingText] = useState("Initializing experience...");
+    const [showNextStep, setShowNextStep] = useState(false);
+
+    // Determine if user is authenticated
+    const isAuthenticated = !!user || !!vendorDetails;
+    const isLoading = isUserLoading || isVendorLoading;
+
+    // Cycle through realistic product-driven statuses
+    useEffect(() => {
+        const statuses = [
+            "Locating nearby tastes...",
+            "Curating local menus...",
+            "Preparing your dashboard...",
+        ];
+
+        let index = 0;
+        setLoadingText(statuses[0]);
+
+        const interval = setInterval(() => {
+            index = (index + 1) % statuses.length;
+            setLoadingText(statuses[index]);
+        }, 1800);
+
+        // Show "Next Step" cue after a delay for engagement
+        const nextStepTimer = setTimeout(() => {
+            setShowNextStep(true);
+        }, 2500);
+
+        return () => {
+            clearInterval(interval);
+            clearTimeout(nextStepTimer);
+        };
+    }, []);
+
+    // Effect to handle splash dismissal logic based on auth state
+    // Note: The parent ClientLayout controls the hard unmount, but we can influence animations here or visual cues.
+    // Ideally, ClientLayout should pass down 'onComplete' or we rely on the timer there.
+    // Given the constraints to preserve existing logic, we assume ClientLayout handles the unmount timer.
+    // However, we can adapt the visual message based on state immediately.
+
+    useEffect(() => {
+        if (!isLoading) {
+            if (isAuthenticated) {
+                setLoadingText("Welcome back!");
+            } else {
+                setLoadingText("Discover food around you");
+            }
+        }
+    }, [isAuthenticated, isLoading]);
+
     const dotVariants = {
         initial: { y: 0, opacity: 0.4 },
         animate: {
@@ -23,7 +77,7 @@ export default function SplashScreen() {
             opacity: 1,
             transition: {
                 staggerChildren: 0.2,
-                delayChildren: 0.6
+                delayChildren: 0.4 // Slightly faster start
             },
         },
     };
@@ -75,17 +129,17 @@ export default function SplashScreen() {
                         Grub<span className="text-orange-600">Dash</span>
                     </h1>
                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-orange-600/80 pl-1">
-                        Premium Delivery
+                        Local Food Discovery
                     </p>
                 </motion.div>
 
                 {/* Catchy Description */}
                 <motion.div variants={itemVariants} className="mt-8 text-center max-w-[280px]">
                     <h2 className="text-xl font-bold text-zinc-800 dark:text-zinc-100 leading-tight">
-                        Crave it. Order it. <span className="italic text-orange-600">Enjoy it.</span>
+                        Authentic Local <span className="italic text-orange-600">Flavors.</span>
                     </h2>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 font-medium">
-                        Experience the gold standard of local food delivery at your fingertips.
+                        Connecting you with the best nearby vendors and hidden gems in your city.
                     </p>
                 </motion.div>
 
@@ -109,18 +163,32 @@ export default function SplashScreen() {
                     </div>
 
                     {/* Progress Indicator Metadata */}
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: [0.3, 0.6, 0.3] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="flex items-center gap-2"
-                    >
-                        <div className="w-1 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
-                        <span className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-zinc-600">
-                            Connecting to Gourmet Servers
-                        </span>
-                        <div className="w-1 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
-                    </motion.div>
+                    <div className="flex flex-col items-center gap-2 min-h-[30px]">
+                        <motion.div
+                            key={loadingText} // Animate text change
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -5 }}
+                            className="flex items-center gap-2"
+                        >
+                            <div className="w-1 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
+                                {loadingText}
+                            </span>
+                            <div className="w-1 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
+                        </motion.div>
+
+                        {/* Optional Next Step Indicator */}
+                        {showNextStep && !isAuthenticated && (
+                            <motion.span
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-[8px] text-orange-500 font-bold uppercase tracking-widest mt-1"
+                            >
+                                Get Ready to Explore
+                            </motion.span>
+                        )}
+                    </div>
                 </motion.div>
             </motion.div>
 

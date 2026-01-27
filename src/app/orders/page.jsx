@@ -4,44 +4,91 @@ import { useEffect, useState, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/app/context/CartContext";
+import { useUserStorage } from "@/app/hooks/useUserStorage";
 import Header2 from "../components/App_Header/Header2";
-import { ShoppingCart, Package, Clock, Trash2, ArrowRight, Minus, Plus, ShoppingBag } from "lucide-react";
+import { ShoppingCart, Package, Trash2, ArrowRight, Minus, Plus, ShoppingBag, Utensils } from "lucide-react";
 import toast from "react-hot-toast";
 import { useApi } from "../context/ApiContext";
 import axios from "axios";
 import { OrderCardSkeleton } from "../components/skeleton/OrderCardSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
+import { Pencil, Loader2 } from "lucide-react";
+import FoodCustomizationModal from "../components/Cart/FoodCustomizationModal";
 
 function OrdersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get("activeTab") || "orders";
+  const initialTab = searchParams.get("activeTab") || "cart";
 
-  const { cart, increaseQuantity, decreaseQuantity, removeFromCart, clearCart } = useCart();
-  const [token, setToken] = useState(null);
+  const { cart, increaseQuantity, decreaseQuantity, removeFromCart, clearCart, updateCartItem } = useCart();
+  const { user } = useUserStorage();
   const { baseUrl } = useApi();
-  const [activeTab, setActiveTab] = useState(initialTab); // "orders" or "cart"
+  const [activeTab, setActiveTab] = useState(initialTab);
 
-  useEffect(() => {
-    const userToken = localStorage.getItem("userToken");
-    if (!userToken) {
-      toast.error("Please login to view orders");
-      return;
+  // Edit State
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [foodForEdit, setFoodForEdit] = useState(null);
+  const [isFetchingFood, setIsFetchingFood] = useState(false);
+  const [editingVariant, setEditingVariant] = useState(null);
+  const [editingPortion, setEditingPortion] = useState(null);
+
+  const handleEditClick = async (item) => {
+    if (isFetchingFood) return;
+    setIsFetchingFood(true);
+    setEditingItem(item);
+    try {
+      const res = await axios.get(`${baseUrl}/vendors/foods/get-food?id=${item.foodId}`);
+      if (res.data && res.data.data) {
+        const food = res.data.data;
+        setFoodForEdit(food);
+
+        let v = null;
+        let p = null;
+        if (item.variantId) {
+          v = food.variants?.find(fv => fv._id === item.variantId);
+        }
+        if (!v && item.metadata?.portion && item.metadata.portion !== "Standard") {
+          p = food.portions?.find(fp => fp.label === item.metadata.portion);
+        }
+
+        setEditingVariant(v);
+        setEditingPortion(p);
+        setEditModalOpen(true);
+      } else {
+        toast.error("Item details unavailable");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load item for editing");
+    } finally {
+      setIsFetchingFood(false);
     }
-    setToken(userToken);
-  }, []);
+  };
+
+  const handleUpdateOrder = (payload) => {
+    if (editingItem) {
+      updateCartItem(editingItem.foodId, editingItem.variantId, payload);
+    }
+    setEditModalOpen(false);
+    setEditingItem(null);
+    setFoodForEdit(null);
+  };
+
+  // console.log(cart);
 
   const fetchUserOrders = async () => {
+    if (!user) return { orders: [] };
     const res = await axios.get(`${baseUrl}/orders/my-orders`, {
-      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true, // ✅ Use cookie-based auth
     });
     return res.data;
   };
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["userOrders", token],
+    queryKey: ["userOrders", user?._id],
     queryFn: fetchUserOrders,
-    enabled: !!token,
+    enabled: !!user && activeTab === "orders", // Fetch only when user exists and tab is orders
     retry: false,
   });
 
@@ -65,24 +112,9 @@ function OrdersContent() {
         {/* Custom Tabs */}
         <div className="flex bg-gray-200/50 p-1 rounded-xl w-full max-w-md mb-6 sticky top-[72px] z-20 backdrop-blur-md">
           <button
-            onClick={() => setActiveTab("orders")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${activeTab === "orders"
-              ? "bg-white text-orange-600"
-              : "text-gray-500 hover:text-gray-900"
-              }`}
-          >
-            <Package size={16} />
-            Orders
-            {orders.length > 0 && (
-              <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[9px] ${activeTab === 'orders' ? 'bg-orange-100/80 text-orange-600' : 'bg-gray-300/40 text-gray-500'}`}>
-                {orders.length}
-              </span>
-            )}
-          </button>
-          <button
             onClick={() => setActiveTab("cart")}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${activeTab === "cart"
-              ? "bg-white text-orange-600"
+              ? "bg-white text-orange-600 shadow-sm"
               : "text-gray-500 hover:text-gray-900"
               }`}
           >
@@ -91,6 +123,21 @@ function OrdersContent() {
             {cart.length > 0 && (
               <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[9px] ${activeTab === 'cart' ? 'bg-orange-100/80 text-orange-600' : 'bg-gray-300/40 text-gray-500'}`}>
                 {cart.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("orders")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${activeTab === "orders"
+              ? "bg-white text-orange-600 shadow-sm"
+              : "text-gray-500 hover:text-gray-900"
+              }`}
+          >
+            <Package size={16} />
+            Orders
+            {orders.length > 0 && (
+              <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[9px] ${activeTab === 'orders' ? 'bg-orange-100/80 text-orange-600' : 'bg-gray-300/40 text-gray-500'}`}>
+                {orders.length}
               </span>
             )}
           </button>
@@ -107,7 +154,15 @@ function OrdersContent() {
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-4"
               >
-                {isLoading || !token ? (
+                {!user ? (
+                  <div className="text-center py-16 bg-white rounded-3xl border border-gray-100">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Package className="text-gray-400" size={24} />
+                    </div>
+                    <p className="text-gray-500 font-medium">Please sign in to view your orders.</p>
+                    <button onClick={() => router.push("/auth/signin")} className="mt-4 bg-orange-500 text-white px-6 py-2 rounded-full font-bold">Sign In</button>
+                  </div>
+                ) : isLoading ? (
                   Array.from({ length: 4 }).map((_, idx) => <OrderCardSkeleton key={idx} />)
                 ) : isError ? (
                   <div className="text-center py-12 bg-white rounded-3xl border border-dashed border-gray-300">
@@ -150,10 +205,6 @@ function OrdersContent() {
                               }`}>
                               {order.orderStatus}
                             </span>
-                            <span className={`text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-md font-bold ${order.paymentStatus === "paid" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-rose-50 text-rose-600 border border-rose-100"
-                              }`}>
-                              {order.paymentStatus}
-                            </span>
                           </div>
                         </div>
                       </div>
@@ -161,7 +212,8 @@ function OrdersContent() {
                       <div className="flex justify-between items-center bg-gray-50/80 rounded-xl p-2.5">
                         <div className="flex -space-x-1.5">
                           {order.items.slice(0, 4).map((item, i) => (
-                            <img key={i} src={item.variant.image} className="w-7 h-7 rounded-lg border-2 border-white object-cover" alt="" title={item.variant.name} />
+                            // Use Item Variant Image if available
+                            <img key={i} src={item.variant?.image || item.image || "/placeholder.jpg"} className="w-7 h-7 rounded-lg border-2 border-white object-cover" alt="" title={item.variant?.name || item.name} />
                           ))}
                           {order.items.length > 4 && (
                             <div className="w-7 h-7 rounded-lg bg-white border-2 border-gray-50 flex items-center justify-center text-[9px] font-bold text-gray-600">
@@ -217,45 +269,83 @@ function OrdersContent() {
                           </div>
 
                           <div className="space-y-4">
-                            {items.map((item) => (
-                              <div key={item.foodId + item.variantId} className="flex gap-4 group">
-                                <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-zinc-50 dark:bg-zinc-800 flex-shrink-0 shadow-inner">
-                                  <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                                </div>
-                                <div className="flex-1 min-w-0 flex flex-col justify-center">
-                                  <div className="flex justify-between items-start">
-                                    <h4 className="text-xs font-black text-zinc-900 dark:text-white truncate uppercase italic tracking-tight">{item.variantName}</h4>
-                                    <p className="text-xs font-black text-zinc-900 dark:text-white tabular-nums">₦{(item.price * item.quantity).toLocaleString()}</p>
+                            {items.map((item, idx) => {
+                              // Unique key fallback if variantId is missing/not unique in payload
+                              const itemKey = item.variantId || `${item.foodId}-${idx}`;
+                              return (
+                                <div key={itemKey} className="flex gap-4 group">
+                                  <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-zinc-50 dark:bg-zinc-800 flex-shrink-0 shadow-inner">
+                                    <img
+                                      src={item.variant?.image || item.image || "/placeholder.jpg"}
+                                      alt={item.name}
+                                      className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                                   </div>
-                                  <p className="text-[10px] text-zinc-400 mt-1 font-bold uppercase tracking-tighter">₦{item.price.toLocaleString()} per unit</p>
-
-                                  <div className="flex items-center justify-between mt-3">
-                                    <div className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-1 border border-zinc-100 dark:border-zinc-800 shadow-inner">
-                                      <button
-                                        onClick={() => decreaseQuantity(item.foodId, item.variantId)}
-                                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 shadow-sm hover:text-orange-600 transition-all border border-zinc-100 dark:border-zinc-700"
-                                      >
-                                        <Minus size={12} strokeWidth={3} />
-                                      </button>
-                                      <span className="w-6 text-center text-[11px] font-black text-zinc-900 dark:text-white tabular-nums">{item.quantity}</span>
-                                      <button
-                                        onClick={() => increaseQuantity(item.foodId, item.variantId)}
-                                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all"
-                                      >
-                                        <Plus size={12} strokeWidth={3} />
-                                      </button>
+                                  <div className="flex-1 min-w-0 flex flex-col justify-start">
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                        <h4 className="text-sm font-bold text-zinc-900 dark:text-white truncate leading-tight">{item.name}</h4>
+                                        {/* Variants and Options */}
+                                        <div className="text-[10px] text-gray-500 mt-1 space-y-0.5">
+                                          {(item.metadata?.portion && item.metadata.portion !== "Standard") && (
+                                            <p className="font-medium bg-gray-100 px-1.5 py-0.5 rounded w-fit text-gray-700">Size: {item.metadata.portion}</p>
+                                          )}
+                                          {item.metadata?.choices?.length > 0 && (
+                                            <p className="opacity-80 flex flex-wrap gap-1">
+                                              {Object.entries(item.metadata.choices.reduce((acc, c) => {
+                                                const name = (typeof c === 'string' ? c : c.name || "").trim();
+                                                acc[name] = (acc[name] || 0) + 1;
+                                                return acc;
+                                              }, {})).map(([choice, count], i) => (
+                                                <span key={i} className="after:content-[','] last:after:content-['']">
+                                                  {count > 1 ? `${count}x ` : ""}{choice}
+                                                </span>
+                                              ))}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <p className="text-sm font-black text-zinc-900 dark:text-white tabular-nums">₦{(item.price * item.quantity).toLocaleString()}</p>
                                     </div>
-                                    <button
-                                      onClick={() => removeFromCart(item.foodId, item.variantId)}
-                                      className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all active:scale-90"
-                                    >
-                                      <Trash2 size={14} />
-                                    </button>
+
+                                    <div className="flex items-end justify-between mt-auto pt-2">
+                                      <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-tighter self-center">₦{item.price.toLocaleString()} / unit</p>
+
+                                      <div className="flex items-center gap-3">
+                                        <button
+                                          onClick={() => handleEditClick(item)}
+                                          className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-all active:scale-90 bg-white border border-gray-100 shadow-sm"
+                                        >
+                                          {isFetchingFood && editingItem === item ? <Loader2 size={14} className="animate-spin" /> : <Pencil size={14} />}
+                                        </button>
+                                        <div className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-1 border border-zinc-100 dark:border-zinc-800 shadow-inner">
+                                          <button
+                                            onClick={() => decreaseQuantity(item.foodId, item.variantId)}
+                                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 shadow-sm hover:text-orange-600 transition-all border border-zinc-100 dark:border-zinc-700"
+                                          >
+                                            <Minus size={12} strokeWidth={3} />
+                                          </button>
+                                          <span className="w-6 text-center text-[11px] font-black text-zinc-900 dark:text-white tabular-nums">{item.quantity}</span>
+                                          <button
+                                            onClick={() => increaseQuantity(item.foodId, item.variantId)}
+                                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all"
+                                          >
+                                            <Plus size={12} strokeWidth={3} />
+                                          </button>
+                                        </div>
+                                        <button
+                                          onClick={() => removeFromCart(item.foodId, item.variantId)}
+                                          className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all active:scale-90 bg-white border border-gray-100 shadow-sm"
+                                        >
+                                          <Trash2 size={14} />
+                                        </button>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
+                              )
+                            })}
                           </div>
                         </div>
                       ))}
@@ -313,6 +403,17 @@ function OrdersContent() {
           </AnimatePresence>
         </div>
       </main>
+
+      <FoodCustomizationModal
+        food={foodForEdit}
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        initialEditItem={editingItem}
+        onUpdate={handleUpdateOrder}
+        initialVariant={editingVariant}
+        initialPortion={editingPortion}
+        onAdd={() => { }}
+      />
     </div>
   );
 }

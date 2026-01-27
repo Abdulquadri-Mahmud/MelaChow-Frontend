@@ -13,8 +13,11 @@ const LogoImage = () => (
   />
 );
 
+import { useProfile } from "../../context/ProfileContext";
+
 export default function Header() {
   const [isFocused, setIsFocused] = useState(false);
+  const { userProfile, isLoading } = useProfile();
 
   return (
     <header className="sticky top-0 z-50 bg-white rounded-b-4xl border-b-3 border-white backdrop-blur-lg">
@@ -46,7 +49,7 @@ export default function Header() {
           <motion.div
             className="relative"
             animate={{ width: isFocused ? 200 : 150 }}
-             transition={{ type: "spring", stiffness: 200 }}
+            transition={{ type: "spring", stiffness: 200 }}
           >
             <input
               type="text"
@@ -58,24 +61,48 @@ export default function Header() {
             <FiSearch className="absolute left-3 top-2.5 text-gray-700" />
           </motion.div>
 
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative text-gray-700 hover:text-orange-500"
-          >
-            <FiShoppingCart className="text-xl" />
-            <span className="absolute -top-1 -right-2 bg-orange-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
-              2
-            </span>
-          </motion.button>
+          {/* Cart Icon */}
+          <Link href="/cart">
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              className="relative text-gray-700 hover:text-orange-500 mt-2"
+            >
+              <FiShoppingCart className="text-xl" />
+              {/* <span className="absolute -top-1 -right-2 bg-orange-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+                2
+              </span> */}
+            </motion.button>
+          </Link>
 
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            className="text-gray-700 hover:text-orange-500"
-          >
-            <FiUser className="text-xl" />
-          </motion.button>
+          {/* User Profile / Login */}
+          {isLoading ? (
+            <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+          ) : userProfile ? (
+            <Link href="/profile">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold border border-orange-200">
+                  {userProfile.firstname ? userProfile.firstname[0].toUpperCase() : <FiUser />}
+                </div>
+                <span className="text-sm font-bold text-gray-700 hover:text-orange-600">
+                  {userProfile.firstname || "Account"}
+                </span>
+              </motion.div>
+            </Link>
+          ) : (
+            <Link href="/auth/signin">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-4 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-orange-600 transition-colors"
+              >
+                Login
+              </motion.button>
+            </Link>
+          )}
         </div>
       </div>
     </header>

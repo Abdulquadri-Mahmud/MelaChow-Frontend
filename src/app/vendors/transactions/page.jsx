@@ -29,8 +29,7 @@ export default function TransactionsPage() {
     useEffect(() => {
         const fetchWallet = async () => {
             try {
-                if (!vendorDetails?.vendor?.id) return;
-                const res = await getVendorWallet(vendorDetails.vendor.id);
+                const res = await getVendorWallet();
                 if (res.success && res.data) {
                     setWallet(res.data);
                     const sortedTxns = (res.data.transactions || []).sort((a, b) =>
@@ -39,7 +38,13 @@ export default function TransactionsPage() {
                     setTransactions(sortedTxns);
                 }
             } catch (err) {
-                console.error("Failed to fetch wallet:", err);
+                if (err.response && err.response.status === 404) {
+                    // Wallet not created yet, show empty state
+                    setWallet({ balance: 0 });
+                    setTransactions([]);
+                } else {
+                    console.error("Failed to fetch wallet:", err);
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -236,8 +241,8 @@ export default function TransactionsPage() {
                                             key={type}
                                             onClick={() => setTypeFilter(type)}
                                             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${typeFilter === type
-                                                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-                                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+                                                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
                                                 }`}
                                         >
                                             {type === 'all' ? 'All' : type === 'credit' ? 'Credits' : 'Debits'}
@@ -271,8 +276,8 @@ export default function TransactionsPage() {
                                                             setShowMonthDropdown(false);
                                                         }}
                                                         className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${selectedMonth === "all"
-                                                                ? 'bg-[#FF6B00] text-white'
-                                                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                                            ? 'bg-[#FF6B00] text-white'
+                                                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                                             }`}
                                                     >
                                                         All Time
@@ -285,8 +290,8 @@ export default function TransactionsPage() {
                                                                 setShowMonthDropdown(false);
                                                             }}
                                                             className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${selectedMonth === month
-                                                                    ? 'bg-[#FF6B00] text-white'
-                                                                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                                                ? 'bg-[#FF6B00] text-white'
+                                                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                                                                 }`}
                                                         >
                                                             {formatMonthYear(month)}
@@ -344,8 +349,8 @@ export default function TransactionsPage() {
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">
                                                         <div className={`p-2.5 rounded-xl ${txn.type === 'credit'
-                                                                ? 'bg-green-100 text-green-600 dark:bg-green-500/10 dark:text-green-400'
-                                                                : 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400'
+                                                            ? 'bg-green-100 text-green-600 dark:bg-green-500/10 dark:text-green-400'
+                                                            : 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400'
                                                             }`}>
                                                             {txn.type === 'credit' ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
                                                         </div>

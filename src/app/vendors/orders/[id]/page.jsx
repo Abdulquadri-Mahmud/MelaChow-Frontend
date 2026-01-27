@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,8 +28,8 @@ export default function VendorOrderDetailsPage() {
     const [order, setOrder] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
     const [showSuccessToast, setShowSuccessToast] = useState(false);
-    const { vendorDetails } = useVendorStorage();
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -50,12 +49,14 @@ export default function VendorOrderDetailsPage() {
         fetchOrder();
     }, [id]);
 
-    // Handle status update
-    const handleStatusUpdate = async (newStatus) => {
+    // Execute the status update
+    const performStatusUpdate = async (newStatus) => {
         try {
             setIsUpdating(true);
-            await updateOrderStatus(order.userOrderId.orderId, newStatus);
-            // Refresh order data
+            // Use user-facing Order ID string for updates
+            const updateId = order.userOrderId?.orderId || id;
+            await updateOrderStatus(updateId, newStatus);
+            // Refresh order data (using Mongo ID)
             const res = await getVendorOrderById(id);
             const data = res.data || res;
             setOrder(data);
@@ -68,11 +69,22 @@ export default function VendorOrderDetailsPage() {
             alert("Failed to update order status. Please try again.");
         } finally {
             setIsUpdating(false);
+            setIsCancelModalOpen(false);
+        }
+    };
+
+    // Handle button click
+    const handleStatusUpdate = (newStatus) => {
+        if (newStatus === 'cancelled') {
+            setIsCancelModalOpen(true);
+        } else {
+            performStatusUpdate(newStatus);
         }
     };
 
     // Get available next statuses based on current status
     const getAvailableStatuses = (currentStatus) => {
+        // ... existing logic
         const statusFlow = {
             'pending': ['accepted', 'cancelled'],
             'accepted': ['preparing', 'cancelled'],
@@ -580,6 +592,45 @@ export default function VendorOrderDetailsPage() {
                 </div>
 
             </div>
+            {/* Cancel Confirmation Modal */}
+            <AnimatePresence>
+                {isCancelModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-white dark:bg-[#1E293B] p-6 rounded-3xl shadow-2xl max-w-sm w-full"
+                        >
+                            <div className="flex flex-col items-center text-center gap-4">
+                                <div className="p-4 bg-red-100 dark:bg-red-900/20 rounded-full text-red-600">
+                                    <AlertCircle size={32} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Cancel Order?</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
+                                        Are you sure you want to cancel this order? This action cannot be undone.
+                                    </p>
+                                </div>
+                                <div className="flex gap-3 w-full mt-2">
+                                    <button
+                                        onClick={() => setIsCancelModalOpen(false)}
+                                        className="flex-1 py-3 rounded-xl font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200"
+                                    >
+                                        No, Keep
+                                    </button>
+                                    <button
+                                        onClick={() => performStatusUpdate('cancelled')}
+                                        className="flex-1 py-3 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-600/20"
+                                    >
+                                        Yes, Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

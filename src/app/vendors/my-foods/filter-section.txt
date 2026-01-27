@@ -1,0 +1,104 @@
+      {/* Filter Tabs */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white dark:bg-[#1E293B] rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+        
+        {/* Header with Results Count and Clear Button */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <Filter size={18} className="text-[#FF6B00]" />
+            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Filters</span>
+            {(statusFilter !== "all" || categoryFilter !== "all" || searchTerm) && (
+              <span className="text-xs bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 px-2 py-1 rounded-full font-bold">
+                {filteredFoods.length} {filteredFoods.length === 1 ? 'result' : 'results'}
+              </span>
+            )}
+          </div>
+          {(statusFilter !== "all" || categoryFilter !== "all") && (
+            <button
+              onClick={() => {
+                setStatusFilter("all");
+                setCategoryFilter("all");
+              }}
+              className="text-xs text-slate-500 hover:text-[#FF6B00] font-bold flex items-center gap-1 transition-colors px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <X size={14} /> Clear All Filters
+            </button>
+          )}
+        </div>
+
+        {/* Status Filter Tabs */}
+        <div className="mb-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Package size={14} className="text-slate-400" />
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Status</span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {tabs.map((tab) => {
+              const count = tab.id === 'all' ? stats.total : (tab.id === 'active' ? stats.active : stats.hidden);
+              const isActive = statusFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setStatusFilter(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${isActive
+                    ? 'bg-[#FF6B00] text-white shadow-lg shadow-orange-500/20 scale-105'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    }`}
+                >
+                  <tab.icon size={16} /> {tab.label}
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                    {count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Category Filter Tabs */}
+        <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Tag size={14} className="text-slate-400" />
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Category</span>
+          </div>
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <button
+              onClick={() => setCategoryFilter("all")}
+              className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+                categoryFilter === "all"
+                  ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20 scale-105"
+                  : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
+              }`}
+            >
+              All Categories
+              <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                categoryFilter === "all" ? "bg-white/20" : "bg-slate-200 dark:bg-slate-700"
+              }`}>
+                {foods?.data?.length || 0}
+              </span>
+            </button>
+            {categories.map((cat) => {
+              const count = foods?.data?.filter(f => f.category === cat).length || 0;
+              const isActive = categoryFilter === cat;
+              
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setCategoryFilter(cat)}
+                  className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
+                    isActive
+                      ? "bg-blue-500 text-white shadow-lg shadow-blue-500/20 scale-105"
+                      : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
+                  }`}
+                >
+                  {cat}
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                    isActive ? "bg-white/20" : "bg-slate-200 dark:bg-slate-700"
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </motion.div>

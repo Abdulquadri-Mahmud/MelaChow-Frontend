@@ -2,39 +2,29 @@ import axios from "axios";
 
 // ✅ Base URL for all food-related endpoints
 // const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+// const BASE_URL = " http://localhost:3001/api/vendors/foods";
 const BASE_URL = "https://grub-dash-api.vercel.app/api/vendors/foods";
-
-// ✅ Safe token retrieval (client-side only)
-const getToken = () => {
-  try {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("vendorToken");
-    }
-  } catch (err) {
-    console.error("Token read error:", err);
-  }
-  return null;
-};
-
 
 // ✅ Create reusable axios instance
 export const api = axios.create({
   baseURL: BASE_URL,
+  withCredentials: true, // ✅ Send cookies with every request
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// ✅ Automatically attach Authorization header via interceptor
-api.interceptors.request.use(
-  (config) => {
-    const token = getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+// ✅ Automatically attach Authorization header via interceptor (REMOVED: Now using cookies)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      if (!error.config.suppressUnauthorized && typeof window !== "undefined") {
+        window.dispatchEvent(new Event("vendor:unauthorized"));
+      }
     }
-    return config;
-  },
-  (error) => Promise.reject(error)
+    return Promise.reject(error);
+  }
 );
 
 // -----------------------------------------------------------
@@ -60,8 +50,8 @@ export const getFoodById = async (id) => {
 };
 
 // ✅ Create a new food item
-export const createFood = async (vendorId, data) => {
-  const res = await api.post(`/create?vendorId=${vendorId}`, data);
+export const createFood = async (data) => {
+  const res = await api.post(`/create`, data);
   console.log(res);
   return res.data;
 };

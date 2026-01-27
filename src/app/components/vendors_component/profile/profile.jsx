@@ -4,23 +4,23 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import {
-  CheckCircle,
-  BadgeCheck,
+  Store,
   MapPin,
   Phone,
   Mail,
   DollarSign,
   Clock,
   Utensils,
-  Store,
-  Star,
   Camera,
   FileText,
   Lock,
+  Save,
+  ChevronDown,
+  ChevronUp,
+  CreditCard,
+  Truck
 } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { motion, AnimatePresence } from "framer-motion";
 import { updateVendor } from "@/app/lib/vendorProfileApi";
 
 const CLOUDINARY_PRESET = "GrubDash";
@@ -40,6 +40,57 @@ const uploadToCloudinary = async (file) => {
   }
 };
 
+const Section = ({ title, icon: Icon, children, isOpen, onToggle, loading }) => (
+  <motion.div
+    initial={false}
+    className="bg-white rounded-[24px] border border-gray-100 overflow-hidden"
+  >
+    <button
+      onClick={onToggle}
+      className="w-full flex items-center justify-between p-6 bg-white hover:bg-gray-50/50 transition-colors"
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
+          <Icon size={20} />
+        </div>
+        <h3 className="font-bold text-gray-900 text-lg tracking-tight">{title}</h3>
+      </div>
+      <div className={`text-gray-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}>
+        <ChevronDown size={20} />
+      </div>
+    </button>
+
+    <AnimatePresence initial={false}>
+      {isOpen && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          <div className="p-6 pt-0 border-t border-gray-50">
+            {children}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  </motion.div>
+);
+
+const InputGroup = ({ label, icon: Icon, ...props }) => (
+  <div className="space-y-2">
+    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+      {Icon && <Icon size={12} />} {label}
+    </label>
+    <div className="relative group">
+      <input
+        className={`w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block p-3.5 transition-all outline-none ${props.disabled ? 'opacity-60 cursor-not-allowed' : 'group-hover:border-orange-200'}`}
+        {...props}
+      />
+    </div>
+  </div>
+);
+
 export default function VendorProfilePage({ vendor }) {
   const [basicInfo, setBasicInfo] = useState({ storeName: "", phone: "", email: "", storeDescription: "", password: "" });
   const [address, setAddress] = useState({ street: "", city: "", state: "", postalCode: "" });
@@ -51,9 +102,10 @@ export default function VendorProfilePage({ vendor }) {
     accountNumber: "",
     acceptsDelivery: false,
     flatRateDeliveryFee: 0,
+    deliveryRadiusKm: 5 // Default
   });
   const [logo, setLogo] = useState("");
-  const [collapsed, setCollapsed] = useState({});
+  const [openSections, setOpenSections] = useState({ basicInfo: true }); // Default open first section
   const [loadingSection, setLoadingSection] = useState("");
 
   useEffect(() => {
@@ -79,12 +131,18 @@ export default function VendorProfilePage({ vendor }) {
         accountNumber: vendor.payoutDetails?.accountNumber || "",
         acceptsDelivery: vendor.acceptsDelivery || false,
         flatRateDeliveryFee: vendor.flatRateDeliveryFee || 0,
+        deliveryRadiusKm: vendor.deliveryRadiusKm || 5
       });
       setLogo(vendor.logo || "");
     }
   }, [vendor]);
 
-  const toggleCollapse = (section) => setCollapsed((prev) => ({ ...prev, [section]: !prev[section] }));
+  const toggleSection = (section) => {
+    setOpenSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
 
   const updateSection = async (section, data) => {
     setLoadingSection(section);
@@ -114,13 +172,17 @@ export default function VendorProfilePage({ vendor }) {
           },
           acceptsDelivery: data.acceptsDelivery,
           flatRateDeliveryFee: data.flatRateDeliveryFee,
+          deliveryRadiusKm: data.deliveryRadiusKm
         };
       } else if (section === "logo") {
         payload = { logo: data };
       }
 
       await updateVendor({ id: vendor._id, data: payload });
-      toast.success(`${section} updated successfully!`);
+      toast.success(`${section.replace(/([A-Z])/g, ' $1').trim()} updated successfully!`, {
+        icon: '✅',
+        style: { borderRadius: '10px', background: '#333', color: '#fff' }
+      });
     } catch (err) {
       console.error(err);
       toast.error(`Failed to update ${section}`);
@@ -129,15 +191,17 @@ export default function VendorProfilePage({ vendor }) {
     }
   };
 
-
-
   const handleLogoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    const toastId = toast.loading("Uploading logo...");
     const url = await uploadToCloudinary(file);
     if (url) {
       setLogo(url);
-      updateSection("logo", url);
+      await updateSection("logo", url);
+      toast.success("Logo updated!", { id: toastId });
+    } else {
+      toast.dismiss(toastId);
     }
   };
 
@@ -149,324 +213,246 @@ export default function VendorProfilePage({ vendor }) {
   const handleAddCuisine = () => setCuisineTypes([...cuisineTypes, ""]);
   const handleRemoveCuisine = (index) => setCuisineTypes(cuisineTypes.filter((_, i) => i !== index));
 
-  const handleTagChange = (index, value) => {
-    const newArr = [...tags];
-    newArr[index] = value;
-    setTags(newArr);
-  };
-  const handleAddTag = () => setTags([...tags, ""]);
-  const handleRemoveTag = (index) => setTags(tags.filter((_, i) => i !== index));
-
   const handleOpeningHoursChange = (day, key, value) => {
     setOpeningHours({ ...openingHours, [day]: { ...openingHours[day], [key]: value } });
   };
 
+  if (!vendor) return null;
+
   return (
-    <div className="max-w-7xl mx-auto min-h-screen space-y-6 relative pb-8">
+    <div className="max-w-7xl mx-auto space-y-5 animate-in fade-in duration-500">
 
-
-      {/* Header */}
-      <div className="bg-white p-3 rounded-2xl flex flex-col sm:flex-row items-start md:items-center gap-6">
-        <div className="relative">
-          <Avatar className="w-24 h-24 border-2 border-orange-500 cursor-pointer">
-            <AvatarImage src={logo} />
-            <AvatarFallback>
-              <Store className="text-orange-500" />
-            </AvatarFallback>
-          </Avatar>
-          <label className="absolute bottom-0 right-0 bg-white rounded-full p-1 cursor-pointer border border-gray-300 hover:bg-gray-100">
-            <Camera size={18} />
-            <input type="file" className="hidden" onChange={handleLogoChange} />
-          </label>
-        </div>
-        <div className="flex-1">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 flex items-center gap-2">
-            <Store className="text-[#FF6600]" /> {basicInfo.storeName}
-          </h1>
-          <div className="flex items-center gap-1 py-2 text-yellow-500">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} size={16} fill={i < Math.round(vendor?.rating ?? 0) ? "currentColor" : "none"} />
-            ))}
-            <span className="text-sm text-gray-600 ml-1">{vendor?.rating?.toFixed(1) ?? "0.0"}</span>
+      {/* Hero Banner */}
+      <div className="relative rounded-[32px] overflow-hidden bg-white border border-gray-100 group">
+        <div className="h-40 w-full relative overflow-hidden">
+          {/* Background Image (Blurred Logo/Cover) */}
+          <div className="absolute inset-0 bg-gray-900">
+            <img
+              src={logo || "/placeholder.jpg"}
+              alt="Cover Background"
+              className="w-full h-full object-cover opacity-50 blur-xl scale-110"
+            />
           </div>
-          <p className="text-gray-600 mt-1">{vendor?.storeDescription}</p>
-          <p className="text-gray-400 text-sm mt-1">
-            Joined: {new Date(vendor?.createdAt).toLocaleDateString()} • Location: {vendor?.address?.city}, {vendor?.address?.state} • Sales: {vendor?.totalSales ?? 0}
-          </p>
+          <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
         </div>
-        <Badge
-          variant="outline"
-          className={`md:block hidden mt-4 md:mt-0 px-3 py-1 border ${vendor?.active ? "border-green-500 text-green-600" : "border-red-500 text-red-600"}`}
-        >
-          {vendor?.active ? "Active" : "Inactive"}
-        </Badge>
+        <div className="px-8 pb-8 flex flex-col md:flex-row gap-6 -mt-12 relative z-10">
+          <div className="relative group">
+            <div className="w-32 h-32 rounded-3xl border-4 border-white shadow-xl overflow-hidden bg-white">
+              <img src={logo || "/placeholder.jpg"} alt="Logo" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+            </div>
+            <label className="absolute bottom-2 right-2 bg-gray-900 text-white p-2 rounded-xl cursor-pointer hover:bg-orange-500 transition-colors shadow-lg">
+              <Camera size={16} />
+              <input type="file" className="hidden" onChange={handleLogoChange} accept="image/*" />
+            </label>
+          </div>
 
-        <Badge
-          variant="outline"
-          className={`md:hidden block absolute top-2 right-5 mt-4 md:mt-0 px-3 py-1 border ${vendor?.active ? "border-green-500 text-green-600" : "border-red-500 text-red-600"}`}
-        >
-          {vendor?.active ? "Active" : "Inactive"}
-        </Badge>
+          <div className="flex-1 pt-14 md:pt-14">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-3xl font-black text-gray-900 tracking-tight">{basicInfo.storeName || "My Store"}</h1>
+                <p className="text-gray-500 font-medium flex items-center gap-1 mt-1">
+                  <MapPin size={14} className="text-orange-500" />
+                  {address.city || "City"}, {address.state || "State"}
+                </p>
+              </div>
+              <div className={`px-4 py-1.5 rounded-full text-xs font-bold border w-fit ${vendor.active ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200"}`}>
+                {vendor.active ? "● Active Store" : "● Inactive Store"}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6 mt-6 pt-6 border-t border-gray-100">
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Sales</p>
+                <p className="text-xl font-bold text-gray-900 mt-0.5">₦{vendor.totalSales?.toLocaleString() ?? "0"}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Rating</p>
+                <div className="flex items-center gap-1 mt-0.5">
+                  <span className="text-xl font-bold text-gray-900">{vendor.rating?.toFixed(1) ?? "New"}</span>
+                  <span className="text-yellow-400">★</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Date Joined</p>
+                <p className="text-sm font-bold text-gray-900 mt-1">{new Date(vendor.createdAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Basic Info + Password */}
-      <Card className="p-0 pb-4 border-0">
-        <CardHeader className="bg-orange-100 w- p-3 rounded-tl-xl rounded-tr-2xl flex justify-between items-center cursor-pointer" onClick={() => toggleCollapse("basicInfo")}>
-          <CardTitle className="flex items-center gap-2">
-            <Store className="text-orange-500" /> Basic Info
-          </CardTitle>
-          <span>{collapsed.basicInfo ? "+" : "-"}</span>
-        </CardHeader>
-        {!collapsed.basicInfo && (
-          <CardContent className="space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-2">
-                <label className="flex items-center gap-2"><Store className="text-orange-500" /> Store Name</label>
-                <input type="text" value={basicInfo.storeName} onChange={(e) => setBasicInfo({ ...basicInfo, storeName: e.target.value })} className="border p-2 rounded w-full" />
-              </div>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2"><Phone className="text-orange-500" /> Phone</label>
-                <input type="text" value={basicInfo.phone} onChange={(e) => setBasicInfo({ ...basicInfo, phone: e.target.value })} className="border p-2 rounded w-full" />
-              </div>
+      <div className="grid grid-cols-1 gap-6">
+
+        {/* Basic Info */}
+        <Section
+          title="General Information"
+          icon={Store}
+          isOpen={openSections.basicInfo}
+          onToggle={() => toggleSection('basicInfo')}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <InputGroup label="Store Name" name="storeName" value={basicInfo.storeName} onChange={(e) => setBasicInfo({ ...basicInfo, storeName: e.target.value })} icon={Store} />
+            <InputGroup label="Phone Number" name="phone" value={basicInfo.phone} onChange={(e) => setBasicInfo({ ...basicInfo, phone: e.target.value })} icon={Phone} />
+            <InputGroup label="Email Address" value={basicInfo.email} disabled icon={Mail} />
+            <div className="md:col-span-2 space-y-2">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                <FileText size={12} /> Description
+              </label>
+              <textarea
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block p-3.5 transition-all outline-none h-32 resize-none hover:border-orange-200"
+                value={basicInfo.storeDescription}
+                onChange={(e) => setBasicInfo({ ...basicInfo, storeDescription: e.target.value })}
+              />
             </div>
-
-
-            <label className="flex items-center gap-2"><Mail className="text-orange-500" /> Email</label>
-            <input type="email" value={basicInfo.email} disabled className="border p-2 rounded w-full bg-gray-100 cursor-not-allowed" />
-
-            <label className="flex items-center gap-2"><FileText className="text-orange-500" /> Store Description</label>
-            <textarea value={basicInfo.storeDescription} onChange={(e) => setBasicInfo({ ...basicInfo, storeDescription: e.target.value })} className="border p-2 rounded w-full" />
-
-            <label className="flex items-center gap-2"><Lock className="text-orange-500" /> Password</label>
-            <input type="password" value={basicInfo.password} onChange={(e) => setBasicInfo({ ...basicInfo, password: e.target.value })} className="border p-2 rounded w-full" />
-
-            <button onClick={() => updateSection("basicInfo", basicInfo)} disabled={loadingSection === "basicInfo"} className="rounded-tl-2xl rounded-br-2xl bg-orange-500 text-white px-4 py-2 rounded">
-              {loadingSection === "basicInfo" ? "Updating..." : "Update Basic Info"}
+            <InputGroup label="New Password (Optional)" type="password" value={basicInfo.password} onChange={(e) => setBasicInfo({ ...basicInfo, password: e.target.value })} icon={Lock} placeholder="Leave blank to keep current" />
+          </div>
+          <div className="flex justify-end mt-6">
+            <button onClick={() => updateSection("basicInfo", basicInfo)} disabled={loadingSection === "basicInfo"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">
+              {loadingSection === "basicInfo" ? "Saving..." : <><Save size={18} /> Save Changes</>}
             </button>
-          </CardContent>
-        )}
-      </Card>
+          </div>
+        </Section>
 
-      {/* Address Section */}
-      <Card className="p-0 pb-4 border-0">
-        <CardHeader className="bg-orange-100 w- p-3 rounded-tl-xl rounded-tr-2xl flex justify-between items-center cursor-pointer" onClick={() => toggleCollapse("address")}>
-          <CardTitle className="flex items-center gap-2">
-            <MapPin className="text-orange-500" /> Address
-          </CardTitle>
-          <span>{collapsed.address ? "+" : "-"}</span>
-        </CardHeader>
-        {!collapsed.address && (
-          <CardContent className="space-y-2">
-            {["street", "city", "state", "postalCode"].map((field) => (
-              <div key={field}>
-                <label className="flex items-center gap-2">
-                  <MapPin className="text-orange-500" /> {field.charAt(0).toUpperCase() + field.slice(1)}
-                </label>
-                <input
-                  type="text"
-                  value={address[field]}
-                  onChange={(e) => setAddress({ ...address, [field]: e.target.value })}
-                  className="border p-2 rounded w-full mb-2"
-                />
-              </div>
-            ))}
-            <button
-              onClick={() => updateSection("address", address)}
-              disabled={loadingSection === "address"}
-              className="rounded-tl-2xl rounded-br-2xl bg-orange-500 text-white px-4 py-2 rounded"
-            >
-              {loadingSection === "address" ? "Updating..." : "Update Address"}
+        {/* Address */}
+        <Section
+          title="Location & Address"
+          icon={MapPin}
+          isOpen={openSections.address}
+          onToggle={() => toggleSection('address')}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2">
+              <InputGroup label="Street Address" value={address.street} onChange={(e) => setAddress({ ...address, street: e.target.value })} icon={MapPin} />
+            </div>
+            <InputGroup label="City" value={address.city} onChange={(e) => setAddress({ ...address, city: e.target.value })} />
+            <InputGroup label="State" value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value })} />
+            <InputGroup label="Postal Code" value={address.postalCode} onChange={(e) => setAddress({ ...address, postalCode: e.target.value })} />
+          </div>
+          <div className="flex justify-end mt-6">
+            <button onClick={() => updateSection("address", address)} disabled={loadingSection === "address"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">
+              {loadingSection === "address" ? "Saving..." : <><Save size={18} /> Update Location</>}
             </button>
-          </CardContent>
-        )}
-      </Card>
+          </div>
+        </Section>
 
-      {/* Cuisine Types */}
-      <Card className="p-0 pb-4 border-0">
-        <CardHeader className="bg-orange-100 w- p-3 rounded-tl-xl rounded-tr-2xl flex justify-between items-center cursor-pointer" onClick={() => toggleCollapse("cuisineTypes")}>
-          <CardTitle className="flex items-center gap-2">
-            <Utensils className="text-orange-500" /> Cuisine Types
-          </CardTitle>
-          <span>{collapsed.cuisineTypes ? "+" : "-"}</span>
-        </CardHeader>
-        {!collapsed.cuisineTypes && (
-          <CardContent className="space-y-2">
-            <div className="flex flex-wrap gap-2">
+        {/* Cuisine Types */}
+        <Section
+          title="Cuisines & Tags"
+          icon={Utensils}
+          isOpen={openSections.cuisineTypes}
+          onToggle={() => toggleSection('cuisineTypes')}
+        >
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-3">
               {cuisineTypes.map((cuisine, idx) => (
-                <div key={idx} className="flex items-center gap-1 bg-orange-100 px-2 py-1 rounded">
+                <div key={idx} className="flex items-center gap-2 bg-white border border-gray-200 pl-3 pr-2 py-2 rounded-xl group hover:border-orange-500 transition-colors">
                   <input
-                    type="text"
+                    className="bg-transparent outline-none text-sm font-semibold w-24 text-gray-700"
                     value={cuisine}
                     onChange={(e) => handleCuisineChange(idx, e.target.value)}
-                    className="border p-1 rounded"
                   />
-                  <button onClick={() => handleRemoveCuisine(idx)} className="text-red-500 font-bold">×</button>
+                  <button onClick={() => handleRemoveCuisine(idx)} className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors">×</button>
                 </div>
               ))}
-              <button onClick={handleAddCuisine} className="px-2 py-1 bg-orange-500 text-white rounded">+ Add</button>
+              <button onClick={handleAddCuisine} className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-dashed border-gray-300 rounded-xl text-gray-500 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50 transition-all font-semibold text-sm">
+                + Add Cuisine
+              </button>
             </div>
-            <button
-              onClick={() => updateSection("cuisineTypes", cuisineTypes)}
-              disabled={loadingSection === "cuisineTypes"}
-              className="rounded-tl-2xl rounded-br-2xl bg-orange-500 text-white px-4 py-2 rounded"
-            >
-              {loadingSection === "cuisineTypes" ? "Updating..." : "Update Cuisine Types"}
+          </div>
+          <div className="flex justify-end mt-6">
+            <button onClick={() => updateSection("cuisineTypes", cuisineTypes)} disabled={loadingSection === "cuisineTypes"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">
+              {loadingSection === "cuisineTypes" ? "Saving..." : <><Save size={18} /> Update Cuisines</>}
             </button>
-          </CardContent>
-        )}
-      </Card>
+          </div>
+        </Section>
 
-      {/* Opening Hours */}
-      <Card className="p-0 pb-4 border-0">
-        <CardHeader className="bg-orange-100 w- p-3 rounded-tl-xl rounded-tr-2xl flex justify-between items-center cursor-pointer" onClick={() => toggleCollapse("openingHours")}>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="text-orange-500" /> Opening Hours
-          </CardTitle>
-          <span>{collapsed.openingHours ? "+" : "-"}</span>
-        </CardHeader>
-        {!collapsed.openingHours && (
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.keys(openingHours).map((day) => (
-              <div key={day} className="border rounded p-2">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="capitalize font-medium">{day}</span>
+        {/* Opening Hours */}
+        <Section
+          title="Operating Hours"
+          icon={Clock}
+          isOpen={openSections.openingHours}
+          onToggle={() => toggleSection('openingHours')}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => (
+              <div key={day} className="border border-gray-100 bg-gray-50/30 p-4 rounded-2xl space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="capitalize font-bold text-gray-900">{day}</span>
                 </div>
-                <div className="flex gap-2">
-                  <label className="flex flex-col flex-1">
-                    Open
-                    <input
-                      type="time"
-                      value={openingHours[day].open}
-                      onChange={(e) => handleOpeningHoursChange(day, "open", e.target.value)}
-                      className="border p-1 rounded w-full"
-                    />
-                  </label>
-                  <label className="flex flex-col flex-1">
-                    Close
-                    <input
-                      type="time"
-                      value={openingHours[day].close}
-                      onChange={(e) => handleOpeningHoursChange(day, "close", e.target.value)}
-                      className="border p-1 rounded w-full"
-                    />
-                  </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase">Open</label>
+                    <input type="time" value={openingHours[day]?.open || ""} onChange={(e) => handleOpeningHoursChange(day, "open", e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg p-2 text-sm outline-none focus:border-orange-500" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase">Close</label>
+                    <input type="time" value={openingHours[day]?.close || ""} onChange={(e) => handleOpeningHoursChange(day, "close", e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg p-2 text-sm outline-none focus:border-orange-500" />
+                  </div>
                 </div>
               </div>
             ))}
-            <button
-              onClick={() => updateSection("openingHours", openingHours)}
-              disabled={loadingSection === "openingHours"}
-              className="rounded-tl-2xl rounded-br-2xl bg-orange-500 text-white px-4 py-2 rounded col-span-full"
-            >
-              {loadingSection === "openingHours" ? "Updating..." : "Update Opening Hours"}
+          </div>
+          <div className="flex justify-end mt-6">
+            <button onClick={() => updateSection("openingHours", openingHours)} disabled={loadingSection === "openingHours"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">
+              {loadingSection === "openingHours" ? "Saving..." : <><Save size={18} /> Update Hours</>}
             </button>
-          </CardContent>
-        )}
-      </Card>
+          </div>
+        </Section>
 
-      {/* Payout & Delivery */}
-      <Card className="p-0 pb-4 border-0">
-        <CardHeader className="bg-orange-100 w- p-3 rounded-tl-xl rounded-tr-2xl flex justify-between items-center cursor-pointer" onClick={() => toggleCollapse("payoutDetails")}>
-          <CardTitle className="flex items-center gap-2">
-            <DollarSign className="text-orange-500" /> Payout & Delivery
-          </CardTitle>
-          <span>{collapsed.payoutDetails ? "+" : "-"}</span>
-        </CardHeader>
-        {!collapsed.payoutDetails && (
-          <CardContent className="space-y-2">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={payoutDetails.acceptsDelivery}
-                onChange={(e) => setPayoutDetails({ ...payoutDetails, acceptsDelivery: e.target.checked })}
-              /> Accepts Delivery
-            </label>
-            <label className="flex items-center gap-2">
-              Delivery Radius (km)
-            </label>
-            <input
-              type="number"
-              value={payoutDetails.deliveryRadiusKm}
-              onChange={(e) => setPayoutDetails({ ...payoutDetails, deliveryRadiusKm: e.target.value })}
-              className="border p-2 rounded w-full"
-            />
-            <label className="flex items-center gap-2">Bank Name</label>
-            <input
-              type="text"
-              value={payoutDetails.bankName}
-              onChange={(e) => setPayoutDetails({ ...payoutDetails, bankName: e.target.value })}
-              className="border p-2 rounded w-full"
-            />
-            <label className="flex items-center gap-2">Account Name</label>
-            <input
-              type="text"
-              value={payoutDetails.accountName}
-              onChange={(e) => setPayoutDetails({ ...payoutDetails, accountName: e.target.value })}
-              className="border p-2 rounded w-full"
-            />
-            <label className="flex items-center gap-2">Account Number</label>
-            <input
-              type="text"
-              value={payoutDetails.accountNumber}
-              onChange={(e) => setPayoutDetails({ ...payoutDetails, accountNumber: e.target.value })}
-              className="border p-2 rounded w-full"
-            />
+        {/* Payout & Delivery */}
+        <Section
+          title="Finance & Delivery"
+          icon={CreditCard}
+          isOpen={openSections.payoutDetails}
+          onToggle={() => toggleSection('payoutDetails')}
+        >
+          <div className="space-y-6">
 
-            <div className="pt-4 mt-4 border-t border-gray-100">
-              <h3 className="font-bold text-sm mb-2 text-gray-700">Delivery Configuration</h3>
+            <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+              <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Truck size={16} className="text-orange-500" /> Delivery Settings</h4>
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1 space-y-4">
+                  <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold text-gray-900">Self Delivery</span>
+                      <span className="text-xs text-gray-500">Enable if you handle your own dispatch</span>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked={payoutDetails.acceptsDelivery} onChange={(e) => setPayoutDetails({ ...payoutDetails, acceptsDelivery: e.target.checked })} className="sr-only peer" />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                    </label>
+                  </div>
 
-              <div className="flex items-center justify-between mb-4 bg-gray-50 p-3 rounded-lg">
-                <div>
-                  <p className="text-sm font-semibold text-gray-700">Self Delivery</p>
-                  <p className="text-xs text-gray-500">Do you handle your own delivery?</p>
+                  {payoutDetails.acceptsDelivery && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-3">
+                      <InputGroup label="Flat Fee (₦)" type="number" value={payoutDetails.flatRateDeliveryFee} onChange={(e) => setPayoutDetails({ ...payoutDetails, flatRateDeliveryFee: e.target.value })} placeholder="0" />
+                      <InputGroup label="Delivery Radius (KM)" type="number" value={payoutDetails.deliveryRadiusKm} onChange={(e) => setPayoutDetails({ ...payoutDetails, deliveryRadiusKm: e.target.value })} placeholder="5" />
+                    </motion.div>
+                  )}
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={payoutDetails.acceptsDelivery}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setPayoutDetails(prev => ({
-                        ...prev,
-                        acceptsDelivery: checked,
-                        flatRateDeliveryFee: !checked ? 0 : prev.flatRateDeliveryFee
-                      }));
-                    }}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
-                </label>
               </div>
-
-              {payoutDetails.acceptsDelivery && (
-                <div className="mb-4">
-                  <label className="flex items-center gap-2 text-sm text-gray-700 mb-1">
-                    Flat Rate Delivery Fee (₦)
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 1500"
-                    value={payoutDetails.flatRateDeliveryFee || ''}
-                    onChange={(e) => setPayoutDetails({ ...payoutDetails, flatRateDeliveryFee: e.target.value })}
-                    className="border p-2 rounded w-full"
-                  />
-                </div>
-              )}
             </div>
 
-            <button
-              onClick={() => updateSection("payoutDetails", payoutDetails)}
-              disabled={loadingSection === "payoutDetails"}
-              className="rounded-tl-2xl rounded-br-2xl bg-orange-500 text-white px-4 py-2 rounded"
-            >
-              {loadingSection === "payoutDetails" ? "Updating..." : "Update Payout & Delivery"}
+            <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+              <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><DollarSign size={16} className="text-emerald-500" /> Bank Details</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <InputGroup label="Bank Name" value={payoutDetails.bankName} onChange={(e) => setPayoutDetails({ ...payoutDetails, bankName: e.target.value })} icon={Store} />
+                </div>
+                <InputGroup label="Account Name" value={payoutDetails.accountName} onChange={(e) => setPayoutDetails({ ...payoutDetails, accountName: e.target.value })} icon={FileText} />
+                <InputGroup label="Account Number" value={payoutDetails.accountNumber} onChange={(e) => setPayoutDetails({ ...payoutDetails, accountNumber: e.target.value })} icon={CreditCard} />
+              </div>
+            </div>
+
+          </div>
+          <div className="flex justify-end mt-6">
+            <button onClick={() => updateSection("payoutDetails", payoutDetails)} disabled={loadingSection === "payoutDetails"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">
+              {loadingSection === "payoutDetails" ? "Saving..." : <><Save size={18} /> Update Finance</>}
             </button>
-          </CardContent>
-        )}
-      </Card>
+          </div>
+        </Section>
 
+      </div>
     </div>
-
-
   );
 }

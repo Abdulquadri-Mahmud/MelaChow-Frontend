@@ -6,7 +6,7 @@ import { X, Star, Send, Loader2 } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-export default function ReviewModal({ isOpen, onClose, food, vendorId, baseUrl, token }) {
+export default function ReviewModal({ isOpen, onClose, food, vendorId, baseUrl }) {
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState("");
     const [hoveredRating, setHoveredRating] = useState(0);
@@ -28,7 +28,7 @@ export default function ReviewModal({ isOpen, onClose, food, vendorId, baseUrl, 
                     comment,
                 },
                 {
-                    headers: { Authorization: `Bearer ${token}` },
+                    withCredentials: true, // ✅ Use cookie-based auth
                 }
             );
             toast.success("Review submitted! Thank you for your feedback.");
@@ -100,8 +100,8 @@ export default function ReviewModal({ isOpen, onClose, food, vendorId, baseUrl, 
                                         <Star
                                             size={32}
                                             className={`transition-colors ${star <= (hoveredRating || rating)
-                                                    ? "fill-orange-500 text-orange-500"
-                                                    : "text-zinc-200 dark:text-zinc-700"
+                                                ? "fill-orange-500 text-orange-500"
+                                                : "text-zinc-200 dark:text-zinc-700"
                                                 }`}
                                         />
                                     </motion.button>

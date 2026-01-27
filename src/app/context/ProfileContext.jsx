@@ -11,15 +11,15 @@ export const ProfileProvider = ({ children }) => {
 
   // Function used by React Query to fetch the user profile
   const fetchProfile = async () => {
-    const token = localStorage.getItem("userToken");
-
-    if (!token) throw new Error("No authentication token found.");
-
     const res = await fetch(`${baseUrl}/user/auth/profile`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      credentials: "include", // ✅ Send cookies
+      cache: "no-store",
     });
+
+    // Handle 401 gracefully - return null for guest users
+    if (res.status === 401) {
+      return null; // Guest mode - no unauthorized event dispatch
+    }
 
     const data = await res.json();
 
@@ -34,6 +34,8 @@ export const ProfileProvider = ({ children }) => {
     queryFn: fetchProfile,
     staleTime: 1000 * 60 * 5, // cache for 5 minutes
     retry: false, // avoid retry loop if token is invalid
+    refetchOnMount: true, // ✅ Refetch when component mounts
+    refetchOnWindowFocus: false, // Don't refetch on every window focus to avoid excessive calls
   });
 
   return (

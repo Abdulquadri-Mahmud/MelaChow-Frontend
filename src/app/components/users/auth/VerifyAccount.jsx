@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, ArrowRight, Loader2, RefreshCw, X, Clock } from "lucide-react";
 
 const LogoImage = () => (
-  <div className="relative group mx-auto mb-6">
+  <div className="relative group mx-auto mb-6 w-fit">
     <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full scale-125 transition-transform duration-700" />
     <img
       src="/logo.png"
@@ -94,6 +94,7 @@ export default function VerifyAccount() {
       setLoading(true);
       const res = await fetch(`${baseUrl}/user/auth/verify-account`, {
         method: "POST",
+        credentials: "include", // ✅ CRITICAL: Save userToken cookie
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp: otpString }),
       });
@@ -104,11 +105,11 @@ export default function VerifyAccount() {
         return;
       }
 
-      saveUser(data);
+      // Filter out token if present, just in case
+      const { token, ...userData } = data;
+      saveUser(userData);
 
-      if (data?.token) {
-        localStorage.setItem("userToken", data.token);
-      }
+      // Token is now handled by HttpOnly cookie automatically
 
       toast.success("Verified Successfully! Redirecting...");
       setTimeout(() => router.push("/home"), 1000);
@@ -225,8 +226,8 @@ export default function VerifyAccount() {
             onClick={handleResend}
             disabled={resending || timeLeft > 0}
             className={`w-full py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 transition-all ${resending || timeLeft > 0
-                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed border border-transparent"
-                : "bg-white dark:bg-zinc-900 text-orange-600 border border-orange-100 dark:border-orange-500/20 hover:bg-orange-50 dark:hover:bg-orange-500/5 shadow-lg active:scale-95"
+              ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed border border-transparent"
+              : "bg-white dark:bg-zinc-900 text-orange-600 border border-orange-100 dark:border-orange-500/20 hover:bg-orange-50 dark:hover:bg-orange-500/5 shadow-lg active:scale-95"
               }`}
           >
             {resending ? (

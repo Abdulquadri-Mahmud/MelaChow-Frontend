@@ -82,12 +82,12 @@ export default function OrderTracking() {
   const { user } = useUserStorage();
 
   useEffect(() => {
-    if (!user?.token) return;
+    // if (!user) return; // Optional: Wait for user context
 
     const fetchOrder = async () => {
       try {
         const res = await axios.get(`${baseUrl}/orders/${orderId}`, {
-          headers: { Authorization: `Bearer ${user?.token}` },
+          withCredentials: true
         });
         setOrderData(res.data.order);
       } catch (err) {
@@ -98,7 +98,7 @@ export default function OrderTracking() {
     };
 
     if (orderId) fetchOrder();
-  }, [orderId, user?.token]);
+  }, [orderId, baseUrl]);
 
   if (loading)
     return (
@@ -462,7 +462,6 @@ export default function OrderTracking() {
           food={selectedFoodForReview}
           vendorId={orderData.items[0].restaurantId}
           baseUrl={baseUrl}
-          token={localStorage.getItem("userToken")}
         />
       )}
     </div>

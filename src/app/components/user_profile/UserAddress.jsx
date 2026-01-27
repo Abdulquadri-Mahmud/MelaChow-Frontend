@@ -14,7 +14,6 @@ export default function AddressPage() {
   const router = useRouter();
   const { baseUrl } = useApi();
   const { user } = useUserStorage();
-  const token = user?.token;
 
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -39,7 +38,7 @@ export default function AddressPage() {
   const fetchAddresses = async () => {
     try {
       const res = await axios.get(`${baseUrl}/user/auth/my-address`, {
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true, // ✅ Use cookie-based auth
       });
       setAddresses(res.data.addresses || []);
     } catch (err) {
@@ -51,8 +50,8 @@ export default function AddressPage() {
   };
 
   useEffect(() => {
-    if (token) fetchAddresses();
-  }, [token]);
+    fetchAddresses();
+  }, []);
 
   /* ---------------- ADD / UPDATE ---------------- */
   const saveAddress = async () => {
@@ -70,14 +69,14 @@ export default function AddressPage() {
         res = await axios.post(
           `${baseUrl}/user/auth/address`,
           { ...form, isDefault: true },
-          { headers: { Authorization: `Bearer ${token}` } }
+          { withCredentials: true }
         );
         toast.success("Address added successfully");
       } else {
         res = await axios.patch(
           `${baseUrl}/user/auth/address/update-address`,
           { ...form },
-          { params: { addressId: editingId }, headers: { Authorization: `Bearer ${token}` } }
+          { params: { addressId: editingId }, withCredentials: true }
         );
         toast.success("Address updated successfully");
       }
@@ -106,7 +105,7 @@ export default function AddressPage() {
     try {
       await axios.delete(`${baseUrl}/user/auth/address/delete-address`, {
         params: { addressId: selectedAddressId },
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
       });
 
       setAddresses(prev => prev.filter(addr => addr._id !== selectedAddressId));
@@ -128,7 +127,7 @@ export default function AddressPage() {
       const res = await axios.patch(
         `${baseUrl}/user/auth/address/update-address`,
         { isDefault: true },
-        { params: { addressId: id }, headers: { Authorization: `Bearer ${token}` } }
+        { params: { addressId: id }, withCredentials: true }
       );
       setAddresses(res.data.addresses);
       toast.success("Default address updated");

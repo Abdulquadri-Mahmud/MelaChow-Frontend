@@ -11,50 +11,29 @@ import { useUserStorage } from "../hooks/useUserStorage";
 import ProtectedRoute from "../components/protected-route/ProtectedRoute";
 
 export default function ProfilePage() {
-  const [token, setToken] = useState(undefined); // undefined while initializing
-  const {user} = useUserStorage();
+  // const [token, setToken] = useState(undefined); // Removed
+  const { user } = useUserStorage();
 
-  
-  // Get token safely after mount (client-side only)
-  useEffect(() => {
-    if (user) {
-      setToken(user.token || null);
-    }
-  }, [user]);
-
-  // Only start query when token exists
+  // Fetch user profile (cookies handled automatically)
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["user", token],
-    queryFn: () => fetchUser(token),
-    enabled: !!token,
-    retry: false, // avoid retrying if token invalid
+    queryKey: ["user"], // removed token from key
+    queryFn: () => fetchUser(), // removed token arg
+    retry: false,
   });
 
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    if (token) {
+    if (data?.user) {
       setUserData(data.user);
-      localStorage.setItem("user", JSON.stringify(token));
+      // localStorage.setItem("user", JSON.stringify(token)); // Removed since we don't have token
     }
   }, [data]);
 
   const refreshUser = () => refetch();
 
-  // Show loading placeholder while initializing token
-  if (token === undefined) {
-    return (
-      <ProtectedRoute>
-        <div className="min-h-screen flex flex-col items-center justify-center">
-          {/* <Header2 /> */}
-          <p className="text-gray-500">Initializing...</p>
-        </div>
-      </ProtectedRoute>
-    );
-  }
-
-  // Show login prompt if no token
-  if (!token) {
+  // Show login prompt if fetch fails (401 etc) or no data
+  if (isError) {
     return (
       <div className="bg-zinc-50 min-h-screen font-display text-[#181410]">
         <Header2 />
@@ -124,7 +103,7 @@ export default function ProfilePage() {
     <ProtectedRoute>
       <div className="bg-zinc-50 font-display text-[#181410]">
         {/* <Header2 /> */}
-        <div className="p-2">
+        <div className="">
           <User_Profile
             userData={userData}
             isLoading={isLoading}

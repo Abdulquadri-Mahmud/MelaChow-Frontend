@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Trash2, Package, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Trash2, Package } from "lucide-react";
+import SectionHeader from "./SectionHeader";
 
 export default function PortionsSection({
     portions,
@@ -32,31 +33,16 @@ export default function PortionsSection({
     };
 
     return (
-        <div className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <button
-                type="button"
-                onClick={toggleExpanded}
-                className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-transparent dark:from-purple-900/10 rounded-xl hover:from-purple-100 dark:hover:from-purple-900/20 transition-colors"
-            >
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-100 dark:bg-purple-500/10 rounded-lg text-purple-600">
-                        <Package size={20} />
-                    </div>
-                    <div className="text-left">
-                        <h2 className="text-lg font-bold text-gray-800 dark:text-white">
-                            Portions (Optional)
-                        </h2>
-                        <p className="text-xs text-gray-500">
-                            {portions.length} portion{portions.length !== 1 ? "s" : ""} configured
-                        </p>
-                    </div>
-                </div>
-                {expanded ? (
-                    <ChevronUp size={20} className="text-gray-400" />
-                ) : (
-                    <ChevronDown size={20} className="text-gray-400" />
-                )}
-            </button>
+        <div className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+            <SectionHeader
+                title="Portions"
+                subtitle={`${portions.length} portion${portions.length !== 1 ? "s" : ""} configured`}
+                icon={Package}
+                section="portions"
+                isExpanded={expanded}
+                onToggle={toggleExpanded}
+                accentColor="purple"
+            />
 
             <AnimatePresence>
                 {expanded && (

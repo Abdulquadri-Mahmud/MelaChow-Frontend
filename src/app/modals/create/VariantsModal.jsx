@@ -16,12 +16,12 @@ const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload"
 /***** VARIANT MODAL COMPONENT (step-by-step) *****/
 export default function VariantModal({ open, onClose, initial = null, onSave, accent = ACCENT }) {
   const [step, setStep] = useState(0);
-  const [payload, setPayload] = useState(initial || { name: "", price: "", image: "" });
+  const [payload, setPayload] = useState(initial || { name: "", price: "", stock: "", image: "" });
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setPayload(initial || { name: "", price: "", image: "" });
+    setPayload(initial || { name: "", price: "", stock: "", image: "" });
     setStep(0);
     setUploading(false);
   }, [initial, open]);
@@ -32,24 +32,24 @@ export default function VariantModal({ open, onClose, initial = null, onSave, ac
     formData.append("upload_preset", CLOUDINARY_PRESET);
 
     try {
-    const res = await axios.post(CLOUDINARY_HOST, formData, {
+      const res = await axios.post(CLOUDINARY_HOST, formData, {
         headers: { "Content-Type": "multipart/form-data" },
-    });
-    return res.data.secure_url;
+      });
+      return res.data.secure_url;
     } catch (err) {
-    console.error("❌ Cloudinary upload error:", err);
+      console.error("❌ Cloudinary upload error:", err);
 
-    if (err.response) {
+      if (err.response) {
         setError(`Upload failed: ${err.response.data.error?.message || "Unknown Cloudinary error"}`);
-    } else if (err.request) {
+      } else if (err.request) {
         setError("No response from Cloudinary — check your internet connection or Cloudinary host URL.");
-    } else {
+      } else {
         setError(`Error setting up request: ${err.message}`);
-    }
+      }
 
-    return null;
+      return null;
     }
-};
+  };
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
@@ -83,14 +83,14 @@ export default function VariantModal({ open, onClose, initial = null, onSave, ac
 
   const reset = () => {
     setStep(0);
-    setPayload({ name: "", price: "", image: "" });
+    setPayload({ name: "", price: "", stock: "", image: "" });
     setUploading(false);
   };
 
   const handleSave = () => {
     if (!payload.name.trim()) { showAnimatedToast("error", "Add variant name"); return; }
     if (!payload.price && payload.price !== 0) { showAnimatedToast("error", "Add variant price"); return; }
-    onSave({ ...payload, price: Number(payload.price) });
+    onSave({ ...payload, price: Number(payload.price), stock: payload.stock ? Number(payload.stock) : null });
     reset();
     onClose();
     showAnimatedToast("success", "Variant added");
@@ -124,8 +124,11 @@ export default function VariantModal({ open, onClose, initial = null, onSave, ac
               {step === 1 && (
                 <div>
                   <label className="text-sm font-medium text-gray-700">Variant price (₦)</label>
-                  <input className="w-full border border-gray-200 p-3 rounded-lg mt-2" value={payload.price} onChange={(e) => setPayload(p => ({ ...p, price: e.target.value }))} type="number" placeholder="1200" />
-                  <p className="text-xs text-gray-400 mt-2">Price for this variant.</p>
+                  <input className="w-full border border-gray-200 p-3 rounded-lg mt-2 mb-4" value={payload.price} onChange={(e) => setPayload(p => ({ ...p, price: e.target.value }))} type="number" placeholder="1200" />
+
+                  <label className="text-sm font-medium text-gray-700">Stock Quantity (Optional)</label>
+                  <input className="w-full border border-gray-200 p-3 rounded-lg mt-2" value={payload.stock || ""} onChange={(e) => setPayload(p => ({ ...p, stock: e.target.value }))} type="number" placeholder="Leave empty for unlimited" />
+                  <p className="text-xs text-gray-400 mt-2">Manage inventory for this variant.</p>
                 </div>
               )}
 

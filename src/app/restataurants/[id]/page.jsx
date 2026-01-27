@@ -1,7 +1,6 @@
 "use client";
 
-import { ArrowLeft, Clock, Truck, ChevronRight, MapPin, Search, Star, ArrowRight } from "lucide-react";
-import { TbCurrencyNaira } from "react-icons/tb";
+import { ArrowLeft, Clock, Search, Star, ArrowRight, MapPin } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useVendorFood } from "@/app/hooks/useVendorFoodQuery";
@@ -28,17 +27,23 @@ export default function ViewVendor() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Extract unique categories
+  // Extract unique categories (Flattening the categories array from each food item)
   const categories = useMemo(() => {
-    const cats = foodList.map((f) => f.category).filter(Boolean);
-    return ["All", ...Array.from(new Set(cats))];
+    const allCats = foodList.flatMap((f) => f.categories || [f.category]).filter(Boolean);
+    return ["All", ...Array.from(new Set(allCats))];
   }, [foodList]);
 
-  // Filtered foods
+  // Filtered foods logic
   const filteredFoods = useMemo(() => {
     let filtered = selectedCategory === "All"
       ? foodList
-      : foodList.filter((food) => food.category === selectedCategory);
+      : foodList.filter((food) => {
+        // Supports both array 'categories' and string 'category'
+        if (Array.isArray(food.categories)) {
+          return food.categories.includes(selectedCategory);
+        }
+        return food.category === selectedCategory;
+      });
 
     if (searchQuery.trim()) {
       filtered = filtered.filter((food) =>
@@ -51,7 +56,7 @@ export default function ViewVendor() {
   return (
     <>
       {/* Header */}
-      <header className="flex items-center gap-2 px-3 py-3 bg-white sticky top-0 z-50">
+      <header className="flex items-center gap-2 px-3 py-3 bg-white sticky top-0 z-50 shadow-sm border-b border-gray-50">
         <button
           onClick={() => router.back()}
           className="p-2 rounded-full hover:bg-gray-100 transition"
@@ -59,7 +64,7 @@ export default function ViewVendor() {
           <ArrowLeft size={18} />
         </button>
         <h1 className="text-sm font-semibold text-gray-800 truncate">
-          {vendor?.storeName || "Restaurant"}
+          {vendor?.storeName || "Restaurant Details"}
         </h1>
       </header>
 
@@ -72,9 +77,9 @@ export default function ViewVendor() {
             <button onClick={() => window.location.reload()} className="mt-4 bg-red-500 text-white px-6 py-2 rounded-full font-bold shadow-md">Retry</button>
           </div>
         ) : !vendor ? (
-          <div className="text-center py-10 bg-gray-50 rounded-3xl mx-3">
-            <p className="text-gray-500 font-medium">Restaurant not found</p>
-            <button onClick={() => router.push("/")} className="mt-4 text-orange-500 font-bold">Return Home</button>
+          // Fallback if vendor object is missing within foodList (unlikely if foods exist, but safe)
+          <div className="md:col-span-2 col-span-1 text-center py-12">
+            <p className="text-gray-500">No menu items available at the moment.</p>
           </div>
         ) : (
           <>
@@ -111,7 +116,10 @@ export default function ViewVendor() {
                   <div className="text-right">
                     <div className="flex items-center gap-1.5 justify-end mb-1">
                       <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                      <span className="font-bold text-gray-900 text-sm">{vendor.rating || 0}</span>
+                      <span className="font-bold text-gray-900 text-sm">
+                        {vendor.rating || 0}
+                        <span className="text-gray-500 font-normal text-xs ml-1">({vendor.ratingCount || 0})</span>
+                      </span>
                     </div>
                     <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{vendor.reviewsCount || 0} REVIEWS</p>
                   </div>
@@ -138,14 +146,6 @@ export default function ViewVendor() {
                       <span className="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-md text-[10px] font-bold border border-emerald-100 w-fit">INSTANT</span>
                     </div>
                   )}
-                </div>
-
-                {/* Status Message */}
-                <div className={`mt-4 p-3 rounded-2xl flex items-center gap-3 border transition-colors ${openingMessage.includes('Open now') ? 'bg-emerald-50/50 border-emerald-100 text-emerald-700' : 'bg-rose-50/50 border-rose-100 text-rose-700'}`}>
-                  <div className={`p-2 rounded-xl ${openingMessage.includes('Open now') ? 'bg-emerald-100' : 'bg-rose-100'}`}>
-                    <Clock size={16} />
-                  </div>
-                  <p className="text-sm font-semibold leading-snug">{openingMessage}</p>
                 </div>
               </div>
             </motion.div>
@@ -199,7 +199,7 @@ export default function ViewVendor() {
                   >
                     <div className="relative w-28 h-28 rounded-2xl overflow-hidden flex-shrink-0">
                       <img
-                        src={food.images?.[0]?.url || "/placeholder.jpg"}
+                        src={food.image || food.images?.[0]?.url || food.variantImage || "/placeholder.jpg"}
                         alt={food.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
@@ -207,12 +207,18 @@ export default function ViewVendor() {
 
                     <div className="flex-1 flex flex-col justify-between py-1">
                       <div>
-                        <div className="flex justify-between items-start gap-2">
+                        {/* Categories / Tags Display */}
+                        <div className="flex justify-between items-start gap-2 mb-1">
                           <h4 className="text-sm font-bold text-gray-900 line-clamp-1 leading-tight">{food.name}</h4>
-                          <span className="text-[10px] font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded capitalize">{food.category}</span>
+                          {(food.categories || [food.category]).slice(0, 1).map((cat) => (
+                            <span key={cat} className="text-[10px] font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded capitalize shrink-0">
+                              {cat}
+                            </span>
+                          ))}
                         </div>
+
                         <p className="text-[11px] text-gray-500 mt-1 line-clamp-2 leading-relaxed">
-                          {food.description || "The finest choice for your meal, prepared with fresh ingredients."}
+                          {food.description || "Fresh and delicious meal crafted just for you."}
                         </p>
                       </div>
 
