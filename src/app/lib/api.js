@@ -9,7 +9,7 @@ const dispatchUserUnauthorized = () => {
 export const fetchUser = async () => {
   // No token arg needed; cookies are sent automatically
 
-  const res = await fetch(" http://localhost:3001/api/user/auth/profile", {
+  const res = await fetch("https://grub-dash-api.vercel.app/api/user/auth/profile", {
     credentials: "include", // ✅ vital for cookies
     cache: "no-store",
   });
@@ -40,7 +40,7 @@ export const createOrder = async (orderData) => {
   // console.log('orderData: ', orderData)
   try {
     const res = await axios.post(
-      " http://localhost:3001/api/orders/create",
+      "https://grub-dash-api.vercel.app/api/orders/create",
       orderData,
       {
         withCredentials: true, // ✅ Send cookies
@@ -74,7 +74,7 @@ export const verifyPayment = async (reference, body = {}) => {
 
   try {
     const res = await axios.post(
-      ` http://localhost:3001/api/orders/verify/${reference}`,
+      `https://grub-dash-api.vercel.app/api/orders/verify/${reference}`,
       body, // send items, deliveryFee, deliveryAddress, phone here
       {
         withCredentials: true, // ✅ Send cookies
@@ -109,7 +109,7 @@ export const verifyPayment = async (reference, body = {}) => {
 export const getUserReviews = async () => {
   try {
     const res = await axios.get(
-      " http://localhost:3001/api/user/auth/reviews",
+      "https://grub-dash-api.vercel.app/api/user/my-reviews",
       {
         withCredentials: true, // ✅ Send cookies
       }

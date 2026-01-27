@@ -410,6 +410,12 @@ export default function CreateFoodPage() {
       return;
     }
 
+    // ✅ Validate stock
+    if (!formData.stock || Number(formData.stock) <= 0) {
+      showAnimatedToast("error", "Stock must be at least 1");
+      return;
+    }
+
     // Validate portions (prices must increase)
     for (let i = 1; i < portions.length; i++) {
       if (Number(portions[i].price) <= Number(portions[i - 1].price)) {

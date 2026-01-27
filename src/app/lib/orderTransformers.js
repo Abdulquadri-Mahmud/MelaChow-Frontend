@@ -67,7 +67,7 @@ const groupItemsByRestaurant = (cartItems) => {
  *   { "Restaurant A": "Extra spicy please" }
  * );
  */
-export const transformCartToOrderV2 = (cartItems, deliveryAddress, phone, notes = {}) => {
+export const transformCartToOrderV2 = (cartItems, deliveryAddress, phone, email, notes = {}) => {
     // Group items by restaurant to calculate delivery fees
     const itemsByRestaurant = groupItemsByRestaurant(cartItems);
 
@@ -80,9 +80,10 @@ export const transformCartToOrderV2 = (cartItems, deliveryAddress, phone, notes 
             foodId: item.foodId,
             restaurantId: item.restaurantId,
             variant: {
-                name: item.variantName || item.name || "Standard",
+                // Use strict variant name from metadata to pass backend validation
+                name: item.metadata?.portion || "Standard",
                 price: Number(item.price),
-                image: item.image || ""
+                image: item.variant?.image || item.image || ""
             },
             quantity: Number(item.quantity),
             note: restaurantNote,
@@ -114,6 +115,7 @@ export const transformCartToOrderV2 = (cartItems, deliveryAddress, phone, notes 
     };
 
     return {
+        email, // ✅ Required for V2 API
         items,
         vendorDeliveryFees,
         deliveryAddress: formattedAddress,
@@ -152,13 +154,15 @@ export const validateCartItems = (cartItems) => {
 
     // Validate each item
     cartItems.forEach((item, index) => {
+        const itemName = item.name || "Unknown item";
+
         // Check required fields
         if (!item.foodId) {
             errors.push({
                 type: "missing_field",
                 itemIndex: index,
-                itemName: item.name || "Unknown item",
-                message: "Missing food ID"
+                itemName,
+                message: `${itemName}: Missing food ID`
             });
         }
 
@@ -166,8 +170,8 @@ export const validateCartItems = (cartItems) => {
             errors.push({
                 type: "missing_field",
                 itemIndex: index,
-                itemName: item.name || "Unknown item",
-                message: "Missing restaurant ID"
+                itemName,
+                message: `${itemName}: Missing restaurant ID`
             });
         }
 
@@ -176,8 +180,8 @@ export const validateCartItems = (cartItems) => {
             errors.push({
                 type: "invalid_quantity",
                 itemIndex: index,
-                itemName: item.name || "Unknown item",
-                message: "Quantity must be at least 1"
+                itemName,
+                message: `${itemName}: Quantity must be at least 1`
             });
         }
 
@@ -186,8 +190,69 @@ export const validateCartItems = (cartItems) => {
             errors.push({
                 type: "invalid_price",
                 itemIndex: index,
-                itemName: item.name || "Unknown item",
-                message: "Invalid price"
+                itemName,
+                message: `${itemName}: Invalid price`
+            });
+        }
+
+        // ✅ Check main item stock - null, undefined, or 0 means out of stock
+        if (!item.stock || Number(item.stock) <= 0) {
+            errors.push({
+                type: "out_of_stock",
+                itemIndex: index,
+                itemName,
+                message: `${itemName} is out of stock`
+            });
+        } else if (item.quantity > item.stock) {
+            errors.push({
+                type: "insufficient_stock",
+                itemIndex: index,
+                itemName,
+                message: `${itemName}: Only ${item.stock} available (you requested ${item.quantity})`
+            });
+        }
+
+        // ✅ Check variant stock - null, undefined, or 0 means out of stock
+        if (item.variant) {
+            if (!item.variant.stock || Number(item.variant.stock) <= 0) {
+                errors.push({
+                    type: "variant_out_of_stock",
+                    itemIndex: index,
+                    itemName,
+                    variantName: item.variant.name,
+                    message: `${itemName} (${item.variant.name}): This variant is out of stock`
+                });
+            } else if (item.quantity > item.variant.stock) {
+                errors.push({
+                    type: "variant_insufficient_stock",
+                    itemIndex: index,
+                    itemName,
+                    variantName: item.variant.name,
+                    message: `${itemName} (${item.variant.name}): Only ${item.variant.stock} available`
+                });
+            }
+        }
+
+        // ✅ Check choice group options stock - null, undefined, or 0 means out of stock
+        if (item.selectedChoices && Array.isArray(item.selectedChoices)) {
+            item.selectedChoices.forEach((choice) => {
+                if (!choice.stock || Number(choice.stock) <= 0) {
+                    errors.push({
+                        type: "choice_out_of_stock",
+                        itemIndex: index,
+                        itemName,
+                        choiceName: choice.name,
+                        message: `${itemName}: Choice "${choice.name}" is out of stock`
+                    });
+                } else if (choice.quantity && choice.quantity > choice.stock) {
+                    errors.push({
+                        type: "choice_insufficient_stock",
+                        itemIndex: index,
+                        itemName,
+                        choiceName: choice.name,
+                        message: `${itemName}: Choice "${choice.name}" - Only ${choice.stock} available`
+                    });
+                }
             });
         }
     });

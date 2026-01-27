@@ -116,7 +116,10 @@ export default function ViewVendor() {
                   <div className="text-right">
                     <div className="flex items-center gap-1.5 justify-end mb-1">
                       <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                      <span className="font-bold text-gray-900 text-sm">{vendor.rating || 0}</span>
+                      <span className="font-bold text-gray-900 text-sm">
+                        {vendor.rating || 0}
+                        <span className="text-gray-500 font-normal text-xs ml-1">({vendor.ratingCount || 0})</span>
+                      </span>
                     </div>
                     <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{vendor.reviewsCount || 0} REVIEWS</p>
                   </div>

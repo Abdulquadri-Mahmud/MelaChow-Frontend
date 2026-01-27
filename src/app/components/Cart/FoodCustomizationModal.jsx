@@ -5,7 +5,7 @@ import { X, Minus, Plus, ShoppingBag, Check, Leaf, AlertTriangle } from "lucide-
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
-export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, initialVariant, initialPortion }) {
+export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, onUpdate, initialVariant, initialPortion, initialEditItem }) {
     const [selections, setSelections] = useState({});
     const [quantity, setQuantity] = useState(1);
     const [groupQuantities, setGroupQuantities] = useState({}); // New state for group quantities
@@ -13,15 +13,73 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, i
     // If initialVariant or initialPortion changes, reset state
     useEffect(() => {
         if (isOpen) {
-            setSelections({});
-            setQuantity(1);
-            setGroupQuantities({});
+            if (initialEditItem) {
+                // Populate from edit item
+                setQuantity(initialEditItem.quantity || 1);
+
+                const newSelections = {};
+                const newGroupQuantities = {};
+                const choices = initialEditItem.metadata?.choices || [];
+
+                // Create a frequency map of choices to handle repeated items
+                const choiceCounts = choices.reduce((acc, c) => {
+                    const name = (typeof c === 'string' ? c : c.name || "").trim();
+                    acc[name] = (acc[name] || 0) + 1;
+                    return acc;
+                }, {});
+
+                let matchedCount = 0;
+
+                (food.choiceGroups || []).forEach((group, gIdx) => {
+                    const groupOptions = group.options || [];
+                    const matchedOptions = [];
+
+                    // Find all options from this group that are present in the initialEditItem's choices
+                    groupOptions.forEach(opt => {
+                        const optName = (opt.name || "").trim();
+                        const count = choiceCounts[optName];
+                        if (count) {
+                            for (let k = 0; k < count; k++) matchedOptions.push(opt);
+                            matchedCount += count;
+                        }
+                    });
+
+                    if (matchedOptions.length > 0) {
+                        if (group.maxSelect === 1) {
+                            // Radio behavior: only one option can be selected, but its presence multiple times
+                            // implies a group quantity.
+                            newSelections[gIdx] = matchedOptions[0]; // Take the first match
+                            newGroupQuantities[gIdx] = matchedOptions.length; // Set group quantity based on total matches
+                        } else {
+                            // Checkbox behavior: multiple options can be selected
+                            newSelections[gIdx] = matchedOptions;
+                            // For checkbox groups, the individual options already account for their quantities
+                            // within the `matchedOptions` array. The group quantity itself defaults to 1.
+                            newGroupQuantities[gIdx] = 1;
+                        }
+                    }
+                });
+
+                if (matchedCount < choices.length) {
+                    toast.error("Some options from your cart are no longer available in the menu.");
+                }
+
+                setSelections(newSelections);
+                setGroupQuantities(newGroupQuantities);
+
+            } else {
+                setSelections({});
+                setQuantity(1);
+                setGroupQuantities({});
+            }
         }
-    }, [isOpen, initialVariant, initialPortion]);
+    }, [isOpen, initialVariant, initialPortion, initialEditItem, food]);
 
     if (!food || !isOpen) return null;
 
     // Determine Active Item (Variant > Portion > Base)
+    // If editing, try to match active item from editItem variant name? 
+    // Usually initialVariant/initialPortion are passed correct by parent even in edit mode.
     const activeItem = initialVariant || initialPortion || food;
     const isVariant = !!initialVariant;
     const isPortion = !!initialPortion && !isVariant;
@@ -170,19 +228,38 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, i
             const gIdx = Number(key);
             const sel = selections[key];
             const qty = groupQuantities[gIdx] || 1;
+            const groupName = food.choiceGroups?.[gIdx]?.name || "Extras";
 
             // Repeat selections 'qty' times for the payload list
             for (let q = 0; q < qty; q++) {
                 if (Array.isArray(sel)) {
                     sel.forEach(s => {
-                        variantName += ` + ${s.name}`;
-                        allSelectedChoices.push(s.name);
+                        allSelectedChoices.push({
+                            group: groupName,
+                            name: s.name,
+                            price: Number(s.price),
+                            stock: s.stock // ✅ Include stock for validation
+                        });
                     });
                 } else if (sel) {
-                    variantName += ` + ${sel.name}`;
-                    allSelectedChoices.push(sel.name);
+                    allSelectedChoices.push({
+                        group: groupName,
+                        name: sel.name,
+                        price: Number(sel.price),
+                        stock: sel.stock // ✅ Include stock for validation
+                    });
                 }
             }
+        });
+
+        // Group choices for variant name (e.g., " + 2x Beef")
+        const choiceCounts = allSelectedChoices.reduce((acc, item) => {
+            acc[item.name] = (acc[item.name] || 0) + 1;
+            return acc;
+        }, {});
+
+        Object.entries(choiceCounts).forEach(([name, count]) => {
+            variantName += count > 1 ? ` + ${count}x ${name}` : ` + ${name}`;
         });
 
         // Image
@@ -195,14 +272,20 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, i
             storeName: food.vendor?.storeName || "",
             name: food.name,
 
+            // Retain original variantId if editing, or use activeItem ID for new variants
+            variantId: initialEditItem?.variantId || activeItem?._id,
+
             variant: {
                 name: variantName,
                 price: finalUnitPrice,
-                image: imageUrl
+                image: imageUrl,
+                stock: activeItem.stock // ✅ Include variant stock
             },
 
             price: finalUnitPrice,
             quantity: quantity,
+            stock: food.stock, // ✅ Include main item stock
+            selectedChoices: allSelectedChoices, // ✅ Rename for clarity in validation
 
             metadata: {
                 portion: isPortion ? activeItem.label : (isVariant ? activeItem.name : "Standard"),
@@ -223,7 +306,11 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, i
             deliveryType: food.vendor?.acceptsDelivery ? "Instant Delivery" : "Pickup",
         };
 
-        onAdd(payload);
+        if (initialEditItem && onUpdate) {
+            onUpdate(payload);
+        } else {
+            onAdd(payload);
+        }
         onClose();
     };
 
@@ -354,16 +441,16 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, i
 
                                                 const optionQty = isMulti ? getOptionQty(gIdx, option.name) : (isSelected ? 1 : 0);
 
-                                                // Stock Validation
-                                                const isOutOfStock = option.stock !== null && option.stock !== undefined && Number(option.stock) <= 0;
+                                                // Stock Validation - null, undefined, or 0 means out of stock
+                                                const isOutOfStock = !option.stock || Number(option.stock) <= 0;
 
                                                 return (
                                                     <div
                                                         key={oIdx}
                                                         className={`relative rounded-xl border transition-all ${isSelected
-                                                                ? "border-orange-500 bg-orange-50 dark:bg-orange-900/10 ring-1 ring-orange-500/20"
-                                                                : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-orange-200"
-                                                            } ${isOutOfStock ? "opacity-50 grayscale cursor-not-allowed" : ""}`}
+                                                            ? "border-orange-500 bg-orange-50 dark:bg-orange-900/10 ring-1 ring-orange-500/20"
+                                                            : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-orange-200"
+                                                            } ${isOutOfStock ? "opacity cursor-not-allowed" : ""}`}
                                                     >
                                                         {/* 3-Column Layout: Image | Name/Price | Add Button */}
                                                         <div className="grid grid-cols-[auto_1fr_auto] gap-3 items-center p-3">
@@ -385,8 +472,8 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, i
                                                             {/* Column 2: Name & Price */}
                                                             <div className="flex flex-col justify-center min-w-0">
                                                                 <span className={`text-sm font-semibold leading-tight truncate ${isSelected
-                                                                        ? "text-gray-900 dark:text-white"
-                                                                        : "text-gray-700 dark:text-gray-300"
+                                                                    ? "text-gray-900 dark:text-white"
+                                                                    : "text-gray-700 dark:text-gray-300"
                                                                     }`}>
                                                                     {option.name}
                                                                 </span>
@@ -461,8 +548,8 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, i
                                                                                     toggleChoice(gIdx, group, option);
                                                                                 }}
                                                                                 className={`w-20 h-9 rounded-lg flex items-center justify-center gap-1.5 transition-all font-semibold text-xs ${isSelected
-                                                                                        ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
-                                                                                        : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 shadow-sm"
+                                                                                    ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
+                                                                                    : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 shadow-sm"
                                                                                     }`}
                                                                             >
                                                                                 {isSelected ? (
@@ -523,12 +610,14 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, i
                             {/* Add to Cart Button */}
                             <button
                                 onClick={handleConfirm}
-                                className="w-full py-4 bg-[#FF6600] text-white rounded-2xl font-black text-lg hover:bg-[#ff7b24] active:scale-[0.98] transition-all flex items-center justify-between px-6 shadow-xl shadow-orange-500/20"
+                                className="w-full py-4 rounded-2xl font-black text-lg flex items-center justify-between px-6 shadow-xl transition-all bg-[#FF6600] text-white hover:bg-[#ff7b24] active:scale-[0.98] shadow-orange-500/20"
                             >
-                                <span>Add to Order</span>
+                                <span>{initialEditItem ? "Update Order" : "Add to Order"}</span>
                                 <div className="flex items-center gap-1">
                                     <span className="text-sm opacity-80 font-medium">Total</span>
-                                    <span className="bg-white/20 px-3 py-1 rounded-lg text-lg">₦{totalPrice.toLocaleString()}</span>
+                                    <span className="bg-white/20 px-3 py-1 rounded-lg text-lg">
+                                        ₦{totalPrice.toLocaleString()}
+                                    </span>
                                 </div>
                             </button>
                         </div>

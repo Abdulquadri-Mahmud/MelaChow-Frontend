@@ -23,10 +23,12 @@ export default function VendorOrdersPage() {
     try {
       setIsLoading(true);
       const res = await getVendorOrders();
-      const data = res.data || res || [];
+      const data = res.vendorOrders || res || [];
       const orderData = Array.isArray(data) ? data : [];
       setOrders(orderData);
       setFilteredOrders(orderData);
+
+      // console.log(res.vendorOrders)
     } catch (error) {
       console.error("Failed to fetch orders:", error);
     } finally {

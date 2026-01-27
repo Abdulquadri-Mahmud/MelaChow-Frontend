@@ -18,7 +18,8 @@ import {
   ShieldCheck,
   Settings,
   Bell,
-  ArrowLeft
+  ArrowLeft,
+  Star
 } from "lucide-react";
 import DeleteModal from "./DeleteModal";
 import NeedHelp from "@/app/profile/need_help_contact_info/NeedHelp";
@@ -203,6 +204,12 @@ const User_Profile = ({ userData, isLoading }) => {
           title="Delivery Addresses"
           description="Manage your saved home and office locations"
           href="/profile/address"
+        />
+        <ActionCard
+          icon={Star}
+          title="My Reviews"
+          description="View your past ratings and feedback"
+          href="/profile/reviews"
         />
         {/* <ActionCard 
             icon={Bell} 

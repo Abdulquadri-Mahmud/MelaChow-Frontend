@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, XCircle, PackageX, Clock, ShoppingCart, RefreshCw } from "lucide-react";
+import { AlertCircle, XCircle, PackageX, Clock, ShoppingCart, RefreshCw, WifiOff } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 /**
  * Display user-friendly error messages for order creation failures
@@ -16,6 +17,7 @@ import { AlertCircle, XCircle, PackageX, Clock, ShoppingCart, RefreshCw } from "
  * @returns {JSX.Element|null} Error display component or null if no error
  */
 export default function OrderErrorDisplay({ error, onRetry, onClose }) {
+    const router = useRouter();
     if (!error) return null;
 
     /**
@@ -32,6 +34,7 @@ export default function OrderErrorDisplay({ error, onRetry, onClose }) {
         if (lowerMessage.includes("invalid choice") || lowerMessage.includes("choice")) return "choice";
         if (lowerMessage.includes("address")) return "address";
         if (lowerMessage.includes("closed") || lowerMessage.includes("opening hours")) return "closed";
+        if (lowerMessage.includes("enotfound") || lowerMessage.includes("getaddrinfo") || lowerMessage.includes("network")) return "network";
 
         return "general";
     };
@@ -45,6 +48,8 @@ export default function OrderErrorDisplay({ error, onRetry, onClose }) {
         switch (errorType) {
             case "stock":
                 return <PackageX className="w-16 h-16" />;
+            case "network":
+                return <WifiOff className="w-16 h-16" />;
             case "availability":
             case "closed":
                 return <Clock className="w-16 h-16" />;
@@ -61,7 +66,9 @@ export default function OrderErrorDisplay({ error, onRetry, onClose }) {
     const getErrorHint = () => {
         switch (errorType) {
             case "stock":
-                return "Please remove the out-of-stock item or reduce quantity and try again.";
+                return "Please go to your cart to remove the out-of-stock item or reduce quantity.";
+            case "network":
+                return "We couldn't connect to the payment provider. Please check your internet connection and try again.";
             case "availability":
                 return "This item is currently unavailable. Please try again later or choose a different item.";
             case "closed":
@@ -111,10 +118,30 @@ export default function OrderErrorDisplay({ error, onRetry, onClose }) {
                             Unable to Process Order
                         </h3>
 
-                        <div className="bg-white/50 rounded-xl p-3 border border-red-100">
-                            <p className="text-sm text-red-700 font-medium">
-                                {error}
-                            </p>
+                        <div className="bg-white rounded-xl p-3 border border-red-200 shadow-sm">
+                            {(() => {
+                                // Split multiple errors if they exist (separated by ". ")
+                                const errors = error.split(". ").filter(e => e.trim());
+
+                                if (errors.length > 1) {
+                                    return (
+                                        <ul className="text-left text-sm text-red-700 font-medium space-y-2">
+                                            {errors.map((err, idx) => (
+                                                <li key={idx} className="flex items-start gap-2">
+                                                    <span className="text-red-500 mt-0.5">•</span>
+                                                    <span>{err.trim()}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    );
+                                } else {
+                                    return (
+                                        <p className="text-sm text-red-700 font-medium">
+                                            {error}
+                                        </p>
+                                    );
+                                }
+                            })()}
                         </div>
 
                         <p className="text-xs text-red-600 italic">
@@ -139,7 +166,7 @@ export default function OrderErrorDisplay({ error, onRetry, onClose }) {
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => window.location.href = "/orders?activeTab=cart"}
+                            onClick={() => router.push("/orders?activeTab=cart")}
                             className="flex-1 px-4 py-3 bg-white text-red-600 border-2 border-red-200 rounded-xl font-semibold hover:bg-red-50 transition-colors"
                         >
                             View Cart

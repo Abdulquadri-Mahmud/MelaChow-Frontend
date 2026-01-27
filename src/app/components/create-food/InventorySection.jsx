@@ -48,7 +48,7 @@ export default function InventorySection({
                         {/* Global Stock */}
                         <div>
                             <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
-                                Global Stock Level
+                                Global Stock Level <span className="text-rose-500">*</span>
                             </label>
                             <div className="relative mt-2">
                                 <input
@@ -58,8 +58,9 @@ export default function InventorySection({
                                         setFormData((prev) => ({ ...prev, stock: e.target.value }))
                                     }
                                     className="w-full border-2 border-gray-100 dark:border-gray-700 p-3 rounded-xl bg-gray-50 dark:bg-gray-900/50 focus:border-indigo-500 outline-none transition-colors"
-                                    placeholder="Leave empty for unlimited stock"
-                                    min="0"
+                                    placeholder="Enter stock quantity (e.g., 100)"
+                                    min="1"
+                                    required
                                 />
                                 <Package
                                     size={18}
@@ -67,7 +68,7 @@ export default function InventorySection({
                                 />
                             </div>
                             <p className="text-xs text-gray-500 mt-1">
-                                If set, this will be the maximum number of orders allowed for this item.
+                                Set the maximum number of orders allowed for this item. Must be at least 1.
                             </p>
                         </div>
 
@@ -113,8 +114,8 @@ export default function InventorySection({
                                                             type="button"
                                                             onClick={() => toggleDay(day)}
                                                             className={`w-10 h-10 rounded-lg text-xs font-bold transition-all ${isActive
-                                                                    ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 ring-2 ring-white dark:ring-gray-800 scale-105"
-                                                                    : "bg-white dark:bg-gray-800 text-gray-500 border border-gray-200 dark:border-gray-700 hover:border-indigo-300"
+                                                                ? "bg-indigo-500 text-white shadow-lg shadow-indigo-500/30 ring-2 ring-white dark:ring-gray-800 scale-105"
+                                                                : "bg-white dark:bg-gray-800 text-gray-500 border border-gray-200 dark:border-gray-700 hover:border-indigo-300"
                                                                 }`}
                                                         >
                                                             {day.slice(0, 1)}

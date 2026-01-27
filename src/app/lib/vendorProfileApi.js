@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// const BASE_URL = "https://grub-dash-api.vercel.app/api/vendors";
-const BASE_URL = "http://localhost:3001/api/vendors";
+const BASE_URL = "https://grub-dash-api.vercel.app/api/vendors";
+// const BASE_URL = "http://localhost:3001/api/vendors";
 
 // Create axios instance
 // Create axios instance

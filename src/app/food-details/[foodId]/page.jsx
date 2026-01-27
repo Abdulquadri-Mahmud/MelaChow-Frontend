@@ -490,8 +490,7 @@ export default function FoodDetails() {
 
                         {/* Add Button */}
                         {(() => {
-                          const isVariantStockOut = variant.stock !== null && variant.stock !== undefined && Number(variant.stock) <= 0;
-                          const showPrice = isVariantStockOut ? "Sold Out" : `₦${Number(variant.price).toLocaleString()}`;
+                          const isVariantStockOut = !variant.stock || Number(variant.stock) <= 0;
 
                           return (
                             <button

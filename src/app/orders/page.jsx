@@ -12,18 +12,71 @@ import { useApi } from "../context/ApiContext";
 import axios from "axios";
 import { OrderCardSkeleton } from "../components/skeleton/OrderCardSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
+import { Pencil, Loader2 } from "lucide-react";
+import FoodCustomizationModal from "../components/Cart/FoodCustomizationModal";
 
 function OrdersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get("activeTab") || "orders";
+  const initialTab = searchParams.get("activeTab") || "cart";
 
-  const { cart, increaseQuantity, decreaseQuantity, removeFromCart, clearCart } = useCart();
+  const { cart, increaseQuantity, decreaseQuantity, removeFromCart, clearCart, updateCartItem } = useCart();
   const { user } = useUserStorage();
   const { baseUrl } = useApi();
   const [activeTab, setActiveTab] = useState(initialTab);
 
-  console.log(cart);
+  // Edit State
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [foodForEdit, setFoodForEdit] = useState(null);
+  const [isFetchingFood, setIsFetchingFood] = useState(false);
+  const [editingVariant, setEditingVariant] = useState(null);
+  const [editingPortion, setEditingPortion] = useState(null);
+
+  const handleEditClick = async (item) => {
+    if (isFetchingFood) return;
+    setIsFetchingFood(true);
+    setEditingItem(item);
+    try {
+      const res = await axios.get(`${baseUrl}/vendors/foods/get-food?id=${item.foodId}`);
+      if (res.data && res.data.data) {
+        const food = res.data.data;
+        setFoodForEdit(food);
+
+        let v = null;
+        let p = null;
+        if (item.variantId) {
+          v = food.variants?.find(fv => fv._id === item.variantId);
+        }
+        if (!v && item.metadata?.portion && item.metadata.portion !== "Standard") {
+          p = food.portions?.find(fp => fp.label === item.metadata.portion);
+        }
+
+        setEditingVariant(v);
+        setEditingPortion(p);
+        setEditModalOpen(true);
+      } else {
+        toast.error("Item details unavailable");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load item for editing");
+    } finally {
+      setIsFetchingFood(false);
+    }
+  };
+
+  const handleUpdateOrder = (payload) => {
+    if (editingItem) {
+      updateCartItem(editingItem.foodId, editingItem.variantId, payload);
+    }
+    setEditModalOpen(false);
+    setEditingItem(null);
+    setFoodForEdit(null);
+  };
+
+  // console.log(cart);
+
   const fetchUserOrders = async () => {
     if (!user) return { orders: [] };
     const res = await axios.get(`${baseUrl}/orders/my-orders`, {
@@ -59,21 +112,6 @@ function OrdersContent() {
         {/* Custom Tabs */}
         <div className="flex bg-gray-200/50 p-1 rounded-xl w-full max-w-md mb-6 sticky top-[72px] z-20 backdrop-blur-md">
           <button
-            onClick={() => setActiveTab("orders")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${activeTab === "orders"
-              ? "bg-white text-orange-600 shadow-sm"
-              : "text-gray-500 hover:text-gray-900"
-              }`}
-          >
-            <Package size={16} />
-            Orders
-            {orders.length > 0 && (
-              <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[9px] ${activeTab === 'orders' ? 'bg-orange-100/80 text-orange-600' : 'bg-gray-300/40 text-gray-500'}`}>
-                {orders.length}
-              </span>
-            )}
-          </button>
-          <button
             onClick={() => setActiveTab("cart")}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${activeTab === "cart"
               ? "bg-white text-orange-600 shadow-sm"
@@ -85,6 +123,21 @@ function OrdersContent() {
             {cart.length > 0 && (
               <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[9px] ${activeTab === 'cart' ? 'bg-orange-100/80 text-orange-600' : 'bg-gray-300/40 text-gray-500'}`}>
                 {cart.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab("orders")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all duration-200 ${activeTab === "orders"
+              ? "bg-white text-orange-600 shadow-sm"
+              : "text-gray-500 hover:text-gray-900"
+              }`}
+          >
+            <Package size={16} />
+            Orders
+            {orders.length > 0 && (
+              <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[9px] ${activeTab === 'orders' ? 'bg-orange-100/80 text-orange-600' : 'bg-gray-300/40 text-gray-500'}`}>
+                {orders.length}
               </span>
             )}
           </button>
@@ -240,8 +293,14 @@ function OrdersContent() {
                                           )}
                                           {item.metadata?.choices?.length > 0 && (
                                             <p className="opacity-80 flex flex-wrap gap-1">
-                                              {item.metadata.choices.map((c, i) => (
-                                                <span key={i} className="after:content-[','] last:after:content-['']">{c}</span>
+                                              {Object.entries(item.metadata.choices.reduce((acc, c) => {
+                                                const name = (typeof c === 'string' ? c : c.name || "").trim();
+                                                acc[name] = (acc[name] || 0) + 1;
+                                                return acc;
+                                              }, {})).map(([choice, count], i) => (
+                                                <span key={i} className="after:content-[','] last:after:content-['']">
+                                                  {count > 1 ? `${count}x ` : ""}{choice}
+                                                </span>
                                               ))}
                                             </p>
                                           )}
@@ -254,6 +313,12 @@ function OrdersContent() {
                                       <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-tighter self-center">₦{item.price.toLocaleString()} / unit</p>
 
                                       <div className="flex items-center gap-3">
+                                        <button
+                                          onClick={() => handleEditClick(item)}
+                                          className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-all active:scale-90 bg-white border border-gray-100 shadow-sm"
+                                        >
+                                          {isFetchingFood && editingItem === item ? <Loader2 size={14} className="animate-spin" /> : <Pencil size={14} />}
+                                        </button>
                                         <div className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-1 border border-zinc-100 dark:border-zinc-800 shadow-inner">
                                           <button
                                             onClick={() => decreaseQuantity(item.foodId, item.variantId)}
@@ -338,6 +403,17 @@ function OrdersContent() {
           </AnimatePresence>
         </div>
       </main>
+
+      <FoodCustomizationModal
+        food={foodForEdit}
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        initialEditItem={editingItem}
+        onUpdate={handleUpdateOrder}
+        initialVariant={editingVariant}
+        initialPortion={editingPortion}
+        onAdd={() => { }}
+      />
     </div>
   );
 }

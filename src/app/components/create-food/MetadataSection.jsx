@@ -78,8 +78,12 @@ export default function MetadataSection({
     const [customAllergen, setCustomAllergen] = useState("");
 
     // Handle spicy level selection
+    // Handle spicy level selection
     const handleSpicyLevel = (level) => {
-        setMetadata((prev) => ({ ...prev, spicyLevel: level }));
+        setMetadata((prev) => ({
+            ...prev,
+            spicyLevel: prev.spicyLevel === level ? "" : level
+        }));
     };
 
     // Handle allergen toggle

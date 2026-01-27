@@ -21,9 +21,9 @@ export default function SearchBar() {
       className="relative z-20 group"
       onClick={handleClick}
     >
-      <div className="absolute inset-0 bg-orange-500 blur-lg opacity-10 rounded-2xl group-hover:opacity-20 transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-orange-200 blur-lg opacity-10 rounded-2xl group-hover:opacity-20 transition-opacity duration-300" />
 
-      <div className="relative flex items-center bg-white dark:bg-zinc-900 rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-transparent group-hover:border-orange-100 dark:group-hover:border-zinc-700 transition-all duration-300 cursor-pointer">
+      <div className="relative flex items-center bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-transparent group-hover:border-orange-100 dark:group-hover:border-zinc-700 transition-all duration-300 cursor-pointer">
         <div className="p-2 bg-gray-50 dark:bg-zinc-800 rounded-xl mr-3 group-hover:bg-orange-50 dark:group-hover:bg-zinc-700 transition-colors">
           <Search className="text-gray-400 group-hover:text-orange-500 transition-colors" size={22} />
         </div>

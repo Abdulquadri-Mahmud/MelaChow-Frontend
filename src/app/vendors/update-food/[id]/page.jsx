@@ -338,6 +338,11 @@ export default function UpdateFoodPage() {
     if (!validations.description) return showAnimatedToast("error", "Description must be at least 10 characters");
     if (!validations.images) return showAnimatedToast("error", "Add at least one image");
 
+    // ✅ Validate stock
+    if (!formData.stock || Number(formData.stock) <= 0) {
+      return showAnimatedToast("error", "Stock must be at least 1");
+    }
+
     // Validate portions
     for (let i = 1; i < portions.length; i++) {
       if (Number(portions[i].price) <= Number(portions[i - 1].price)) {
@@ -399,13 +404,12 @@ export default function UpdateFoodPage() {
           flatAmount: 0,
           expiresAt: null,
         },
-      availabilitySchedule: formData.availabilitySchedule.enabled
-        ? {
-          days: formData.availabilitySchedule.days,
-          startTime: formData.availabilitySchedule.startTime,
-          endTime: formData.availabilitySchedule.endTime,
-        }
-        : null,
+      availabilitySchedule: {
+        enabled: formData.availabilitySchedule.enabled,
+        days: formData.availabilitySchedule.days,
+        startTime: formData.availabilitySchedule.startTime,
+        endTime: formData.availabilitySchedule.endTime,
+      },
     };
 
     try {

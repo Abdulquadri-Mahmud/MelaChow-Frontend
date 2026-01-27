@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:3001/api";
-// const BASE_URL = "https://grub-dash-api.vercel.app/api";
+const BASE_URL = "https://grub-dash-api.vercel.app/api";
+// const BASE_URL = "http://localhost:3001/api";
 
 const API = axios.create({
   baseURL: BASE_URL,
@@ -46,16 +46,17 @@ export const getVendorOrders = async () => {
 };
 
 export const getVendorOrderById = async (orderId) => {
-  const response = await API.get(`/orders/orders/${orderId}`);
+  const response = await API.get(`/vendors/orders/${orderId}`);
   return response.data;
 };
 
 export const updateOrderStatus = async (orderId, status) => {
-  if (status === 'completed') {
-    const response = await API.put(`/orders/orders/${orderId}/complete`);
-    return response.data;
-  }
-  const response = await API.put(`/orders/orders/${orderId}`, { status });
+  const response = await API.patch(`/vendors/orders/${orderId}/update`, { status });
+  return response.data;
+};
+
+export const getVendorReviews = async () => {
+  const response = await API.get('/vendors/reviews');
   return response.data;
 };
 

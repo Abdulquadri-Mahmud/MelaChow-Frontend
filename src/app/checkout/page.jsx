@@ -96,16 +96,6 @@ export default function CheckoutPage() {
       return;
     }
 
-    // 3. Validate cart items
-    setProcessingStep("validating");
-    const cartValidation = validateCartItems(cart);
-
-    if (!cartValidation.isValid) {
-      const errorMessage = cartValidation.errors[0]?.message || "Please fix cart issues before checkout";
-      setOrderError(errorMessage);
-      toast.error(errorMessage);
-      return;
-    }
 
     setLoadingInit(true);
 
@@ -115,24 +105,24 @@ export default function CheckoutPage() {
       const uniqueRestaurantIds = Object.keys(restaurantDeliveryMap);
 
       // Uncomment if you want to enforce restaurant hours
-      // for (const restaurantId of uniqueRestaurantIds) {
-      //   try {
-      //     const vendorRes = await axios.get(`${baseUrl}/vendors/foods/get-foods?vendorId=${restaurantId}`);
-      //     const vendorData = vendorRes.data.data?.[0]?.vendor;
-      //
-      //     if (vendorData) {
-      //       const statusInfo = getVendorOpenAndCloseStatus(vendorData.openHours || vendorData.openingHours);
-      //       const isOpen = statusInfo.startsWith("Open now");
-      //
-      //       if (!isOpen) {
-      //         throw new Error(`${vendorData.storeName} is currently closed. ${statusInfo}`);
-      //       }
-      //     }
-      //   } catch (err) {
-      //     console.error(`Error checking status for vendor ${restaurantId}:`, err);
-      //     throw err;
-      //   }
-      // }
+      for (const restaurantId of uniqueRestaurantIds) {
+        try {
+          const vendorRes = await axios.get(`${baseUrl}/vendors/foods/get-foods?vendorId=${restaurantId}`);
+          const vendorData = vendorRes.data.data?.[0]?.vendor;
+      
+          if (vendorData) {
+            const statusInfo = getVendorOpenAndCloseStatus(vendorData.openHours || vendorData.openingHours);
+            const isOpen = statusInfo.startsWith("Open now");
+      
+            if (!isOpen) {
+              throw new Error(`${vendorData.storeName} is currently closed. ${statusInfo}`);
+            }
+          }
+        } catch (err) {
+          console.error(`Error checking status for vendor ${restaurantId}:`, err);
+          throw err;
+        }
+      }
 
       // 5. Transform cart data to V2 format
       setProcessingStep("calculating");
@@ -140,16 +130,17 @@ export default function CheckoutPage() {
         cart,
         defaultAddress,
         userData.phone,
+        userData.email,
         notes
       );
 
-      console.log("V2 Order Payload:", orderPayload);
+      // console.log("V2 Order Payload:", orderPayload);
 
       // 6. Create order using V2 API
       setProcessingStep("preparing");
       const response = await createOrderV2(orderPayload);
 
-      console.log("V2 Order Response:", response);
+      // console.log("V2 Order Response:", response);
 
       // 7. Redirect to Paystack payment page
       // 7. Redirect to Paystack payment page
@@ -177,7 +168,16 @@ export default function CheckoutPage() {
       console.error("Order Creation Error:", err);
 
       // Set error for display
-      const errorMessage = err.message || "Failed to initialize payment";
+      let errorMessage = "Failed to initialize payment";
+
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message && !err.message.includes("status code")) {
+        errorMessage = err.message;
+      }
+
       setOrderError(errorMessage);
 
       // Show toast notification
@@ -290,10 +290,10 @@ export default function CheckoutPage() {
               {items.map(item => (
                 <div key={item.foodId + item.variantId} className="flex gap-3 border-b border-b-gray-50/50 last:border-0 pb-3 items-center group">
                   <div className="relative overflow-hidden rounded-xl">
-                    <img src={item.image} alt={item.name} className="w-12 h-12 object-cover transition-transform group-hover:scale-110" />
+                    <img src={item.variant?.image || item.image} alt={item.name} className="w-12 h-12 object-cover transition-transform group-hover:scale-110" />
                   </div>
-                  <div className="flex-1 flex flex-col gap-0.5">
-                    <p className="text-sm text-gray-800 truncate font-semibold uppercase italic">{item.variantName}</p>
+                  <div className="flex-1 flex flex-col gap-0.5 min-w-0">
+                    <p className="text-sm text-gray-800 font-semibold uppercase italic leading-tight break-words">{item.variant?.name || item.variantName || item.name}</p>
                     <p className="text-[10px] text-gray-400 truncate font-bold uppercase tracking-tighter">{item.storeName}</p>
                     <p className="text-xs text-gray-500 font-medium">₦{(item.price * item.quantity).toLocaleString()}</p>
                   </div>

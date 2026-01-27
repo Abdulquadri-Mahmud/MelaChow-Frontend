@@ -47,7 +47,7 @@ const navItems = [
   {
     name: "Reviews",
     icon: Star,
-    href: "/vendors/review",
+    href: "/vendors/reviews",
   },
   {
     name: "Profile",

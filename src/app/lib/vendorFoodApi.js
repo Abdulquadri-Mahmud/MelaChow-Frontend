@@ -2,8 +2,8 @@ import axios from "axios";
 
 // ✅ Base URL for all food-related endpoints
 // const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const BASE_URL = " http://localhost:3001/api/vendors/foods";
-// const BASE_URL = "https://grub-dash-api.vercel.app/api/vendors/foods";
+// const BASE_URL = " http://localhost:3001/api/vendors/foods";
+const BASE_URL = "https://grub-dash-api.vercel.app/api/vendors/foods";
 
 // ✅ Create reusable axios instance
 export const api = axios.create({
