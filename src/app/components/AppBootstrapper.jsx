@@ -3,31 +3,74 @@
 import React, { useEffect, useState } from "react";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
+import { usePathname, useRouter } from "next/navigation";
 import SplashScreen from "./SplashScreen";
 import { AnimatePresence, motion } from "framer-motion";
 
+// Public routes that don't require authentication
+const PUBLIC_ROUTES = [
+    "/auth/signin",
+    "/auth/signup",
+    "/vendor-auth/signin",
+    "/vendor-auth/signup",
+    "/admin/login",
+];
+
+// Routes that should be accessible to guests (no auth required)
+const GUEST_ALLOWED_ROUTES = [
+    "/",
+    "/faqs",
+    "/get-help",
+];
+
 export default function AppBootstrapper({ children }) {
-    // 1. Monitor Auth States
+    const pathname = usePathname();
+    const router = useRouter();
+
+    // Monitor Auth States
     const { user, isLoading: isUserLoading } = useUserStorage();
     const { vendorDetails, isLoading: isVendorLoading } = useVendorStorage();
 
-    // 2. Track global app readiness
-    // We are ready when both potential auth checks have settled (loading is false)
+    // Track global app readiness
     const isAuthResolved = !isUserLoading && !isVendorLoading;
 
-    // 3. Splash Visibility State
+    // Splash Visibility State
     const [showSplash, setShowSplash] = useState(true);
+    const [isRedirecting, setIsRedirecting] = useState(false);
+
+    // Check if current route is public or guest-allowed
+    const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route));
+    const isGuestAllowedRoute = GUEST_ALLOWED_ROUTES.some(route => pathname === route);
+    const isRestaurantRoute = pathname?.startsWith("/restataurants/");
+
+    // Determine if user is authenticated
+    const isAuthenticated = !!user || !!vendorDetails;
 
     useEffect(() => {
-        // Only dismiss splash when auth is fully resolved
-        if (isAuthResolved) {
-            // Optional: Minimum display time could be added here if it's TOO fast,
-            // but the prompt explicitly asked to avoid "Time-based splash dismissal"
-            // unless it's for user experience (flashing). 
-            // We will respect the "Logic-driven" request mostly.
-            setShowSplash(false);
+        // Only process after auth is resolved
+        if (!isAuthResolved) return;
+
+        // Dismiss splash screen
+        setShowSplash(false);
+
+        // Skip redirect logic for public routes
+        if (isPublicRoute) return;
+
+        // Allow guest access to specific routes
+        if (isGuestAllowedRoute || isRestaurantRoute) return;
+
+        // If not authenticated and trying to access protected route, redirect to signin
+        if (!isAuthenticated && !isRedirecting) {
+            console.log("🔒 Unauthorized access detected. Redirecting to signin...");
+            setIsRedirecting(true);
+            router.replace("/auth/signin");
         }
-    }, [isAuthResolved]);
+    }, [isAuthResolved, isAuthenticated, pathname, isPublicRoute, isGuestAllowedRoute, isRestaurantRoute, router, isRedirecting]);
+
+    // Reset redirecting flag when pathname changes
+    useEffect(() => {
+        setIsRedirecting(false);
+    }, [pathname]);
 
     return (
         <>
@@ -38,8 +81,7 @@ export default function AppBootstrapper({ children }) {
                         exit={{ opacity: 0, transition: { duration: 0.5 } }}
                         className="fixed inset-0 z-[9999]"
                     >
-                        {/* We pass auth state to splash to allow it to show specific messages if needed */}
-                        <SplashScreen user={user} vendor={vendorDetails} />
+                        <SplashScreen user={user} vendorDetails={vendorDetails} />
                     </motion.div>
                 )}
             </AnimatePresence>

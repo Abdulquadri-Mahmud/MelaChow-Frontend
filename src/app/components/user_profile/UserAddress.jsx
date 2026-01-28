@@ -166,6 +166,7 @@ export default function AddressPage() {
         <AnimatePresence mode="popLayout">
           {!fetching && addresses.length === 0 && (
             <motion.div
+              key="no-data"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               className="bg-white border-2 border-dashed border-gray-200 rounded-[32px] p-12 flex flex-col items-center text-center"
@@ -181,6 +182,7 @@ export default function AddressPage() {
 
           {/* ADD / EDIT FORM - Moved to Top for better UX on mobile */}
           <motion.div
+            key="address-form"
             layout
             className="bg-white border border-gray-100 rounded-[32px] p-6 md:p-8 shadow-xl shadow-gray-200/40 relative overflow-hidden group"
           >
@@ -277,7 +279,7 @@ export default function AddressPage() {
           </motion.div>
 
           {/* List Section */}
-          <div className="space-y-4">
+          <div key="address-list" className="space-y-4">
             {addresses.length > 0 && (
               <div className="flex items-center gap-2 px-2">
                 <Home size={16} className="text-orange-500" />

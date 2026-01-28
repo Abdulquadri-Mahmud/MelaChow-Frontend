@@ -1,13 +1,28 @@
 "use client";
 
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 import { useApi } from "./ApiContext";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter, usePathname } from "next/navigation";
 
 const ProfileContext = createContext(undefined);
 
+// Public routes that don't require authentication
+const PUBLIC_ROUTES = [
+  "/auth/signin",
+  "/auth/signup",
+  "/vendor-auth/signin",
+  "/vendor-auth/signup",
+  "/admin/login",
+  "/",
+  "/faqs",
+  "/get-help",
+];
+
 export const ProfileProvider = ({ children }) => {
   const { baseUrl } = useApi();
+  const router = useRouter();
+  const pathname = usePathname();
 
   // Function used by React Query to fetch the user profile
   const fetchProfile = async () => {
@@ -18,7 +33,7 @@ export const ProfileProvider = ({ children }) => {
 
     // Handle 401 gracefully - return null for guest users
     if (res.status === 401) {
-      return null; // Guest mode - no unauthorized event dispatch
+      return null; // Guest mode
     }
 
     const data = await res.json();
@@ -37,6 +52,22 @@ export const ProfileProvider = ({ children }) => {
     refetchOnMount: true, // ✅ Refetch when component mounts
     refetchOnWindowFocus: false, // Don't refetch on every window focus to avoid excessive calls
   });
+
+  // Monitor authentication status and redirect if session expires
+  useEffect(() => {
+    // Skip if still loading
+    if (isLoading) return;
+
+    // Check if current route is public
+    const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route) || pathname === route);
+    const isRestaurantRoute = pathname?.startsWith("/restataurants/");
+
+    // If no user data and not on a public route, redirect to signin
+    if (!data && !isPublicRoute && !isRestaurantRoute) {
+      console.log("🔒 Session expired or no user found. Redirecting to signin...");
+      router.replace("/auth/signin");
+    }
+  }, [data, isLoading, pathname, router]);
 
   return (
     <ProfileContext.Provider
