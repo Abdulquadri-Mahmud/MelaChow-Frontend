@@ -61,12 +61,13 @@ export const ProfileProvider = ({ children }) => {
     // Skip if still loading
     if (isLoading) return;
 
-    // Check if current route is public
+    // Check if current route is public or admin route
     const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route) || pathname === route);
     const isRestaurantRoute = pathname?.startsWith("/restataurants/");
+    const isAdminRoute = pathname?.startsWith("/admin/");
 
-    // If no user data and not on a public route, redirect to signin
-    if (!data && !isPublicRoute && !isRestaurantRoute) {
+    // If no user data and not on a public route or admin route, redirect to signin
+    if (!data && !isPublicRoute && !isRestaurantRoute && !isAdminRoute) {
       console.log("🔒 Session expired or no user found. Redirecting to signin...");
       router.replace("/auth/signin");
     }

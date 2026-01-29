@@ -1,4 +1,15 @@
 import axios from "axios";
+
+// Helper function for backward compatibility - calculates percentages from distribution
+const calculatePercentagesFromDistribution = (distribution) => {
+  const total = Object.values(distribution).reduce((sum, count) => sum + count, 0);
+  const percentages = {};
+  Object.keys(distribution).forEach(rating => {
+    percentages[rating] = total > 0 ? Math.round((distribution[rating] / total) * 100) : 0;
+  });
+  return percentages;
+};
+
 // Helper to dispatch unauthorized event
 const dispatchUserUnauthorized = () => {
   if (typeof window !== "undefined") {
@@ -212,7 +223,7 @@ export const createReview = async (data) => {
 };
 
 /**
- * Get Vendor Reviews
+ * Get Vendor Reviews (Legacy - keeping for backward compatibility)
  * @param {string} vendorId 
  * @returns {Object}
  */
@@ -229,4 +240,164 @@ export const getVendorReviews = async (vendorId) => {
   }
 };
 
+/**
+ * PUBLIC REVIEWS API - New Implementation
+ */
 
+/**
+ * Get Restaurant Reviews (Public API) - Enhanced with backward compatibility
+ * @param {string} vendorId - Restaurant/vendor ID
+ * @param {number} page - Page number (default: 1)
+ * @param {number} limit - Items per page (default: 10)
+ * @param {number|null} rating - Filter by rating (1-5, null for all)
+ * @returns {Object} - Reviews data with pagination and enhanced rating data
+ */
+export const getRestaurantReviews = async (vendorId, page = 1, limit = 10, rating = null) => {
+  try {
+    const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+    if (rating && rating !== 'all') {
+      params.append('rating', rating.toString());
+    }
+    
+    const res = await axios.get(
+      `https://grub-dash-api.vercel.app/api/public/reviews/vendor/${vendorId}?${params}`,
+      {
+        // No authentication required for public endpoints
+      }
+    );
+    
+    // Enhanced response with backward compatibility
+    const data = res.data;
+    if (data.success && data.data) {
+      // Ensure backward compatibility for rating data
+      if (data.data.restaurant) {
+        data.data.restaurant.averageRating = data.data.restaurant.averageRating || data.data.restaurant.rating || 0;
+        data.data.restaurant.totalReviews = data.data.restaurant.totalReviews || data.data.restaurant.reviewCount || 0;
+      }
+      
+      // Add calculated percentages if not provided
+      if (!data.data.ratingPercentages && data.data.ratingDistribution) {
+        data.data.ratingPercentages = calculatePercentagesFromDistribution(data.data.ratingDistribution);
+      }
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Get Restaurant Reviews Error:", error);
+    
+    // Return safe fallback structure
+    return {
+      success: false,
+      data: {
+        restaurant: { averageRating: 0, totalReviews: 0 },
+        reviews: [],
+        pagination: { currentPage: page, totalPages: 0, totalReviews: 0 },
+        ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+        ratingPercentages: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+      },
+      error: error.message
+    };
+  }
+};
+
+/**
+ * Get Restaurant Reviews Summary (Public API) - Enhanced with backward compatibility
+ * @param {string} vendorId - Restaurant/vendor ID
+ * @returns {Object} - Reviews summary with rating distribution and percentages
+ */
+export const getRestaurantReviewsSummary = async (vendorId) => {
+  try {
+    const res = await axios.get(
+      `https://grub-dash-api.vercel.app/api/public/reviews/vendor/${vendorId}/summary`,
+      {
+        // No authentication required for public endpoints
+      }
+    );
+    
+    // Enhanced response with backward compatibility
+    const data = res.data;
+    if (data.success && data.data) {
+      // Ensure backward compatibility for rating data
+      if (data.data.restaurant) {
+        data.data.restaurant.averageRating = data.data.restaurant.averageRating || data.data.restaurant.rating || 0;
+        data.data.restaurant.totalReviews = data.data.restaurant.totalReviews || data.data.restaurant.reviewCount || 0;
+      }
+      
+      // Add calculated percentages if not provided
+      if (!data.data.ratingPercentages && data.data.ratingDistribution) {
+        data.data.ratingPercentages = calculatePercentagesFromDistribution(data.data.ratingDistribution);
+      }
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Get Restaurant Reviews Summary Error:", error);
+    
+    // Return safe fallback structure
+    return {
+      success: false,
+      data: {
+        restaurant: { averageRating: 0, totalReviews: 0 },
+        ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+        ratingPercentages: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+      },
+      error: error.message
+    };
+  }
+};
+
+/**
+ * Get Food Reviews (Public API) - Enhanced with backward compatibility (Previously broken, now fixed!)
+ * @param {string} foodId - Food item ID
+ * @param {number} page - Page number (default: 1)
+ * @param {number} limit - Items per page (default: 10)
+ * @param {number|null} rating - Filter by rating (1-5, null for all)
+ * @returns {Object} - Food reviews data with pagination and enhanced rating data
+ */
+export const getFoodReviews = async (foodId, page = 1, limit = 10, rating = null) => {
+  try {
+    const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+    if (rating && rating !== 'all') {
+      params.append('rating', rating.toString());
+    }
+    
+    const res = await axios.get(
+      `https://grub-dash-api.vercel.app/api/public/reviews/food/${foodId}?${params}`,
+      {
+        // No authentication required for public endpoints
+      }
+    );
+    
+    // Enhanced response with backward compatibility
+    const data = res.data;
+    if (data.success && data.data) {
+      // Ensure backward compatibility for food rating data
+      if (data.data.food) {
+        data.data.food.averageRating = data.data.food.averageRating || data.data.food.rating || 0;
+        data.data.food.totalReviews = data.data.food.totalReviews || data.data.food.reviewCount || 0;
+      }
+      
+      // Add calculated percentages if not provided
+      if (!data.data.ratingPercentages && data.data.ratingDistribution) {
+        data.data.ratingPercentages = calculatePercentagesFromDistribution(data.data.ratingDistribution);
+      }
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Get Food Reviews Error:", error);
+    
+    // Return safe fallback structure
+    return {
+      success: false,
+      data: {
+        food: { averageRating: 0, totalReviews: 0, name: 'Unknown Food' },
+        reviews: [],
+        pagination: { currentPage: page, totalPages: 0, totalReviews: 0 },
+        ratingDistribution: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 },
+        ratingPercentages: { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+      },
+      error: error.message
+    };
+  }
+};

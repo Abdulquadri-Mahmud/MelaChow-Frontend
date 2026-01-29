@@ -1,14 +1,13 @@
 "use client";
 
-import { ArrowLeft, Clock, Search, Star, ArrowRight, MapPin, MessageSquare, Send, User, X, Edit3 } from "lucide-react";
+import { ArrowLeft, Clock, Search, Star, ArrowRight, MapPin } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useVendorFood } from "@/app/hooks/useVendorFoodQuery";
 import VendorSkeleton from "@/app/skeleton/VendorSkeleton";
 import { getVendorOpenStatus } from "@/app/lib/vendor-time/vendorTime";
-import { useState, useMemo, useEffect } from "react";
-import { createReview, getVendorReviews } from "@/app/lib/api";
-import toast from "react-hot-toast";
+import { useState, useMemo } from "react";
+import ReviewsSectionFixed from "@/app/components/restaurants/ReviewsSectionFixed";
 
 export default function ViewVendor() {
   const { id } = useParams();
@@ -29,14 +28,8 @@ export default function ViewVendor() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Reviews State
+  // Tab state
   const [activeTab, setActiveTab] = useState("menu"); // 'menu' | 'reviews'
-  const [reviews, setReviews] = useState([]);
-  const [isReviewsLoading, setIsReviewsLoading] = useState(false);
-  const [showReviewForm, setShowReviewForm] = useState(false);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewComment, setReviewComment] = useState("");
-  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Extract unique categories (Flattening the categories array from each food item)
   const categories = useMemo(() => {
@@ -64,59 +57,11 @@ export default function ViewVendor() {
     return filtered;
   }, [foodList, selectedCategory, searchQuery]);
 
-  useEffect(() => {
-    if (id && activeTab === 'reviews') {
-      fetchReviews();
-    }
-  }, [id, activeTab]);
-
-  const fetchReviews = async () => {
-    try {
-      setIsReviewsLoading(true);
-      const res = await getVendorReviews(id);
-      setReviews(res.reviews || []);
-    } catch (error) {
-      //  console.error("Failed to fetch reviews", error);
-      // Fallback/Mock if 403 or other
-      // setReviews([]); 
-      // Optionally mock for display if needed as per instructions
-      // For now, let's leave valid empty state if failed.
-    } finally {
-      setIsReviewsLoading(false);
-    }
-  };
-
-  const handleSubmitReview = async () => {
-    if (!reviewComment.trim()) {
-      toast.error("Please add a comment");
-      return;
-    }
-
-    try {
-      setIsSubmittingReview(true);
-      await createReview({
-        vendorId: id,
-        rating: reviewRating,
-        comment: reviewComment
-      });
-      toast.success("Review submitted successfully!");
-      setShowReviewForm(false);
-      setReviewComment("");
-      setReviewRating(5);
-      // Refresh reviews
-      fetchReviews();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to submit review");
-    } finally {
-      setIsSubmittingReview(false);
-    }
-  };
-
   // console.log(vendor)
   return (
     <>
       {/* Header */}
-      <header className="flex items-center gap-2 px-3 py-3 bg-white sticky top-0 z-50 shadow-sm border-b border-gray-50">
+      <header className="flex items-center gap-2 px-3 py-3 bg-white sticky top-0 z-50 border-b border-gray-50">
         <button
           onClick={() => router.back()}
           className="p-2 rounded-full hover:bg-gray-100 transition"
@@ -134,7 +79,7 @@ export default function ViewVendor() {
         ) : isError ? (
           <div className="text-center py-10 bg-red-50 rounded-3xl border border-dashed border-red-200 mx-3">
             <p className="text-red-500 font-medium">Failed to load restaurant details</p>
-            <button onClick={() => window.location.reload()} className="mt-4 bg-red-500 text-white px-6 py-2 rounded-full font-bold shadow-md">Retry</button>
+            <button onClick={() => window.location.reload()} className="mt-4 bg-red-500 text-white px-6 py-2 rounded-full font-bold">Retry</button>
           </div>
         ) : !vendor ? (
           // Fallback if vendor object is missing within foodList (unlikely if foods exist, but safe)
@@ -144,7 +89,7 @@ export default function ViewVendor() {
         ) : (
           <>
             {/* Vendor Info Section */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100" >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[32px] overflow-hidden border border-gray-100" >
               {/* Banner */}
               <div className="relative w-full h-40">
                 <img src={vendor.logo || "/vendor-banner-placeholder.jpg"} alt="Vendor Banner" className="w-full h-full object-cover" />
@@ -158,7 +103,7 @@ export default function ViewVendor() {
                 {/* Quick Badges */}
                 <div className="absolute top-4 right-4 flex gap-2">
                   {vendor.isPopular && (
-                    <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-[10px] font-bold shadow-sm backdrop-blur-md">🔥 POPULAR</span>
+                    <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-[10px] font-bold backdrop-blur-md">🔥 POPULAR</span>
                   )}
                 </div>
               </div>
@@ -214,13 +159,13 @@ export default function ViewVendor() {
             <div className="flex p-1 bg-gray-100 rounded-2xl w-full">
               <button
                 onClick={() => setActiveTab('menu')}
-                className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'menu' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'menu' ? 'bg-white text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Menu
               </button>
               <button
                 onClick={() => setActiveTab('reviews')}
-                className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'reviews' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'reviews' ? 'bg-white text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Reviews
               </button>
@@ -315,117 +260,18 @@ export default function ViewVendor() {
 
             {/* REVIEWS CONTENT */}
             {activeTab === 'reviews' && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-
-                {/* Review Action */}
-                <div className="bg-orange-50 border border-orange-100 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">Have you ordered from {vendor.storeName}?</h3>
-                    <p className="text-sm text-gray-600">Share your experience to help others.</p>
-                  </div>
-                  <button
-                    onClick={() => setShowReviewForm(true)}
-                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
-                  >
-                    <Edit3 size={18} /> Write a Review
-                  </button>
-                </div>
-
-                {/* Reviews List */}
-                <div className="space-y-4">
-                  {isReviewsLoading ? (
-                    <div className="text-center py-10">
-                      <div className="animate-spin w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-                      <p className="text-gray-500 text-sm">Loading reviews...</p>
-                    </div>
-                  ) : reviews.length === 0 ? (
-                    <div className="text-center py-12 bg-white rounded-3xl border border-gray-100">
-                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <MessageSquare size={24} className="text-gray-300" />
-                      </div>
-                      <h4 className="text-gray-900 font-bold mb-1">No reviews yet</h4>
-                      <p className="text-gray-400 text-sm">Be the first to create one!</p>
-                    </div>
-                  ) : (
-                    reviews.map((review, i) => (
-                      <div key={i} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex gap-4">
-                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 shrink-0">
-                          <User size={20} />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start mb-1">
-                            <h4 className="font-bold text-gray-900 text-sm">{review.user?.firstName || "Anonymous"}</h4>
-                            <span className="text-[10px] text-gray-400">{review.createdAt ? new Date(review.createdAt).toLocaleDateString() : ""}</span>
-                          </div>
-                          <div className="flex items-center gap-1 mb-2">
-                            {Array.from({ length: 5 }).map((_, starIdx) => (
-                              <Star key={starIdx} size={12} className={`${starIdx < review.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-200"}`} />
-                            ))}
-                          </div>
-                          <p className="text-gray-600 text-sm leading-relaxed">{review.comment}</p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <ReviewsSectionFixed 
+                  vendorId={id}
+                  vendor={vendor}
+                  foodList={foodList}
+                />
               </motion.div>
             )}
 
           </>
         )}
       </div>
-
-      {/* Review Modal */}
-      <AnimatePresence>
-        {showReviewForm && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowReviewForm(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed inset-0 m-auto w-full max-w-sm h-fit bg-white rounded-[32px] p-6 shadow-2xl z-50 border border-gray-100"
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-gray-900">Rate & Review</h3>
-                <button onClick={() => setShowReviewForm(false)} className="p-2 bg-gray-50 rounded-full hover:bg-gray-100 transition"><X size={18} /></button>
-              </div>
-
-              <div className="flex justify-center gap-2 mb-6">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button key={star} onClick={() => setReviewRating(star)} className="transition-transform hover:scale-110 active:scale-95">
-                    <Star
-                      size={32}
-                      className={`${star <= reviewRating ? "text-yellow-400 fill-yellow-400" : "text-gray-200 fill-gray-100"}`}
-                    />
-                  </button>
-                ))}
-              </div>
-
-              <textarea
-                value={reviewComment}
-                onChange={(e) => setReviewComment(e.target.value)}
-                placeholder="Share your experience..."
-                rows={4}
-                className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all mb-4 resize-none"
-              />
-
-              <button
-                onClick={handleSubmitReview}
-                disabled={isSubmittingReview}
-                className="w-full py-3 bg-gray-900 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2"
-              >
-                {isSubmittingReview ? <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div> : <>Submit Review <Send size={16} /></>}
-              </button>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
     </>
   );
 }

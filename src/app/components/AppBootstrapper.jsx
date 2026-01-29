@@ -45,6 +45,7 @@ export default function AppBootstrapper({ children }) {
     const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route));
     const isGuestAllowedRoute = GUEST_ALLOWED_ROUTES.some(route => pathname === route);
     const isRestaurantRoute = pathname?.startsWith("/restataurants/");
+    const isAdminRoute = pathname?.startsWith("/admin/");
 
     // Determine if user is authenticated
     const isAuthenticated = !!user || !!vendorDetails;
@@ -61,6 +62,9 @@ export default function AppBootstrapper({ children }) {
 
         // Allow guest access to specific routes
         if (isGuestAllowedRoute || isRestaurantRoute) return;
+
+        // Skip redirect logic for admin routes (handled by AdminProtectedRoute)
+        if (isAdminRoute) return;
 
         // If not authenticated and trying to access protected route, redirect to signin
         if (!isAuthenticated && !isRedirecting) {

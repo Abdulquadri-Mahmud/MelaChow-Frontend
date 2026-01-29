@@ -9,7 +9,6 @@ import {
   Clock, CreditCard, ChevronRight, ChevronLeft, Upload,
   CheckCircle2, AlertCircle, X, Loader2, ChevronDown
 } from "lucide-react";
-import { nigeriaStates } from "@/app/lib/nigeriaStates";
 
 /**
  * Cuisine & Tag Options
@@ -105,6 +104,14 @@ export default function VendorRegisterPage() {
   const [submitting, setSubmitting] = useState(false);
   const [modal, setModal] = useState({ open: false, title: "", message: "", type: "info" });
 
+  // Location state management
+  const [locations, setLocations] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [selectedStateId, setSelectedStateId] = useState("");
+  const [selectedCityId, setSelectedCityId] = useState("");
+  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
+  const [locationError, setLocationError] = useState(null);
+
   const [previews, setPreviews] = useState({
     logo: null,
   });
@@ -151,6 +158,58 @@ export default function VendorRegisterPage() {
     flatRateDeliveryFee: 0,
     metadata: { featured: true },
   });
+
+  // Fetch locations from API
+  const fetchLocations = async () => {
+    try {
+      setIsLoadingLocations(true);
+      setLocationError(null);
+      const response = await axios.get("https://grub-dash-api.vercel.app/api/user/locations", {
+        withCredentials: true,
+      });
+
+      if (response.data.success) {
+        setLocations(response.data.locations || []);
+      } else {
+        setLocationError("Failed to load locations");
+      }
+    } catch (err) {
+      console.error("Error fetching locations:", err);
+      setLocationError("Error loading locations. Please refresh.");
+    } finally {
+      setIsLoadingLocations(false);
+    }
+  };
+
+  // Handle state selection
+  const handleStateChange = (stateId) => {
+    setSelectedStateId(stateId);
+    
+    // Find selected state's cities
+    const selectedLocation = locations.find(loc => loc.stateId === stateId);
+    setCities(selectedLocation?.cities || []);
+    setSelectedCityId(''); // Reset city selection
+    
+    // Update payload with state name
+    const stateName = selectedLocation?.state || '';
+    setField("address.state", stateName);
+    setField("address.city", ""); // Reset city in payload
+  };
+
+  // Handle city selection
+  const handleCityChange = (cityId) => {
+    setSelectedCityId(cityId);
+    
+    // Find selected city name
+    const selectedCity = cities.find(city => city.cityId === cityId);
+    const cityName = selectedCity?.name || '';
+    setField("address.city", cityName);
+  };
+
+  // Fetch locations when component mounts
+  useEffect(() => {
+    fetchLocations();
+  }, []);
 
   // Persist form data to session storage
   useEffect(() => {
@@ -380,33 +439,63 @@ export default function VendorRegisterPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <TextInput path="address.street" placeholder="Street Address" icon={MapPin} error={errors["address.street"]} payload={payload} setField={setField} />
 
-                    <SelectInput
-                      path="address.state"
-                      label="State"
-                      icon={MapPin}
-                      error={errors["address.state"]}
-                      payload={payload}
-                      setField={setField}
-                      options={nigeriaStates.map(s => s.state)}
-                      onChange={(newState) => {
-                        // Reset city when state changes
-                        setField("address.city", "");
-                      }}
-                    />
+                    {/* Dynamic State Selection */}
+                    <InputWrap label="State" icon={MapPin} error={errors["address.state"]}>
+                      <div className="relative">
+                        {isLoadingLocations ? (
+                          <div className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 rounded-2xl flex items-center">
+                            <Loader2 className="w-4 h-4 animate-spin text-orange-500 mr-2" />
+                            <span className="text-sm text-zinc-400">Loading locations...</span>
+                          </div>
+                        ) : locationError ? (
+                          <div className="w-full bg-red-50 border border-red-200 p-3.5 pl-11 rounded-2xl flex items-center justify-between">
+                            <span className="text-sm text-red-600">{locationError}</span>
+                            <button 
+                              onClick={fetchLocations}
+                              className="text-red-600 hover:text-red-700 text-sm font-medium"
+                            >
+                              Retry
+                            </button>
+                          </div>
+                        ) : (
+                          <select
+                            value={selectedStateId}
+                            onChange={(e) => handleStateChange(e.target.value)}
+                            className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none"
+                          >
+                            <option value="">Select State</option>
+                            {locations.map((location) => (
+                              <option key={location.stateId} value={location.stateId}>
+                                {location.state}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 pointer-events-none" />
+                      </div>
+                    </InputWrap>
 
-                    <SelectInput
-                      path="address.city"
-                      label="City"
-                      icon={MapPin}
-                      error={errors["address.city"]}
-                      payload={payload}
-                      setField={setField}
-                      options={
-                        payload.address.state
-                          ? nigeriaStates.find(s => s.state === payload.address.state)?.districts || []
-                          : []
-                      }
-                    />
+                    {/* Dynamic City Selection */}
+                    <InputWrap label="City" icon={MapPin} error={errors["address.city"]}>
+                      <div className="relative">
+                        <select
+                          value={selectedCityId}
+                          onChange={(e) => handleCityChange(e.target.value)}
+                          disabled={!selectedStateId}
+                          className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <option value="">
+                            {!selectedStateId ? 'Select state first' : 'Select City'}
+                          </option>
+                          {cities.map((city) => (
+                            <option key={city.cityId} value={city.cityId}>
+                              {city.name}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 pointer-events-none" />
+                      </div>
+                    </InputWrap>
 
                     <TextInput path="address.postalCode" placeholder="Postal / Zip Code" icon={MapPin} error={errors["address.postalCode"]} payload={payload} setField={setField} />
                   </div>

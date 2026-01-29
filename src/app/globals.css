@@ -40,7 +40,6 @@ html::-webkit-scrollbar {
 .scroll_y::-webkit-scrollbar {
   height: 0px;
   width: 0px;
-  background-color: rgb(238, 110, 25);
   /* border-radius: 10px; */
 }
 

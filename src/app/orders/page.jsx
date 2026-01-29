@@ -75,13 +75,12 @@ function OrdersContent() {
     setFoodForEdit(null);
   };
 
-  // console.log(cart);
-
   const fetchUserOrders = async () => {
     if (!user) return { orders: [] };
     const res = await axios.get(`${baseUrl}/orders/my-orders`, {
       withCredentials: true, // ✅ Use cookie-based auth
     });
+     console.log(res)
     return res.data;
   };
 
@@ -94,6 +93,7 @@ function OrdersContent() {
 
   const orders = data?.orders || [];
 
+  // console.log(orders);
   // Group items by restaurant for Cart
   const groupedCart = cart.reduce((acc, item) => {
     const store = item.storeName || "Unknown Store";

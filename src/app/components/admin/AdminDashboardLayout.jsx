@@ -18,6 +18,7 @@ import {
     Bell,
     ChevronDown,
     Shield,
+    MapPin,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -28,6 +29,7 @@ const menuItems = [
     { icon: Users, label: "Users", href: "/admin/users" },
     { icon: ShoppingBag, label: "Orders", href: "/admin/orders" },
     { icon: Star, label: "Reviews", href: "/admin/reviews" },
+    { icon: MapPin, label: "Locations", href: "/admin/locations" },
     { icon: Settings, label: "Settings", href: "/admin/settings" },
 ];
 

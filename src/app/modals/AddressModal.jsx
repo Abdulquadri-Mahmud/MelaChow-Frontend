@@ -1,32 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MapPin, Building2, Home, Navigation, ChevronDown, CheckCircle2 } from "lucide-react";
+import { X, MapPin, Home, CheckCircle2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useApi } from "../context/ApiContext";
 import axios from "axios";
+import LocationSelector, { useLocationSelector } from "../components/LocationSelector";
 
 export default function AddressModal({ user, isOpen, setIsOpen }) {
   const [loading, setLoading] = useState(false);
   const { baseUrl } = useApi();
 
-  const [address, setAddress] = useState({
-    city: "",
-    state: "",
-    addressLine: "",
-  });
+  const [addressLine, setAddressLine] = useState("");
+  
+  // Use the location selector hook
+  const {
+    selectedStateId,
+    selectedCityId,
+    stateName,
+    cityName,
+    handleStateChange,
+    handleCityChange,
+    reset,
+    isValid
+  } = useLocationSelector();
 
-  const states = ["Lagos", "Ogun"];
-
-  // State -> Cities mapping
-  const citiesByState = {
-    Lagos: ["Ikorodu", "Aruna"],
-    Ogun: ["Abeokuta", "Ijebu Remo", "Sagamu", "Saapade"],
-  };
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setAddressLine("");
+      reset();
+    }
+  }, [isOpen, reset]);
 
   const handleSave = async () => {
-    if (!address.state || !address.city || !address.addressLine) {
+    if (!isValid || !addressLine.trim()) {
       toast.error("Please fill in all address details");
       return;
     }
@@ -37,9 +46,9 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
       const res = await axios.post(
         `${baseUrl}/user/auth/address`,
         {
-          addressLine: address.addressLine,
-          city: address.city,
-          state: address.state,
+          addressLine: addressLine.trim(),
+          city: cityName,
+          state: stateName,
           isDefault: true,
         },
         {
@@ -109,68 +118,16 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
 
             {/* Form Section */}
             <div className="p-3 sm:p-3 space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* State Selection */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 ml-1">State</label>
-                  <div className="relative group">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                      <Navigation className="h-4 w-4" />
-                    </div>
-                    <select
-                      value={address.state}
-                      onChange={(e) => {
-                        const selectedState = e.target.value;
-                        setAddress({
-                          ...address,
-                          state: selectedState,
-                          city: "",
-                        });
-                      }}
-                      className="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-10 pr-10 text-sm outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 cursor-pointer"
-                    >
-                      <option value="">Select State</option>
-                      {states.map((state) => (
-                        <option key={state} value={state}>
-                          {state}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                      <ChevronDown className="h-4 w-4" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* City Selection */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 ml-1">City</label>
-                  <div className="relative group">
-                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors">
-                      <Building2 className="h-4 w-4" />
-                    </div>
-                    <select
-                      value={address.city}
-                      onChange={(e) =>
-                        setAddress({ ...address, city: e.target.value })
-                      }
-                      disabled={!address.state}
-                      className="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-10 pr-10 text-sm outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                    >
-                      <option value="">Select City</option>
-                      {address.state &&
-                        citiesByState[address.state].map((city) => (
-                          <option key={city} value={city}>
-                            {city}
-                          </option>
-                        ))}
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                      <ChevronDown className="h-4 w-4" />
-                    </div>
-                  </div>
-                </div>
-              </div>
+              {/* Location Selector */}
+              <LocationSelector
+                selectedStateId={selectedStateId}
+                selectedCityId={selectedCityId}
+                onStateChange={handleStateChange}
+                onCityChange={handleCityChange}
+                required={true}
+                stateLabel="State"
+                cityLabel="City"
+              />
 
               {/* Address Line */}
               <div className="space-y-2">
@@ -181,12 +138,11 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
                   </div>
                   <textarea
                     placeholder="House No, Street name, Landmark..."
-                    value={address.addressLine}
-                    onChange={(e) =>
-                      setAddress({ ...address, addressLine: e.target.value })
-                    }
+                    value={addressLine}
+                    onChange={(e) => setAddressLine(e.target.value)}
                     rows={3}
                     className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-10 pr-4 text-sm outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 resize-none"
+                    required
                   />
                 </div>
               </div>
@@ -201,17 +157,14 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
                   Cancel
                 </button>
                 <button
-                  disabled={loading}
+                  disabled={loading || !isValid || !addressLine.trim()}
                   onClick={handleSave}
-                  className="group relative flex-[2] overflow-hidden rounded-xl bg-orange-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 hover:shadow-orange-500/40 disabled:opacity-70"
+                  className="group relative flex-[2] overflow-hidden rounded-xl bg-orange-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 hover:shadow-orange-500/40 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   <div className="relative z-10 flex items-center justify-center gap-2">
                     {loading ? (
                       <>
-                        <svg className="h-4 w-4 animate-spin text-white" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                        </svg>
+                        <Loader2 className="h-4 w-4 animate-spin text-white" />
                         <span>Saving Address...</span>
                       </>
                     ) : (
