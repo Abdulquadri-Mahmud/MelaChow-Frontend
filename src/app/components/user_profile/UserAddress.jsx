@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, MapPin, Trash2, Edit3, CheckCircle, X, Plus,
-  ChevronRight, Home, Building2, Loader2, Sparkles
+  ChevronRight, Home, Building2, Loader2, AlertCircle
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -25,16 +25,42 @@ export default function AddressPage() {
   const [addresses, setAddresses] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
-  const [form, setForm] = useState({ state: "", city: "", addressLine: "" });
+  // Location state
+  const [locations, setLocations] = useState([]);
+  const [cities, setCities] = useState([]);
+  const [selectedStateId, setSelectedStateId] = useState("");
+  const [selectedCityId, setSelectedCityId] = useState("");
+  const [isLoadingLocations, setIsLoadingLocations] = useState(true);
+  const [locationError, setLocationError] = useState(null);
+
+  const [form, setForm] = useState({ addressLine: "" });
 
   // Modal state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
 
-  const states = ["Lagos", "Ogun"];
-  const citiesByState = {
-    Lagos: ["Ikorodu", "Aruna"],
-    Ogun: ["Abeokuta", "Ijebu Remo", "Sagamu", "Saapade"],
+  /* ---------------- FETCH LOCATIONS ---------------- */
+  const fetchLocations = async () => {
+    try {
+      setIsLoadingLocations(true);
+      setLocationError(null);
+      const response = await axios.get(`${baseUrl}/user/locations`, {
+        withCredentials: true,
+      });
+
+      if (response.data.success) {
+        setLocations(response.data.locations || []);
+      } else {
+        setLocationError("Failed to load locations");
+        toast.error("Failed to load locations");
+      }
+    } catch (err) {
+      console.error("Error fetching locations:", err);
+      setLocationError("Error loading locations. Please refresh.");
+      toast.error("Error loading locations");
+    } finally {
+      setIsLoadingLocations(false);
+    }
   };
 
   /* ---------------- FETCH ADDRESSES ---------------- */
@@ -53,43 +79,75 @@ export default function AddressPage() {
   };
 
   useEffect(() => {
+    fetchLocations();
     fetchAddresses();
   }, []);
 
+  /* ---------------- HANDLE STATE CHANGE ---------------- */
+  const handleStateChange = (e) => {
+    const stateId = e.target.value;
+    setSelectedStateId(stateId);
+
+    // Find selected state's cities
+    const selectedLocation = locations.find(loc => loc.stateId === stateId);
+    setCities(selectedLocation?.cities || []);
+    setSelectedCityId(""); // Reset city selection
+  };
+
   /* ---------------- ADD / UPDATE ---------------- */
   const saveAddress = async () => {
-    if (!form.state || !form.city || !form.addressLine) {
-      toast.error("All fields are required");
+    // Validation
+    if (!selectedStateId || !selectedCityId || !form.addressLine) {
+      toast.error("Please select state, city and enter address");
       return;
     }
 
     setLoading(true);
 
     try {
+      // Get state and city names from IDs
+      const selectedLocation = locations.find(loc => loc.stateId === selectedStateId);
+      const selectedCity = cities.find(city => city.cityId === selectedCityId);
+
+      if (!selectedLocation || !selectedCity) {
+        toast.error("Invalid location selection");
+        return;
+      }
+
+      const addressData = {
+        state: selectedLocation.state,  // Send name, not ID
+        city: selectedCity.name,        // Send name, not ID
+        addressLine: form.addressLine,
+        isDefault: true
+      };
+
       let res;
 
       if (!editingId) {
         res = await axios.post(
           `${baseUrl}/user/auth/address`,
-          { ...form, isDefault: true },
+          addressData,
           { withCredentials: true }
         );
         toast.success("New location added successfully! 🏡");
       } else {
         res = await axios.patch(
           `${baseUrl}/user/auth/address/update-address`,
-          { ...form },
+          addressData,
           { params: { addressId: editingId }, withCredentials: true }
         );
         toast.success("Address location updated ✨");
       }
 
       setAddresses(res.data.addresses);
-      setForm({ state: "", city: "", addressLine: "" });
+      setForm({ addressLine: "" });
+      setSelectedStateId("");
+      setSelectedCityId("");
+      setCities([]);
       setEditingId(null);
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong. Please try again.");
+      toast.error(err.response?.data?.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -142,6 +200,27 @@ export default function AddressPage() {
     }
   };
 
+  /* ---------------- EDIT ADDRESS ---------------- */
+  const handleEditAddress = (addr) => {
+    setEditingId(addr._id);
+    setForm({ addressLine: addr.addressLine });
+
+    // Find and set the state
+    const stateLocation = locations.find(loc => loc.state === addr.state);
+    if (stateLocation) {
+      setSelectedStateId(stateLocation.stateId);
+      setCities(stateLocation.cities || []);
+
+      // Find and set the city
+      const cityLocation = stateLocation.cities.find(city => city.name === addr.city);
+      if (cityLocation) {
+        setSelectedCityId(cityLocation.cityId);
+      }
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
@@ -180,7 +259,7 @@ export default function AddressPage() {
             </motion.div>
           )}
 
-          {/* ADD / EDIT FORM - Moved to Top for better UX on mobile */}
+          {/* ADD / EDIT FORM */}
           <motion.div
             key="address-form"
             layout
@@ -202,79 +281,131 @@ export default function AddressPage() {
                 </div>
               </div>
 
-              <div className="space-y-5">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">State</label>
-                    <div className="relative">
-                      <select
-                        value={form.state}
-                        onChange={e => setForm({ ...form, state: e.target.value, city: "" })}
-                        className="w-full bg-gray-50 hover:bg-white border border-transparent focus:border-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-800 outline-none transition-all appearance-none cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
-                      >
-                        <option value="">Select State</option>
-                        {states.map(s => <option key={s}>{s}</option>)}
-                      </select>
-                      <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">City</label>
-                    <div className="relative">
-                      <select
-                        value={form.city}
-                        disabled={!form.state}
-                        onChange={e => setForm({ ...form, city: e.target.value })}
-                        className="w-full bg-gray-50 hover:bg-white border border-transparent focus:border-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-800 outline-none transition-all appearance-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
-                      >
-                        <option value="">Select City</option>
-                        {form.state && citiesByState[form.state].map(c => <option key={c}>{c}</option>)}
-                      </select>
-                      <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90 pointer-events-none" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">Street Address</label>
-                  <textarea
-                    placeholder="e.g. 12B, Admiralty Way, Lekki Phase 1"
-                    value={form.addressLine}
-                    onChange={e => setForm({ ...form, addressLine: e.target.value })}
-                    rows={2}
-                    className="w-full bg-gray-50 hover:bg-white border border-transparent focus:border-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-800 outline-none transition-all resize-none focus:ring-4 focus:ring-orange-500/10 placeholder:text-gray-300"
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  {editingId && (
+              {/* Location Error */}
+              {locationError && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3">
+                  <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={20} />
+                  <div>
+                    <p className="text-sm font-bold text-red-900">{locationError}</p>
                     <button
-                      onClick={() => {
-                        setEditingId(null);
-                        setForm({ state: "", city: "", addressLine: "" });
-                      }}
-                      className="flex-1 py-4 rounded-2xl font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors"
+                      onClick={fetchLocations}
+                      className="text-xs font-bold text-red-600 hover:text-red-700 mt-1 underline"
                     >
-                      Cancel
+                      Retry
                     </button>
-                  )}
-                  <button
-                    disabled={loading}
-                    onClick={saveAddress}
-                    className="flex-[2] py-4 rounded-2xl font-bold text-white bg-gray-900 shadow-xl shadow-gray-900/20 hover:bg-orange-600 hover:shadow-orange-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                  >
-                    {loading ? (
-                      <Loader2 className="animate-spin" size={20} />
-                    ) : (
-                      <>
-                        {editingId ? <CheckCircle size={20} /> : <Plus size={20} />}
-                        <span>{editingId ? "Update Location" : "Save Location"}</span>
-                      </>
-                    )}
-                  </button>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Loading Locations */}
+              {isLoadingLocations && (
+                <div className="mb-6 p-6 bg-gray-50 rounded-2xl flex items-center justify-center gap-3">
+                  <Loader2 className="animate-spin text-orange-500" size={20} />
+                  <p className="text-sm font-medium text-gray-500">Loading available locations...</p>
+                </div>
+              )}
+
+              {/* No Locations Available */}
+              {!isLoadingLocations && locations.length === 0 && !locationError && (
+                <div className="mb-6 p-6 bg-yellow-50 border border-yellow-200 rounded-2xl text-center">
+                  <AlertCircle className="text-yellow-600 mx-auto mb-2" size={24} />
+                  <p className="text-sm font-bold text-yellow-900 mb-1">No locations available</p>
+                  <p className="text-xs text-yellow-700">Please contact support for assistance.</p>
+                </div>
+              )}
+
+              {/* Form */}
+              {!isLoadingLocations && locations.length > 0 && (
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">State *</label>
+                      <div className="relative">
+                        <select
+                          value={selectedStateId}
+                          onChange={handleStateChange}
+                          required
+                          className="w-full bg-gray-50 hover:bg-white border border-transparent focus:border-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-800 outline-none transition-all appearance-none cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
+                        >
+                          <option value="">Select State</option>
+                          {locations.map(loc => (
+                            <option key={loc.stateId} value={loc.stateId}>
+                              {loc.state}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">City *</label>
+                      <div className="relative">
+                        <select
+                          value={selectedCityId}
+                          disabled={!selectedStateId}
+                          onChange={e => setSelectedCityId(e.target.value)}
+                          required
+                          className="w-full bg-gray-50 hover:bg-white border border-transparent focus:border-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-800 outline-none transition-all appearance-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
+                        >
+                          <option value="">
+                            {!selectedStateId ? "Select state first" : "Select City"}
+                          </option>
+                          {cities.map(city => (
+                            <option key={city.cityId} value={city.cityId}>
+                              {city.name}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90 pointer-events-none" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">Street Address *</label>
+                    <textarea
+                      placeholder="e.g. 12B, Admiralty Way, Lekki Phase 1"
+                      value={form.addressLine}
+                      onChange={e => setForm({ addressLine: e.target.value })}
+                      rows={2}
+                      required
+                      className="w-full bg-gray-50 hover:bg-white border border-transparent focus:border-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-800 outline-none transition-all resize-none focus:ring-4 focus:ring-orange-500/10 placeholder:text-gray-300"
+                    />
+                  </div>
+
+                  <div className="flex gap-3 pt-4">
+                    {editingId && (
+                      <button
+                        onClick={() => {
+                          setEditingId(null);
+                          setForm({ addressLine: "" });
+                          setSelectedStateId("");
+                          setSelectedCityId("");
+                          setCities([]);
+                        }}
+                        className="flex-1 py-4 rounded-2xl font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    )}
+                    <button
+                      disabled={loading || !selectedStateId || !selectedCityId || !form.addressLine}
+                      onClick={saveAddress}
+                      className="flex-[2] py-4 rounded-2xl font-bold text-white bg-gray-900 shadow-xl shadow-gray-900/20 hover:bg-orange-600 hover:shadow-orange-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                      {loading ? (
+                        <Loader2 className="animate-spin" size={20} />
+                      ) : (
+                        <>
+                          {editingId ? <CheckCircle size={20} /> : <Plus size={20} />}
+                          <span>{editingId ? "Update Location" : "Save Location"}</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
 
@@ -328,11 +459,7 @@ export default function AddressPage() {
                   )}
 
                   <button
-                    onClick={() => {
-                      setEditingId(addr._id);
-                      setForm({ state: addr.state, city: addr.city, addressLine: addr.addressLine });
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
+                    onClick={() => handleEditAddress(addr)}
                     className="p-2.5 rounded-xl text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-all"
                   >
                     <Edit3 size={18} />

@@ -11,6 +11,9 @@ const ProfileContext = createContext(undefined);
 const PUBLIC_ROUTES = [
   "/auth/signin",
   "/auth/signup",
+  "/auth/verify-account",
+  "/auth/forgot-password",
+  "/auth/reset-password",
   "/vendor-auth/signin",
   "/vendor-auth/signup",
   "/admin/login",
