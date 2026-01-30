@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { useApi } from "@/app/context/ApiContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
+import { LocationService } from "@/app/lib/locationService";
 import AddressSkeleton from "../skeleton/AddressSkeleton";
 
 export default function AddressPage() {
@@ -44,15 +45,15 @@ export default function AddressPage() {
     try {
       setIsLoadingLocations(true);
       setLocationError(null);
-      const response = await axios.get(`${baseUrl}/user/locations`, {
-        withCredentials: true,
-      });
 
-      if (response.data.success) {
-        setLocations(response.data.locations || []);
+      const result = await LocationService.fetchUserLocations();
+      console.log("Fetched locations:", result);
+
+      if (result.success) {
+        setLocations(result.locations || []);
       } else {
-        setLocationError("Failed to load locations");
-        toast.error("Failed to load locations");
+        setLocationError(result.error);
+        toast.error(result.error);
       }
     } catch (err) {
       console.error("Error fetching locations:", err);
@@ -263,19 +264,16 @@ export default function AddressPage() {
           <motion.div
             key="address-form"
             layout
-            className="bg-white border border-gray-100 rounded-[32px] p-6 md:p-8 shadow-xl shadow-gray-200/40 relative overflow-hidden group"
+            className="bg-white border border-gray-200 rounded-[24px] p-6 md:p-8 shadow-sm relative overflow-hidden group"
           >
-            {/* Decor */}
-            <div className="absolute top-0 right-0 p-20 bg-gradient-to-br from-orange-50 to-transparent rounded-bl-[100px] -z-0 opacity-50"></div>
-
             <div className="relative z-10">
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/30">
+                <div className="w-12 h-12 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/20">
                   {editingId ? <Edit3 size={20} /> : <Plus size={24} />}
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">{editingId ? "Update Location" : "Add New Address"}</h2>
-                  <p className="text-xs font-medium text-gray-400">
+                  <p className="text-xs font-medium text-gray-500">
                     {editingId ? "Modify your delivery details" : "Where should we deliver your food?"}
                   </p>
                 </div>
@@ -283,7 +281,7 @@ export default function AddressPage() {
 
               {/* Location Error */}
               {locationError && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3">
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
                   <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={20} />
                   <div>
                     <p className="text-sm font-bold text-red-900">{locationError}</p>
@@ -299,7 +297,7 @@ export default function AddressPage() {
 
               {/* Loading Locations */}
               {isLoadingLocations && (
-                <div className="mb-6 p-6 bg-gray-50 rounded-2xl flex items-center justify-center gap-3">
+                <div className="mb-6 p-6 bg-gray-50 rounded-xl flex items-center justify-center gap-3">
                   <Loader2 className="animate-spin text-orange-500" size={20} />
                   <p className="text-sm font-medium text-gray-500">Loading available locations...</p>
                 </div>
@@ -307,7 +305,7 @@ export default function AddressPage() {
 
               {/* No Locations Available */}
               {!isLoadingLocations && locations.length === 0 && !locationError && (
-                <div className="mb-6 p-6 bg-yellow-50 border border-yellow-200 rounded-2xl text-center">
+                <div className="mb-6 p-6 bg-yellow-50 border border-yellow-200 rounded-xl text-center">
                   <AlertCircle className="text-yellow-600 mx-auto mb-2" size={24} />
                   <p className="text-sm font-bold text-yellow-900 mb-1">No locations available</p>
                   <p className="text-xs text-yellow-700">Please contact support for assistance.</p>
@@ -319,13 +317,13 @@ export default function AddressPage() {
                 <div className="space-y-5">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">State *</label>
+                      <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider pl-1">State *</label>
                       <div className="relative">
                         <select
                           value={selectedStateId}
                           onChange={handleStateChange}
                           required
-                          className="w-full bg-gray-50 hover:bg-white border border-transparent focus:border-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-800 outline-none transition-all appearance-none cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
+                          className="w-full bg-white border border-gray-200 focus:border-orange-500 rounded-xl p-3.5 text-sm font-semibold text-gray-900 outline-none transition-all appearance-none cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
                         >
                           <option value="">Select State</option>
                           {locations.map(loc => (
@@ -339,14 +337,14 @@ export default function AddressPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">City *</label>
+                      <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider pl-1">City *</label>
                       <div className="relative">
                         <select
                           value={selectedCityId}
                           disabled={!selectedStateId}
                           onChange={e => setSelectedCityId(e.target.value)}
                           required
-                          className="w-full bg-gray-50 hover:bg-white border border-transparent focus:border-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-800 outline-none transition-all appearance-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
+                          className="w-full bg-white border border-gray-200 focus:border-orange-500 rounded-xl p-3.5 text-sm font-semibold text-gray-900 outline-none transition-all appearance-none disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
                         >
                           <option value="">
                             {!selectedStateId ? "Select state first" : "Select City"}
@@ -363,14 +361,14 @@ export default function AddressPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">Street Address *</label>
+                    <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider pl-1">Street Address *</label>
                     <textarea
                       placeholder="e.g. 12B, Admiralty Way, Lekki Phase 1"
                       value={form.addressLine}
                       onChange={e => setForm({ addressLine: e.target.value })}
                       rows={2}
                       required
-                      className="w-full bg-gray-50 hover:bg-white border border-transparent focus:border-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-800 outline-none transition-all resize-none focus:ring-4 focus:ring-orange-500/10 placeholder:text-gray-300"
+                      className="w-full bg-white border border-gray-200 focus:border-orange-500 rounded-xl p-3.5 text-sm font-semibold text-gray-900 outline-none transition-all resize-none focus:ring-4 focus:ring-orange-500/10 placeholder:text-gray-400"
                     />
                   </div>
 

@@ -27,6 +27,8 @@ export default function ConditionalBottomNav() {
     "/admin/login",
     "/admin/dashboard",
     "/admin/categories",
+    "/admin/locations",
+    "/admin/settings",
   ];
 
   // ✅ Hide nav also on dynamic routes

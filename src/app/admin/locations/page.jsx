@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { 
-  Plus, Loader2, CheckCircle2, Clock, Building2,
-  Navigation, AlertTriangle, ExternalLink, Code, Database
+import { useState, useEffect, useMemo } from "react";
+import {
+  Plus, Loader2, CheckCircle2, Clock, Building2, Navigation,
+  AlertTriangle, ExternalLink, Code, Database, Search, Filter,
+  X, MapPin, TrendingUp, Users, Calendar, Eye, EyeOff, Trash2,
+  Edit3, MoreVertical, Download, Upload, RefreshCw
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import axios from "axios";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
@@ -17,6 +20,14 @@ function AdminLocationManagement() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [backendStatus, setBackendStatus] = useState('checking');
+
+  // Search and filter states
+  const [stateSearch, setStateSearch] = useState('');
+  const [citySearch, setCitySearch] = useState('');
+  const [requestSearch, setRequestSearch] = useState('');
+  const [stateFilter, setStateFilter] = useState('all'); // all, active, inactive
+  const [cityFilter, setCityFilter] = useState('all');
+  const [cityStateFilter, setCityStateFilter] = useState('all'); // filter cities by state
 
   // Modal states
   const [showStateModal, setShowStateModal] = useState(false);
@@ -41,11 +52,10 @@ function AdminLocationManagement() {
   const checkBackendEndpoints = async () => {
     setLoading(true);
     try {
-      // Test if the admin location endpoints exist
       const response = await axios.get(`${baseUrl}/admin/locations/states`, {
         withCredentials: true
       });
-      
+
       if (response.data.success) {
         setBackendStatus('available');
         fetchStates();
@@ -121,7 +131,7 @@ function AdminLocationManagement() {
       });
 
       if (response.data.success) {
-        toast.success('State created successfully!');
+        toast.success('State created successfully! 🎉');
         setNewStateName('');
         setShowStateModal(false);
         fetchStates();
@@ -153,7 +163,7 @@ function AdminLocationManagement() {
       });
 
       if (response.data.success) {
-        toast.success('City created successfully!');
+        toast.success('City created successfully! 🎉');
         setNewCityName('');
         setSelectedStateId('');
         setShowCityModal(false);
@@ -226,7 +236,7 @@ function AdminLocationManagement() {
       });
 
       if (response.data.success) {
-        toast.success('Vendor approved successfully!');
+        toast.success('Vendor approved successfully! ✅');
         setSelectedVendor(null);
         setResolveState('');
         setResolveCity('');
@@ -244,133 +254,124 @@ function AdminLocationManagement() {
     }
   };
 
-  // If backend endpoints are not implemented, show implementation guide
+  // Filtered and searched data
+  const filteredStates = useMemo(() => {
+    return states.filter(state => {
+      const matchesSearch = state.name.toLowerCase().includes(stateSearch.toLowerCase());
+      const matchesFilter = stateFilter === 'all' ||
+        (stateFilter === 'active' && state.isActive) ||
+        (stateFilter === 'inactive' && !state.isActive);
+      return matchesSearch && matchesFilter;
+    });
+  }, [states, stateSearch, stateFilter]);
+
+  const filteredCities = useMemo(() => {
+    return cities.filter(city => {
+      const matchesSearch = city.name.toLowerCase().includes(citySearch.toLowerCase());
+      const matchesFilter = cityFilter === 'all' ||
+        (cityFilter === 'active' && city.isActive) ||
+        (cityFilter === 'inactive' && !city.isActive);
+      const matchesStateFilter = cityStateFilter === 'all' || city.stateId?._id === cityStateFilter;
+      return matchesSearch && matchesFilter && matchesStateFilter;
+    });
+  }, [cities, citySearch, cityFilter, cityStateFilter]);
+
+  const filteredRequests = useMemo(() => {
+    return pendingRequests.filter(request => {
+      const matchesSearch =
+        request.storeName?.toLowerCase().includes(requestSearch.toLowerCase()) ||
+        request.requestedState?.toLowerCase().includes(requestSearch.toLowerCase()) ||
+        request.requestedCity?.toLowerCase().includes(requestSearch.toLowerCase());
+      return matchesSearch;
+    });
+  }, [pendingRequests, requestSearch]);
+
+  // Statistics
+  const stats = useMemo(() => ({
+    totalStates: states.length,
+    activeStates: states.filter(s => s.isActive).length,
+    totalCities: cities.length,
+    activeCities: cities.filter(c => c.isActive).length,
+    pendingRequests: pendingRequests.length
+  }), [states, cities, pendingRequests]);
+
+  // If backend endpoints are not implemented
   if (backendStatus === 'not-implemented') {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/20 to-gray-50 p-6">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Location Management</h1>
-            <p className="text-gray-600">Database-driven location system for managing states and cities</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <h1 className="text-4xl font-black text-gray-900 mb-2 bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
+              Location Management
+            </h1>
+            <p className="text-gray-600 font-medium">Database-driven location system for managing states and cities</p>
+          </motion.div>
 
-          {/* Status Card */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-12"
+          >
             <div className="text-center">
-              <div className="mx-auto flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
-                <AlertTriangle className="w-8 h-8 text-yellow-600" />
+              <div className="mx-auto flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-full mb-6 relative">
+                <div className="absolute inset-0 bg-yellow-200/50 rounded-full animate-ping opacity-20"></div>
+                <AlertTriangle className="w-10 h-10 text-orange-600 relative z-10" />
               </div>
-              
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Backend Implementation Required</h2>
-              <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-                The admin location management endpoints are not yet implemented on the backend. 
+
+              <h2 className="text-3xl font-black text-gray-900 mb-3">Backend Implementation Required</h2>
+              <p className="text-gray-600 mb-8 max-w-2xl mx-auto font-medium">
+                The admin location management endpoints are not yet implemented on the backend.
                 The frontend is ready and waiting for the backend API endpoints.
               </p>
 
-              {/* Implementation Status */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full mx-auto mb-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6">
+                  <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-xl mx-auto mb-3">
+                    <CheckCircle2 className="w-6 h-6 text-green-600" />
                   </div>
-                  <h3 className="font-semibold text-green-900 mb-1">Frontend Complete</h3>
-                  <p className="text-sm text-green-700">
-                    ✅ User address components updated<br/>
-                    ✅ Admin location management UI<br/>
-                    ✅ Reusable location components<br/>
-                    ✅ Dynamic location fetching
-                  </p>
+                  <h3 className="font-black text-green-900 mb-2 text-lg">Frontend Complete</h3>
+                  <ul className="text-sm text-green-700 space-y-1 font-medium">
+                    <li>✅ User address components updated</li>
+                    <li>✅ Admin location management UI</li>
+                    <li>✅ Search & filter functionality</li>
+                    <li>✅ Dynamic location fetching</li>
+                  </ul>
                 </div>
 
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="flex items-center justify-center w-8 h-8 bg-yellow-100 rounded-full mx-auto mb-2">
-                    <Clock className="w-5 h-5 text-yellow-600" />
+                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-6">
+                  <div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-xl mx-auto mb-3">
+                    <Clock className="w-6 h-6 text-yellow-600" />
                   </div>
-                  <h3 className="font-semibold text-yellow-900 mb-1">Backend Pending</h3>
-                  <p className="text-sm text-yellow-700">
-                    ⏳ Admin location endpoints<br/>
-                    ⏳ State/city CRUD operations<br/>
-                    ⏳ Location request management<br/>
-                    ⏳ Database schema updates
-                  </p>
-                </div>
-              </div>
-
-              {/* Required Endpoints */}
-              <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Code className="w-5 h-5" />
-                  Required Backend Endpoints
-                </h3>
-                
-                <div className="text-left space-y-2 text-sm font-mono bg-white rounded border p-4">
-                  <div className="text-green-600">GET    /api/admin/locations/states</div>
-                  <div className="text-blue-600">POST   /api/admin/locations/states</div>
-                  <div className="text-orange-600">PATCH  /api/admin/locations/states/:id/activate</div>
-                  <div className="text-green-600">GET    /api/admin/locations/cities</div>
-                  <div className="text-blue-600">POST   /api/admin/locations/cities</div>
-                  <div className="text-orange-600">PATCH  /api/admin/locations/cities/:id/activate</div>
-                  <div className="text-green-600">GET    /api/admin/locations/location-requests</div>
-                  <div className="text-orange-600">PATCH  /api/admin/vendors/approve?vendorId=...</div>
+                  <h3 className="font-black text-yellow-900 mb-2 text-lg">Backend Pending</h3>
+                  <ul className="text-sm text-yellow-700 space-y-1 font-medium">
+                    <li>⏳ Admin location endpoints</li>
+                    <li>⏳ State/city CRUD operations</li>
+                    <li>⏳ Location request management</li>
+                    <li>⏳ Database schema updates</li>
+                  </ul>
                 </div>
               </div>
 
-              {/* Current Working Features */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
-                  <Database className="w-5 h-5" />
-                  Currently Working Features
-                </h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div className="text-left">
-                    <h4 className="font-semibold text-blue-900 mb-2">User Components:</h4>
-                    <ul className="space-y-1 text-blue-700">
-                      <li>✅ Address Modal (dynamic locations)</li>
-                      <li>✅ User Address Management</li>
-                      <li>✅ Vendor Registration</li>
-                      <li>✅ Location Selector Component</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="text-left">
-                    <h4 className="font-semibold text-blue-900 mb-2">API Integration:</h4>
-                    <ul className="space-y-1 text-blue-700">
-                      <li>✅ GET /api/user/locations</li>
-                      <li>✅ Location Service utilities</li>
-                      <li>✅ Error handling & loading states</li>
-                      <li>✅ Form validation</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-                <button
-                  onClick={() => window.open('https://github.com/your-repo/backend', '_blank')}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  View Backend Repository
-                </button>
-                
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={checkBackendEndpoints}
                   disabled={loading}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-500/30 disabled:opacity-50 font-bold"
                 >
                   {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    <CheckCircle2 className="w-4 h-4" />
+                    <RefreshCw className="w-5 h-5" />
                   )}
                   Check Backend Status
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     );
@@ -379,12 +380,19 @@ function AdminLocationManagement() {
   // If checking backend status
   if (backendStatus === 'checking') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-orange-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Checking Backend Status</h2>
-          <p className="text-gray-600">Verifying admin location endpoints...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/20 to-gray-50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="relative mb-6">
+            <Loader2 className="w-16 h-16 animate-spin text-orange-500 mx-auto" />
+            <div className="absolute inset-0 bg-orange-200/30 rounded-full animate-ping"></div>
+          </div>
+          <h2 className="text-2xl font-black text-gray-900 mb-2">Checking Backend Status</h2>
+          <p className="text-gray-600 font-medium">Verifying admin location endpoints...</p>
+        </motion.div>
       </div>
     );
   }
@@ -392,513 +400,897 @@ function AdminLocationManagement() {
   // If unauthorized
   if (backendStatus === 'unauthorized') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
-          <p className="text-gray-600">You don't have permission to access location management.</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-red-50/20 to-gray-50 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="mx-auto flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-6">
+            <AlertTriangle className="w-10 h-10 text-red-500" />
+          </div>
+          <h2 className="text-2xl font-black text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-600 font-medium">You don't have permission to access location management.</p>
+        </motion.div>
       </div>
     );
   }
 
-  // If backend is available, show the full interface (this would be the working version)
+  // Main interface
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/10 to-gray-50 p-4 md:p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Location Management</h1>
-          <p className="text-gray-600">Manage states, cities, and location requests</p>
-        </div>
-
-        {/* Success message */}
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-green-600" />
-            <span className="text-green-800 font-medium">Backend endpoints are available! Location management is ready to use.</span>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+        >
+          <div>
+            <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2 bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
+              Location Management
+            </h1>
+            <p className="text-gray-600 font-medium">Manage states, cities, and location requests</p>
           </div>
-        </div>
+
+          <button
+            onClick={() => {
+              fetchStates();
+              fetchCities();
+              fetchPendingRequests();
+              toast.success('Data refreshed!');
+            }}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl hover:border-orange-500 hover:text-orange-600 transition-all font-bold shadow-sm"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh
+          </button>
+        </motion.div>
+
+        {/* Statistics Cards */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-2 md:grid-cols-5 gap-4"
+        >
+          <StatCard
+            icon={<Navigation className="w-5 h-5" />}
+            label="Total States"
+            value={stats.totalStates}
+            color="blue"
+          />
+          <StatCard
+            icon={<CheckCircle2 className="w-5 h-5" />}
+            label="Active States"
+            value={stats.activeStates}
+            color="green"
+          />
+          <StatCard
+            icon={<Building2 className="w-5 h-5" />}
+            label="Total Cities"
+            value={stats.totalCities}
+            color="purple"
+          />
+          <StatCard
+            icon={<MapPin className="w-5 h-5" />}
+            label="Active Cities"
+            value={stats.activeCities}
+            color="emerald"
+          />
+          <StatCard
+            icon={<Clock className="w-5 h-5" />}
+            label="Pending"
+            value={stats.pendingRequests}
+            color="orange"
+            highlight={stats.pendingRequests > 0}
+          />
+        </motion.div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-          <div className="flex border-b border-gray-200">
-            <button
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
+        >
+          <div className="flex border-b border-gray-100 overflow-x-auto">
+            <TabButton
+              active={activeTab === 'states'}
               onClick={() => setActiveTab('states')}
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'states'
-                  ? 'border-orange-500 text-orange-600 bg-orange-50'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Navigation className="w-4 h-4" />
-                States ({states.length})
-              </div>
-            </button>
-            <button
+              icon={<Navigation className="w-4 h-4" />}
+              label="States"
+              count={filteredStates.length}
+            />
+            <TabButton
+              active={activeTab === 'cities'}
               onClick={() => setActiveTab('cities')}
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'cities'
-                  ? 'border-orange-500 text-orange-600 bg-orange-50'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                Cities ({cities.length})
-              </div>
-            </button>
-            <button
+              icon={<Building2 className="w-4 h-4" />}
+              label="Cities"
+              count={filteredCities.length}
+            />
+            <TabButton
+              active={activeTab === 'requests'}
               onClick={() => setActiveTab('requests')}
-              className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'requests'
-                  ? 'border-orange-500 text-orange-600 bg-orange-50'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Pending Requests ({pendingRequests.length})
-              </div>
-            </button>
+              icon={<Clock className="w-4 h-4" />}
+              label="Pending Requests"
+              count={filteredRequests.length}
+              highlight={filteredRequests.length > 0}
+            />
           </div>
 
           {/* Tab Content */}
           <div className="p-6">
-            {activeTab === 'states' && (
-              <StatesPanel 
-                states={states}
-                loading={loading}
-                onToggleStatus={toggleStateStatus}
-                showModal={showStateModal}
-                setShowModal={setShowStateModal}
-                newStateName={newStateName}
-                setNewStateName={setNewStateName}
-                onCreateState={createState}
-              />
-            )}
+            <AnimatePresence mode="wait">
+              {activeTab === 'states' && (
+                <StatesPanel
+                  states={filteredStates}
+                  loading={loading}
+                  onToggleStatus={toggleStateStatus}
+                  showModal={showStateModal}
+                  setShowModal={setShowStateModal}
+                  newStateName={newStateName}
+                  setNewStateName={setNewStateName}
+                  onCreateState={createState}
+                  searchTerm={stateSearch}
+                  setSearchTerm={setStateSearch}
+                  filter={stateFilter}
+                  setFilter={setStateFilter}
+                />
+              )}
 
-            {activeTab === 'cities' && (
-              <CitiesPanel 
-                cities={cities}
-                states={states}
-                loading={loading}
-                onToggleStatus={toggleCityStatus}
-                showModal={showCityModal}
-                setShowModal={setShowCityModal}
-                newCityName={newCityName}
-                setNewCityName={setNewCityName}
-                selectedStateId={selectedStateId}
-                setSelectedStateId={setSelectedStateId}
-                onCreateCity={createCity}
-              />
-            )}
+              {activeTab === 'cities' && (
+                <CitiesPanel
+                  cities={filteredCities}
+                  states={states}
+                  loading={loading}
+                  onToggleStatus={toggleCityStatus}
+                  showModal={showCityModal}
+                  setShowModal={setShowCityModal}
+                  newCityName={newCityName}
+                  setNewCityName={setNewCityName}
+                  selectedStateId={selectedStateId}
+                  setSelectedStateId={setSelectedStateId}
+                  onCreateCity={createCity}
+                  searchTerm={citySearch}
+                  setSearchTerm={setCitySearch}
+                  filter={cityFilter}
+                  setFilter={setCityFilter}
+                  stateFilter={cityStateFilter}
+                  setStateFilter={setCityStateFilter}
+                />
+              )}
 
-            {activeTab === 'requests' && (
-              <PendingRequestsPanel 
-                requests={pendingRequests}
-                loading={loading}
-                selectedVendor={selectedVendor}
-                setSelectedVendor={setSelectedVendor}
-                showModal={showRequestModal}
-                setShowModal={setShowRequestModal}
-                resolveState={resolveState}
-                setResolveState={setResolveState}
-                resolveCity={resolveCity}
-                setResolveCity={setResolveCity}
-                createLocation={createLocation}
-                setCreateLocation={setCreateLocation}
-                onApproveVendor={approveVendor}
-              />
-            )}
+              {activeTab === 'requests' && (
+                <PendingRequestsPanel
+                  requests={filteredRequests}
+                  loading={loading}
+                  selectedVendor={selectedVendor}
+                  setSelectedVendor={setSelectedVendor}
+                  showModal={showRequestModal}
+                  setShowModal={setShowRequestModal}
+                  resolveState={resolveState}
+                  setResolveState={setResolveState}
+                  resolveCity={resolveCity}
+                  setResolveCity={setResolveCity}
+                  createLocation={createLocation}
+                  setCreateLocation={setCreateLocation}
+                  onApproveVendor={approveVendor}
+                  searchTerm={requestSearch}
+                  setSearchTerm={setRequestSearch}
+                />
+              )}
+            </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
 }
 
+// Stat Card Component
+const StatCard = ({ icon, label, value, color, highlight }) => {
+  const colors = {
+    blue: 'from-blue-500 to-blue-600',
+    green: 'from-green-500 to-green-600',
+    purple: 'from-purple-500 to-purple-600',
+    emerald: 'from-emerald-500 to-emerald-600',
+    orange: 'from-orange-500 to-orange-600',
+  };
+
+  return (
+    <motion.div
+      whileHover={{ y: -4, scale: 1.02 }}
+      className={`bg-white rounded-2xl p-4 border-2 ${highlight ? 'border-orange-500 shadow-lg shadow-orange-500/20' : 'border-gray-100'} transition-all`}
+    >
+      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colors[color]} flex items-center justify-center text-white mb-3 shadow-lg`}>
+        {icon}
+      </div>
+      <p className="text-2xl font-black text-gray-900">{value}</p>
+      <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{label}</p>
+    </motion.div>
+  );
+};
+
+// Tab Button Component
+const TabButton = ({ active, onClick, icon, label, count, highlight }) => (
+  <button
+    onClick={onClick}
+    className={`relative px-6 py-4 text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${active
+        ? 'text-orange-600 bg-orange-50'
+        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+      }`}
+  >
+    {icon}
+    <span>{label}</span>
+    {count !== undefined && (
+      <span className={`px-2 py-0.5 rounded-full text-xs font-black ${active
+          ? 'bg-orange-500 text-white'
+          : highlight
+            ? 'bg-orange-500 text-white'
+            : 'bg-gray-200 text-gray-600'
+        }`}>
+        {count}
+      </span>
+    )}
+    {active && (
+      <motion.div
+        layoutId="activeTab"
+        className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-t-full"
+      />
+    )}
+  </button>
+);
+
 // States Panel Component
-const StatesPanel = ({ 
-  states, loading, onToggleStatus, 
-  showModal, setShowModal, newStateName, setNewStateName, onCreateState 
+const StatesPanel = ({
+  states, loading, onToggleStatus,
+  showModal, setShowModal, newStateName, setNewStateName, onCreateState,
+  searchTerm, setSearchTerm, filter, setFilter
 }) => (
-  <div className="space-y-6">
-    <div className="flex justify-between items-center">
-      <h2 className="text-xl font-semibold text-gray-900">States Management</h2>
+  <motion.div
+    key="states"
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: 20 }}
+    className="space-y-6"
+  >
+    {/* Toolbar */}
+    <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+      <div className="flex-1 flex flex-col sm:flex-row gap-3">
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search states..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all font-medium"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Filter */}
+        <div className="relative">
+          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="pl-12 pr-10 py-3 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all font-bold appearance-none cursor-pointer"
+          >
+            <option value="all">All States</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+        </div>
+      </div>
+
       <button
         onClick={() => setShowModal(true)}
-        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg shadow-orange-500/30"
       >
-        <Plus className="w-4 h-4" />
+        <Plus className="w-5 h-5" />
         Add State
       </button>
     </div>
 
+    {/* States Grid */}
     {loading ? (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
-        <span className="ml-2 text-gray-600">Loading states...</span>
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
+    ) : states.length === 0 ? (
+      <EmptyState
+        icon={<Navigation className="w-12 h-12" />}
+        title="No states found"
+        description="Get started by creating your first state"
+      />
     ) : (
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {states.map((state) => (
-              <tr key={state._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {state.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    state.isActive 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {state.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(state.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
-                    onClick={() => onToggleStatus(state._id, state.isActive)}
-                    className={`${
-                      state.isActive 
-                        ? 'text-red-600 hover:text-red-900' 
-                        : 'text-green-600 hover:text-green-900'
-                    } transition-colors`}
-                  >
-                    {state.isActive ? 'Deactivate' : 'Activate'}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {states.map((state, index) => (
+          <StateCard
+            key={state._id}
+            state={state}
+            index={index}
+            onToggleStatus={onToggleStatus}
+          />
+        ))}
       </div>
     )}
 
     {/* Create State Modal */}
-    {showModal && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <h3 className="text-lg font-semibold mb-4">Create New State</h3>
-          <form onSubmit={onCreateState}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">State Name</label>
+    <AnimatePresence>
+      {showModal && (
+        <Modal
+          title="Create New State"
+          onClose={() => setShowModal(false)}
+        >
+          <form onSubmit={onCreateState} className="space-y-6">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">State Name *</label>
               <input
                 type="text"
                 value={newStateName}
                 onChange={(e) => setNewStateName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                placeholder="Enter state name"
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all font-medium"
+                placeholder="e.g., Lagos"
                 required
+                autoFocus
               />
             </div>
+
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="flex-1 px-6 py-3 text-gray-700 bg-gray-100 rounded-2xl hover:bg-gray-200 transition-all font-bold"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg shadow-orange-500/30 disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {loading ? 'Creating...' : 'Create State'}
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    Create State
+                  </>
+                )}
               </button>
             </div>
           </form>
-        </div>
-      </div>
-    )}
-  </div>
+        </Modal>
+      )}
+    </AnimatePresence>
+  </motion.div>
 );
 
-// Cities Panel Component  
-const CitiesPanel = ({ 
+// State Card Component
+const StateCard = ({ state, index, onToggleStatus }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: index * 0.05 }}
+    whileHover={{ y: -4 }}
+    className={`group relative bg-white border-2 rounded-2xl p-6 transition-all ${state.isActive
+        ? 'border-green-200 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20'
+        : 'border-gray-200 hover:border-gray-300 hover:shadow-lg'
+      }`}
+  >
+    <div className="flex items-start justify-between mb-4">
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${state.isActive ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+        }`}>
+        <Navigation className="w-6 h-6" />
+      </div>
+      <span className={`px-3 py-1 rounded-full text-xs font-black ${state.isActive
+          ? 'bg-green-100 text-green-700'
+          : 'bg-gray-100 text-gray-600'
+        }`}>
+        {state.isActive ? 'Active' : 'Inactive'}
+      </span>
+    </div>
+
+    <h3 className="text-xl font-black text-gray-900 mb-2">{state.name}</h3>
+    <p className="text-sm text-gray-500 font-medium mb-4">
+      Created {new Date(state.createdAt).toLocaleDateString()}
+    </p>
+
+    <button
+      onClick={() => onToggleStatus(state._id, state.isActive)}
+      className={`w-full py-2.5 rounded-xl font-bold transition-all ${state.isActive
+          ? 'bg-red-50 text-red-600 hover:bg-red-100'
+          : 'bg-green-50 text-green-600 hover:bg-green-100'
+        }`}
+    >
+      {state.isActive ? (
+        <span className="flex items-center justify-center gap-2">
+          <EyeOff className="w-4 h-4" />
+          Deactivate
+        </span>
+      ) : (
+        <span className="flex items-center justify-center gap-2">
+          <Eye className="w-4 h-4" />
+          Activate
+        </span>
+      )}
+    </button>
+  </motion.div>
+);
+
+// Cities Panel Component (similar structure with additional state filter)
+const CitiesPanel = ({
   cities, states, loading, onToggleStatus,
   showModal, setShowModal, newCityName, setNewCityName,
-  selectedStateId, setSelectedStateId, onCreateCity
+  selectedStateId, setSelectedStateId, onCreateCity,
+  searchTerm, setSearchTerm, filter, setFilter, stateFilter, setStateFilter
 }) => (
-  <div className="space-y-6">
-    <div className="flex justify-between items-center">
-      <h2 className="text-xl font-semibold text-gray-900">Cities Management</h2>
+  <motion.div
+    key="cities"
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: 20 }}
+    className="space-y-6"
+  >
+    {/* Toolbar */}
+    <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+      <div className="flex-1 flex flex-col sm:flex-row gap-3">
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search cities..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all font-medium"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Status Filter */}
+        <div className="relative">
+          <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="pl-12 pr-10 py-3 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all font-bold appearance-none cursor-pointer"
+          >
+            <option value="all">All Cities</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+        </div>
+
+        {/* State Filter */}
+        <div className="relative">
+          <Navigation className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <select
+            value={stateFilter}
+            onChange={(e) => setStateFilter(e.target.value)}
+            className="pl-12 pr-10 py-3 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all font-bold appearance-none cursor-pointer"
+          >
+            <option value="all">All States</option>
+            {states.map(state => (
+              <option key={state._id} value={state._id}>{state.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <button
         onClick={() => setShowModal(true)}
-        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg shadow-orange-500/30"
       >
-        <Plus className="w-4 h-4" />
+        <Plus className="w-5 h-5" />
         Add City
       </button>
     </div>
 
+    {/* Cities Grid */}
     {loading ? (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
-        <span className="ml-2 text-gray-600">Loading cities...</span>
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
+    ) : cities.length === 0 ? (
+      <EmptyState
+        icon={<Building2 className="w-12 h-12" />}
+        title="No cities found"
+        description="Get started by creating your first city"
+      />
     ) : (
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">State</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {cities.map((city) => (
-              <tr key={city._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {city.name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {city.stateId?.name || 'N/A'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    city.isActive 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {city.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(city.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
-                    onClick={() => onToggleStatus(city._id, city.isActive)}
-                    className={`${
-                      city.isActive 
-                        ? 'text-red-600 hover:text-red-900' 
-                        : 'text-green-600 hover:text-green-900'
-                    } transition-colors`}
-                  >
-                    {city.isActive ? 'Deactivate' : 'Activate'}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {cities.map((city, index) => (
+          <CityCard
+            key={city._id}
+            city={city}
+            index={index}
+            onToggleStatus={onToggleStatus}
+          />
+        ))}
       </div>
     )}
 
     {/* Create City Modal */}
-    {showModal && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <h3 className="text-lg font-semibold mb-4">Create New City</h3>
-          <form onSubmit={onCreateCity}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+    <AnimatePresence>
+      {showModal && (
+        <Modal
+          title="Create New City"
+          onClose={() => setShowModal(false)}
+        >
+          <form onSubmit={onCreateCity} className="space-y-6">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">State *</label>
               <select
                 value={selectedStateId}
                 onChange={(e) => setSelectedStateId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all font-bold appearance-none cursor-pointer"
                 required
               >
                 <option value="">Select State</option>
-                {states.map((state) => (
-                  <option key={state._id} value={state._id}>
-                    {state.name}
-                  </option>
+                {states.map(state => (
+                  <option key={state._id} value={state._id}>{state.name}</option>
                 ))}
               </select>
             </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">City Name</label>
+
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">City Name *</label>
               <input
                 type="text"
                 value={newCityName}
                 onChange={(e) => setNewCityName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                placeholder="Enter city name"
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all font-medium"
+                placeholder="e.g., Ikeja"
                 required
               />
             </div>
+
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="flex-1 px-6 py-3 text-gray-700 bg-gray-100 rounded-2xl hover:bg-gray-200 transition-all font-bold"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg shadow-orange-500/30 disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {loading ? 'Creating...' : 'Create City'}
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    Create City
+                  </>
+                )}
               </button>
             </div>
           </form>
-        </div>
+        </Modal>
+      )}
+    </AnimatePresence>
+  </motion.div>
+);
+
+// City Card Component
+const CityCard = ({ city, index, onToggleStatus }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: index * 0.05 }}
+    whileHover={{ y: -4 }}
+    className={`group relative bg-white border-2 rounded-2xl p-6 transition-all ${city.isActive
+        ? 'border-green-200 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20'
+        : 'border-gray-200 hover:border-gray-300 hover:shadow-lg'
+      }`}
+  >
+    <div className="flex items-start justify-between mb-4">
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${city.isActive ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+        }`}>
+        <Building2 className="w-6 h-6" />
       </div>
-    )}
-  </div>
+      <span className={`px-3 py-1 rounded-full text-xs font-black ${city.isActive
+          ? 'bg-green-100 text-green-700'
+          : 'bg-gray-100 text-gray-600'
+        }`}>
+        {city.isActive ? 'Active' : 'Inactive'}
+      </span>
+    </div>
+
+    <h3 className="text-xl font-black text-gray-900 mb-1">{city.name}</h3>
+    <p className="text-sm font-bold text-orange-600 mb-2">{city.stateId?.name || 'N/A'}</p>
+    <p className="text-sm text-gray-500 font-medium mb-4">
+      Created {new Date(city.createdAt).toLocaleDateString()}
+    </p>
+
+    <button
+      onClick={() => onToggleStatus(city._id, city.isActive)}
+      className={`w-full py-2.5 rounded-xl font-bold transition-all ${city.isActive
+          ? 'bg-red-50 text-red-600 hover:bg-red-100'
+          : 'bg-green-50 text-green-600 hover:bg-green-100'
+        }`}
+    >
+      {city.isActive ? (
+        <span className="flex items-center justify-center gap-2">
+          <EyeOff className="w-4 h-4" />
+          Deactivate
+        </span>
+      ) : (
+        <span className="flex items-center justify-center gap-2">
+          <Eye className="w-4 h-4" />
+          Activate
+        </span>
+      )}
+    </button>
+  </motion.div>
 );
 
 // Pending Requests Panel Component
-const PendingRequestsPanel = ({ 
+const PendingRequestsPanel = ({
   requests, loading, selectedVendor, setSelectedVendor,
   showModal, setShowModal, resolveState, setResolveState,
-  resolveCity, setResolveCity, createLocation, setCreateLocation, onApproveVendor
+  resolveCity, setResolveCity, createLocation, setCreateLocation, onApproveVendor,
+  searchTerm, setSearchTerm
 }) => (
-  <div className="space-y-6">
-    <div className="flex justify-between items-center">
-      <h2 className="text-xl font-semibold text-gray-900">Pending Location Requests</h2>
+  <motion.div
+    key="requests"
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: 20 }}
+    className="space-y-6"
+  >
+    {/* Search */}
+    <div className="relative">
+      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      <input
+        type="text"
+        placeholder="Search by store name, state, or city..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all font-medium"
+      />
+      {searchTerm && (
+        <button
+          onClick={() => setSearchTerm('')}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
     </div>
 
+    {/* Requests List */}
     {loading ? (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-6 h-6 animate-spin text-orange-500" />
-        <span className="ml-2 text-gray-600">Loading requests...</span>
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     ) : requests.length === 0 ? (
-      <div className="text-center py-12">
-        <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-4" />
-        <p className="text-gray-600">No pending location requests</p>
-      </div>
+      <EmptyState
+        icon={<CheckCircle2 className="w-12 h-12" />}
+        title="No pending requests"
+        description="All location requests have been processed"
+        success
+      />
     ) : (
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Store Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested State</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requested City</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {requests.map((vendor) => (
-              <tr key={vendor._id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {vendor.storeName}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {vendor.requestedState}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {vendor.requestedCity}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(vendor.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <button
-                    onClick={() => {
-                      setSelectedVendor(vendor);
-                      setResolveState(vendor.requestedState);
-                      setResolveCity(vendor.requestedCity);
-                      setShowModal(true);
-                    }}
-                    className="text-orange-600 hover:text-orange-900 transition-colors"
-                  >
-                    Resolve
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="space-y-4">
+        {requests.map((vendor, index) => (
+          <RequestCard
+            key={vendor._id}
+            vendor={vendor}
+            index={index}
+            onResolve={() => {
+              setSelectedVendor(vendor);
+              setResolveState(vendor.requestedState);
+              setResolveCity(vendor.requestedCity);
+              setShowModal(true);
+            }}
+          />
+        ))}
       </div>
     )}
 
     {/* Resolve Request Modal */}
-    {showModal && selectedVendor && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <h3 className="text-lg font-semibold mb-4">Resolve Location for {selectedVendor.storeName}</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Requested: {selectedVendor.requestedState}, {selectedVendor.requestedCity}
-          </p>
-          
-          <div className="space-y-4">
+    <AnimatePresence>
+      {showModal && selectedVendor && (
+        <Modal
+          title={`Resolve Location for ${selectedVendor.storeName}`}
+          onClose={() => {
+            setShowModal(false);
+            setSelectedVendor(null);
+            setResolveState('');
+            setResolveCity('');
+            setCreateLocation(false);
+          }}
+        >
+          <div className="space-y-6">
+            <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4">
+              <p className="text-sm font-bold text-orange-900 mb-1">Requested Location:</p>
+              <p className="text-lg font-black text-orange-600">
+                {selectedVendor.requestedState}, {selectedVendor.requestedCity}
+              </p>
+            </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">State *</label>
               <input
                 type="text"
                 value={resolveState}
                 onChange={(e) => setResolveState(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all font-medium"
                 placeholder={selectedVendor.requestedState}
               />
             </div>
-            
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">City *</label>
               <input
                 type="text"
                 value={resolveCity}
                 onChange={(e) => setResolveCity(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all font-medium"
                 placeholder={selectedVendor.requestedCity}
               />
             </div>
-            
-            <div className="flex items-center">
+
+            <label className="flex items-center gap-3 p-4 bg-gray-50 rounded-2xl cursor-pointer hover:bg-gray-100 transition-all">
               <input
                 type="checkbox"
-                id="createLocation"
                 checked={createLocation}
                 onChange={(e) => setCreateLocation(e.target.checked)}
-                className="mr-2"
+                className="w-5 h-5 text-orange-500 rounded border-gray-300 focus:ring-orange-500"
               />
-              <label htmlFor="createLocation" className="text-sm text-gray-700">
+              <span className="text-sm font-bold text-gray-700">
                 Create location if it doesn't exist
-              </label>
+              </span>
+            </label>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedVendor(null);
+                  setResolveState('');
+                  setResolveCity('');
+                  setCreateLocation(false);
+                }}
+                className="flex-1 px-6 py-3 text-gray-700 bg-gray-100 rounded-2xl hover:bg-gray-200 transition-all font-bold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onApproveVendor}
+                disabled={loading}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl hover:from-green-600 hover:to-green-700 transition-all font-bold shadow-lg shadow-green-500/30 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Approving...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    Approve Vendor
+                  </>
+                )}
+              </button>
             </div>
           </div>
-          
-          <div className="flex gap-3 mt-6">
-            <button
-              onClick={() => {
-                setShowModal(false);
-                setSelectedVendor(null);
-                setResolveState('');
-                setResolveCity('');
-                setCreateLocation(false);
-              }}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onApproveVendor}
-              disabled={loading}
-              className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50"
-            >
-              {loading ? 'Approving...' : 'Approve Vendor'}
-            </button>
-          </div>
+        </Modal>
+      )}
+    </AnimatePresence>
+  </motion.div>
+);
+
+// Request Card Component
+const RequestCard = ({ vendor, index, onResolve }) => (
+  <motion.div
+    initial={{ opacity: 0, x: -20 }}
+    animate={{ opacity: 1, x: 0 }}
+    transition={{ delay: index * 0.05 }}
+    className="bg-white border-2 border-orange-200 rounded-2xl p-6 hover:border-orange-500 hover:shadow-lg hover:shadow-orange-500/20 transition-all"
+  >
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+          <Users className="w-6 h-6" />
+        </div>
+        <div>
+          <h3 className="text-lg font-black text-gray-900 mb-1">{vendor.storeName}</h3>
+          <p className="text-sm font-bold text-orange-600 mb-2">
+            {vendor.requestedState}, {vendor.requestedCity}
+          </p>
+          <p className="text-xs text-gray-500 font-medium flex items-center gap-1">
+            <Calendar className="w-3 h-3" />
+            {new Date(vendor.createdAt).toLocaleDateString()}
+          </p>
         </div>
       </div>
-    )}
-  </div>
+
+      <button
+        onClick={onResolve}
+        className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2"
+      >
+        <CheckCircle2 className="w-4 h-4" />
+        Resolve
+      </button>
+    </div>
+  </motion.div>
+);
+
+// Empty State Component
+const EmptyState = ({ icon, title, description, success }) => (
+  <motion.div
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    className="text-center py-20"
+  >
+    <div className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-6 ${success ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+      }`}>
+      {icon}
+    </div>
+    <h3 className="text-xl font-black text-gray-900 mb-2">{title}</h3>
+    <p className="text-gray-500 font-medium">{description}</p>
+  </motion.div>
+);
+
+// Modal Component
+const Modal = ({ title, children, onClose }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+    onClick={onClose}
+  >
+    <motion.div
+      initial={{ scale: 0.9, y: 20 }}
+      animate={{ scale: 1, y: 0 }}
+      exit={{ scale: 0.9, y: 20 }}
+      onClick={(e) => e.stopPropagation()}
+      className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl"
+    >
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-2xl font-black text-gray-900">{title}</h3>
+        <button
+          onClick={onClose}
+          className="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all"
+        >
+          <X className="w-5 h-5 text-gray-600" />
+        </button>
+      </div>
+      {children}
+    </motion.div>
+  </motion.div>
 );
 
 // Main export with proper admin wrappers

@@ -39,6 +39,7 @@ export const useUserStorage = () => {
 
     // Clear state
     queryClient.setQueryData(["userProfile"], null);
+    sessionStorage.removeItem("splashShown");
     localStorage.removeItem("cart");        // optional, keep client preferences
     localStorage.removeItem("addresses");   // optional
 

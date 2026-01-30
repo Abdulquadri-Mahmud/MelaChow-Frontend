@@ -49,6 +49,7 @@ export const useVendorStorage = () => {
       console.error("Logout failed", error);
     }
     queryClient.setQueryData(["vendors"], null);
+    sessionStorage.removeItem("splashShown");
     queryClient.invalidateQueries(["vendors"]);
   };
 

@@ -51,7 +51,35 @@ export default function VendorList({ user }) {
         </div>
     );
 
-    if (isError || !vendors.length) return null;
+    if (isError) return null;
+
+    if (!vendors.length) {
+        if (!defaultAddr) return null;
+
+        return (
+            <div className="px-0 mb-6">
+                <div className="flex items-center justify-between px-4 mb-4">
+                    <div className="flex items-center gap-2">
+                        <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
+                        <h2 className="text-lg font-bold text-gray-900 tracking-tight">Featured Restaurants</h2>
+                    </div>
+                </div>
+
+                <div className="px-4">
+                    <div className="bg-orange-50/50 rounded-[24px] p-8 text-center border border-orange-100/50 flex flex-col items-center">
+                        <div className="bg-white p-3 rounded-full mb-3 shadow-sm">
+                            <MapPin className="text-orange-500" size={24} />
+                        </div>
+                        <h3 className="font-bold text-gray-900 text-base mb-1">Coming Soon to {defaultAddr?.city}!</h3>
+                        <p className="text-xs text-gray-500 max-w-[240px] leading-relaxed">
+                            We're currently onboarding top-tier restaurants in your area.
+                            Get your appetite ready!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="px-0">

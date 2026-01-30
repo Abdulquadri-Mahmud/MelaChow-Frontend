@@ -88,47 +88,12 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
     const basePrice = Number(activeItem.price) || 0;
 
     // Option Quantity Handlers (Multi-Select)
-    const getOptionQty = (groupIndex, optionName) => {
+    const isOptionSelected = (groupIndex, optionName) => {
         const list = selections[groupIndex];
-        if (!Array.isArray(list)) return 0;
-        return list.filter((i) => i.name === optionName).length;
-    };
-
-    const handleOptionIncrement = (e, groupIndex, group, option) => {
-        e.stopPropagation(); // Prevent card click
-        setSelections((prev) => {
-            const currentList = Array.isArray(prev[groupIndex]) ? prev[groupIndex] : [];
-
-            // Check Max Select constraint
-            if (group.maxSelect && currentList.length >= group.maxSelect) {
-                toast.error(`You can only select up to ${group.maxSelect} items`);
-                return prev;
-            }
-
-            return { ...prev, [groupIndex]: [...currentList, option] };
-        });
-    };
-
-    const handleOptionDecrement = (e, groupIndex, group, option) => {
-        e.stopPropagation(); // Prevent card click
-        setSelections((prev) => {
-            const currentList = Array.isArray(prev[groupIndex]) ? prev[groupIndex] : [];
-            const idx = currentList.findIndex((i) => i.name === option.name);
-
-            if (idx === -1) return prev; // Not found
-
-            const newList = [...currentList];
-            newList.splice(idx, 1);
-
-            // If empty, remove key
-            if (newList.length === 0) {
-                const newSel = { ...prev };
-                delete newSel[groupIndex];
-                return newSel;
-            }
-
-            return { ...prev, [groupIndex]: newList };
-        });
+        if (Array.isArray(list)) {
+            return list.some((i) => i.name === optionName);
+        }
+        return list?.name === optionName;
     };
 
     // Toggle Choice
@@ -434,12 +399,7 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
 
                                         <div className={hasImages ? "space-y-3" : "space-y-2"}>
                                             {group.options.map((option, oIdx) => {
-                                                const isMulti = group.maxSelect > 1;
-                                                const isSelected = isMulti
-                                                    ? (selections[gIdx] || []).some(i => i.name === option.name)
-                                                    : (selections[gIdx]?.name === option.name);
-
-                                                const optionQty = isMulti ? getOptionQty(gIdx, option.name) : (isSelected ? 1 : 0);
+                                                const isSelected = isOptionSelected(gIdx, option.name);
 
                                                 // Stock Validation - null, undefined, or 0 means out of stock
                                                 const isOutOfStock = !option.stock || Number(option.stock) <= 0;
@@ -498,74 +458,28 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                                                                         </span>
                                                                     </div>
                                                                 ) : (
-                                                                    <>
-                                                                        {isMulti ? (
-                                                                            // Multi-select: Show quantity controls or Add button
-                                                                            optionQty > 0 ? (
-                                                                                <div
-                                                                                    className="flex items-center gap-2 bg-white dark:bg-zinc-800 rounded-lg p-1 shadow-sm border border-orange-200 dark:border-orange-700"
-                                                                                    onClick={e => e.stopPropagation()}
-                                                                                >
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation();
-                                                                                            handleOptionDecrement(e, gIdx, group, option);
-                                                                                        }}
-                                                                                        className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-700 text-gray-600 dark:text-white transition-colors"
-                                                                                    >
-                                                                                        <Minus size={14} strokeWidth={3} />
-                                                                                    </button>
-                                                                                    <span className="text-sm font-bold w-6 text-center tabular-nums text-gray-900 dark:text-white">
-                                                                                        {optionQty}
-                                                                                    </span>
-                                                                                    <button
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation();
-                                                                                            handleOptionIncrement(e, gIdx, group, option);
-                                                                                        }}
-                                                                                        className="w-7 h-7 flex items-center justify-center rounded-md bg-orange-500 text-white hover:bg-orange-600 transition-colors"
-                                                                                    >
-                                                                                        <Plus size={14} strokeWidth={3} />
-                                                                                    </button>
-                                                                                </div>
-                                                                            ) : (
-                                                                                <button
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        handleOptionIncrement(e, gIdx, group, option);
-                                                                                    }}
-                                                                                    className="w-20 h-9 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 flex items-center justify-center gap-1.5 transition-colors shadow-sm font-semibold text-xs"
-                                                                                >
-                                                                                    <Plus size={14} strokeWidth={2.5} />
-                                                                                    Add
-                                                                                </button>
-                                                                            )
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            toggleChoice(gIdx, group, option);
+                                                                        }}
+                                                                        className={`w-20 h-9 rounded-lg flex items-center justify-center gap-1.5 transition-all font-semibold text-xs ${isSelected
+                                                                            ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
+                                                                            : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 shadow-sm"
+                                                                            }`}
+                                                                    >
+                                                                        {isSelected ? (
+                                                                            <>
+                                                                                <Check size={14} strokeWidth={2.5} />
+                                                                                Selected
+                                                                            </>
                                                                         ) : (
-                                                                            // Single-select: Show checkbox/radio
-                                                                            <button
-                                                                                onClick={(e) => {
-                                                                                    e.stopPropagation();
-                                                                                    toggleChoice(gIdx, group, option);
-                                                                                }}
-                                                                                className={`w-20 h-9 rounded-lg flex items-center justify-center gap-1.5 transition-all font-semibold text-xs ${isSelected
-                                                                                    ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
-                                                                                    : "bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 shadow-sm"
-                                                                                    }`}
-                                                                            >
-                                                                                {isSelected ? (
-                                                                                    <>
-                                                                                        <Check size={14} strokeWidth={2.5} />
-                                                                                        Selected
-                                                                                    </>
-                                                                                ) : (
-                                                                                    <>
-                                                                                        <Plus size={14} strokeWidth={2.5} />
-                                                                                        Select
-                                                                                    </>
-                                                                                )}
-                                                                            </button>
+                                                                            <>
+                                                                                <Plus size={14} strokeWidth={2.5} />
+                                                                                Select
+                                                                            </>
                                                                         )}
-                                                                    </>
+                                                                    </button>
                                                                 )}
                                                             </div>
                                                         </div>

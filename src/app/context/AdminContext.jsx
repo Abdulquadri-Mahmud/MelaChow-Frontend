@@ -64,6 +64,7 @@ export const AdminProvider = ({ children }) => {
             console.error("Logout error:", error);
         } finally {
             setAdmin(null);
+            sessionStorage.removeItem("splashShown");
         }
     };
 

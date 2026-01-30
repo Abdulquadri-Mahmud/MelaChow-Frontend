@@ -60,6 +60,11 @@ export default function VerifyAccount() {
       newOtp[index] = value;
       setOtp(newOtp);
       if (value && index < 5) inputRefs.current[index + 1]?.focus();
+
+      // Auto-submit if all fields are filled
+      if (newOtp.every((digit) => digit !== "")) {
+        handleVerify(newOtp);
+      }
     }
   };
 
@@ -77,14 +82,15 @@ export default function VerifyAccount() {
       const newOtp = pastedData.split("");
       setOtp(newOtp);
       inputRefs.current[5]?.focus();
-      toast.success("OTP pasted successfully!");
+      // Auto-submit on paste
+      handleVerify(newOtp);
     } else {
       toast.error("Please paste a valid 6-digit OTP");
     }
   };
 
-  const handleVerify = async () => {
-    const otpString = otp.join("");
+  const handleVerify = async (currentOtp = otp) => {
+    const otpString = currentOtp.join("");
     if (otpString.length !== 6) {
       toast.error("Please enter a valid 6-digit OTP.");
       return;

@@ -14,8 +14,9 @@ const PUBLIC_ROUTES = [
     "/auth/verify-account",
     "/auth/forgot-password",
     "/auth/reset-password",
-    "/vendor-auth/signin",
-    "/vendor-auth/signup",
+    "/vendors/auth/login",
+    "/vendors/auth/register",
+    "/vendors/auth/verify-account",
     "/admin/login",
 ];
 
@@ -24,6 +25,9 @@ const GUEST_ALLOWED_ROUTES = [
     "/",
     "/faqs",
     "/get-help",
+    "/all-restaurants",
+    "/all-foods",
+    "/search",
 ];
 
 export default function AppBootstrapper({ children }) {
@@ -41,10 +45,19 @@ export default function AppBootstrapper({ children }) {
     const [showSplash, setShowSplash] = useState(true);
     const [isRedirecting, setIsRedirecting] = useState(false);
 
+    useEffect(() => {
+        // Check if splash has already been shown in this session
+        const hasShownSplash = sessionStorage.getItem("splashShown");
+        if (hasShownSplash) {
+            setShowSplash(false);
+        }
+    }, []);
+
     // Check if current route is public or guest-allowed
     const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route));
     const isGuestAllowedRoute = GUEST_ALLOWED_ROUTES.some(route => pathname === route);
     const isRestaurantRoute = pathname?.startsWith("/restataurants/");
+    const isFoodDetailsRoute = pathname?.startsWith("/food-details/");
     const isAdminRoute = pathname?.startsWith("/admin/");
 
     // Determine if user is authenticated
@@ -55,13 +68,16 @@ export default function AppBootstrapper({ children }) {
         if (!isAuthResolved) return;
 
         // Dismiss splash screen
-        setShowSplash(false);
+        if (showSplash) {
+            setShowSplash(false);
+            sessionStorage.setItem("splashShown", "true");
+        }
 
         // Skip redirect logic for public routes
         if (isPublicRoute) return;
 
         // Allow guest access to specific routes
-        if (isGuestAllowedRoute || isRestaurantRoute) return;
+        if (isGuestAllowedRoute || isRestaurantRoute || isFoodDetailsRoute) return;
 
         // Skip redirect logic for admin routes (handled by AdminProtectedRoute)
         if (isAdminRoute) return;

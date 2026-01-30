@@ -68,7 +68,7 @@ const ActionCard = ({ icon: Icon, title, description, onClick, href, color = "or
 const User_Profile = ({ userData, isLoading }) => {
   const { baseUrl } = useApi();
   const router = useRouter();
-  const { clearUser, user } = useUserStorage();
+  const { clearUser, user, logout } = useUserStorage();
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -95,16 +95,8 @@ const User_Profile = ({ userData, isLoading }) => {
   const handleLogout = async () => {
     try {
       setLogoutLoading(true);
-      const res = await fetch(`${baseUrl}/user/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (data.success) {
-        // localStorage.removeItem("userToken"); // Removed
-        clearUser();
-        router.push("/auth/signin");
-      }
+      await logout();
+      router.push("/auth/signin");
     } catch (err) {
       console.error("Logout error:", err);
     } finally {

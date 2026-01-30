@@ -23,6 +23,7 @@ export default function GlobalLogoutHandler() {
     // --- 1. Unauthorized Event Listeners (401 Errors) ---
     useEffect(() => {
         const handleUser401 = () => {
+            sessionStorage.removeItem("splashShown");
             logoutUser();
             // Only redirect to user login if we are NOT in admin or vendor context
             if (!pathname.includes("/auth") && !pathname.startsWith("/admin") && !pathname.startsWith("/vendors")) {
@@ -32,6 +33,7 @@ export default function GlobalLogoutHandler() {
         };
 
         const handleVendor401 = () => {
+            sessionStorage.removeItem("splashShown");
             logoutVendor();
             // Only redirect to vendor login if we are in vendor context
             if (pathname.startsWith("/vendors") && !pathname.includes("/auth")) {
@@ -41,6 +43,7 @@ export default function GlobalLogoutHandler() {
         };
 
         const handleAdmin401 = () => {
+            sessionStorage.removeItem("splashShown");
             logoutAdmin();
             // Only redirect to admin login if we are in admin context
             if (pathname.startsWith("/admin") && !pathname.includes("/login")) {
@@ -64,6 +67,7 @@ export default function GlobalLogoutHandler() {
     // --- 2. Inactivity Timer ---
     const handleInactivityLogout = useCallback(() => {
         let loggedOut = false;
+        sessionStorage.removeItem("splashShown");
 
         // Logout Vendor if active
         if (vendorDetails) {

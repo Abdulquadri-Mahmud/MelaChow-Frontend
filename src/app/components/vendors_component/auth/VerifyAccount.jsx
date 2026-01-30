@@ -46,6 +46,11 @@ export default function VerifyAccount() {
       if (value && index < 5) {
         inputRefs.current[index + 1]?.focus();
       }
+
+      // Auto-submit if all fields are filled
+      if (newOtp.every((digit) => digit !== "")) {
+        handleVerify(newOtp);
+      }
     }
   };
 
@@ -65,15 +70,16 @@ export default function VerifyAccount() {
       const newOtp = pastedData.split("");
       setOtp(newOtp);
       inputRefs.current[5]?.focus();
-      setMessage("✅ OTP pasted successfully!");
+      // Auto-verify on paste
+      handleVerify(newOtp);
     } else {
       setMessage("⚠️ Please paste a valid 6-digit OTP");
     }
   };
 
   // Verify OTP
-  const handleVerify = async () => {
-    const otpString = otp.join("");
+  const handleVerify = async (currentOtp = otp) => {
+    const otpString = currentOtp.join("");
     if (otpString.length !== 6) {
       setMessage("⚠️ Please enter a valid 6-digit OTP.");
       return;

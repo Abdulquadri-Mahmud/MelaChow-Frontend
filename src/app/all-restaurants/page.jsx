@@ -205,6 +205,24 @@ export default function AllRestaurants() {
                             Try Again
                         </button>
                     </div>
+                ) : vendors.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-12 px-8 text-center bg-white dark:bg-zinc-900 rounded-[40px] shadow-xl shadow-zinc-200/50 dark:shadow-none border border-zinc-50 dark:border-zinc-800/50">
+                        <div className="bg-orange-50 dark:bg-orange-950/20 p-8 rounded-full mb-6 animate-pulse">
+                            <MapPin className="text-orange-600" size={48} />
+                        </div>
+                        <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase italic leading-tight mb-2">
+                            Coming Soon to {defaultAddr?.city}!
+                        </h3>
+                        <p className="text-zinc-500 text-sm font-medium leading-relaxed max-w-[280px] mx-auto text-center">
+                            We haven't launched in this area yet, but we're working on it. Check back later or try another location.
+                        </p>
+                        <button
+                            onClick={() => router.push('/profile/address')}
+                            className="mt-6 px-8 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold uppercase tracking-widest text-[10px] rounded-2xl active:scale-95 transition-all shadow-lg"
+                        >
+                            Change Location
+                        </button>
+                    </div>
                 ) : filteredVendors.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 px-8 text-center bg-white dark:bg-zinc-900 rounded-[40px] shadow-xl shadow-zinc-200/50 dark:shadow-none border border-zinc-50 dark:border-zinc-800/50">
                         <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
