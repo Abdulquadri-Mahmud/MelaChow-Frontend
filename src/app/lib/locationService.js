@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const baseUrl = "http://localhost:3001/api";
-// const baseUrl = "https://grub-dash-api.vercel.app/api";
+// const baseUrl = "http://localhost:3001/api";
+const baseUrl = "https://grub-dash-api.vercel.app/api";
 
 /**
  * Location Service - Centralized location API calls with enhanced error handling and fallback
