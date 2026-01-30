@@ -3,33 +3,86 @@ import axios from "axios";
 const baseUrl = "https://grub-dash-api.vercel.app/api";
 
 /**
- * Location Service - Centralized location API calls
+ * Location Service - Centralized location API calls with enhanced error handling and fallback
  */
 export class LocationService {
   /**
-   * Fetch available locations for users (public endpoint)
+   * Enhanced fetch available locations for users with fallback system
    */
   static async fetchUserLocations() {
     try {
-      const response = await axios.get(`${baseUrl}/user/locations`, {
+      // Try main endpoint first
+      let response = await axios.get(`${baseUrl}/user/locations`, {
         withCredentials: true,
       });
       
-      if (response.data.success) {
+      let data = response.data;
+      
+      // Store debug info for development
+      const debugInfo = data.debug || null;
+      
+      // If main endpoint returns empty results, try legacy fallback
+      if (data.success && data.count === 0) {
+        console.log('Main endpoint returned no locations, trying legacy fallback...');
+        if (debugInfo) {
+          console.log('Debug info:', debugInfo);
+        }
+        
+        try {
+          response = await axios.get(`${baseUrl}/user/locations/legacy`, {
+            withCredentials: true,
+          });
+          data = response.data;
+          
+          if (data.success && data.count > 0) {
+            console.log('Using legacy locations:', data.locations);
+            return {
+              success: true,
+              locations: data.locations || [],
+              isLegacyMode: true,
+              debugInfo: debugInfo,
+              message: data.message || 'Using legacy location data'
+            };
+          } else {
+            // Both endpoints failed or returned empty
+            return {
+              success: false,
+              locations: [],
+              isLegacyMode: false,
+              debugInfo: debugInfo,
+              error: 'No locations available. Please contact support.',
+            };
+          }
+        } catch (legacyError) {
+          console.error('Legacy endpoint also failed:', legacyError);
+          return {
+            success: false,
+            locations: [],
+            isLegacyMode: false,
+            debugInfo: debugInfo,
+            error: 'Failed to load locations from both main and legacy endpoints.',
+          };
+        }
+      } else if (data.success && data.count > 0) {
+        // Main endpoint worked
+        console.log('Using database-driven locations:', data.locations);
         return {
           success: true,
-          locations: response.data.locations || [],
+          locations: data.locations || [],
+          isLegacyMode: false,
+          debugInfo: debugInfo,
+          message: data.message || 'Locations loaded successfully'
         };
       } else {
-        return {
-          success: false,
-          error: response.data.message || "Failed to load locations",
-        };
+        throw new Error(data.message || 'Failed to fetch locations');
       }
     } catch (error) {
       console.error("Error fetching user locations:", error);
       return {
         success: false,
+        locations: [],
+        isLegacyMode: false,
+        debugInfo: null,
         error: error.response?.data?.message || "Error loading locations",
       };
     }
@@ -278,13 +331,17 @@ export class LocationService {
   }
 
   /**
-   * Helper: Find state and city names from IDs
+   * Helper: Find state and city names from IDs (enhanced for legacy support)
    */
   static findLocationNames(locations, stateId, cityId) {
-    const selectedLocation = locations.find(loc => loc.stateId === stateId);
+    const selectedLocation = locations.find(loc => 
+      loc.stateId === stateId || (stateId === null && loc.state)
+    );
     if (!selectedLocation) return { stateName: '', cityName: '' };
     
-    const selectedCity = selectedLocation.cities.find(city => city.cityId === cityId);
+    const selectedCity = selectedLocation.cities.find(city => 
+      city.cityId === cityId || (cityId === null && city.name)
+    );
     
     return {
       stateName: selectedLocation.state,
@@ -293,9 +350,9 @@ export class LocationService {
   }
 
   /**
-   * Helper: Validate location selection
+   * Helper: Validate location selection (enhanced for legacy support)
    */
-  static validateLocationSelection(stateId, cityId, addressLine) {
+  static validateLocationSelection(stateId, cityId, addressLine, isLegacyMode = false) {
     const errors = [];
     
     if (!stateId) errors.push('Please select a state');
@@ -305,12 +362,13 @@ export class LocationService {
     return {
       isValid: errors.length === 0,
       errors,
+      isLegacyMode,
     };
   }
 }
 
 /**
- * React Hook for location management
+ * React Hook for location management with enhanced features
  */
 export const useLocationService = () => {
   return {
