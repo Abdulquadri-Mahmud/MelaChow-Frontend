@@ -58,61 +58,49 @@ export default function VendorLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center p-2 overflow-hidden relative">
-      {/* Background Decorative Elements */}
-      <div className="absolute top-[10%] left-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] animate-pulse" />
-      <div className="absolute bottom-[10%] right-[5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] animate-pulse delay-700" />
-
+    <div className="h-screen w-full bg-white dark:bg-zinc-900 flex items-center justify-center overflow-hidden p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[40px] p-2 md:p-4 shadow-2xl shadow-zinc-200/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 relative z-10"
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-md flex flex-col h-full max-h-[40vh] justify-center"
       >
         <div className="flex flex-col items-center mb-10">
-          <LogoImage />
-          <div className="text-center mt-8 space-y-2">
-            <h1 className="text-3xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none">
+          <div className="text-center space-y-3">
+            <h1 className="text-4xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white">
               Vendor <span className="text-orange-600">Login</span>
             </h1>
-            <p className="text-sm font-bold uppercase tracking-widest text-zinc-400">
-              Manage your store dashboard
+            <p className="text-xs font-semibold text-zinc-500">
+              Access your restaurant dashboard
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email Field */}
-          <div className="space-y-1.5 group">
-            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Business Email</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />
-              <input
-                type="email"
-                name="email"
-                placeholder="vendor@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-4 pl-12 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
-              />
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-6 flex-1 flex flex-col justify-center">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Email Address</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="vendor@restaurant.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+            />
           </div>
 
           <motion.button
-            whileHover={{ scale: 1.01 }}
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50 mt-4 active:scale-95 group"
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50"
           >
             {loading ? (
-              <Loader2 className="animate-spin" size={20} />
+              <Loader2 className="animate-spin" size={24} />
             ) : (
-              <>
-                <span>Sign In</span>
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-              </>
+              <span>Sign In</span>
             )}
           </motion.button>
         </form>
@@ -150,7 +138,7 @@ export default function VendorLoginPage() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white dark:bg-zinc-900 rounded-[32px] p-8 w-full max-w-sm text-center shadow-2xl relative border border-zinc-100 dark:border-zinc-800"
+              className="bg-white dark:bg-zinc-900 rounded-[32px] p-8 w-full max-w-sm text-center shadow-2xl relative "
             >
               <button
                 onClick={() => setMessage("")}

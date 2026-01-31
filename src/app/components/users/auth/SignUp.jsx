@@ -9,7 +9,8 @@ import {
   User,
   Phone,
   ArrowRight,
-  Loader2
+  Loader2,
+  Store
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -79,122 +80,94 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center p-2 overflow-hidden relative">
-      {/* Background Decorative Blobs */}
-      <div className="absolute top-[5%] right-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] animate-pulse" />
-      <div className="absolute bottom-[20%] left-[5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] animate-pulse delay-700" />
-
+    <div className="h-screen w-full bg-white dark:bg-zinc-900 flex items-center justify-center overflow-hidden p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="bg-white dark:bg-zinc-900 w-full max-w-lg p-4 md:p-10 rounded-[40px] shadow-2xl shadow-zinc-200/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 relative z-10 my-8"
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-md flex flex-col h-full max-h-[80vh] justify-center"
       >
-        <div className="flex justify-center mb-8">
-          <LogoImage />
-        </div>
-
-        <div className="text-center space-y-2 mb-8">
-          <h2 className="text-3xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none">
+        <div className="text-center space-y-3 mb-10">
+          <h2 className="text-4xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white">
             Create <span className="text-orange-600">Account</span>
           </h2>
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
+          <p className="text-xs font-semibold text-zinc-500">
             Start your gourmet journey today
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            {/* First Name */}
-            <div className="space-y-1 group">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">First Name</label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />
+        <form onSubmit={handleSubmit} className="space-y-5 flex-1 flex flex-col justify-center">
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 gap-4">
+              {/* First Name */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">First Name</label>
                 <input
                   type="text"
                   name="firstname"
                   placeholder="John"
                   value={formData.firstname}
                   onChange={handleChange}
-                  className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
+                  className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                   required
                 />
               </div>
-            </div>
 
-            {/* Last Name */}
-            <div className="space-y-1 group">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Last Name</label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />
+              {/* Last Name */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Last Name</label>
                 <input
                   type="text"
                   name="lastname"
                   placeholder="Doe"
                   value={formData.lastname}
                   onChange={handleChange}
-                  className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
+                  className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                   required
                 />
               </div>
             </div>
-          </div>
 
-          {/* Email Input */}
-          <div className="space-y-1 group">
-            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />
+            {/* Email Input */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Email Address</label>
               <input
                 type="email"
                 name="email"
                 placeholder="name@example.com"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
+                className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                 required
               />
             </div>
-          </div>
 
-          {/* Phone Input */}
-          <div className="space-y-1 group">
-            <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Phone Number</label>
-            <div className="relative">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />
+            {/* Phone Input */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Phone Number</label>
               <input
                 type="tel"
                 name="phone"
                 placeholder="0800 000 0000"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
+                className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                 required
               />
             </div>
           </div>
 
-          {/* Password Input (Removed) */}
-          {/*
-          <div className="space-y-1 group">
-             ...
-          </div>
-          */}
-
           <motion.button
-            whileHover={{ scale: 1.01 }}
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50 mt-6 active:scale-95 group"
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 mt-10"
           >
             {loading ? (
-              <Loader2 className="animate-spin" size={20} />
+              <Loader2 className="animate-spin" size={24} />
             ) : (
-              <>
-                <span>Sign Up</span>
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-              </>
+              <span>Sign Up</span>
             )}
           </motion.button>
         </form>
@@ -205,9 +178,9 @@ export default function Signup() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className={`text-center mt-6 text-[11px] font-bold tracking-tight py-3 px-4 rounded-xl ${message.includes("successful")
-                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20"
-                : "bg-rose-50 text-rose-500 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20"
+              className={`text-center mt-4 text-sm font-semibold py-3 px-4 rounded-xl ${message.includes("successful")
+                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10"
+                : "bg-rose-50 text-rose-500 dark:bg-rose-500/10"
                 }`}
             >
               {message}
@@ -215,23 +188,32 @@ export default function Signup() {
           )}
         </AnimatePresence>
 
-        <div className="mt-4 pt-4 border-t border-zinc-50 dark:border-zinc-800 text-center space-y-4">
-          <p className="text-[11px] font-bold text-zinc-500 uppercase tracking-tight">
+        <div className="mt-6 text-center space-y-4">
+          <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
             Already have an account?{" "}
             <Link
               href="/auth/signin"
-              className="text-orange-600 hover:text-orange-700 transition font-black tracking-widest italic"
+              className="text-orange-600 hover:text-orange-700 font-bold"
             >
-              SIGN IN
+              Sign In
             </Link>
           </p>
 
-          <Link
-            href="/vendors/auth/register"
-            className="inline-block p-1 bg-zinc-50 dark:bg-zinc-800 rounded-xl px-4 border border-zinc-100 dark:border-zinc-700 text-[9px] font-black uppercase text-zinc-400 hover:text-orange-500 hover:border-orange-500/20 transition-all tracking-[0.2em]"
-          >
-            Join the Vendor Network
-          </Link>
+          <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
+            <Link
+              href="/vendors/auth/register"
+              className="group inline-flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-500/10 dark:to-amber-500/10 rounded-xl hover:from-orange-100 hover:to-amber-100 dark:hover:from-orange-500/20 dark:hover:to-amber-500/20 transition-all duration-300"
+            >
+              <Store className="w-4 h-4 text-orange-600 group-hover:scale-110 transition-transform" />
+              <span className="text-sm font-bold text-zinc-700 dark:text-zinc-300">
+                Restaurant Owner?
+              </span>
+              <span className="text-xs font-semibold text-orange-600">
+                Join as Vendor
+              </span>
+              <ArrowRight className="w-4 h-4 text-orange-600 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
       </motion.div>
     </div>

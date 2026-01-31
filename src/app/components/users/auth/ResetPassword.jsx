@@ -135,34 +135,29 @@ export default function ResetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center overflow-hidden relative">
-      {/* Background Decorative Elements */}
-      <div className="absolute top-[10%] right-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] animate-pulse" />
-      <div className="absolute bottom-[10%] left-[5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] animate-pulse delay-700" />
-
+    <div className="h-screen w-full bg-white dark:bg-zinc-900 flex items-center justify-center overflow-hidden p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[40px] p-8 md:p-10 shadow-2xl border border-zinc-100 dark:border-zinc-800 relative z-10"
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-md flex flex-col h-full max-h-[90vh] justify-center"
       >
-        <div className="text-center">
-          <LogoImage />
-          <div className="w-16 h-16 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-            <Lock size={30} />
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <Lock size={36} />
           </div>
 
-          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none mb-3">
+          <h1 className="text-4xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white mb-3">
             Secure <span className="text-orange-600">Reset</span>
           </h1>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 leading-relaxed mb-8">
+          <p className="text-xs font-semibold text-zinc-500 mb-4">
             Enter the 6-digit code sent to<br />
-            <span className="text-zinc-600 dark:text-zinc-200 mt-1 inline-block">{email}</span>
+            <span className="text-zinc-700 dark:text-zinc-300 font-bold">{email}</span>
           </p>
         </div>
 
         {/* OTP Inputs */}
-        <div className="flex justify-center gap-2 mb-8">
+        <div className="flex justify-center gap-3 mb-6">
           {otp.map((digit, index) => (
             <motion.input
               key={index}
@@ -171,30 +166,28 @@ export default function ResetPassword() {
               transition={{ delay: index * 0.05 }}
               ref={(el) => (inputRefs.current[index] = el)}
               type="text"
+              inputMode="numeric"
               maxLength={1}
               value={digit}
               onChange={(e) => handleChange(e.target.value, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               onPaste={index === 0 ? handlePaste : undefined}
-              className="w-12 h-14 text-center bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl text-xl font-black text-zinc-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all"
+              className="w-14 h-16 text-center bg-zinc-50 dark:bg-zinc-800 rounded-xl text-2xl font-bold text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
             />
           ))}
         </div>
 
         {/* New Password Input */}
-        <div className="space-y-1.5 group mb-8">
-          <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">New Password</label>
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />
-            <input
-              type="password"
-              placeholder="Min. 8 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-4 pl-12 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
-            />
-          </div>
+        <div className="space-y-2 mb-6">
+          <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">New Password</label>
+          <input
+            type="password"
+            placeholder="Min. 8 characters"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+          />
         </div>
 
         <AnimatePresence mode="wait">
@@ -203,7 +196,7 @@ export default function ResetPassword() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className={`text-center p-3 rounded-xl mb-6 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 ${message.includes("✅") ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-rose-50 text-rose-500 border border-rose-100"
+              className={`text-center p-3 rounded-xl mb-6 text-sm font-semibold flex items-center justify-center gap-2 ${message.includes("✅") ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10" : "bg-rose-50 text-rose-500 dark:bg-rose-500/10"
                 }`}
             >
               {message}
@@ -213,34 +206,31 @@ export default function ResetPassword() {
 
         <div className="space-y-4">
           <motion.button
-            whileHover={{ scale: 1.01 }}
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleResetPassword}
             disabled={loading}
-            className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50 active:scale-95 group"
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50"
           >
             {loading ? (
-              <Loader2 className="animate-spin" size={20} />
+              <Loader2 className="animate-spin" size={24} />
             ) : (
-              <>
-                <span>Update Password</span>
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-              </>
+              <span>Update Password</span>
             )}
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.01 }}
+            whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleResendOTP}
             disabled={resending}
-            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-2 shadow-lg transition-all disabled:opacity-50"
+            className="w-full bg-zinc-100 dark:bg-zinc-800 text-orange-600 py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50 hover:bg-zinc-200 dark:hover:bg-zinc-700"
           >
             {resending ? (
-              <Loader2 className="animate-spin" size={16} />
+              <Loader2 className="animate-spin" size={18} />
             ) : (
               <>
-                <RefreshCw size={16} />
+                <RefreshCw size={18} />
                 <span>Resend OTP</span>
               </>
             )}

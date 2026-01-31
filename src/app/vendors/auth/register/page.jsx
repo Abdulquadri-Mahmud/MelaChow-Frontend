@@ -58,7 +58,7 @@ const TextInput = ({ path, placeholder, type = "text", icon, error, payload, set
       placeholder={`Enter ${placeholder.toLowerCase()}`}
       value={path.split('.').reduce((o, i) => o[i], payload)}
       onChange={(e) => setField(path, e.target.value)}
-      className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
+      className="w-full bg-zinc-50 dark:bg-zinc-800/50  p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
     />
   </InputWrap>
 );
@@ -72,7 +72,7 @@ const SelectInput = ({ path, label, options, icon, error, payload, setField, onC
           setField(path, e.target.value);
           if (onChange) onChange(e.target.value);
         }}
-        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none"
+        className="w-full bg-zinc-50 dark:bg-zinc-800/50  p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none"
       >
         <option value="">Select {label}</option>
         {options.map((opt) => (
@@ -184,12 +184,12 @@ export default function VendorRegisterPage() {
   // Handle state selection
   const handleStateChange = (stateId) => {
     setSelectedStateId(stateId);
-    
+
     // Find selected state's cities
     const selectedLocation = locations.find(loc => loc.stateId === stateId);
     setCities(selectedLocation?.cities || []);
     setSelectedCityId(''); // Reset city selection
-    
+
     // Update payload with state name
     const stateName = selectedLocation?.state || '';
     setField("address.state", stateName);
@@ -199,7 +199,7 @@ export default function VendorRegisterPage() {
   // Handle city selection
   const handleCityChange = (cityId) => {
     setSelectedCityId(cityId);
-    
+
     // Find selected city name
     const selectedCity = cities.find(city => city.cityId === cityId);
     const cityName = selectedCity?.name || '';
@@ -347,25 +347,20 @@ export default function VendorRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-2 overflow-x-hidden relative">
-      {/* Decorative Background */}
-      <div className="absolute top-[5%] right-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] animate-pulse" />
-      <div className="absolute bottom-[20%] left-[5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] animate-pulse delay-700" />
-
+    <div className="min-h-screen bg-white dark:bg-zinc-900 flex flex-col items-center justify-center p-2 overflow-x-hidden relative">
       <div className="w-full max-w-4xl relative z-10 my-8">
         {/* Visual Progress Bar */}
-        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 mb-8 border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-zinc-200/50 md:flex items-center gap-8 hidden">
-          <LogoImage />
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 mb-8 md:flex items-center gap-8 hidden">
           <div className="flex-1">
             <div className="flex justify-between items-center mb-3 px-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Registration Progress</span>
-              <span className="text-[10px] font-black uppercase italic tracking-widest text-orange-600">Step {step} of {TOTAL_STEPS}</span>
+              <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Registration Progress</span>
+              <span className="text-xs font-bold text-orange-600">Step {step} of {TOTAL_STEPS}</span>
             </div>
-            <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-2.5 rounded-full p-0.5 border border-zinc-50 dark:border-zinc-700">
+            <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-2.5 rounded-full p-0.5">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
-                className="h-full bg-gradient-to-r from-orange-500 to-orange-600 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.3)]"
+                className="h-full bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"
               />
             </div>
           </div>
@@ -373,11 +368,10 @@ export default function VendorRegisterPage() {
 
         <motion.div
           layout
-          className="bg-white dark:bg-zinc-900 rounded-[40px] shadow-2xl shadow-zinc-200/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 p-2 md:p-12"
+          className="bg-white dark:bg-zinc-900 rounded-3xl p-2 md:p-12"
         >
           <div className="flex flex-col md:hidden items-center mb-8">
-            <LogoImage />
-            <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full mt-4">
+            <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full">
               <div className="h-full bg-orange-500 rounded-full" style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
             </div>
           </div>
@@ -412,7 +406,7 @@ export default function VendorRegisterPage() {
                         value={payload.storeDescription}
                         onChange={(e) => setField("storeDescription", e.target.value)}
                         rows={3}
-                        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-4 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
+                        className="w-full bg-zinc-50 dark:bg-zinc-800/50  p-4 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
                       />
                     </InputWrap>
 
@@ -443,14 +437,14 @@ export default function VendorRegisterPage() {
                     <InputWrap label="State" icon={MapPin} error={errors["address.state"]}>
                       <div className="relative">
                         {isLoadingLocations ? (
-                          <div className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 rounded-2xl flex items-center">
+                          <div className="w-full bg-zinc-50 dark:bg-zinc-800/50  p-3.5 pl-11 rounded-2xl flex items-center">
                             <Loader2 className="w-4 h-4 animate-spin text-orange-500 mr-2" />
                             <span className="text-sm text-zinc-400">Loading locations...</span>
                           </div>
                         ) : locationError ? (
                           <div className="w-full bg-red-50 border border-red-200 p-3.5 pl-11 rounded-2xl flex items-center justify-between">
                             <span className="text-sm text-red-600">{locationError}</span>
-                            <button 
+                            <button
                               onClick={fetchLocations}
                               className="text-red-600 hover:text-red-700 text-sm font-medium"
                             >
@@ -461,7 +455,7 @@ export default function VendorRegisterPage() {
                           <select
                             value={selectedStateId}
                             onChange={(e) => handleStateChange(e.target.value)}
-                            className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none"
+                            className="w-full bg-zinc-50 dark:bg-zinc-800/50  p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none"
                           >
                             <option value="">Select State</option>
                             {locations.map((location) => (
@@ -482,7 +476,7 @@ export default function VendorRegisterPage() {
                           value={selectedCityId}
                           onChange={(e) => handleCityChange(e.target.value)}
                           disabled={!selectedStateId}
-                          className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full bg-zinc-50 dark:bg-zinc-800/50  p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">
                             {!selectedStateId ? 'Select state first' : 'Select City'}
@@ -547,7 +541,7 @@ export default function VendorRegisterPage() {
                   <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                     <h3 className="text-sm font-black uppercase italic tracking-widest text-zinc-900 dark:text-white">Delivery Configuration</h3>
 
-                    <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                    <div className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl ">
                       <div>
                         <p className="text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300">Do you handle your own delivery?</p>
                         <p className="text-[9px] font-bold text-zinc-400 mt-1 max-w-xs">Enable this if you have your own riders. If disabled, customers will only be able to pick up or use platform riders (if available).</p>
@@ -611,7 +605,7 @@ export default function VendorRegisterPage() {
               whileTap={{ scale: 0.95 }}
               onClick={step < TOTAL_STEPS ? goNext : handleSubmit}
               disabled={submitting}
-              className="flex items-center gap-3 px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white rounded-[24px] text-[10px] font-black uppercase italic tracking-widest transition-all shadow-xl shadow-orange-500/20 disabled:opacity-50"
+              className="flex items-center gap-3 px-8 py-4 bg-orange-600 hover:bg-orange-700 text-white rounded-[24px] text-[10px] font-black uppercase italic tracking-widest transition-all  disabled:opacity-50"
             >
               {submitting ? (
                 <Loader2 className="animate-spin" size={16} />
@@ -645,7 +639,7 @@ export default function VendorRegisterPage() {
                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                className="bg-white dark:bg-zinc-900 rounded-[40px] p-8 md:p-12 w-full max-w-lg text-center shadow-2xl relative border border-zinc-100 dark:border-zinc-800"
+                className="bg-white dark:bg-zinc-900 rounded-[40px] p-8 md:p-12 w-full max-w-lg text-center shadow-2xl relative "
               >
                 {modal.type === 'loading' ? (
                   <div className="flex flex-col items-center py-6">
