@@ -10,7 +10,6 @@ import { deleteVendor, fetchVendorForUserDisplay, getVendorById, getVendors, upd
 // ✅ Custom hook for managing vendor profiles
 export const useVendors = () => {
   const queryClient = useQueryClient();
-  const [hasCheckedSession, setHasCheckedSession] = useState(false);
 
   // 🔹 Fetch all vendors (background refresh & smooth UI)
   const {
@@ -18,6 +17,7 @@ export const useVendors = () => {
     isLoading,
     isError,
     refetch,
+    isFetched,
   } = useQuery({
     queryKey: ["vendors"],
     queryFn: getVendors,
@@ -30,11 +30,6 @@ export const useVendors = () => {
         } catch (e) { return undefined; }
       }
     },
-    // staleTime: 1000 * 60 * 2, // 2 minutes
-    // refetchInterval: 1000 * 30, // background refresh every 30s
-    // refetchIntervalInBackground: true,
-    // refetchOnWindowFocus: false,
-    // keepPreviousData: true, // ✅ maintain UI during refetch
     // ✅ Retry logic for race conditions
     retry: (failureCount, error) => {
       if (failureCount >= 2) return false;
@@ -45,8 +40,10 @@ export const useVendors = () => {
       return false;
     },
     retryDelay: 300,
-    onSettled: () => setHasCheckedSession(true),
   });
+
+  // ✅ Use isFetched directly for session check check
+  const hasCheckedSession = isFetched;
 
   // ✅ Sync cache
   useEffect(() => {

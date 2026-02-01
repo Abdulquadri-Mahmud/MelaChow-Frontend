@@ -27,7 +27,6 @@ export const ProfileProvider = ({ children }) => {
   const { baseUrl } = useApi();
   const router = useRouter();
   const pathname = usePathname();
-  const [hasCheckedSession, setHasCheckedSession] = useState(false);
 
   // Function used by React Query to fetch the user profile
   const fetchProfile = async () => {
@@ -75,7 +74,7 @@ export const ProfileProvider = ({ children }) => {
   };
 
   // React Query hook with iOS-friendly retry logic
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error, refetch, isFetched } = useQuery({
     queryKey: ["userProfile"],
     queryFn: fetchProfile,
     // ✅ Load from Cache immediately to prevent visual logout on refresh
@@ -105,13 +104,14 @@ export const ProfileProvider = ({ children }) => {
     },
     // ✅ Fast retry for iOS (300ms)
     retryDelay: 300,
-    onSettled: () => {
-      setHasCheckedSession(true);
-    },
     refetchOnMount: "always",
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
   });
+
+  // ✅ Use isFetched directly for session check status
+  // This avoids race conditions where onSettled might not trigger state updates correctly
+  const hasCheckedSession = isFetched;
 
   // ✅ Keep Cache Synced with Fresh Data
   useEffect(() => {

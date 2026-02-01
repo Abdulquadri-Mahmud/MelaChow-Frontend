@@ -9,6 +9,7 @@ const BASE_URL = "https://grub-dash-api.vercel.app/api/vendors";
 const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true, // ✅ Send cookies
+  timeout: 15000,
 });
 
 // Add request interceptor to attach token

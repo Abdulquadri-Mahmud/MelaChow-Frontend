@@ -165,8 +165,8 @@ export default function CheckoutPage() {
         if (!status) return; // No status, assume open
 
         // Check explicit closed messages
-        const isClosed = 
-          status.toLowerCase().startsWith("closed") || 
+        const isClosed =
+          status.toLowerCase().startsWith("closed") ||
           status.toLowerCase().startsWith("the restaurant has closed");
 
         if (isClosed) {
@@ -298,19 +298,38 @@ export default function CheckoutPage() {
         )}
 
         {/* Address */}
-        <div className="bg-white rounded-2xl md:p-4 p-2 flex gap-3 border border-orange-50 shadow-sm hover:border-orange-200 transition-all duration-300">
-          <div className="bg-orange-50 p-2 rounded-xl">
-            <MapPin className="text-orange-500" size={20} />
+        <div className={`bg-white rounded-2xl md:p-4 p-2 flex gap-3 border shadow-sm transition-all duration-300 ${!defaultAddress ? "border-red-200 shadow-red-100" : "border-orange-50 hover:border-orange-200"}`}>
+          <div className={`${!defaultAddress ? "bg-red-50" : "bg-orange-50"} p-2 rounded-xl h-fit`}>
+            <MapPin className={`${!defaultAddress ? "text-red-500" : "text-orange-500"}`} size={20} />
           </div>
           {defaultAddress ? (
-            <div>
-              <p className="font-medium text-gray-800">Delivery Address</p>
-              <p className="text-xs text-gray-600">
-                {defaultAddress.addressLine}, {defaultAddress.city}, {defaultAddress.state}
-              </p>
+            <div className="flex-1">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-medium text-gray-800">Delivery Address</p>
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    {defaultAddress.addressLine}, {defaultAddress.city}, {defaultAddress.state}
+                  </p>
+                </div>
+                <button
+                  onClick={() => router.push("/profile/address")}
+                  className="text-[10px] font-bold text-orange-600 uppercase tracking-wider bg-orange-50 px-2 py-1 rounded-lg"
+                >
+                  Change
+                </button>
+              </div>
             </div>
           ) : (
-            <p className="text-sm text-gray-500">No default address found</p>
+            <div className="flex-1 flex flex-col gap-2">
+              <p className="text-sm font-bold text-red-600">Delivery Address Required</p>
+              <p className="text-xs text-gray-500">You need to set a default delivery address to place an order.</p>
+              <button
+                onClick={() => router.push("/profile/address")}
+                className="mt-1 w-full bg-red-50 text-red-600 py-2 rounded-xl font-bold text-xs uppercase tracking-wider border border-red-100 hover:bg-red-100 transition-colors"
+              >
+                + Add Address
+              </button>
+            </div>
           )}
         </div>
 
@@ -426,32 +445,36 @@ export default function CheckoutPage() {
             <span className="text-orange-500 italic">₦{finalTotal.toLocaleString()}</span>
           </div>
         </div>
-      </div>
 
-      {/* Sticky Pay Button */}
-      <div className="fixed bottom-16 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 p-4 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] z-40">
-        <motion.button
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={handleInitializePayment}
-          disabled={loadingInit}
-          className="max-w-xl mx-auto w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg shadow-gray-200"
-        >
-          {loadingInit ? (
-            <>
-              <Loader2 className="animate-spin" size={20} />
-              <span className="uppercase tracking-widest">Processing…</span>
-            </>
-          ) : (
-            <div className="flex items-center justify-between w-full px-4 italic">
-              <span className="uppercase tracking-tight">Complete Order</span>
-              <div className="flex items-center gap-2">
-                <span className="w-1 h-4 bg-orange-500 rounded-full" />
-                <span>₦{finalTotal.toLocaleString()}</span>
+        {/* Sticky Pay Button */}
+        <div className="fixed bottom-16 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 p-4 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] z-40">
+          <motion.button
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={!defaultAddress ? () => router.push("/profile/address") : handleInitializePayment}
+            disabled={loadingInit || cart.length === 0}
+            className={`max-w-xl mx-auto w-full py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg ${!defaultAddress ? "bg-red-500 text-white shadow-red-200" : "bg-gray-900 text-white shadow-gray-200"}`}
+          >
+            {loadingInit ? (
+              <>
+                <Loader2 className="animate-spin" size={20} />
+                <span className="uppercase tracking-widest">Processing…</span>
+              </>
+            ) : !defaultAddress ? (
+              <div className="flex items-center justify-center w-full px-4 italic">
+                <span className="uppercase tracking-tight">Set Address to Continue</span>
               </div>
-            </div>
-          )}
-        </motion.button>
+            ) : (
+              <div className="flex items-center justify-between w-full px-4 italic">
+                <span className="uppercase tracking-tight">Complete Order</span>
+                <div className="flex items-center gap-2">
+                  <span className="w-1 h-4 bg-orange-500 rounded-full" />
+                  <span>₦{finalTotal.toLocaleString()}</span>
+                </div>
+              </div>
+            )}
+          </motion.button>
+        </div>
       </div>
     </div>
   );
