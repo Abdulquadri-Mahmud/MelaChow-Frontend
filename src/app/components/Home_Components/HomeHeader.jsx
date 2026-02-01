@@ -41,22 +41,22 @@ export default function HomeHeader() {
       initial={{ y: -40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="flex items-center justify-between px-5 py-2 bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100 dark:border-zinc-800 dark:bg-zinc-900/90"
+      className="flex items-center justify-between px-5 py-3 bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100 dark:border-zinc-800 dark:bg-zinc-900/90"
     >
       {/* Location / Greeting */}
       <div className="flex flex-col">
         <div className="flex items-center gap-1.5 mb-0.5">
-          <span suppressHydrationWarning className="text-xs font-bold text-orange-600 uppercase tracking-wider">
+          <span suppressHydrationWarning className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">
             {greeting}, {user?.firstname || user?.firstName || 'Guest'}
           </span>
-          <span className="text-lg">👋</span>
+          <span className="text-[10px]">👋</span>
         </div>
 
         <div
           onClick={handleLocationClick}
           className="flex items-center gap-1 cursor-pointer group"
         >
-          <span suppressHydrationWarning className="text-sm font-black text-gray-800 dark:text-gray-100 truncate max-w-[200px]">
+          <span suppressHydrationWarning className="text-[12px] font-black text-gray-800 dark:text-gray-100 truncate max-w-[200px]">
             {defaultAddress
               ? `${defaultAddress.city}, ${defaultAddress.state}`
               : "Select Location"}
