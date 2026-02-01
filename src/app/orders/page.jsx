@@ -80,7 +80,7 @@ function OrdersContent() {
     const res = await axios.get(`${baseUrl}/orders/my-orders`, {
       withCredentials: true, // ✅ Use cookie-based auth
     });
-     console.log(res)
+    //  console.log(res)
     return res.data;
   };
 
@@ -108,7 +108,7 @@ function OrdersContent() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header2 />
 
-      <main className="flex-1 max-w-3xl w-full mx-auto p-3 md:p-4">
+      <main className="flex-1 max-w-4xl w-full mx-auto p-3 md:p-4">
         {/* Custom Tabs */}
         <div className="flex bg-gray-200/50 p-1 rounded-xl w-full max-w-md mb-6 sticky top-[72px] z-20 backdrop-blur-md">
           <button

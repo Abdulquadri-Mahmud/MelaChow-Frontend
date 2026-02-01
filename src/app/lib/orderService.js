@@ -78,11 +78,12 @@ export const verifyPaymentV2 = async (reference) => {
 
         return response.data;
     } catch (error) {
-        console.error("Verify Payment Error:", error);
-
         // Dispatch unauthorized event for 401 errors
         if (error.response && error.response.status === 401) {
+            console.warn("Payment Verification Unauthorized: Dispatching user:unauthorized event.");
             dispatchUserUnauthorized();
+        } else {
+            console.error("Verify Payment Error:", error);
         }
 
         // Handle 400 Payment Failed logic (Business Logic Failure)
@@ -100,7 +101,9 @@ export const verifyPaymentV2 = async (reference) => {
             error.message ||
             "Payment verification failed";
 
-        throw new Error(message);
+        const customError = new Error(message);
+        customError.status = error.response?.status;
+        throw customError;
     }
 };
 

@@ -46,13 +46,17 @@ export default function VerifyPayment() {
         // Clear pending order ID from session storage if it exists
         sessionStorage.removeItem("pendingOrderId");
       } catch (error) {
-        console.error("Verification error:", error);
+        if (error.status !== 401) {
+          console.error("Verification error:", error);
+        }
         setStatus("failed");
 
         let msg = "Something went wrong while verifying your payment.";
 
-        // Handle specific Business Logic Failures (e.g. Insufficient Funds)
-        if (error.code === "PAYMENT_FAILED") {
+        // Handle specific Business Logic Failures
+        if (error.status === 401) {
+          msg = "Session expired. Please log in to complete verification.";
+        } else if (error.code === "PAYMENT_FAILED") {
           msg = error.message;
         } else if (error.message) {
           msg = error.message;

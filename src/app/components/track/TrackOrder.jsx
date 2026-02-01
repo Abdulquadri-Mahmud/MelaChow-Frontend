@@ -212,7 +212,7 @@ export default function OrderTracking() {
       </div>
 
       {/* Overlapping Content Section */}
-      <div className="relative max-w-2xl mx-auto -mt-[9rem] px-4">
+      <div className="relative max-w-4xl mx-auto -mt-[9rem] px-4">
         <div className="space-y-6">
 
           {/* Main Status & Progress Card */}
@@ -422,7 +422,13 @@ export default function OrderTracking() {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest opacity-60">Placed On</h3>
-                <p className="text-xs font-black text-zinc-900 dark:text-white truncate uppercase italic mt-0.5">Today • 21:05</p>
+                <p className="text-xs font-black text-zinc-900 dark:text-white truncate uppercase italic mt-0.5">
+                  {orderData.createdAt ? (
+                    <>
+                      {new Date(orderData.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} • {new Date(orderData.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                    </>
+                  ) : "Just Now"}
+                </p>
               </div>
             </div>
           </div>

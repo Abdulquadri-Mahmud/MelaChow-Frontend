@@ -227,7 +227,7 @@ export default function SmartRecommendations() {
 
     const { meta, data: arrays } = recommendations;
 
-    console.log(recommendations);
+    // console.log(recommendations);
 
     return (
         <div className="flex flex-col gap-2 pb-2 border-b border-gray-100">
