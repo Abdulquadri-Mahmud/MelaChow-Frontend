@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Minus, Plus, ShoppingBag, Check, Leaf, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, onUpdate, initialVariant, initialPortion, initialEditItem }) {
+    const router = useRouter();
     const [selections, setSelections] = useState({});
     const [quantity, setQuantity] = useState(1);
 
@@ -313,6 +315,7 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
             onAdd(payload);
         }
         onClose();
+        router.push('/orders');
     };
 
     return (
