@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/app/context/CartContext";
 import { Loader2, Bike, MapPin, Clock, DollarSign, TicketPercent, Tag } from "lucide-react";
-import { fetchUser, verifyDiscount } from "../lib/api";
+import { fetchUser, verifyDiscount, getVendorById } from "../lib/api";
 import { createOrderV2 } from "../lib/orderService";
 import { transformCartToOrderV2, validateCartItems } from "../lib/orderTransformers";
 import Header2 from "../components/App_Header/Header2";
@@ -141,6 +141,42 @@ export default function CheckoutPage() {
       // 4. Check if all restaurants are open (optional - commented out in original)
       setProcessingStep("checking");
       const uniqueRestaurantIds = Object.keys(restaurantDeliveryMap);
+
+      // Check restaurant open status
+      const vendorStatuses = await Promise.all(
+        uniqueRestaurantIds.map(async (id) => {
+          try {
+            const data = await getVendorById(id);
+            return { id, vendor: data.vendor || data, success: true };
+          } catch (e) {
+            console.error(`Failed to fetch vendor ${id}`, e);
+            return { id, success: false };
+          }
+        })
+      );
+
+      const closedRestaurants = [];
+      const notVerifiedRestaurants = []; // Optional: track failures
+
+      vendorStatuses.forEach((res) => {
+        if (!res.success || !res.vendor) return; // Skip check if fetch failed
+
+        const status = getVendorOpenAndCloseStatus(res.vendor.openingHours);
+        if (!status) return; // No status, assume open
+
+        // Check explicit closed messages
+        const isClosed = 
+          status.toLowerCase().startsWith("closed") || 
+          status.toLowerCase().startsWith("the restaurant has closed");
+
+        if (isClosed) {
+          closedRestaurants.push(res.vendor.storeName || "One of the restaurants");
+        }
+      });
+
+      if (closedRestaurants.length > 0) {
+        throw new Error(`Order cannot be placed. The following restaurants are closed: ${closedRestaurants.join(", ")}`);
+      }
 
       // 5. Transform cart data to V2 format
       setProcessingStep("calculating");

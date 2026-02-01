@@ -509,3 +509,23 @@ export const getDiscounts = async () => {
     throw error;
   }
 };
+
+/**
+ * Get Vendor Details by ID
+ * @param {string} vendorId
+ * @returns {Object}
+ */
+export const getVendorById = async (vendorId) => {
+  try {
+    const res = await axios.get(`https://grub-dash-api.vercel.app/api/user/vendors/${vendorId}`, {
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    console.error("Get Vendor By ID Error:", error);
+    if (error.response && error.response.status === 401) {
+      dispatchUserUnauthorized();
+    }
+    throw error;
+  }
+};
