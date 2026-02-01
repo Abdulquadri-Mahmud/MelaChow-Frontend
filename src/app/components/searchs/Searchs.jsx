@@ -40,11 +40,11 @@ export default function FoodSearchMobile() {
 
     const fetchCategories = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/categories/public`);
-        if (res.data.success) {
-          // Extract names or keep objects? Let's keep objects but for the dropdown we need strings mostly.
-          // Actually, the UI just displays names. Let's store objects to be safe.
-          setCategories(res.data.data || []);
+        const res = await fetch(`${baseUrl}/categories/public`);
+        const data = await res.json();
+
+        if (data.success) {
+          setCategories(data.data || []);
         }
       } catch (err) {
         console.error("Failed to fetch categories", err);
@@ -60,7 +60,10 @@ export default function FoodSearchMobile() {
   useEffect(() => {
     const fetchTrending = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/search/food/trending`, { params: { limit: 8 } });
+        const res = await axios.get(`${baseUrl}/search/food/trending`, {
+          params: { limit: 8 },
+          withCredentials: true,
+        });
         setTrending(res.data.trending || []);
       } catch (err) {
         console.error("Trending Error:", err);
@@ -91,7 +94,10 @@ export default function FoodSearchMobile() {
           setActiveCategory("");
         }
 
-        const res = await axios.get(`${baseUrl}/search/food/search`, { params });
+        const res = await axios.get(`${baseUrl}/search/food/search`, {
+          params,
+          withCredentials: true,
+        });
         setFoods(res.data.data || []);
       } catch (err) {
         console.error("Fetch Foods Error:", err?.response?.data || err.message || err);
@@ -118,6 +124,7 @@ export default function FoodSearchMobile() {
       try {
         const res = await axios.get(`${baseUrl}/search/food/autocomplete`, {
           params: { q: sanitizedQuery },
+          withCredentials: true,
         });
 
         setAutocomplete(res.data?.suggestions || []);

@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/app/context/CartContext";
-import { Loader2, Bike, MapPin, Clock, DollarSign } from "lucide-react";
-import { fetchUser } from "../lib/api";
+import { Loader2, Bike, MapPin, Clock, DollarSign, TicketPercent, Tag } from "lucide-react";
+import { fetchUser, verifyDiscount } from "../lib/api";
 import { createOrderV2 } from "../lib/orderService";
 import { transformCartToOrderV2, validateCartItems } from "../lib/orderTransformers";
 import Header2 from "../components/App_Header/Header2";
@@ -30,6 +30,11 @@ export default function CheckoutPage() {
   // V2 API Integration - Enhanced State Management
   const [orderError, setOrderError] = useState(null);
   const [processingStep, setProcessingStep] = useState("validating");
+
+  // Discount State
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState(null);
+  const [verifyingCode, setVerifyingCode] = useState(false);
 
   // Cart validation hook
   const { validateCart, validationErrors, isValid } = useCartValidation(cart);
@@ -59,7 +64,10 @@ export default function CheckoutPage() {
   });
 
   const deliveryFee = Object.values(restaurantDeliveryMap).reduce((sum, fee) => sum + fee, 0);
-  const total = subtotal + deliveryFee;
+
+  // Calculate final total (UI ONLY - Backend re-validates)
+  // If discount applied, use verified total, otherwise local calc
+  const finalTotal = appliedDiscount ? appliedDiscount.total : (subtotal + deliveryFee);
 
   // Group items by restaurant
   const groupedCart = cart.reduce((acc, item) => {
@@ -74,6 +82,36 @@ export default function CheckoutPage() {
     const maxs = items.map(i => i.estimatedDeliveryTime?.max || 0);
     if (!mins.length) return null;
     return { min: Math.min(...mins), max: Math.max(...maxs) };
+  };
+
+  /* ---------------- DISCOUNT LOGIC ---------------- */
+  const handleVerifyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setVerifyingCode(true);
+    setAppliedDiscount(null); // Reset previous
+    try {
+      const payload = {
+        code: couponCode,
+        subtotal,
+        deliveryFee,
+        items: cart.map(item => ({
+          foodId: item.foodId,
+          variantId: item.variantId,
+          restaurantId: item.restaurantId,
+          quantity: item.quantity,
+          storeName: item.storeName,
+          price: item.price
+        }))
+      };
+      const res = await verifyDiscount(payload);
+      setAppliedDiscount(res);
+      toast.success(`Coupon Applied: ${res.appliedDiscount?.label || 'Success'}`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Invalid Coupon Code");
+      setAppliedDiscount(null);
+    } finally {
+      setVerifyingCode(false);
+    }
   };
 
   /* ---------------- PAYMENT INITIALIZATION (V2 API) ---------------- */
@@ -104,26 +142,6 @@ export default function CheckoutPage() {
       setProcessingStep("checking");
       const uniqueRestaurantIds = Object.keys(restaurantDeliveryMap);
 
-      // Uncomment if you want to enforce restaurant hours
-      // for (const restaurantId of uniqueRestaurantIds) {
-      //   try {
-      //     const vendorRes = await axios.get(`${baseUrl}/vendors/foods/get-foods?vendorId=${restaurantId}`);
-      //     const vendorData = vendorRes.data.data?.[0]?.vendor;
-      
-      //     if (vendorData) {
-      //       const statusInfo = getVendorOpenAndCloseStatus(vendorData.openHours || vendorData.openingHours);
-      //       const isOpen = statusInfo.startsWith("Open now");
-      
-      //       if (!isOpen) {
-      //         throw new Error(`${vendorData.storeName} is currently closed. ${statusInfo}`);
-      //       }
-      //     }
-      //   } catch (err) {
-      //     console.error(`Error checking status for vendor ${restaurantId}:`, err);
-      //     throw err;
-      //   }
-      // }
-
       // 5. Transform cart data to V2 format
       setProcessingStep("calculating");
       const orderPayload = transformCartToOrderV2(
@@ -134,6 +152,11 @@ export default function CheckoutPage() {
         notes
       );
 
+      // Inject Discount Code if valid
+      if (appliedDiscount && couponCode) {
+        orderPayload.discountCode = couponCode;
+      }
+
       // console.log("V2 Order Payload:", orderPayload);
 
       // 6. Create order using V2 API
@@ -142,7 +165,6 @@ export default function CheckoutPage() {
 
       // console.log("V2 Order Response:", response);
 
-      // 7. Redirect to Paystack payment page
       // 7. Redirect to Paystack payment page
       if (response?.authorization_url) {
         // Store pending order ID if provided (New Flow)
@@ -316,6 +338,37 @@ export default function CheckoutPage() {
           );
         })}
 
+        {/* Promo Code Section */}
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+          <div className="flex items-center gap-2 mb-3">
+            <TicketPercent className="text-orange-500" size={18} />
+            <h3 className="text-sm font-bold text-gray-800">Promo Code</h3>
+          </div>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Enter code"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm uppercase tracking-wider font-semibold placeholder:normal-case placeholder:font-normal focus:outline-none focus:border-orange-500 transition-colors"
+            />
+            <button
+              onClick={handleVerifyCoupon}
+              disabled={verifyingCode || !couponCode}
+              className="bg-gray-900 text-white px-5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {verifyingCode ? <Loader2 className="animate-spin" size={16} /> : "Apply"}
+            </button>
+          </div>
+          {appliedDiscount && (
+            <div className="mt-3 bg-green-50 text-green-700 text-xs p-2.5 rounded-xl flex items-center gap-2 border border-green-100">
+              <Tag size={14} />
+              <span className="font-bold">{appliedDiscount.appliedDiscount?.label} applied!</span>
+              <span className="ml-auto font-black">-₦{appliedDiscount.discountAmount.toLocaleString()}</span>
+            </div>
+          )}
+        </div>
+
         {/* Summary */}
         <div className="bg-gray-900 rounded-2xl p-4 space-y-3 shadow-xl">
           <div className="flex justify-between items-center text-sm">
@@ -326,9 +379,15 @@ export default function CheckoutPage() {
             <span className="flex items-center gap-1 font-semibold text-gray-400 uppercase tracking-widest text-[10px]">Delivery Fee</span>
             <span className="text-white font-medium">₦{deliveryFee.toLocaleString()}</span>
           </div>
+          {appliedDiscount && (
+            <div className="flex justify-between items-center text-sm">
+              <span className="flex items-center gap-1 font-semibold text-green-400 uppercase tracking-widest text-[10px]">Discount</span>
+              <span className="text-green-400 font-medium">-₦{appliedDiscount.discountAmount.toLocaleString()}</span>
+            </div>
+          )}
           <div className="border-t border-white/10 pt-3 flex justify-between items-center text-lg font-bold">
             <span className="flex items-center gap-1 font-semibold text-white uppercase italic">Total</span>
-            <span className="text-orange-500 italic">₦{total.toLocaleString()}</span>
+            <span className="text-orange-500 italic">₦{finalTotal.toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -352,7 +411,7 @@ export default function CheckoutPage() {
               <span className="uppercase tracking-tight">Complete Order</span>
               <div className="flex items-center gap-2">
                 <span className="w-1 h-4 bg-orange-500 rounded-full" />
-                <span>₦{total.toLocaleString()}</span>
+                <span>₦{finalTotal.toLocaleString()}</span>
               </div>
             </div>
           )}

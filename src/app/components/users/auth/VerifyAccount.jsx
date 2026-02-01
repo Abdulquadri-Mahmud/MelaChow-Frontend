@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { useApi } from "@/app/context/ApiContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ShieldCheck, ArrowRight, Loader2, RefreshCw, X, Clock } from "lucide-react";
+import { TokenManager } from "@/app/lib/auth-token";
 
 const LogoImage = () => (
   <div className="relative group mx-auto mb-6 w-fit">
@@ -112,10 +113,19 @@ export default function VerifyAccount() {
       }
 
       // Filter out token if present, just in case
-      const { token, ...userData } = data;
+      // standardizing on 'accessToken' but keeping 'token' for backward compat
+      const { accessToken, token, ...userData } = data;
+      const finalToken = accessToken || token;
+
+      // ✅ Save token for iOS fallback (Secure TokenManager)
+      if (finalToken) {
+        TokenManager.setToken(finalToken);
+      }
+
       saveUser(userData);
 
-      // Token is now handled by HttpOnly cookie automatically
+      // Token is now handled by HttpOnly cookie automatically (primary)
+      // TokenManager handles fallback (secondary)
 
       toast.success("Verified Successfully! Redirecting...");
       setTimeout(() => router.push("/home"), 1000);
@@ -185,13 +195,10 @@ export default function VerifyAccount() {
         </div>
 
         {/* OTP Inputs */}
-        <div className="flex justify-center gap-3 mb-8">
+        <div className="flex justify-center gap-3 mb-8 mx-3">
           {otp.map((digit, index) => (
-            <motion.input
+            <input
               key={index}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: index * 0.05 }}
               ref={(el) => (inputRefs.current[index] = el)}
               type="text"
               inputMode="numeric"
@@ -200,7 +207,7 @@ export default function VerifyAccount() {
               onChange={(e) => handleChange(e.target.value, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               onPaste={index === 0 ? handlePaste : undefined}
-              className="w-14 h-16 text-center bg-zinc-50 dark:bg-zinc-800 rounded-xl text-2xl font-bold text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+              className="w-12 h-12 text-center bg-zinc-50 dark:bg-zinc-800 rounded-xl text-2xl font-bold text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
             />
           ))}
         </div>

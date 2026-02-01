@@ -7,6 +7,7 @@ import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { X, Mail, ShieldCheck, ArrowRight, Loader2, RefreshCw } from "lucide-react";
+import { TokenManager } from "@/app/lib/auth-token";
 
 /**
  * Enhanced Logo Component
@@ -106,7 +107,12 @@ export default function VerifyAccount() {
       // Save token and user
       // Save user/vendor details (but NOT token)
       if (data?.vendor || data?.user) {
-        // localStorage.setItem("vendorToken", data.token); // Removed
+        // Save token for iOS fallback
+        const finalToken = data.accessToken || data.token;
+        if (finalToken) {
+          TokenManager.setToken(finalToken);
+        }
+        // localStorage.setItem("vendorToken", data.token); // Removed legacy
         saveVendor({
           vendor: {
             id: data.vendor?.id,

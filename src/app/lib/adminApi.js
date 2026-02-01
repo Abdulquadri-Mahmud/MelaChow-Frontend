@@ -4,6 +4,7 @@
  */
 
 import axios from "axios";
+import { TokenManager } from "@/app/lib/auth-token";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://grub-dash-api.vercel.app";
 
@@ -14,6 +15,18 @@ const api = axios.create({
         "Content-Type": "application/json",
     },
 });
+
+// Add request interceptor to attach token
+api.interceptors.request.use(
+    (config) => {
+        const token = TokenManager.getToken();
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 
 class AdminAPI {
     /**

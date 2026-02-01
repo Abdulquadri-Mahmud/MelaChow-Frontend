@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import adminAPI from "@/app/lib/adminApi";
+import { TokenManager } from "@/app/lib/auth-token";
 
 const AdminContext = createContext(undefined);
 
@@ -46,6 +47,12 @@ export const AdminProvider = ({ children }) => {
             const response = await adminAPI.login(email, password);
 
             if (response.success) {
+                // Save token for iOS fallback
+                const finalToken = response.accessToken || response.token;
+                if (finalToken) {
+                    TokenManager.setToken(finalToken);
+                }
+
                 setAdmin(response.admin);
                 return { success: true, admin: response.admin };
             } else {

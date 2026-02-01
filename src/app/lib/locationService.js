@@ -9,32 +9,47 @@ const baseUrl = "https://grub-dash-api.vercel.app/api";
 export class LocationService {
   /**
    * Enhanced fetch available locations for users with fallback system
+   * iOS-optimized with retry logic for cookie-based auth
    */
   static async fetchUserLocations() {
     try {
-      // Try main endpoint first
+      // Try main endpoint first with iOS-specific headers
       let response = await axios.get(`${baseUrl}/user/locations`, {
         withCredentials: true,
+        headers: {
+          // ✅ iOS Safari-specific headers to prevent aggressive caching
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        },
+        // ✅ iOS fix: Add timeout to prevent hanging requests
+        timeout: 10000, // 10 second timeout
       });
-      
+
       let data = response.data;
-      
+
       // Store debug info for development
       const debugInfo = data.debug || null;
-      
+
       // If main endpoint returns empty results, try legacy fallback
       if (data.success && data.count === 0) {
         console.log('Main endpoint returned no locations, trying legacy fallback...');
         if (debugInfo) {
           console.log('Debug info:', debugInfo);
         }
-        
+
         try {
           response = await axios.get(`${baseUrl}/user/locations/legacy`, {
             withCredentials: true,
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            },
+            timeout: 10000,
           });
           data = response.data;
-          
+
           if (data.success && data.count > 0) {
             console.log('Using legacy locations:', data.locations);
             return {
@@ -79,12 +94,20 @@ export class LocationService {
       }
     } catch (error) {
       console.error("Error fetching user locations:", error);
+
+      // ✅ iOS-specific: Check if error is due to auth/cookie issues
+      const isAuthError = error.response?.status === 401 || error.response?.status === 403;
+      const errorMessage = isAuthError
+        ? "Please log in again to view locations"
+        : error.response?.data?.message || "Error loading locations";
+
       return {
         success: false,
         locations: [],
         isLegacyMode: false,
         debugInfo: null,
-        error: error.response?.data?.message || "Error loading locations",
+        error: errorMessage,
+        isAuthError, // ✅ Flag to help UI handle auth-specific errors
       };
     }
   }
@@ -97,7 +120,7 @@ export class LocationService {
       const response = await axios.get(`${baseUrl}/admin/locations/states`, {
         withCredentials: true,
       });
-      
+
       if (response.data.success) {
         return {
           success: true,
@@ -128,7 +151,7 @@ export class LocationService {
         { name: name.trim() },
         { withCredentials: true }
       );
-      
+
       if (response.data.success) {
         return {
           success: true,
@@ -159,7 +182,7 @@ export class LocationService {
         { isActive },
         { withCredentials: true }
       );
-      
+
       if (response.data.success) {
         return {
           success: true,
@@ -188,7 +211,7 @@ export class LocationService {
       const response = await axios.get(`${baseUrl}/admin/locations/cities`, {
         withCredentials: true,
       });
-      
+
       if (response.data.success) {
         return {
           success: true,
@@ -219,7 +242,7 @@ export class LocationService {
         { name: name.trim(), stateId },
         { withCredentials: true }
       );
-      
+
       if (response.data.success) {
         return {
           success: true,
@@ -250,7 +273,7 @@ export class LocationService {
         { isActive },
         { withCredentials: true }
       );
-      
+
       if (response.data.success) {
         return {
           success: true,
@@ -279,7 +302,7 @@ export class LocationService {
       const response = await axios.get(`${baseUrl}/admin/locations/location-requests`, {
         withCredentials: true,
       });
-      
+
       if (response.data.success) {
         return {
           success: true,
@@ -310,7 +333,7 @@ export class LocationService {
         { state: state.trim(), city: city.trim(), createLocation },
         { withCredentials: true }
       );
-      
+
       if (response.data.success) {
         return {
           success: true,
@@ -335,15 +358,15 @@ export class LocationService {
    * Helper: Find state and city names from IDs (enhanced for legacy support)
    */
   static findLocationNames(locations, stateId, cityId) {
-    const selectedLocation = locations.find(loc => 
+    const selectedLocation = locations.find(loc =>
       loc.stateId === stateId || (stateId === null && loc.state)
     );
     if (!selectedLocation) return { stateName: '', cityName: '' };
-    
-    const selectedCity = selectedLocation.cities.find(city => 
+
+    const selectedCity = selectedLocation.cities.find(city =>
       city.cityId === cityId || (cityId === null && city.name)
     );
-    
+
     return {
       stateName: selectedLocation.state,
       cityName: selectedCity?.name || '',
@@ -355,11 +378,11 @@ export class LocationService {
    */
   static validateLocationSelection(stateId, cityId, addressLine, isLegacyMode = false) {
     const errors = [];
-    
+
     if (!stateId) errors.push('Please select a state');
     if (!cityId) errors.push('Please select a city');
     if (!addressLine?.trim()) errors.push('Please enter your address');
-    
+
     return {
       isValid: errors.length === 0,
       errors,

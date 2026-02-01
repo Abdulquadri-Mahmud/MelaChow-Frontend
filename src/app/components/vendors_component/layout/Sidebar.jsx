@@ -13,7 +13,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Wallet
+  Wallet,
+  TicketPercent
 } from "lucide-react";
 import Logo from "../../logo/Logo";
 import { useApi } from "@/app/context/ApiContext";
@@ -28,6 +29,11 @@ const navItems = [
     name: "Transactions",
     icon: Wallet,
     href: "/vendors/transactions",
+  },
+  {
+    name: "Coupons",
+    icon: TicketPercent,
+    href: "/vendors/coupons",
   },
   {
     name: "Orders",

@@ -25,9 +25,9 @@ const GUEST_ALLOWED_ROUTES = [
     "/",
     "/faqs",
     "/get-help",
-    "/all-restaurants",
-    "/all-foods",
-    "/search",
+    // "/all-restaurants",
+    // "/all-foods",
+    // "/search",
 ];
 
 export default function AppBootstrapper({ children }) {
@@ -42,14 +42,14 @@ export default function AppBootstrapper({ children }) {
     const isAuthResolved = !isUserLoading && !isVendorLoading;
 
     // Splash Visibility State
-    const [showSplash, setShowSplash] = useState(true);
+    const [showSplash, setShowSplash] = useState(false); // ✅ Default to HIDDEN to prevent refresh flash
     const [isRedirecting, setIsRedirecting] = useState(false);
 
     useEffect(() => {
-        // Check if splash has already been shown in this session
+        // Only show splash if it hasn't been shown in this session
         const hasShownSplash = sessionStorage.getItem("splashShown");
-        if (hasShownSplash) {
-            setShowSplash(false);
+        if (!hasShownSplash) {
+            setShowSplash(true);
         }
     }, []);
 
@@ -84,11 +84,17 @@ export default function AppBootstrapper({ children }) {
 
         // If not authenticated and trying to access protected route, redirect to signin
         if (!isAuthenticated && !isRedirecting) {
-            console.log("🔒 Unauthorized access detected. Redirecting to signin...");
-            setIsRedirecting(true);
-            router.replace("/auth/signin");
+            // ✅ iOS Safari Fix: Add small delay to allow cookies to be read after page refresh
+            // iOS Safari sometimes needs extra time to restore cookies after navigation
+            const redirectTimer = setTimeout(() => {
+                console.log("🔒 Unauthorized access detected. Redirecting to signin...");
+                setIsRedirecting(true);
+                router.replace("/auth/signin");
+            }, 300); // 300ms delay to allow cookie restoration on iOS
+
+            return () => clearTimeout(redirectTimer);
         }
-    }, [isAuthResolved, isAuthenticated, pathname, isPublicRoute, isGuestAllowedRoute, isRestaurantRoute, router, isRedirecting]);
+    }, [isAuthResolved, isAuthenticated, pathname, isPublicRoute, isGuestAllowedRoute, isRestaurantRoute, router, isRedirecting, isFoodDetailsRoute, showSplash]);
 
     // Reset redirecting flag when pathname changes
     useEffect(() => {

@@ -7,6 +7,7 @@ import FoodList from "../components/Home_Components/FoodList";
 import HomeHeader from "../components/Home_Components/HomeHeader";
 import PromoBanner from "../components/Home_Components/PromoBanner";
 import SearchBar from "../components/Home_Components/SearchBar";
+import SmartRecommendations from "../components/Home_Components/SmartRecommendations";
 import TrendingFoods from "../components/Home_Components/TrendingFoods";
 import VendorList from "../components/Home_Components/VendorList";
 import { useUserStorage } from "../hooks/useUserStorage";
@@ -30,11 +31,13 @@ export default function HomePage() {
         <div className="space-y-4">
           <SearchBar />
           <CategoryList />
+          <VendorList user={user} />
+          <SmartRecommendations />
+          <TrendingFoods user={user} />
+          <FoodList user={user} />
         </div>
         {/* <PromoBanner /> */}
-        <VendorList user={user} />
-        <TrendingFoods user={user} />
-        <FoodList user={user} />
+        
         <div className="" />
         {/* <FeatureSlider /> */}
       </div>

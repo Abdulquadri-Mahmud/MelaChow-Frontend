@@ -16,6 +16,16 @@ export const useVendorStorage = () => {
     // But VerifyAccount sends { vendor: { id, slug } }.
     // If the API returns full vendor, we might want to be careful not to overwrite with partial data if we can avoid it.
     // Ideally, we refetch.
+    // If data provided, cache it
+    try {
+      if (typeof window !== "undefined") {
+        const data = payload?.vendor || payload;
+        localStorage.setItem("grubdash_vendor_cache", JSON.stringify(data));
+      }
+    } catch (e) {
+      console.warn("Failed to cache vendor", e);
+    }
+
     queryClient.setQueryData(["vendors"], payload?.vendor || payload);
     queryClient.invalidateQueries(["vendors"]);
   };
@@ -50,6 +60,7 @@ export const useVendorStorage = () => {
     }
     queryClient.setQueryData(["vendors"], null);
     sessionStorage.removeItem("splashShown");
+    localStorage.removeItem("grubdash_vendor_cache"); // ✅ Clear cache
     queryClient.invalidateQueries(["vendors"]);
   };
 

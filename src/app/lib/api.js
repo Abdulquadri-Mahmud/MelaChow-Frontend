@@ -1,4 +1,20 @@
 import axios from "axios";
+import { TokenManager } from "./auth-token";
+
+// Initialize token from storage
+TokenManager.initialize();
+
+// Add request interceptor to attach token
+axios.interceptors.request.use(
+  (config) => {
+    const token = TokenManager.getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Helper function for backward compatibility - calculates percentages from distribution
 const calculatePercentagesFromDistribution = (distribution) => {
@@ -20,9 +36,16 @@ const dispatchUserUnauthorized = () => {
 export const fetchUser = async () => {
   // No token arg needed; cookies are sent automatically
 
+  const token = TokenManager.getToken();
+  const headers = {};
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch("https://grub-dash-api.vercel.app/api/user/auth/profile", {
     credentials: "include", // ✅ vital for cookies
-    cache: "no-store",
+    headers: headers
   });
 
   // console.log(res)
@@ -258,14 +281,14 @@ export const getRestaurantReviews = async (vendorId, page = 1, limit = 10, ratin
     if (rating && rating !== 'all') {
       params.append('rating', rating.toString());
     }
-    
+
     const res = await axios.get(
       `https://grub-dash-api.vercel.app/api/public/reviews/vendor/${vendorId}?${params}`,
       {
         // No authentication required for public endpoints
       }
     );
-    
+
     // Enhanced response with backward compatibility
     const data = res.data;
     if (data.success && data.data) {
@@ -274,17 +297,17 @@ export const getRestaurantReviews = async (vendorId, page = 1, limit = 10, ratin
         data.data.restaurant.averageRating = data.data.restaurant.averageRating || data.data.restaurant.rating || 0;
         data.data.restaurant.totalReviews = data.data.restaurant.totalReviews || data.data.restaurant.reviewCount || 0;
       }
-      
+
       // Add calculated percentages if not provided
       if (!data.data.ratingPercentages && data.data.ratingDistribution) {
         data.data.ratingPercentages = calculatePercentagesFromDistribution(data.data.ratingDistribution);
       }
     }
-    
+
     return data;
   } catch (error) {
     console.error("Get Restaurant Reviews Error:", error);
-    
+
     // Return safe fallback structure
     return {
       success: false,
@@ -313,7 +336,7 @@ export const getRestaurantReviewsSummary = async (vendorId) => {
         // No authentication required for public endpoints
       }
     );
-    
+
     // Enhanced response with backward compatibility
     const data = res.data;
     if (data.success && data.data) {
@@ -322,17 +345,17 @@ export const getRestaurantReviewsSummary = async (vendorId) => {
         data.data.restaurant.averageRating = data.data.restaurant.averageRating || data.data.restaurant.rating || 0;
         data.data.restaurant.totalReviews = data.data.restaurant.totalReviews || data.data.restaurant.reviewCount || 0;
       }
-      
+
       // Add calculated percentages if not provided
       if (!data.data.ratingPercentages && data.data.ratingDistribution) {
         data.data.ratingPercentages = calculatePercentagesFromDistribution(data.data.ratingDistribution);
       }
     }
-    
+
     return data;
   } catch (error) {
     console.error("Get Restaurant Reviews Summary Error:", error);
-    
+
     // Return safe fallback structure
     return {
       success: false,
@@ -360,14 +383,14 @@ export const getFoodReviews = async (foodId, page = 1, limit = 10, rating = null
     if (rating && rating !== 'all') {
       params.append('rating', rating.toString());
     }
-    
+
     const res = await axios.get(
       `https://grub-dash-api.vercel.app/api/public/reviews/food/${foodId}?${params}`,
       {
         // No authentication required for public endpoints
       }
     );
-    
+
     // Enhanced response with backward compatibility
     const data = res.data;
     if (data.success && data.data) {
@@ -376,17 +399,17 @@ export const getFoodReviews = async (foodId, page = 1, limit = 10, rating = null
         data.data.food.averageRating = data.data.food.averageRating || data.data.food.rating || 0;
         data.data.food.totalReviews = data.data.food.totalReviews || data.data.food.reviewCount || 0;
       }
-      
+
       // Add calculated percentages if not provided
       if (!data.data.ratingPercentages && data.data.ratingDistribution) {
         data.data.ratingPercentages = calculatePercentagesFromDistribution(data.data.ratingDistribution);
       }
     }
-    
+
     return data;
   } catch (error) {
     console.error("Get Food Reviews Error:", error);
-    
+
     // Return safe fallback structure
     return {
       success: false,
@@ -399,5 +422,90 @@ export const getFoodReviews = async (foodId, page = 1, limit = 10, rating = null
       },
       error: error.message
     };
+  }
+};
+
+
+/**
+ * Get Personalized Smart Recommendations
+ * @param {string} weather - Optional weather condition (e.g., "rainy", "sunny")
+ * @returns {Object} - { success, meta, data: { timeOfDay, underrated, ... } }
+ */
+export const getRecommendations = async (weather = null) => {
+  try {
+    const params = new URLSearchParams();
+    if (weather) params.append("weather", weather);
+
+    const res = await axios.get(
+      `https://grub-dash-api.vercel.app/api/recommendations?${params}`,
+      {
+        withCredentials: true, // ✅ Vital for location detection via cookie
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Get Recommendations Error:", error);
+    // Return empty structure to prevent UI breakage
+    return {
+      success: false,
+      data: { timeOfDay: [], underrated: [], trendingNearby: [], budgetFriendly: [] },
+      meta: { timeOfDayLabel: "Delicious Picks" }
+    };
+  }
+};
+
+/**
+ * Verify a discount code
+ * @param {Object} data - { code, subtotal, deliveryFee, vendorId, items }
+ * @returns {Object} - { total, discountAmount, finalSubtotal, appliedDiscount }
+ */
+export const verifyDiscount = async (data) => {
+  try {
+    const res = await axios.post("https://grub-dash-api.vercel.app/api/discounts/verify", data, {
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      dispatchUserUnauthorized();
+    }
+    throw error;
+  }
+};
+
+/**
+ * Admin: Create a discount
+ * @param {Object} data - Discount payload
+ * @returns {Object}
+ */
+export const createDiscount = async (data) => {
+  try {
+    const res = await axios.post("https://grub-dash-api.vercel.app/api/admin/discounts", data, {
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      dispatchUserUnauthorized();
+    }
+    throw error;
+  }
+};
+
+/**
+ * Admin: Get discounts
+ * @returns {Object}
+ */
+export const getDiscounts = async () => {
+  try {
+    const res = await axios.get("https://grub-dash-api.vercel.app/api/admin/discounts", {
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      dispatchUserUnauthorized();
+    }
+    throw error;
   }
 };

@@ -15,6 +15,16 @@ export const useUserStorage = () => {
   const saveUser = (payload) => {
     // Normalize payload: if it contains 'user' property, unwrap it (e.g. from VerifyAccount)
     const data = payload?.user || payload;
+
+    // ✅ Cache user data for refresh resilience
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("grubdash_user_cache", JSON.stringify(data));
+      }
+    } catch (e) {
+      console.warn("Failed to cache user", e);
+    }
+
     queryClient.setQueryData(["userProfile"], data);
   };
 
@@ -40,6 +50,7 @@ export const useUserStorage = () => {
     // Clear state
     queryClient.setQueryData(["userProfile"], null);
     sessionStorage.removeItem("splashShown");
+    localStorage.removeItem("grubdash_user_cache"); // ✅ Clear cache
     localStorage.removeItem("cart");        // optional, keep client preferences
     localStorage.removeItem("addresses");   // optional
 

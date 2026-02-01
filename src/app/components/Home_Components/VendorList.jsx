@@ -7,6 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useApi } from "@/app/context/ApiContext";
 
+import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+
 // Simple skeleton for internal use or import existing if preferred
 const VendorSkeleton = () => (
     <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
@@ -97,52 +99,62 @@ export default function VendorList({ user }) {
             </div>
 
             <div className="flex gap-4 scroll overflow-x-auto px-4 pb-4 snap-x snap-mandatory scrollbar-hide">
-                {vendors.map((vendor) => (
-                    <div
-                        key={vendor._id}
-                        onClick={() => router.push(`/restataurants/${vendor._id}`)}
-                        className="group relative flex-none w-[250px] bg-white rounded-[24px] transition-all duration-300 cursor-pointer snap-start border border-gray-100 overflow-hidden"
-                    >
-                        {/* Image Container */}
-                        <div className="relative h-[140px] w-full bg-gray-100 overflow-hidden">
-                            <img
-                                src={vendor.logo || "/placeholder.jpg"}
-                                alt={vendor.storeName}
-                                onLoad={() => setImgLoaded((prev) => ({ ...prev, [vendor._id]: true }))}
-                                className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${imgLoaded[vendor._id] ? 'opacity-100' : 'opacity-0'}`}
-                            />
+                {vendors.map((vendor) => {
+                    const statusMsg = getVendorOpenAndCloseStatus(vendor.openingHours);
+                    const isOpen = statusMsg?.toLowerCase().startsWith("open now");
 
-                            {/* Rating Badge */}
-                            <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2 py-1 rounded-xl flex items-center gap-1">
-                                <Star size={10} className="fill-orange-500 text-orange-500" />
-                                <span className="text-[10px] font-black text-gray-900 tracking-tighter">
-                                    {vendor.rating || "NEW"}
-                                </span>
+                    return (
+                        <div
+                            key={vendor._id}
+                            onClick={() => router.push(`/restataurants/${vendor._id}`)}
+                            className="group relative flex-none w-[250px] bg-white rounded-[24px] transition-all duration-300 cursor-pointer snap-start border border-gray-100 overflow-hidden"
+                        >
+                            {/* Image Container */}
+                            <div className="relative h-[140px] w-full bg-gray-100 overflow-hidden">
+                                <img
+                                    src={vendor.logo || "/placeholder.jpg"}
+                                    alt={vendor.storeName}
+                                    onLoad={() => setImgLoaded((prev) => ({ ...prev, [vendor._id]: true }))}
+                                    className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${imgLoaded[vendor._id] ? 'opacity-100' : 'opacity-0'}`}
+                                />
+
+                                {/* Rating Badge */}
+                                <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2 py-1 rounded-xl flex items-center gap-1">
+                                    <Star size={10} className="fill-orange-500 text-orange-500" />
+                                    <span className="text-[10px] font-black text-gray-900 tracking-tighter">
+                                        {vendor.rating || "NEW"}
+                                    </span>
+                                </div>
+
+                                {/* Featured Badge */}
+                                {vendor.metadata?.featured && (
+                                    <div className="absolute top-3 left-3 bg-blue-500 text-white px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-md">
+                                        <BadgeCheck size={10} />
+                                        <span className="text-[9px] font-bold uppercase tracking-wider">Featured</span>
+                                    </div>
+                                )}
+
+                                {/* Open/Closed Badge */}
+                                <div className={`absolute bottom-3 right-3 px-2 py-1 rounded-lg flex items-center gap-1 shadow-md ${isOpen ? "bg-emerald-500" : "bg-rose-500"} text-white`}>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider">{isOpen ? "Open" : "Closed"}</span>
+                                </div>
+
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-40" />
                             </div>
 
-                            {/* Verified/Featured Badge */}
-                            {vendor.metadata?.featured && (
-                                <div className="absolute top-3 left-3 bg-blue-500 text-white px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-md">
-                                    <BadgeCheck size={10} />
-                                    <span className="text-[9px] font-bold uppercase tracking-wider">Featured</span>
-                                </div>
-                            )}
-
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-40" />
-                        </div>
-
-                        {/* Content */}
-                        <div className="p-4">
-                            <div className="mb-2">
-                                <h3 className="font-bold text-gray-900 text-sm truncate leading-tight tracking-tight mb-1">{vendor.storeName}</h3>
-                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                    <MapPin size={12} className="text-gray-400" />
-                                    <span className="truncate max-w-[180px] font-medium opacity-80">{vendor.address?.city || "Location info"}</span>
+                            {/* Content */}
+                            <div className="p-4">
+                                <div className="mb-2">
+                                    <h3 className="font-bold text-gray-900 text-sm truncate leading-tight tracking-tight mb-1">{vendor.storeName}</h3>
+                                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                        <MapPin size={12} className="text-gray-400" />
+                                        <span className="truncate max-w-[180px] font-medium opacity-80">{vendor.address?.city || "Location info"}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
         </div>
     );

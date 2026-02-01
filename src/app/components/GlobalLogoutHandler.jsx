@@ -6,6 +6,7 @@ import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import { useAdmin } from "@/app/context/AdminContext";
 import toast from "react-hot-toast";
+import { TokenManager } from "@/app/lib/auth-token";
 
 const INACTIVITY_LIMIT = 30 * 60 * 1000; // 30 minutes inactivity limit
 
@@ -25,6 +26,7 @@ export default function GlobalLogoutHandler() {
         const handleUser401 = () => {
             sessionStorage.removeItem("splashShown");
             logoutUser();
+            TokenManager.clearToken(); // ✅ Wipe secure token
             // Only redirect to user login if we are NOT in admin or vendor context
             if (!pathname.includes("/auth") && !pathname.startsWith("/admin") && !pathname.startsWith("/vendors")) {
                 router.push("/auth/signin");
@@ -35,6 +37,7 @@ export default function GlobalLogoutHandler() {
         const handleVendor401 = () => {
             sessionStorage.removeItem("splashShown");
             logoutVendor();
+            TokenManager.clearToken(); // ✅ Wipe secure token
             // Only redirect to vendor login if we are in vendor context
             if (pathname.startsWith("/vendors") && !pathname.includes("/auth")) {
                 router.push("/vendors/auth/login");
@@ -45,6 +48,7 @@ export default function GlobalLogoutHandler() {
         const handleAdmin401 = () => {
             sessionStorage.removeItem("splashShown");
             logoutAdmin();
+            TokenManager.clearToken(); // ✅ Wipe secure token
             // Only redirect to admin login if we are in admin context
             if (pathname.startsWith("/admin") && !pathname.includes("/login")) {
                 router.push("/admin/login");
@@ -68,6 +72,7 @@ export default function GlobalLogoutHandler() {
     const handleInactivityLogout = useCallback(() => {
         let loggedOut = false;
         sessionStorage.removeItem("splashShown");
+        TokenManager.clearToken(); // ✅ Wipe secure token
 
         // Logout Vendor if active
         if (vendorDetails) {

@@ -13,8 +13,10 @@ export default function HomeHeader() {
   const router = useRouter();
   const totalItems = cart.length;
   const [greeting, setGreeting] = useState("Hello");
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const hour = new Date().getHours();
     if (hour < 12) setGreeting("Good Morning");
     else if (hour < 18) setGreeting("Good Afternoon");
@@ -44,7 +46,7 @@ export default function HomeHeader() {
       {/* Location / Greeting */}
       <div className="flex flex-col">
         <div className="flex items-center gap-1.5 mb-0.5">
-          <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
+          <span suppressHydrationWarning className="text-xs font-bold text-orange-600 uppercase tracking-wider">
             {greeting}, {user?.firstname || user?.firstName || 'Guest'}
           </span>
           <span className="text-lg">👋</span>
@@ -54,7 +56,7 @@ export default function HomeHeader() {
           onClick={handleLocationClick}
           className="flex items-center gap-1 cursor-pointer group"
         >
-          <span className="text-sm font-black text-gray-800 dark:text-gray-100 truncate max-w-[200px]">
+          <span suppressHydrationWarning className="text-sm font-black text-gray-800 dark:text-gray-100 truncate max-w-[200px]">
             {defaultAddress
               ? `${defaultAddress.city}, ${defaultAddress.state}`
               : "Select Location"}
@@ -81,7 +83,7 @@ export default function HomeHeader() {
           </motion.div>
         </Link>
 
-        {isLoading ? (
+        {(!isMounted || isLoading) ? (
           <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-zinc-800 animate-pulse" />
         ) : user?.avatar ? (
           <Link href='/profile'>

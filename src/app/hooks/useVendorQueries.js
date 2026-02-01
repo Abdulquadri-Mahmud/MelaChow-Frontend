@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 
@@ -19,12 +20,28 @@ export const useVendors = () => {
   } = useQuery({
     queryKey: ["vendors"],
     queryFn: getVendors,
+    // ✅ Load from Cache immediately
+    initialData: () => {
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem("grubdash_vendor_cache");
+        try {
+          return cached ? JSON.parse(cached) : undefined;
+        } catch (e) { return undefined; }
+      }
+    },
     // staleTime: 1000 * 60 * 2, // 2 minutes
     // refetchInterval: 1000 * 30, // background refresh every 30s
     // refetchIntervalInBackground: true,
     // refetchOnWindowFocus: false,
     // keepPreviousData: true, // ✅ maintain UI during refetch
   });
+
+  // ✅ Sync cache
+  useEffect(() => {
+    if (vendors && typeof window !== 'undefined') {
+      localStorage.setItem("grubdash_vendor_cache", JSON.stringify(vendors));
+    }
+  }, [vendors]);
 
   // 🔹 Optimistic update mutation for vendor profile
   const updateMutation = useMutation({
