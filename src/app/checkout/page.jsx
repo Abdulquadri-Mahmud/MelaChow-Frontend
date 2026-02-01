@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/app/context/CartContext";
-import { Loader2, Bike, MapPin, Clock, DollarSign, TicketPercent, Tag } from "lucide-react";
-import { fetchUser, verifyDiscount, getVendorById } from "../lib/api";
+import { Loader2, Bike, MapPin, Clock, DollarSign, TicketPercent, Tag, Wallet, CreditCard } from "lucide-react";
+import { fetchUser, verifyDiscount, getVendorById, getWallet } from "../lib/api";
 import { createOrderV2 } from "../lib/orderService";
 import { transformCartToOrderV2, validateCartItems } from "../lib/orderTransformers";
 import Header2 from "../components/App_Header/Header2";
@@ -35,6 +35,16 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(null);
   const [verifyingCode, setVerifyingCode] = useState(false);
+
+  // Wallet State
+  const [useWallet, setUseWallet] = useState(false);
+  const { data: walletData } = useQuery({
+    queryKey: ["userWallet"],
+    queryFn: getWallet,
+    retry: false,
+    staleTime: 1000 * 60 * 5,
+  });
+  const walletBalance = walletData?.wallet?.balance || 0;
 
   // Cart validation hook
   const { validateCart, validationErrors, isValid } = useCartValidation(cart);
@@ -188,6 +198,14 @@ export default function CheckoutPage() {
         notes
       );
 
+      // Add Wallet Payment Flag
+      if (useWallet) {
+        if (walletBalance < finalTotal) {
+          throw new Error("Insufficient wallet balance for this transaction.");
+        }
+        orderPayload.useWallet = true;
+      }
+
       // Inject Discount Code if valid
       if (appliedDiscount && couponCode) {
         orderPayload.discountCode = couponCode;
@@ -202,7 +220,16 @@ export default function CheckoutPage() {
       // console.log("V2 Order Response:", response);
 
       // 7. Redirect to Paystack payment page
-      if (response?.authorization_url) {
+      // 7. Handle Response (Redirect to Paystack OR Success)
+      if (response?.paymentStatus === "paid") {
+        // Wallet Payment Success
+        clearCart();
+        toast.success("Order Placed Successfully! 🎉", { duration: 3000 });
+        setTimeout(() => {
+          router.push("/orders"); // Or wherever the orders list is
+        }, 1500);
+      } else if (response?.authorization_url) {
+        // ... (Existing Paystack logic) ...
         // Store pending order ID if provided (New Flow)
         if (response.orderId) {
           sessionStorage.setItem("pendingOrderId", response.orderId);
@@ -220,7 +247,7 @@ export default function CheckoutPage() {
         // Redirect to Paystack
         window.location.href = response.authorization_url;
       } else {
-        throw new Error("Payment initialization failed - no authorization URL");
+        throw new Error("Payment initialization failed - unknown response status");
       }
     } catch (err) {
       console.error("Order Creation Error:", err);
@@ -341,6 +368,57 @@ export default function CheckoutPage() {
           <div>
             <p className="font-medium text-gray-800">Delivery Fee</p>
             <p className="text-xs text-gray-600">Charged once per restaurant in your cart</p>
+          </div>
+        </div>
+
+        {/* Payment Method Selection */}
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
+          <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+            <CreditCard size={18} className="text-orange-500" /> Payment Method
+          </h3>
+
+          {/* Paystack Option */}
+          <div
+            onClick={() => setUseWallet(false)}
+            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${!useWallet ? "border-orange-500 bg-orange-50" : "border-gray-100 hover:bg-gray-50"
+              }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${!useWallet ? "border-orange-600" : "border-gray-300"
+                }`}>
+                {!useWallet && <div className="w-2 h-2 bg-orange-600 rounded-full" />}
+              </div>
+              <div>
+                <p className="font-bold text-sm text-gray-800">Pay with Card / Transfer</p>
+                <p className="text-[10px] text-gray-500">Secured by Paystack</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Wallet Option */}
+          <div
+            onClick={() => {
+              if (walletBalance >= finalTotal) setUseWallet(true);
+              else toast.error("Insufficient balance for this order");
+            }}
+            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${useWallet ? "border-orange-500 bg-orange-50" : "border-gray-100 hover:bg-gray-50"
+              } ${walletBalance < finalTotal ? "opacity-60 cursor-not-allowed" : ""}`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${useWallet ? "border-orange-600" : "border-gray-300"
+                }`}>
+                {useWallet && <div className="w-2 h-2 bg-orange-600 rounded-full" />}
+              </div>
+              <div>
+                <p className="font-bold text-sm text-gray-800 flex items-center gap-2">
+                  Pay with Wallet <span className="text-orange-600">({walletData ? `₦${walletBalance.toLocaleString()}` : "Loading..."})</span>
+                </p>
+                {walletBalance < finalTotal && (
+                  <p className="text-[10px] text-red-500 font-bold">Insufficient Balance</p>
+                )}
+              </div>
+            </div>
+            <Wallet size={18} className={useWallet ? "text-orange-600" : "text-gray-400"} />
           </div>
         </div>
 

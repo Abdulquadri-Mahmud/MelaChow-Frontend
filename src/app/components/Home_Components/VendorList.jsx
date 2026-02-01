@@ -43,14 +43,15 @@ export default function VendorList({ user }) {
             return res.data.vendors || [];
         },
         refetchInterval: 60000,
-        retry: false,
+        retry: 1, // Retry once
+        staleTime: 1000 * 60 * 5, // 5 minutes
     });
 
     if (isLoading) return (
-        <div className="mt-8 px-4 space-y-4">
+        <div className="mt-8 px-4 space-y-4" >
             <div className="h-6 w-48 bg-gray-100 rounded-lg animate-pulse"></div>
             <VendorSkeleton />
-        </div>
+        </div >
     );
 
     if (isError) return null;

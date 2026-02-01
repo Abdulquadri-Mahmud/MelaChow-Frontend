@@ -1,6 +1,7 @@
 import { useVendors } from "./useVendorQueries";
 import { useApi } from "../context/ApiContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { TokenManager } from "../lib/auth-token";
 
 /**
  * Hook for managing Vendor data via useVendors (Server-Sourced Identity).
@@ -61,6 +62,7 @@ export const useVendorStorage = () => {
     queryClient.setQueryData(["vendors"], null);
     sessionStorage.removeItem("splashShown");
     localStorage.removeItem("grubdash_vendor_cache"); // ✅ Clear cache
+    TokenManager.clearToken(); // ✅ Clear fallback token
     queryClient.invalidateQueries(["vendors"]);
   };
 

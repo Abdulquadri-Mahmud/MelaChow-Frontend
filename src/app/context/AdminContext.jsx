@@ -71,6 +71,7 @@ export const AdminProvider = ({ children }) => {
             console.error("Logout error:", error);
         } finally {
             setAdmin(null);
+            TokenManager.clearToken(); // ✅ Clear fallback token
             sessionStorage.removeItem("splashShown");
         }
     };

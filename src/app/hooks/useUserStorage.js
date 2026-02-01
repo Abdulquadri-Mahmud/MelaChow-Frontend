@@ -1,6 +1,7 @@
 import { useApi } from "../context/ApiContext";
 import { useProfile } from "../context/ProfileContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { TokenManager } from "../lib/auth-token";
 
 /**
  * Hook for managing user data via ProfileContext (Server-Sourced Identity).
@@ -53,6 +54,7 @@ export const useUserStorage = () => {
     localStorage.removeItem("grubdash_user_cache"); // ✅ Clear cache
     localStorage.removeItem("cart");        // optional, keep client preferences
     localStorage.removeItem("addresses");   // optional
+    TokenManager.clearToken(); // ✅ Clear fallback token
 
     // Invalidate to be sure
     queryClient.invalidateQueries(["userProfile"]);
