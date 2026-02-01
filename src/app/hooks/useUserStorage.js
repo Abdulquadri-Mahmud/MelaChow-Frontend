@@ -8,7 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
  */
 export const useUserStorage = () => {
   const { baseUrl } = useApi();
-  const { userProfile, isLoading, refetchProfile } = useProfile();
+  const { userProfile, isLoading, refetchProfile, hasCheckedSession } = useProfile();
   const queryClient = useQueryClient();
 
   // Legacy compatibility: saveUser now optimistically updates the cache
@@ -66,6 +66,7 @@ export const useUserStorage = () => {
   return {
     user: userProfile,
     isLoading,
+    hasCheckedSession, // ✅ Expose session check status
     saveUser,
     updateUser,
     clearUser,

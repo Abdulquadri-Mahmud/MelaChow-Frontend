@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useApi } from "./ApiContext";
 import { TokenManager } from "../lib/auth-token";
 import { useQuery } from "@tanstack/react-query";
@@ -27,6 +27,7 @@ export const ProfileProvider = ({ children }) => {
   const { baseUrl } = useApi();
   const router = useRouter();
   const pathname = usePathname();
+  const [hasCheckedSession, setHasCheckedSession] = useState(false);
 
   // Function used by React Query to fetch the user profile
   const fetchProfile = async () => {
@@ -88,17 +89,25 @@ export const ProfileProvider = ({ children }) => {
     },
     staleTime: 1000 * 60 * 5, // cache for 5 minutes
     retry: (failureCount, error) => {
+      // ✅ Limit retries to 2
+      if (failureCount >= 2) return false;
+
       // ✅ Retry on network errors
       if (error?.message?.includes("Failed to fetch")) {
-        return failureCount < 2;
+        return true;
       }
-      // ✅ Retry on temporary auth failures
+      // ✅ Retry on temporary auth failures (401)
+      // This is crucial for iOS race conditions
       if (error?.message?.includes("Session check failed (401)")) {
-        return failureCount < 3;
+        return true;
       }
       return false;
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 3000),
+    // ✅ Fast retry for iOS (300ms)
+    retryDelay: 300,
+    onSettled: () => {
+      setHasCheckedSession(true);
+    },
     refetchOnMount: "always",
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
@@ -112,7 +121,9 @@ export const ProfileProvider = ({ children }) => {
   }, [data]);
 
   // Monitor authentication status and redirect if session expires
-  useEffect(() => {
+  // ❌ DEPRECATED: Redirect logic moved to AppBootstrapper
+  // This prevents race conditions where ProfileContext redirects before AppBootstrapper handles splash
+  /*useEffect(() => {
     // Skip if still loading
     if (isLoading) return;
 
@@ -132,13 +143,14 @@ export const ProfileProvider = ({ children }) => {
 
       return () => clearTimeout(redirectTimer);
     }
-  }, [data, isLoading, pathname, router]);
+  }, [data, isLoading, pathname, router]);*/
 
   return (
     <ProfileContext.Provider
       value={{
         userProfile: data,
         isLoading,
+        hasCheckedSession, // ✅ Expose session check status
         error: error ? error.message : null,
         refetchProfile: refetch,
       }}

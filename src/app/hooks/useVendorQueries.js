@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 
@@ -10,6 +10,7 @@ import { deleteVendor, fetchVendorForUserDisplay, getVendorById, getVendors, upd
 // ✅ Custom hook for managing vendor profiles
 export const useVendors = () => {
   const queryClient = useQueryClient();
+  const [hasCheckedSession, setHasCheckedSession] = useState(false);
 
   // 🔹 Fetch all vendors (background refresh & smooth UI)
   const {
@@ -34,6 +35,17 @@ export const useVendors = () => {
     // refetchIntervalInBackground: true,
     // refetchOnWindowFocus: false,
     // keepPreviousData: true, // ✅ maintain UI during refetch
+    // ✅ Retry logic for race conditions
+    retry: (failureCount, error) => {
+      if (failureCount >= 2) return false;
+      // Network error
+      if (error?.message?.includes("Failed to fetch")) return true;
+      // 401 error
+      if (error?.response?.status === 401) return true;
+      return false;
+    },
+    retryDelay: 300,
+    onSettled: () => setHasCheckedSession(true),
   });
 
   // ✅ Sync cache
@@ -101,6 +113,7 @@ export const useVendors = () => {
     vendors,
     isLoading,
     isError,
+    hasCheckedSession, // ✅ Expose session check
     refetch,
     updateVendor: updateMutation.mutate,
     deleteVendor: deleteMutation.mutate,

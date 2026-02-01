@@ -73,7 +73,13 @@ export const metadata = {
     creator: "@grubdash_app",
   },
   icons: {
-    icon: "/logo.png",
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+    other: {
+      rel: 'apple-touch-icon-precomposed',
+      url: '/logo.png',
+    },
   },
   metadataBase: new URL("https://grubdash.vercel.app"),
 };

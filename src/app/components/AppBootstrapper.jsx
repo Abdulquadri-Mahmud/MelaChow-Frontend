@@ -35,11 +35,11 @@ export default function AppBootstrapper({ children }) {
     const router = useRouter();
 
     // Monitor Auth States
-    const { user, isLoading: isUserLoading } = useUserStorage();
-    const { vendorDetails, isLoading: isVendorLoading } = useVendorStorage();
+    const { user, hasCheckedSession: hasUserChecked } = useUserStorage();
+    const { vendorDetails, hasCheckedSession: hasVendorChecked } = useVendorStorage();
 
-    // Track global app readiness
-    const isAuthResolved = !isUserLoading && !isVendorLoading;
+    // Track global app readiness (Session Finality)
+    const isAuthResolved = hasUserChecked && hasVendorChecked;
 
     // Splash Visibility State
     const [showSplash, setShowSplash] = useState(false); // ✅ Default to HIDDEN to prevent refresh flash
@@ -64,10 +64,10 @@ export default function AppBootstrapper({ children }) {
     const isAuthenticated = !!user || !!vendorDetails;
 
     useEffect(() => {
-        // Only process after auth is resolved
+        // Only process after auth is resolved (Session Finality)
         if (!isAuthResolved) return;
 
-        // Dismiss splash screen
+        // Dismiss splash screen ONLY after session check is done
         if (showSplash) {
             setShowSplash(false);
             sessionStorage.setItem("splashShown", "true");
@@ -82,15 +82,15 @@ export default function AppBootstrapper({ children }) {
         // Skip redirect logic for admin routes (handled by AdminProtectedRoute)
         if (isAdminRoute) return;
 
-        // If not authenticated and trying to access protected route, redirect to signin
+        // ✅ iOS Race Condition Fix:
+        // Only redirect AFTER session is fully checked AND user is not authenticated
         if (!isAuthenticated && !isRedirecting) {
             // ✅ iOS Safari Fix: Add small delay to allow cookies to be read after page refresh
-            // iOS Safari sometimes needs extra time to restore cookies after navigation
             const redirectTimer = setTimeout(() => {
-                console.log("🔒 Unauthorized access detected. Redirecting to signin...");
+                console.log("🔒 Unauthorized access detected after session check. Redirecting to signin...");
                 setIsRedirecting(true);
                 router.replace("/auth/signin");
-            }, 300); // 300ms delay to allow cookie restoration on iOS
+            }, 300); 
 
             return () => clearTimeout(redirectTimer);
         }

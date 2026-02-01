@@ -7,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
  * Replaces legacy localStorage implementation.
  */
 export const useVendorStorage = () => {
-  const { vendors: vendorData, isLoading } = useVendors(); // 'vendors' is the single vendor profile
+  const { vendors: vendorData, isLoading, hasCheckedSession } = useVendors(); // 'vendors' is the single vendor profile
   const queryClient = useQueryClient();
 
   // Legacy: optimistically update cache
@@ -67,6 +67,7 @@ export const useVendorStorage = () => {
   return {
     vendorDetails,
     isLoading,
+    hasCheckedSession, // ✅ Expose session check status
     saveVendor,
     updateVendor,
     clearVendor,
