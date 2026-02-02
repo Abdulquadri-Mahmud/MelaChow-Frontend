@@ -24,12 +24,16 @@ export default function PWAInstallPrompt() {
     useEffect(() => {
         // Check if already dismissed
         const dismissed = localStorage.getItem("pwa_install_dismissed");
+        console.log("[PWA] Install Prompt Check - Dismissed:", dismissed);
+
         if (dismissed === "true") {
+            console.log("[PWA] Install prompt previously dismissed");
             return;
         }
 
         // Check if already installed
         if (window.matchMedia("(display-mode: standalone)").matches) {
+            console.log("[PWA] App is already running in standalone mode");
             setIsInstalled(true);
             return;
         }
@@ -52,6 +56,7 @@ export default function PWAInstallPrompt() {
 
         // For Android/Desktop, listen for beforeinstallprompt event
         const handleBeforeInstallPrompt = (e) => {
+            console.log("[PWA] 'beforeinstallprompt' event fired");
             // Prevent the mini-infobar from appearing
             e.preventDefault();
 
@@ -60,6 +65,7 @@ export default function PWAInstallPrompt() {
 
             // Show custom install prompt after a delay
             setTimeout(() => {
+                console.log("[PWA] Showing custom install prompt");
                 setShowPrompt(true);
             }, 5000); // Show after 5 seconds
         };
