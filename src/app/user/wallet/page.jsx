@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, Suspense } from "react";
 import { useProfile } from "@/app/context/ProfileContext";
 import { getWallet, fundWallet, verifyWalletTransaction } from "@/app/lib/api";
 import {
@@ -49,7 +49,7 @@ const groupTransactionsByDate = (transactions) => {
     return groups;
 };
 
-export default function UserWalletPage() {
+function UserWalletContent() {
     const { userProfile, isLoading: isProfileLoading } = useProfile();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -451,5 +451,18 @@ export default function UserWalletPage() {
                 </AnimatePresence>
             </div>
         </div>
+    );
+}
+
+export default function UserWalletPage() {
+    return (
+        <Suspense fallback={
+            <div className="bg-zinc-50 min-h-screen flex flex-col items-center justify-center">
+                <Loader2 className="animate-spin text-orange-500" size={48} />
+                <p className="mt-4 text-gray-500 font-medium">Loading wallet...</p>
+            </div>
+        }>
+            <UserWalletContent />
+        </Suspense>
     );
 }
