@@ -393,7 +393,7 @@ export default function UserWalletPage() {
                                 initial={{ opacity: 0, scale: 0.9, x: "-50%", y: "-45%" }}
                                 animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
                                 exit={{ opacity: 0, scale: 0.9, x: "-50%", y: "-45%" }}
-                                className="fixed top-1/2 left-1/2 w-full max-w-md h-fit bg-white rounded-[32px] overflow-hidden shadow-2xl z-50 border border-gray-100"
+                                className="fixed top-1/2  w-full max-w-md h-fit bg-white rounded-[32px] overflow-hidden shadow-2xl z-50 border border-gray-100"
                                 style={{ margin: 0, width: "95%" }} // Ensure width constraint on mobile
                             >
                                 <div className="relative bg-black p-6">
