@@ -30,6 +30,15 @@ const playfairDisplay = Playfair_Display({
   fallback: ["serif"],
 });
 
+export const viewport = {
+  themeColor: "#ea580c",
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
+};
+
 export const metadata = {
   title: {
     default: "GrubDash",
@@ -45,6 +54,12 @@ export const metadata = {
     "Nigeria food app",
     "order food online",
   ],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "GrubDash",
+  },
   openGraph: {
     title: "GrubDash — Local Meals Delivered Fast",
     description:
@@ -73,13 +88,20 @@ export const metadata = {
     creator: "@grubdash_app",
   },
   icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
-    apple: '/logo.png',
-    other: {
-      rel: 'apple-touch-icon-precomposed',
-      url: '/logo.png',
-    },
+    icon: '/icons/icon-192x192.png',
+    shortcut: '/icons/icon-192x192.png',
+    apple: '/icons/icon-192x192.png',
+    other: [
+      {
+        rel: 'apple-touch-icon',
+        url: '/icons/icon-192x192.png',
+      },
+      {
+        rel: 'apple-touch-icon',
+        sizes: '512x512',
+        url: '/icons/icon-512x512.png',
+      },
+    ],
   },
   metadataBase: new URL("https://grubdash.vercel.app"),
 };
