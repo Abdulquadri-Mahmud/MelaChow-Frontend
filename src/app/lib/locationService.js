@@ -82,7 +82,7 @@ export class LocationService {
         }
       } else if (data.success && data.count > 0) {
         // Main endpoint worked
-        console.log('Using database-driven locations:', data.locations);
+        // console.log('Using database-driven locations:', data.locations);
         return {
           success: true,
           locations: data.locations || [],
