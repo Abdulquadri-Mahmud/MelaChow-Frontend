@@ -1,7 +1,8 @@
 import axios from "axios";
+import { getApiUrl } from "./apiConfig";
 
-// const baseUrl = "http://localhost:3001/api";
-const baseUrl = "https://grub-dash-api.vercel.app/api";
+// Use API proxy for iOS Safari cookie fix
+const baseUrl = getApiUrl();
 
 /**
  * Location Service - Centralized location API calls with enhanced error handling and fallback
