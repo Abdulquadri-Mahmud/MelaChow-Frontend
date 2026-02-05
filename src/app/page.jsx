@@ -1,7 +1,22 @@
 "use client";
 
-import AuthLoader from "./components/AuthLoader";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useUserStorage } from "./hooks/useUserStorage";
 
 export default function Home() {
-  return <AuthLoader />;
+  const router = useRouter();
+  const { user, hasCheckedSession } = useUserStorage(); // ✅ Use hasCheckedSession
+
+  useEffect(() => {
+    // ✅ Wait for session check to complete
+    if (!hasCheckedSession) return;
+
+    // ✅ Redirect to home after session is verified
+    // AppBootstrapper will show splash screen
+    router.push("/home");
+  }, [hasCheckedSession, router]);
+
+  // ✅ Show nothing while redirecting (AppBootstrapper handles splash)
+  return null;
 }
