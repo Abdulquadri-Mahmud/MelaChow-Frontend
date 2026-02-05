@@ -263,10 +263,24 @@ export default function CheckoutPage() {
         errorMessage = err.message;
       }
 
-      setOrderError(errorMessage);
+      // Handle specific wallet errors with actionable guidance
+      if (errorMessage.includes("Wallet not found")) {
+        toast.error("Wallet not found. Please fund your wallet first.", { duration: 5000 });
+        setTimeout(() => router.push("/user/wallet"), 2000);
+      } else if (errorMessage.includes("Insufficient wallet balance")) {
+        const match = errorMessage.match(/₦([\d,]+)/g);
+        const balanceInfo = match ? ` You need ${match[1]} but have ${match[0]}.` : "";
+        toast.error(`Insufficient wallet balance.${balanceInfo} Redirecting to wallet...`, { duration: 5000 });
+        setTimeout(() => router.push("/user/wallet"), 2500);
+      } else if (errorMessage.includes("Email required")) {
+        toast.error("Email is required. Please update your profile.", { duration: 5000 });
+        setTimeout(() => router.push("/profile"), 2000);
+      } else {
+        // Show generic toast notification
+        toast.error(errorMessage, { duration: 4000 });
+      }
 
-      // Show toast notification
-      toast.error(errorMessage, { duration: 4000 });
+      setOrderError(errorMessage);
     } finally {
       setLoadingInit(false);
     }

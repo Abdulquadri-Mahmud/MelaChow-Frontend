@@ -1,7 +1,8 @@
 import axios from "axios";
+import { getApiUrl } from "./apiConfig";
 
-// const baseUrl = "http://localhost:3001/api";
-const baseUrl = "https://grub-dash-api.vercel.app/api";
+// Use API proxy for iOS Safari cookie fix
+const baseUrl = getApiUrl();
 
 /**
  * Location Service - Centralized location API calls with enhanced error handling and fallback
@@ -22,8 +23,8 @@ export class LocationService {
           'Pragma': 'no-cache',
           'Expires': '0'
         },
-        // ✅ iOS fix: Add timeout to prevent hanging requests
-        timeout: 10000, // 10 second timeout
+        // ✅ Increased timeout for slow backend responses
+        timeout: 30000, // 30 second timeout (backend might be slow)
       });
 
       let data = response.data;
@@ -46,7 +47,7 @@ export class LocationService {
               'Pragma': 'no-cache',
               'Expires': '0'
             },
-            timeout: 10000,
+            timeout: 30000, // Match main endpoint timeout
           });
           data = response.data;
 
@@ -81,7 +82,7 @@ export class LocationService {
         }
       } else if (data.success && data.count > 0) {
         // Main endpoint worked
-        console.log('Using database-driven locations:', data.locations);
+        // console.log('Using database-driven locations:', data.locations);
         return {
           success: true,
           locations: data.locations || [],
@@ -95,11 +96,21 @@ export class LocationService {
     } catch (error) {
       console.error("Error fetching user locations:", error);
 
+      // ✅ Check for timeout errors
+      const isTimeoutError = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
+
       // ✅ iOS-specific: Check if error is due to auth/cookie issues
       const isAuthError = error.response?.status === 401 || error.response?.status === 403;
-      const errorMessage = isAuthError
-        ? "Please log in again to view locations"
-        : error.response?.data?.message || "Error loading locations";
+
+      // ✅ Provide helpful error messages
+      let errorMessage;
+      if (isTimeoutError) {
+        errorMessage = "Server is taking too long to respond. Please try again in a moment.";
+      } else if (isAuthError) {
+        errorMessage = "Please log in again to view locations";
+      } else {
+        errorMessage = error.response?.data?.message || "Error loading locations";
+      }
 
       return {
         success: false,
@@ -108,6 +119,7 @@ export class LocationService {
         debugInfo: null,
         error: errorMessage,
         isAuthError, // ✅ Flag to help UI handle auth-specific errors
+        isTimeoutError, // ✅ Flag for timeout-specific handling
       };
     }
   }

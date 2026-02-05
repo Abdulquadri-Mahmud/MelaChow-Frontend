@@ -2,6 +2,8 @@
     "name": "GrubDash - Food Delivery",
     "short_name": "GrubDash",
     "description": "Order delicious food from your favorite restaurants",
+    "version": "2.1.0",
+    "updated": "2026-02-05",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
