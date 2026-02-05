@@ -145,6 +145,20 @@ export const ProfileProvider = ({ children }) => {
     }
   }, [data, isLoading, pathname, router]);*/
 
+  // ✅ Intelligent Refetch on Navigation
+  // If the user navigates to a protected route and we don't have data, verify session immediately.
+  // This fixes issues where a user might be "Guest" on Home but should be "User" on Profile.
+  useEffect(() => {
+    const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route) || pathname === route);
+    const isRestaurantRoute = pathname?.startsWith("/restataurants/");
+    const isAdminRoute = pathname?.startsWith("/admin/");
+    const isProtected = !isPublicRoute && !isRestaurantRoute && !isAdminRoute;
+
+    if (isProtected && !data && !isLoading) {
+      refetch();
+    }
+  }, [pathname, data, isLoading, refetch]);
+
   return (
     <ProfileContext.Provider
       value={{
