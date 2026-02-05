@@ -26,6 +26,7 @@ export default function CheckoutPage() {
   const [loadingInit, setLoadingInit] = useState(false);
   const [notes, setNotes] = useState({}); // notes per restaurant
   const { baseUrl } = useApi();
+  const [isMounted, setIsMounted] = useState(false);
 
   // V2 API Integration - Enhanced State Management
   const [orderError, setOrderError] = useState(null);
@@ -57,6 +58,7 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
+    setIsMounted(true);
     if (data?.user) setUserData(data.user);
   }, [data]);
 
@@ -168,8 +170,14 @@ export default function CheckoutPage() {
       const closedRestaurants = [];
       const notVerifiedRestaurants = []; // Optional: track failures
 
+      // Check for failed vendor fetches (404s)
+      const failedVendorFetches = vendorStatuses.filter(res => !res.success);
+      if (failedVendorFetches.length > 0) {
+        throw new Error("Unable to verify one or more vendors. Please clear your cart and try again as some items may be from unavailable stores.");
+      }
+
       vendorStatuses.forEach((res) => {
-        if (!res.success || !res.vendor) return; // Skip check if fetch failed
+        if (!res.success || !res.vendor) return; // Should be caught above, but safety check
 
         const status = getVendorOpenAndCloseStatus(res.vendor.openingHours);
         if (!status) return; // No status, assume open
@@ -287,7 +295,7 @@ export default function CheckoutPage() {
   };
 
   /* ---------------- UI STATES ---------------- */
-  if (isLoading) return <CheckoutPageSkeleton />;
+  if (!isMounted || isLoading) return <CheckoutPageSkeleton />;
 
   if (isError)
     return (

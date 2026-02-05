@@ -30,47 +30,64 @@ export const ProfileProvider = ({ children }) => {
 
   // Function used by React Query to fetch the user profile
   const fetchProfile = async () => {
-    // Get token fallback for iOS
-    let token = TokenManager.getToken();
+    // ✅ Get token (already initialized on app boot in ClientLayout)
+    const token = TokenManager.getToken();
 
-    // ✅ Double-check initialization if token is missing (fix for refresh race condition)
-    if (!token) {
-      TokenManager.initialize();
-      token = TokenManager.getToken();
-    }
+    const headers = {
+      'Content-Type': 'application/json',
+    };
 
-    const headers = {};
-
+    // ✅ Only add Authorization header if token exists
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${baseUrl}/user/auth/profile`, {
-      credentials: "include", // ✅ Send cookies
-      headers: headers
-    });
+    try {
+      const res = await fetch(`${baseUrl}/user/auth/profile`, {
+        credentials: "include", // ✅ PRIMARY: Send cookies
+        headers: headers,
+      });
 
-    // Handle 401 gracefully
-    if (res.status === 401) {
-      // If we are on a protected route, treat 401 as a potential transient failure and retry
-      const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route) || pathname === route);
-      const isRestaurantRoute = pathname?.startsWith("/restataurants/");
-      const isAdminRoute = pathname?.startsWith("/admin/");
-      const isProtected = !isPublicRoute && !isRestaurantRoute && !isAdminRoute;
+      // ✅ Handle 401 gracefully (BEFORE parsing JSON)
+      if (res.status === 401) {
+        const isPublicRoute = PUBLIC_ROUTES.some(route =>
+          pathname?.startsWith(route) || pathname === route
+        );
+        const isRestaurantRoute = pathname?.startsWith("/restataurants/");
+        const isAdminRoute = pathname?.startsWith("/admin/");
+        const isProtected = !isPublicRoute && !isRestaurantRoute && !isAdminRoute;
 
-      if (isProtected) {
-        // console.warn("Session check failed (401) on protected route. Will retry...");
-        throw new Error("Session check failed (401) on protected route");
+        if (isProtected) {
+          // ✅ Clear stale token and cache on auth failure
+          TokenManager.clearToken();
+          localStorage.removeItem("grubdash_user_cache");
+          throw new Error("Session expired");
+        }
+
+        return null; // Guest mode for public routes
       }
 
-      return null; // Guest mode for public routes
+      // ✅ Handle other HTTP errors (BEFORE parsing JSON)
+      if (!res.ok) {
+        let errorMessage = "Failed to fetch profile";
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          // Response wasn't JSON, use default message
+        }
+        throw new Error(errorMessage);
+      }
+
+      // ✅ Response is OK (200-299), safe to parse
+      const data = await res.json();
+      return data.user || data;
+
+    } catch (error) {
+      // ✅ Log errors for debugging iOS issues
+      console.error('[ProfileContext] fetchProfile error:', error);
+      throw error;
     }
-
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.message || "Failed to fetch profile");
-
-    return data.user || data;
   };
 
   // React Query hook with iOS-friendly retry logic
@@ -88,22 +105,25 @@ export const ProfileProvider = ({ children }) => {
     },
     staleTime: 1000 * 60 * 5, // cache for 5 minutes
     retry: (failureCount, error) => {
-      // ✅ Limit retries to 2
+      // ✅ Don't retry auth failures (401) - they're permanent
+      if (error?.message?.includes("Session expired")) {
+        return false;
+      }
+
+      // ✅ Only retry network errors, max 2 times
       if (failureCount >= 2) return false;
 
-      // ✅ Retry on network errors
+      // ✅ Retry on network errors only
       if (error?.message?.includes("Failed to fetch")) {
         return true;
       }
-      // ✅ Retry on temporary auth failures (401)
-      // This is crucial for iOS race conditions
-      if (error?.message?.includes("Session check failed (401)")) {
-        return true;
-      }
+
       return false;
     },
-    // ✅ Fast retry for iOS (300ms)
-    retryDelay: 300,
+    // ✅ Exponential backoff: 100ms, 200ms, 400ms (max 500ms)
+    retryDelay: (attemptIndex) => {
+      return Math.min(100 * Math.pow(2, attemptIndex), 500);
+    },
     refetchOnMount: "always",
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
@@ -112,6 +132,20 @@ export const ProfileProvider = ({ children }) => {
   // ✅ Use isFetched directly for session check status
   // This avoids race conditions where onSettled might not trigger state updates correctly
   const hasCheckedSession = isFetched;
+
+  // ✅ Debug logging for iOS troubleshooting (development only)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[ProfileContext] Auth State:', {
+        hasUserData: !!data,
+        isLoading,
+        hasCheckedSession,
+        currentPath: pathname,
+        hasCachedUser: typeof window !== 'undefined' ? !!localStorage.getItem("grubdash_user_cache") : false,
+        hasToken: !!TokenManager.getToken(),
+      });
+    }
+  }, [data, isLoading, hasCheckedSession, pathname]);
 
   // ✅ Keep Cache Synced with Fresh Data
   useEffect(() => {
@@ -144,6 +178,20 @@ export const ProfileProvider = ({ children }) => {
       return () => clearTimeout(redirectTimer);
     }
   }, [data, isLoading, pathname, router]);*/
+
+  // ✅ Intelligent Refetch on Navigation
+  // If the user navigates to a protected route and we don't have data, verify session immediately.
+  // This fixes issues where a user might be "Guest" on Home but should be "User" on Profile.
+  useEffect(() => {
+    const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route) || pathname === route);
+    const isRestaurantRoute = pathname?.startsWith("/restataurants/");
+    const isAdminRoute = pathname?.startsWith("/admin/");
+    const isProtected = !isPublicRoute && !isRestaurantRoute && !isAdminRoute;
+
+    if (isProtected && !data && !isLoading) {
+      refetch();
+    }
+  }, [pathname, data, isLoading, refetch]);
 
   return (
     <ProfileContext.Provider

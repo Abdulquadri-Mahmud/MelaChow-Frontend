@@ -116,15 +116,8 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                 return { ...prev, [groupIndex]: list.filter((i) => i.name !== option.name) };
             }
 
-            // Add new if limit not reached
-            // Calculate current total quantity
-            const totalQty = list.reduce((sum, i) => sum + i.qty, 0);
-            if (totalQty < group.maxSelect) {
-                return { ...prev, [groupIndex]: [...list, { ...option, qty: 1 }] };
-            } else {
-                toast.error(`You can only select up to ${group.maxSelect} options.`);
-            }
-            return prev;
+            // Add new (Unlimited selection)
+            return { ...prev, [groupIndex]: [...list, { ...option, qty: 1 }] };
         });
     };
 
@@ -162,13 +155,9 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
             const item = list[itemIndex];
             const newQty = item.qty + delta;
 
-            // Check TOTAL limit if adding
+            // Increment (Unlimited selection)
             if (delta > 0) {
-                const totalQty = list.reduce((sum, i) => sum + i.qty, 0);
-                if (totalQty >= group.maxSelect) {
-                    toast.error(`You can only select up to ${group.maxSelect} options.`);
-                    return prev;
-                }
+                // No max limit check
             }
 
             if (newQty <= 0) {
@@ -425,11 +414,11 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                                                             </span>
                                                         )}
                                                         <span className="text-[9px] font-bold text-gray-400 bg-gray-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded-full tracking-wider">
-                                                            MAX {group.maxSelect}
+                                                            OPTIONAL
                                                         </span>
                                                     </div>
                                                     <span className="text-xs text-slate-400 font-medium block mt-0.5">
-                                                        {group.maxSelect > 1 ? "Select up to " + group.maxSelect : "Select one"}
+                                                        {group.maxSelect > 1 ? "Select multiple options" : "Select an option"}
                                                     </span>
                                                 </div>
                                             </div>

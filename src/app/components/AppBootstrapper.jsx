@@ -85,12 +85,13 @@ export default function AppBootstrapper({ children }) {
         // ✅ iOS Race Condition Fix:
         // Only redirect AFTER session is fully checked AND user is not authenticated
         if (!isAuthenticated && !isRedirecting) {
-            // ✅ iOS Safari Fix: Add small delay to allow cookies to be read after page refresh
+            // ✅ iOS Safari Fix: 300ms delay allows cookies to be restored after navigation
+            // iOS Safari sometimes needs extra time to read cookies after page refresh
             const redirectTimer = setTimeout(() => {
                 console.log("🔒 Unauthorized access detected after session check. Redirecting to signin...");
                 setIsRedirecting(true);
                 router.replace("/auth/signin");
-            }, 300); 
+            }, 300);
 
             return () => clearTimeout(redirectTimer);
         }

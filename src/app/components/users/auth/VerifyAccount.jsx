@@ -130,8 +130,8 @@ export default function VerifyAccount() {
       toast.success("Verified Successfully! Redirecting...");
       setTimeout(() => router.push("/home"), 1000);
     } catch (error) {
-      console.log(error);
-      toast.error("Something went wrong. Try again later.");
+      console.error('[VerifyAccount] Verification error:', error);
+      toast.error(error.message || "Something went wrong. Try again later.");
     } finally {
       setLoading(false);
     }
