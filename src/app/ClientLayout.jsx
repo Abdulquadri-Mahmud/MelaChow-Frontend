@@ -14,10 +14,15 @@ import PWAInstallPrompt from "./components/PWA/PWAInstallPrompt";
 import { registerServiceWorker } from "./lib/pwa-utils";
 import { Toaster } from "react-hot-toast";
 import "@/app/lib/api"; // Register axios interceptors
+import { TokenManager } from "./lib/auth-token";
 
 export default function ClientLayout({ children }) {
-    // Register service worker on mount
+    // Register service worker on mount & Initialize TokenManager
     useEffect(() => {
+        TokenManager.initialize();
+        if (process.env.NODE_ENV === 'development') {
+            console.log('[TokenManager] Initialized on app boot');
+        }
         registerServiceWorker();
     }, []);
 
