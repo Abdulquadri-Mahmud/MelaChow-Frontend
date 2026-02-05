@@ -28,7 +28,7 @@ const dispatchUserUnauthorized = () => {
 export const createOrderV2 = async (orderData) => {
     try {
         const response = await axios.post(
-            "https://grub-dash-api.vercel.app/api/orders/create",
+            "https://grub-dash-api.vercel.app/api/orders/v2/create",
             orderData,
             {
                 withCredentials: true, // ✅ Send cookies for authentication
