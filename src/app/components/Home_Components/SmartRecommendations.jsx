@@ -32,10 +32,12 @@ const RecommendationCard = ({ food, router }) => {
     }
 
     // --- 2. Availability Logic ---
+    // Use 'vendor' from API response (not 'restaurant')
+    const vendor = food.vendor || food.restaurant;
 
-    // A. Check Restaurant Global Status
-    const restaurantStatusMsg = getVendorOpenAndCloseStatus(food.restaurant?.openingHours);
-    const isRestaurantOpen = restaurantStatusMsg ? restaurantStatusMsg.toLowerCase().startsWith("open now") : true;
+    // A. Check Vendor/Restaurant Global Status
+    const vendorStatusMsg = vendor?.openingHours ? getVendorOpenAndCloseStatus(vendor.openingHours) : null;
+    const isVendorOpen = vendorStatusMsg ? vendorStatusMsg.toLowerCase().startsWith("open now") : true;
 
     // B. Check Food Specific Schedule
     let isFoodScheduleOpen = true;
@@ -61,12 +63,12 @@ const RecommendationCard = ({ food, router }) => {
     }
 
     // Final Combined Status
-    const isOpen = isRestaurantOpen && isFoodScheduleOpen;
+    const isOpen = isVendorOpen && isFoodScheduleOpen;
 
     // Helper for friendly status
     const getFriendlyStatus = () => {
-        if (!isRestaurantOpen && restaurantStatusMsg) {
-            const parts = restaurantStatusMsg.split("open by");
+        if (!isVendorOpen && vendorStatusMsg) {
+            const parts = vendorStatusMsg.split("open by");
             if (parts.length > 1) {
                 return `Opens ${parts[1].replace('.', '').trim()}`;
             }
@@ -74,6 +76,11 @@ const RecommendationCard = ({ food, router }) => {
         return "Opens Later";
     };
     const friendlyStatus = getFriendlyStatus();
+
+    // Get vendor location
+    const vendorLocation = vendor?.address ?
+        `${vendor.address.city}, ${vendor.address.state}` :
+        "Location not available";
 
     return (
         <div
@@ -132,9 +139,16 @@ const RecommendationCard = ({ food, router }) => {
             <div className="p-3">
                 <div className="mb-2">
                     <h3 className="font-bold text-gray-900 text-sm truncate leading-tight tracking-tight mb-0.5">{food.name}</h3>
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
                         <Store size={10} className="text-orange-500" />
-                        <span className="truncate max-w-[140px] font-medium opacity-80">{food?.restaurant?.storeName || "GrubDash Vendor"}</span>
+                        <span className="truncate max-w-[180px] font-medium opacity-80">{vendor?.storeName || "GrubDash Vendor"}</span>
+                    </div>
+                    {/* Vendor Location */}
+                    <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                        <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="truncate max-w-[180px] font-medium">{vendorLocation}</span>
                     </div>
                 </div>
 
@@ -143,7 +157,7 @@ const RecommendationCard = ({ food, router }) => {
                     <div className="flex items-center gap-1">
                         <Truck size={12} className="text-gray-400" />
                         <span className="text-[10px] font-bold text-gray-400">
-                            ₦{food.deliveryFee || food?.restaurant?.deliveryFee || 0}
+                            ₦{food.deliveryFee || vendor?.flatRateDeliveryFee || 0}
                         </span>
                     </div>
 

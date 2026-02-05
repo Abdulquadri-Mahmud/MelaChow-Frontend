@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
 import axios from "axios";
 import { useApi } from "@/app/context/ApiContext";
+import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
 export default function FoodList({ user }) {
   const router = useRouter();
@@ -110,7 +111,15 @@ export default function FoodList({ user }) {
               }
 
               // --- 2. Availability Logic ---
-              let isOpen = true;
+              // Use 'vendor' from API response (fallback to 'restaurant' for compatibility)
+              const vendor = food.vendor || food.restaurant;
+
+              // A. Check Vendor/Restaurant Global Status
+              const vendorStatusMsg = vendor?.openingHours ? getVendorOpenAndCloseStatus(vendor.openingHours) : null;
+              const isVendorOpen = vendorStatusMsg ? vendorStatusMsg.toLowerCase().startsWith("open now") : true;
+
+              // B. Check Food Specific Schedule
+              let isFoodScheduleOpen = true;
               if (food.availabilitySchedule?.enabled) {
                 const now = new Date();
                 const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -118,7 +127,7 @@ export default function FoodList({ user }) {
 
                 // Check Day
                 if (!food.availabilitySchedule.days.includes(currentDay)) {
-                  isOpen = false;
+                  isFoodScheduleOpen = false;
                 } else {
                   // Check Time
                   const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -129,10 +138,30 @@ export default function FoodList({ user }) {
                   const endTotal = endH * 60 + endM;
 
                   if (currentMinutes < startTotal || currentMinutes >= endTotal) {
-                    isOpen = false;
+                    isFoodScheduleOpen = false;
                   }
                 }
               }
+
+              // Final Combined Status
+              const isOpen = isVendorOpen && isFoodScheduleOpen;
+
+              // Helper for friendly status
+              const getFriendlyStatus = () => {
+                if (!isVendorOpen && vendorStatusMsg) {
+                  const parts = vendorStatusMsg.split("open by");
+                  if (parts.length > 1) {
+                    return `Opens ${parts[1].replace('.', '').trim()}`;
+                  }
+                }
+                return "Opens Later";
+              };
+              const friendlyStatus = getFriendlyStatus();
+
+              // Get vendor location
+              const vendorLocation = vendor?.address ?
+                `${vendor.address.city}, ${vendor.address.state}` :
+                "Location not available";
 
               return (
                 <div
@@ -150,9 +179,12 @@ export default function FoodList({ user }) {
 
                     {/* Closed Overlay */}
                     {!isOpen && (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
-                        <span className="text-white font-black uppercase tracking-widest text-xs border-2 border-white px-3 py-1 rounded">
+                      <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center z-10 backdrop-blur-[1px]">
+                        <span className="text-white font-black uppercase tracking-widest text-[12px] border-2 border-white px-3 py-1 rounded mb-1">
                           Closed
+                        </span>
+                        <span className="text-white/90 text-[10px] font-medium tracking-wide">
+                          {friendlyStatus}
                         </span>
                       </div>
                     )}
@@ -186,9 +218,16 @@ export default function FoodList({ user }) {
                   <div className="p-3">
                     <div className="mb-2">
                       <h3 className="font-bold text-gray-900 text-sm truncate leading-tight tracking-tight mb-0.5">{food.name}</h3>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
                         <Store size={10} className="text-orange-500" />
-                        <span className="truncate max-w-[140px] font-medium opacity-80">{food?.restaurant?.storeName || "GrubDash Vendor"}</span>
+                        <span className="truncate max-w-[180px] font-medium opacity-80">{vendor?.storeName || "GrubDash Vendor"}</span>
+                      </div>
+                      {/* Vendor Location */}
+                      <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                        <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="truncate max-w-[180px] font-medium">{vendorLocation}</span>
                       </div>
                     </div>
 
@@ -197,14 +236,14 @@ export default function FoodList({ user }) {
                       <div className="flex items-center gap-1">
                         <Truck size={12} className="text-gray-400" />
                         <span className="text-[10px] font-bold text-gray-400">
-                          ₦{food.deliveryFee || food?.restaurant?.deliveryFee || 0}
+                          ₦{food.deliveryFee || vendor?.flatRateDeliveryFee || 0}
                         </span>
                       </div>
 
-                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${!isOpen ? 'bg-red-50 text-red-500' : 'bg-gray-50 text-gray-700'}`}>
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${!isOpen ? 'bg-red-50' : 'bg-gray-50'}`}>
                         <Clock size={10} className={!isOpen ? "text-red-500" : "text-orange-500"} />
-                        <span className="text-[9px] font-bold">
-                          {isOpen ? `${food?.estimatedDeliveryTime || "25"}m` : "Opens Later"}
+                        <span className={`text-[9px] font-bold ${!isOpen ? 'text-red-500' : 'text-gray-700'}`}>
+                          {isOpen ? `${food?.estimatedDeliveryTime || "25"}m` : friendlyStatus}
                         </span>
                       </div>
                     </div>
