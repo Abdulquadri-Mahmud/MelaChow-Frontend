@@ -265,7 +265,7 @@ export default function FoodDetails() {
           <div className="p-2"><FoodDetailsSkeleton /></div>
         ) : isError ? (
           <div className="text-center py-20 px-6">
-            <div className="bg-red-50 text-red-500 p-6 rounded-[32px] border border-dashed border-red-200">
+            <div className="bg-red-50 text-red-500 p-2 rounded-[32px] border border-dashed border-red-200">
               <p className="font-bold">Oops! Failed to load the dish.</p>
               <button onClick={() => window.location.reload()} className="mt-4 text-sm underline font-black">Try Again</button>
             </div>
@@ -335,7 +335,7 @@ export default function FoodDetails() {
                 </div>
 
                 {/* Text Content */}
-                <div className="md:p-5 p-2">
+                <div className="md:p-5 p-2 pb-4">
                   <h3 className="text-2xl font-bold text-gray-800 leading-tight tracking-tight uppercase mb-2">
                     {food?.name}
                   </h3>

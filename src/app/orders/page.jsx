@@ -108,7 +108,7 @@ function OrdersContent() {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header2 />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto p-3 md:p-4">
+      <main className="flex-1 max-w-4xl w-full mx-auto p-2 md:p-4">
         {/* Custom Tabs */}
         <div className="flex bg-gray-200/50 p-1 rounded-xl w-full max-w-md mb-6 sticky top-[72px] z-20 backdrop-blur-md">
           <button
@@ -285,7 +285,7 @@ function OrdersContent() {
                                   <div className="flex-1 min-w-0 flex flex-col justify-start">
                                     <div className="flex justify-between items-start">
                                       <div>
-                                        <h4 className="text-sm font-bold text-zinc-900 dark:text-white truncate leading-tight">{item.name}</h4>
+                                        <h4 className="text-sm font-bold text-zinc-900 dark:text-white leading-tight">{item.name}</h4>
                                         {/* Variants and Options */}
                                         <div className="text-[10px] text-gray-500 mt-1 space-y-0.5">
                                           {(item.metadata?.portion && item.metadata.portion !== "Standard") && (

@@ -82,6 +82,8 @@ export default function UserWalletPage() {
         }
     };
 
+    // console.log(userProfile.user)
+
     const handleFundWallet = async (e) => {
         if (e) e.preventDefault();
         if (!amount || isNaN(amount) || amount <= 0) {
@@ -89,14 +91,17 @@ export default function UserWalletPage() {
             return;
         }
 
-        if (!userProfile?.email) {
+        // Extract email (handle both direct and nested structure)
+        const email = userProfile?.user?.email || userProfile?.email;
+
+        if (!email) {
             toast.error("User email not found. Please update your profile.");
             return;
         }
 
         try {
             setIsFunding(true);
-            const res = await fundWallet({ amount: Number(amount), email: userProfile.email });
+            const res = await fundWallet({ amount: Number(amount), email });
             if (res.success && res.authorization_url) {
                 window.location.href = res.authorization_url;
             } else {
@@ -153,7 +158,7 @@ export default function UserWalletPage() {
         <div className="bg-zinc-50 min-h-screen font-sans pb-20">
             <Header2 />
 
-            <div className="max-w-4xl mx-auto md:px-6 px-4 py-8 space-y-8">
+            <div className="max-w-4xl mx-auto md:px-6 px-2 py-4 space-y-8">
 
                 {/* Header Section */}
                 <div className="flex justify-between items-end">
@@ -267,7 +272,7 @@ export default function UserWalletPage() {
                         </div>
                     </div>
 
-                    <div className="space-y-8">
+                    <div className="space-y-4">
                         {Object.keys(groupedTransactions).length === 0 ? (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 bg-white rounded-[32px] border border-dashed border-gray-200">
                                 <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4 relative">
@@ -285,7 +290,7 @@ export default function UserWalletPage() {
                                         <div className="h-[1px] bg-gray-100 flex-1"></div>
                                     </div>
 
-                                    <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden">
+                                    <div className="bg-white rounded-[24px] border border-gray-100 overflow-hidden">
                                         {txs.map((tx, idx) => (
                                             <motion.div
                                                 initial={{ opacity: 0, x: -10 }}
@@ -297,7 +302,7 @@ export default function UserWalletPage() {
                                                     setSelectedTransaction(tx);
                                                     setShowTransactionModal(true);
                                                 }}
-                                                className={`group p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:bg-gray-50 cursor-pointer ${(idx !== txs.length - 1) ? "border-b border-gray-50" : ""}`}
+                                                className={`group p-3 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:bg-gray-50 cursor-pointer ${(idx !== txs.length - 1) ? "border-b border-gray-50" : ""}`}
                                             >
                                                 <div className="flex items-center gap-4 min-w-0 flex-1">
                                                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${tx.type === 'credit' || tx.type === 'deposit'
@@ -355,7 +360,7 @@ export default function UserWalletPage() {
                             >
                                 <div className="relative bg-black p-6">
                                     <div className="absolute top-0 right-0 p-24 bg-orange-600/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                                    <button onClick={() => setShowFundModal(false)} className="absolute top-5 right-5 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition"><X size={18} /></button>
+                                    <button onClick={() => setShowFundModal(false)} className="absolute top-5 right-5 z-20 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition"><X size={18} /></button>
                                     <h3 className="text-2xl font-black text-white relative z-10">Fund Wallet</h3>
                                     <p className="text-gray-400 text-sm mt-1 relative z-10">Add funds securely via Paystack</p>
                                 </div>
@@ -436,8 +441,8 @@ export default function UserWalletPage() {
 
                                     <div className="relative z-10">
                                         <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-4 ${selectedTransaction.type === 'credit' || selectedTransaction.type === 'deposit'
-                                                ? 'bg-emerald-500/20 text-emerald-400'
-                                                : 'bg-red-500/20 text-red-400'
+                                            ? 'bg-emerald-500/20 text-emerald-400'
+                                            : 'bg-red-500/20 text-red-400'
                                             }`}>
                                             {selectedTransaction.type === 'credit' || selectedTransaction.type === 'deposit'
                                                 ? <TrendingUp size={32} strokeWidth={2.5} />
@@ -456,8 +461,8 @@ export default function UserWalletPage() {
                                 <div className="md:px-6 p-3 py-3 border-b border-gray-100">
                                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Amount</p>
                                     <p className={`text-4xl font-black ${selectedTransaction.type === 'credit' || selectedTransaction.type === 'deposit'
-                                            ? 'text-emerald-500'
-                                            : 'text-gray-900'
+                                        ? 'text-emerald-500'
+                                        : 'text-gray-900'
                                         }`}>
                                         {selectedTransaction.type === 'credit' || selectedTransaction.type === 'deposit' ? '+' : '-'}
                                         {formatCurrency(selectedTransaction.amount)}
@@ -469,8 +474,8 @@ export default function UserWalletPage() {
                                     <div className="flex justify-between items-center py-3 border-b border-gray-50">
                                         <span className="text-sm font-semibold text-gray-500">Type</span>
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${selectedTransaction.type === 'credit' || selectedTransaction.type === 'deposit'
-                                                ? 'bg-emerald-100 text-emerald-700'
-                                                : 'bg-red-100 text-red-700'
+                                            ? 'bg-emerald-100 text-emerald-700'
+                                            : 'bg-red-100 text-red-700'
                                             }`}>
                                             {selectedTransaction.type}
                                         </span>
