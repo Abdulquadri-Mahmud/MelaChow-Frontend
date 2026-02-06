@@ -4,8 +4,9 @@ import React, { createContext, useContext } from "react";
 const ApiContext = createContext({ baseUrl: "" });
 
 export const ApiProvider = ({ children }) => {
-  // const baseUrl = "http://localhost:3001/api";
-  const baseUrl = "https://grub-dash-api.vercel.app/api";
+  // Use relative path to leverage Next.js rewrites (Proxy)
+  // This ensures cookies are treated as First-Party (fixes iOS Safari issues)
+  const baseUrl = "/api";
 
   return (
     <ApiContext.Provider value={{ baseUrl }}>

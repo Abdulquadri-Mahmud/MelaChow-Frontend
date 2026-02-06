@@ -39,16 +39,28 @@ export const useUserStorage = () => {
 
   // Full logout: clear user + optional data
   const logout = async () => {
+    // ✅ ADD DEBUG LOG
+    console.log('[useUserStorage] 🚪 Logout initiated');
+
     try {
-      await fetch(`${baseUrl}/user/auth/logout`, {
+      // ✅ Call backend logout endpoint
+      const response = await fetch(`${baseUrl}/user/auth/logout`, {
         method: "POST",
-        credentials: "include",
+        credentials: "include", // ✅ Send cookie so backend can clear it
       });
+
+      // ✅ ADD DEBUG LOG
+      console.log('[useUserStorage] Logout response:', {
+        status: response.status,
+        ok: response.ok,
+      });
+
     } catch (error) {
-      console.error("Logout failed", error);
+      console.error('[useUserStorage] Logout request failed:', error);
+      // ✅ Continue with client-side cleanup even if backend fails
     }
 
-    // Clear state
+    // ✅ Clear ALL client-side state
     queryClient.setQueryData(["userProfile"], null);
     sessionStorage.removeItem("splashShown");
     localStorage.removeItem("grubdash_user_cache"); // ✅ Clear cache
@@ -56,8 +68,19 @@ export const useUserStorage = () => {
     localStorage.removeItem("addresses");   // optional
     TokenManager.clearToken(); // ✅ Clear fallback token
 
-    // Invalidate to be sure
+    // ✅ Invalidate queries to force refetch
     queryClient.invalidateQueries(["userProfile"]);
+
+    // ✅ ADD DEBUG LOG
+    console.log('[useUserStorage] ✅ Logout cleanup complete');
+
+    // ✅ ADD: Redirect to signin after cleanup (IMPORTANT!)
+    if (typeof window !== 'undefined') {
+      // Small delay to ensure cleanup completes
+      setTimeout(() => {
+        window.location.href = '/auth/signin';
+      }, 100);
+    }
   };
 
   // Clear only user payload (client-side only clearance)
