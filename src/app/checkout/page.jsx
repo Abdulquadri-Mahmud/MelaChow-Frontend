@@ -229,12 +229,21 @@ export default function CheckoutPage() {
 
       // 7. Redirect to Paystack payment page
       // 7. Handle Response (Redirect to Paystack OR Success)
-      if (response?.paymentStatus === "paid") {
-        // Wallet Payment Success
+      // 7. Handle Response (Redirect to Paystack OR Success)
+      // Check for explicit "paid" status OR successful response with no auth URL (Wallet)
+      if (response?.paymentStatus === "paid" || (response?.success && !response?.authorization_url)) {
+        // Wallet / Immediate Payment Success
         clearCart();
         toast.success("Order Placed Successfully! 🎉", { duration: 3000 });
+
+        // Redirect to tracking page if ID exists, else orders list
+        const paramOrderId = response.order?.orderId || response.orderId;
         setTimeout(() => {
-          router.push("/orders"); // Or wherever the orders list is
+          if (paramOrderId) {
+            router.push(`/track-orders/${paramOrderId}`);
+          } else {
+            router.push("/orders");
+          }
         }, 1500);
       } else if (response?.authorization_url) {
         // ... (Existing Paystack logic) ...
@@ -255,6 +264,7 @@ export default function CheckoutPage() {
         // Redirect to Paystack
         window.location.href = response.authorization_url;
       } else {
+        console.log("Unknown Response:", response); // Debug log
         throw new Error("Payment initialization failed - unknown response status");
       }
     } catch (err) {
@@ -319,7 +329,7 @@ export default function CheckoutPage() {
       {/* Processing Loader */}
       {loadingInit && <OrderProcessingLoader currentStep={processingStep} />}
 
-      <div className="max-w-xl mx-auto p-2 space-y-4 pb-8">
+      <div className="max-w-xl mx-auto p-2 space-y-2 pb-8">
         {/* Cart Validation Errors */}
         {validationErrors.length > 0 && (
           <CartValidationErrors
@@ -336,7 +346,7 @@ export default function CheckoutPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-orange-50/40 backdrop-blur-sm border border-orange-100 text-orange-700 text-xs p-2 rounded-xl flex items-center gap-2 shadow-sm shadow-orange-100/20"
+            className="bg-orange-50/40 backdrop-blur-sm border border-orange-100 text-orange-700 text-[10px] p-2 rounded-xl flex items-center gap-2"
           >
             <div className="w-1 h-full bg-orange-500 rounded-full" />
             <p>
@@ -347,7 +357,7 @@ export default function CheckoutPage() {
         )}
 
         {/* Address */}
-        <div className={`bg-white rounded-2xl md:p-4 p-2 flex gap-3 border shadow-sm transition-all duration-300 ${!defaultAddress ? "border-red-200 shadow-red-100" : "border-orange-50 hover:border-orange-200"}`}>
+        <div className={`bg-white rounded-2xl md:p-4 p-2 flex gap-3 border transition-all duration-300 ${!defaultAddress ? "border-red-200 shadow-red-100" : "border-orange-50 hover:border-orange-200"}`}>
           <div className={`${!defaultAddress ? "bg-red-50" : "bg-orange-50"} p-2 rounded-xl h-fit`}>
             <MapPin className={`${!defaultAddress ? "text-red-500" : "text-orange-500"}`} size={20} />
           </div>
@@ -383,7 +393,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Delivery Info */}
-        <div className="bg-white rounded-2xl md:p-4 p-2 flex gap-3 items-center border border-orange-50 shadow-sm hover:border-orange-200 transition-all duration-300">
+        <div className="bg-white rounded-2xl md:p-4 p-2 flex gap-3 items-center border border-orange-50 hover:border-orange-200 transition-all duration-300">
           <div className="bg-orange-50 p-2 rounded-xl">
             <Bike className="text-orange-500" size={20} />
           </div>
@@ -394,7 +404,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Payment Method Selection */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3">
+        <div className="bg-white rounded-2xl p-4 border border-gray-100 space-y-3">
           <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
             <CreditCard size={18} className="text-orange-500" /> Payment Method
           </h3>
@@ -448,7 +458,7 @@ export default function CheckoutPage() {
         {Object.entries(groupedCart).map(([storeName, items]) => {
           const estTime = getEstimatedTime(items);
           return (
-            <div key={storeName} className="bg-white p-4 rounded-2xl space-y-3 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300">
+            <div key={storeName} className="bg-white p-4 rounded-2xl space-y-3 border border-gray-100 hover:shadow-md transition-all duration-300">
               <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-50/50">
                 <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-tight italic">{storeName}</h3>
                 <div className="text-xs text-gray-500 flex flex-col items-end">
@@ -494,7 +504,7 @@ export default function CheckoutPage() {
         })}
 
         {/* Promo Code Section */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+        <div className="bg-white rounded-2xl p-4 border border-gray-100">
           <div className="flex items-center gap-2 mb-3">
             <TicketPercent className="text-orange-500" size={18} />
             <h3 className="text-sm font-bold text-gray-800">Promo Code</h3>

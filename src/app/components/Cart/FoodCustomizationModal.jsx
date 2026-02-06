@@ -324,7 +324,7 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                         animate={{ translateY: "0%", opacity: 1 }}
                         exit={{ translateY: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="relative w-full max-w-lg bg-zinc-50 dark:bg-[#0B1121] rounded-tl-[2rem] rounded-tr-[2rem] overflow-hidden flex flex-col max-h-[100vh]"
+                        className="relative w-full max-w-lg bg-zinc-50 dark:bg-[#0B1121] overflow-hidden flex flex-col max-h-[100vh]"
                     >
                         {/* Header Image */}
                         <div className="relative h-[220px] w-full shrink-0">
@@ -355,8 +355,8 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                         </div>
 
                         {/* Sticky Quantity Controls */}
-                        <div className="sticky top-0 z-30 bg-white dark:bg-[#0B1121] border-b border-zinc-200 dark:border-zinc-800 shadow-sm">
-                            <div className="flex items-center justify-between px-4 py-3">
+                        <div className="sticky top-0 z-30 bg-white dark:bg-[#0B1121] shadow-sm">
+                            <div className="flex items-center justify-between px-2 py-2">
                                 <div className="flex flex-col">
                                     <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
                                         Order Quantity
@@ -529,7 +529,7 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                         </div>
 
                         {/* Footer Actions */}
-                        <div className="p-5 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#0B1121] z-20 shadow-[0_-5px_20px_rgba(0,0,0,0.02)]">
+                        <div className="p-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#0B1121] z-20 shadow-[0_-5px_20px_rgba(0,0,0,0.02)]">
                             {packingFee > 0 && (
                                 <div className="mb-4 flex justify-between items-center text-sm font-medium text-gray-600 dark:text-gray-400 bg-zinc-50 dark:bg-zinc-900 rounded-xl p-3 border border-zinc-200 dark:border-zinc-800">
                                     <span className="flex items-center gap-2">
@@ -542,7 +542,7 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
 
                             <button
                                 onClick={handleConfirm}
-                                className="w-full py-4 rounded-2xl font-black text-lg flex items-center justify-between px-6 shadow-xl transition-all bg-[#FF6600] text-white hover:bg-[#ff7b24] active:scale-[0.98] shadow-orange-500/20"
+                                className="w-full py-2 rounded-2xl font-semibold text-lg flex items-center justify-between md:px-6 p-3 shadow-xl transition-all bg-[#FF6600] text-white hover:bg-[#ff7b24] active:scale-[0.98] shadow-orange-500/20"
                             >
                                 <span>{initialEditItem ? "Update Order" : "Add to Order"}</span>
                                 <div className="flex items-center gap-1">
