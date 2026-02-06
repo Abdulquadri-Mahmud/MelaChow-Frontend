@@ -30,6 +30,16 @@ export const ProfileProvider = ({ children }) => {
 
   // Function used by React Query to fetch the user profile
   const fetchProfile = async () => {
+    // ✅ ADD THIS DEBUG BLOCK AT THE VERY TOP
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[ProfileContext] 🔍 fetchProfile START', {
+        baseUrl,
+        currentPath: pathname,
+        hasToken: !!TokenManager.getToken(),
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     // ✅ Get token (already initialized on app boot in ClientLayout)
     const token = TokenManager.getToken();
 
@@ -43,10 +53,29 @@ export const ProfileProvider = ({ children }) => {
     }
 
     try {
+      // ✅ ADD THIS DEBUG LOG BEFORE FETCH
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[ProfileContext] 📡 Fetching profile...', {
+          url: `${baseUrl}/user/auth/profile`,
+          credentials: 'include',
+          hasAuthHeader: !!headers['Authorization'],
+        });
+      }
+
       const res = await fetch(`${baseUrl}/user/auth/profile`, {
         credentials: "include", // ✅ PRIMARY: Send cookies
         headers: headers,
       });
+
+      // ✅ ADD THIS DEBUG LOG AFTER FETCH
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[ProfileContext] 📨 Response received:', {
+          status: res.status,
+          ok: res.ok,
+          url: res.url,
+          timestamp: new Date().toISOString(),
+        });
+      }
 
       // ✅ Handle 401 gracefully (BEFORE parsing JSON)
       if (res.status === 401) {
@@ -136,13 +165,19 @@ export const ProfileProvider = ({ children }) => {
   // ✅ Debug logging for iOS troubleshooting (development only)
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[ProfileContext] Auth State:', {
+      // ✅ Check if cookie exists in browser
+      const cookieExists = typeof document !== 'undefined' ? document.cookie.includes('token=') : false;
+      const allCookies = typeof document !== 'undefined' ? document.cookie : 'N/A';
+
+      console.log('[ProfileContext] 🔐 Auth State:', {
         hasUserData: !!data,
         isLoading,
         hasCheckedSession,
         currentPath: pathname,
         hasCachedUser: typeof window !== 'undefined' ? !!localStorage.getItem("grubdash_user_cache") : false,
         hasToken: !!TokenManager.getToken(),
+        cookieExists, // ✅ NEW: Check if auth cookie is present
+        cookieCount: allCookies.split(';').filter(c => c.trim()).length, // ✅ NEW: How many cookies total
       });
     }
   }, [data, isLoading, hasCheckedSession, pathname]);

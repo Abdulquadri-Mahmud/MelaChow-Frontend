@@ -43,7 +43,7 @@ export const fetchUser = async () => {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch("https://grub-dash-api.vercel.app/api/user/auth/profile", {
+  const res = await fetch("/api/user/auth/profile", {
     credentials: "include", // ✅ vital for cookies
     headers: headers
   });
@@ -74,7 +74,7 @@ export const createOrder = async (orderData) => {
   // console.log('orderData: ', orderData)
   try {
     const res = await axios.post(
-      "https://grub-dash-api.vercel.app/api/orders/create",
+      "/api/orders/create",
       orderData,
       {
         withCredentials: true, // ✅ Send cookies
@@ -108,7 +108,7 @@ export const verifyPayment = async (reference, body = {}) => {
 
   try {
     const res = await axios.post(
-      `https://grub-dash-api.vercel.app/api/orders/verify/${reference}`,
+      `/api/orders/verify/${reference}`,
       body, // send items, deliveryFee, deliveryAddress, phone here
       {
         withCredentials: true, // ✅ Send cookies
@@ -143,7 +143,7 @@ export const verifyPayment = async (reference, body = {}) => {
 export const getUserReviews = async () => {
   try {
     const res = await axios.get(
-      "https://grub-dash-api.vercel.app/api/user/my-reviews",
+      "/api/user/my-reviews",
       {
         withCredentials: true, // ✅ Send cookies
       }
@@ -172,7 +172,7 @@ export const getUserReviews = async () => {
  */
 export const getWallet = async () => {
   try {
-    const res = await axios.get("https://grub-dash-api.vercel.app/api/user/my-wallet", {
+    const res = await axios.get("/api/user/my-wallet", {
       withCredentials: true,
     });
     return res.data;
@@ -192,7 +192,7 @@ export const getWallet = async () => {
  */
 export const fundWallet = async (data) => {
   try {
-    const res = await axios.post("https://grub-dash-api.vercel.app/api/user/wallet/fund", data, {
+    const res = await axios.post("/api/user/wallet/fund", data, {
       withCredentials: true,
     });
     return res.data;
@@ -212,7 +212,7 @@ export const fundWallet = async (data) => {
  */
 export const verifyWalletTransaction = async (reference) => {
   try {
-    const res = await axios.get(`https://grub-dash-api.vercel.app/api/user/wallet/verify/${reference}`, {
+    const res = await axios.get(`/api/user/wallet/verify/${reference}`, {
       withCredentials: true,
     });
     return res.data;
@@ -232,7 +232,7 @@ export const verifyWalletTransaction = async (reference) => {
  */
 export const createReview = async (data) => {
   try {
-    const res = await axios.post("https://grub-dash-api.vercel.app/api/admin/user/reviews/create-reviews", data, {
+    const res = await axios.post("/api/admin/user/reviews/create-reviews", data, {
       withCredentials: true,
     });
     return res.data;
@@ -252,7 +252,7 @@ export const createReview = async (data) => {
  */
 export const getVendorReviews = async (vendorId) => {
   try {
-    const res = await axios.get(`https://grub-dash-api.vercel.app/api/admin/user/reviews/vendor-reviews?vendorId=${vendorId}`, {
+    const res = await axios.get(`/api/admin/user/reviews/vendor-reviews?vendorId=${vendorId}`, {
       withCredentials: true,
     });
     return res.data;
@@ -283,7 +283,7 @@ export const getRestaurantReviews = async (vendorId, page = 1, limit = 10, ratin
     }
 
     const res = await axios.get(
-      `https://grub-dash-api.vercel.app/api/public/reviews/vendor/${vendorId}?${params}`,
+      `/api/public/reviews/vendor/${vendorId}?${params}`,
       {
         // No authentication required for public endpoints
       }
@@ -331,7 +331,7 @@ export const getRestaurantReviews = async (vendorId, page = 1, limit = 10, ratin
 export const getRestaurantReviewsSummary = async (vendorId) => {
   try {
     const res = await axios.get(
-      `https://grub-dash-api.vercel.app/api/public/reviews/vendor/${vendorId}/summary`,
+      `/api/public/reviews/vendor/${vendorId}/summary`,
       {
         // No authentication required for public endpoints
       }
@@ -385,7 +385,7 @@ export const getFoodReviews = async (foodId, page = 1, limit = 10, rating = null
     }
 
     const res = await axios.get(
-      `https://grub-dash-api.vercel.app/api/public/reviews/food/${foodId}?${params}`,
+      `/api/public/reviews/food/${foodId}?${params}`,
       {
         // No authentication required for public endpoints
       }
@@ -437,7 +437,7 @@ export const getRecommendations = async (weather = null) => {
     if (weather) params.append("weather", weather);
 
     const res = await axios.get(
-      `https://grub-dash-api.vercel.app/api/recommendations?${params}`,
+      `/api/recommendations?${params}`,
       {
         withCredentials: true, // ✅ Vital for location detection via cookie
       }
@@ -461,7 +461,7 @@ export const getRecommendations = async (weather = null) => {
  */
 export const verifyDiscount = async (data) => {
   try {
-    const res = await axios.post("https://grub-dash-api.vercel.app/api/discounts/verify", data, {
+    const res = await axios.post("/api/discounts/verify", data, {
       withCredentials: true,
     });
     return res.data;
@@ -480,7 +480,7 @@ export const verifyDiscount = async (data) => {
  */
 export const createDiscount = async (data) => {
   try {
-    const res = await axios.post("https://grub-dash-api.vercel.app/api/admin/discounts", data, {
+    const res = await axios.post("/api/admin/discounts", data, {
       withCredentials: true,
     });
     return res.data;
@@ -498,7 +498,7 @@ export const createDiscount = async (data) => {
  */
 export const getDiscounts = async () => {
   try {
-    const res = await axios.get("https://grub-dash-api.vercel.app/api/admin/discounts", {
+    const res = await axios.get("/api/admin/discounts", {
       withCredentials: true,
     });
     return res.data;
@@ -517,7 +517,7 @@ export const getDiscounts = async () => {
  */
 export const getVendorById = async (vendorId) => {
   try {
-    const res = await axios.get(`https://grub-dash-api.vercel.app/api/user/vendors/${vendorId}`, {
+    const res = await axios.get(`/api/user/vendors/${vendorId}`, {
       withCredentials: true,
     });
     return res.data;
