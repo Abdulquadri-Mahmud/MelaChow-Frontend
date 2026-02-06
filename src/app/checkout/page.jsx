@@ -231,7 +231,10 @@ export default function CheckoutPage() {
       // 7. Handle Response (Redirect to Paystack OR Success)
       // 7. Handle Response (Redirect to Paystack OR Success)
       // Check for explicit "paid" status OR successful response with no auth URL (Wallet)
-      if (response?.paymentStatus === "paid" || (response?.success && !response?.authorization_url)) {
+      // Backend might return "success: true" OR "status: true"
+      const isSuccess = response?.success || response?.status === true || response?.status === "success";
+
+      if (response?.paymentStatus === "paid" || (isSuccess && !response?.authorization_url)) {
         // Wallet / Immediate Payment Success
         clearCart();
         toast.success("Order Placed Successfully! 🎉", { duration: 3000 });
