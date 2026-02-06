@@ -69,9 +69,6 @@ export const getVendors = async () => {
     });
     return res.data.data || res.data;
   } catch (error) {
-    if (error.response && error.response.status === 401) {
-      return null;
-    }
     throw error;
   }
 };
@@ -88,7 +85,6 @@ export const getVendorById = async (id) => {
     });
     return res.data;
   } catch (error) {
-    if (error.response && error.response.status === 401) return null;
     throw error;
   }
 };

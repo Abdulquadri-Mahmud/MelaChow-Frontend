@@ -1,7 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "https://grub-dash-api.vercel.app/api";
-// const BASE_URL = "http://localhost:3001/api";
+const BASE_URL = "/api";
 
 const API = axios.create({
   baseURL: BASE_URL,
