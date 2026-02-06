@@ -15,7 +15,7 @@ export default function HomeHeader() {
   const [greeting, setGreeting] = useState("Hello");
   const [isMounted, setIsMounted] = useState(false);
 
-  console.log(user)
+  // console.log(user)
 
   useEffect(() => {
     setIsMounted(true);

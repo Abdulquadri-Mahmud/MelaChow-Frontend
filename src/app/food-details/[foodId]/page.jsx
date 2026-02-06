@@ -80,7 +80,7 @@ export default function FoodDetails() {
     if (foodId) fetchFood();
   }, [foodId, baseUrl]);
 
-  // console.log(food);
+  console.log(food);
 
   // Image Navigation
   const nextImage = () => {
@@ -262,7 +262,7 @@ export default function FoodDetails() {
 
       <div className="max-w-4xl mx-auto pb-20">
         {isLoading ? (
-          <div className="p-4"><FoodDetailsSkeleton /></div>
+          <div className="p-2"><FoodDetailsSkeleton /></div>
         ) : isError ? (
           <div className="text-center py-20 px-6">
             <div className="bg-red-50 text-red-500 p-6 rounded-[32px] border border-dashed border-red-200">
@@ -274,7 +274,7 @@ export default function FoodDetails() {
           <div className="space-y-6">
 
             {/* Main Info Card */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-3 pt-3">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-1 pt-2">
               <div className="bg-white rounded-[40px] border border-gray-100 overflow-hidden">
                 {/* Image Section */}
                 <div className="relative w-full bg-gray-100 p-2">
@@ -290,7 +290,7 @@ export default function FoodDetails() {
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ duration: 0.6 }}
                         />
-                        <div className="absolute inset-0 flex justify-between items-center px-4">
+                        <div className="absolute inset-0 flex justify-between items-center px-2">
                           <button onClick={prevImage} className="bg-black/20 backdrop-blur-md text-white w-10 h-10 rounded-2xl flex items-center justify-center hover:bg-black/40 transition-colors">‹</button>
                           <button onClick={nextImage} className="bg-black/20 backdrop-blur-md text-white w-10 h-10 rounded-2xl flex items-center justify-center hover:bg-black/40 transition-colors">›</button>
                         </div>
@@ -305,7 +305,7 @@ export default function FoodDetails() {
                     )}
 
                     <div className="absolute top-3 left-3 pr-6 flex flex-wrap gap-2">
-                      <div className="bg-orange-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest">{food.category}</div>
+                      <div className="bg-orange-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20">{food.category}</div>
                       {food.foodType && (
                         <div className={`text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-white/20 backdrop-blur-md ${food.foodType === 'veg' ? 'bg-green-500 text-white' :
                           food.foodType === 'non-veg' ? 'bg-red-500 text-white' : 'bg-gray-800 text-white'
@@ -314,11 +314,20 @@ export default function FoodDetails() {
                         </div>
                       )}
                       {food.metadata?.chefSpecial && (
-                        <div className="bg-white/95 backdrop-blur-md text-gray-900 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-gray-100">👨‍🍳 Chef Special</div>
+                        <div className="bg-white/95 backdrop-blur-md text-gray-900 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-gray-100 shadow-sm">👨‍🍳 Chef Special</div>
                       )}
+
+                      {/* Availability Schedule Badge */}
+                      {food.availabilitySchedule?.enabled && (
+                        <div className="bg-black/70 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-white/20 flex items-center gap-1.5">
+                          <Clock size={10} className="text-orange-400" />
+                          <span>{food.availabilitySchedule.startTime} - {food.availabilitySchedule.endTime}</span>
+                        </div>
+                      )}
+
                       {!itemAvailability.available && (
                         <div className="bg-black/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-white/20">
-                          items: {itemAvailability.reason}
+                          {itemAvailability.reason}
                         </div>
                       )}
                     </div>
@@ -326,7 +335,7 @@ export default function FoodDetails() {
                 </div>
 
                 {/* Text Content */}
-                <div className="md:p-5 p-3">
+                <div className="md:p-5 p-2">
                   <h3 className="text-2xl font-bold text-gray-800 leading-tight tracking-tight uppercase mb-2">
                     {food?.name}
                   </h3>
@@ -345,41 +354,63 @@ export default function FoodDetails() {
                         </div>
                       ))
                     )}
-                    <div className="flex items-center gap-1 text-xs font-bold text-amber-500 bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
-                      <Star size={12} fill="currentColor" />
-                      4.8 (120+)
+                    {/* Rating Pill */}
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
+                      <Star size={12} className="text-orange-500 fill-orange-500" />
+                      <span>{food.rating > 0 ? food.rating.toFixed(1) : "New"}</span>
+                      <span className="text-gray-300">|</span>
+                      <span className="text-gray-500">{food.ratingCount || 0} reviews</span>
                     </div>
+                    {/* Order Count Pill */}
+                    {food.orderCount > 0 && (
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
+                        <Store size={12} />
+                        {food.orderCount}+ Orders
+                      </div>
+                    )}
+                    {/* Stock Pill */}
+                    {typeof food.stock === 'number' && (
+                      <div className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-100">
+                        📦 {food.stock} Left
+                      </div>
+                    )}
                   </div>
 
                   {/* Quick Stats */}
-                  <div className="grid grid-cols-2 gap-4 mt-6 py-4 border-t border-gray-50">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-orange-50 rounded-xl text-orange-500"><Clock size={16} /></div>
+                  {/* Quick Stats & Discount */}
+                  <div className="grid grid-cols-2 gap-3 mt-6">
+                    {/* Time Stat */}
+                    <div className="flex items-center gap-3 p-3 bg-gray-50/80 rounded-2xl border border-gray-100/80 backdrop-blur-sm">
+                      <div className="p-2 bg-white rounded-xl text-orange-500 shadow-sm ring-1 ring-gray-100"><Clock size={18} /></div>
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Time</p>
-                        <p className="text-sm font-bold text-gray-900">{food?.prepTime ? `${food.prepTime} MIN` : `${food?.estimatedDeliveryTime || 25} MIN`}</p>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Est. Time</p>
+                        <p className="text-sm font-black text-gray-900 leading-none">{food?.prepTime ? `${food.prepTime} min` : `${food?.estimatedDeliveryTime || 25} min`}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 bg-orange-50 rounded-xl text-orange-500"><Truck size={16} /></div>
-                      <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Delivery</p>
-                        <p className="text-sm font-bold text-gray-900">₦{food?.deliveryFee || 0}</p>
+
+                    {/* Delivery & Discount Stat */}
+                    <div className="flex items-center gap-3 p-3 bg-gray-50/80 rounded-2xl border border-gray-100/80 backdrop-blur-sm relative overflow-hidden group">
+                      <div className="p-2 bg-white rounded-xl text-orange-500 shadow-sm ring-1 ring-gray-100 z-10"><Truck size={18} /></div>
+                      <div className="z-10 flex-1">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Delivery</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-black text-gray-900 leading-none">₦{food?.deliveryFee || 0}</p>
+                          {/* Integrated Discount Badge */}
+                          {discountedBasePrice !== null && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-red-100 text-red-600 text-[10px] font-bold leading-none animate-pulse">
+                              {food.discount.percentage > 0 ? `-${food.discount.percentage}%` : `Save ₦${food.discount.flatAmount}`}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      {/* Decorative Background Icon */}
+                      {discountedBasePrice !== null && (
+                        <div className="absolute -right-2 -bottom-2 text-red-500/5 transform rotate-12 group-hover:scale-110 transition-transform">
+                          <Utensils size={40} />
+                        </div>
+                      )}
                     </div>
                   </div>
-
-                  {/* Discount Banner */}
-                  {discountedBasePrice !== null && (
-                    <div className="mt-4 p-3 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3">
-                      <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg">
-                        {food.discount.percentage > 0 ? `-${food.discount.percentage}% OFF` : `₦${food.discount.flatAmount} OFF`}
-                      </div>
-                      <p className="text-xs text-red-600 font-medium">
-                        Discount applied! Ends {new Date(food.discount.expiresAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  )}
 
                   {/* Nutrition Info (Collapsible) */}
                   {food.nutrition && Object.values(food.nutrition).some(v => v) && (
@@ -485,7 +516,18 @@ export default function FoodDetails() {
                         <div className="flex-1 min-w-0">
                           <h4 className="font-bold text-gray-900 truncate">{variant.name}</h4>
                           <p className="text-xs text-gray-500 line-clamp-1 italic">{variant.description || "Tasty variant"}</p>
-                          <p className="text-sm font-bold text-orange-600 mt-1">₦{Number(variant.price).toLocaleString()}</p>
+                          {(() => {
+                            const vPrice = Number(variant.price);
+                            const vDiscPrice = getDiscountedPrice(vPrice);
+                            return vDiscPrice !== null ? (
+                              <div className="flex items-center gap-2 mt-1">
+                                <p className="text-sm font-bold text-orange-600">₦{vDiscPrice.toLocaleString()}</p>
+                                <p className="text-[10px] font-bold text-gray-400 line-through decoration-gray-400">₦{vPrice.toLocaleString()}</p>
+                              </div>
+                            ) : (
+                              <p className="text-sm font-bold text-orange-600 mt-1">₦{vPrice.toLocaleString()}</p>
+                            );
+                          })()}
                         </div>
 
                         {/* Add Button */}
@@ -537,7 +579,18 @@ export default function FoodDetails() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="font-bold text-gray-900">₦{Number(portion.price).toLocaleString()}</span>
+                          {(() => {
+                            const pPrice = Number(portion.price);
+                            const pDiscPrice = getDiscountedPrice(pPrice);
+                            return pDiscPrice !== null ? (
+                              <div className="flex flex-col items-end leading-tight">
+                                <span className="font-bold text-orange-600">₦{pDiscPrice.toLocaleString()}</span>
+                                <span className="text-[10px] font-bold text-gray-400 line-through">₦{pPrice.toLocaleString()}</span>
+                              </div>
+                            ) : (
+                              <span className="font-bold text-gray-900">₦{pPrice.toLocaleString()}</span>
+                            );
+                          })()}
                           <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-gray-900 group-hover:text-white transition-colors flex items-center justify-center">
                             <Plus size={16} />
                           </div>

@@ -159,9 +159,28 @@ export default function FoodList({ user }) {
               const friendlyStatus = getFriendlyStatus();
 
               // Get vendor location
-              const vendorLocation = vendor?.address ?
-                `${vendor.address.city}, ${vendor.address.state}` :
-                "Location not available";
+              // Support both flat structure (from provided sample) and nested address
+              const vendorLocation = (vendor?.city && vendor?.state)
+                ? `${vendor.city}, ${vendor.state}`
+                : (vendor?.address
+                  ? `${vendor.address.city}, ${vendor.address.state}`
+                  : "Location not available");
+
+              // --- 3. Schedule Label Logic ---
+              let scheduleLabel = null;
+              if (food.availabilitySchedule?.enabled) {
+                const { days, startTime, endTime } = food.availabilitySchedule;
+                const isWeekend = days.includes("Sat") || days.includes("Sun");
+                const isDaily = days.length >= 7;
+                const isWeekdays = days.length === 5 && !isWeekend;
+
+                let dayText = days.slice(0, 3).join(",");
+                if (isDaily) dayText = "Daily";
+                else if (isWeekdays) dayText = "Mon-Fri";
+                else if (days.length > 2) dayText = `${days[0]}..${days[days.length - 1]}`;
+
+                scheduleLabel = `${dayText} • ${startTime}-${endTime}`;
+              }
 
               return (
                 <div
@@ -229,6 +248,14 @@ export default function FoodList({ user }) {
                         </svg>
                         <span className="truncate max-w-[180px] font-medium">{vendorLocation}</span>
                       </div>
+
+                      {/* Schedule Info Badge */}
+                      {scheduleLabel && (
+                        <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-orange-50 border border-orange-100 rounded text-orange-600 w-fit">
+                          <Clock size={10} className="stroke-[2.5]" />
+                          <span className="text-[9px] font-bold tracking-tight">{scheduleLabel}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Footer Info */}
