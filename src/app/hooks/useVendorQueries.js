@@ -35,11 +35,12 @@ export const useVendors = () => {
       if (failureCount >= 2) return false;
       // Network error
       if (error?.message?.includes("Failed to fetch")) return true;
-      // 401 error
+      // 401 error - retry for race conditions
       if (error?.response?.status === 401) return true;
       return false;
     },
-    retryDelay: 300,
+    retryDelay: (attemptIndex) => Math.min(100 * Math.pow(2, attemptIndex), 1000),
+    refetchOnWindowFocus: false,
   });
 
   // ✅ Use isFetched directly for session check check

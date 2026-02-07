@@ -1,7 +1,7 @@
 import axios from "axios";
 import { TokenManager } from "@/app/lib/auth-token";
 
-const BASE_URL = "https://grub-dash-api.vercel.app/api/vendors";
+const BASE_URL = "/api/vendors";
 // const BASE_URL = "http://localhost:3001/api/vendors";
 
 // Create axios instance
@@ -69,9 +69,6 @@ export const getVendors = async () => {
     });
     return res.data.data || res.data;
   } catch (error) {
-    if (error.response && error.response.status === 401) {
-      return null;
-    }
     throw error;
   }
 };
@@ -88,7 +85,6 @@ export const getVendorById = async (id) => {
     });
     return res.data;
   } catch (error) {
-    if (error.response && error.response.status === 401) return null;
     throw error;
   }
 };

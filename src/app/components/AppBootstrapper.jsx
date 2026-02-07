@@ -88,9 +88,13 @@ export default function AppBootstrapper({ children }) {
             // ✅ iOS Safari Fix: 300ms delay allows cookies to be restored after navigation
             // iOS Safari sometimes needs extra time to read cookies after page refresh
             const redirectTimer = setTimeout(() => {
-                console.log("🔒 Unauthorized access detected after session check. Redirecting to signin...");
+                // ✅ Determine correct redirect based on current route
+                const isVendorRoute = pathname?.startsWith("/vendors/");
+                const redirectUrl = isVendorRoute ? "/vendors/auth/login" : "/auth/signin";
+
+                console.log("🔒 Unauthorized access detected after session check. Redirecting to:", redirectUrl);
                 setIsRedirecting(true);
-                router.replace("/auth/signin");
+                router.replace(redirectUrl);
             }, 300);
 
             return () => clearTimeout(redirectTimer);

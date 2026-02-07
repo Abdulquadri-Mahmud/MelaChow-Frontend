@@ -104,21 +104,26 @@ export default function VerifyAccount() {
         return;
       }
 
-      // Save token and user
-      // Save user/vendor details (but NOT token)
-      if (data?.vendor || data?.user) {
-        // Save token for iOS fallback
-        const finalToken = data.accessToken || data.token;
-        if (finalToken) {
-          TokenManager.setToken(finalToken);
+      // ✅ Extract ALL vendor data from response
+      const { accessToken, token, vendor, ...rest } = data;
+      const vendorData = vendor || rest;
+
+      // ✅ Save accessToken as fallback for iOS
+      const finalToken = accessToken || token;
+      if (finalToken) {
+        TokenManager.setToken(finalToken);
+      }
+
+      // ✅ Save COMPLETE vendor data (not just id and slug)
+      if (vendorData) {
+        saveVendor(vendorData);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[VendorVerify] Saved vendor data:', {
+            hasVendor: !!vendorData,
+            vendorId: vendorData._id || vendorData.id,
+          });
         }
-        // localStorage.setItem("vendorToken", data.token); // Removed legacy
-        saveVendor({
-          vendor: {
-            id: data.vendor?.id,
-            slug: data.vendor?.slug,
-          },
-        });
       }
 
       setMessage("✅ Verified successfully! Redirecting...");
@@ -161,18 +166,18 @@ export default function VerifyAccount() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center overflow-hidden relative">
-      <div className="absolute top-[10%] left-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] animate-pulse" />
-      <div className="absolute bottom-[10%] right-[5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] animate-pulse delay-700" />
+    <div className="min-h-screen bg-white dark:bg-zinc-950 flex items-center justify-center overflow-hidden relative">
+      {/* <div className="absolute top-[10%] left-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] animate-pulse" />
+      <div className="absolute bottom-[10%] right-[5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] animate-pulse delay-700" /> */}
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[40px] p-2 md:p-6 shadow-2xl border border-zinc-100 dark:border-zinc-800 relative z-10"
+        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[40px] p-2 md:p-6 relative z-10"
       >
         <div className="text-center">
-          <LogoImage />
+          {/* <LogoImage /> */}
           <div className="w-16 h-16 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
             <ShieldCheck size={32} />
           </div>

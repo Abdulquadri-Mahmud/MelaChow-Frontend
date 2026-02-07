@@ -5,6 +5,7 @@ import AppBootstrapper from "./components/AppBootstrapper";
 import { ApiProvider } from "./context/ApiContext";
 import QueryProvider from "./providers/QueryProvider";
 import { ProfileProvider } from "./context/ProfileContext";
+import { VendorProfileProvider } from "./context/VendorProfileContext";
 import { AdminProvider } from "./context/AdminContext";
 import { CartProvider } from "./context/CartContext";
 import GlobalLogoutHandler from "./components/GlobalLogoutHandler";
@@ -33,14 +34,16 @@ export default function ClientLayout({ children }) {
                     <AdminProvider>
                         <CartProvider>
                             <ProfileProvider>
-                                <AppBootstrapper>
-                                    {children}
-                                    <GlobalLogoutHandler />
-                                    <ConditionalBottomNav />
-                                    {/* PWA Components - Non-blocking, additive */}
-                                    <PWAUpdateManager />
-                                    <PWAInstallPrompt />
-                                </AppBootstrapper>
+                                <VendorProfileProvider>
+                                    <AppBootstrapper>
+                                        {children}
+                                        <GlobalLogoutHandler />
+                                        <ConditionalBottomNav />
+                                        {/* PWA Components - Non-blocking, additive */}
+                                        <PWAUpdateManager />
+                                        <PWAInstallPrompt />
+                                    </AppBootstrapper>
+                                </VendorProfileProvider>
                             </ProfileProvider>
                         </CartProvider>
                     </AdminProvider>
