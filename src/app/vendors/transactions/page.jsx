@@ -12,7 +12,12 @@ import {
     TrendingUp,
     TrendingDown,
     ChevronDown,
-    X
+    X,
+    Copy,
+    Check,
+    ExternalLink,
+    FileText,
+    Clock
 } from "lucide-react";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import { getVendorWallet } from "@/app/lib/vendorApi";
@@ -24,6 +29,8 @@ export default function TransactionsPage() {
     const [typeFilter, setTypeFilter] = useState("all");
     const [selectedMonth, setSelectedMonth] = useState("all");
     const [showMonthDropdown, setShowMonthDropdown] = useState(false);
+    const [selectedTransaction, setSelectedTransaction] = useState(null);
+    const [showModal, setShowModal] = useState(false);
     const { vendorDetails } = useVendorStorage();
 
     useEffect(() => {
@@ -97,6 +104,62 @@ export default function TransactionsPage() {
         return date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
     };
 
+    // Download CSV Report
+    const downloadReport = () => {
+        const csvContent = [
+            ['Transaction ID', 'Description', 'Type', 'Amount', 'Date', 'Status'],
+            ...filteredTransactions.map(txn => [
+                txn._id,
+                txn.description || 'Transaction',
+                txn.type,
+                `₦${txn.amount.toLocaleString()}`,
+                formatDate(txn.date),
+                'Success'
+            ])
+        ].map(row => row.join(',')).join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', `transactions_${selectedMonth === 'all' ? 'all_time' : selectedMonth}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // Download Single Transaction Receipt
+    const downloadReceipt = (transaction) => {
+        const receiptContent = `
+TRANSACTION RECEIPT
+==========================================
+
+Transaction ID: ${transaction._id}
+Description: ${transaction.description || 'Transaction'}
+Type: ${transaction.type.toUpperCase()}
+Amount: ${transaction.type === 'credit' ? '+' : '-'}₦${transaction.amount.toLocaleString()}
+Date: ${formatDate(transaction.date)}
+Status: SUCCESS
+
+==========================================
+GrubDash Vendor Platform
+Need help? Contact support with your reference ID
+        `.trim();
+
+        const blob = new Blob([receiptContent], { type: 'text/plain;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+
+        link.setAttribute('href', url);
+        link.setAttribute('download', `receipt_${transaction._id.slice(-8)}.txt`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     // Calculate stats for filtered transactions
     const stats = useMemo(() => {
         const credits = filteredTransactions.filter(t => t.type === 'credit');
@@ -138,6 +201,7 @@ export default function TransactionsPage() {
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
+                        onClick={downloadReport}
                         className="flex items-center gap-2 px-5 py-3 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
                     >
                         <Download size={18} />
@@ -344,7 +408,11 @@ export default function TransactionsPage() {
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, x: -20 }}
                                                 transition={{ delay: index * 0.02 }}
-                                                className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group"
+                                                onClick={() => {
+                                                    setSelectedTransaction(txn);
+                                                    setShowModal(true);
+                                                }}
+                                                className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer"
                                             >
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">
@@ -399,7 +467,224 @@ export default function TransactionsPage() {
                         </table>
                     </div>
                 </motion.div>
+
+                {/* Transaction Details Modal */}
+                <TransactionDetailsModal
+                    transaction={selectedTransaction}
+                    isOpen={showModal}
+                    onClose={() => {
+                        setShowModal(false);
+                        setSelectedTransaction(null);
+                    }}
+                    formatDate={formatDate}
+                    downloadReceipt={downloadReceipt}
+                />
             </div>
         </div>
+    );
+}
+
+// Premium Transaction Details Modal Component
+function TransactionDetailsModal({ transaction, isOpen, onClose, formatDate, downloadReceipt }) {
+    const [copied, setCopied] = useState(false);
+
+    if (!transaction) return null;
+
+    const handleCopy = (text) => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <>
+                    {/* Backdrop */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+                    />
+
+                    {/* Modal */}
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            transition={{ type: "spring", duration: 0.5 }}
+                            className="relative w-full max-w-lg bg-white dark:bg-[#1E293B] rounded-3xl shadow-2xl overflow-hidden"
+                        >
+                            {/* Header with Gradient */}
+                            <div className={`relative p-6 ${transaction.type === 'credit'
+                                ? 'bg-gradient-to-br from-green-500 to-emerald-600'
+                                : 'bg-gradient-to-br from-[#FF6B00] to-orange-600'
+                                } text-white`}>
+                                <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+
+                                <div className="relative z-10">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+                                                {transaction.type === 'credit' ? (
+                                                    <ArrowUpRight size={24} className="text-white" />
+                                                ) : (
+                                                    <ArrowDownLeft size={24} className="text-white" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <p className="text-white/80 text-sm font-medium">
+                                                    {transaction.type === 'credit' ? 'Money Received' : 'Money Sent'}
+                                                </p>
+                                                <h2 className="text-3xl font-bold tracking-tight">
+                                                    {transaction.type === 'credit' ? '+' : '-'}₦{transaction.amount.toLocaleString()}
+                                                </h2>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={onClose}
+                                            className="p-2 hover:bg-white/20 rounded-xl transition-colors"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white/20 backdrop-blur-sm">
+                                            <Check size={14} />
+                                            Success
+                                        </span>
+                                        <span className="text-white/60 text-xs">
+                                            {formatDate(transaction.date)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Body */}
+                            <div className="p-6 space-y-6">
+                                {/* Transaction Details */}
+                                <div className="space-y-4">
+                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                                        Transaction Details
+                                    </h3>
+
+                                    <div className="space-y-3">
+                                        {/* Description */}
+                                        <div className="flex items-start justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                                            <div className="flex items-start gap-3">
+                                                <div className="p-2 bg-white dark:bg-slate-800 rounded-lg">
+                                                    <FileText size={18} className="text-slate-600 dark:text-slate-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Description</p>
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-white">
+                                                        {transaction.description || "Transaction"}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Reference ID */}
+                                        <div className="flex items-start justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                                            <div className="flex items-start gap-3 flex-1">
+                                                <div className="p-2 bg-white dark:bg-slate-800 rounded-lg">
+                                                    <FileText size={18} className="text-slate-600 dark:text-slate-400" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Reference ID</p>
+                                                    <p className="text-sm font-mono font-bold text-slate-900 dark:text-white truncate">
+                                                        {transaction._id}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleCopy(transaction._id)}
+                                                className="ml-2 p-2 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                            >
+                                                {copied ? (
+                                                    <Check size={16} className="text-green-600" />
+                                                ) : (
+                                                    <Copy size={16} className="text-slate-400" />
+                                                )}
+                                            </button>
+                                        </div>
+
+                                        {/* Date & Time */}
+                                        <div className="flex items-start justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                                            <div className="flex items-start gap-3">
+                                                <div className="p-2 bg-white dark:bg-slate-800 rounded-lg">
+                                                    <Clock size={18} className="text-slate-600 dark:text-slate-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Date & Time</p>
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-white">
+                                                        {formatDate(transaction.date)}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Transaction Type */}
+                                        <div className="flex items-start justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                                            <div className="flex items-start gap-3">
+                                                <div className="p-2 bg-white dark:bg-slate-800 rounded-lg">
+                                                    <Wallet size={18} className="text-slate-600 dark:text-slate-400" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Type</p>
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-white capitalize">
+                                                        {transaction.type}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => handleCopy(transaction._id)}
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 transition-colors"
+                                    >
+                                        {copied ? (
+                                            <>
+                                                <Check size={18} />
+                                                Copied!
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Copy size={18} />
+                                                Copy ID
+                                            </>
+                                        )}
+                                    </motion.button>
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => downloadReceipt(transaction)}
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#FF6B00] hover:bg-orange-600 rounded-xl text-sm font-bold text-white transition-colors"
+                                    >
+                                        <Download size={18} />
+                                        Download Receipt
+                                    </motion.button>
+                                </div>
+
+                                {/* Help Text */}
+                                <p className="text-xs text-center text-slate-500 dark:text-slate-400">
+                                    Need help? Contact support with your reference ID
+                                </p>
+                            </div>
+                        </motion.div>
+                    </div>
+                </>
+            )}
+        </AnimatePresence>
     );
 }
