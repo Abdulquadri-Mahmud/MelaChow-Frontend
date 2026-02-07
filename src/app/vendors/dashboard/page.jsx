@@ -198,6 +198,28 @@ export default function VendorDashboard() {
         };
       });
 
+    // 5. Customer Sentiment Calculation
+    const sentimentPercentage = rating > 0 ? Math.round((rating / 5) * 100) : 0;
+    let sentimentLabel = "No Reviews Yet";
+    let sentimentColor = "border-slate-300";
+
+    if (sentimentPercentage >= 90) {
+      sentimentLabel = "Highly Positive";
+      sentimentColor = "border-[#FF6B00]";
+    } else if (sentimentPercentage >= 75) {
+      sentimentLabel = "Positive";
+      sentimentColor = "border-green-500";
+    } else if (sentimentPercentage >= 60) {
+      sentimentLabel = "Mostly Positive";
+      sentimentColor = "border-blue-500";
+    } else if (sentimentPercentage >= 40) {
+      sentimentLabel = "Mixed";
+      sentimentColor = "border-yellow-500";
+    } else if (sentimentPercentage > 0) {
+      sentimentLabel = "Needs Improvement";
+      sentimentColor = "border-red-500";
+    }
+
     return {
       walletBalance,
       totalSales: realTotalSales,
@@ -207,7 +229,10 @@ export default function VendorDashboard() {
       isVerified,
       chartData: processChartData(),
       topItems: processTopItems(),
-      recentOrders: lastOrders
+      recentOrders: lastOrders,
+      sentimentPercentage,
+      sentimentLabel,
+      sentimentColor,
     };
 
   }, [vendorData, foods]);
@@ -224,10 +249,14 @@ export default function VendorDashboard() {
     isVerified,
     chartData,
     topItems,
-    recentOrders
+    recentOrders,
+    sentimentPercentage,
+    sentimentLabel,
+    sentimentColor,
   } = calculations || {
     walletBalance: 0, totalSales: 0, totalOrders: 0, rating: 0, ratingCount: 0,
-    isVerified: false, chartData: [], topItems: [], recentOrders: []
+    isVerified: false, chartData: [], topItems: [], recentOrders: [],
+    sentimentPercentage: 0, sentimentLabel: "No Reviews Yet", sentimentColor: "border-slate-300"
   };
 
   return (
@@ -243,7 +272,7 @@ export default function VendorDashboard() {
             trend="+12.4%" // Keep mock trend for now or calculate if history available
             sub="All time revenue"
           />
-          <div className="bg-white dark:bg-[#1E293B] p-3 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col gap-2 shadow-sm">
+          <div className="bg-white dark:bg-[#1E293B] p-3 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col gap-2">
             <div className="flex justify-between items-start">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Orders</p>
               <span className="text-blue-500 text-xs font-bold bg-blue-500/10 px-2 py-1 rounded-lg">High Volume</span>
@@ -255,7 +284,7 @@ export default function VendorDashboard() {
               <div className="h-1 flex-1 bg-[#FF6B00]/20 rounded-full"></div>
             </div>
           </div>
-          <div className="bg-white dark:bg-[#1E293B] p-3 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col gap-2 shadow-sm">
+          <div className="bg-white dark:bg-[#1E293B] p-3 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col gap-2">
             <div className="flex justify-between items-start">
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Customer Rating</p>
               <span className="text-[#FF6B00] text-xs font-bold bg-[#FF6B00]/10 px-2 py-1 rounded-lg">
@@ -273,7 +302,7 @@ export default function VendorDashboard() {
         </div>
 
         {/* REVENUE COMMAND */}
-        <div className="relative overflow-hidden bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 p-4 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+        <div className="relative overflow-hidden bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 p-4 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-[#FF6B00]/10 to-transparent opacity-50 pointer-events-none"></div>
           <div className="z-10 w-full md:w-auto">
             <h2 className="text-2xl font-bold mb-2 text-slate-900 dark:text-white">Revenue Command</h2>
@@ -305,7 +334,7 @@ export default function VendorDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
           {/* LEFT: LIVE ORDERS */}
-          <div className="lg:col-span-4 bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 overflow-hidden flex flex-col h-[600px] shadow-sm">
+          <div className="lg:col-span-4 bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 overflow-hidden flex flex-col h-[600px]">
             <div className="p-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between">
               <h3 className="font-bold flex items-center gap-2 text-slate-900 dark:text-white">
                 <span className="size-2 bg-[#FF6B00] rounded-full animate-pulse"></span>
@@ -342,14 +371,14 @@ export default function VendorDashboard() {
           <div className="lg:col-span-8 flex flex-col gap-8">
 
             {/* CHART */}
-            <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 p-6 flex flex-col h-[340px] shadow-sm">
+            <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 md:p-6 p-3 flex flex-col h-[340px]">
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h3 className="font-bold text-lg text-slate-900 dark:text-white">Sales Performance</h3>
                   <p className="text-xs text-slate-400">Weekly sales trend (Last 7 Days)</p>
                 </div>
                 <div className="flex bg-slate-100 dark:bg-white/5 rounded-lg p-1">
-                  <button className="px-3 py-1 text-xs font-bold rounded-md bg-white dark:bg-white/10 text-[#FF6B00] shadow-sm">7D</button>
+                  <button className="px-3 py-1 text-xs font-bold rounded-md bg-white dark:bg-white/10 text-[#FF6B00]">7D</button>
                   <button className="px-3 py-1 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400">1M</button>
                   <button className="px-3 py-1 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400">3M</button>
                 </div>
@@ -384,7 +413,7 @@ export default function VendorDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
               {/* TOP ITEMS */}
-              <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 p-6 shadow-sm">
+              <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 md:p-6 p-3">
                 <h3 className="font-bold text-sm mb-4 text-slate-900 dark:text-white">Top Selling Items</h3>
                 <div className="space-y-4">
                   {topItems.length > 0 ? topItems.map((item, i) => (
@@ -402,17 +431,22 @@ export default function VendorDashboard() {
               </div>
 
               {/* SENTIMENT */}
-              <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 p-6 flex flex-col shadow-sm">
+              <div className="bg-white dark:bg-[#1E293B] rounded-xl border border-slate-200 dark:border-white/5 md:p-6 p-3 flex flex-col">
                 <h3 className="font-bold text-sm mb-4 text-slate-900 dark:text-white">Customer Sentiment</h3>
                 <div className="flex-1 flex flex-col justify-center items-center text-center">
-                  <div className="size-20 rounded-full border-4 border-[#FF6B00] flex items-center justify-center mb-3">
-                    <span className="text-xl font-bold text-slate-900 dark:text-white">96%</span>
+                  <div className={`size-20 rounded-full border-4 ${sentimentColor} flex items-center justify-center mb-3`}>
+                    <span className="text-xl font-bold text-slate-900 dark:text-white">{sentimentPercentage}%</span>
                   </div>
-                  <p className="font-bold text-sm text-slate-900 dark:text-white">Highly Positive</p>
-                  <p className="text-xs text-slate-400 mt-1 max-w-[150px]">Based on {ratingCount} reviews this month.</p>
-                  <button className="mt-4 text-xs font-bold text-[#FF6B00] hover:bg-[#FF6B00]/10 px-4 py-2 rounded-lg transition-all border border-[#FF6B00]/20">
+                  <p className="font-bold text-sm text-slate-900 dark:text-white">{sentimentLabel}</p>
+                  <p className="text-xs text-slate-400 mt-1 max-w-[150px]">
+                    {ratingCount > 0
+                      ? `Based on ${ratingCount} review${ratingCount !== 1 ? 's' : ''}.`
+                      : "No reviews yet."
+                    }
+                  </p>
+                  <Link href={'/vendors/reviews'} className="mt-4 text-xs font-bold text-[#FF6B00] hover:bg-[#FF6B00]/10 px-4 py-2 rounded-lg transition-all border border-[#FF6B00]/20">
                     View Feedback
-                  </button>
+                  </Link>
                 </div>
               </div>
 
@@ -428,7 +462,7 @@ export default function VendorDashboard() {
 // --- SUB COMPONENTS ---
 
 const MetricCard = ({ title, value, trend, sub }) => (
-  <div className="bg-white dark:bg-[#1E293B] p-3 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col gap-2 shadow-sm">
+  <div className="bg-white dark:bg-[#1E293B] p-3 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col gap-2">
     <div className="flex justify-between items-start">
       <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{title}</p>
       <span className="text-[#FF6B00] text-xs font-bold bg-[#FF6B00]/10 px-2 py-1 rounded-lg">{trend}</span>
