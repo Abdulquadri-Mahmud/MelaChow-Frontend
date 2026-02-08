@@ -39,19 +39,7 @@ export default function AppBootstrapper({ children }) {
     const { vendorDetails, hasCheckedSession: hasVendorChecked } = useVendorStorage();
 
     // Track global app readiness (Session Finality)
-    const isAuthResolved = hasUserChecked && hasVendorChecked;
-
-    // Splash Visibility State
-    const [showSplash, setShowSplash] = useState(false); // ✅ Default to HIDDEN to prevent refresh flash
-    const [isRedirecting, setIsRedirecting] = useState(false);
-
-    useEffect(() => {
-        // Only show splash if it hasn't been shown in this session
-        const hasShownSplash = sessionStorage.getItem("splashShown");
-        if (!hasShownSplash) {
-            setShowSplash(true);
-        }
-    }, []);
+    // const isAuthResolved = hasUserChecked && hasVendorChecked; // No longer used, logic moved to useEffect
 
     // Check if current route is public or guest-allowed
     const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route));
@@ -63,11 +51,63 @@ export default function AppBootstrapper({ children }) {
     // Determine if user is authenticated
     const isAuthenticated = !!user || !!vendorDetails;
 
-    useEffect(() => {
-        // Only process after auth is resolved (Session Finality)
-        if (!isAuthResolved) return;
+    // Splash Visibility State
+    const [showSplash, setShowSplash] = useState(false); // ✅ Default to HIDDEN to prevent refresh flash
+    const [isRedirecting, setIsRedirecting] = useState(false);
 
-        // Dismiss splash screen ONLY after session check is done
+    // ✅ Debug logging to track auth state
+    useEffect(() => {
+        if (process.env.NODE_ENV === 'development') {
+            const isVendorRoute = pathname?.startsWith("/vendors/");
+
+            console.log('[AppBootstrapper] 🔐 Auth Check Status:', {
+                pathname,
+                isVendorRoute,
+                hasUserChecked,
+                hasVendorChecked,
+                isAuthenticated,
+                showSplash,
+                user: !!user,
+                vendor: !!vendorDetails,
+            });
+        }
+    }, [pathname, hasUserChecked, hasVendorChecked, isAuthenticated, showSplash, user, vendorDetails]);
+
+    // ✅ Prevent hydration mismatch
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
+        // Only show splash if it hasn't been shown in this session
+        const hasShownSplash = sessionStorage.getItem("splashShown");
+        if (!hasShownSplash) {
+            setShowSplash(true);
+        }
+    }, []);
+
+    useEffect(() => {
+        // ✅ Determine which auth check we need based on current route
+        const isVendorRoute = pathname?.startsWith("/vendors/");
+        const isUserRoute = !isVendorRoute && !isAdminRoute;
+
+        // ✅ Only wait for the RELEVANT auth check
+        let relevantAuthResolved = false;
+
+        if (isVendorRoute) {
+            // Vendor routes only wait for vendor check
+            relevantAuthResolved = hasVendorChecked;
+        } else if (isUserRoute) {
+            // User routes only wait for user check
+            relevantAuthResolved = hasUserChecked;
+        } else {
+            // Admin/other routes wait for both (safe default)
+            relevantAuthResolved = hasUserChecked && hasVendorChecked;
+        }
+
+        // Only process after RELEVANT auth is resolved
+        if (!relevantAuthResolved) return;
+
+        // Dismiss splash screen ONLY after relevant session check is done
         if (showSplash) {
             setShowSplash(false);
             sessionStorage.setItem("splashShown", "true");
@@ -89,7 +129,6 @@ export default function AppBootstrapper({ children }) {
             // iOS Safari sometimes needs extra time to read cookies after page refresh
             const redirectTimer = setTimeout(() => {
                 // ✅ Determine correct redirect based on current route
-                const isVendorRoute = pathname?.startsWith("/vendors/");
                 const redirectUrl = isVendorRoute ? "/vendors/auth/login" : "/auth/signin";
 
                 console.log("🔒 Unauthorized access detected after session check. Redirecting to:", redirectUrl);
@@ -99,12 +138,28 @@ export default function AppBootstrapper({ children }) {
 
             return () => clearTimeout(redirectTimer);
         }
-    }, [isAuthResolved, isAuthenticated, pathname, isPublicRoute, isGuestAllowedRoute, isRestaurantRoute, router, isRedirecting, isFoodDetailsRoute, showSplash]);
+    }, [
+        hasUserChecked,
+        hasVendorChecked,
+        isAuthenticated,
+        pathname,
+        isPublicRoute,
+        isGuestAllowedRoute,
+        isRestaurantRoute,
+        router,
+        isRedirecting,
+        isFoodDetailsRoute,
+        showSplash,
+        isAdminRoute
+    ]);
 
     // Reset redirecting flag when pathname changes
     useEffect(() => {
         setIsRedirecting(false);
     }, [pathname]);
+
+    // ✅ Don't render until mounted to prevent hydration errors
+    if (!isMounted) return null;
 
     return (
         <>

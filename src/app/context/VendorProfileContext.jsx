@@ -146,7 +146,9 @@ export const VendorProfileProvider = ({ children }) => {
         enabled: pathname?.startsWith("/vendors/") || false,
     });
 
-    const hasCheckedSession = isFetched;
+    // ✅ Mark as checked immediately on non-vendor routes
+    // This prevents user routes from waiting for vendor auth check
+    const hasCheckedSession = pathname?.startsWith("/vendors/") ? isFetched : true;
 
     // ✅ Debug logging
     useEffect(() => {
