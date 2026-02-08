@@ -8,6 +8,13 @@ export const ApiProvider = ({ children }) => {
   // This ensures cookies are treated as First-Party (fixes iOS Safari issues)
   const baseUrl = "/api";
 
+  // ✅ Debug logging for development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[ApiContext] Initialized with baseUrl:', baseUrl);
+    console.log('[ApiContext] All API requests will proxy through:', baseUrl);
+    console.log('[ApiContext] Route namespacing: /user/*, /vendors/*, /admin/*');
+  }
+
   return (
     <ApiContext.Provider value={{ baseUrl }}>
       {children}
@@ -15,4 +22,10 @@ export const ApiProvider = ({ children }) => {
   );
 };
 
-export const useApi = () => useContext(ApiContext);
+export const useApi = () => {
+  const context = useContext(ApiContext);
+  if (!context) {
+    throw new Error("useApi must be used within an ApiProvider");
+  }
+  return context;
+};

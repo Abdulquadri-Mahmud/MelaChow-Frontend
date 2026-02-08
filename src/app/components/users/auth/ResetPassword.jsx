@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useApi } from "@/app/context/ApiContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, ArrowRight, Loader2, RefreshCw, ShieldCheck } from "lucide-react";
+import axios from "axios";
 
 const LogoImage = () => (
   <div className="relative group mx-auto mb-6">
@@ -81,15 +82,28 @@ export default function ResetPassword() {
       setLoading(true);
       setMessage(null);
 
-      const res = await fetch(`${baseUrl}/user/auth/reset-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: otpString, password }),
-      });
+      // ✅ Explicit endpoint construction for clarity
+      const endpoint = `${baseUrl}/user/auth/reset-password`;
 
-      const data = await res.json();
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[ResetPassword] Sending request to:', endpoint);
+        console.log('[ResetPassword] Email:', email);
+      }
 
-      if (!res.ok || data.status === false) {
+      const { data } = await axios.post(
+        endpoint,
+        { email, otp: otpString, password },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[ResetPassword] Response:', data);
+      }
+
+      if (data.status === false) {
         setMessage(data.message || "Reset failed. Please try again.");
         return;
       }
@@ -97,8 +111,28 @@ export default function ResetPassword() {
       setMessage("✅ Password reset successful! Redirecting...");
       setTimeout(() => router.push("/auth/signin"), 2000);
     } catch (error) {
-      console.error("Reset error:", error);
-      setMessage("Something went wrong. Try again later.");
+      console.error('[ResetPassword] Reset error:', error);
+
+      if (error.response) {
+        const errorMessage = error.response.data.message || "Reset failed. Please try again.";
+        setMessage(errorMessage);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[ResetPassword] Server error:', error.response.status, errorMessage);
+        }
+      } else if (error.request) {
+        setMessage("Network error. Please check your connection.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[ResetPassword] Network error - no response received');
+        }
+      } else {
+        setMessage("Something went wrong. Try again later.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[ResetPassword] Unexpected error:', error.message);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -112,23 +146,56 @@ export default function ResetPassword() {
       setResending(true);
       setMessage(null);
 
-      const res = await fetch(`${baseUrl}/user/auth/resend-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      // ✅ Explicit endpoint construction for clarity
+      const endpoint = `${baseUrl}/user/auth/resend-otp`;
 
-      const data = await res.json();
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[ResetPassword] Resending OTP to:', endpoint);
+        console.log('[ResetPassword] Email:', email);
+      }
 
-      if (!res.ok || data.status === false) {
+      const { data } = await axios.post(
+        endpoint,
+        { email },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[ResetPassword] Resend response:', data);
+      }
+
+      if (data.status === false) {
         setMessage(data.message || "Failed to resend OTP.");
         return;
       }
 
       setMessage("✅ OTP resent successfully! Check your email.");
     } catch (error) {
-      console.error("Resend error:", error);
-      setMessage("Something went wrong. Try again later.");
+      console.error('[ResetPassword] Resend error:', error);
+
+      if (error.response) {
+        const errorMessage = error.response.data.message || "Failed to resend OTP.";
+        setMessage(errorMessage);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[ResetPassword] Server error:', error.response.status, errorMessage);
+        }
+      } else if (error.request) {
+        setMessage("Network error. Please check your connection.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[ResetPassword] Network error - no response received');
+        }
+      } else {
+        setMessage("Something went wrong. Try again later.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[ResetPassword] Unexpected error:', error.message);
+        }
+      }
     } finally {
       setResending(false);
     }
@@ -210,10 +277,13 @@ export default function ResetPassword() {
             whileTap={{ scale: 0.98 }}
             onClick={handleResetPassword}
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50"
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-              <Loader2 className="animate-spin" size={24} />
+              <>
+                <Loader2 className="animate-spin" size={24} />
+                <span>Updating...</span>
+              </>
             ) : (
               <span>Update Password</span>
             )}
@@ -224,10 +294,13 @@ export default function ResetPassword() {
             whileTap={{ scale: 0.98 }}
             onClick={handleResendOTP}
             disabled={resending}
-            className="w-full bg-zinc-100 dark:bg-zinc-800 text-orange-600 py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+            className="w-full bg-zinc-100 dark:bg-zinc-800 text-orange-600 py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:bg-zinc-200 dark:hover:bg-zinc-700"
           >
             {resending ? (
-              <Loader2 className="animate-spin" size={18} />
+              <>
+                <Loader2 className="animate-spin" size={18} />
+                <span>Resending...</span>
+              </>
             ) : (
               <>
                 <RefreshCw size={18} />

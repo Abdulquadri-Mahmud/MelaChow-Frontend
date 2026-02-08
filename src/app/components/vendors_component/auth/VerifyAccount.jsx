@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { X, Mail, ShieldCheck, ArrowRight, Loader2, RefreshCw } from "lucide-react";
 import { TokenManager } from "@/app/lib/auth-token";
+import axios from "axios";
 
 /**
  * Enhanced Logo Component
@@ -90,16 +91,28 @@ export default function VerifyAccount() {
       setLoading(true);
       setMessage(null);
 
-      const res = await fetch(`${baseUrl}/vendor/auth/verify-otp`, {
-        method: "POST",
-        credentials: "include", // ✅ CRITICAL: Required to save vendorToken cookie
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: otpString }),
-      });
+      // ✅ Explicit endpoint construction for clarity
+      const endpoint = `${baseUrl}/vendor/auth/verify-otp`;
 
-      const data = await res.json();
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[VendorVerify] Sending request to:', endpoint);
+        console.log('[VendorVerify] Email:', email);
+      }
 
-      if (!res.ok || data.status === false) {
+      const { data } = await axios.post(
+        endpoint,
+        { email, otp: otpString },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,  // ✅ CRITICAL: Required to save vendorToken cookie
+        }
+      );
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[VendorVerify] Response:', data);
+      }
+
+      if (data.status === false) {
         setMessage(data.message || "OTP verification failed.");
         return;
       }
@@ -129,8 +142,28 @@ export default function VerifyAccount() {
       setMessage("✅ Verified successfully! Redirecting...");
       setTimeout(() => router.push("/vendors/dashboard"), 1500);
     } catch (error) {
-      console.error("Verification error:", error);
-      setMessage("Something went wrong. Try again later.");
+      console.error('[VendorVerify] Verification error:', error);
+
+      if (error.response) {
+        const errorMessage = error.response.data.message || "OTP verification failed.";
+        setMessage(errorMessage);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[VendorVerify] Server error:', error.response.status, errorMessage);
+        }
+      } else if (error.request) {
+        setMessage("Network error. Please check your connection.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[VendorVerify] Network error - no response received');
+        }
+      } else {
+        setMessage("Something went wrong. Try again later.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[VendorVerify] Unexpected error:', error.message);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -144,22 +177,56 @@ export default function VerifyAccount() {
       setResending(true);
       setMessage(null);
 
-      const res = await fetch(`${baseUrl}/vendor/auth/resend-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      // ✅ Explicit endpoint construction for clarity
+      const endpoint = `${baseUrl}/vendor/auth/resend-otp`;
 
-      const data = await res.json();
-      if (!res.ok || data.status === false) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[VendorVerify] Resending OTP to:', endpoint);
+        console.log('[VendorVerify] Email:', email);
+      }
+
+      const { data } = await axios.post(
+        endpoint,
+        { email },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[VendorVerify] Resend response:', data);
+      }
+
+      if (data.status === false) {
         setMessage(data.message || "Failed to resend OTP.");
         return;
       }
 
       setMessage("✅ OTP resent successfully! Check your email.");
     } catch (error) {
-      console.error("Resend error:", error);
-      setMessage("Something went wrong. Try again later.");
+      console.error('[VendorVerify] Resend error:', error);
+
+      if (error.response) {
+        const errorMessage = error.response.data.message || "Failed to resend OTP.";
+        setMessage(errorMessage);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[VendorVerify] Server error:', error.response.status, errorMessage);
+        }
+      } else if (error.request) {
+        setMessage("Network error. Please check your connection.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[VendorVerify] Network error - no response received');
+        }
+      } else {
+        setMessage("Something went wrong. Try again later.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[VendorVerify] Unexpected error:', error.message);
+        }
+      }
     } finally {
       setResending(false);
     }
@@ -233,10 +300,13 @@ export default function VerifyAccount() {
             whileTap={{ scale: 0.98 }}
             onClick={handleVerify}
             disabled={loading}
-            className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50 group"
+            className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
           >
             {loading ? (
-              <Loader2 className="animate-spin" size={20} />
+              <>
+                <Loader2 className="animate-spin" size={20} />
+                <span>Verifying...</span>
+              </>
             ) : (
               <>
                 <span>Verify Securely</span>
@@ -250,10 +320,13 @@ export default function VerifyAccount() {
             whileTap={{ scale: 0.98 }}
             onClick={handleResendOTP}
             disabled={resending}
-            className="w-full bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 hover:bg-zinc-100 transition-all disabled:opacity-50"
+            className="w-full bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 hover:bg-zinc-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {resending ? (
-              <Loader2 className="animate-spin" size={16} />
+              <>
+                <Loader2 className="animate-spin" size={16} />
+                <span>Resending...</span>
+              </>
             ) : (
               <>
                 <RefreshCw size={16} />

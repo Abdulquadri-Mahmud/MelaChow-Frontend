@@ -8,6 +8,7 @@ import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { motion } from "framer-motion";
 import { ShieldCheck, ArrowRight, Loader2, RefreshCw, X, Clock } from "lucide-react";
 import { TokenManager } from "@/app/lib/auth-token";
+import axios from "axios";
 
 const LogoImage = () => (
   <div className="relative group mx-auto mb-6 w-fit">
@@ -99,15 +100,29 @@ export default function VerifyAccount() {
 
     try {
       setLoading(true);
-      const res = await fetch(`${baseUrl}/user/auth/verify-account`, {
-        method: "POST",
-        credentials: "include", // ✅ CRITICAL: Save userToken cookie
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: otpString }),
-      });
-      const data = await res.json();
 
-      if (!res.ok || data.status === false) {
+      // ✅ Explicit endpoint construction for clarity
+      const endpoint = `${baseUrl}/user/auth/verify-account`;
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[VerifyAccount] Sending request to:', endpoint);
+        console.log('[VerifyAccount] Email:', email);
+      }
+
+      const { data } = await axios.post(
+        endpoint,
+        { email, otp: otpString },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,  // ✅ CRITICAL: Save userToken cookie
+        }
+      );
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[VerifyAccount] Response:', data);
+      }
+
+      if (data.status === false) {
         toast.error(data.message || "OTP verification failed");
         return;
       }
@@ -131,7 +146,27 @@ export default function VerifyAccount() {
       setTimeout(() => router.push("/home"), 1000);
     } catch (error) {
       console.error('[VerifyAccount] Verification error:', error);
-      toast.error(error.message || "Something went wrong. Try again later.");
+
+      if (error.response) {
+        const errorMessage = error.response.data.message || "OTP verification failed";
+        toast.error(errorMessage);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[VerifyAccount] Server error:', error.response.status, errorMessage);
+        }
+      } else if (error.request) {
+        toast.error("Network error. Please check your connection.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[VerifyAccount] Network error - no response received');
+        }
+      } else {
+        toast.error(error.message || "Something went wrong. Try again later.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[VerifyAccount] Unexpected error:', error.message);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -142,14 +177,29 @@ export default function VerifyAccount() {
 
     try {
       setResending(true);
-      const res = await fetch(`${baseUrl}/user/auth/resend-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
-      const data = await res.json();
 
-      if (!res.ok || data.status === false) {
+      // ✅ Explicit endpoint construction for clarity
+      const endpoint = `${baseUrl}/user/auth/resend-otp`;
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[VerifyAccount] Resending OTP to:', endpoint);
+        console.log('[VerifyAccount] Email:', email);
+      }
+
+      const { data } = await axios.post(
+        endpoint,
+        { email },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[VerifyAccount] Resend response:', data);
+      }
+
+      if (data.status === false) {
         toast.error(data.message || "Could not resend OTP");
         return;
       }
@@ -159,7 +209,28 @@ export default function VerifyAccount() {
       inputRefs.current[0]?.focus();
       setTimeLeft(600);
     } catch (error) {
-      toast.error("Something went wrong. Try again later.");
+      console.error('[VerifyAccount] Resend error:', error);
+
+      if (error.response) {
+        const errorMessage = error.response.data.message || "Could not resend OTP";
+        toast.error(errorMessage);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[VerifyAccount] Server error:', error.response.status, errorMessage);
+        }
+      } else if (error.request) {
+        toast.error("Network error. Please check your connection.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[VerifyAccount] Network error - no response received');
+        }
+      } else {
+        toast.error("Something went wrong. Try again later.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[VerifyAccount] Unexpected error:', error.message);
+        }
+      }
     } finally {
       setResending(false);
     }
@@ -218,10 +289,13 @@ export default function VerifyAccount() {
             whileTap={{ scale: 0.98 }}
             onClick={handleVerify}
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50"
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-              <Loader2 className="animate-spin" size={24} />
+              <>
+                <Loader2 className="animate-spin" size={24} />
+                <span>Verifying...</span>
+              </>
             ) : (
               <span>Complete Setup</span>
             )}

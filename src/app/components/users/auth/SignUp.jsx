@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 
 const LogoImage = () => (
   <div className="relative group">
@@ -52,28 +53,63 @@ export default function Signup() {
     setMessage("");
 
     try {
-      const res = await fetch(`${baseUrl}/user/auth/signup`, {
-        method: "POST",
+      // ✅ Explicit endpoint construction for clarity
+      const endpoint = `${baseUrl}/user/auth/signup`;
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[SignUp] Sending request to:', endpoint);
+        console.log('[SignUp] Form data:', { ...formData, avatar: formData.avatar ? 'set' : 'not set' });
+      }
+
+      const { data } = await axios.post(endpoint, formData, {
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        withCredentials: true,  // ✅ CRITICAL: Send cookies
       });
 
-      const data = await res.json();
-      if (res.ok) {
-        setMessage("Signup successful! 🎉");
-        setFormData({
-          firstname: "",
-          lastname: "",
-          email: "",
-          phone: "",
-          avatar: "",
-        });
-        router.push("/auth/signin");
-      } else {
-        setMessage(data.message || "Signup failed. Please try again.");
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[SignUp] Response:', data);
       }
+
+      setMessage("Signup successful! 🎉 Redirecting...");
+      setFormData({
+        firstname: "",
+        lastname: "",
+        email: "",
+        phone: "",
+        avatar: "",
+      });
+
+      // ✅ Add small delay so user sees success message
+      setTimeout(() => {
+        router.push("/auth/signin");
+      }, 1000);
+
     } catch (err) {
-      setMessage("Network error. Please try again.");
+      console.error('[SignUp] Error:', err);
+
+      if (err.response) {
+        // Server responded with error status
+        const errorMessage = err.response.data.message || "Signup failed. Please try again.";
+        setMessage(errorMessage);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[SignUp] Server error:', err.response.status, errorMessage);
+        }
+      } else if (err.request) {
+        // Request made but no response received
+        setMessage("Network error. Please check your connection.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[SignUp] Network error - no response received');
+        }
+      } else {
+        // Something else happened
+        setMessage("An error occurred. Please try again.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[SignUp] Unexpected error:', err.message);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -162,10 +198,13 @@ export default function Signup() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 mt-10"
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-10"
           >
             {loading ? (
-              <Loader2 className="animate-spin" size={24} />
+              <>
+                <Loader2 className="animate-spin" size={24} />
+                <span>Creating Account...</span>
+              </>
             ) : (
               <span>Sign Up</span>
             )}
