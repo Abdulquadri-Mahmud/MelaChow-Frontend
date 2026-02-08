@@ -5,15 +5,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/app/context/CartContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
-import Header2 from "../components/App_Header/Header2";
+import Header2 from "@/app/components/App_Header/Header2";
 import { ShoppingCart, Package, Trash2, ArrowRight, Minus, Plus, ShoppingBag, Utensils } from "lucide-react";
 import toast from "react-hot-toast";
-import { useApi } from "../context/ApiContext";
+import { useApi } from "@/app/context/ApiContext";
 import axios from "axios";
-import { OrderCardSkeleton } from "../components/skeleton/OrderCardSkeleton";
+import { OrderCardSkeleton } from "@/app/components/skeleton/OrderCardSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, Loader2 } from "lucide-react";
-import FoodCustomizationModal from "../components/Cart/FoodCustomizationModal";
+import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
 
 function OrdersContent() {
   const router = useRouter();

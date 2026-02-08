@@ -1,6 +1,6 @@
 "use client";
 
-import Header2 from "../components/App_Header/Header2";
+import Header2 from "@/app/components/App_Header/Header2";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {

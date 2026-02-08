@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
-import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import { usePathname, useRouter } from "next/navigation";
-import SplashScreen from "./SplashScreen";
+import SplashScreen from "@/app/components/SplashScreen";
 import { AnimatePresence, motion } from "framer-motion";
+import CustomerLogoutHandler from "./CustomerLogoutHandler";
 
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -14,10 +14,6 @@ const PUBLIC_ROUTES = [
     "/auth/verify-account",
     "/auth/forgot-password",
     "/auth/reset-password",
-    "/vendors/auth/login",
-    "/vendors/auth/register",
-    "/vendors/auth/verify-account",
-    "/admin/login",
 ];
 
 // Routes that should be accessible to guests (no auth required)
@@ -25,27 +21,47 @@ const GUEST_ALLOWED_ROUTES = [
     "/",
     "/faqs",
     "/get-help",
-    // "/all-restaurants",
-    // "/all-foods",
-    // "/search",
+    // Add more public routes as needed
 ];
 
-export default function AppBootstrapper({ children }) {
+export default function CustomerBootstrapper({ children }) {
     const pathname = usePathname();
     const router = useRouter();
 
-    // Monitor Auth States
-    const { user, hasCheckedSession: hasUserChecked } = useUserStorage();
-    const { vendorDetails, hasCheckedSession: hasVendorChecked } = useVendorStorage();
+    // Monitor User Auth State ONLY
+    const { user, hasCheckedSession } = useUserStorage();
 
-    // Track global app readiness (Session Finality)
-    const isAuthResolved = hasUserChecked && hasVendorChecked;
+    // Check if current route is public or guest-allowed
+    const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route));
+    const isGuestAllowedRoute = GUEST_ALLOWED_ROUTES.some(route => pathname === route);
+    const isRestaurantRoute = pathname?.startsWith("/restaurants/");
+    const isFoodDetailsRoute = pathname?.startsWith("/food-details/");
+
+    // Determine if user is authenticated
+    const isAuthenticated = !!user;
 
     // Splash Visibility State
-    const [showSplash, setShowSplash] = useState(false); // ✅ Default to HIDDEN to prevent refresh flash
+    const [showSplash, setShowSplash] = useState(false);
     const [isRedirecting, setIsRedirecting] = useState(false);
 
+    // ✅ Debug logging
     useEffect(() => {
+        if (process.env.NODE_ENV === 'development') {
+            console.log('[CustomerBootstrapper] 🔐 User Auth Check:', {
+                pathname,
+                hasCheckedSession,
+                isAuthenticated,
+                showSplash,
+                user: !!user,
+            });
+        }
+    }, [pathname, hasCheckedSession, isAuthenticated, showSplash, user]);
+
+    // ✅ Prevent hydration mismatch
+    const [isMounted, setIsMounted] = useState(false);
+
+    useEffect(() => {
+        setIsMounted(true);
         // Only show splash if it hasn't been shown in this session
         const hasShownSplash = sessionStorage.getItem("splashShown");
         if (!hasShownSplash) {
@@ -53,19 +69,9 @@ export default function AppBootstrapper({ children }) {
         }
     }, []);
 
-    // Check if current route is public or guest-allowed
-    const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route));
-    const isGuestAllowedRoute = GUEST_ALLOWED_ROUTES.some(route => pathname === route);
-    const isRestaurantRoute = pathname?.startsWith("/restataurants/");
-    const isFoodDetailsRoute = pathname?.startsWith("/food-details/");
-    const isAdminRoute = pathname?.startsWith("/admin/");
-
-    // Determine if user is authenticated
-    const isAuthenticated = !!user || !!vendorDetails;
-
     useEffect(() => {
-        // Only process after auth is resolved (Session Finality)
-        if (!isAuthResolved) return;
+        // Only process after auth is resolved
+        if (!hasCheckedSession) return;
 
         // Dismiss splash screen ONLY after session check is done
         if (showSplash) {
@@ -79,32 +85,36 @@ export default function AppBootstrapper({ children }) {
         // Allow guest access to specific routes
         if (isGuestAllowedRoute || isRestaurantRoute || isFoodDetailsRoute) return;
 
-        // Skip redirect logic for admin routes (handled by AdminProtectedRoute)
-        if (isAdminRoute) return;
-
-        // ✅ iOS Race Condition Fix:
-        // Only redirect AFTER session is fully checked AND user is not authenticated
+        // ✅ Redirect if not authenticated
         if (!isAuthenticated && !isRedirecting) {
-            // ✅ iOS Safari Fix: 300ms delay allows cookies to be restored after navigation
-            // iOS Safari sometimes needs extra time to read cookies after page refresh
             const redirectTimer = setTimeout(() => {
-                // ✅ Determine correct redirect based on current route
-                const isVendorRoute = pathname?.startsWith("/vendors/");
-                const redirectUrl = isVendorRoute ? "/vendors/auth/login" : "/auth/signin";
-
-                console.log("🔒 Unauthorized access detected after session check. Redirecting to:", redirectUrl);
+                console.log("🔒 Unauthorized access. Redirecting to signin...");
                 setIsRedirecting(true);
-                router.replace(redirectUrl);
+                router.replace("/auth/signin");
             }, 300);
 
             return () => clearTimeout(redirectTimer);
         }
-    }, [isAuthResolved, isAuthenticated, pathname, isPublicRoute, isGuestAllowedRoute, isRestaurantRoute, router, isRedirecting, isFoodDetailsRoute, showSplash]);
+    }, [
+        hasCheckedSession,
+        isAuthenticated,
+        pathname,
+        isPublicRoute,
+        isGuestAllowedRoute,
+        isRestaurantRoute,
+        isFoodDetailsRoute,
+        router,
+        isRedirecting,
+        showSplash
+    ]);
 
     // Reset redirecting flag when pathname changes
     useEffect(() => {
         setIsRedirecting(false);
     }, [pathname]);
+
+    // ✅ Don't render until mounted to prevent hydration errors
+    if (!isMounted) return null;
 
     return (
         <>
@@ -115,7 +125,7 @@ export default function AppBootstrapper({ children }) {
                         exit={{ opacity: 0, transition: { duration: 0.5 } }}
                         className="fixed inset-0 z-[9999]"
                     >
-                        <SplashScreen user={user} vendorDetails={vendorDetails} />
+                        <SplashScreen user={user} vendorDetails={null} />
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -127,6 +137,7 @@ export default function AppBootstrapper({ children }) {
                     transition={{ duration: 0.5 }}
                 >
                     {children}
+                    <CustomerLogoutHandler />
                 </motion.div>
             )}
         </>

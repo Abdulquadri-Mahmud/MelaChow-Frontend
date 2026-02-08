@@ -1,17 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import CategoryList from "../components/Home_Components/Category";
-import FeatureSlider from "../components/Home_Components/FeatureSlider";
-import FoodList from "../components/Home_Components/FoodList";
-import HomeHeader from "../components/Home_Components/HomeHeader";
-import PromoBanner from "../components/Home_Components/PromoBanner";
-import SearchBar from "../components/Home_Components/SearchBar";
-import SmartRecommendations from "../components/Home_Components/SmartRecommendations";
-import TrendingFoods from "../components/Home_Components/TrendingFoods";
-import VendorList from "../components/Home_Components/VendorList";
-import { useUserStorage } from "../hooks/useUserStorage";
-import AddressModal from "../modals/AddressModal";
+import CategoryList from "@/app/components/Home_Components/Category";
+import FeatureSlider from "@/app/components/Home_Components/FeatureSlider";
+import FoodList from "@/app/components/Home_Components/FoodList";
+import HomeHeader from "@/app/components/Home_Components/HomeHeader";
+import PromoBanner from "@/app/components/Home_Components/PromoBanner";
+import SearchBar from "@/app/components/Home_Components/SearchBar";
+import SmartRecommendations from "@/app/components/Home_Components/SmartRecommendations";
+import TrendingFoods from "@/app/components/Home_Components/TrendingFoods";
+import VendorList from "@/app/components/Home_Components/VendorList";
+import { useUserStorage } from "@/app/hooks/useUserStorage";
+import AddressModal from "@/app/modals/AddressModal";
 
 export default function HomePage() {
   const [isAddressOpen, setIsAddressOpen] = useState(false);
@@ -37,7 +37,7 @@ export default function HomePage() {
           <FoodList user={user} />
         </div>
         {/* <PromoBanner /> */}
-        
+
         <div className="" />
         {/* <FeatureSlider /> */}
       </div>

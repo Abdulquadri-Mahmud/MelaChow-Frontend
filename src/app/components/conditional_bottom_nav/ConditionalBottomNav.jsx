@@ -1,45 +1,24 @@
 "use client";
 
+import React from "react";
 import { usePathname } from "next/navigation";
-import BottomBar from "../BottomNav";
+import BottomNav from "../BottomNav";
 
 export default function ConditionalBottomNav() {
   const pathname = usePathname();
 
-  // Routes where BottomNav should NOT show
-  const noNavRoutes = [
-    "/",
+  // Hide on auth pages
+  const hideOnRoutes = [
     "/auth/signin",
-    "/auth/verify-account",
     "/auth/signup",
+    "/auth/verify-account",
     "/auth/forgot-password",
     "/auth/reset-password",
-    "/vendors/auth/register",
-    "/vendors/auth/login",
-    "/vendors/auth/verify-account",
-    "/vendors/dashboard",
-    "/vendors/profile",
-    "/vendors/my-foods",
-    "/vendors/create-food",
-    "/vendors/transactions",
-    "/vendors/order",
-    "/vendors/reviews",
-    "/admin/login",
-    "/admin/dashboard",
-    "/admin/categories",
-    "/admin/locations",
-    "/admin/settings",
   ];
 
-  // ✅ Hide nav also on dynamic routes
-  const shouldHideNav =
-    noNavRoutes.includes(pathname) ||
-    pathname.startsWith("/vendors/update-food/") ||
-    pathname.startsWith("/vendors/orders/") ||
-    pathname.startsWith("/vendors/order/") ||
-    pathname.startsWith("/vendors/food-details/");
+  const shouldHide = hideOnRoutes.some(route => pathname?.startsWith(route));
 
-  const showNav = !shouldHideNav;
+  if (shouldHide) return null;
 
-  return showNav ? <BottomBar /> : null;
+  return <BottomNav />;
 }
