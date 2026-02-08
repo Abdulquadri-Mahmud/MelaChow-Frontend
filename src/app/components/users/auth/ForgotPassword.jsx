@@ -6,6 +6,7 @@ import { useApi } from "@/app/context/ApiContext";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { Mail, ArrowRight, Loader2, X, ShieldQuestion, ArrowLeft } from "lucide-react";
+import axios from "axios";
 
 const LogoImage = () => (
   <div className="relative group">
@@ -37,25 +38,54 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
 
-      const res = await fetch(`${baseUrl}/user/auth/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      // ✅ Explicit endpoint construction for clarity
+      const endpoint = `${baseUrl}/user/auth/forgot-password`;
 
-      const data = await res.json();
-
-      if (res.ok) {
-        setMessage("✅ Password reset OTP sent to your email!");
-        setTimeout(() => {
-          router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
-        }, 1200);
-      } else {
-        setMessage(data.message || "❌ Failed to send reset link.");
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[ForgotPassword] Sending request to:', endpoint);
+        console.log('[ForgotPassword] Email:', email);
       }
+
+      const { data } = await axios.post(
+        endpoint,
+        { email },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[ForgotPassword] Response:', data);
+      }
+
+      setMessage("✅ Password reset OTP sent to your email!");
+      setTimeout(() => {
+        router.push(`/auth/reset-password?email=${encodeURIComponent(email)}`);
+      }, 1200);
     } catch (error) {
-      console.error(error);
-      setMessage("⚠️ Network error. Try again later.");
+      console.error('[ForgotPassword] Error:', error);
+
+      if (error.response) {
+        const errorMessage = error.response.data.message || "❌ Failed to send reset link.";
+        setMessage(errorMessage);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[ForgotPassword] Server error:', error.response.status, errorMessage);
+        }
+      } else if (error.request) {
+        setMessage("⚠️ Network error. Please check your connection.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[ForgotPassword] Network error - no response received');
+        }
+      } else {
+        setMessage("⚠️ Network error. Try again later.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[ForgotPassword] Unexpected error:', error.message);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -101,10 +131,13 @@ export default function ForgotPassword() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 mt-auto"
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-auto"
           >
             {loading ? (
-              <Loader2 className="animate-spin" size={24} />
+              <>
+                <Loader2 className="animate-spin" size={24} />
+                <span>Sending...</span>
+              </>
             ) : (
               <span>Send Reset Link</span>
             )}

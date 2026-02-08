@@ -31,13 +31,26 @@ const nextConfig = {
    * ✅ No CORS issues
    * ✅ No backend changes needed
    * ✅ credentials: "include" works correctly
+   * 
+   * Route Namespacing:
+   * ✅ /api/user/*     → User endpoints
+   * ✅ /api/vendors/*  → Vendor endpoints
+   * ✅ /api/admin/*    → Admin endpoints
    */
   async rewrites() {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://grub-dash-api.vercel.app';
+
+    // ✅ Log proxy configuration in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Next.js Proxy] Backend URL:', backendUrl);
+      console.log('[Next.js Proxy] All /api/* requests will be proxied');
+    }
+
     return [
       {
         // Proxy all /api/* requests to the backend
         source: '/api/:path*',
-        destination: 'https://grub-dash-api.vercel.app/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
       },
     ];
   },
@@ -76,6 +89,12 @@ const nextConfig = {
         ],
       },
     ];
+  },
+
+  // ✅ Optional: Add environment variable validation
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_FRONTEND_URL: process.env.NEXT_PUBLIC_FRONTEND_URL,
   },
 };
 

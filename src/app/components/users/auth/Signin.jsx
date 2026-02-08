@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, Store } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
 
 const LogoImage = () => (
   <div className="relative group">
@@ -37,24 +38,60 @@ export default function Signin() {
     setMessage("");
 
     try {
-      const res = await fetch(`${baseUrl}/user/auth/login`, {
-        method: "POST",
+      // ✅ Explicit endpoint construction for clarity
+      const endpoint = `${baseUrl}/user/auth/login`;
+
+      console.log(endpoint)
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Signin] Sending request to:', endpoint);
+        console.log('[Signin] Form data:', { email: formData.email });
+      }
+
+      const { data } = await axios.post(endpoint, formData, {
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        withCredentials: true,  // ✅ CRITICAL: Send cookies
       });
 
-      const data = await res.json();
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Signin] Response:', data);
+      }
 
-      if (res.ok) {
-        setMessage("Signin successful! 🎉 Redirecting...");
+      setMessage("Signin successful! 🎉 Redirecting...");
+
+      // ✅ Add small delay so user sees success message
+      setTimeout(() => {
         router.push(
           `/auth/verify-account?email=${encodeURIComponent(formData.email)}`
         );
-      } else {
-        setMessage(data.message || "Invalid email.");
-      }
+      }, 1000);
+
     } catch (err) {
-      setMessage("Network error. Please try again.");
+      console.error('[Signin] Error:', err);
+
+      if (err.response) {
+        // Server responded with error status
+        const errorMessage = err.response.data.message || "Invalid email.";
+        setMessage(errorMessage);
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[Signin] Server error:', err.response.status, errorMessage);
+        }
+      } else if (err.request) {
+        // Request made but no response received
+        setMessage("Network error. Please check your connection.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[Signin] Network error - no response received');
+        }
+      } else {
+        // Something else happened
+        setMessage("An error occurred. Please try again.");
+
+        if (process.env.NODE_ENV === 'development') {
+          console.error('[Signin] Unexpected error:', err.message);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -97,10 +134,13 @@ export default function Signin() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50"
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-              <Loader2 className="animate-spin" size={24} />
+              <>
+                <Loader2 className="animate-spin" size={24} />
+                <span>Signing In...</span>
+              </>
             ) : (
               <span>Sign In</span>
             )}
