@@ -23,7 +23,7 @@ import {
   Wallet
 } from "lucide-react";
 import DeleteModal from "./DeleteModal";
-import NeedHelp from "@/app/profile/need_help_contact_info/NeedHelp";
+import NeedHelp from "@/app/(customer)/profile/need_help_contact_info/NeedHelp";
 
 const ActionCard = ({ icon: Icon, title, description, onClick, href, color = "orange", isRed = false }) => {
   const router = useRouter();

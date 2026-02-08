@@ -1,6 +1,9 @@
 import { Geist, Geist_Mono, Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import ClientLayout from "./ClientLayout";
+import { ApiProvider } from "./context/ApiContext";
+import QueryProvider from "./providers/QueryProvider";
+import { Toaster } from "react-hot-toast";
+import "@/app/lib/api"; // Register axios interceptors
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -110,9 +113,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${playfairDisplay.variable} antialiased`}>
-        <ClientLayout>
-          {children}
-        </ClientLayout>
+        {/* ✅ ONLY base providers - no auth logic here */}
+        <ApiProvider>
+          <QueryProvider>
+            {children}
+          </QueryProvider>
+        </ApiProvider>
+        <Toaster position="top-right" reverseOrder={false} />
       </body>
     </html>
   );

@@ -18,7 +18,7 @@ import {
   Store
 } from "lucide-react";
 import Link from "next/link";
-import Header2 from "../components/App_Header/Header2";
+import Header2 from "@/app/components/App_Header/Header2";
 
 // Comprehensive FAQ Data
 const FAQ_DATA = [

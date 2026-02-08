@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Header2 from "../components/App_Header/Header2";
+import Header2 from "@/app/components/App_Header/Header2";
 import { BiQuestionMark } from "react-icons/bi";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { fetchUser } from "../lib/api";
-import User_Profile from "../components/user_profile/User_Profile";
-import { useUserStorage } from "../hooks/useUserStorage";
-import ProtectedRoute from "../components/protected-route/ProtectedRoute";
+import { fetchUser } from "@/app/lib/api";
+import User_Profile from "@/app/components/user_profile/User_Profile";
+import { useUserStorage } from "@/app/hooks/useUserStorage";
+import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 
 export default function ProfilePage() {
   // const [token, setToken] = useState(undefined); // Removed

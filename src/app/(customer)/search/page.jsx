@@ -2,15 +2,15 @@
 
 import React, { Suspense } from 'react'
 import dynamic from 'next/dynamic';
-import SearchPageSkeleton from '../skeleton/SearchPageSkeleton';
+import SearchPageSkeleton from '@/app/skeleton/SearchPageSkeleton';
 
 const FoodSearchMobile = dynamic(
-  () => import("../components/searchs/Searchs"),
+  () => import("@/app/components/searchs/Searchs"),
 );
 
 export default function page() {
   return (
-    <Suspense fallback={<SearchPageSkeleton/>}>
+    <Suspense fallback={<SearchPageSkeleton />}>
       <FoodSearchMobile />
     </Suspense>
   )

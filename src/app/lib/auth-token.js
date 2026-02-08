@@ -73,8 +73,14 @@ export const TokenManager = {
                 const stored = localStorage.getItem(STORAGE_KEY);
                 if (stored) {
                     memoryToken = stored;
+                    console.log("[TokenManager] Initialized on app boot");
                 }
             }
         } catch (e) { }
     }
 };
+
+// ✅ Auto-initialize on import (Client-side only)
+if (typeof window !== 'undefined') {
+    TokenManager.initialize();
+}
