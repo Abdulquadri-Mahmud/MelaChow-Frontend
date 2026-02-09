@@ -44,16 +44,25 @@ export default function TrendingPage() {
     const { data: foods = [], isLoading, isError, refetch } = useQuery({
         queryKey: ["trending-all", defaultAddr?.city, defaultAddr?.state],
         queryFn: async () => {
-            const res = await axios.get(`${baseUrl}/user/trending`, {
-                params: {
-                    city: defaultAddr?.city,
-                    state: defaultAddr?.state,
-                },
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            return res.data.trending || [];
+            try {
+                const res = await axios.get(`${baseUrl}/user/trending`, {
+                    params: {
+                        city: defaultAddr?.city,
+                        state: defaultAddr?.state,
+                    },
+                    withCredentials: true, // ✅ Use cookie-based auth
+                });
+                return res.data.trending || [];
+            } catch (err) {
+                console.error("[TrendingPage] ❌ Fetch Error:", {
+                    status: err.response?.status,
+                    message: err.message,
+                    data: err.response?.data
+                });
+                throw err;
+            }
         },
-        enabled: !!defaultAddr,
+        enabled: !!baseUrl && !!defaultAddr,
     });
 
     const filteredFoods = useMemo(() => {

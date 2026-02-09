@@ -6,26 +6,21 @@ import Link from "next/link";
 import { useApi } from "@/app/context/ApiContext";
 import { Eye, EyeOff, X, Mail, Lock, ArrowRight, Loader2, Store } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-const LogoImage = () => (
-  <div className="relative group">
-    <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full scale-150 group-hover:scale-175 transition-transform duration-700" />
-    <img
-      src="/logo.png"
-      alt="GrubDash Logo"
-      className="w-[180px] object-contain relative z-10 mx-auto"
-    />
-  </div>
-);
+import { useVendorStorage } from "@/app/hooks/vendorStorage";
+import { TokenManager } from "@/app/lib/auth-token";
 
 export default function VendorLoginPage() {
   const [formData, setFormData] = useState({
     email: "",
+    password: "",
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
   const { baseUrl } = useApi();
   const router = useRouter();
+  const { saveVendor } = useVendorStorage();
 
   const handleChange = (e) => {
     setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
@@ -37,21 +32,62 @@ export default function VendorLoginPage() {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${baseUrl}/vendor/auth/login`, formData);
-      if (res.status === 200) {
-        setMessage("Signin successful! 🎉 Redirecting...");
-        router.push(
-          `/vendors/auth/verify-account?email=${encodeURIComponent(
-            formData.email
-          )}`
-        );
-      } else {
-        setMessage(res.data.message || "Invalid email.");
+      const endpoint = `${baseUrl}/vendor/auth/login-password`;
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[VendorLogin] Sending request to:', endpoint);
       }
+
+      const res = await axios.post(endpoint, formData, {
+        withCredentials: true
+      });
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[VendorLogin] Response:', res.data);
+      }
+
+      const data = res.data;
+
+      if (data.requiresVerification) {
+        setMessage("Account requires verification. Redirecting...");
+        setTimeout(() => {
+          router.push(`/vendors/auth/verify-registration?email=${encodeURIComponent(formData.email)}`);
+        }, 1500);
+        return;
+      }
+
+      // Handle successful login
+      const { accessToken, token, vendor, ...rest } = data;
+      const vendorData = vendor || rest;
+      const finalToken = accessToken || token;
+
+      if (finalToken) {
+        TokenManager.setToken(finalToken);
+      }
+
+      if (vendorData) {
+        saveVendor(vendorData);
+      }
+
+      setMessage("Signin successful! 🎉 Redirecting...");
+      setTimeout(() => {
+        router.push("/vendors/dashboard");
+      }, 1000);
+
     } catch (err) {
-      setMessage(
-        err.response?.data?.message || "Network error. Please try again."
-      );
+      console.error('[VendorLogin] Error:', err);
+
+      if (err.response) {
+        if (err.response.status === 423) {
+          setMessage("Account locked. Please try again in 15 minutes.");
+        } else if (err.response.status === 401) {
+          setMessage("Invalid credentials.");
+        } else {
+          setMessage(err.response.data.message || "Login failed.");
+        }
+      } else {
+        setMessage("Network error. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -63,7 +99,7 @@ export default function VendorLoginPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md flex flex-col h-full max-h-[40vh] justify-center"
+        className="w-full max-w-md flex flex-col h-full max-h-[60vh] justify-center"
       >
         <div className="flex flex-col items-center mb-10">
           <div className="text-center space-y-3">
@@ -88,6 +124,37 @@ export default function VendorLoginPage() {
               required
               className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
             />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Password</label>
+              <Link
+                href="/vendors/auth/forgot-password"
+                className="text-xs font-bold text-orange-600 hover:text-orange-700"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Enter password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-orange-600 transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           <motion.button

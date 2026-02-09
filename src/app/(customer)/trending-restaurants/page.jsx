@@ -46,17 +46,22 @@ export default function TrendingRestaurants() {
                 err.response = { data: { message: "Please provide both city and state query parameters." } };
                 throw err;
             }
-            // Using /user/vendors/nearby but treating them as the 'trending' set for this view
-            const res = await axios.get(`${baseUrl}/user/vendors/nearby`, {
-                params: {
-                    city: defaultAddr.city,
-                    state: defaultAddr.state,
-                },
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            return res.data.vendors || [];
+            try {
+                // Using /user/vendors/nearby but treating them as the 'trending' set for this view
+                const res = await axios.get(`${baseUrl}/user/vendors/nearby`, {
+                    params: {
+                        city: defaultAddr.city,
+                        state: defaultAddr.state,
+                    },
+                    withCredentials: true, // ✅ Use cookie-based auth
+                });
+                return res.data.vendors || [];
+            } catch (err) {
+                console.error("[TrendingRestaurants] ❌ Fetch Error:", err.message);
+                throw err;
+            }
         },
-        enabled: !!defaultAddr,
+        enabled: !!baseUrl && !!defaultAddr,
     });
 
 

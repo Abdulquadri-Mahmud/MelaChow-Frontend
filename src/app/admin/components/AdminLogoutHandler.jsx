@@ -23,9 +23,9 @@ export default function AdminLogoutHandler() {
             sessionStorage.removeItem("splashShown");
 
             // Only redirect if not already on login page
-            if (!pathname.includes("/admin/login")) {
+            if (!pathname.includes("/admin/auth/login")) {
                 toast.error("Session expired. Please login again.");
-                router.replace("/admin/login");
+                router.replace("/admin/auth/login");
             }
         };
 

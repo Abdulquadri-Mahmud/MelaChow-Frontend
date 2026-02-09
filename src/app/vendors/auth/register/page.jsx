@@ -4,6 +4,7 @@ import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useApi } from "@/app/context/ApiContext";
 import {
   User, Mail, Phone, Lock, Store, FileText, MapPin,
   Clock, CreditCard, ChevronRight, ChevronLeft, Upload,
@@ -99,6 +100,7 @@ const StepHeader = ({ title, desc }) => (
 
 export default function VendorRegisterPage() {
   const router = useRouter();
+  const { baseUrl } = useApi();
   const TOTAL_STEPS = 5;
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
@@ -320,22 +322,33 @@ export default function VendorRegisterPage() {
     setModal({ open: true, title: "Creating Store", message: "Please wait while we set everything up...", type: "loading" });
 
     try {
-      const uploaded = {};
-      if (files.logo) uploaded.logo = await uploadToCloudinary(files.logo);
+      // Simplified payload for new auth flow
+      const simplePayload = {
+        name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        storeName: payload.storeName
+      };
 
-      const finalPayload = JSON.parse(JSON.stringify(payload));
-      if (uploaded.logo) finalPayload.logo = uploaded.logo;
+      const endpoint = `${baseUrl}/vendor/auth/register`;
 
-      const res = await axios.post("https://grub-dash-api.vercel.app/api/vendors/create", finalPayload);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[VendorRegister] Sending request to:', endpoint);
+        console.log('[VendorRegister] Payload:', simplePayload);
+      }
+
+      const res = await axios.post(endpoint, simplePayload);
+
       if (res.status === 200 || res.status === 201) {
-        setModal({ open: true, title: "Registration Successful", message: res.data?.message || "Account created.", type: "success" });
+        setModal({ open: true, title: "Registration Successful", message: "Verification code sent! 📧", type: "success" });
+        // Don't clear session yet, maybe needed later? Or clear it as flow restarts.
         sessionStorage.removeItem("vendor_reg_data");
         sessionStorage.removeItem("vendor_reg_step");
 
-        // Redirect after 3s
+        // Redirect after 2s
         setTimeout(() => {
-          router.push("/vendors/auth/login");
-        }, 3000);
+          router.push(`/vendors/auth/verify-registration?email=${encodeURIComponent(payload.email)}`);
+        }, 2000);
       } else {
         setModal({ open: true, title: "Registration Failed", message: res.data?.message || "Server error.", type: "error" });
       }

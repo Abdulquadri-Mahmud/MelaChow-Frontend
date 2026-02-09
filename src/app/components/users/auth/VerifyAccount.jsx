@@ -2,31 +2,81 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import toast from "react-hot-toast";
 import { useApi } from "@/app/context/ApiContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
-import { motion } from "framer-motion";
-import { ShieldCheck, ArrowRight, Loader2, RefreshCw, X, Clock } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShieldCheck, ArrowRight, Loader2, RefreshCw, X, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { TokenManager } from "@/app/lib/auth-token";
 import axios from "axios";
 
-const LogoImage = () => (
-  <div className="relative group mx-auto mb-6 w-fit">
-    <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full scale-125 transition-transform duration-700" />
-    <img
-      src="/logo.png"
-      alt="GrubDash Logo"
-      className="w-[160px] object-contain relative z-10"
-    />
-  </div>
-);
+// --- Custom Status Modal Component ---
+const StatusModal = ({ isOpen, type, message, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm"
+      >
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.9, opacity: 0, y: 20 }}
+          className="bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl border border-zinc-100 dark:border-zinc-800 relative overflow-hidden"
+        >
+          {/* Decorative Background */}
+          <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl opacity-20 ${type === 'success' ? 'bg-orange-500' : 'bg-rose-500'
+            }`} />
+
+          <button
+            onClick={onClose}
+            className="absolute top-6 right-6 p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+          >
+            <X size={20} />
+          </button>
+
+          <div className="flex flex-col items-center text-center">
+            <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-sm ${type === 'success' ? 'bg-orange-50 text-orange-600' : 'bg-rose-50 text-rose-500'
+              }`}>
+              {type === 'success' ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
+            </div>
+
+            <h3 className="text-2xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white mb-2">
+              {type === 'success' ? 'Verified!' : 'Oops!'}
+            </h3>
+
+            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-[240px]">
+              {message}
+            </p>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onClose}
+              className={`mt-8 w-full py-4 rounded-2xl font-bold text-sm transition-all shadow-lg ${type === 'success'
+                ? 'bg-orange-600 hover:bg-orange-700 text-white shadow-orange-500/20'
+                : 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-zinc-900/20'
+                }`}
+            >
+              {type === 'success' ? 'Continue to Set Password' : 'Try Again'}
+            </motion.button>
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+};
 
 export default function VerifyAccount() {
   const [otp, setOtp] = useState(Array(6).fill(""));
   const inputRefs = useRef([]);
   const [loading, setLoading] = useState(false);
+  const [statusModal, setStatusModal] = useState({ isOpen: false, type: 'success', message: '' });
   const [resending, setResending] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes countdown
+  const [timeLeft, setTimeLeft] = useState(600);
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
@@ -48,7 +98,17 @@ export default function VerifyAccount() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [timeLeft]);
+
+  const closeModal = () => {
+    const wasSuccess = statusModal.type === 'success';
+    setStatusModal({ ...statusModal, isOpen: false });
+
+    if (wasSuccess) {
+      // ✅ Redirect to set-password page with email
+      router.push(`/auth/set-password?email=${encodeURIComponent(email)}`);
+    }
+  };
 
   const formatTime = (seconds) => {
     const m = String(Math.floor(seconds / 60)).padStart(2, "0");
@@ -63,7 +123,6 @@ export default function VerifyAccount() {
       setOtp(newOtp);
       if (value && index < 5) inputRefs.current[index + 1]?.focus();
 
-      // Auto-submit if all fields are filled
       if (newOtp.every((digit) => digit !== "")) {
         handleVerify(newOtp);
       }
@@ -84,89 +143,56 @@ export default function VerifyAccount() {
       const newOtp = pastedData.split("");
       setOtp(newOtp);
       inputRefs.current[5]?.focus();
-      // Auto-submit on paste
       handleVerify(newOtp);
     } else {
-      toast.error("Please paste a valid 6-digit OTP");
+      setStatusModal({ isOpen: true, type: 'error', message: "Please paste a valid 6-digit code." });
     }
   };
 
   const handleVerify = async (currentOtp = otp) => {
     const otpString = currentOtp.join("");
     if (otpString.length !== 6) {
-      toast.error("Please enter a valid 6-digit OTP.");
+      setStatusModal({ isOpen: true, type: 'error', message: "Please enter a valid 6-digit verification code." });
       return;
     }
 
     try {
       setLoading(true);
-
-      // ✅ Explicit endpoint construction for clarity
       const endpoint = `${baseUrl}/user/auth/verify-account`;
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[VerifyAccount] Sending request to:', endpoint);
-        console.log('[VerifyAccount] Email:', email);
-      }
 
       const { data } = await axios.post(
         endpoint,
         { email, otp: otpString },
         {
           headers: { "Content-Type": "application/json" },
-          withCredentials: true,  // ✅ CRITICAL: Save userToken cookie
+          withCredentials: true,
         }
       );
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[VerifyAccount] Response:', data);
-      }
-
       if (data.status === false) {
-        toast.error(data.message || "OTP verification failed");
+        setStatusModal({ isOpen: true, type: 'error', message: data.message || "Verification failed." });
         return;
       }
 
-      // Filter out token if present, just in case
-      // standardizing on 'accessToken' but keeping 'token' for backward compat
       const { accessToken, token, ...userData } = data;
       const finalToken = accessToken || token;
 
-      // ✅ Save token for iOS fallback (Secure TokenManager)
       if (finalToken) {
         TokenManager.setToken(finalToken);
       }
 
       saveUser(userData);
 
-      // Token is now handled by HttpOnly cookie automatically (primary)
-      // TokenManager handles fallback (secondary)
+      setStatusModal({
+        isOpen: true,
+        type: 'success',
+        message: "Email verified! Please set your password to complete registration."
+      });
 
-      toast.success("Verified Successfully! Redirecting...");
-      setTimeout(() => router.push("/home"), 1000);
     } catch (error) {
       console.error('[VerifyAccount] Verification error:', error);
-
-      if (error.response) {
-        const errorMessage = error.response.data.message || "OTP verification failed";
-        toast.error(errorMessage);
-
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[VerifyAccount] Server error:', error.response.status, errorMessage);
-        }
-      } else if (error.request) {
-        toast.error("Network error. Please check your connection.");
-
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[VerifyAccount] Network error - no response received');
-        }
-      } else {
-        toast.error(error.message || "Something went wrong. Try again later.");
-
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[VerifyAccount] Unexpected error:', error.message);
-        }
-      }
+      const errorMessage = error.response?.data?.message || "Invalid or expired code. Please try again.";
+      setStatusModal({ isOpen: true, type: 'error', message: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -177,16 +203,9 @@ export default function VerifyAccount() {
 
     try {
       setResending(true);
-
-      // ✅ Explicit endpoint construction for clarity
       const endpoint = `${baseUrl}/user/auth/resend-otp`;
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[VerifyAccount] Resending OTP to:', endpoint);
-        console.log('[VerifyAccount] Email:', email);
-      }
-
-      const { data } = await axios.post(
+      await axios.post(
         endpoint,
         { email },
         {
@@ -195,42 +214,18 @@ export default function VerifyAccount() {
         }
       );
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[VerifyAccount] Resend response:', data);
-      }
+      setStatusModal({
+        isOpen: true,
+        type: 'success',
+        message: "A new 6-digit code has been sent to your email address."
+      });
 
-      if (data.status === false) {
-        toast.error(data.message || "Could not resend OTP");
-        return;
-      }
-
-      toast.success("OTP Sent! Check your email.");
       setOtp(Array(6).fill(""));
       inputRefs.current[0]?.focus();
       setTimeLeft(600);
     } catch (error) {
       console.error('[VerifyAccount] Resend error:', error);
-
-      if (error.response) {
-        const errorMessage = error.response.data.message || "Could not resend OTP";
-        toast.error(errorMessage);
-
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[VerifyAccount] Server error:', error.response.status, errorMessage);
-        }
-      } else if (error.request) {
-        toast.error("Network error. Please check your connection.");
-
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[VerifyAccount] Network error - no response received');
-        }
-      } else {
-        toast.error("Something went wrong. Try again later.");
-
-        if (process.env.NODE_ENV === 'development') {
-          console.error('[VerifyAccount] Unexpected error:', error.message);
-        }
-      }
+      setStatusModal({ isOpen: true, type: 'error', message: "Could not resend the code. Please try again later." });
     } finally {
       setResending(false);
     }
@@ -244,20 +239,20 @@ export default function VerifyAccount() {
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-md flex flex-col h-full max-h-[90vh] justify-center"
       >
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+        <div className="text-center mb-10">
+          <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
             <ShieldCheck size={36} />
           </div>
 
           <h1 className="text-4xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white mb-3">
             Verify <span className="text-orange-600">Account</span>
           </h1>
-          <p className="text-xs font-semibold text-zinc-500 mb-4">
-            A 6-digit code has been sent to<br />
+          <p className="text-xs font-semibold text-zinc-500 mb-6 leading-relaxed">
+            Protecting your security. Enter the code sent to:<br />
             <span className="text-zinc-700 dark:text-zinc-300 font-bold">{email || "your-email@example.com"}</span>
           </p>
 
-          <div className="flex items-center justify-center gap-2 bg-zinc-50 dark:bg-zinc-800 py-2 px-4 rounded-full w-fit mx-auto">
+          <div className="flex items-center justify-center gap-2 bg-zinc-50 dark:bg-zinc-800 py-3 px-5 rounded-full w-fit mx-auto border border-zinc-100 dark:border-zinc-800 shadow-sm">
             <Clock size={14} className="text-orange-500" />
             <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">
               Expires in {formatTime(timeLeft)}
@@ -266,7 +261,7 @@ export default function VerifyAccount() {
         </div>
 
         {/* OTP Inputs */}
-        <div className="flex justify-center gap-3 mb-8 mx-3">
+        <div className="flex justify-center gap-3 mb-10">
           {otp.map((digit, index) => (
             <input
               key={index}
@@ -278,18 +273,18 @@ export default function VerifyAccount() {
               onChange={(e) => handleChange(e.target.value, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               onPaste={index === 0 ? handlePaste : undefined}
-              className="w-12 h-12 text-center bg-zinc-50 dark:bg-zinc-800 rounded-xl text-2xl font-bold text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+              className="w-12 h-14 text-center bg-zinc-50 dark:bg-zinc-800 rounded-2xl text-2xl font-black text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-transparent focus:border-orange-500/20 shadow-sm"
             />
           ))}
         </div>
 
         <div className="space-y-4">
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
             onClick={handleVerify}
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-orange-500/20"
           >
             {loading ? (
               <>
@@ -297,40 +292,48 @@ export default function VerifyAccount() {
                 <span>Verifying...</span>
               </>
             ) : (
-              <span>Complete Setup</span>
+              <>
+                <span>Complete Verification</span>
+                <ArrowRight size={20} />
+              </>
             )}
           </motion.button>
 
-          <motion.button
-            whileHover={timeLeft === 0 ? { scale: 1.02 } : {}}
-            whileTap={timeLeft === 0 ? { scale: 0.98 } : {}}
+          <button
             onClick={handleResend}
             disabled={resending || timeLeft > 0}
-            className={`w-full py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${resending || timeLeft > 0
-              ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed"
-              : "bg-zinc-100 dark:bg-zinc-800 text-orange-600 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+            className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all border ${resending || timeLeft > 0
+              ? "bg-transparent border-zinc-100 dark:border-zinc-800 text-zinc-400 cursor-not-allowed"
+              : "bg-transparent border-orange-100 dark:border-orange-900/30 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/5 shadow-sm"
               }`}
           >
             {resending ? (
               <Loader2 className="animate-spin" size={18} />
             ) : (
               <>
-                <RefreshCw size={18} />
-                <span>Resend OTP</span>
+                <RefreshCw size={18} className={timeLeft > 0 ? "opacity-30" : ""} />
+                <span>Resend Code</span>
               </>
             )}
-          </motion.button>
+          </button>
         </div>
 
         <div className="mt-6 text-center">
           <button
             onClick={() => router.push("/auth/signin")}
-            className="text-sm font-medium text-zinc-500 hover:text-orange-600 transition-colors"
+            className="text-sm font-bold text-zinc-400 hover:text-orange-600 transition-colors uppercase tracking-widest text-[10px]"
           >
-            Cancel and return to Sign In
+            Cancel and Sign In
           </button>
         </div>
       </motion.div>
+
+      <StatusModal
+        isOpen={statusModal.isOpen}
+        type={statusModal.type}
+        message={statusModal.message}
+        onClose={closeModal}
+      />
     </div>
   );
 }

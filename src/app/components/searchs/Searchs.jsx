@@ -40,14 +40,15 @@ export default function FoodSearchMobile() {
 
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`${baseUrl}/categories/public`);
-        const data = await res.json();
+        const res = await axios.get(`${baseUrl}/categories/public`, {
+          withCredentials: true
+        });
 
-        if (data.success) {
-          setCategories(data.data || []);
+        if (res.data && res.data.success) {
+          setCategories(res.data.data || []);
         }
       } catch (err) {
-        console.error("Failed to fetch categories", err);
+        console.error("Failed to fetch categories", err.message);
       }
     };
 

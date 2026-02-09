@@ -1,5 +1,7 @@
 "use client";
 
+import axios from "axios";
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from 'framer-motion';
@@ -21,15 +23,37 @@ export default function CategoryList() {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                // Fetch public categories
-                const res = await fetch(`${baseUrl}/categories/public`);
-                const data = await res.json();
+                if (!baseUrl) return;
 
-                if (data.success) {
-                    setCategories(data.data || []);
+                const res = await axios.get(`${baseUrl}/categories/public`, {
+                    withCredentials: true,
+                    maxContentLength: Infinity, // ✅ Allow unlimited response size
+                    maxBodyLength: Infinity,
+                    timeout: 10000, // 10 second timeout
+                });
+
+                console.log('[CategoryList] Response:', res);
+
+                if (res.data && res.data.success) {
+                    setCategories(res.data.data || []);
                 }
             } catch (error) {
-                console.error("Failed to fetch categories", error);
+                console.error("[CategoryList] Failed to fetch:", error);
+
+                // ✅ Better error debugging
+                if (error.response) {
+                    console.error("Status:", error.response.status);
+                    console.error("Headers:", error.response.headers);
+                    console.error("Data preview:", 
+                        typeof error.response.data === 'string' 
+                            ? error.response.data.substring(0, 500) 
+                            : error.response.data
+                    );
+                } else if (error.request) {
+                    console.error("No response received:", error.request);
+                } else {
+                    console.error("Request setup error:", error.message);
+                }
             } finally {
                 setLoading(false);
             }
@@ -41,7 +65,7 @@ export default function CategoryList() {
     const handleCategoryClick = (category) => {
         setActiveCategory(category.name);
         // Prefer slug for URL, fallback to name
-        const query =  category.name;
+        const query = category.name;
         router.push(`/search?category=${encodeURIComponent(query)}`);
     };
 

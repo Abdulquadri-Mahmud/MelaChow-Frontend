@@ -124,3 +124,5 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
+// rmdir /s /q .next && npm run dev -- --turbopack

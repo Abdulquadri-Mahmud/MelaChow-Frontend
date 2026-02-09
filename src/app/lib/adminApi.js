@@ -63,29 +63,35 @@ class AdminAPI {
 
     async login(email, password) {
         return this.handleResponse(
-            api.post("/api/admin/login", { email, password })
+            api.post("/api/admin/auth/login", { email, password })
         );
     }
 
     async register(name, email, password, role = "admin") {
         return this.handleResponse(
-            api.post("/api/admin/register", { name, email, password, role })
+            api.post("/api/admin/auth/register", { name, email, password, role })
         );
     }
 
     async logout() {
-        return this.handleResponse(api.post("/api/admin/logout"));
+        return this.handleResponse(api.post("/api/admin/auth/logout"));
     }
 
     async forgotPassword(email) {
         return this.handleResponse(
-            api.post("/api/admin/forgot-password", { email })
+            api.post("/api/admin/auth/forgot-password", { email })
         );
     }
 
-    async resetPassword(email, otp, newPassword) {
+    async verifyResetCode(email, otp) {
         return this.handleResponse(
-            api.post("/api/admin/reset-password", { email, otp, newPassword })
+            api.post("/api/admin/auth/verify-reset-code", { email, otp })
+        );
+    }
+
+    async resetPassword(email, resetToken, newPassword) {
+        return this.handleResponse(
+            api.post("/api/admin/auth/reset-password", { email, resetToken, newPassword })
         );
     }
 

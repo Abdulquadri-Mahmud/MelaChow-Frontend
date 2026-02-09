@@ -11,8 +11,12 @@ const ProfileContext = createContext(undefined);
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = [
   "/auth/signin",
+  "/auth/login",
   "/auth/signup",
+  "/auth/register",
   "/auth/verify-account",
+  "/auth/verify-registration",
+  "/auth/set-password",
   "/auth/forgot-password",
   "/auth/reset-password",
   "/",
