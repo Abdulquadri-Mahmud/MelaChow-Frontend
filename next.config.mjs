@@ -6,6 +6,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'grub-dash-api.vercel.app',
+      }
     ],
   },
 
@@ -40,7 +44,7 @@ const nextConfig = {
   async rewrites() {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://grub-dash-api.vercel.app';
 
-    // ✅ Log proxy configuration in development
+    // ✅ Only log in development (reduce console noise in production)
     if (process.env.NODE_ENV === 'development') {
       console.log('[Next.js Proxy] Backend URL:', backendUrl);
       console.log('[Next.js Proxy] All /api/* requests will be proxied');
@@ -76,7 +80,7 @@ const nextConfig = {
           },
           {
             key: 'Access-Control-Allow-Origin',
-            value: process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://grub-dash-frontend-xi.vercel.app',
+            value: process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000',
           },
           {
             key: 'Access-Control-Allow-Methods',
@@ -91,7 +95,31 @@ const nextConfig = {
     ];
   },
 
-  // ✅ Optional: Add environment variable validation
+  // ✅ FIX: Suppress source map warnings in development
+  webpack: (config, { dev, isServer }) => {
+    if (dev && !isServer) {
+      // Use faster source maps in development (reduces warnings)
+      config.devtool = 'eval-cheap-source-map';
+    }
+    return config;
+  },
+
+  // ✅ FIX: Optimize Turbopack configuration
+  experimental: {
+    // Suppress Turbopack source map warnings
+    turbo: {
+      rules: {
+        '*.js': {
+          loaders: ['source-map-loader'],
+          options: {
+            filterSourceMappingUrl: () => false,
+          },
+        },
+      },
+    },
+  },
+
+  // ✅ Optional: Environment variable validation
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_FRONTEND_URL: process.env.NEXT_PUBLIC_FRONTEND_URL,

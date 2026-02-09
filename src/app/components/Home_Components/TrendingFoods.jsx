@@ -18,18 +18,32 @@ export default function TrendingFoods({ user }) {
     const { data: trendingFoods = [], isLoading, isError, error } = useQuery({
         queryKey: ["trendingFoods", defaultAddr?.city, defaultAddr?.state],
         queryFn: async () => {
-            // Using the user's location if available to get relevant trending foods
-            const res = await axios.get(`${baseUrl}/user/trending`, {
-                params: {
-                    city: defaultAddr?.city,
-                    state: defaultAddr?.state,
-                },
-                withCredentials: true, // ✅ Use cookie-based auth
-            });
-            return res?.data?.trending || [];
+            try {
+                // Using the user's location if available to get relevant trending foods
+                const res = await axios.get(`${baseUrl}/user/trending`, {
+                    params: {
+                        city: defaultAddr?.city,
+                        state: defaultAddr?.state,
+                    },
+                    withCredentials: true, // ✅ Use cookie-based auth
+                });
+                return res?.data?.trending || [];
+            } catch (err) {
+                // ✅ Enhanced error logging for 500 debugging
+                console.error("[TrendingFoods] ❌ Fetch failed:", {
+                    status: err.response?.status,
+                    message: err.message,
+                    url: err.config?.url,
+                    params: err.config?.params,
+                    data: err.response?.data
+                });
+                throw err;
+            }
         },
+        enabled: !!baseUrl && !!defaultAddr?.city && !!defaultAddr?.state, // ✅ Only run when location is ready
         refetchInterval: 60000,
         refetchOnWindowFocus: true,
+        retry: 1, // Only retry once to avoid infinite 500 loops
     });
 
     if (isLoading) return (

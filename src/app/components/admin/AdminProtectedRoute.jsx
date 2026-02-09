@@ -10,8 +10,8 @@ export default function AdminProtectedRoute({ children }) {
     const pathname = usePathname();
 
     useEffect(() => {
-        if (!isLoading && !admin && pathname !== "/admin/login") {
-            router.push("/admin/login");
+        if (!isLoading && !admin && pathname !== "/admin/auth/login") {
+            router.push("/admin/auth/login");
         }
     }, [admin, isLoading, pathname, router]);
 
@@ -28,7 +28,7 @@ export default function AdminProtectedRoute({ children }) {
     }
 
     // Show nothing while redirecting
-    if (!admin && pathname !== "/admin/login") {
+    if (!admin && pathname !== "/admin/auth/login") {
         return null;
     }
 

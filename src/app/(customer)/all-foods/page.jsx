@@ -44,16 +44,21 @@ export default function AllFoods() {
     const { data: foods = [], isLoading, isError, refetch } = useQuery({
         queryKey: ["all-foods", defaultAddr?.city, defaultAddr?.state],
         queryFn: async () => {
-            const res = await axios.get(`${baseUrl}/user/foods`, {
-                params: {
-                    city: defaultAddr?.city,
-                    state: defaultAddr?.state,
-                },
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            return res.data.foods || [];
+            try {
+                const res = await axios.get(`${baseUrl}/user/foods`, {
+                    params: {
+                        city: defaultAddr?.city,
+                        state: defaultAddr?.state,
+                    },
+                    withCredentials: true, // ✅ Use cookie-based auth
+                });
+                return res.data.foods || [];
+            } catch (err) {
+                console.error("[AllFoods] ❌ Fetch Error:", err.message);
+                throw err;
+            }
         },
-        enabled: !!defaultAddr,
+        enabled: !!baseUrl && !!defaultAddr,
     });
 
     const filteredFoods = useMemo(() => {

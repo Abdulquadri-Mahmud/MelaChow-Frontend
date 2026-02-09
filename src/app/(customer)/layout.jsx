@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ProfileProvider } from "@/app/context/ProfileContext";
 import { CartProvider } from "@/app/context/CartContext";
 import CustomerBootstrapper from "./components/CustomerBootstrapper";
@@ -11,8 +12,11 @@ import { registerServiceWorker } from "@/app/lib/pwa-utils";
 import { TokenManager } from "@/app/lib/auth-token";
 
 export default function CustomerLayout({ children }) {
-    // Initialize TokenManager and PWA on mount
+    const pathname = usePathname();
+    const [isMounted, setIsMounted] = useState(false);
+    
     useEffect(() => {
+        setIsMounted(true);
         TokenManager.initialize();
         if (process.env.NODE_ENV === 'development') {
             console.log('[CustomerLayout] TokenManager initialized');
@@ -20,15 +24,39 @@ export default function CustomerLayout({ children }) {
         registerServiceWorker();
     }, []);
 
+    // ✅ Only check route after mount to prevent hydration mismatch
+    const isAuthRoute = isMounted && pathname?.startsWith("/auth/");
+
+    // ✅ Show loading state during SSR to prevent hydration mismatch
+    if (!isMounted) {
+        return (
+            <ProfileProvider>
+                <CartProvider>
+                    <div className="h-screen w-full bg-white dark:bg-zinc-900" />
+                </CartProvider>
+            </ProfileProvider>
+        );
+    }
+
     return (
         <ProfileProvider>
             <CartProvider>
-                <CustomerBootstrapper>
-                    {children}
-                    <ConditionalBottomNav />
-                    <PWAUpdateManager />
-                    <PWAInstallPrompt />
-                </CustomerBootstrapper>
+                {isAuthRoute ? (
+                    // Auth routes: no bootstrapper, no bottom nav
+                    <>
+                        {children}
+                        <PWAUpdateManager />
+                        <PWAInstallPrompt />
+                    </>
+                ) : (
+                    // Protected routes: full bootstrapper
+                    <CustomerBootstrapper>
+                        {children}
+                        <ConditionalBottomNav />
+                        <PWAUpdateManager />
+                        <PWAInstallPrompt />
+                    </CustomerBootstrapper>
+                )}
             </CartProvider>
         </ProfileProvider>
     );

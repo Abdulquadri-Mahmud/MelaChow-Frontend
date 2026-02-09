@@ -7,21 +7,11 @@ import SplashScreen from "@/app/components/SplashScreen";
 import { AnimatePresence, motion } from "framer-motion";
 import CustomerLogoutHandler from "./CustomerLogoutHandler";
 
-// Public routes that don't require authentication
-const PUBLIC_ROUTES = [
-    "/auth/signin",
-    "/auth/signup",
-    "/auth/verify-account",
-    "/auth/forgot-password",
-    "/auth/reset-password",
-];
-
 // Routes that should be accessible to guests (no auth required)
 const GUEST_ALLOWED_ROUTES = [
     "/",
     "/faqs",
     "/get-help",
-    // Add more public routes as needed
 ];
 
 export default function CustomerBootstrapper({ children }) {
@@ -31,8 +21,7 @@ export default function CustomerBootstrapper({ children }) {
     // Monitor User Auth State ONLY
     const { user, hasCheckedSession } = useUserStorage();
 
-    // Check if current route is public or guest-allowed
-    const isPublicRoute = PUBLIC_ROUTES.some(route => pathname?.startsWith(route));
+    // Check if current route is guest-allowed or public resource
     const isGuestAllowedRoute = GUEST_ALLOWED_ROUTES.some(route => pathname === route);
     const isRestaurantRoute = pathname?.startsWith("/restaurants/");
     const isFoodDetailsRoute = pathname?.startsWith("/food-details/");
@@ -57,49 +46,40 @@ export default function CustomerBootstrapper({ children }) {
         }
     }, [pathname, hasCheckedSession, isAuthenticated, showSplash, user]);
 
-    // ✅ Prevent hydration mismatch
-    const [isMounted, setIsMounted] = useState(false);
-
+    // ✅ Initialize splash screen (only for protected routes)
     useEffect(() => {
-        setIsMounted(true);
-        // Only show splash if it hasn't been shown in this session
-        const hasShownSplash = sessionStorage.getItem("splashShown");
-        if (!hasShownSplash) {
+        // Show splash while checking session
+        if (!hasCheckedSession) {
             setShowSplash(true);
         }
-    }, []);
+    }, [hasCheckedSession]);
 
     useEffect(() => {
         // Only process after auth is resolved
         if (!hasCheckedSession) return;
 
-        // Dismiss splash screen ONLY after session check is done
+        // Dismiss splash screen after a minimum display time
         if (showSplash) {
-            setShowSplash(false);
-            sessionStorage.setItem("splashShown", "true");
+            const splashTimer = setTimeout(() => {
+                setShowSplash(false);
+            }, 1500);
+
+            return () => clearTimeout(splashTimer);
         }
 
-        // Skip redirect logic for public routes
-        if (isPublicRoute) return;
+        // Check if this is a protected route
+        const isProtectedRoute = !isGuestAllowedRoute && !isRestaurantRoute && !isFoodDetailsRoute;
 
-        // Allow guest access to specific routes
-        if (isGuestAllowedRoute || isRestaurantRoute || isFoodDetailsRoute) return;
-
-        // ✅ Redirect if not authenticated
-        if (!isAuthenticated && !isRedirecting) {
-            const redirectTimer = setTimeout(() => {
-                console.log("🔒 Unauthorized access. Redirecting to signin...");
-                setIsRedirecting(true);
-                router.replace("/auth/signin");
-            }, 300);
-
-            return () => clearTimeout(redirectTimer);
+        // Only redirect if route is protected AND user is not authenticated
+        if (isProtectedRoute && !isAuthenticated && !isRedirecting) {
+            console.log('[CustomerBootstrapper] Redirecting unauthenticated user from protected route:', pathname);
+            setIsRedirecting(true);
+            router.replace("/auth/signin");
         }
     }, [
         hasCheckedSession,
         isAuthenticated,
         pathname,
-        isPublicRoute,
         isGuestAllowedRoute,
         isRestaurantRoute,
         isFoodDetailsRoute,
@@ -112,9 +92,6 @@ export default function CustomerBootstrapper({ children }) {
     useEffect(() => {
         setIsRedirecting(false);
     }, [pathname]);
-
-    // ✅ Don't render until mounted to prevent hydration errors
-    if (!isMounted) return null;
 
     return (
         <>

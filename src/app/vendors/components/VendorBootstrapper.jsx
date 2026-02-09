@@ -7,22 +7,12 @@ import SplashScreen from "@/app/components/SplashScreen";
 import { AnimatePresence, motion } from "framer-motion";
 import VendorLogoutHandler from "./VendorLogoutHandler";
 
-// Public vendor routes
-const VENDOR_PUBLIC_ROUTES = [
-    "/vendors/auth/login",
-    "/vendors/auth/register",
-    "/vendors/auth/verify-account",
-];
-
 export default function VendorBootstrapper({ children }) {
     const pathname = usePathname();
     const router = useRouter();
 
     // Monitor Vendor Auth State ONLY
     const { vendorDetails, hasCheckedSession } = useVendorStorage();
-
-    // Check if current route is public
-    const isPublicRoute = VENDOR_PUBLIC_ROUTES.some(route => pathname?.startsWith(route));
 
     // Determine if vendor is authenticated
     const isAuthenticated = !!vendorDetails;
@@ -44,46 +34,37 @@ export default function VendorBootstrapper({ children }) {
         }
     }, [pathname, hasCheckedSession, isAuthenticated, showSplash, vendorDetails]);
 
-    // ✅ Prevent hydration mismatch
-    const [isMounted, setIsMounted] = useState(false);
-
+    // ✅ Initialize splash screen
     useEffect(() => {
-        setIsMounted(true);
-        // Only show splash if it hasn't been shown in this session
-        const hasShownSplash = sessionStorage.getItem("vendorSplashShown");
-        if (!hasShownSplash) {
+        // Show splash while checking session
+        if (!hasCheckedSession) {
             setShowSplash(true);
         }
-    }, []);
+    }, [hasCheckedSession]);
 
     useEffect(() => {
         // Only process after auth is resolved
         if (!hasCheckedSession) return;
 
-        // Dismiss splash screen ONLY after session check is done
+        // Dismiss splash screen after a minimum display time
         if (showSplash) {
-            setShowSplash(false);
-            sessionStorage.setItem("vendorSplashShown", "true");
+            const splashTimer = setTimeout(() => {
+                setShowSplash(false);
+            }, 1500);
+
+            return () => clearTimeout(splashTimer);
         }
 
-        // Skip redirect logic for public routes
-        if (isPublicRoute) return;
-
-        // ✅ Redirect if not authenticated
+        // ✅ Redirect if not authenticated (since this is now ONLY used for protected routes)
         if (!isAuthenticated && !isRedirecting) {
-            const redirectTimer = setTimeout(() => {
-                console.log("🔒 Unauthorized vendor access. Redirecting to login...");
-                setIsRedirecting(true);
-                router.replace("/vendors/auth/login");
-            }, 300);
-
-            return () => clearTimeout(redirectTimer);
+            console.log("🔒 Unauthorized vendor access. Redirecting to login...");
+            setIsRedirecting(true);
+            router.replace("/vendors/auth/login");
         }
     }, [
         hasCheckedSession,
         isAuthenticated,
         pathname,
-        isPublicRoute,
         router,
         isRedirecting,
         showSplash
@@ -93,9 +74,6 @@ export default function VendorBootstrapper({ children }) {
     useEffect(() => {
         setIsRedirecting(false);
     }, [pathname]);
-
-    // ✅ Don't render until mounted to prevent hydration errors
-    if (!isMounted) return null;
 
     return (
         <>

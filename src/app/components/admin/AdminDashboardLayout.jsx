@@ -44,7 +44,7 @@ export default function AdminDashboardLayout({ children }) {
         const confirmed = window.confirm("Are you sure you want to logout?");
         if (confirmed) {
             await logout();
-            router.push("/admin/login");
+            router.push("/admin/auth/login");
             toast.success("Logged out successfully");
         }
     };
