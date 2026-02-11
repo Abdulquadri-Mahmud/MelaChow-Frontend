@@ -43,6 +43,9 @@ export default function VerifyPayment() {
         setStatus("success");
         toast.success(res.message || "Payment verified successfully!");
 
+        // Mark that user has placed an order for contextual push notifications
+        localStorage.setItem('has_placed_order', 'true');
+
         // Clear pending order ID from session storage if it exists
         sessionStorage.removeItem("pendingOrderId");
       } catch (error) {
