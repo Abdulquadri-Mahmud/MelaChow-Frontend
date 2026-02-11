@@ -24,7 +24,7 @@ export function urlBase64ToUint8Array(base64String) {
  */
 export async function getVapidPublicKey() {
     try {
-        const response = await axios.get('/api/push-notifications/vapid-public-key', {
+        const response = await axios.get('/api/notifications/vapid-public-key', {
             withCredentials: true,
         });
         return response.data.publicKey;
@@ -39,7 +39,20 @@ export async function getVapidPublicKey() {
  */
 export async function sendSubscriptionToServer(subscription) {
     try {
-        const response = await axios.post('/api/push-notifications/subscribe', subscription, {
+        // Determine device type
+        let deviceType = 'desktop';
+        if (/Mobi|Android/i.test(navigator.userAgent)) {
+            deviceType = 'mobile';
+        } else if (/Tablet|iPad/i.test(navigator.userAgent)) {
+            deviceType = 'tablet';
+        }
+
+        const payload = {
+            subscription,
+            deviceType
+        };
+
+        const response = await axios.post('/api/notifications/subscribe', payload, {
             withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
@@ -57,8 +70,8 @@ export async function sendSubscriptionToServer(subscription) {
  */
 export async function removeSubscriptionFromServer(subscription) {
     try {
-        const response = await axios.delete('/api/push-notifications/unsubscribe', {
-            data: subscription,
+        const response = await axios.delete('/api/notifications/unsubscribe', {
+            data: { subscription },
             withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
@@ -67,6 +80,21 @@ export async function removeSubscriptionFromServer(subscription) {
         return response.data;
     } catch (error) {
         console.error('Failed to remove subscription from server:', error);
+        throw error;
+    }
+}
+
+/**
+ * Trigger a test notification
+ */
+export async function testPushNotification() {
+    try {
+        const response = await axios.post('/api/notifications/test', {}, {
+            withCredentials: true,
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Failed to trigger test notification:', error);
         throw error;
     }
 }

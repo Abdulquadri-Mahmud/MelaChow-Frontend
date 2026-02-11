@@ -18,11 +18,26 @@ const PushNotificationPrompt = () => {
     const [status, setStatus] = useState('idle'); // idle, success, error
 
     useEffect(() => {
-        // Show prompt with a slight delay if applicable
-        if (shouldShowPrompt()) {
-            const timer = setTimeout(() => setVisible(true), 2000);
-            return () => clearTimeout(timer);
-        }
+        if (typeof window === 'undefined') return;
+
+        const checkContext = () => {
+            const pathname = window.location.pathname;
+            const isOrderRelated = pathname.includes('track-orders') || pathname.includes('verify-payment');
+            const hasOrdered = localStorage.getItem('has_placed_order') === 'true';
+
+            if (shouldShowPrompt()) {
+                // Show immediately (shorter delay) on order-related pages
+                const delay = isOrderRelated ? 1000 : 5000;
+
+                // Only show globally if they've ordered before, or if they are currently on an order page
+                if (isOrderRelated || hasOrdered) {
+                    const timer = setTimeout(() => setVisible(true), delay);
+                    return () => clearTimeout(timer);
+                }
+            }
+        };
+
+        checkContext();
     }, [shouldShowPrompt]);
 
     const handleSubscribe = async () => {
@@ -77,8 +92,8 @@ const PushNotificationPrompt = () => {
                         onClick={handleSubscribe}
                         disabled={loading || status === 'success'}
                         className={`flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${status === 'success'
-                                ? 'bg-green-500 text-white'
-                                : 'bg-orange-500 hover:bg-orange-600 text-white shadow-md hover:shadow-lg'
+                            ? 'bg-green-500 text-white'
+                            : 'bg-orange-500 hover:bg-orange-600 text-white shadow-md hover:shadow-lg'
                             } disabled:opacity-70`}
                     >
                         {loading ? (

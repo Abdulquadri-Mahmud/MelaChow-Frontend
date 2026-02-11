@@ -263,6 +263,11 @@ self.addEventListener('push', (event) => {
         try {
             const pushData = event.data.json();
             data = { ...data, ...pushData };
+
+            // If the payload has a nested data object with a url, prioritize it
+            if (pushData.data && pushData.data.url) {
+                data.url = pushData.data.url;
+            }
         } catch (e) {
             data.body = event.data.text();
         }

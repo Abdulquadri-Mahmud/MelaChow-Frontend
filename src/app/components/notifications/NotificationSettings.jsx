@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
 import { Bell, BellOff, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { testPushNotification } from '../../lib/push-notification-service';
+import toast from 'react-hot-toast';
+import React from 'react';
 
 const NotificationSettings = () => {
     const {
@@ -99,24 +101,22 @@ const NotificationSettings = () => {
                 <div className="mt-4 p-4 border-t border-gray-100 dark:border-gray-800 pt-6">
                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-3">Developer Tools</p>
                     <button
-                        onClick={() => {
-                            if ('serviceWorker' in navigator) {
-                                navigator.serviceWorker.ready.then(registration => {
-                                    registration.showNotification('Test Notification', {
-                                        body: 'This is a test push notification from GrubDash!',
-                                        icon: '/icons/icon-192x192.png',
-                                        badge: '/icons/badge-72x72.png',
-                                        tag: 'test-notification',
-                                        vibrate: [200, 100, 200],
-                                        data: { url: '/profile' }
-                                    });
-                                });
+                        onClick={async () => {
+                            try {
+                                toast.loading('Sending test notification...', { id: 'test-push' });
+                                await testPushNotification();
+                                toast.success('Test notification sent! Check your device.', { id: 'test-push' });
+                            } catch (err) {
+                                toast.error('Failed to send test notification', { id: 'test-push' });
                             }
                         }}
                         className="w-full py-2 px-4 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2"
                     >
-                        <Bell size={14} /> Send Test Notification
+                        <Bell size={14} /> Send Test Push (Backend)
                     </button>
+                    <p className="text-[9px] text-gray-400 mt-2 text-center">
+                        This calls POST /api/notifications/test to verify end-to-end integration.
+                    </p>
                 </div>
             )}
         </div>
