@@ -1,0 +1,117 @@
+import axios from 'axios';
+
+/**
+ * Convert VAPID public key from base64 to Uint8Array
+ * Required for subscribing to push notifications
+ */
+export function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding)
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+/**
+ * Fetch VAPID public key from backend
+ */
+export async function getVapidPublicKey() {
+    try {
+        const response = await axios.get('/api/push-notifications/vapid-public-key', {
+            withCredentials: true,
+        });
+        return response.data.publicKey;
+    } catch (error) {
+        console.error('Failed to fetch VAPID public key:', error);
+        throw error;
+    }
+}
+
+/**
+ * Send subscription to backend
+ */
+export async function sendSubscriptionToServer(subscription) {
+    try {
+        const response = await axios.post('/api/push-notifications/subscribe', subscription, {
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Failed to send subscription to server:', error);
+        throw error;
+    }
+}
+
+/**
+ * Remove subscription from backend
+ */
+export async function removeSubscriptionFromServer(subscription) {
+    try {
+        const response = await axios.delete('/api/push-notifications/unsubscribe', {
+            data: subscription,
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Failed to remove subscription from server:', error);
+        throw error;
+    }
+}
+
+/**
+ * Subscribe user to push notifications
+ */
+export async function subscribeUserToPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        throw new Error('Push notifications are not supported by this browser');
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const vapidPublicKey = await getVapidPublicKey();
+        const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+
+        const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: applicationServerKey,
+        });
+
+        await sendSubscriptionToServer(subscription);
+        return subscription;
+    } catch (error) {
+        console.error('Failed to subscribe user to push notifications:', error);
+        throw error;
+    }
+}
+
+/**
+ * Unsubscribe user from push notifications
+ */
+export async function unsubscribeUserFromPush() {
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+
+        if (subscription) {
+            await subscription.unsubscribe();
+            await removeSubscriptionFromServer(subscription);
+        }
+        return true;
+    } catch (error) {
+        console.error('Failed to unsubscribe user from push notifications:', error);
+        throw error;
+    }
+}

@@ -40,7 +40,7 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
           </button>
 
           <div className="flex flex-col items-center text-center">
-            <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-sm ${type === 'success' ? 'bg-orange-50 text-orange-600' : 'bg-rose-50 text-rose-500'
+            <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 ${type === 'success' ? 'bg-orange-50 text-orange-600' : 'bg-rose-50 text-rose-500'
               }`}>
               {type === 'success' ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
             </div>
@@ -165,7 +165,7 @@ export default function Signin() {
               placeholder="name@example.com"
               value={formData.email}
               onChange={handleChange}
-              className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm border border-transparent focus:border-orange-500/20"
+              className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-gray-200 focus:border-orange-500/20"
               required
             />
           </div>
@@ -187,7 +187,7 @@ export default function Signin() {
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all pr-12 shadow-sm border border-transparent focus:border-orange-500/20"
+                className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all pr-12 border border-gray-200 focus:border-orange-500/20"
                 required
               />
               <button
@@ -236,7 +236,7 @@ export default function Signin() {
           <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800">
             <Link
               href="/vendors/auth/login"
-              className="group inline-flex items-center gap-3 px-6 py-4 bg-orange-50/50 dark:bg-orange-500/5 rounded-[1.5rem] hover:bg-orange-100 dark:hover:bg-orange-500/10 transition-all duration-300 border border-transparent hover:border-orange-200"
+              className="group inline-flex items-center gap-3 px-6 py-4 bg-orange-50/50 dark:bg-orange-500/5 rounded-[1.5rem] hover:bg-orange-100 dark:hover:bg-orange-500/10 transition-all duration-300 border border-gray-200 hover:border-orange-200"
             >
               <Store className="w-5 h-5 text-orange-600" />
               <div className="text-left">

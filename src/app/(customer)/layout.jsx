@@ -8,13 +8,14 @@ import CustomerBootstrapper from "./components/CustomerBootstrapper";
 import ConditionalBottomNav from "@/app/components/conditional_bottom_nav/ConditionalBottomNav";
 import PWAUpdateManager from "@/app/components/PWA/PWAUpdateManager";
 import PWAInstallPrompt from "@/app/components/PWA/PWAInstallPrompt";
+import PushNotificationPrompt from "@/app/components/notifications/PushNotificationPrompt";
 import { registerServiceWorker } from "@/app/lib/pwa-utils";
 import { TokenManager } from "@/app/lib/auth-token";
 
 export default function CustomerLayout({ children }) {
     const pathname = usePathname();
     const [isMounted, setIsMounted] = useState(false);
-    
+
     useEffect(() => {
         setIsMounted(true);
         TokenManager.initialize();
@@ -47,6 +48,7 @@ export default function CustomerLayout({ children }) {
                         {children}
                         <PWAUpdateManager />
                         <PWAInstallPrompt />
+                        <PushNotificationPrompt />
                     </>
                 ) : (
                     // Protected routes: full bootstrapper
@@ -55,6 +57,7 @@ export default function CustomerLayout({ children }) {
                         <ConditionalBottomNav />
                         <PWAUpdateManager />
                         <PWAInstallPrompt />
+                        <PushNotificationPrompt />
                     </CustomerBootstrapper>
                 )}
             </CartProvider>
