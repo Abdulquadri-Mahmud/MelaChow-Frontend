@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import DeleteModal from "./DeleteModal";
 import NeedHelp from "@/app/(customer)/profile/need_help_contact_info/NeedHelp";
+import NotificationSettings from "@/app/components/notifications/NotificationSettings";
 
 const ActionCard = ({ icon: Icon, title, description, onClick, href, color = "orange", isRed = false }) => {
   const router = useRouter();
@@ -243,6 +244,12 @@ const User_Profile = ({ userData, isLoading }) => {
           description="Find answers to common questions"
           href="/faqs"
         />
+      </div>
+
+      {/* Notifications Section */}
+      <div className="mt-8 px-6 space-y-4">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-2">Notifications</p>
+        <NotificationSettings />
       </div>
 
       {/* Danger Zone */}

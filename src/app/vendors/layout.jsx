@@ -7,6 +7,9 @@ import { VendorProfileProvider } from "@/app/context/VendorProfileContext";
 import VendorBootstrapper from "./components/VendorBootstrapper";
 import { TokenManager } from "@/app/lib/auth-token";
 import { registerServiceWorker } from "@/app/lib/pwa-utils";
+import PWAUpdateManager from "@/app/components/PWA/PWAUpdateManager";
+import PWAInstallPrompt from "@/app/components/PWA/PWAInstallPrompt";
+import PushNotificationPrompt from "@/app/components/notifications/PushNotificationPrompt";
 
 export default function VendorLayout({ children }) {
   const pathname = usePathname();
@@ -43,6 +46,9 @@ export default function VendorLayout({ children }) {
       ) : (
         <VendorBootstrapper>
           <DashboardLayout>{children}</DashboardLayout>
+          <PWAUpdateManager />
+          <PWAInstallPrompt />
+          <PushNotificationPrompt />
         </VendorBootstrapper>
       )}
     </VendorProfileProvider>

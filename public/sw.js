@@ -240,3 +240,101 @@ async function fetchAndCache(request, cacheName) {
         console.log('[SW] Background fetch failed:', request.url);
     }
 }
+
+// --- Push Notification Handlers ---
+
+/**
+ * Handle incoming push messages
+ */
+self.addEventListener('push', (event) => {
+    console.log('[SW] Push received:', event);
+
+    let data = {
+        title: 'New Notification',
+        body: 'You have a new update from GrubDash!',
+        icon: '/icons/icon-192x192.png',
+        badge: '/icons/badge-72x72.png',
+        tag: 'grubdash-update',
+        url: '/',
+        actions: []
+    };
+
+    if (event.data) {
+        try {
+            const pushData = event.data.json();
+            data = { ...data, ...pushData };
+        } catch (e) {
+            data.body = event.data.text();
+        }
+    }
+
+    const options = {
+        body: data.body,
+        icon: data.icon,
+        badge: data.badge,
+        tag: data.tag,
+        vibrate: [200, 100, 200],
+        data: {
+            url: data.url,
+        },
+        actions: data.actions || [
+            { action: 'view_order', title: 'View Order' },
+            { action: 'close', title: 'Close' }
+        ],
+        renotify: true, // Replace old notification with same tag
+        requireInteraction: true // Keep on screen until user interacts
+    };
+
+    event.waitUntil(
+        Promise.all([
+            self.registration.showNotification(data.title, options),
+            // Send message to all clients (foreground windows)
+            self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+                windowClients.forEach((client) => {
+                    client.postMessage({
+                        type: 'PUSH_NOTIFICATION',
+                        payload: {
+                            title: data.title,
+                            body: data.body,
+                            url: data.url
+                        }
+                    });
+                });
+            })
+        ])
+    );
+});
+
+/**
+ * Handle notification clicks
+ */
+self.addEventListener('notificationclick', (event) => {
+    console.log('[SW] Notification click received:', event);
+    const notification = event.notification;
+    const action = event.action;
+
+    notification.close();
+
+    if (action === 'close') {
+        return;
+    }
+
+    // Default or 'view_order' action
+    const urlToOpen = notification.data.url || '/';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+            // If a window is already open, focus it and navigate
+            for (let i = 0; i < windowClients.length; i++) {
+                const client = windowClients[i];
+                if (client.url === urlToOpen && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // If no window is open, open a new one
+            if (clients.openWindow) {
+                return clients.openWindow(urlToOpen);
+            }
+        })
+    );
+});
