@@ -16,7 +16,7 @@ class SocketService {
             return this.socket;
         }
 
-        const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
         this.socket = io(SOCKET_URL, {
             auth: {
