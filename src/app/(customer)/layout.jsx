@@ -9,6 +9,7 @@ import ConditionalBottomNav from "@/app/components/conditional_bottom_nav/Condit
 import PWAUpdateManager from "@/app/components/PWA/PWAUpdateManager";
 import PWAInstallPrompt from "@/app/components/PWA/PWAInstallPrompt";
 import PushNotificationPrompt from "@/app/components/notifications/PushNotificationPrompt";
+import RealtimeNotificationListener from "@/app/components/notifications/RealtimeNotificationListener";
 import { registerServiceWorker } from "@/app/lib/pwa-utils";
 import { TokenManager } from "@/app/lib/auth-token";
 
@@ -49,6 +50,7 @@ export default function CustomerLayout({ children }) {
                         <PWAUpdateManager />
                         <PWAInstallPrompt />
                         <PushNotificationPrompt />
+                        <RealtimeNotificationListener />
                     </>
                 ) : (
                     // Protected routes: full bootstrapper
@@ -58,6 +60,7 @@ export default function CustomerLayout({ children }) {
                         <PWAUpdateManager />
                         <PWAInstallPrompt />
                         <PushNotificationPrompt />
+                        <RealtimeNotificationListener />
                     </CustomerBootstrapper>
                 )}
             </CartProvider>
