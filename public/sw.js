@@ -241,67 +241,101 @@ async function fetchAndCache(request, cacheName) {
     }
 }
 
-// --- Push Notification Handlers ---
+// --- Enhanced Push Notification Handlers ---
 
-/**
- * Handle incoming push messages
- */
-self.addEventListener('push', (event) => {
-    console.log('[SW] Push received:', event);
+self.addEventListener('push', function (event) {
+    console.log('[Service Worker] Push Received:', event);
 
-    let data = {
-        title: 'New Notification',
-        body: 'You have a new update from GrubDash!',
-        icon: '/icons/icon-192x192.png',
-        badge: '/icons/badge-72x72.png',
-        tag: 'grubdash-update',
-        url: '/',
-        actions: []
+    let notificationData = {
+        title: 'GrubDash',
+        body: 'You have a new notification',
+        icon: '/icon-192x192.png', // Your PWA icon
+        badge: '/badge-72x72.png', // Small monochrome icon for notification badge
+        tag: 'grubdash-notification',
+        requireInteraction: false,
+        data: {}
     };
 
+    // Parse incoming notification data
     if (event.data) {
         try {
-            const pushData = event.data.json();
-            data = { ...data, ...pushData };
+            const payload = event.data.json();
+            console.log('[Service Worker] Notification Payload:', payload);
 
-            // If the payload has a nested data object with a url, prioritize it
-            if (pushData.data && pushData.data.url) {
-                data.url = pushData.data.url;
+            // Extract notification details
+            notificationData = {
+                title: payload.title || 'GrubDash',
+                body: payload.body || payload.message || 'You have a new update',
+                icon: payload.icon || '/icon-192x192.png',
+                badge: payload.badge || '/badge-72x72.png',
+                image: payload.image, // Large image (optional)
+                tag: payload.tag || `grubdash-${Date.now()}`,
+                requireInteraction: payload.requireInteraction || false,
+                vibrate: payload.vibrate || [200, 100, 200], // Vibration pattern
+                timestamp: payload.timestamp || Date.now(),
+                data: {
+                    url: payload.url || '/',
+                    orderId: payload.orderId,
+                    type: payload.type, // 'order', 'promo', 'delivery', etc.
+                    ...payload.data
+                },
+                actions: [] // We'll add actions based on notification type
+            };
+
+            // Add contextual actions based on notification type
+            switch (payload.type) {
+                case 'order_placed':
+                case 'order_confirmed':
+                case 'order_preparing':
+                case 'order_ready':
+                case 'order_dispatched':
+                case 'order_delivered':
+                    notificationData.actions = [
+                        { action: 'track', title: '🚚 Track Order', icon: '/icons/track.png' },
+                        { action: 'view', title: '👁️ View Details', icon: '/icons/view.png' }
+                    ];
+                    notificationData.tag = `order-${payload.orderId}`;
+                    break;
+
+                case 'promo':
+                case 'discount':
+                    notificationData.actions = [
+                        { action: 'browse', title: '🍔 Browse Menu', icon: '/icons/menu.png' },
+                        { action: 'dismiss', title: '❌ Dismiss', icon: '/icons/close.png' }
+                    ];
+                    break;
+
+                case 'delivery_nearby':
+                    notificationData.actions = [
+                        { action: 'track', title: '📍 Track Rider', icon: '/icons/location.png' }
+                    ];
+                    notificationData.requireInteraction = true; // Keep visible
+                    break;
+
+                default:
+                    notificationData.actions = [
+                        { action: 'view', title: '👁️ View', icon: '/icons/view.png' }
+                    ];
             }
-        } catch (e) {
-            data.body = event.data.text();
+
+        } catch (error) {
+            console.error('[Service Worker] Error parsing notification:', error);
         }
     }
 
-    const options = {
-        body: data.body,
-        icon: data.icon,
-        badge: data.badge,
-        tag: data.tag,
-        vibrate: [200, 100, 200],
-        data: {
-            url: data.url,
-        },
-        actions: data.actions || [
-            { action: 'view_order', title: 'View Order' },
-            { action: 'close', title: 'Close' }
-        ],
-        renotify: true, // Replace old notification with same tag
-        requireInteraction: true // Keep on screen until user interacts
-    };
-
+    // Show the notification
     event.waitUntil(
         Promise.all([
-            self.registration.showNotification(data.title, options),
+            self.registration.showNotification(notificationData.title, notificationData),
             // Send message to all clients (foreground windows)
             self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
                 windowClients.forEach((client) => {
                     client.postMessage({
                         type: 'PUSH_NOTIFICATION',
                         payload: {
-                            title: data.title,
-                            body: data.body,
-                            url: data.url
+                            title: notificationData.title,
+                            body: notificationData.body,
+                            url: notificationData.data.url
                         }
                     });
                 });
@@ -310,36 +344,64 @@ self.addEventListener('push', (event) => {
     );
 });
 
-/**
- * Handle notification clicks
- */
-self.addEventListener('notificationclick', (event) => {
-    console.log('[SW] Notification click received:', event);
-    const notification = event.notification;
+// Handle notification clicks
+self.addEventListener('notificationclick', function (event) {
+    console.log('[Service Worker] Notification clicked:', event);
+
+    event.notification.close();
+
+    const notificationData = event.notification.data;
     const action = event.action;
 
-    notification.close();
+    let targetUrl = '/';
 
-    if (action === 'close') {
-        return;
+    // Determine target URL based on action
+    switch (action) {
+        case 'track':
+            targetUrl = notificationData.orderId
+                ? `/track-orders/${notificationData.orderId}`
+                : '/orders';
+            break;
+
+        case 'view':
+            targetUrl = notificationData.url || '/notifications';
+            break;
+
+        case 'browse':
+            targetUrl = '/';
+            break;
+
+        case 'dismiss':
+            return; // Just close notification
+
+        default:
+            // Default click (no action button) - go to notification detail or order
+            if (notificationData.orderId) {
+                targetUrl = `/track-orders/${notificationData.orderId}`;
+            } else if (notificationData.url) {
+                targetUrl = notificationData.url;
+            } else {
+                targetUrl = '/notifications';
+            }
     }
 
-    // Default or 'view_order' action
-    const urlToOpen = notification.data.url || '/';
-
+    // Navigate to target URL
     event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-            // If a window is already open, focus it and navigate
-            for (let i = 0; i < windowClients.length; i++) {
-                const client = windowClients[i];
-                if (client.url === urlToOpen && 'focus' in client) {
-                    return client.focus();
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then(function (clientList) {
+                // Check if app is already open
+                for (let i = 0; i < clientList.length; i++) {
+                    const client = clientList[i];
+                    if (client.url.includes(self.location.origin) && 'focus' in client) {
+                        return client.focus().then(client => {
+                            return client.navigate(targetUrl);
+                        });
+                    }
                 }
-            }
-            // If no window is open, open a new one
-            if (clients.openWindow) {
-                return clients.openWindow(urlToOpen);
-            }
-        })
+                // Open new window if app is not open
+                if (clients.openWindow) {
+                    return clients.openWindow(targetUrl);
+                }
+            })
     );
 });

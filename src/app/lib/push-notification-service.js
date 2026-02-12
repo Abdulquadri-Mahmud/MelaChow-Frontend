@@ -70,12 +70,9 @@ export async function sendSubscriptionToServer(subscription) {
  */
 export async function removeSubscriptionFromServer(subscription) {
     try {
-        // Temporary debug logging
-        console.log('[Push Service] Unsubscribe payload:', subscription);
-        console.log('[Push Service] Subscription endpoint:', subscription?.endpoint);
-
+        // Send the subscription object directly (not wrapped)
         const response = await axios.delete('/api/notifications/unsubscribe', {
-            data: subscription, // Send subscription data directly, not wrapped
+            data: subscription, // Backend expects { endpoint, keys, expirationTime }
             withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
@@ -84,7 +81,7 @@ export async function removeSubscriptionFromServer(subscription) {
         return response.data;
     } catch (error) {
         console.error('Failed to remove subscription from server:', error);
-        console.error('Error response:', error.response?.data);
+        console.error('Error response:', error.response?.data); // Debug logging
         throw error;
     }
 }
