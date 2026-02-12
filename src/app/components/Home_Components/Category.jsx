@@ -32,7 +32,7 @@ export default function CategoryList() {
                     timeout: 10000, // 10 second timeout
                 });
 
-                console.log('[CategoryList] Response:', res);
+                // console.log('[CategoryList] Response:', res);
 
                 if (res.data && res.data.success) {
                     setCategories(res.data.data || []);

@@ -10,6 +10,7 @@ import { registerServiceWorker } from "@/app/lib/pwa-utils";
 import PWAUpdateManager from "@/app/components/PWA/PWAUpdateManager";
 import PWAInstallPrompt from "@/app/components/PWA/PWAInstallPrompt";
 import PushNotificationPrompt from "@/app/components/notifications/PushNotificationPrompt";
+import RealtimeNotificationListener from "@/app/components/notifications/RealtimeNotificationListener";
 
 export default function VendorLayout({ children }) {
   const pathname = usePathname();
@@ -42,13 +43,17 @@ export default function VendorLayout({ children }) {
   return (
     <VendorProfileProvider>
       {isAuthRoute ? (
-        children
+        <>
+          {children}
+          <RealtimeNotificationListener />
+        </>
       ) : (
         <VendorBootstrapper>
           <DashboardLayout>{children}</DashboardLayout>
           <PWAUpdateManager />
           <PWAInstallPrompt />
           <PushNotificationPrompt />
+          <RealtimeNotificationListener />
         </VendorBootstrapper>
       )}
     </VendorProfileProvider>
