@@ -70,8 +70,12 @@ export async function sendSubscriptionToServer(subscription) {
  */
 export async function removeSubscriptionFromServer(subscription) {
     try {
+        // Temporary debug logging
+        console.log('[Push Service] Unsubscribe payload:', subscription);
+        console.log('[Push Service] Subscription endpoint:', subscription?.endpoint);
+
         const response = await axios.delete('/api/notifications/unsubscribe', {
-            data: { subscription },
+            data: subscription, // Send subscription data directly, not wrapped
             withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
@@ -80,6 +84,7 @@ export async function removeSubscriptionFromServer(subscription) {
         return response.data;
     } catch (error) {
         console.error('Failed to remove subscription from server:', error);
+        console.error('Error response:', error.response?.data);
         throw error;
     }
 }
@@ -134,8 +139,16 @@ export async function unsubscribeUserFromPush() {
         const subscription = await registration.pushManager.getSubscription();
 
         if (subscription) {
+            // 1. Capture the subscription data FIRST (before it becomes invalid)
+            // PushSubscription objects don't always serialize well after unsubscribe()
+            const subscriptionData = subscription.toJSON();
+
+            // 2. Remove from server FIRST
+            // This ensures the server gets the endpoint it needs to identify the subscription
+            await removeSubscriptionFromServer(subscriptionData);
+
+            // 3. Finally unsubscribe on the client
             await subscription.unsubscribe();
-            await removeSubscriptionFromServer(subscription);
         }
         return true;
     } catch (error) {

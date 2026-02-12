@@ -46,13 +46,13 @@ export default function CustomerBootstrapper({ children }) {
         }
     }, [pathname, hasCheckedSession, isAuthenticated, showSplash, user]);
 
-    // ✅ Initialize splash screen (only for protected routes)
+    // ✅ Initialize splash screen (only for initial check or if no data)
     useEffect(() => {
-        // Show splash while checking session
-        if (!hasCheckedSession) {
+        // Only show splash if we haven't checked session AND we don't have cached data
+        if (!hasCheckedSession && !user) {
             setShowSplash(true);
         }
-    }, [hasCheckedSession]);
+    }, [hasCheckedSession, user]);
 
     useEffect(() => {
         // Only process after auth is resolved
