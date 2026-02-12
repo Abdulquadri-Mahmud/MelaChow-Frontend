@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Search, Bell, Zap, Menu, Utensils, ShoppingBag, Monitor } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import NotificationBell from "@/app/components/NotificationBell";
 
 export default function VendorDashboardHeader({ vendor, onMenuClick }) {
   const [showQuickActions, setShowQuickActions] = useState(false);
@@ -101,10 +102,9 @@ export default function VendorDashboardHeader({ vendor, onMenuClick }) {
 
         <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden md:block"></div>
 
-        <button className="relative size-9 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-400 transition-colors">
-          <Bell size={20} />
-          <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-[#0F172A]"></span>
-        </button>
+        {/* Notification Bell */}
+        <NotificationBell />
+
 
         <div className="flex items-center gap-3 pl-2 cursor-pointer hover:opacity-80 transition-opacity">
           <div
