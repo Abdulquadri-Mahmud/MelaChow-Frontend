@@ -127,8 +127,17 @@ export const ProfileProvider = ({ children }) => {
     refetchOnReconnect: true,
   });
 
-  // ✅ Simple and reliable: query completed when not fetching and has definitive result
-  const hasCheckedSession = fetchStatus === 'idle' && (status === 'success' || status === 'error');
+  // ✅ Track if the VERY FIRST check has completed
+  const [hasInitialCheckDone, setHasInitialCheckDone] = React.useState(false);
+
+  useEffect(() => {
+    // Only set to true once, never reset to false
+    if (!hasInitialCheckDone && fetchStatus === 'idle' && (status === 'success' || status === 'error')) {
+      setHasInitialCheckDone(true);
+    }
+  }, [fetchStatus, status, hasInitialCheckDone]);
+
+  const hasCheckedSession = hasInitialCheckDone;
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {

@@ -4,25 +4,25 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/app/context/CartContext";
 import { Loader2, Bike, MapPin, Clock, DollarSign, TicketPercent, Tag, Wallet, CreditCard } from "lucide-react";
-import { fetchUser, verifyDiscount, getVendorById, getWallet } from "@/app/lib/api";
+import { verifyDiscount, getVendorById, getWallet } from "@/app/lib/api";
 import { createOrderV2 } from "@/app/lib/orderService";
-import { transformCartToOrderV2, validateCartItems } from "@/app/lib/orderTransformers";
+import { transformCartToOrderV2 } from "@/app/lib/orderTransformers";
 import Header2 from "@/app/components/App_Header/Header2";
 import toast from "react-hot-toast";
 import CheckoutPageSkeleton from "@/app/components/skeleton/CheckoutPageSkeleton";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import axios from "axios";
 import { useApi } from "@/app/context/ApiContext";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import OrderErrorDisplay from "@/app/components/Checkout/OrderErrorDisplay";
 import OrderProcessingLoader from "@/app/components/Checkout/OrderProcessingLoader";
 import { useCartValidation, CartValidationErrors } from "@/app/components/Cart/CartValidator";
+import { useUserStorage } from "@/app/hooks/useUserStorage";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart } = useCart();
-  const [userData, setUserData] = useState(null);
+  const { user: userData, isLoading: isUserLoading } = useUserStorage();
   const [loadingInit, setLoadingInit] = useState(false);
   const [notes, setNotes] = useState({}); // notes per restaurant
   const { baseUrl } = useApi();
@@ -50,17 +50,9 @@ export default function CheckoutPage() {
   // Cart validation hook
   const { validateCart, validationErrors, isValid } = useCartValidation(cart);
 
-  /* ---------------- FETCH USER ---------------- */
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["userProfile"],
-    queryFn: () => fetchUser(),
-    retry: false,
-  });
-
   useEffect(() => {
     setIsMounted(true);
-    if (data?.user) setUserData(data.user);
-  }, [data]);
+  }, []);
 
   const defaultAddress = userData?.addresses?.find(a => a.isDefault);
 
@@ -308,14 +300,7 @@ export default function CheckoutPage() {
   };
 
   /* ---------------- UI STATES ---------------- */
-  if (!isMounted || isLoading) return <CheckoutPageSkeleton />;
-
-  if (isError)
-    return (
-      <div className="min-h-screen flex items-center justify-center text-red-500">
-        Failed to load user data ❌
-      </div>
-    );
+  if (!isMounted || isUserLoading) return <CheckoutPageSkeleton />;
 
   /* ---------------- JSX ---------------- */
   return (
