@@ -20,6 +20,7 @@ import { useState } from "react";
 import { useApi } from "@/app/context/ApiContext";
 import VendorProfileImageSkeleton from "@/app/skeleton/VendorProfileImageSkeleton";
 import { useCart } from "@/app/context/CartContext";
+import NotificationBell from "@/app/components/NotificationBell";
 
 const navItems = [
   {
@@ -109,10 +110,8 @@ export default function Header() {
 
       <h2 className="md:text-xl sm:text-lg md:ml-0 ml-12 font-semibold text-gray-800">Welcome, {vendors?.data?.storeName}</h2>
       <div className="flex items-center gap-4">
-        <button className="relative">
-          <FaBell className="text-gray-600 text-xl" />
-          <span className="absolute -top-1 -right-1 bg-[#FF6600] w-2 h-2 rounded-full"></span>
-        </button>
+        {/* Notification Bell */}
+        <NotificationBell />
         {
           isLoading ? <>
             <VendorProfileImageSkeleton />
@@ -168,8 +167,8 @@ export default function Header() {
                             href={item.href}
                             onClick={() => setMobileOpen(false)}
                             className={`flex items-center gap-3 p-3 rounded-lg transition-all font-medium ${active
-                                ? "bg-gray-300 text-white shadow-md"
-                                : "hover:bg-gray-50 bg-gray-50 text-gray-700 hover:text-gray-600"
+                              ? "bg-gray-300 text-white shadow-md"
+                              : "hover:bg-gray-50 bg-gray-50 text-gray-700 hover:text-gray-600"
                               }`}
                           >
                             <span className="text-lg">{item.icon}</span>

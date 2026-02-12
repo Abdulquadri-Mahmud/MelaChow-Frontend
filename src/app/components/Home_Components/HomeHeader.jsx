@@ -6,6 +6,7 @@ import { useUserStorage } from "@/app/hooks/useUserStorage";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
 import { useRouter } from "next/navigation";
+import NotificationBell from "@/app/components/NotificationBell";
 
 export default function HomeHeader() {
   const { user, isLoading } = useUserStorage();
@@ -70,6 +71,9 @@ export default function HomeHeader() {
 
       {/* Right Icons */}
       <div className="flex items-center gap-4">
+        {/* Notification Bell */}
+        <NotificationBell />
+
         <Link href={'/orders'}>
           <motion.div
             whileHover={{ scale: 1.05 }}

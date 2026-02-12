@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { FiSearch, FiShoppingCart, FiUser, FiMenu } from "react-icons/fi";
+import NotificationBell from "@/app/components/NotificationBell";
 // import Sidebar from "./Sidebar"; // Uncomment when ready to use
 
 const LogoImage = () => (
@@ -60,6 +61,9 @@ export default function Header() {
             />
             <FiSearch className="absolute left-3 top-2.5 text-gray-700" />
           </motion.div>
+
+          {/* Notification Bell */}
+          <NotificationBell />
 
           {/* Cart Icon */}
           <Link href="/cart">
