@@ -32,8 +32,17 @@ const uploadToCloudinary = async (file) => {
   fd.append("file", file);
   fd.append("upload_preset", "GrubDash");
   try {
-    const res = await axios.post("https://api.cloudinary.com/v1_1/dypn7gna0/image/upload", fd);
-    return res.data.secure_url;
+    const res = await fetch("https://api.cloudinary.com/v1_1/dypn7gna0/image/upload", {
+      method: "POST",
+      body: fd,
+    });
+
+    if (!res.ok) {
+      throw new Error(`Cloudinary upload failed: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data.secure_url;
   } catch (err) {
     console.error("Cloudinary upload error:", err);
     return null;

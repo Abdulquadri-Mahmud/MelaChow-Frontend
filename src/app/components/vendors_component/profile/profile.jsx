@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import axios from "axios";
+
 import {
   Store,
   MapPin,
@@ -31,8 +31,17 @@ const uploadToCloudinary = async (file) => {
   formData.append("file", file);
   formData.append("upload_preset", CLOUDINARY_PRESET);
   try {
-    const res = await axios.post(CLOUDINARY_HOST, formData);
-    return res.data.secure_url;
+    const res = await fetch(CLOUDINARY_HOST, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      throw new Error(`Cloudinary upload failed: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return data.secure_url;
   } catch (err) {
     console.error("Cloudinary upload error:", err);
     toast.error("Image upload failed!");

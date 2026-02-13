@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useApi } from "@/app/context/ApiContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
+
 import {
     ArrowLeft, CheckCircle2, User, Mail, Phone, Camera, Save,
     Loader2, Edit3, Image as ImageIcon, X
@@ -17,12 +17,23 @@ const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", "GrubDash");
+
     try {
-        const res = await axios.post(
+        // ✅ Use fetch instead of axios to avoid Authorization header
+        const res = await fetch(
             "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload",
-            formData
+            {
+                method: "POST",
+                body: formData,
+            }
         );
-        return res.data.secure_url;
+
+        if (!res.ok) {
+            throw new Error(`Cloudinary upload failed: ${res.status}`);
+        }
+
+        const data = await res.json();
+        return data.secure_url;
     } catch (err) {
         console.error("Cloudinary upload error:", err);
         return null;

@@ -244,6 +244,12 @@ const User_Profile = ({ userData, isLoading }) => {
           description="Find answers to common questions"
           href="/faqs"
         />
+        <ActionCard
+          icon={Bell}
+          title="Notifications"
+          description="View your recent updates and account alerts"
+          href="/notifications"
+        />
       </div>
 
       {/* Notifications Section */}

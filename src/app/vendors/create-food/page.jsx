@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
-import axios from "axios";
+
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -67,8 +67,17 @@ const uploadToCloudinary = async (file) => {
   formData.append("file", file);
   formData.append("upload_preset", CLOUDINARY_PRESET);
   try {
-    const res = await axios.post(CLOUDINARY_HOST, formData);
-    return { url: res.data.secure_url, publicId: res.data.public_id };
+    const res = await fetch(CLOUDINARY_HOST, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!res.ok) {
+      throw new Error(`Cloudinary upload failed: ${res.status}`);
+    }
+
+    const data = await res.json();
+    return { url: data.secure_url, publicId: data.public_id };
   } catch (err) {
     console.error("Cloudinary upload error:", err);
     return null;
