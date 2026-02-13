@@ -186,7 +186,8 @@ export default function VendorDashboard() {
           ? `${itemNames[0]}${itemNames.length > 1 ? ` +${itemNames.length - 1}` : ''}`
           : `${order.items?.length || 0} items`;
 
-        const orderId = order.userOrderId?.orderId || order._id.slice(-6).toUpperCase();
+        const actualOrderId = order._id?.$oid || order._id || "";
+        const orderId = order.userOrderId?.orderId || actualOrderId.toString().slice(-6).toUpperCase();
         const note = new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         return {

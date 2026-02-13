@@ -55,26 +55,26 @@ export default function VendorOrderDetailsPage() {
         try {
             setIsUpdating(true);
 
-            // ✅ CRITICAL FIX: Always use MongoDB _id from URL params
-            // The 'id' from useParams() is the VendorOrder's MongoDB _id (24 hex chars)
-            // DO NOT use order.userOrderId.orderId (that's the user-facing "ORD-ABC123" format)
+            // ✅ CRITICAL FIX: Always use the MongoDB _id from the order object
+            // Handle both string ID and { $oid: "..." } format
+            const actualId = order._id?.$oid || order._id;
+            const vendorOrderId = actualId || id;
 
             console.log(`📝 Updating order status:`, {
-                vendorOrderId: id, // This is the MongoDB _id
+                vendorOrderId, // This is the MongoDB _id
                 newStatus: newStatus,
-                userFacingOrderId: order.userOrderId?.orderId // For logging only
+                userFacingOrderId: order.userOrderId?.orderId || order.orderId // For logging only
             });
 
-            // ✅ Targeting new endpoints based on status
+            // ✅ Targeted endpoints
             if (newStatus === 'completed') {
-                await completeOrder(id);
+                await completeOrder(vendorOrderId);
             } else {
-                // Map 'ready_for_pickup' UI label to 'ready' backend status if needed
                 const backendStatus = newStatus === 'ready_for_pickup' ? 'ready' : newStatus;
-                await updateOrderStatus(id, backendStatus);
+                await updateOrderStatus(vendorOrderId, backendStatus);
             }
 
-            // ✅ Refresh order data using same MongoDB _id
+            // ✅ Refresh data using the same ID
             const res = await getVendorOrderById(id);
             const data = res.data || res;
             setOrder(data);
@@ -154,9 +154,13 @@ export default function VendorOrderDetailsPage() {
         );
     }
 
-    const { userOrderId, restaurantId } = order;
-    const user = userOrderId?.userId;
-    const address = userOrderId?.deliveryAddress;
+    // Handle both VendorOrder (nested userOrderId) and UserOrder (direct properties)
+    const userOrderId = order.userOrderId || (order.userId ? order : null);
+    const user = order.userOrderId?.userId || order.userId;
+    const address = order.userOrderId?.deliveryAddress || order.deliveryAddress;
+
+    // Extract restaurantId (could be at root or inside first item)
+    const effectiveRestaurantId = order.restaurantId || (order.items?.[0]?.restaurantId?.$oid || order.items?.[0]?.restaurantId);
 
     // Format Date
     const dateObj = new Date(order.createdAt);
@@ -164,7 +168,11 @@ export default function VendorOrderDetailsPage() {
     const timeStr = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
     // Filter items for this vendor
-    const detailedItems = userOrderId?.items?.filter(item => item.restaurantId === restaurantId) || [];
+    const itemsToFilter = order.userOrderId?.items || order.items || [];
+    const detailedItems = itemsToFilter.filter(item => {
+        const itemRestId = item.restaurantId?.$oid || item.restaurantId;
+        return itemRestId === effectiveRestaurantId;
+    });
 
     // Progress Steps logic
     const steps = ['pending', 'accepted', 'preparing', 'ready', 'rider_assigned', 'out_for_delivery', 'delivered', 'completed'];

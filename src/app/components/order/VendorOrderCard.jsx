@@ -41,7 +41,7 @@ export default function VendorOrderCard({ order }) {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 text-[10px] font-mono px-1.5 py-0.5 rounded">
-              #{order._id.slice(-6).toUpperCase()}
+              #{(order._id?.$oid || order._id || "").toString().slice(-6).toUpperCase()}
             </span>
             <span className="text-slate-400 text-xs flex items-center gap-1">
               <Calendar size={10} /> {dateStr}
@@ -129,7 +129,7 @@ export default function VendorOrderCard({ order }) {
         </div>
 
         <Link
-          href={`/vendors/orders/${order._id}`}
+          href={`/vendors/orders/${order._id?.$oid || order._id}`}
           className="flex items-center gap-1.5 px-4 py-2 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white font-semibold text-sm rounded-xl group-hover:bg-[#FF6B00] group-hover:text-white transition-colors"
         >
           Details <ChevronRight size={16} />
