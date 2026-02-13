@@ -49,9 +49,31 @@ export const getVendorOrderById = async (orderId) => {
   return response.data;
 };
 
-export const updateOrderStatus = async (orderId, status) => {
-  const response = await API.patch(`/vendors/orders/${orderId}/update`, { status });
-  return response.data;
+export const updateOrderStatus = async (vendorOrderId, status) => {
+  // ✅ Validate vendorOrderId format (MongoDB ObjectId = 24 hex characters)
+  if (!vendorOrderId || !vendorOrderId.match(/^[0-9a-fA-F]{24}$/)) {
+    console.error('❌ Invalid vendorOrderId format:', vendorOrderId);
+    throw new Error('Invalid order ID format. Please refresh the page and try again.');
+  }
+
+  console.log(`🔄 API: Updating order status`, {
+    vendorOrderId,
+    status,
+    url: `/vendors/orders/${vendorOrderId}/update`
+  });
+
+  try {
+    const response = await API.patch(`/vendors/orders/${vendorOrderId}/update`, { status });
+    console.log(`✅ API: Status update successful`, response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`❌ API: Status update failed`, {
+      vendorOrderId,
+      status,
+      error: error.response?.data || error.message
+    });
+    throw error;
+  }
 };
 
 export const getVendorReviews = async () => {

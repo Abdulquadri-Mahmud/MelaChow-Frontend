@@ -30,6 +30,7 @@ export default function VendorOrderDetailsPage() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
     const [showSuccessToast, setShowSuccessToast] = useState(false);
+    const [errorMessage, setErrorMessage] = useState(null);
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -53,10 +54,21 @@ export default function VendorOrderDetailsPage() {
     const performStatusUpdate = async (newStatus) => {
         try {
             setIsUpdating(true);
-            // Use user-facing Order ID string for updates
-            const updateId = order.userOrderId?.orderId || id;
-            await updateOrderStatus(updateId, newStatus);
-            // Refresh order data (using Mongo ID)
+
+            // ✅ CRITICAL FIX: Always use MongoDB _id from URL params
+            // The 'id' from useParams() is the VendorOrder's MongoDB _id (24 hex chars)
+            // DO NOT use order.userOrderId.orderId (that's the user-facing "ORD-ABC123" format)
+
+            console.log(`📝 Updating order status:`, {
+                vendorOrderId: id, // This is the MongoDB _id
+                newStatus: newStatus,
+                userFacingOrderId: order.userOrderId?.orderId // For logging only
+            });
+
+            // ✅ Send MongoDB _id to backend
+            await updateOrderStatus(id, newStatus);
+
+            // ✅ Refresh order data using same MongoDB _id
             const res = await getVendorOrderById(id);
             const data = res.data || res;
             setOrder(data);
@@ -65,8 +77,19 @@ export default function VendorOrderDetailsPage() {
             setShowSuccessToast(true);
             setTimeout(() => setShowSuccessToast(false), 3000);
         } catch (err) {
-            console.error("Failed to update order status:", err);
-            alert("Failed to update order status. Please try again.");
+            console.error("❌ Failed to update order status:", err);
+            console.error("❌ Error details:", {
+                vendorOrderId: id,
+                requestedStatus: newStatus,
+                error: err.response?.data || err.message
+            });
+
+            // ✅ Set error message for UI display
+            const errorMsg = err.response?.data?.message || "Failed to update order status. Please try again.";
+            setErrorMessage(errorMsg);
+
+            // Clear error after 5 seconds
+            setTimeout(() => setErrorMessage(null), 5000);
         } finally {
             setIsUpdating(false);
             setIsCancelModalOpen(false);
@@ -195,6 +218,30 @@ export default function VendorOrderDetailsPage() {
                             <p className="font-bold">Status Updated!</p>
                             <p className="text-sm opacity-90">Order status has been successfully updated.</p>
                         </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Error Toast */}
+            <AnimatePresence>
+                {errorMessage && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        className="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 max-w-md"
+                    >
+                        <X size={24} />
+                        <div>
+                            <p className="font-bold">Update Failed</p>
+                            <p className="text-sm opacity-90">{errorMessage}</p>
+                        </div>
+                        <button
+                            onClick={() => setErrorMessage(null)}
+                            className="ml-auto p-1 hover:bg-red-600 rounded-lg transition-colors"
+                        >
+                            <X size={18} />
+                        </button>
                     </motion.div>
                 )}
             </AnimatePresence>
