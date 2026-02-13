@@ -76,6 +76,31 @@ export const updateOrderStatus = async (vendorOrderId, status) => {
   }
 };
 
+export const completeOrder = async (vendorOrderId) => {
+  // ✅ Validate vendorOrderId format
+  if (!vendorOrderId || !vendorOrderId.match(/^[0-9a-fA-F]{24}$/)) {
+    console.error('❌ Invalid vendorOrderId format for completion:', vendorOrderId);
+    throw new Error('Invalid order ID format.');
+  }
+
+  console.log(`🔄 API: Completing order`, {
+    vendorOrderId,
+    url: `/vendors/orders/${vendorOrderId}/complete`
+  });
+
+  try {
+    const response = await API.patch(`/vendors/orders/${vendorOrderId}/complete`);
+    console.log(`✅ API: Order completion successful`, response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`❌ API: Order completion failed`, {
+      vendorOrderId,
+      error: error.response?.data || error.message
+    });
+    throw error;
+  }
+};
+
 export const getVendorReviews = async () => {
   const response = await API.get('/vendors/reviews');
   return response.data;

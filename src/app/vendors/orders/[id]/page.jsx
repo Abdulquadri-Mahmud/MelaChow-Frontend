@@ -19,7 +19,7 @@ import {
     X,
     Package
 } from "lucide-react";
-import { getVendorOrderById, updateOrderStatus } from "@/app/lib/vendorApi";
+import { getVendorOrderById, updateOrderStatus, completeOrder } from "@/app/lib/vendorApi";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 
 export default function VendorOrderDetailsPage() {
@@ -65,8 +65,14 @@ export default function VendorOrderDetailsPage() {
                 userFacingOrderId: order.userOrderId?.orderId // For logging only
             });
 
-            // ✅ Send MongoDB _id to backend
-            await updateOrderStatus(id, newStatus);
+            // ✅ Targeting new endpoints based on status
+            if (newStatus === 'completed') {
+                await completeOrder(id);
+            } else {
+                // Map 'ready_for_pickup' UI label to 'ready' backend status if needed
+                const backendStatus = newStatus === 'ready_for_pickup' ? 'ready' : newStatus;
+                await updateOrderStatus(id, backendStatus);
+            }
 
             // ✅ Refresh order data using same MongoDB _id
             const res = await getVendorOrderById(id);
@@ -111,11 +117,8 @@ export default function VendorOrderDetailsPage() {
         const statusFlow = {
             'pending': ['accepted', 'cancelled'],
             'accepted': ['preparing', 'cancelled'],
-            'preparing': ['ready_for_pickup', 'cancelled'],
-            'ready_for_pickup': ['rider_assigned'],
-            'rider_assigned': ['out_for_delivery'],
-            'out_for_delivery': ['delivered'],
-            'delivered': ['completed'],
+            'preparing': ['ready', 'cancelled'],
+            'ready': ['completed'],
             'completed': [],
             'cancelled': [],
             'failed': ['refunded'],
@@ -164,7 +167,7 @@ export default function VendorOrderDetailsPage() {
     const detailedItems = userOrderId?.items?.filter(item => item.restaurantId === restaurantId) || [];
 
     // Progress Steps logic
-    const steps = ['pending', 'accepted', 'preparing', 'ready_for_pickup', 'rider_assigned', 'out_for_delivery', 'delivered', 'completed'];
+    const steps = ['pending', 'accepted', 'preparing', 'ready', 'rider_assigned', 'out_for_delivery', 'delivered', 'completed'];
     const currentStatusIndex = steps.indexOf(order.orderStatus?.toLowerCase()) === -1 ? 0 : steps.indexOf(order.orderStatus?.toLowerCase());
 
     // Status Badge Logic
@@ -176,6 +179,7 @@ export default function VendorOrderDetailsPage() {
                 return { color: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400", icon: CheckCircle2, label: "Order Accepted" };
             case 'preparing':
                 return { color: "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400", icon: ShoppingBag, label: "Preparing Order" };
+            case 'ready':
             case 'ready_for_pickup':
                 return { color: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400", icon: CheckCircle2, label: "Ready for Pickup" };
             case 'rider_assigned':
@@ -306,6 +310,7 @@ export default function VendorOrderDetailsPage() {
                                         const statusLabels = {
                                             'accepted': { label: 'Accept Order', icon: Check },
                                             'preparing': { label: 'Start Preparing', icon: ShoppingBag },
+                                            'ready': { label: 'Mark Ready', icon: CheckCircle2 },
                                             'ready_for_pickup': { label: 'Mark Ready', icon: CheckCircle2 },
                                             'rider_assigned': { label: 'Assign Rider', icon: User },
                                             'out_for_delivery': { label: 'Out for Delivery', icon: Truck },
