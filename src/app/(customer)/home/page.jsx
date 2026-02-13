@@ -12,6 +12,7 @@ import TrendingFoods from "@/app/components/Home_Components/TrendingFoods";
 import VendorList from "@/app/components/Home_Components/VendorList";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import AddressModal from "@/app/modals/AddressModal";
+import NotificationPromptBanner from "@/app/components/notifications/NotificationPromptBanner";
 
 export default function HomePage() {
   const [isAddressOpen, setIsAddressOpen] = useState(false);
@@ -48,6 +49,8 @@ export default function HomePage() {
         isOpen={isAddressOpen}
         setIsOpen={setIsAddressOpen}
       />
+
+      <NotificationPromptBanner />
     </div>
   );
 }

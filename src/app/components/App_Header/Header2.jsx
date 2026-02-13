@@ -4,6 +4,7 @@ import React from "react";
 import { usePathname, useRouter } from "next/navigation";
 import NotificationBell from '@/app/components/NotificationBell';
 import { ChevronLeft } from "lucide-react";
+import ProfileIconWithBadge from "./ProfileIconWithBadge";
 import { motion } from "framer-motion";
 
 export default function Header2() {
@@ -51,8 +52,9 @@ export default function Header2() {
           </div>
 
           {/* Action Icons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <NotificationBell />
+            <ProfileIconWithBadge onClick={() => router.push('/profile')} />
           </div>
         </div>
       </div>

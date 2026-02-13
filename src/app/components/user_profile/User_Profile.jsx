@@ -129,7 +129,7 @@ const User_Profile = ({ userData, isLoading }) => {
   return (
     <div className="max-w-4xl mx-auto pb-24">
       {/* Navigation Header */}
-      <div className="px-4 pt-4 flex items-center justify-between">
+      <div className="md:px-4 px-2 pt-4 flex items-center justify-between">
         <motion.button
           whileHover={{ x: -2 }}
           whileTap={{ scale: 0.95 }}
@@ -205,6 +205,11 @@ const User_Profile = ({ userData, isLoading }) => {
         </motion.div>
       </section>
 
+      {/* Notifications Section - High Visibility */}
+      <div className="mt-8 px-6 space-y-4">
+        <NotificationSettings />
+      </div>
+
       {/* Action Grid */}
       <div className="mt-8 px-4 grid grid-cols-1 md:grid-cols-2 gap-4">
         <ActionCard
@@ -250,12 +255,6 @@ const User_Profile = ({ userData, isLoading }) => {
           description="View your recent updates and account alerts"
           href="/notifications"
         />
-      </div>
-
-      {/* Notifications Section */}
-      <div className="mt-8 px-6 space-y-4">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-2">Notifications</p>
-        <NotificationSettings />
       </div>
 
       {/* Danger Zone */}

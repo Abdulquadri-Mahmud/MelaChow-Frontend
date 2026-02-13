@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
 import { useRouter } from "next/navigation";
 import NotificationBell from "@/app/components/NotificationBell";
+import ProfileIconWithBadge from "../App_Header/ProfileIconWithBadge";
 
 export default function HomeHeader() {
   const { user, isLoading } = useUserStorage();
@@ -110,7 +111,7 @@ export default function HomeHeader() {
               </Link>
 
               {/* User Profile - Premium Entry */}
-              <Link href="/profile" className="flex items-center">
+              <Link href="/profile" className="flex items-center relative group">
                 {(!isMounted || isLoading) ? (
                   <div className="w-10 h-10 rounded-[18px] bg-gray-200 dark:bg-zinc-800 animate-pulse" />
                 ) : user?.avatar ? (
@@ -125,16 +126,35 @@ export default function HomeHeader() {
                         className="w-9 h-9 rounded-[16px] object-cover"
                       />
                     </div>
+                    {/* Status Dot */}
                     <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-zinc-950 rounded-full"></div>
+
+                    {/* Notification Badge (Subtle Indicator) */}
+                    {isMounted && "Notification" in window && Notification.permission === "default" && (
+                      <motion.div
+                        className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full border-2 border-white dark:border-zinc-950 shadow-sm z-10"
+                        animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    )}
                   </motion.div>
                 ) : (
                   <motion.div
                     whileHover={{ scale: 1.05 }}
-                    className="w-10 h-10 rounded-[18px] bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-950/30 dark:to-orange-900/40 flex items-center justify-center border border-orange-200/50 dark:border-orange-500/20"
+                    className="relative w-10 h-10 rounded-[18px] bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-950/30 dark:to-orange-900/40 flex items-center justify-center border border-orange-200/50 dark:border-orange-500/20"
                   >
                     <span className="text-orange-600 dark:text-orange-400 font-black italic text-sm">
                       {user?.firstname?.[0] || user?.firstName?.[0] || "G"}
                     </span>
+
+                    {/* Notification Badge (Subtle Indicator) */}
+                    {isMounted && "Notification" in window && Notification.permission === "default" && (
+                      <motion.div
+                        className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full border-2 border-white dark:border-zinc-950 shadow-sm z-10"
+                        animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    )}
                   </motion.div>
                 )}
 
