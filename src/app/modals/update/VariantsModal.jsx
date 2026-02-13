@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { Upload, Check, X } from "lucide-react";
 import showAnimatedToast from "@/app/components/toast/showAnimatedToast";
@@ -29,21 +29,21 @@ export default function VariantModal({ open, onClose, initial = null, onSave }) 
     formData.append("upload_preset", CLOUDINARY_PRESET);
 
     try {
-      const res = await axios.post(CLOUDINARY_HOST, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      const res = await fetch(CLOUDINARY_HOST, {
+        method: "POST",
+        body: formData,
       });
-      return res.data.secure_url;
-    } catch (err) {
-      console.error("❌ Cloudinary upload error:", err);
 
-      if (err.response) {
-        setError(`Upload failed: ${err.response.data.error?.message || "Unknown Cloudinary error"}`);
-      } else if (err.request) {
-        setError("No response from Cloudinary — check your internet connection or Cloudinary host URL.");
-      } else {
-        setError(`Error setting up request: ${err.message}`);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || `Upload failed: ${res.status}`);
       }
 
+      const data = await res.json();
+      return data.secure_url;
+    } catch (err) {
+      console.error("❌ Cloudinary upload error:", err);
+      setError(err.message || "Cloudinary upload failed.");
       return null;
     }
   };
