@@ -19,7 +19,7 @@ import {
     X,
     Package
 } from "lucide-react";
-import { getVendorOrderById, updateOrderStatus } from "@/app/lib/vendorApi";
+import { getVendorOrderById, updateOrderStatus, completeOrder } from "@/app/lib/vendorApi";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 
 export default function VendorOrderDetailsPage() {
@@ -50,45 +50,86 @@ export default function VendorOrderDetailsPage() {
         fetchOrder();
     }, [id]);
 
-    // Execute the status update
+    // Debug: Log order data structure for ID troubleshooting
+    useEffect(() => {
+        if (order) {
+            console.log('📊 Order Data Structure:', {
+                _id: order._id,
+                _idType: typeof order._id,
+                hasOidProperty: !!order._id?.$oid,
+                urlParamId: id,
+                urlParamIdType: typeof id,
+                isValidMongoId: typeof order._id === 'string' && order._id.match(/^[0-9a-fA-F]{24}$/)
+            });
+        }
+    }, [order, id]);
+
     const performStatusUpdate = async (newStatus) => {
         try {
             setIsUpdating(true);
 
-            // ✅ CRITICAL FIX: Always use MongoDB _id from URL params
-            // The 'id' from useParams() is the VendorOrder's MongoDB _id (24 hex chars)
-            // DO NOT use order.userOrderId.orderId (that's the user-facing "ORD-ABC123" format)
+            // ✅ CRITICAL FIX: Properly extract MongoDB _id from order object
+            let vendorOrderId;
+
+            // Handle different formats the API might return (Standard String or Mongo Extended JSON)
+            if (typeof order._id === 'string') {
+                vendorOrderId = order._id;
+            } else if (order._id?.$oid) {
+                vendorOrderId = order._id.$oid;
+            } else if (typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/)) {
+                // Last resort: use URL param only if it's a valid MongoDB ObjectId
+                console.warn('⚠️ Using URL param as vendorOrderId - order._id was unavailable');
+                vendorOrderId = id;
+            } else {
+                throw new Error('Unable to determine valid vendor order ID from order object');
+            }
+
+            // Validate format locally before sending
+            if (!vendorOrderId.match(/^[0-9a-fA-F]{24}$/)) {
+                throw new Error(`Invalid MongoDB ObjectId format: ${vendorOrderId}`);
+            }
 
             console.log(`📝 Updating order status:`, {
-                vendorOrderId: id, // This is the MongoDB _id
+                vendorOrderId, // MongoDB _id being sent to backend
+                vendorOrderIdSource: typeof order._id === 'string' ? 'order._id (string)' : order._id?.$oid ? 'order._id.$oid' : 'url param',
                 newStatus: newStatus,
-                userFacingOrderId: order.userOrderId?.orderId // For logging only
+                userFacingOrderId: order.userOrderId?.orderId || order.orderId
             });
 
-            // ✅ Send MongoDB _id to backend
-            await updateOrderStatus(id, newStatus);
+            // ✅ Call appropriate endpoint
+            if (newStatus === 'completed') {
+                await completeOrder(vendorOrderId);
+            } else {
+                // Backend expects 'ready', frontend uses 'ready_for_pickup'
+                const backendStatus = newStatus === 'ready_for_pickup' ? 'ready' : newStatus;
+                await updateOrderStatus(vendorOrderId, backendStatus);
+            }
 
-            // ✅ Refresh order data using same MongoDB _id
+            // ✅ Refresh order data
             const res = await getVendorOrderById(id);
             const data = res.data || res;
             setOrder(data);
 
-            // Show success toast
             setShowSuccessToast(true);
             setTimeout(() => setShowSuccessToast(false), 3000);
+
         } catch (err) {
             console.error("❌ Failed to update order status:", err);
-            console.error("❌ Error details:", {
-                vendorOrderId: id,
-                requestedStatus: newStatus,
-                error: err.response?.data || err.message
+
+            // ✅ ENHANCED ERROR LOGGING (Using new backend fields)
+            const backendError = err.response?.data;
+            console.error("❌ Backend Error Details:", {
+                attemptedVendorOrderId: vendorOrderId || 'undefined',
+                receivedByBackend: backendError?.received,
+                backendHint: backendError?.hint,
+                message: backendError?.message
             });
 
-            // ✅ Set error message for UI display
-            const errorMsg = err.response?.data?.message || "Failed to update order status. Please try again.";
-            setErrorMessage(errorMsg);
+            // ✅ Set user-friendly error message
+            const errorMsg = backendError?.message || err.message || "Failed to update order status.";
+            const displayMsg = backendError?.hint ? `${errorMsg} (${backendError.hint})` : errorMsg;
 
-            // Clear error after 5 seconds
+            setErrorMessage(displayMsg);
             setTimeout(() => setErrorMessage(null), 5000);
         } finally {
             setIsUpdating(false);
@@ -111,11 +152,8 @@ export default function VendorOrderDetailsPage() {
         const statusFlow = {
             'pending': ['accepted', 'cancelled'],
             'accepted': ['preparing', 'cancelled'],
-            'preparing': ['ready_for_pickup', 'cancelled'],
-            'ready_for_pickup': ['rider_assigned'],
-            'rider_assigned': ['out_for_delivery'],
-            'out_for_delivery': ['delivered'],
-            'delivered': ['completed'],
+            'preparing': ['ready', 'cancelled'],
+            'ready': ['completed'],
             'completed': [],
             'cancelled': [],
             'failed': ['refunded'],
@@ -151,9 +189,13 @@ export default function VendorOrderDetailsPage() {
         );
     }
 
-    const { userOrderId, restaurantId } = order;
-    const user = userOrderId?.userId;
-    const address = userOrderId?.deliveryAddress;
+    // Handle both VendorOrder (nested userOrderId) and UserOrder (direct properties)
+    const userOrderId = order.userOrderId || (order.userId ? order : null);
+    const user = order.userOrderId?.userId || order.userId;
+    const address = order.userOrderId?.deliveryAddress || order.deliveryAddress;
+
+    // Extract restaurantId (could be at root or inside first item)
+    const effectiveRestaurantId = order.restaurantId || (order.items?.[0]?.restaurantId?.$oid || order.items?.[0]?.restaurantId);
 
     // Format Date
     const dateObj = new Date(order.createdAt);
@@ -161,10 +203,14 @@ export default function VendorOrderDetailsPage() {
     const timeStr = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
     // Filter items for this vendor
-    const detailedItems = userOrderId?.items?.filter(item => item.restaurantId === restaurantId) || [];
+    const itemsToFilter = order.userOrderId?.items || order.items || [];
+    const detailedItems = itemsToFilter.filter(item => {
+        const itemRestId = item.restaurantId?.$oid || item.restaurantId;
+        return itemRestId === effectiveRestaurantId;
+    });
 
     // Progress Steps logic
-    const steps = ['pending', 'accepted', 'preparing', 'ready_for_pickup', 'rider_assigned', 'out_for_delivery', 'delivered', 'completed'];
+    const steps = ['pending', 'accepted', 'preparing', 'ready', 'rider_assigned', 'out_for_delivery', 'delivered', 'completed'];
     const currentStatusIndex = steps.indexOf(order.orderStatus?.toLowerCase()) === -1 ? 0 : steps.indexOf(order.orderStatus?.toLowerCase());
 
     // Status Badge Logic
@@ -176,6 +222,7 @@ export default function VendorOrderDetailsPage() {
                 return { color: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400", icon: CheckCircle2, label: "Order Accepted" };
             case 'preparing':
                 return { color: "bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400", icon: ShoppingBag, label: "Preparing Order" };
+            case 'ready':
             case 'ready_for_pickup':
                 return { color: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400", icon: CheckCircle2, label: "Ready for Pickup" };
             case 'rider_assigned':
@@ -306,6 +353,7 @@ export default function VendorOrderDetailsPage() {
                                         const statusLabels = {
                                             'accepted': { label: 'Accept Order', icon: Check },
                                             'preparing': { label: 'Start Preparing', icon: ShoppingBag },
+                                            'ready': { label: 'Mark Ready', icon: CheckCircle2 },
                                             'ready_for_pickup': { label: 'Mark Ready', icon: CheckCircle2 },
                                             'rider_assigned': { label: 'Assign Rider', icon: User },
                                             'out_for_delivery': { label: 'Out for Delivery', icon: Truck },
