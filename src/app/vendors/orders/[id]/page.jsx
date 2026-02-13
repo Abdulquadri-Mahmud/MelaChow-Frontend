@@ -50,51 +50,86 @@ export default function VendorOrderDetailsPage() {
         fetchOrder();
     }, [id]);
 
-    // Execute the status update
+    // Debug: Log order data structure for ID troubleshooting
+    useEffect(() => {
+        if (order) {
+            console.log('📊 Order Data Structure:', {
+                _id: order._id,
+                _idType: typeof order._id,
+                hasOidProperty: !!order._id?.$oid,
+                urlParamId: id,
+                urlParamIdType: typeof id,
+                isValidMongoId: typeof order._id === 'string' && order._id.match(/^[0-9a-fA-F]{24}$/)
+            });
+        }
+    }, [order, id]);
+
     const performStatusUpdate = async (newStatus) => {
         try {
             setIsUpdating(true);
 
-            // ✅ CRITICAL FIX: Always use the MongoDB _id from the order object
-            // Handle both string ID and { $oid: "..." } format
-            const actualId = order._id?.$oid || order._id;
-            const vendorOrderId = actualId || id;
+            // ✅ CRITICAL FIX: Properly extract MongoDB _id from order object
+            let vendorOrderId;
+
+            // Handle different formats the API might return (Standard String or Mongo Extended JSON)
+            if (typeof order._id === 'string') {
+                vendorOrderId = order._id;
+            } else if (order._id?.$oid) {
+                vendorOrderId = order._id.$oid;
+            } else if (typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/)) {
+                // Last resort: use URL param only if it's a valid MongoDB ObjectId
+                console.warn('⚠️ Using URL param as vendorOrderId - order._id was unavailable');
+                vendorOrderId = id;
+            } else {
+                throw new Error('Unable to determine valid vendor order ID from order object');
+            }
+
+            // Validate format locally before sending
+            if (!vendorOrderId.match(/^[0-9a-fA-F]{24}$/)) {
+                throw new Error(`Invalid MongoDB ObjectId format: ${vendorOrderId}`);
+            }
 
             console.log(`📝 Updating order status:`, {
-                vendorOrderId, // This is the MongoDB _id
+                vendorOrderId, // MongoDB _id being sent to backend
+                vendorOrderIdSource: typeof order._id === 'string' ? 'order._id (string)' : order._id?.$oid ? 'order._id.$oid' : 'url param',
                 newStatus: newStatus,
-                userFacingOrderId: order.userOrderId?.orderId || order.orderId // For logging only
+                userFacingOrderId: order.userOrderId?.orderId || order.orderId
             });
 
-            // ✅ Targeted endpoints
+            // ✅ Call appropriate endpoint
             if (newStatus === 'completed') {
                 await completeOrder(vendorOrderId);
             } else {
+                // Backend expects 'ready', frontend uses 'ready_for_pickup'
                 const backendStatus = newStatus === 'ready_for_pickup' ? 'ready' : newStatus;
                 await updateOrderStatus(vendorOrderId, backendStatus);
             }
 
-            // ✅ Refresh data using the same ID
+            // ✅ Refresh order data
             const res = await getVendorOrderById(id);
             const data = res.data || res;
             setOrder(data);
 
-            // Show success toast
             setShowSuccessToast(true);
             setTimeout(() => setShowSuccessToast(false), 3000);
+
         } catch (err) {
             console.error("❌ Failed to update order status:", err);
-            console.error("❌ Error details:", {
-                vendorOrderId: id,
-                requestedStatus: newStatus,
-                error: err.response?.data || err.message
+
+            // ✅ ENHANCED ERROR LOGGING (Using new backend fields)
+            const backendError = err.response?.data;
+            console.error("❌ Backend Error Details:", {
+                attemptedVendorOrderId: vendorOrderId || 'undefined',
+                receivedByBackend: backendError?.received,
+                backendHint: backendError?.hint,
+                message: backendError?.message
             });
 
-            // ✅ Set error message for UI display
-            const errorMsg = err.response?.data?.message || "Failed to update order status. Please try again.";
-            setErrorMessage(errorMsg);
+            // ✅ Set user-friendly error message
+            const errorMsg = backendError?.message || err.message || "Failed to update order status.";
+            const displayMsg = backendError?.hint ? `${errorMsg} (${backendError.hint})` : errorMsg;
 
-            // Clear error after 5 seconds
+            setErrorMessage(displayMsg);
             setTimeout(() => setErrorMessage(null), 5000);
         } finally {
             setIsUpdating(false);
