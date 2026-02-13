@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { MapPin, ChevronDown, ShoppingBag } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { MapPin, ChevronDown, ShoppingBag, Search } from "lucide-react";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
@@ -16,8 +16,6 @@ export default function HomeHeader() {
   const [greeting, setGreeting] = useState("Hello");
   const [isMounted, setIsMounted] = useState(false);
 
-  // console.log(user)
-
   useEffect(() => {
     setIsMounted(true);
     const hour = new Date().getHours();
@@ -29,86 +27,130 @@ export default function HomeHeader() {
   const defaultAddress = user?.addresses?.find(addr => addr.isDefault);
 
   const handleLocationClick = () => {
-    // Check if user is authenticated (has user data)
     if (user) {
-      // User is authenticated, redirect to address location page
       router.push('/profile/address');
     } else {
-      // User is not authenticated (cookies expired or never logged in), redirect to login
       router.push('/auth/signin');
     }
   };
 
   return (
     <motion.header
-      initial={{ y: -40, opacity: 0 }}
+      initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="flex items-center justify-between px-5 py-3 bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-gray-100 dark:border-zinc-800 dark:bg-zinc-900/90"
+      className="sticky top-0 z-50 w-full"
     >
-      {/* Location / Greeting */}
-      <div className="flex flex-col">
-        <div className="flex items-center gap-1.5 mb-0.5">
-          <span suppressHydrationWarning className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">
-            {greeting}, {user?.firstname || user?.firstName || 'Guest'}
-          </span>
-          <span className="text-[10px]">👋</span>
-        </div>
+      {/* Premium Glassmorphism Container */}
+      <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-gray-100 dark:border-zinc-800/50">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+          <div className="flex items-center justify-between h-20">
 
-        <div
-          onClick={handleLocationClick}
-          className="flex items-center gap-1 cursor-pointer group"
-        >
-          <span suppressHydrationWarning className="text-[12px] font-black text-gray-800 dark:text-gray-100 truncate max-w-[200px]">
-            {defaultAddress
-              ? `${defaultAddress.city}, ${defaultAddress.state}`
-              : "Select Location"}
-          </span>
-          <ChevronDown size={14} className="text-gray-400 group-hover:text-orange-500 transition-colors mt-0.5" />
-        </div>
-      </div>
+            {/* Left Section: Branding & Location */}
+            <div className="flex items-center gap-4">
+              {/* Optional: Logo Mark */}
+              <Link href="/" className="hidden lg:flex items-center gap-2 group">
+                <div className="w-10 h-10 bg-orange-500 rounded-2xl flex items-center justify-center group-hover:rotate-6 transition-transform">
+                  <span className="text-white font-black italic text-xl">G</span>
+                </div>
+              </Link>
 
-
-      {/* Right Icons */}
-      <div className="flex items-center gap-4">
-        {/* Notification Bell */}
-        <NotificationBell />
-
-        <Link href={'/orders'}>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative p-2.5 bg-gray-50 dark:bg-zinc-800 rounded-2xl hover:bg-orange-50 dark:hover:bg-zinc-700 transition-colors"
-          >
-            <ShoppingBag className="text-gray-700 dark:text-gray-200" size={20} />
-            {totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-md ring-2 ring-white dark:ring-zinc-900">
-                {totalItems}
-              </span>
-            )}
-          </motion.div>
-        </Link>
-
-        {(!isMounted || isLoading) ? (
-          <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-zinc-800 animate-pulse" />
-        ) : user?.avatar ? (
-          <Link href='/profile'>
-            <motion.div whileHover={{ scale: 1.05 }} className="relative">
-              <img
-                src={user.avatar}
-                alt="Profile"
-                className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-zinc-800 shadow-md"
-              />
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-zinc-900 rounded-full"></div>
-            </motion.div>
-          </Link>
-        ) : (
-          <Link href='/profile'>
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center shadow-sm text-orange-600 font-bold border-2 border-white">
-              {user?.firstname?.[0] || user?.firstName?.[0] || "G"}
+              {/* Location Picker - Refined UI */}
+              <motion.div
+                onClick={handleLocationClick}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex flex-col cursor-pointer group px-3 py-1.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors"
+              >
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="text-[10px] font-black uppercase text-orange-500 tracking-widest italic opacity-80">
+                    Deliver to
+                  </span>
+                  <ChevronDown size={10} className="text-orange-400 group-hover:translate-y-0.5 transition-transform" />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <MapPin size={14} className="text-orange-500" />
+                  <span className="text-sm font-black text-gray-900 dark:text-gray-100 truncate max-w-[140px] sm:max-w-[200px]">
+                    {defaultAddress
+                      ? `${defaultAddress.city}, ${defaultAddress.state}`
+                      : "Select Location"}
+                  </span>
+                </div>
+              </motion.div>
             </div>
-          </Link>
-        )}
+
+            {/* Right Section: Actions & User */}
+            <div className="flex items-center gap-3 md:gap-4">
+
+              {/* Notification Bell with connection state handling built in */}
+              <div className="">
+                <NotificationBell />
+              </div>
+
+              {/* Cart Button - Styled for Premium Feel */}
+              <Link href="/orders?activeTab=cart">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative p-2.5 bg-gray-100 dark:bg-zinc-900 rounded-2xl hover:bg-orange-50 dark:hover:bg-zinc-800 transition-all border border-transparent hover:border-orange-200 dark:hover:border-zinc-700"
+                >
+                  <ShoppingBag className="text-gray-700 dark:text-gray-200" size={20} />
+                  <AnimatePresence>
+                    {totalItems > 0 && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-black ring-2 ring-white dark:ring-zinc-950"
+                      >
+                        {totalItems}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              </Link>
+
+              {/* User Profile - Premium Entry */}
+              <Link href="/profile" className="flex items-center">
+                {(!isMounted || isLoading) ? (
+                  <div className="w-10 h-10 rounded-[18px] bg-gray-200 dark:bg-zinc-800 animate-pulse" />
+                ) : user?.avatar ? (
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="relative group p-0.5 rounded-[20px] bg-gradient-to-tr from-orange-400 to-orange-600"
+                  >
+                    <div className="bg-white dark:bg-zinc-950 p-0.5 rounded-[18px]">
+                      <img
+                        src={user.avatar}
+                        alt="Profile"
+                        className="w-9 h-9 rounded-[16px] object-cover"
+                      />
+                    </div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-zinc-950 rounded-full"></div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="w-10 h-10 rounded-[18px] bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-950/30 dark:to-orange-900/40 flex items-center justify-center border border-orange-200/50 dark:border-orange-500/20"
+                  >
+                    <span className="text-orange-600 dark:text-orange-400 font-black italic text-sm">
+                      {user?.firstname?.[0] || user?.firstName?.[0] || "G"}
+                    </span>
+                  </motion.div>
+                )}
+
+                {/* Desktop Greeting */}
+                <div className="hidden lg:flex flex-col ml-3 text-left">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter leading-none mb-0.5">
+                    {greeting}
+                  </span>
+                  <span className="text-sm font-black text-gray-900 dark:text-white leading-none">
+                    {user?.firstname || user?.firstName || 'Guest'}
+                  </span>
+                </div>
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     </motion.header>
   );

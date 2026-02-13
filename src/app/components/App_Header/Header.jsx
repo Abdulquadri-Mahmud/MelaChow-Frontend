@@ -1,114 +1,135 @@
 "use client";
+
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { FiSearch, FiShoppingCart, FiUser, FiMenu } from "react-icons/fi";
+import { Search, ShoppingBag, User, Menu } from "lucide-react";
 import NotificationBell from "@/app/components/NotificationBell";
-// import Sidebar from "./Sidebar"; // Uncomment when ready to use
-
-const LogoImage = () => (
-  <img
-    src="/logo.png"
-    alt="ChowConnect Logo"
-    className="md:w-[160px] w-[150px] object-contain"
-  />
-);
-
 import { useProfile } from "../../context/ProfileContext";
 
 export default function Header() {
-  const [isFocused, setIsFocused] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const { userProfile, isLoading } = useProfile();
 
+  const navLinks = [
+    { name: "Home", href: "/" },
+    { name: "Restaurants", href: "/restaurants" },
+    { name: "Orders", href: "/orders" },
+    { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" }
+  ];
+
   return (
-    <header className="sticky top-0 z-50 bg-white rounded-b-4xl border-b-3 border-white backdrop-blur-lg">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 py-2">
-        {/* Left & Nav Links */}
-        <div className="flex items-center gap-6">
-          <Link href="#">
-            <LogoImage />
-          </Link>
+    <motion.header
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      className="sticky top-0 z-50 w-full"
+    >
+      <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-gray-100 dark:border-zinc-800/50 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-6">
-            {["Home", "Restaurants", "Menu", "About", "Contact"].map(
-              (item, index) => (
+          {/* Logo Section */}
+          <div className="flex items-center gap-10">
+            <Link href="/" className="flex items-center gap-2 group shrink-0">
+              <div className="w-10 h-10 bg-orange-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20 group-hover:rotate-6 transition-transform">
+                <span className="text-white font-black italic text-xl">G</span>
+              </div>
+              <span className="hidden sm:block text-lg font-black italic tracking-tighter uppercase dark:text-white">
+                Grub<span className="text-orange-500">Dash</span>
+              </span>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-8">
+              {navLinks.map((link) => (
                 <Link
-                  key={index}
-                  href="#"
-                  className="text-sm font-medium text-gray-700 hover:text-orange-500 transition-colors"
+                  key={link.name}
+                  href={link.href}
+                  className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-orange-600 dark:text-gray-400 dark:hover:text-orange-500 transition-colors"
                 >
-                  {item}
+                  {link.name}
                 </Link>
-              )
-            )}
-          </nav>
-        </div>
+              ))}
+            </nav>
+          </div>
 
-        {/* Right Side */}
-        <div className="hidden md:flex items-center gap-5">
-          <motion.div
-            className="relative"
-            animate={{ width: isFocused ? 200 : 150 }}
-            transition={{ type: "spring", stiffness: 200 }}
-          >
-            <input
-              type="text"
-              placeholder="Search..."
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              className="pl-10 pr-4 py-2 text-sm rounded-full border border-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 w-full transition-all placeholder:text-gray-500"
-            />
-            <FiSearch className="absolute left-3 top-2.5 text-gray-700" />
-          </motion.div>
+          {/* Right Section: Actions */}
+          <div className="flex items-center gap-4">
 
-          {/* Notification Bell */}
-          <NotificationBell />
-
-          {/* Cart Icon */}
-          <Link href="/cart">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative text-gray-700 hover:text-orange-500 mt-2"
+            {/* Search Bar - Premium Integrated Style */}
+            <motion.div
+              className="hidden md:flex relative items-center"
+              initial={false}
+              animate={{ width: isSearchFocused ? 240 : 180 }}
             >
-              <FiShoppingCart className="text-xl" />
-              {/* <span className="absolute -top-1 -right-2 bg-orange-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
-                2
-              </span> */}
-            </motion.button>
-          </Link>
+              <div className={`w-full flex items-center gap-2 px-3 h-10 rounded-2xl border transition-all ${isSearchFocused
+                ? 'bg-white dark:bg-zinc-900 border-orange-500/50 shadow-md ring-4 ring-orange-500/5'
+                : 'bg-gray-50 dark:bg-zinc-900 border-transparent hover:border-gray-200 dark:hover:border-zinc-700'
+                }`}>
+                <Search size={16} className={isSearchFocused ? 'text-orange-500' : 'text-gray-400'} />
+                <input
+                  type="text"
+                  placeholder="Search dishes..."
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                  className="bg-transparent text-sm font-medium w-full focus:outline-none dark:text-white placeholder:text-gray-400"
+                />
+              </div>
+            </motion.div>
 
-          {/* User Profile / Login */}
-          {isLoading ? (
-            <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
-          ) : userProfile ? (
-            <Link href="/profile">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold border border-orange-200">
-                  {userProfile.firstname ? userProfile.firstname[0].toUpperCase() : <FiUser />}
-                </div>
-                <span className="text-sm font-bold text-gray-700 hover:text-orange-600">
-                  {userProfile.firstname || "Account"}
-                </span>
-              </motion.div>
-            </Link>
-          ) : (
-            <Link href="/auth/signin">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-4 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-full hover:bg-orange-600 transition-colors"
-              >
-                Login
-              </motion.button>
-            </Link>
-          )}
+            <div className="flex items-center gap-3">
+              <NotificationBell />
+
+              <Link href="/orders?activeTab=cart">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="p-2.5 rounded-2xl bg-gray-50 dark:bg-zinc-900 border border-transparent hover:border-orange-200 dark:hover:border-zinc-700 text-gray-700 dark:text-gray-200 hover:text-orange-600 transition-all"
+                >
+                  <ShoppingBag size={20} />
+                </motion.div>
+              </Link>
+
+              {/* User Entry */}
+              {isLoading ? (
+                <div className="w-10 h-10 rounded-[18px] bg-gray-200 dark:bg-zinc-800 animate-pulse" />
+              ) : userProfile ? (
+                <Link href="/profile">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="flex items-center gap-2 p-1 pl-1 pr-3 rounded-[20px] bg-gray-50 dark:bg-zinc-900 hover:bg-white dark:hover:bg-zinc-800 border border-transparent hover:border-orange-200 dark:hover:border-zinc-700 transition-all group"
+                  >
+                    <div className="w-8 h-8 rounded-[15px] bg-gradient-to-tr from-orange-400 to-orange-600 flex items-center justify-center text-white font-black italic shadow-md">
+                      {userProfile.firstname ? userProfile.firstname[0].toUpperCase() : <User size={16} />}
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter leading-none mb-0.5">Hello,</span>
+                      <span className="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-tight leading-none group-hover:text-orange-600 transition-colors">
+                        {userProfile.firstname || "Profile"}
+                      </span>
+                    </div>
+                  </motion.div>
+                </Link>
+              ) : (
+                <Link href="/auth/signin">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-6 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-black uppercase tracking-widest italic rounded-2xl shadow-lg shadow-zinc-200 dark:shadow-none hover:bg-orange-600 dark:hover:bg-orange-500 dark:hover:text-white transition-all"
+                  >
+                    Login
+                  </motion.button>
+                </Link>
+              )}
+            </div>
+
+            {/* Mobile Menu Trigger */}
+            <button className="lg:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors">
+              <Menu size={24} className="text-gray-700 dark:text-gray-200" />
+            </button>
+          </div>
         </div>
       </div>
-    </header>
+    </motion.header>
   );
 }

@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono, Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ApiProvider } from "./context/ApiContext";
+import { SocketProvider } from "./context/SocketContext";
 import QueryProvider from "./providers/QueryProvider";
 import { Toaster } from "react-hot-toast";
 import "@/app/lib/api"; // Register axios interceptors
@@ -116,7 +117,9 @@ export default function RootLayout({ children }) {
         {/* ✅ ONLY base providers - no auth logic here */}
         <ApiProvider>
           <QueryProvider>
-            {children}
+            <SocketProvider>
+              {children}
+            </SocketProvider>
           </QueryProvider>
         </ApiProvider>
         <Toaster position="top-right" reverseOrder={false} />

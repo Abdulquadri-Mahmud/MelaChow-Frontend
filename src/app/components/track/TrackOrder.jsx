@@ -10,6 +10,8 @@ import Header2 from "../App_Header/Header2";
 import OrderTrackingSkeleton from "../skeleton/OrderTrackingSkeleton";
 import { motion } from "framer-motion";
 import ReviewModal from "@/app/modals/ReviewModal";
+import { useOrderTracking } from "@/app/hooks/useOrderTracking";
+import toast from "react-hot-toast";
 
 const statusSteps = [
   {
@@ -81,9 +83,37 @@ export default function OrderTracking() {
   const { baseUrl } = useApi();
   const { user } = useUserStorage();
 
-  useEffect(() => {
-    // if (!user) return; // Optional: Wait for user context
+  // Real-time tracking hook
+  const { onStatusUpdate, onLocationUpdate } = useOrderTracking(orderId);
 
+  useEffect(() => {
+    // Listen for real-time status updates
+    onStatusUpdate((data) => {
+      console.log('🔄 Real-time status update:', data.status);
+      setOrderData(prev => prev ? { ...prev, orderStatus: data.status } : null);
+
+      // Optionally show a toast
+      const statusLabel = statusSteps.find(s => s.key === data.status)?.label || data.status;
+      toast.success(`Order Status: ${statusLabel}`, {
+        icon: '🚚',
+        style: {
+          borderRadius: '16px',
+          background: '#333',
+          color: '#fff',
+          fontSize: '12px',
+          fontWeight: 'bold'
+        },
+      });
+    });
+
+    // Listen for real-time location updates (for future map integration)
+    onLocationUpdate((data) => {
+      console.log('📍 Real-time location update:', data.location);
+      // Update location in state if map is implemented
+    });
+  }, [onStatusUpdate, onLocationUpdate]);
+
+  useEffect(() => {
     const fetchOrder = async () => {
       try {
         const res = await axios.get(`${baseUrl}/orders/${orderId}`, {
