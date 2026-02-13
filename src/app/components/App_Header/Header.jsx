@@ -97,17 +97,30 @@ export default function Header() {
                 <Link href="/profile">
                   <motion.div
                     whileHover={{ scale: 1.05 }}
-                    className="flex items-center gap-2 p-1 pl-1 pr-3 rounded-[20px] bg-gray-50 dark:bg-zinc-900 hover:bg-white dark:hover:bg-zinc-800 border border-transparent hover:border-orange-200 dark:hover:border-zinc-700 transition-all group"
+                    className="flex items-center gap-2 p-1 pl-1 pr-3 rounded-[20px] bg-gray-50 dark:bg-zinc-900 hover:bg-white dark:hover:bg-zinc-800 border border-transparent hover:border-orange-200 dark:hover:border-zinc-700 transition-all group relative"
                   >
-                    <div className="w-8 h-8 rounded-[15px] bg-gradient-to-tr from-orange-400 to-orange-600 flex items-center justify-center text-white font-black italic shadow-md">
+                    <div className="w-8 h-8 rounded-[15px] bg-gradient-to-tr from-orange-400 to-orange-600 flex items-center justify-center text-white font-black italic shadow-md relative">
                       {userProfile.firstname ? userProfile.firstname[0].toUpperCase() : <User size={16} />}
+
+                      {/* Status Dot */}
+                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-zinc-900 rounded-full"></div>
                     </div>
+
                     <div className="flex flex-col text-left">
                       <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter leading-none mb-0.5">Hello,</span>
                       <span className="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-tight leading-none group-hover:text-orange-600 transition-colors">
                         {userProfile.firstname || "Profile"}
                       </span>
                     </div>
+
+                    {/* Notification Badge (Subtle Indicator) */}
+                    {typeof window !== "undefined" && "Notification" in window && Notification.permission === "default" && (
+                      <motion.div
+                        className="absolute -top-1 -right-0.5 w-3 h-3 bg-orange-500 rounded-full border-2 border-white dark:border-zinc-950 shadow-sm z-10"
+                        animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    )}
                   </motion.div>
                 </Link>
               ) : (
