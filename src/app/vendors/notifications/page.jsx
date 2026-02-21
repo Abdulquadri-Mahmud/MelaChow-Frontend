@@ -80,7 +80,7 @@ export default function VendorNotificationsPage() {
         if (notification.url) {
             router.push(notification.url);
         } else if (notification.orderId) {
-            router.push(`/vendors/orders/${notification.orderId}`);
+            router.push(`/vendors/orders/${notification.orderDatabaseId || notification.orderId}`);
         }
     };
 
@@ -156,7 +156,7 @@ export default function VendorNotificationsPage() {
                                 toast.success("Push notifications enabled successfully!");
                             }
                         }}
-                        className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95"
+                        className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-bold transition-all active:scale-95"
                     >
                         Enable Now
                     </button>
@@ -228,7 +228,7 @@ export default function VendorNotificationsPage() {
                                                 {/* Action indicator */}
                                                 <div className="flex flex-col items-center justify-center gap-2">
                                                     {!notification.read && (
-                                                        <div className="w-2 h-2 bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]"></div>
+                                                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                                                     )}
                                                     <ChevronRight size={18} className="text-slate-300 group-hover:text-orange-500 transition-colors" />
                                                 </div>
