@@ -5,15 +5,15 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotificationManager } from '@/app/hooks/useNotificationManager';
 
-export default function NotificationBell() {
+export default function NotificationBell({ restaurantId, href = '/notifications' }) {
     const router = useRouter();
-    const { unreadCount, isRealtimeConnected } = useNotificationManager();
+    const { unreadCount, isRealtimeConnected } = useNotificationManager({ restaurantId });
 
     return (
         <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push('/notifications')}
+            onClick={() => router.push(href)}
             className="relative p-2.5 bg-gray-100 dark:bg-zinc-900 rounded-2xl hover:bg-orange-50 dark:hover:bg-zinc-800 transition-all border border-transparent hover:border-orange-200 dark:hover:border-zinc-700 group"
             aria-label="Notifications"
             title={isRealtimeConnected ? 'Real-time updates active' : 'Using fallback polling'}
@@ -21,8 +21,8 @@ export default function NotificationBell() {
             <Bell
                 size={20}
                 className={`transition-colors ${unreadCount > 0
-                        ? 'text-orange-500'
-                        : 'text-gray-700 dark:text-gray-200 group-hover:text-orange-500'
+                    ? 'text-orange-500'
+                    : 'text-gray-700 dark:text-gray-200 group-hover:text-orange-500'
                     }`}
             />
 

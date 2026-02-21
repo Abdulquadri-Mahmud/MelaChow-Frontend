@@ -16,21 +16,24 @@ export default function RealtimeNotificationListener() {
 
         // Get appropriate icon based on notification type
         const getIcon = (type) => {
-            if (type?.includes('order')) return '📦';
+            if (type?.includes('order')) return '🛍️';
             if (type?.includes('promo') || type?.includes('discount')) return '🎁';
             if (type?.includes('delivery')) return '🚚';
+            if (type?.includes('cancel')) return '❌';
             return '🔔';
         };
 
         // Show toast notification
         toast.custom((t) => (
             <div
-                className={`bg-white shadow-lg rounded-2xl p-4 flex items-start gap-3 max-w-md border-l-4 ${latestNotification.type?.includes('order')
-                        ? 'border-orange-500'
-                        : latestNotification.type?.includes('promo')
-                            ? 'border-green-500'
+                className={`bg-white dark:bg-zinc-900 shadow-2xl rounded-2xl p-4 flex items-start gap-4 max-w-md border-l-4 ${latestNotification.type?.includes('order')
+                    ? 'border-orange-500'
+                    : latestNotification.type?.includes('promo')
+                        ? 'border-green-500'
+                        : latestNotification.type?.includes('cancel')
+                            ? 'border-red-500'
                             : 'border-blue-500'
-                    } ${t.visible ? 'animate-enter' : 'animate-leave'}`}
+                    } ${t.visible ? 'animate-in slide-in-from-right-full' : 'animate-out fade-out'}`}
                 onClick={() => {
                     if (latestNotification.url) {
                         window.location.href = latestNotification.url;
@@ -42,10 +45,10 @@ export default function RealtimeNotificationListener() {
                     {getIcon(latestNotification.type)}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-sm text-gray-900 mb-1">
+                    <h4 className="font-bold text-sm text-gray-900 dark:text-white mb-1">
                         {latestNotification.title}
                     </h4>
-                    <p className="text-xs text-gray-600 line-clamp-2">
+                    <p className="text-xs text-gray-600 dark:text-zinc-400 line-clamp-2">
                         {latestNotification.body}
                     </p>
                     {latestNotification.url && (

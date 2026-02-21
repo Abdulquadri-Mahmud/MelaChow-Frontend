@@ -21,6 +21,7 @@ export default function VendorOrderCard({ order }) {
       case 'pending': return "bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400";
       case 'accepted': return "bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400";
       case 'preparing': return "bg-[#FF6B00]/10 text-[#FF6B00]";
+      case 'ready':
       case 'ready_for_pickup': return "bg-purple-100 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400";
       case 'rider_assigned': return "bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400";
       case 'out_for_delivery': return "bg-cyan-100 text-cyan-600 dark:bg-cyan-500/10 dark:text-cyan-400";

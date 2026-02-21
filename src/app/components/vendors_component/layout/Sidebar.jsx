@@ -14,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Wallet,
-  TicketPercent
+  TicketPercent,
+  Bell
 } from "lucide-react";
 import Logo from "../../logo/Logo";
 import { useApi } from "@/app/context/ApiContext";
@@ -39,6 +40,11 @@ const navItems = [
     name: "Orders",
     icon: ClipboardList,
     href: "/vendors/order",
+  },
+  {
+    name: "Notifications",
+    icon: Bell,
+    href: "/vendors/notifications",
   },
   {
     name: "My Foods",

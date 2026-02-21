@@ -9,7 +9,9 @@ import axios from 'axios';
  * UNIFIED NOTIFICATION MANAGER
  * Combines WebSocket, Push, and REST API
  */
-export function useNotificationManager() {
+export function useNotificationManager(options = {}) {
+    const { restaurantId } = options;
+
     // Real-time (WebSocket)
     const {
         unreadCount: wsUnreadCount,
@@ -21,7 +23,9 @@ export function useNotificationManager() {
     const {
         subscription: pushSubscription,
         isSupported: pushSupported,
-        permission: pushPermission
+        permission: pushPermission,
+        subscribe,
+        unsubscribe
     } = usePushNotifications();
 
     // REST API fallback
@@ -33,7 +37,7 @@ export function useNotificationManager() {
     useEffect(() => {
         fetchNotificationsFromAPI();
         fetchUnreadCountFromAPI();
-    }, []);
+    }, [restaurantId]);
 
     // Poll API when WebSocket is disconnected (fallback)
     useEffect(() => {
@@ -42,16 +46,19 @@ export function useNotificationManager() {
             const interval = setInterval(fetchUnreadCountFromAPI, 30000); // Every 30s
             return () => clearInterval(interval);
         }
-    }, [wsConnected]);
+    }, [wsConnected, restaurantId]);
 
     const fetchNotificationsFromAPI = async () => {
         setLoading(true);
         try {
             const response = await axios.get('/api/notifications/history', {
                 withCredentials: true,
-                params: { limit: 50 }
+                params: {
+                    limit: 50,
+                    ...(restaurantId && { restaurantId })
+                }
             });
-            setNotifications(response.data.notifications || []);
+            setNotifications(response.data.notifications || response.data.data || []);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
         } finally {
@@ -62,24 +69,72 @@ export function useNotificationManager() {
     const fetchUnreadCountFromAPI = async () => {
         try {
             const response = await axios.get('/api/notifications/unread-count', {
-                withCredentials: true
+                withCredentials: true,
+                params: {
+                    ...(restaurantId && { restaurantId })
+                }
             });
-            setApiUnreadCount(response.data.count || 0);
+            // Handle multiple possible response structures
+            const count = response.data?.count ?? response.data?.data?.count ?? response.data?.data ?? 0;
+            setApiUnreadCount(count);
         } catch (error) {
             console.error('Failed to fetch unread count:', error);
         }
     };
 
-    // Intelligent count selection
-    // Priority: WebSocket > API fallback
-    const unreadCount = wsConnected ? wsUnreadCount : apiUnreadCount;
+    const markAsRead = async (notificationId) => {
+        try {
+            await axios.patch(`/api/notifications/mark-read/${notificationId}`, {}, {
+                withCredentials: true
+            });
+            setNotifications(prev => prev.map(n =>
+                n._id === notificationId ? { ...n, read: true } : n
+            ));
+            // Trigger count refresh
+            fetchUnreadCountFromAPI();
+        } catch (error) {
+            console.error('Failed to mark notification as read:', error);
+        }
+    };
 
-    // Add new WebSocket notification to local list
+    const markAllAsRead = async () => {
+        try {
+            await axios.patch('/api/notifications/mark-all-read', {}, {
+                withCredentials: true,
+                params: {
+                    ...(restaurantId && { restaurantId })
+                }
+            });
+            setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+            setApiUnreadCount(0);
+        } catch (error) {
+            console.error('Failed to mark all notifications as read:', error);
+        }
+    };
+
+    // Add new WebSocket notification to local list and increment count
     useEffect(() => {
         if (wsLatestNotification) {
-            setNotifications(prev => [wsLatestNotification, ...prev]);
+            // Check if notification belongs to this restaurant if restaurantId is provided
+            // For now we add it and increment the local count
+            setNotifications(prev => {
+                // Prevent duplicate entries if the socket and API overlap
+                const exists = prev.some(n => n._id === wsLatestNotification._id);
+                if (exists) return prev;
+                return [wsLatestNotification, ...prev];
+            });
+
+            if (!wsLatestNotification.read) {
+                setApiUnreadCount(prev => prev + 1);
+            }
         }
     }, [wsLatestNotification]);
+
+    // Intelligent count selection
+    // Priority: If it's a general notification bell (no restaurantId), use global socket count.
+    // If it's restaurant-specific, use the local apiUnreadCount (which is also live-updated by wsLatestNotification).
+    const unreadCount = (wsConnected && !restaurantId) ? wsUnreadCount : apiUnreadCount;
+
 
     return {
         // Notification data
@@ -96,6 +151,10 @@ export function useNotificationManager() {
 
         // Actions
         refreshNotifications: fetchNotificationsFromAPI,
-        refreshCount: fetchUnreadCountFromAPI
+        refreshCount: fetchUnreadCountFromAPI,
+        markAsRead,
+        markAllAsRead,
+        subscribe,
+        unsubscribe
     };
 }
