@@ -1,4 +1,5 @@
 import axios from "axios";
+import { TokenManager } from "./auth-token";
 
 const BASE_URL = "/api";
 
@@ -6,6 +7,18 @@ const API = axios.create({
   baseURL: BASE_URL,
   withCredentials: true, // ✅ Important: Send cookies with every request
 });
+
+// Add request interceptor to attach vendor token
+API.interceptors.request.use(
+  (config) => {
+    const token = TokenManager.getToken('vendor');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Interceptor to handle 401 Unauthorized globally
 // Interceptor to handle 401 Unauthorized globally
