@@ -46,7 +46,12 @@ export default function VendorOrdersPage() {
 
     // 1. Filter by Status
     if (statusFilter !== "all") {
-      result = result.filter(order => order.orderStatus === statusFilter);
+      result = result.filter(order => {
+        if (statusFilter === 'ready_for_pickup') {
+          return order.orderStatus === 'ready_for_pickup' || order.orderStatus === 'ready';
+        }
+        return order.orderStatus === statusFilter;
+      });
     }
 
     // 2. Filter by Search Query
@@ -91,7 +96,7 @@ export default function VendorOrdersPage() {
   const stats = {
     total: orders.length,
     pending: orders.filter(o => o.orderStatus === 'pending').length,
-    active: orders.filter(o => ['accepted', 'preparing', 'ready_for_pickup', 'out_for_delivery'].includes(o.orderStatus)).length,
+    active: orders.filter(o => ['accepted', 'preparing', 'ready_for_pickup', 'ready', 'out_for_delivery'].includes(o.orderStatus)).length,
     completed: orders.filter(o => ['delivered', 'completed'].includes(o.orderStatus)).length,
   };
 
@@ -214,7 +219,12 @@ export default function VendorOrdersPage() {
           {tabs.map((tab) => {
             const count = tab.id === 'all'
               ? orders.length
-              : orders.filter(order => order.orderStatus === tab.id).length;
+              : orders.filter(order => {
+                if (tab.id === 'ready_for_pickup') {
+                  return order.orderStatus === 'ready_for_pickup' || order.orderStatus === 'ready';
+                }
+                return order.orderStatus === tab.id;
+              }).length;
             const TabIcon = tab.icon;
 
             return (

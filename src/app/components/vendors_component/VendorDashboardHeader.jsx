@@ -103,14 +103,28 @@ export default function VendorDashboardHeader({ vendor, onMenuClick }) {
         <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden md:block"></div>
 
         {/* Notification Bell */}
-        <NotificationBell />
+        <NotificationBell
+          restaurantId={vendor?._id}
+          href="/vendors/notifications"
+        />
 
 
         <div className="flex items-center gap-3 pl-2 cursor-pointer hover:opacity-80 transition-opacity">
-          <div
-            className="size-9 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center border border-slate-200 dark:border-slate-700"
-            style={{ backgroundImage: `url('${vendor?.logo || "/placeholder-logo.png"}')` }}
-          ></div>
+          <div className="relative">
+            <div
+              className="size-9 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center border border-slate-200 dark:border-slate-700"
+              style={{ backgroundImage: `url('${vendor?.logo || "/placeholder-logo.png"}')` }}
+            />
+            {/* Notification Subscription Badge (Matches User Flow) */}
+            {typeof window !== "undefined" && "Notification" in window && Notification.permission === "default" && (
+              <motion.div
+                className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-orange-500 rounded-full border-2 border-white dark:border-slate-900 shadow-sm z-10"
+                animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                title="Enable notifications for order updates"
+              />
+            )}
+          </div>
         </div>
       </div>
     </header>

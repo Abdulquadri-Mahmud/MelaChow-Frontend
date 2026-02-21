@@ -65,6 +65,8 @@ export default function VendorOrderDetailsPage() {
     }, [order, id]);
 
     const performStatusUpdate = async (newStatus) => {
+        const normalizedStatus = newStatus === 'ready' ? 'ready_for_pickup' : newStatus;
+
         try {
             setIsUpdating(true);
 
@@ -92,17 +94,15 @@ export default function VendorOrderDetailsPage() {
             console.log(`📝 Updating order status:`, {
                 vendorOrderId, // MongoDB _id being sent to backend
                 vendorOrderIdSource: typeof order._id === 'string' ? 'order._id (string)' : order._id?.$oid ? 'order._id.$oid' : 'url param',
-                newStatus: newStatus,
+                newStatus: normalizedStatus,
                 userFacingOrderId: order.userOrderId?.orderId || order.orderId
             });
 
             // ✅ Call appropriate endpoint
-            if (newStatus === 'completed') {
+            if (normalizedStatus === 'completed') {
                 await completeOrder(vendorOrderId);
             } else {
-                // Backend expects 'ready', frontend uses 'ready_for_pickup'
-                const backendStatus = newStatus === 'ready_for_pickup' ? 'ready' : newStatus;
-                await updateOrderStatus(vendorOrderId, backendStatus);
+                await updateOrderStatus(vendorOrderId, normalizedStatus);
             }
 
             // ✅ Refresh order data
@@ -148,18 +148,22 @@ export default function VendorOrderDetailsPage() {
 
     // Get available next statuses based on current status
     const getAvailableStatuses = (currentStatus) => {
-        // ... existing logic
+        const status = currentStatus?.toLowerCase();
         const statusFlow = {
             'pending': ['accepted', 'cancelled'],
             'accepted': ['preparing', 'cancelled'],
-            'preparing': ['ready', 'cancelled'],
-            'ready': ['completed'],
+            'preparing': ['ready_for_pickup', 'cancelled'],
+            'ready_for_pickup': ['rider_assigned', 'out_for_delivery'],
+            'ready': ['rider_assigned', 'out_for_delivery'],
+            'rider_assigned': ['out_for_delivery'],
+            'out_for_delivery': ['delivered'],
+            'delivered': ['completed'],
             'completed': [],
             'cancelled': [],
             'failed': ['refunded'],
             'refunded': []
         };
-        return statusFlow[currentStatus] || [];
+        return statusFlow[status] || [];
     };
 
     if (isLoading) {
@@ -209,9 +213,19 @@ export default function VendorOrderDetailsPage() {
         return itemRestId === effectiveRestaurantId;
     });
 
-    // Progress Steps logic
-    const steps = ['pending', 'accepted', 'preparing', 'ready', 'rider_assigned', 'out_for_delivery', 'delivered', 'completed'];
-    const currentStatusIndex = steps.indexOf(order.orderStatus?.toLowerCase()) === -1 ? 0 : steps.indexOf(order.orderStatus?.toLowerCase());
+    // Progress Timeline Mapping (Maps to 6 visual steps)
+    const statusToIndex = {
+        'pending': 0,
+        'accepted': 1,
+        'preparing': 2,
+        'ready': 3,
+        'ready_for_pickup': 3,
+        'rider_assigned': 4,
+        'out_for_delivery': 4,
+        'delivered': 5,
+        'completed': 5
+    };
+    const currentStatusIndex = statusToIndex[order.orderStatus?.toLowerCase()] ?? 0;
 
     // Status Badge Logic
     const getStatusConfig = (status) => {
@@ -312,13 +326,13 @@ export default function VendorOrderDetailsPage() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
+            <div className="max-w-7xl mx-auto py-4 space-y-4 ">
 
                 {/* Header Section with Actions */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white dark:bg-[#1E293B] rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-800"
+                    className="bg-white dark:bg-[#1E293B] rounded-3xl p-6 md:p-8 mt-3 border border-slate-200 dark:border-slate-800"
                 >
                     <div className="flex flex-col lg:flex-row justify-between gap-6">
                         <div className="flex-1">

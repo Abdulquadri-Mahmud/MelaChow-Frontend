@@ -23,14 +23,16 @@ const PushNotificationPrompt = () => {
         const checkContext = () => {
             const pathname = window.location.pathname;
             const isOrderRelated = pathname.includes('track-orders') || pathname.includes('verify-payment');
+            const isVendorDashboard = pathname.startsWith('/vendors') && !pathname.includes('/auth');
             const hasOrdered = localStorage.getItem('has_placed_order') === 'true';
+            const isVendor = localStorage.getItem('grubdash_vendor_cache') !== null;
 
             if (shouldShowPrompt()) {
-                // Show immediately (shorter delay) on order-related pages
-                const delay = isOrderRelated ? 1000 : 5000;
+                // Show immediately (shorter delay) on critical pages
+                const delay = (isOrderRelated || isVendorDashboard) ? 1000 : 5000;
 
-                // Only show globally if they've ordered before, or if they are currently on an order page
-                if (isOrderRelated || hasOrdered) {
+                // Show for customers who ordered, or any vendor on their dashboard
+                if (isOrderRelated || hasOrdered || (isVendorDashboard && isVendor)) {
                     const timer = setTimeout(() => setVisible(true), delay);
                     return () => clearTimeout(timer);
                 }
@@ -79,10 +81,12 @@ const PushNotificationPrompt = () => {
 
                     <div className="flex-1">
                         <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                            Stay Updated!
+                            {window.location.pathname.startsWith('/vendors') ? 'Never miss an order!' : 'Stay Updated!'}
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 leading-relaxed">
-                            Get real-time updates on your order status, delivery, and exclusive offers.
+                            {window.location.pathname.startsWith('/vendors')
+                                ? 'Get instant alerts for new orders and customer updates directly on your device.'
+                                : 'Get real-time updates on your order status, delivery, and exclusive offers.'}
                         </p>
                     </div>
                 </div>

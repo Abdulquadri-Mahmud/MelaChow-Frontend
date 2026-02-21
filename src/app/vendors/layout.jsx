@@ -11,6 +11,7 @@ import PWAUpdateManager from "@/app/components/PWA/PWAUpdateManager";
 import PWAInstallPrompt from "@/app/components/PWA/PWAInstallPrompt";
 import PushNotificationPrompt from "@/app/components/notifications/PushNotificationPrompt";
 import RealtimeNotificationListener from "@/app/components/notifications/RealtimeNotificationListener";
+import VendorSocketManager from "./components/VendorSocketManager";
 
 export default function VendorLayout({ children }) {
   const pathname = usePathname();
@@ -46,6 +47,7 @@ export default function VendorLayout({ children }) {
         <>
           {children}
           <RealtimeNotificationListener />
+          <VendorSocketManager />
         </>
       ) : (
         <VendorBootstrapper>
@@ -54,6 +56,7 @@ export default function VendorLayout({ children }) {
           <PWAInstallPrompt />
           <PushNotificationPrompt />
           <RealtimeNotificationListener />
+          <VendorSocketManager />
         </VendorBootstrapper>
       )}
     </VendorProfileProvider>

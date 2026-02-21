@@ -20,18 +20,52 @@ export const SocketProvider = ({ children }) => {
 
     useEffect(() => {
         // Function to handle connection
-        const connect = () => {
+        const connect = async () => {
             const token = TokenManager.getToken();
             if (token) {
                 socketService.connect(token);
 
+                // Fetch initial unread count to seed the global state
+                try {
+                    const response = await fetch('/api/notifications/unread-count', {
+                        credentials: 'include',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        const count = data.count ?? data.data?.count ?? 0;
+                        setUnreadCount(count);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch initial unread count:', error);
+                }
+
                 // Set up basic listeners
                 socketService.onNewNotification((notification) => {
                     setLatestNotification(notification);
+                    // Force refresh unread count if notification is new
+                    if (!notification.read) {
+                        setUnreadCount(prev => prev + 1);
+                    }
                 });
 
                 socketService.onNotificationCountUpdate((data) => {
                     setUnreadCount(data.count);
+                });
+
+                socketService.onNewOrder((order) => {
+                    // This is specifically for vendors
+                    console.log('🆕 New order received via socket:', order);
+                    // Check if we should also show a toast here if new_notification didn't handle it
+                    setLatestNotification({
+                        _id: `temp-${Date.now()}`,
+                        title: 'New Order Received!',
+                        body: `Order #${order.orderNumber || order._id?.slice(-6)} from ${order.customerName || 'Customer'}`,
+                        type: 'new_order',
+                        orderId: order._id,
+                        createdAt: new Date().toISOString(),
+                        read: false
+                    });
                 });
 
                 setIsConnected(true);

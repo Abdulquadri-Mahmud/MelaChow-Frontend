@@ -158,6 +158,7 @@ export default function VendorDashboard() {
             statusConfig = { status: 'Preparing', color: 'text-[#FF6B00]', bgColor: 'bg-[#FF6B00]/20', barColor: 'bg-[#FF6B00]', progress: 50 };
             break;
           case 'ready':
+          case 'ready_for_pickup':
             statusConfig = { status: 'Ready', color: 'text-blue-500', bgColor: 'bg-blue-400/20', barColor: 'bg-blue-500', progress: 80 };
             break;
           case 'completed':

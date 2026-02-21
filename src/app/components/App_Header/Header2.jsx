@@ -25,8 +25,8 @@ export default function Header2() {
       animate={{ y: 0, opacity: 1 }}
       className="sticky top-0 z-50 w-full"
     >
-      <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-gray-100 dark:border-zinc-800/50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-gray-100 dark:border-zinc-800/50">
+        <div className="max-w-7xl mx-auto px-4 py-4 h-16 flex items-center justify-between">
 
           <div className="flex items-center gap-4">
             {/* Premium Back Button */}
