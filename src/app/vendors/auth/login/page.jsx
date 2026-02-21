@@ -62,7 +62,7 @@ export default function VendorLoginPage() {
       const finalToken = accessToken || token;
 
       if (finalToken) {
-        TokenManager.setToken(finalToken);
+        TokenManager.setToken(finalToken, 'vendor');
       }
 
       if (vendorData) {

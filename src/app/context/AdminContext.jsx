@@ -50,7 +50,7 @@ export const AdminProvider = ({ children }) => {
                 // Save token for iOS fallback
                 const finalToken = response.accessToken || response.token;
                 if (finalToken) {
-                    TokenManager.setToken(finalToken);
+                    TokenManager.setToken(finalToken, 'admin');
                 }
 
                 setAdmin(response.admin);
@@ -71,7 +71,7 @@ export const AdminProvider = ({ children }) => {
             console.error("Logout error:", error);
         } finally {
             setAdmin(null);
-            TokenManager.clearToken(); // ✅ Clear fallback token
+            TokenManager.clearToken('admin'); // ✅ Clear fallback token
             sessionStorage.removeItem("splashShown");
         }
     };

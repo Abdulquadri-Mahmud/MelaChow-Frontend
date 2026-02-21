@@ -58,7 +58,7 @@ export const useVendorStorage = () => {
     queryClient.setQueryData(["vendors"], null);
     sessionStorage.removeItem("splashShown");
     localStorage.removeItem("grubdash_vendor_cache");
-    TokenManager.clearToken();
+    TokenManager.clearToken('vendor');
     queryClient.invalidateQueries(["vendors"]);
 
     console.log('[useVendorStorage] ✅ Logout complete');

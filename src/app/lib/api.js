@@ -7,7 +7,9 @@ TokenManager.initialize();
 // Add request interceptor to attach token
 axios.interceptors.request.use(
   (config) => {
-    const token = TokenManager.getToken();
+    // Only attach user token to non-pluralized /api/notification/ if they exist (backward compat)
+    // or standard user routes.
+    const token = TokenManager.getToken('user');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -36,7 +38,7 @@ const dispatchUserUnauthorized = () => {
 export const fetchUser = async () => {
   // No token arg needed; cookies are sent automatically
 
-  const token = TokenManager.getToken();
+  const token = TokenManager.getToken('user');
   const headers = {};
 
   if (token) {

@@ -19,12 +19,19 @@ export function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
+const getApiPath = (role, endpoint) => {
+    let base = '/api/notifications';
+    if (role === 'vendor') base = '/api/vendors/notifications';
+    if (role === 'admin') base = '/api/admin/notifications';
+    return `${base}/${endpoint}`;
+};
+
 /**
  * Fetch VAPID public key from backend
  */
-export async function getVapidPublicKey() {
+export async function getVapidPublicKey(role = 'user') {
     try {
-        const response = await axios.get('/api/notifications/vapid-public-key', {
+        const response = await axios.get(getApiPath(role, 'vapid-public-key'), {
             withCredentials: true,
         });
         return response.data.publicKey;
@@ -37,7 +44,7 @@ export async function getVapidPublicKey() {
 /**
  * Send subscription to backend
  */
-export async function sendSubscriptionToServer(subscription) {
+export async function sendSubscriptionToServer(subscription, role = 'user') {
     try {
         // Determine device type
         let deviceType = 'desktop';
@@ -52,7 +59,7 @@ export async function sendSubscriptionToServer(subscription) {
             deviceType
         };
 
-        const response = await axios.post('/api/notifications/subscribe', payload, {
+        const response = await axios.post(getApiPath(role, 'subscribe'), payload, {
             withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
@@ -68,20 +75,31 @@ export async function sendSubscriptionToServer(subscription) {
 /**
  * Remove subscription from backend
  */
-export async function removeSubscriptionFromServer(subscription) {
+export async function removeSubscriptionFromServer(subscription, role = 'user') {
     try {
-        // Send the subscription object directly (not wrapped)
-        const response = await axios.delete('/api/notifications/unsubscribe', {
-            data: subscription, // Backend expects { endpoint, keys, expirationTime }
+        // The prompt says POST /api/vendors/notifications/unsubscribe for vendors
+        // But for consistency I'll try to use the same method as before but with role path
+        // Actually, let's follow the prompt's suggested method if it's different.
+        // Prompt says: "Unsubscribe: Change the POST/DELETE request up to: POST /api/vendors/notifications/unsubscribe"
+
+        const path = getApiPath(role, 'unsubscribe');
+        const config = {
             withCredentials: true,
             headers: {
                 'Content-Type': 'application/json',
             },
-        });
+        };
+
+        let response;
+        if (role === 'vendor' || role === 'admin') {
+            response = await axios.post(path, subscription, config);
+        } else {
+            response = await axios.delete(path, { ...config, data: subscription });
+        }
+
         return response.data;
     } catch (error) {
         console.error('Failed to remove subscription from server:', error);
-        console.error('Error response:', error.response?.data); // Debug logging
         throw error;
     }
 }
@@ -89,9 +107,9 @@ export async function removeSubscriptionFromServer(subscription) {
 /**
  * Trigger a test notification
  */
-export async function testPushNotification() {
+export async function testPushNotification(role = 'user') {
     try {
-        const response = await axios.post('/api/notifications/test', {}, {
+        const response = await axios.post(getApiPath(role, 'test'), {}, {
             withCredentials: true,
         });
         return response.data;
@@ -104,14 +122,14 @@ export async function testPushNotification() {
 /**
  * Subscribe user to push notifications
  */
-export async function subscribeUserToPush() {
+export async function subscribeUserToPush(role = 'user') {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
         throw new Error('Push notifications are not supported by this browser');
     }
 
     try {
         const registration = await navigator.serviceWorker.ready;
-        const vapidPublicKey = await getVapidPublicKey();
+        const vapidPublicKey = await getVapidPublicKey(role);
         const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
         const subscription = await registration.pushManager.subscribe({
@@ -119,10 +137,10 @@ export async function subscribeUserToPush() {
             applicationServerKey: applicationServerKey,
         });
 
-        await sendSubscriptionToServer(subscription);
+        await sendSubscriptionToServer(subscription, role);
         return subscription;
     } catch (error) {
-        console.error('Failed to subscribe user to push notifications:', error);
+        console.error('Failed to subscribe to push notifications:', error);
         throw error;
     }
 }
@@ -130,26 +148,19 @@ export async function subscribeUserToPush() {
 /**
  * Unsubscribe user from push notifications
  */
-export async function unsubscribeUserFromPush() {
+export async function unsubscribeUserFromPush(role = 'user') {
     try {
         const registration = await navigator.serviceWorker.ready;
         const subscription = await registration.pushManager.getSubscription();
 
         if (subscription) {
-            // 1. Capture the subscription data FIRST (before it becomes invalid)
-            // PushSubscription objects don't always serialize well after unsubscribe()
             const subscriptionData = subscription.toJSON();
-
-            // 2. Remove from server FIRST
-            // This ensures the server gets the endpoint it needs to identify the subscription
-            await removeSubscriptionFromServer(subscriptionData);
-
-            // 3. Finally unsubscribe on the client
+            await removeSubscriptionFromServer(subscriptionData, role);
             await subscription.unsubscribe();
         }
         return true;
     } catch (error) {
-        console.error('Failed to unsubscribe user from push notifications:', error);
+        console.error('Failed to unsubscribe from push notifications:', error);
         throw error;
     }
 }

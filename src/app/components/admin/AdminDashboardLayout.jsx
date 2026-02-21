@@ -21,6 +21,7 @@ import {
     MapPin,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import NotificationBell from "@/app/components/NotificationBell";
 
 const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
@@ -199,10 +200,10 @@ export default function AdminDashboardLayout({ children }) {
                         {/* Right Side */}
                         <div className="flex items-center gap-4 ml-auto">
                             {/* Notifications */}
-                            <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
-                                <Bell size={22} />
-                                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                            </button>
+                            <NotificationBell
+                                role="admin"
+                                href="/admin/notifications"
+                            />
 
                             {/* Admin Profile Dropdown */}
                             <div className="relative">

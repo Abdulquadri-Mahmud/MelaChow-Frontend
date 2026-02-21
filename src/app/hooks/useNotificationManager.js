@@ -10,7 +10,16 @@ import axios from 'axios';
  * Combines WebSocket, Push, and REST API
  */
 export function useNotificationManager(options = {}) {
-    const { restaurantId } = options;
+    const { restaurantId, role: providedRole } = options;
+
+    // Detect role
+    let role = providedRole || 'user';
+    if (!providedRole && restaurantId) role = 'vendor';
+    // Potential further inference from path could be added if needed
+
+    const apiBase = role === 'vendor' ? '/api/vendors/notifications' :
+        role === 'admin' ? '/api/admin/notifications' :
+            '/api/notifications';
 
     // Real-time (WebSocket)
     const {
@@ -26,7 +35,7 @@ export function useNotificationManager(options = {}) {
         permission: pushPermission,
         subscribe,
         unsubscribe
-    } = usePushNotifications();
+    } = usePushNotifications(role);
 
     // REST API fallback
     const [apiUnreadCount, setApiUnreadCount] = useState(0);
@@ -37,21 +46,21 @@ export function useNotificationManager(options = {}) {
     useEffect(() => {
         fetchNotificationsFromAPI();
         fetchUnreadCountFromAPI();
-    }, [restaurantId]);
+    }, [restaurantId, role]);
 
     // Poll API when WebSocket is disconnected (fallback)
     useEffect(() => {
         if (!wsConnected) {
-            console.log('📡 WebSocket disconnected - falling back to API polling');
+            console.log(`📡 WebSocket disconnected - falling back to ${role} API polling`);
             const interval = setInterval(fetchUnreadCountFromAPI, 30000); // Every 30s
             return () => clearInterval(interval);
         }
-    }, [wsConnected, restaurantId]);
+    }, [wsConnected, restaurantId, role]);
 
     const fetchNotificationsFromAPI = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('/api/notifications/history', {
+            const response = await axios.get(`${apiBase}/history`, {
                 withCredentials: true,
                 params: {
                     limit: 50,
@@ -60,7 +69,7 @@ export function useNotificationManager(options = {}) {
             });
             setNotifications(response.data.notifications || response.data.data || []);
         } catch (error) {
-            console.error('Failed to fetch notifications:', error);
+            console.error(`Failed to fetch ${role} notifications:`, error);
         } finally {
             setLoading(false);
         }
@@ -68,7 +77,7 @@ export function useNotificationManager(options = {}) {
 
     const fetchUnreadCountFromAPI = async () => {
         try {
-            const response = await axios.get('/api/notifications/unread-count', {
+            const response = await axios.get(`${apiBase}/unread-count`, {
                 withCredentials: true,
                 params: {
                     ...(restaurantId && { restaurantId })
@@ -78,13 +87,13 @@ export function useNotificationManager(options = {}) {
             const count = response.data?.count ?? response.data?.data?.count ?? response.data?.data ?? 0;
             setApiUnreadCount(count);
         } catch (error) {
-            console.error('Failed to fetch unread count:', error);
+            console.error(`Failed to fetch ${role} unread count:`, error);
         }
     };
 
     const markAsRead = async (notificationId) => {
         try {
-            await axios.patch(`/api/notifications/mark-read/${notificationId}`, {}, {
+            await axios.patch(`${apiBase}/mark-read/${notificationId}`, {}, {
                 withCredentials: true
             });
             setNotifications(prev => prev.map(n =>
@@ -99,7 +108,7 @@ export function useNotificationManager(options = {}) {
 
     const markAllAsRead = async () => {
         try {
-            await axios.patch('/api/notifications/mark-all-read', {}, {
+            await axios.patch(`${apiBase}/mark-all-read`, {}, {
                 withCredentials: true,
                 params: {
                     ...(restaurantId && { restaurantId })
