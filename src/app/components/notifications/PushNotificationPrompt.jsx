@@ -5,6 +5,11 @@ import { usePushNotifications } from '../../hooks/usePushNotifications';
 import { Bell, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 
 const PushNotificationPrompt = () => {
+    // Determine role from pathname
+    const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+    const role = pathname.startsWith('/admin') ? 'admin' :
+        (pathname.startsWith('/vendors') && !pathname.includes('/auth')) ? 'vendor' : 'user';
+
     const {
         isSupported,
         subscribe,
@@ -12,7 +17,7 @@ const PushNotificationPrompt = () => {
         dismissPrompt,
         loading,
         error
-    } = usePushNotifications();
+    } = usePushNotifications(role);
 
     const [visible, setVisible] = useState(false);
     const [status, setStatus] = useState('idle'); // idle, success, error

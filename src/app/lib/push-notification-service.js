@@ -31,7 +31,9 @@ const getApiPath = (role, endpoint) => {
  */
 export async function getVapidPublicKey(role = 'user') {
     try {
-        const response = await axios.get(getApiPath(role, 'vapid-public-key'), {
+        // VAPID keys are global to the application and usually served 
+        // from the base notification endpoint, not the segregated ones.
+        const response = await axios.get(getApiPath('user', 'vapid-public-key'), {
             withCredentials: true,
         });
         return response.data.publicKey;

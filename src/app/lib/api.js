@@ -4,12 +4,19 @@ import { TokenManager } from "./auth-token";
 // Initialize token from storage
 TokenManager.initialize();
 
-// Add request interceptor to attach token
+// Add request interceptor to attach the correct token based on the route
 axios.interceptors.request.use(
   (config) => {
-    // Only attach user token to non-pluralized /api/notification/ if they exist (backward compat)
-    // or standard user routes.
-    const token = TokenManager.getToken('user');
+    // Determine the role based on the URL path
+    let role = 'user';
+    if (config.url?.includes('/api/vendors/')) {
+      role = 'vendor';
+    } else if (config.url?.includes('/api/admin/')) {
+      role = 'admin';
+    }
+
+    // Attach the appropriate token
+    const token = TokenManager.getToken(role);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
