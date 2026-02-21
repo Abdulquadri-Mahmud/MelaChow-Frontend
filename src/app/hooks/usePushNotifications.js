@@ -7,12 +7,14 @@ import {
 } from '../lib/push-notification-service';
 import toast from 'react-hot-toast';
 
-export function usePushNotifications() {
+export function usePushNotifications(role = 'user') {
     const [subscription, setSubscription] = useState(null);
     const [isSupported, setIsSupported] = useState(false);
     const [permission, setPermission] = useState('default');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const STORAGE_PREFIX = `grubdash_${role}_`;
 
     /**
      * Listen for messages from Service Worker (Foreground notifications)
@@ -56,7 +58,7 @@ export function usePushNotifications() {
 
                     // Sync with localStorage if needed
                     if (sub) {
-                        localStorage.setItem('push_notifications_enabled', 'true');
+                        localStorage.setItem(`${STORAGE_PREFIX}push_notifications_enabled`, 'true');
                     }
                 } catch (err) {
                     console.error('Error checking push subscription:', err);
@@ -68,7 +70,7 @@ export function usePushNotifications() {
         };
 
         checkSupport();
-    }, []);
+    }, [role]);
 
     /**
      * Subscribe to push notifications
@@ -83,10 +85,10 @@ export function usePushNotifications() {
             setPermission(result);
 
             if (result === 'granted') {
-                const sub = await subscribeUserToPush();
+                const sub = await subscribeUserToPush(role);
                 setSubscription(sub);
-                localStorage.setItem('push_notifications_enabled', 'true');
-                localStorage.setItem('push_prompt_dismissed', 'true'); // Dismiss prompt once subscribed
+                localStorage.setItem(`${STORAGE_PREFIX}push_notifications_enabled`, 'true');
+                localStorage.setItem(`${STORAGE_PREFIX}push_prompt_dismissed`, 'true'); // Dismiss prompt once subscribed
                 return true;
             } else if (result === 'denied') {
                 setError('Notification permission denied');
@@ -99,7 +101,7 @@ export function usePushNotifications() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [role]);
 
     /**
      * Unsubscribe from push notifications
@@ -109,9 +111,9 @@ export function usePushNotifications() {
         setError(null);
 
         try {
-            await unsubscribeUserFromPush();
+            await unsubscribeUserFromPush(role);
             setSubscription(null);
-            localStorage.setItem('push_notifications_enabled', 'false');
+            localStorage.setItem(`${STORAGE_PREFIX}push_notifications_enabled`, 'false');
             return true;
         } catch (err) {
             console.error('Unsubscription error:', err);
@@ -120,14 +122,14 @@ export function usePushNotifications() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [role]);
 
     /**
      * Handle prompt dismissal
      */
     const dismissPrompt = useCallback(() => {
-        localStorage.setItem('push_prompt_dismissed', 'true');
-    }, []);
+        localStorage.setItem(`${STORAGE_PREFIX}push_prompt_dismissed`, 'true');
+    }, [role]);
 
     /**
      * Check if prompt should be shown
@@ -137,9 +139,9 @@ export function usePushNotifications() {
             return false;
         }
 
-        const dismissed = localStorage.getItem('push_prompt_dismissed');
+        const dismissed = localStorage.getItem(`${STORAGE_PREFIX}push_prompt_dismissed`);
         return dismissed !== 'true';
-    }, [isSupported, permission, subscription]);
+    }, [isSupported, permission, subscription, role]);
 
     return {
         isSupported,

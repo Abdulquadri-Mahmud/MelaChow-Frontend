@@ -5,44 +5,54 @@
  * Handles token persistence safely while avoiding XSS risks where possible.
  */
 
-// In-memory storage (primary)
-let memoryToken = null;
+const STORAGE_KEYS = {
+    user: 'grubdash_access_token_v1',
+    vendor: 'grubdash_vendor_token_v1',
+    admin: 'grubdash_admin_token_v1'
+};
 
-const STORAGE_KEY = 'grubdash_access_token_v1';
+// In-memory storage (primary)
+let memoryTokens = {
+    user: null,
+    vendor: null,
+    admin: null
+};
 
 export const TokenManager = {
     /**
      * Set the access token
      * @param {string} token - The JWT access token
+     * @param {string} role - The role (user, vendor, admin)
      */
-    setToken: (token) => {
+    setToken: (token, role = 'user') => {
         if (!token) return;
 
         // Save to memory
-        memoryToken = token;
+        memoryTokens[role] = token;
 
         // Save to localStorage (fallback for iOS/Reloads)
         try {
             if (typeof window !== "undefined") {
-                localStorage.setItem(STORAGE_KEY, token);
+                localStorage.setItem(STORAGE_KEYS[role] || STORAGE_KEYS.user, token);
             }
         } catch (e) {
-            console.warn("SecureAuth: LocalStorage unavailable", e);
+            console.warn(`SecureAuth: LocalStorage unavailable for ${role}`, e);
         }
     },
 
     /**
      * Get the access token
+     * @param {string} role - The role (user, vendor, admin)
      * @returns {string|null} - The token or null
      */
-    getToken: () => {
+    getToken: (role = 'user') => {
         // Return memory token if available
-        if (memoryToken) return memoryToken;
+        if (memoryTokens[role]) return memoryTokens[role];
 
         // Fallback to localStorage
         try {
             if (typeof window !== "undefined") {
-                return localStorage.getItem(STORAGE_KEY);
+                return localStorage.getItem(STORAGE_KEYS[role] || STORAGE_KEYS.user);
             }
         } catch (e) {
             // Ignore errors
@@ -52,12 +62,13 @@ export const TokenManager = {
 
     /**
      * Clear the access token
+     * @param {string} role - The role (user, vendor, admin)
      */
-    clearToken: () => {
-        memoryToken = null;
+    clearToken: (role = 'user') => {
+        memoryTokens[role] = null;
         try {
             if (typeof window !== "undefined") {
-                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(STORAGE_KEYS[role] || STORAGE_KEYS.user);
             }
         } catch (e) {
             // Ignore errors
@@ -65,16 +76,18 @@ export const TokenManager = {
     },
 
     /**
-     * Initialize token from storage (call on app boot)
+     * Initialize tokens from storage (call on app boot)
      */
     initialize: () => {
         try {
             if (typeof window !== "undefined") {
-                const stored = localStorage.getItem(STORAGE_KEY);
-                if (stored) {
-                    memoryToken = stored;
-                    console.log("[TokenManager] Initialized on app boot");
-                }
+                Object.keys(STORAGE_KEYS).forEach(role => {
+                    const stored = localStorage.getItem(STORAGE_KEYS[role]);
+                    if (stored) {
+                        memoryTokens[role] = stored;
+                        console.log(`[TokenManager] ${role} token initialized on app boot`);
+                    }
+                });
             }
         } catch (e) { }
     }

@@ -19,7 +19,7 @@ export const VendorProfileProvider = ({ children }) => {
     const pathname = usePathname();
 
     const fetchVendorProfile = async () => {
-        const token = TokenManager.getToken();
+        const token = TokenManager.getToken('vendor');
 
         if (process.env.NODE_ENV === 'development') {
             console.log('[VendorProfileContext] 🔍 fetchVendorProfile START', {
@@ -56,7 +56,7 @@ export const VendorProfileProvider = ({ children }) => {
                 );
 
                 if (!isPublicRoute) {
-                    TokenManager.clearToken();
+                    TokenManager.clearToken('vendor');
                     localStorage.removeItem("grubdash_vendor_cache");
                     throw new Error("Vendor session expired");
                 }
@@ -148,17 +148,17 @@ export const VendorProfileProvider = ({ children }) => {
     }, [data]);
 
     return (
-    <VendorProfileContext.Provider
-      value={{
-        vendorProfile: data,
-        isLoading,
-        hasCheckedSession,
-        error: error ? error.message : null,
-        refetchVendorProfile: refetch,
-      }}
-    >
-      {children}
-    </VendorProfileContext.Provider>
+        <VendorProfileContext.Provider
+            value={{
+                vendorProfile: data,
+                isLoading,
+                hasCheckedSession,
+                error: error ? error.message : null,
+                refetchVendorProfile: refetch,
+            }}
+        >
+            {children}
+        </VendorProfileContext.Provider>
     );
 };
 

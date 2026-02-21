@@ -19,7 +19,7 @@ const api = axios.create({
 // Add request interceptor to attach token
 api.interceptors.request.use(
     (config) => {
-        const token = TokenManager.getToken();
+        const token = TokenManager.getToken('admin');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }

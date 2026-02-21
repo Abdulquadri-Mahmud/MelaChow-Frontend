@@ -13,21 +13,37 @@ const SocketContext = createContext({
 
 export const useSocket = () => useContext(SocketContext);
 
+import { usePathname } from 'next/navigation';
+
 export const SocketProvider = ({ children }) => {
+    const pathname = usePathname();
     const [isConnected, setIsConnected] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const [latestNotification, setLatestNotification] = useState(null);
 
+    // Determine role based on path
+    const getRoleFromPath = (path) => {
+        if (path?.startsWith('/vendors')) return 'vendor';
+        if (path?.startsWith('/admin')) return 'admin';
+        return 'user';
+    };
+
+    const role = getRoleFromPath(pathname);
+
     useEffect(() => {
         // Function to handle connection
         const connect = async () => {
-            const token = TokenManager.getToken();
+            const token = TokenManager.getToken(role);
             if (token) {
                 socketService.connect(token);
 
                 // Fetch initial unread count to seed the global state
+                const apiBase = role === 'vendor' ? '/api/vendors/notifications' :
+                    role === 'admin' ? '/api/admin/notifications' :
+                        '/api/notifications';
+
                 try {
-                    const response = await fetch('/api/notifications/unread-count', {
+                    const response = await fetch(`${apiBase}/unread-count`, {
                         credentials: 'include',
                         headers: { 'Accept': 'application/json' }
                     });
@@ -37,13 +53,12 @@ export const SocketProvider = ({ children }) => {
                         setUnreadCount(count);
                     }
                 } catch (error) {
-                    console.error('Failed to fetch initial unread count:', error);
+                    console.error(`Failed to fetch initial ${role} unread count:`, error);
                 }
 
                 // Set up basic listeners
                 socketService.onNewNotification((notification) => {
                     setLatestNotification(notification);
-                    // Force refresh unread count if notification is new
                     if (!notification.read) {
                         setUnreadCount(prev => prev + 1);
                     }
@@ -54,18 +69,18 @@ export const SocketProvider = ({ children }) => {
                 });
 
                 socketService.onNewOrder((order) => {
-                    // This is specifically for vendors
-                    console.log('🆕 New order received via socket:', order);
-                    // Check if we should also show a toast here if new_notification didn't handle it
-                    setLatestNotification({
-                        _id: `temp-${Date.now()}`,
-                        title: 'New Order Received!',
-                        body: `Order #${order.orderNumber || order._id?.slice(-6)} from ${order.customerName || 'Customer'}`,
-                        type: 'new_order',
-                        orderId: order._id,
-                        createdAt: new Date().toISOString(),
-                        read: false
-                    });
+                    if (role === 'vendor') {
+                        console.log('🆕 New order received via socket:', order);
+                        setLatestNotification({
+                            _id: `temp-${Date.now()}`,
+                            title: 'New Order Received!',
+                            body: `Order #${order.orderNumber || order._id?.slice(-6)} from ${order.customerName || 'Customer'}`,
+                            type: 'new_order',
+                            orderId: order._id,
+                            createdAt: new Date().toISOString(),
+                            read: false
+                        });
+                    }
                 });
 
                 setIsConnected(true);
@@ -81,7 +96,7 @@ export const SocketProvider = ({ children }) => {
             setIsConnected(status.isConnected);
 
             // If not connected but we have a token, try to connect
-            if (!status.isConnected && TokenManager.getToken()) {
+            if (!status.isConnected && TokenManager.getToken(role)) {
                 connect();
             }
         }, 5000);
@@ -91,7 +106,7 @@ export const SocketProvider = ({ children }) => {
             socketService.removeAllListeners();
             socketService.disconnect();
         };
-    }, []);
+    }, [role]); // Reconnect if role changes (e.g. switching between dashboard and store)
 
     const value = {
         isConnected,

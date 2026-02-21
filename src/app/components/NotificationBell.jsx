@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNotificationManager } from '@/app/hooks/useNotificationManager';
 
-export default function NotificationBell({ restaurantId, href = '/notifications' }) {
+export default function NotificationBell({ restaurantId, role, href = '/notifications' }) {
     const router = useRouter();
-    const { unreadCount, isRealtimeConnected } = useNotificationManager({ restaurantId });
+    const { unreadCount, isRealtimeConnected } = useNotificationManager({ restaurantId, role });
 
     return (
         <motion.button
