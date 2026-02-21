@@ -77,11 +77,6 @@ export async function sendSubscriptionToServer(subscription, role = 'user') {
  */
 export async function removeSubscriptionFromServer(subscription, role = 'user') {
     try {
-        // The prompt says POST /api/vendors/notifications/unsubscribe for vendors
-        // But for consistency I'll try to use the same method as before but with role path
-        // Actually, let's follow the prompt's suggested method if it's different.
-        // Prompt says: "Unsubscribe: Change the POST/DELETE request up to: POST /api/vendors/notifications/unsubscribe"
-
         const path = getApiPath(role, 'unsubscribe');
         const config = {
             withCredentials: true,
@@ -90,13 +85,7 @@ export async function removeSubscriptionFromServer(subscription, role = 'user') 
             },
         };
 
-        let response;
-        if (role === 'vendor' || role === 'admin') {
-            response = await axios.post(path, subscription, config);
-        } else {
-            response = await axios.delete(path, { ...config, data: subscription });
-        }
-
+        const response = await axios.post(path, subscription, config);
         return response.data;
     } catch (error) {
         console.error('Failed to remove subscription from server:', error);

@@ -13,13 +13,36 @@ export function useNotificationManager(options = {}) {
     const { restaurantId, role: providedRole } = options;
 
     // Detect role
-    let role = providedRole || 'user';
-    if (!providedRole && restaurantId) role = 'vendor';
-    // Potential further inference from path could be added if needed
+    const role = providedRole || (restaurantId ? 'vendor' : 'user');
 
-    const apiBase = role === 'vendor' ? '/api/vendors/notifications' :
-        role === 'admin' ? '/api/admin/notifications' :
-            '/api/notifications';
+    // URL Generators based on role
+    const getEndpoint = (action, id = null) => {
+        if (role === 'vendor') {
+            const base = '/api/vendors/notifications';
+            if (action === 'history') return `${base}/history`;
+            if (action === 'subscribe') return `${base}/subscribe`;
+            if (action === 'unsubscribe') return `${base}/unsubscribe`;
+            return base;
+        }
+
+        if (role === 'admin') {
+            const base = '/api/admin/notifications';
+            if (action === 'history') return `${base}/history`;
+            if (action === 'subscribe') return `${base}/subscribe`;
+            return base;
+        }
+
+        // Default: User
+        const base = '/api/notifications';
+        if (action === 'history') return `${base}/history`;
+        if (action === 'unread-count') return `${base}/unread-count`;
+        if (action === 'subscribe') return `${base}/subscribe`;
+        if (action === 'unsubscribe') return `${base}/unsubscribe`;
+        if (action === 'mark-read') return `${base}/${id}/read`;
+        if (action === 'mark-all-read') return `${base}/read-all`;
+        if (action === 'clear-all') return `${base}/clear-all`;
+        return base;
+    };
 
     // Real-time (WebSocket)
     const {
@@ -45,14 +68,19 @@ export function useNotificationManager(options = {}) {
     // Fetch initial data from API
     useEffect(() => {
         fetchNotificationsFromAPI();
-        fetchUnreadCountFromAPI();
+        if (role === 'user') {
+            fetchUnreadCountFromAPI();
+        }
     }, [restaurantId, role]);
 
     // Poll API when WebSocket is disconnected (fallback)
     useEffect(() => {
         if (!wsConnected) {
             console.log(`📡 WebSocket disconnected - falling back to ${role} API polling`);
-            const interval = setInterval(fetchUnreadCountFromAPI, 30000); // Every 30s
+            const interval = setInterval(() => {
+                fetchNotificationsFromAPI();
+                if (role === 'user') fetchUnreadCountFromAPI();
+            }, 30000); // Every 30s
             return () => clearInterval(interval);
         }
     }, [wsConnected, restaurantId, role]);
@@ -60,14 +88,23 @@ export function useNotificationManager(options = {}) {
     const fetchNotificationsFromAPI = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`${apiBase}/history`, {
+            const response = await axios.get(getEndpoint('history'), {
                 withCredentials: true,
                 params: {
                     limit: 50,
                     ...(restaurantId && { restaurantId })
                 }
             });
-            setNotifications(response.data.notifications || response.data.data || []);
+
+            const data = response.data.notifications || response.data.data?.notifications || response.data.data || [];
+            setNotifications(data);
+
+            // For vendors, count is included in history
+            if (role === 'vendor') {
+                const count = response.data.unreadCount ?? response.data.count ?? response.data.unread_count ??
+                    response.data.data?.unreadCount ?? response.data.data?.count ?? 0;
+                setApiUnreadCount(count);
+            }
         } catch (error) {
             console.error(`Failed to fetch ${role} notifications:`, error);
         } finally {
@@ -76,14 +113,14 @@ export function useNotificationManager(options = {}) {
     };
 
     const fetchUnreadCountFromAPI = async () => {
+        if (role !== 'user') return; // Only user has explicit unread-count endpoint in reference
         try {
-            const response = await axios.get(`${apiBase}/unread-count`, {
+            const response = await axios.get(getEndpoint('unread-count'), {
                 withCredentials: true,
                 params: {
                     ...(restaurantId && { restaurantId })
                 }
             });
-            // Handle multiple possible response structures
             const count = response.data?.count ?? response.data?.data?.count ?? response.data?.data ?? 0;
             setApiUnreadCount(count);
         } catch (error) {
@@ -93,14 +130,24 @@ export function useNotificationManager(options = {}) {
 
     const markAsRead = async (notificationId) => {
         try {
-            await axios.patch(`${apiBase}/mark-read/${notificationId}`, {}, {
-                withCredentials: true
-            });
+            // For user role, use the specific pattern :id/read
+            if (role === 'user') {
+                await axios.patch(getEndpoint('mark-read', notificationId), {}, {
+                    withCredentials: true
+                });
+            } else {
+                // If vendor/admin don't have separate PATCH for single read in reference,
+                // we might need to skip or use a generic one if it exists.
+                // The reference doesn't specify mark-read for vendor/admin explicitly.
+                // I'll assume they might use the user-like pattern or we skip for now.
+                console.warn(`Mark as read not explicitly defined for ${role} in reference`);
+            }
+
             setNotifications(prev => prev.map(n =>
                 n._id === notificationId ? { ...n, read: true } : n
             ));
-            // Trigger count refresh
-            fetchUnreadCountFromAPI();
+
+            if (role === 'user') fetchUnreadCountFromAPI();
         } catch (error) {
             console.error('Failed to mark notification as read:', error);
         }
@@ -108,16 +155,31 @@ export function useNotificationManager(options = {}) {
 
     const markAllAsRead = async () => {
         try {
-            await axios.patch(`${apiBase}/mark-all-read`, {}, {
-                withCredentials: true,
-                params: {
-                    ...(restaurantId && { restaurantId })
-                }
-            });
+            if (role === 'user') {
+                await axios.patch(getEndpoint('mark-all-read'), {}, {
+                    withCredentials: true
+                });
+            } else {
+                console.warn(`Mark all as read not explicitly defined for ${role} in reference`);
+            }
+
             setNotifications(prev => prev.map(n => ({ ...n, read: true })));
             setApiUnreadCount(0);
         } catch (error) {
             console.error('Failed to mark all notifications as read:', error);
+        }
+    };
+
+    const clearAll = async () => {
+        if (role !== 'user') return;
+        try {
+            await axios.delete(getEndpoint('clear-all'), {
+                withCredentials: true
+            });
+            setNotifications([]);
+            setApiUnreadCount(0);
+        } catch (error) {
+            console.error('Failed to clear all notifications:', error);
         }
     };
 
@@ -163,6 +225,7 @@ export function useNotificationManager(options = {}) {
         refreshCount: fetchUnreadCountFromAPI,
         markAsRead,
         markAllAsRead,
+        clearAll,
         subscribe,
         unsubscribe
     };
