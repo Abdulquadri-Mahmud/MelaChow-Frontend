@@ -23,7 +23,7 @@ export default function DashboardLayout({ children }) {
   // Show loading state while fetching vendor data
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-zinc-950">
+      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-slate-900">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-gray-500 dark:text-gray-400 font-medium">Loading dashboard...</p>
@@ -45,7 +45,7 @@ export default function DashboardLayout({ children }) {
       />}
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1 bg-gray-50 dark:bg-zinc-950 min-h-screen overflow-hidden">
+      <div className="flex flex-col flex-1 bg-gray-50 dark:bg-slate-900 min-h-screen overflow-hidden">
         {/* Sticky Header */}
         {vendor && <div className="sticky top-0 z-50">
           <VendorDashboardHeader

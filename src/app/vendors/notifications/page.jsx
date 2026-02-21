@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNotificationManager } from '@/app/hooks/useNotificationManager';
 import { useVendorProfile } from '@/app/context/VendorProfileContext';
 import {
@@ -24,61 +24,81 @@ import { toast } from 'react-hot-toast';
 export default function VendorNotificationsPage() {
     const { vendorProfile } = useVendorProfile();
     const router = useRouter();
+    const [activeTab, setActiveTab] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
+
     const {
         notifications,
         loading,
+        hasMore,
+        loadMore,
         refreshNotifications,
         markAsRead,
         markAllAsRead,
+        deleteNotification,
+        unreadCount,
+        total,
         isPushEnabled,
         isPushSupported,
         subscribe
-    } = useNotificationManager({ restaurantId: vendorProfile?._id });
+    } = useNotificationManager({ restaurantId: vendorProfile?._id, role: 'vendor' });
 
-    // Group notifications by date
+    // Premium Filtering Logic
+    const filteredNotifications = useMemo(() => {
+        let filtered = notifications;
+
+        if (activeTab === 'orders') {
+            filtered = notifications.filter(n => n.type?.includes('order') || n.type === 'new_order');
+        } else if (activeTab === 'system') {
+            filtered = notifications.filter(n => !n.type?.includes('order') && n.type !== 'new_order');
+        }
+
+        if (searchQuery) {
+            filtered = filtered.filter(n =>
+                n.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                n.body?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                n.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+
+        return filtered;
+    }, [notifications, activeTab, searchQuery]);
+
+    // Grouping Logic
     const groupedNotifications = useMemo(() => {
-        if (!notifications || notifications.length === 0) return {};
+        if (!filteredNotifications || filteredNotifications.length === 0) return {};
 
-        return notifications.reduce((groups, notification) => {
+        return filteredNotifications.reduce((groups, notification) => {
             const date = parseISO(notification.createdAt);
             let groupKey = 'Earlier';
 
-            if (isToday(date)) {
-                groupKey = 'Today';
-            } else if (isYesterday(date)) {
-                groupKey = 'Yesterday';
-            } else {
-                groupKey = format(date, 'MMMM d, yyyy');
-            }
+            if (isToday(date)) groupKey = 'Today';
+            else if (isYesterday(date)) groupKey = 'Yesterday';
+            else groupKey = format(date, 'MMMM d, yyyy');
 
-            if (!groups[groupKey]) {
-                groups[groupKey] = [];
-            }
+            if (!groups[groupKey]) groups[groupKey] = [];
             groups[groupKey].push(notification);
             return groups;
         }, {});
-    }, [notifications]);
+    }, [filteredNotifications]);
 
     const getIcon = (type) => {
         switch (type) {
             case 'order_placed':
             case 'new_order':
-                return <ShoppingBag className="text-orange-500" size={20} />;
+                return <ShoppingBag className="text-orange-500" size={22} />;
             case 'order_cancelled':
-                return <XCircle className="text-red-500" size={20} />;
+                return <XCircle className="text-red-500" size={22} />;
             case 'order_ready':
             case 'order_completed':
-                return <CheckCircle2 className="text-green-500" size={20} />;
+                return <CheckCircle2 className="text-emerald-500" size={22} />;
             default:
-                return <Bell className="text-blue-500" size={20} />;
+                return <Bell className="text-indigo-500" size={22} />;
         }
     };
 
-    const handleNotificationClick = (notification) => {
-        if (!notification.read) {
-            markAsRead(notification._id);
-        }
-
+    const handleNotificationClick = async (notification) => {
+        if (!notification.read) await markAsRead(notification._id);
         if (notification.url) {
             router.push(notification.url);
         } else if (notification.orderId) {
@@ -86,177 +106,290 @@ export default function VendorNotificationsPage() {
         }
     };
 
-    if (loading && notifications.length === 0) {
-        return (
-            <div className="flex h-[80vh] items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium">Fetching notifications...</p>
-                </div>
+    const handleDelete = async (e, id) => {
+        e.stopPropagation();
+        try {
+            await deleteNotification(id);
+            toast.success('Notification archived');
+        } catch (error) {
+            toast.error('Failed to remove notification');
+        }
+    };
+
+    // Premium Skeleton Loader
+    const SkeletonItem = () => (
+        <div className="bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 animate-pulse flex gap-4">
+            <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex-shrink-0" />
+            <div className="flex-1 space-y-3">
+                <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-full w-1/3" />
+                <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-full w-2/3" />
+                <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full w-1/4" />
             </div>
-        );
-    }
+        </div>
+    );
 
     return (
-        <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                <div>
-                    <button
-                        onClick={() => router.back()}
-                        className="flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors mb-2 text-sm"
-                    >
-                        <ArrowLeft size={16} /> Back
-                    </button>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                        Notifications
-                        {notifications.filter(n => !n.read).length > 0 && (
-                            <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
-                                {notifications.filter(n => !n.read).length} new
-                            </span>
-                        )}
-                    </h1>
-                </div>
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+            <div className="max-w-6xl mx-auto">
 
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={refreshNotifications}
-                        disabled={loading}
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-50"
-                    >
-                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                        Refresh
-                    </button>
-
-                    {notifications.length > 0 && (
+                {/* 1. Header & Navigation */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+                    <div className="space-y-4">
                         <button
-                            onClick={markAllAsRead}
-                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                            onClick={() => router.back()}
+                            className="group flex items-center gap-2 text-slate-400 hover:text-orange-500 transition-all font-medium text-sm"
                         >
-                            <CheckCircle2 size={16} /> Mark all as read
+                            <div className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 group-hover:border-orange-500/30">
+                                <ArrowLeft size={16} />
+                            </div>
+                            Go Back
                         </button>
-                    )}
-                </div>
-            </div>
-
-            {/* Push Status Card */}
-            <div className={`mb-8 p-6 rounded-3xl border backdrop-blur-xl transition-all flex flex-col md:flex-row items-center justify-between gap-6 ${isPushEnabled
-                ? 'bg-green-50/50 dark:bg-green-500/5 border-green-100 dark:border-green-500/20'
-                : 'bg-orange-50/50 dark:bg-orange-500/5 border-orange-100 dark:border-orange-500/20'
-                }`}>
-                <div className="flex items-center gap-4">
-                    <div className={`p-3 rounded-2xl ${isPushEnabled ? 'bg-green-100 dark:bg-green-500/20 text-green-600' : 'bg-orange-100 dark:bg-orange-500/20 text-orange-600'
-                        }`}>
-                        <Bell size={24} className={!isPushEnabled ? 'animate-bounce' : ''} />
+                        <div className="space-y-2">
+                            <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+                                Inbox
+                                {unreadCount > 0 && (
+                                    <span className="ml-4 inline-flex items-center px-4 py-1.5 rounded-full bg-orange-500 text-white text-sm font-bold shadow-lg shadow-orange-500/20">
+                                        {unreadCount} New
+                                    </span>
+                                )}
+                            </h1>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium">
+                                Manage your store alerts and incoming order logs.
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="font-bold text-slate-900 dark:text-white">
-                            {isPushEnabled ? 'Push Notifications Active' : 'Enable Push Notifications'}
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            {isPushEnabled
-                                ? 'You will receive real-time alerts even when the dashboard is closed.'
-                                : 'Get instant alerts for new orders and updates on your device.'}
-                        </p>
+
+                    <div className="flex items-center gap-3">
+
+                        <button
+                            onClick={refreshNotifications}
+                            className="p-3 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-orange-500/30 hover:text-orange-500 transition-all active:scale-95 group shadow-sm"
+                            title="Refresh Inbox"
+                        >
+                            <RefreshCw size={20} className={loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-700'} />
+                        </button>
+
+                        {notifications.length > 0 && (
+                            <button
+                                onClick={markAllAsRead}
+                                className="px-6 py-3 bg-white dark:bg-orange-500 text-white dark:text-slate-900 rounded-2xl text-sm font-bold hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-slate-900/10 dark:shadow-white/5 flex items-center gap-2"
+                            >
+                                <CheckCircle2 size={18} /> Mark All Read
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                {!isPushEnabled && isPushSupported && (
-                    <button
-                        onClick={async () => {
-                            const success = await subscribe();
-                            if (success) {
-                                toast.success("Push notifications enabled successfully!");
-                            }
-                        }}
-                        className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-bold transition-all active:scale-95"
+                {/* 2. Stats Dashboard (ROBUST UX) */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+                    {[
+                        { label: 'Total Logs', value: total, color: 'indigo', icon: Bell },
+                        { label: 'Unread', value: unreadCount, color: 'orange', icon: Clock },
+                        { label: 'Orders', value: notifications.filter(n => n.type?.includes('order')).length, color: 'emerald', icon: ShoppingBag },
+                        { label: 'System', value: notifications.filter(n => !n.type?.includes('order')).length, color: 'blue', icon: CheckCircle2 },
+                    ].map((stat, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.1 }}
+                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl shadow-sm hover:border-orange-500/20 transition-all"
+                        >
+                            <div className={`w-10 h-10 rounded-2xl mb-4 flex items-center justify-center ${stat.color === 'indigo' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500' :
+                                stat.color === 'orange' ? 'bg-orange-50 dark:bg-orange-500/10 text-orange-500' :
+                                    stat.color === 'emerald' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500' :
+                                        'bg-blue-50 dark:bg-blue-500/10 text-blue-500'
+                                }`}>
+                                <stat.icon size={20} />
+                            </div>
+                            <div className="text-2xl font-black text-slate-900 dark:text-white leading-tight">{stat.value}</div>
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{stat.label}</div>
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* 3. Push Toggle Section */}
+                {!isPushEnabled && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mb-10 p-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-[2.5rem] shadow-xl shadow-orange-500/10"
                     >
-                        Enable Now
-                    </button>
+                        <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl rounded-[2.4rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-6 text-center md:text-left">
+                                <div className="w-16 h-16 bg-orange-100 dark:bg-orange-500/10 rounded-3xl flex items-center justify-center text-orange-500 flex-shrink-0 animate-pulse">
+                                    <Bell size={32} />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-white">Instant Alerts</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 font-medium">Get notified of new orders even when you're not on the browser.</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={subscribe}
+                                className="w-full md:w-auto px-10 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black transition-all hover:scale-105 active:scale-95"
+                            >
+                                Enable Now
+                            </button>
+                        </div>
+                    </motion.div>
                 )}
 
-                {isPushEnabled && (
-                    <div className="flex items-center gap-2 text-green-600 bg-green-100 dark:bg-green-500/20 px-4 py-2 rounded-full text-xs font-bold">
-                        <CheckCircle2 size={14} /> ACTIVE
+                {/* 4. Filter & Search Tabs */}
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+                    <div className="flex p-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl w-full md:w-auto shadow-sm">
+                        {['all', 'orders', 'system'].map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => setActiveTab(tab)}
+                                className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold capitalize transition-all ${activeTab === tab
+                                    ? 'bg-slate-900 dark:bg-orange-500 text-white dark:text-slate-900 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)]'
+                                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                                    }`}
+                            >
+                                {tab}
+                            </button>
+                        ))}
                     </div>
-                )}
-            </div>
 
-            {/* Empty State */}
-            {notifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-3xl text-center px-6">
-                    <div className="w-20 h-20 bg-orange-100 dark:bg-orange-500/10 rounded-full flex items-center justify-center mb-6">
-                        <Bell className="text-orange-500" size={32} />
+                    <div className="relative w-full md:w-80">
+                        <input
+                            type="text"
+                            placeholder="Search notifications..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all placeholder:text-slate-400 dark:text-white"
+                        />
+                        <Bell className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">All caught up!</h3>
-                    <p className="text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-                        You don't have any notifications right now. New orders and updates will appear here.
-                    </p>
                 </div>
-            ) : (
-                <div className="space-y-8">
-                    {Object.entries(groupedNotifications).map(([group, items]) => (
-                        <div key={group} className="space-y-3">
-                            <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2 px-2">
-                                <Calendar size={14} /> {group}
-                            </h2>
-                            <div className="grid gap-3">
-                                <AnimatePresence mode="popLayout">
-                                    {items.map((notification) => (
-                                        <motion.div
-                                            key={notification._id}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, scale: 0.95 }}
-                                            className={`group relative overflow-hidden bg-white dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-slate-800 hover:border-orange-200 dark:hover:border-orange-500/30 rounded-2xl p-4 transition-all cursor-pointer ${!notification.read ? 'ring-1 ring-orange-500/10' : ''
-                                                }`}
-                                            onClick={() => handleNotificationClick(notification)}
-                                        >
-                                            <div className="flex items-start gap-4">
-                                                {/* Icon Wrapper */}
-                                                <div className={`p-3 rounded-xl flex-shrink-0 ${!notification.read
-                                                    ? 'bg-orange-100 dark:bg-orange-500/20'
-                                                    : 'bg-slate-100 dark:bg-slate-800'
+
+                {/* 5. Notification List Implementation */}
+                <div className="space-y-10">
+                    {loading && notifications.length === 0 ? (
+                        <div className="grid gap-4">
+                            {[1, 2, 3, 4].map(i => <SkeletonItem key={i} />)}
+                        </div>
+                    ) : (Object.keys(groupedNotifications).length === 0) ? (
+                        <div className="py-24 flex flex-col items-center text-center">
+                            <div className="w-24 h-24 bg-slate-100 dark:bg-slate-900 rounded-[2.5rem] flex items-center justify-center text-slate-300 dark:text-slate-700 mb-6 border border-slate-200 dark:border-slate-800 shadow-inner">
+                                <Bell size={40} />
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 dark:text-white">Peace and Quiet</h3>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 max-w-xs">No notifications found here. We'll alert you when something happens!</p>
+                        </div>
+                    ) : (
+                        Object.entries(groupedNotifications).map(([group, items], groupIndex) => (
+                            <div key={group} className="space-y-4">
+                                <div className="flex items-center gap-4 ml-2">
+                                    <div className="h-0.5 flex-1 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                                    <h2 className="text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-slate-500 uppercase flex items-center gap-2 whitespace-nowrap">
+                                        <Calendar size={12} /> {group}
+                                    </h2>
+                                    <div className="h-0.5 flex-1 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                                </div>
+
+                                <div className="grid gap-4">
+                                    <AnimatePresence mode="popLayout" initial={false}>
+                                        {items.map((notification, i) => (
+                                            <motion.div
+                                                key={notification._id}
+                                                layout
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                                                whileHover={{ y: -2 }}
+                                                className={`group relative flex items-center gap-4 bg-white dark:bg-slate-800 border ${!notification.read
+                                                    ? 'border-orange-500/20 ring-1 ring-orange-500/10'
+                                                    : 'border-slate-100 dark:border-slate-700'
+                                                    } p-4 md:p-6 rounded-[2rem] transition-all cursor-pointer shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)] hover:shadow-xl hover:shadow-slate-900/5 dark:hover:shadow-white/5 active:scale-[0.99] overflow-hidden`}
+                                                onClick={() => handleNotificationClick(notification)}
+                                            >
+                                                {/* Status Indicator Bar */}
+                                                {!notification.read && (
+                                                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-500" />
+                                                )}
+
+                                                {/* Icon */}
+                                                <div className={`w-14 h-14 rounded-3xl flex-shrink-0 flex items-center justify-center transition-transform group-hover:scale-110 duration-500 ${!notification.read
+                                                    ? 'bg-orange-500/10 text-orange-500'
+                                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
                                                     }`}>
                                                     {getIcon(notification.type)}
                                                 </div>
 
-                                                {/* Content */}
+                                                {/* Main Content */}
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center justify-between gap-2 mb-1">
-                                                        <h4 className={`text-base font-bold truncate ${!notification.read ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'
-                                                            }`}>
+                                                    <div className="flex items-center justify-between gap-3 mb-1.5">
+                                                        <h4 className={`text-base font-black truncate tracking-tight ${!notification.read ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>
                                                             {notification.title}
                                                         </h4>
-                                                        <span className="text-[10px] whitespace-nowrap text-slate-400 font-medium">
+                                                        <span className="text-[10px] font-bold text-slate-400 whitespace-nowrap bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded-lg">
                                                             {format(parseISO(notification.createdAt), 'h:mm aa')}
                                                         </span>
                                                     </div>
-                                                    <p className={`text-sm line-clamp-2 ${!notification.read ? 'text-slate-700 dark:text-slate-300' : 'text-slate-500 dark:text-slate-500'
-                                                        }`}>
+
+                                                    <p className={`text-sm md:text-[15px] leading-relaxed mb-3 line-clamp-2 ${!notification.read ? 'text-slate-600 dark:text-slate-300 font-medium' : 'text-slate-400 dark:text-slate-500'}`}>
                                                         {notification.body}
                                                     </p>
-                                                </div>
 
-                                                {/* Action indicator */}
-                                                <div className="flex flex-col items-center justify-center gap-2">
-                                                    {!notification.read && (
-                                                        <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                                                    {/* Contextual Badges */}
+                                                    {(notification.customerName || notification.location) && (
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {notification.customerName && (
+                                                                <div className="px-2.5 py-1 rounded-xl bg-orange-50 dark:bg-orange-500/5 border border-orange-100 dark:border-orange-500/10 text-[10px] font-black text-orange-600 tracking-wider uppercase flex items-center gap-1.5">
+                                                                    <div className="w-1 h-1 rounded-full bg-orange-500 shadow-[0_0_4px_rgba(249,115,22,1)]" />
+                                                                    {notification.customerName}
+                                                                </div>
+                                                            )}
+                                                            {notification.location && (
+                                                                <div className="px-2.5 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10 text-[10px] font-black text-indigo-600 tracking-wider uppercase flex items-center gap-1.5">
+                                                                    <div className="w-1 h-1 rounded-full bg-indigo-500" />
+                                                                    {notification.location}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     )}
-                                                    <ChevronRight size={18} className="text-slate-300 group-hover:text-orange-500 transition-colors" />
                                                 </div>
-                                            </div>
 
-                                            {/* Hover effect highlight */}
-                                            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/0 to-orange-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
-                                        </motion.div>
-                                    ))}
-                                </AnimatePresence>
+                                                {/* Action Panel */}
+                                                <div className="flex flex-col items-end gap-4 ml-2">
+                                                    <button
+                                                        onClick={(e) => handleDelete(e, notification._id)}
+                                                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                                        title="Archive Log"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                    <div className={`p-2 rounded-xl transition-colors ${!notification.read ? 'bg-orange-50 text-orange-500' : 'text-slate-200'}`}>
+                                                        <ChevronRight size={20} />
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                </div>
                             </div>
+                        ))
+                    )}
+
+                    {/* Infinite UX */}
+                    {hasMore && (
+                        <div className="flex justify-center pt-12">
+                            <button
+                                onClick={loadMore}
+                                disabled={loading}
+                                className="group relative px-12 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] font-black text-sm tracking-widest uppercase transition-all hover:scale-105 active:scale-95 disabled:opacity-50 overflow-hidden"
+                            >
+                                <span className="relative z-10 flex items-center gap-3">
+                                    {loading ? <RefreshCw className="animate-spin" size={18} /> : 'Load More Logs'}
+                                </span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-pink-500 opacity-0 group-hover:opacity-20 transition-opacity" />
+                            </button>
                         </div>
-                    ))}
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 }

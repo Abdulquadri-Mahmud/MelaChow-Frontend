@@ -110,18 +110,22 @@ export const metadata = {
   metadataBase: new URL("https://grubdash.vercel.app"),
 };
 
+import { ThemeProvider } from "./context/ThemeContext";
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${playfairDisplay.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${playfairDisplay.variable} antialiased transition-colors duration-300`}>
         {/* ✅ ONLY base providers - no auth logic here */}
-        <ApiProvider>
-          <QueryProvider>
-            <SocketProvider>
-              {children}
-            </SocketProvider>
-          </QueryProvider>
-        </ApiProvider>
+        <ThemeProvider>
+          <ApiProvider>
+            <QueryProvider>
+              <SocketProvider>
+                {children}
+              </SocketProvider>
+            </QueryProvider>
+          </ApiProvider>
+        </ThemeProvider>
         <Toaster position="top-right" reverseOrder={false} />
       </body>
     </html>

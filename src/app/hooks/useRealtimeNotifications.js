@@ -7,11 +7,12 @@ import { useSocket } from '@/app/context/SocketContext';
  * Now consumes from SocketContext for global state persistence
  */
 export function useRealtimeNotifications() {
-    const { isConnected, unreadCount, latestNotification } = useSocket();
+    const { isConnected, unreadCount, latestNotification, refreshUnreadCount } = useSocket();
 
     return {
         isConnected,
         unreadCount,
-        latestNotification
+        latestNotification,
+        refreshUnreadCount
     };
 }
