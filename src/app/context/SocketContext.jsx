@@ -30,6 +30,38 @@ export const SocketProvider = ({ children }) => {
 
     const role = getRoleFromPath(pathname);
 
+    const fetchUnreadCount = async () => {
+        const apiBase = role === 'vendor' ? '/api/vendors/notifications' :
+            role === 'admin' ? '/api/admin/notifications' :
+                '/api/notifications';
+
+        try {
+            const fetchUrl = role === 'vendor' ? `${apiBase}/history` : `${apiBase}/unread-count`;
+
+            const response = await fetch(fetchUrl, {
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                let count = 0;
+
+                if (role === 'vendor') {
+                    count = data.unreadCount ?? data.count ?? data.data?.unreadCount ?? data.data?.count ?? 0;
+                } else {
+                    count = data.count ?? data.data?.count ?? 0;
+                }
+
+                setUnreadCount(count);
+                return count;
+            }
+        } catch (error) {
+            console.error(`Failed to fetch ${role} unread count:`, error);
+        }
+        return 0;
+    };
+
     useEffect(() => {
         // Function to handle connection
         const connect = async () => {
@@ -37,37 +69,8 @@ export const SocketProvider = ({ children }) => {
             if (token) {
                 socketService.connect(token);
 
-                // Fetch initial unread count to seed the global state
-                const apiBase = role === 'vendor' ? '/api/vendors/notifications' :
-                    role === 'admin' ? '/api/admin/notifications' :
-                        '/api/notifications';
-
-                try {
-                    // Refined fetching based on role-specific endpoints
-                    const fetchUrl = role === 'vendor' ? `${apiBase}/history` : `${apiBase}/unread-count`;
-
-                    const response = await fetch(fetchUrl, {
-                        credentials: 'include',
-                        headers: { 'Accept': 'application/json' }
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        let count = 0;
-
-                        if (role === 'vendor') {
-                            // Extract from history response
-                            count = data.unreadCount ?? data.count ?? data.data?.unreadCount ?? data.data?.count ?? 0;
-                        } else {
-                            // Standard unread-count response
-                            count = data.count ?? data.data?.count ?? 0;
-                        }
-
-                        setUnreadCount(count);
-                    }
-                } catch (error) {
-                    console.error(`Failed to fetch initial ${role} unread count:`, error);
-                }
+                // Fetch initial unread count
+                await fetchUnreadCount();
 
                 // Set up basic listeners
                 socketService.onNewNotification((notification) => {
@@ -75,6 +78,8 @@ export const SocketProvider = ({ children }) => {
                     if (!notification.read) {
                         setUnreadCount(prev => prev + 1);
                     }
+                    // Dispatch custom event for notifications list update
+                    window.dispatchEvent(new CustomEvent('notifications:updated', { detail: notification }));
                 });
 
                 socketService.onNotificationCountUpdate((data) => {
@@ -84,15 +89,20 @@ export const SocketProvider = ({ children }) => {
                 socketService.onNewOrder((order) => {
                     if (role === 'vendor') {
                         console.log('🆕 New order received via socket:', order);
-                        setLatestNotification({
+                        const tempNotification = {
                             _id: `temp-${Date.now()}`,
                             title: 'New Order Received!',
                             body: `Order #${order.orderNumber || order._id?.slice(-6)} from ${order.customerName || 'Customer'}`,
                             type: 'new_order',
                             orderId: order._id,
                             createdAt: new Date().toISOString(),
-                            read: false
-                        });
+                            read: false,
+                            customerName: order.customerName,
+                            location: order.deliveryAddress?.address
+                        };
+                        setLatestNotification(tempNotification);
+                        setUnreadCount(prev => prev + 1);
+                        window.dispatchEvent(new CustomEvent('notifications:updated', { detail: tempNotification }));
                     }
                 });
 
@@ -100,15 +110,12 @@ export const SocketProvider = ({ children }) => {
             }
         };
 
-        // Connect initially
         connect();
 
-        // Monitor connection status
         const interval = setInterval(() => {
             const status = socketService.getConnectionStatus();
             setIsConnected(status.isConnected);
 
-            // If not connected but we have a token, try to connect
             if (!status.isConnected && TokenManager.getToken(role)) {
                 connect();
             }
@@ -119,13 +126,15 @@ export const SocketProvider = ({ children }) => {
             socketService.removeAllListeners();
             socketService.disconnect();
         };
-    }, [role]); // Reconnect if role changes (e.g. switching between dashboard and store)
+    }, [role]);
 
     const value = {
         isConnected,
         socket: socketService.socket,
         unreadCount,
-        latestNotification
+        latestNotification,
+        setUnreadCount,
+        refreshUnreadCount: fetchUnreadCount
     };
 
     return (

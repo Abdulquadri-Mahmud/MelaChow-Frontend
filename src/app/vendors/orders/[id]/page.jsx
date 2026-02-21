@@ -168,9 +168,9 @@ export default function VendorOrderDetailsPage() {
 
     if (isLoading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-[#0F172A]">
+            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-900">
                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-[#FF6B00] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-slate-500 dark:text-slate-400 font-medium">Loading order details...</p>
                 </div>
             </div>
@@ -179,13 +179,13 @@ export default function VendorOrderDetailsPage() {
 
     if (!order) {
         return (
-            <div className="flex flex-col h-screen items-center justify-center bg-slate-50 dark:bg-[#0F172A] gap-4">
+            <div className="flex flex-col h-screen items-center justify-center bg-slate-50 dark:bg-slate-900 gap-4">
                 <AlertOctagon size={64} className="text-slate-400" />
                 <h2 className="text-2xl font-bold text-slate-700 dark:text-slate-300">Order Not Found</h2>
                 <p className="text-slate-500 dark:text-slate-400">This order doesn't exist or you don't have access to it.</p>
                 <button
                     onClick={() => router.back()}
-                    className="mt-4 px-6 py-3 bg-[#FF6B00] text-white font-bold rounded-xl hover:bg-orange-600 transition-colors"
+                    className="mt-4 px-6 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-colors"
                 >
                     Go Back to Orders
                 </button>
@@ -263,7 +263,7 @@ export default function VendorOrderDetailsPage() {
     const availableActions = getAvailableStatuses(order.orderStatus);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] font-sans">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans">
 
             {/* Success Toast */}
             <AnimatePresence>
@@ -308,7 +308,7 @@ export default function VendorOrderDetailsPage() {
             </AnimatePresence>
 
             {/* Top Navigation Bar */}
-            <div className="rounded-full sticky top-0 z-10 bg-white/95 dark:bg-[#0F172A]/95 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
+            <div className="rounded-full sticky top-0 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
                 <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
                     <button
                         onClick={() => router.back()}
@@ -332,7 +332,7 @@ export default function VendorOrderDetailsPage() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white dark:bg-[#1E293B] rounded-3xl p-6 md:p-8 mt-3 border border-slate-200 dark:border-slate-800"
+                    className="bg-white dark:bg-slate-800 rounded-3xl p-6 md:p-8 mt-3 border border-slate-200 dark:border-slate-700"
                 >
                     <div className="flex flex-col lg:flex-row justify-between gap-6">
                         <div className="flex-1">
@@ -390,7 +390,7 @@ export default function VendorOrderDetailsPage() {
                                                 disabled={isUpdating}
                                                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isCancelAction
                                                     ? 'bg-red-50 text-red-600 border-2 border-red-200 hover:bg-red-100 dark:bg-red-900/10 dark:border-red-800 dark:text-red-400'
-                                                    : 'bg-[#FF6B00] text-white hover:bg-orange-600 shadow-lg shadow-orange-500/20'
+                                                    : 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/20'
                                                     }`}
                                             >
                                                 {isUpdating ? (
@@ -421,11 +421,11 @@ export default function VendorOrderDetailsPage() {
                                                 initial={{ scale: 0.8 }}
                                                 animate={{
                                                     scale: isCurrent ? [1, 1.1, 1] : 1,
-                                                    backgroundColor: isCompleted ? '#FF6B00' : '#E2E8F0'
+                                                    backgroundColor: isCompleted ? '#f97316' : '#E2E8F0'
                                                 }}
                                                 transition={{ repeat: isCurrent ? Infinity : 0, duration: 2 }}
                                                 className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${isCompleted
-                                                    ? 'border-[#FF6B00] bg-[#FF6B00] text-white shadow-lg shadow-orange-500/30'
+                                                    ? 'border-orange-500 bg-orange-500 text-white shadow-lg shadow-orange-500/30'
                                                     : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400'
                                                     }`}
                                             >
@@ -437,7 +437,7 @@ export default function VendorOrderDetailsPage() {
                                             </span>
                                         </div>
                                         {idx < 5 && (
-                                            <div className={`h-0.5 w-12 mx-2 transition-all ${idx < Math.min(currentStatusIndex, 5) ? 'bg-[#FF6B00]' : 'bg-slate-200 dark:bg-slate-700'
+                                            <div className={`h-0.5 w-12 mx-2 transition-all ${idx < Math.min(currentStatusIndex, 5) ? 'bg-orange-500' : 'bg-slate-200 dark:bg-slate-700'
                                                 }`} />
                                         )}
                                     </div>
@@ -457,11 +457,11 @@ export default function VendorOrderDetailsPage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+                            className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden"
                         >
                             <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-gradient-to-r from-orange-50 to-transparent dark:from-orange-900/5">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-orange-100 dark:bg-orange-500/10 rounded-xl text-[#FF6B00]">
+                                    <div className="p-3 bg-orange-100 dark:bg-orange-500/10 rounded-xl text-orange-500">
                                         <ShoppingBag size={24} />
                                     </div>
                                     <div>
@@ -531,7 +531,7 @@ export default function VendorOrderDetailsPage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="bg-white dark:bg-[#1E293B] rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden"
+                            className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden"
                         >
                             <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-gradient-to-r from-green-50 to-transparent dark:from-green-900/5">
                                 <div className="p-3 bg-green-100 dark:bg-green-500/10 rounded-xl text-green-600">
@@ -574,7 +574,7 @@ export default function VendorOrderDetailsPage() {
                                         <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Total Payout</span>
                                         <span className="text-xs text-slate-400 mt-0.5">Estimated deposit amount</span>
                                     </div>
-                                    <span className="text-3xl font-bold text-[#FF6B00]">
+                                    <span className="text-3xl font-bold text-orange-500">
                                         ₦{((order.vendorTotal || 0) + (order.deliveryShare || 0)).toLocaleString()}
                                     </span>
                                 </div>
@@ -597,7 +597,7 @@ export default function VendorOrderDetailsPage() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="bg-white dark:bg-[#1E293B] rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden"
+                            className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden"
                         >
                             <div className="p-6 flex flex-col items-center text-center border-b border-slate-100 dark:border-slate-800 bg-gradient-to-b from-slate-50 to-transparent dark:from-slate-800/30">
                                 <div className="relative mb-4">
@@ -608,7 +608,7 @@ export default function VendorOrderDetailsPage() {
                                             <User size={40} />
                                         </div>
                                     )}
-                                    <div className="absolute bottom-0 right-0 bg-green-500 text-white p-1.5 rounded-full border-4 border-white dark:border-[#1E293B]">
+                                    <div className="absolute bottom-0 right-0 bg-green-500 text-white p-1.5 rounded-full border-4 border-white dark:border-slate-800">
                                         <User size={14} />
                                     </div>
                                 </div>
@@ -619,7 +619,7 @@ export default function VendorOrderDetailsPage() {
                             <div className="p-4">
                                 <a
                                     href={`tel:${user?.phone || userOrderId?.phone}`}
-                                    className="w-full bg-gradient-to-r from-[#FF6B00] to-orange-600 hover:from-orange-600 hover:to-[#FF6B00] text-white py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30"
+                                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-500 text-white py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30"
                                 >
                                     <Phone size={20} />
                                     <span>Call Customer</span>
@@ -633,7 +633,7 @@ export default function VendorOrderDetailsPage() {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.2 }}
-                                className="bg-white dark:bg-[#1E293B] rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden"
+                                className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden"
                             >
                                 <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-transparent dark:from-blue-900/5 flex items-center gap-2">
                                     <MapPin size={18} className="text-blue-500" />
@@ -674,7 +674,7 @@ export default function VendorOrderDetailsPage() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="bg-white dark:bg-[#1E293B] rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden p-6"
+                            className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden p-6"
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -709,7 +709,7 @@ export default function VendorOrderDetailsPage() {
                             initial={{ scale: 0.9, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white dark:bg-[#1E293B] p-6 rounded-3xl shadow-2xl max-w-sm w-full"
+                            className="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-2xl max-w-sm w-full border border-slate-200 dark:border-slate-700"
                         >
                             <div className="flex flex-col items-center text-center gap-4">
                                 <div className="p-4 bg-red-100 dark:bg-red-900/20 rounded-full text-red-600">

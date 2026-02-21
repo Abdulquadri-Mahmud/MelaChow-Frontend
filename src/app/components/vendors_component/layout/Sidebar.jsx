@@ -133,7 +133,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
           : { x: 0, width: open ? 280 : 80 }
         }
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className={`fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-[#0F172A] border-r border-slate-200 dark:border-slate-800 z-[60] flex flex-col`}
+        className={`fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-[60] flex flex-col`}
       >
         {/* Header */}
         <div className="h-20 flex items-center justify-between px-3 border-b border-slate-100 dark:border-slate-800/50">
@@ -150,14 +150,14 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
                 </div>
                 <div className="flex flex-col -ml-4">
                   <span className="font-bold text-slate-800 dark:text-white text-xl leading-tight">Premium Eats</span>
-                  <span className="text-[10px] font-bold text-[#FF6B00] tracking-wider uppercase">VENDOR PRO</span>
+                  <span className="text-[10px] font-bold text-orange-500 tracking-wider uppercase">VENDOR PRO</span>
                 </div>
               </motion.div>
             ) : (
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="w-10 h-10 bg-gradient-to-br from-[#FF6B00] to-orange-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-orange-500/30 mx-auto"
+                className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-orange-500/30 mx-auto"
               >
                 G
               </motion.div>
@@ -210,7 +210,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
               >
                 <div
                   className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${active
-                    ? "bg-[#FF6B00] text-white shadow-lg shadow-orange-500/25"
+                    ? "bg-orange-500 text-white shadow-lg shadow-orange-500/25"
                     : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white"
                     }`}
                 >
@@ -246,7 +246,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         </nav>
 
         {/* Footer / Logout */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-[#0F172A]">
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-900">
           <button
             onClick={handleLogout}
             disabled={logoutLoading}

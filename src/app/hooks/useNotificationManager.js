@@ -21,6 +21,10 @@ export function useNotificationManager(options = {}) {
         if (role === 'vendor') {
             const base = '/api/vendors/notifications';
             if (action === 'history') return `${base}/history`;
+            if (action === 'unread-count') return `${base}/unread-count`;
+            if (action === 'mark-read') return `${base}/${id}/read`;
+            if (action === 'mark-all-read') return `${base}/read-all`;
+            if (action === 'delete') return `${base}/${id}`;
             if (action === 'subscribe') return `${base}/subscribe`;
             if (action === 'unsubscribe') return `${base}/unsubscribe`;
             return base;
@@ -49,7 +53,8 @@ export function useNotificationManager(options = {}) {
     const {
         unreadCount: wsUnreadCount,
         latestNotification: wsLatestNotification,
-        isConnected: wsConnected
+        isConnected: wsConnected,
+        refreshUnreadCount
     } = useRealtimeNotifications();
 
     // Subscribe to restaurant events if vendor
@@ -68,17 +73,18 @@ export function useNotificationManager(options = {}) {
         unsubscribe
     } = usePushNotifications(role);
 
-    // REST API fallback
+    // REST API fallback & state
     const [apiUnreadCount, setApiUnreadCount] = useState(0);
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(false);
+    const [total, setTotal] = useState(0);
+    const [page, setPage] = useState(1);
 
     // Fetch initial data from API
     useEffect(() => {
-        fetchNotificationsFromAPI();
-        if (role === 'user') {
-            fetchUnreadCountFromAPI();
-        }
+        fetchNotificationsFromAPI(true);
+        fetchUnreadCountFromAPI();
     }, [restaurantId, role]);
 
     // Poll API when WebSocket is disconnected (fallback)
@@ -86,32 +92,72 @@ export function useNotificationManager(options = {}) {
         if (!wsConnected) {
             console.log(`📡 WebSocket disconnected - falling back to ${role} API polling`);
             const interval = setInterval(() => {
-                fetchNotificationsFromAPI();
-                if (role === 'user') fetchUnreadCountFromAPI();
+                fetchNotificationsFromAPI(true);
+                fetchUnreadCountFromAPI();
             }, 30000); // Every 30s
             return () => clearInterval(interval);
         }
     }, [wsConnected, restaurantId, role]);
 
-    const fetchNotificationsFromAPI = async () => {
+    // Listen for custom events to sync across tabs/instances
+    useEffect(() => {
+        const handleSync = (event) => {
+            if (event.detail && event.detail._id) {
+                setNotifications(prev => {
+                    const exists = prev.some(n => n._id === event.detail._id);
+                    if (exists) return prev;
+                    return [event.detail, ...prev];
+                });
+                setTotal(prev => prev + 1);
+            } else {
+                // If it's a generic update (like a mark as read), refresh the unread count
+                fetchUnreadCountFromAPI();
+                // Optionally refresh notifications if we're on the history page
+                if (window.location.pathname.includes('/notifications')) {
+                    fetchNotificationsFromAPI(true);
+                }
+            }
+        };
+
+        window.addEventListener('notifications:updated', handleSync);
+        return () => window.removeEventListener('notifications:updated', handleSync);
+    }, [restaurantId, role]);
+
+    const fetchNotificationsFromAPI = async (reset = false) => {
         setLoading(true);
+        const targetPage = reset ? 1 : page + 1;
         try {
             const response = await axios.get(getEndpoint('history'), {
                 withCredentials: true,
                 params: {
-                    limit: 50,
+                    limit: 15,
+                    page: targetPage,
                     ...(restaurantId && { restaurantId })
                 }
             });
 
             const data = response.data.notifications || response.data.data?.notifications || response.data.data || [];
-            setNotifications(data);
+            const newTotal = response.data.total ?? response.data.data?.total ?? data.length;
+            const newHasMore = response.data.hasMore ?? response.data.data?.hasMore ?? (data.length === 15);
 
-            // For vendors, count is included in history
-            if (role === 'vendor') {
-                const count = response.data.unreadCount ?? response.data.count ?? response.data.unread_count ??
-                    response.data.data?.unreadCount ?? response.data.data?.count ?? 0;
+            if (reset) {
+                setNotifications(data);
+                setPage(1);
+            } else {
+                setNotifications(prev => [...prev, ...data]);
+                setPage(targetPage);
+            }
+
+            setHasMore(newHasMore);
+            setTotal(newTotal);
+
+            // Update unread count if provided in history
+            const count = response.data.unreadCount ?? response.data.count ?? response.data.unread_count ??
+                response.data.data?.unreadCount ?? response.data.data?.count;
+
+            if (count !== undefined) {
                 setApiUnreadCount(count);
+                if (refreshUnreadCount) refreshUnreadCount();
             }
         } catch (error) {
             console.error(`Failed to fetch ${role} notifications:`, error);
@@ -121,7 +167,6 @@ export function useNotificationManager(options = {}) {
     };
 
     const fetchUnreadCountFromAPI = async () => {
-        if (role !== 'user') return; // Only user has explicit unread-count endpoint in reference
         try {
             const response = await axios.get(getEndpoint('unread-count'), {
                 withCredentials: true,
@@ -129,8 +174,9 @@ export function useNotificationManager(options = {}) {
                     ...(restaurantId && { restaurantId })
                 }
             });
-            const count = response.data?.count ?? response.data?.data?.count ?? response.data?.data ?? 0;
+            const count = response.data.unreadCount ?? response.data.count ?? response.data?.data?.count ?? response.data?.data ?? 0;
             setApiUnreadCount(count);
+            if (refreshUnreadCount) refreshUnreadCount();
         } catch (error) {
             console.error(`Failed to fetch ${role} unread count:`, error);
         }
@@ -138,24 +184,19 @@ export function useNotificationManager(options = {}) {
 
     const markAsRead = async (notificationId) => {
         try {
-            // For user role, use the specific pattern :id/read
-            if (role === 'user') {
-                await axios.patch(getEndpoint('mark-read', notificationId), {}, {
-                    withCredentials: true
-                });
-            } else {
-                // If vendor/admin don't have separate PATCH for single read in reference,
-                // we might need to skip or use a generic one if it exists.
-                // The reference doesn't specify mark-read for vendor/admin explicitly.
-                // I'll assume they might use the user-like pattern or we skip for now.
-                console.warn(`Mark as read not explicitly defined for ${role} in reference`);
-            }
+            await axios.patch(getEndpoint('mark-read', notificationId), {}, {
+                withCredentials: true
+            });
 
             setNotifications(prev => prev.map(n =>
                 n._id === notificationId ? { ...n, read: true } : n
             ));
 
-            if (role === 'user') fetchUnreadCountFromAPI();
+            setApiUnreadCount(prev => Math.max(0, prev - 1));
+            if (refreshUnreadCount) refreshUnreadCount();
+
+            // Notify other instances
+            window.dispatchEvent(new CustomEvent('notifications:updated', { detail: { action: 'mark-read', id: notificationId } }));
         } catch (error) {
             console.error('Failed to mark notification as read:', error);
         }
@@ -163,18 +204,44 @@ export function useNotificationManager(options = {}) {
 
     const markAllAsRead = async () => {
         try {
-            if (role === 'user') {
-                await axios.patch(getEndpoint('mark-all-read'), {}, {
-                    withCredentials: true
-                });
-            } else {
-                console.warn(`Mark all as read not explicitly defined for ${role} in reference`);
-            }
+            await axios.patch(getEndpoint('mark-all-read'), {}, {
+                withCredentials: true
+            });
 
             setNotifications(prev => prev.map(n => ({ ...n, read: true })));
             setApiUnreadCount(0);
+            if (refreshUnreadCount) refreshUnreadCount();
+
+            // Notify other instances
+            window.dispatchEvent(new CustomEvent('notifications:updated', { detail: { action: 'mark-all-read' } }));
         } catch (error) {
             console.error('Failed to mark all notifications as read:', error);
+        }
+    };
+
+    const deleteNotification = async (notificationId) => {
+        try {
+            await axios.delete(getEndpoint('delete', notificationId), {
+                withCredentials: true
+            });
+
+            setNotifications(prev => {
+                const filtered = prev.filter(n => n._id !== notificationId);
+                const deleted = prev.find(n => n._id === notificationId);
+                if (deleted && !deleted.read) {
+                    setApiUnreadCount(prevCount => Math.max(0, prevCount - 1));
+                    if (refreshUnreadCount) refreshUnreadCount();
+                }
+                return filtered;
+            });
+
+            setTotal(prev => Math.max(0, prev - 1));
+
+            // Notify other instances
+            window.dispatchEvent(new CustomEvent('notifications:updated', { detail: { action: 'delete', id: notificationId } }));
+        } catch (error) {
+            console.error('Failed to delete notification:', error);
+            throw error;
         }
     };
 
@@ -186,34 +253,17 @@ export function useNotificationManager(options = {}) {
             });
             setNotifications([]);
             setApiUnreadCount(0);
+            setTotal(0);
+            setHasMore(false);
+            if (refreshUnreadCount) refreshUnreadCount();
+            window.dispatchEvent(new CustomEvent('notifications:updated', { detail: { action: 'clear-all' } }));
         } catch (error) {
             console.error('Failed to clear all notifications:', error);
         }
     };
 
-    // Add new WebSocket notification to local list and increment count
-    useEffect(() => {
-        if (wsLatestNotification) {
-            // Check if notification belongs to this restaurant if restaurantId is provided
-            // For now we add it and increment the local count
-            setNotifications(prev => {
-                // Prevent duplicate entries if the socket and API overlap
-                const exists = prev.some(n => n._id === wsLatestNotification._id);
-                if (exists) return prev;
-                return [wsLatestNotification, ...prev];
-            });
-
-            if (!wsLatestNotification.read) {
-                setApiUnreadCount(prev => prev + 1);
-            }
-        }
-    }, [wsLatestNotification]);
-
-    // Intelligent count selection
-    // Priority: If it's a general notification bell (no restaurantId), use global socket count.
-    // If it's restaurant-specific, use the local apiUnreadCount (which is also live-updated by wsLatestNotification).
-    const unreadCount = (wsConnected && !restaurantId) ? wsUnreadCount : apiUnreadCount;
-
+    // Unified count management
+    const unreadCount = wsConnected ? wsUnreadCount : apiUnreadCount;
 
     return {
         // Notification data
@@ -221,6 +271,8 @@ export function useNotificationManager(options = {}) {
         unreadCount,
         latestNotification: wsLatestNotification,
         loading,
+        hasMore,
+        total,
 
         // Connection states
         isRealtimeConnected: wsConnected,
@@ -229,12 +281,15 @@ export function useNotificationManager(options = {}) {
         pushPermission,
 
         // Actions
-        refreshNotifications: fetchNotificationsFromAPI,
+        refreshNotifications: () => fetchNotificationsFromAPI(true),
+        loadMore: () => fetchNotificationsFromAPI(false),
         refreshCount: fetchUnreadCountFromAPI,
         markAsRead,
         markAllAsRead,
+        deleteNotification,
         clearAll,
         subscribe,
         unsubscribe
     };
 }
+

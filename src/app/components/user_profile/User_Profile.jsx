@@ -20,11 +20,14 @@ import {
   Bell,
   ArrowLeft,
   Star,
-  Wallet
+  Wallet,
+  Sun,
+  Moon
 } from "lucide-react";
 import DeleteModal from "./DeleteModal";
 import NeedHelp from "@/app/(customer)/profile/need_help_contact_info/NeedHelp";
 import NotificationSettings from "@/app/components/notifications/NotificationSettings";
+import { useTheme } from "@/app/context/ThemeContext";
 
 const ActionCard = ({ icon: Icon, title, description, onClick, href, color = "orange", isRed = false }) => {
   const router = useRouter();
@@ -70,6 +73,7 @@ const User_Profile = ({ userData, isLoading }) => {
   const { baseUrl } = useApi();
   const router = useRouter();
   const { clearUser, user, logout } = useUserStorage();
+  const { theme, toggleTheme } = useTheme();
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -254,6 +258,12 @@ const User_Profile = ({ userData, isLoading }) => {
           title="Notifications"
           description="View your recent updates and account alerts"
           href="/notifications"
+        />
+        <ActionCard
+          icon={theme === 'light' ? Moon : Sun}
+          title={theme === 'light' ? "Dark Mode" : "Light Mode"}
+          description={theme === 'light' ? "Switch to a darker interface" : "Switch to a brighter interface"}
+          onClick={toggleTheme}
         />
       </div>
 

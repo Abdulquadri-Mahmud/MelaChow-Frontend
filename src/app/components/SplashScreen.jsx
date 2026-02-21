@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image"; // Optimization 1: Use next/image
 
 export default function SplashScreen({ user, vendorDetails }) {
@@ -82,118 +82,139 @@ export default function SplashScreen({ user, vendorDetails }) {
     };
 
     return (
-        <div className="fixed inset-0 z-[9999] flex flex-col bg-white dark:bg-zinc-950 overflow-hidden">
-            {/* Top Half - Stylized Hero Image */}
-            <motion.div
-                initial={{ height: "100%" }}
-                animate={{ height: "55%" }}
-                transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                className="relative w-full overflow-hidden rounded-b-[60px] shadow-2xl z-20 bg-zinc-200 dark:bg-zinc-900"
-            // Optimization 2: Added background color to prevent jarring shift if image takes ms to load
-            >
-                {/* Optimization 3: Wrapped Image in motion.div instead of motion.img to use next/image */}
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-900 overflow-hidden">
+            {/* Background Layer: Dynamic Mesh Gradient */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <motion.div
-                    className="relative w-full h-full"
-                    initial={{ scale: 1.2, filter: "blur(10px)" }}
-                    animate={{ scale: 1, filter: "blur(0px)" }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
-                >
-                    <Image
-                        src="/splashscreen.jpg"
-                        alt="GrubDash Experience"
-                        fill
-                        priority // Optimization 4: Eager load this critical asset
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 50vw" // Optimization 5: Proper sizing for performance
-                    />
-                </motion.div>
+                    animate={{
+                        scale: [1, 1.2, 1],
+                        rotate: [0, 90, 0],
+                        opacity: [0.3, 0.5, 0.3],
+                    }}
+                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                    className="absolute -top-[20%] -right-[10%] w-[100%] h-[100%] bg-orange-500/20 rounded-full blur-[120px]"
+                />
+                <motion.div
+                    animate={{
+                        scale: [1.2, 1, 1.2],
+                        rotate: [0, -90, 0],
+                        opacity: [0.2, 0.4, 0.2],
+                    }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="absolute -bottom-[20%] -left-[10%] w-[100%] h-[100%] bg-orange-600/10 rounded-full blur-[100px]"
+                />
+            </div>
 
-                {/* Advanced Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
-                <div className="absolute inset-0 bg-orange-600/10 mix-blend-overlay pointer-events-none" />
-            </motion.div>
+            {/* Subtle Noise Texture */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
 
-            {/* Bottom Half - Premium Content */}
+            {/* Main Branding Container */}
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="flex-1 flex flex-col items-center justify-center px-10 relative z-10 -mt-10"
+                className="relative z-10 flex flex-col items-center"
             >
-                {/* Visual Accent */}
-                <motion.div variants={itemVariants} className="w-12 h-1 bg-orange-600 rounded-full mb-8" />
-
-                {/* Main Branding */}
-                <motion.div variants={itemVariants} className="text-center space-y-2">
-                    <h1 className="text-5xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none">
-                        Grub<span className="text-orange-600">Dash</span>
-                    </h1>
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-orange-600/80 pl-1">
-                        Local Food Discovery
-                    </p>
-                </motion.div>
-
-                {/* Catchy Description */}
-                <motion.div variants={itemVariants} className="mt-8 text-center max-w-[280px]">
-                    <h2 className="text-xl font-bold text-zinc-800 dark:text-zinc-100 leading-tight">
-                        Authentic Local <span className="italic text-orange-600">Flavors.</span>
-                    </h2>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 font-medium">
-                        Connecting you with the best nearby vendors and hidden gems in your city.
-                    </p>
-                </motion.div>
-
-                {/* High-Fidelity 3-Dot Loader */}
-                <motion.div variants={itemVariants} className="mt-12 flex flex-col items-center gap-6 w-full">
-                    <div className="flex gap-3">
-                        {[0, 1, 2].map((i) => (
-                            <motion.div
-                                key={i}
-                                variants={dotVariants}
-                                initial="initial"
-                                animate="animate"
-                                transition={{
-                                    animate: {
-                                        delay: i * 0.15,
-                                    },
-                                }}
-                                className="w-2.5 h-2.5 bg-orange-600 rounded-full shadow-[0_0_15px_rgba(249,115,22,0.4)]"
+                {/* Logo Frame: Liquid Style */}
+                <motion.div
+                    variants={itemVariants}
+                    className="relative mb-12"
+                >
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                        className="absolute inset-0 bg-gradient-to-tr from-orange-500 to-orange-400 rounded-[40px] blur-2xl opacity-20 scale-110"
+                    />
+                    <div className="relative w-32 h-32 bg-white rounded-[38px] flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden p-6 group">
+                        <motion.div
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
+                        >
+                            <Image
+                                src="/logo.png"
+                                alt="GrubDash"
+                                width={120}
+                                height={120}
+                                className="object-contain"
+                                priority
                             />
-                        ))}
+                        </motion.div>
+                    </div>
+                </motion.div>
+
+                {/* Typography: Modern & Refined */}
+                <motion.div variants={itemVariants} className="text-center space-y-4">
+                    <h1 className="text-6xl font-black italic uppercase tracking-tighter text-white leading-none">
+                        Grub<span className="text-orange-500">Dash</span>
+                    </h1>
+                    <div className="flex items-center justify-center gap-3">
+                        <div className="h-[1px] w-6 bg-orange-500/30" />
+                        <p className="text-[11px] font-black uppercase tracking-[0.5em] text-orange-400 text-center">
+                            Local Food Delivery
+                        </p>
+                        <div className="h-[1px] w-6 bg-orange-500/30" />
+                    </div>
+                </motion.div>
+
+                {/* Loader Section */}
+                <motion.div variants={itemVariants} className="mt-20 flex flex-col items-center gap-8 w-[280px]">
+                    {/* Minimalist Progress Bar */}
+                    <div className="w-full h-[3px] bg-white/10 rounded-full overflow-hidden relative">
+                        <motion.div
+                            initial={{ x: "-100%" }}
+                            animate={{ x: "100%" }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                            className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-orange-500 to-transparent"
+                        />
                     </div>
 
-                    {/* Progress Indicator Metadata */}
-                    <div className="flex flex-col items-center gap-2 min-h-[30px]">
-                        <motion.div
-                            key={loadingText} // Animate text change
-                            initial={{ opacity: 0, y: 5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -5 }}
-                            className="flex items-center gap-2"
-                        >
-                            <div className="w-1 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
-                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
-                                {loadingText}
-                            </span>
-                            <div className="w-1 h-1 bg-zinc-300 dark:bg-zinc-700 rounded-full" />
-                        </motion.div>
-
-                        {/* Optional Next Step Indicator */}
-                        {showNextStep && !isAuthenticated && (
+                    <div className="space-y-3 flex flex-col items-center">
+                        <AnimatePresence mode="wait">
                             <motion.span
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="text-[8px] text-orange-500 font-bold uppercase tracking-widest mt-1"
+                                key={loadingText}
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 1.1 }}
+                                className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/60 text-center block"
                             >
-                                Get Ready to Explore
+                                {loadingText}
                             </motion.span>
-                        )}
+                        </AnimatePresence>
+
+                        <div className="flex gap-1.5 justify-center">
+                            {[0, 1, 2].map((i) => (
+                                <motion.div
+                                    key={i}
+                                    animate={{
+                                        scale: [1, 1.5, 1],
+                                        opacity: [0.3, 1, 0.3]
+                                    }}
+                                    transition={{
+                                        duration: 1,
+                                        repeat: Infinity,
+                                        delay: i * 0.2
+                                    }}
+                                    className="w-1 h-1 bg-orange-500 rounded-full"
+                                />
+                            ))}
+                        </div>
                     </div>
                 </motion.div>
             </motion.div>
 
-            {/* Subtle Decorative Elements */}
-            <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-zinc-100 dark:via-zinc-800 to-transparent pointer-events-none" />
+            {/* Bottom Safe Area Branding (iOS style) */}
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.5 }}
+                className="absolute bottom-12 flex flex-col items-center gap-1"
+            >
+                <p className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20">
+                    Premium Quality First
+                </p>
+                <div className="w-8 h-1 bg-orange-500/10 rounded-full" />
+            </motion.div>
         </div>
     );
 }
