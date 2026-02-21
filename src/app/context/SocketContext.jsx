@@ -43,13 +43,26 @@ export const SocketProvider = ({ children }) => {
                         '/api/notifications';
 
                 try {
-                    const response = await fetch(`${apiBase}/unread-count`, {
+                    // Refined fetching based on role-specific endpoints
+                    const fetchUrl = role === 'vendor' ? `${apiBase}/history` : `${apiBase}/unread-count`;
+
+                    const response = await fetch(fetchUrl, {
                         credentials: 'include',
                         headers: { 'Accept': 'application/json' }
                     });
+
                     if (response.ok) {
                         const data = await response.json();
-                        const count = data.count ?? data.data?.count ?? 0;
+                        let count = 0;
+
+                        if (role === 'vendor') {
+                            // Extract from history response
+                            count = data.unreadCount ?? data.count ?? data.data?.unreadCount ?? data.data?.count ?? 0;
+                        } else {
+                            // Standard unread-count response
+                            count = data.count ?? data.data?.count ?? 0;
+                        }
+
                         setUnreadCount(count);
                     }
                 } catch (error) {
