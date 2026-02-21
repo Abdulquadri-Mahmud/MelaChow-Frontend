@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRealtimeNotifications } from './useRealtimeNotifications';
 import { usePushNotifications } from './usePushNotifications';
 import axios from 'axios';
+import socketService from '@/app/lib/socketService';
 
 /**
  * UNIFIED NOTIFICATION MANAGER
@@ -50,6 +51,13 @@ export function useNotificationManager(options = {}) {
         latestNotification: wsLatestNotification,
         isConnected: wsConnected
     } = useRealtimeNotifications();
+
+    // Subscribe to restaurant events if vendor
+    useEffect(() => {
+        if (role === 'vendor' && restaurantId && wsConnected) {
+            socketService.subscribeToRestaurant(restaurantId);
+        }
+    }, [role, restaurantId, wsConnected]);
 
     // Push Notifications
     const {
