@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { User, MapPin, Calendar, Clock, Phone, ChevronRight, ShoppingBag } from "lucide-react";
+import { User, MapPin, Calendar, Clock, Phone, ChevronRight, ShoppingBag, Bike } from "lucide-react";
 
-export default function VendorOrderCard({ order }) {
+export default function VendorOrderCard({ order, onAssign }) {
   const { userOrderId, restaurantId } = order;
   const user = userOrderId?.userId;
   const address = userOrderId?.deliveryAddress;
@@ -128,6 +128,15 @@ export default function VendorOrderCard({ order }) {
           <p className="text-xs text-slate-400">Vendor Earning</p>
           <p className="text-lg font-bold text-slate-900 dark:text-white">₦{order.vendorTotal?.toLocaleString() || "0"}</p>
         </div>
+
+        {(order.orderStatus === 'ready' || order.orderStatus === 'ready_for_pickup') && (
+          <button
+            onClick={() => onAssign?.(order.userOrderId?._id || order.userOrderId)}
+            className="flex items-center gap-1.5 px-4 py-2 bg-orange-600 text-white font-bold text-sm rounded-xl hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/20"
+          >
+            <Bike size={16} /> Assign Rider
+          </button>
+        )}
 
         <Link
           href={`/vendors/orders/${order._id?.$oid || order._id}`}

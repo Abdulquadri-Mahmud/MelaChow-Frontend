@@ -8,14 +8,16 @@
 const STORAGE_KEYS = {
     user: 'grubdash_access_token_v1',
     vendor: 'grubdash_vendor_token_v1',
-    admin: 'grubdash_admin_token_v1'
+    admin: 'grubdash_admin_token_v1',
+    rider: 'grubdash_rider_token_v1'
 };
 
 // In-memory storage (primary)
 let memoryTokens = {
     user: null,
     vendor: null,
-    admin: null
+    admin: null,
+    rider: null
 };
 
 export const TokenManager = {

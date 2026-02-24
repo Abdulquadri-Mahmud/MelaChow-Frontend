@@ -309,6 +309,16 @@ export default function VendorDashboard() {
           <div className="z-10 w-full md:w-auto">
             <h2 className="text-2xl font-bold mb-2 text-slate-900 dark:text-white">Revenue Command</h2>
             <p className="text-slate-500 dark:text-slate-400 max-w-md text-sm">Your payout for the last 24 hours is ready. Withdraw funds to your primary bank account instantly.</p>
+
+            {/* Delivery Mode Visibility */}
+            <div className="mt-4 flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700 w-fit">
+              <div className={`w-2 h-2 rounded-full ${vendorData?.deliveryManagedBy === "vendor" ? "bg-orange-500" : "bg-blue-500"}`} />
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">
+                {vendorData?.deliveryManagedBy === "vendor"
+                  ? `You manage your own delivery — ₦${vendorData?.flatRateDeliveryFee || 0} flat fee`
+                  : "Platform manages your delivery"}
+              </p>
+            </div>
             <div className="flex items-center gap-4 mt-6">
               <div>
                 <p className="text-xs uppercase text-slate-500 font-bold tracking-widest mb-1">Available Balance</p>

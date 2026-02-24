@@ -25,7 +25,7 @@ export default function Header2() {
       animate={{ y: 0, opacity: 1 }}
       className="sticky top-0 z-50 w-full"
     >
-      <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-gray-100 dark:border-zinc-800/50">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-slate-800/50">
         <div className="max-w-7xl mx-auto px-4 py-4 h-16 flex items-center justify-between">
 
           <div className="flex items-center gap-4">
@@ -34,7 +34,7 @@ export default function Header2() {
               whileHover={{ scale: 1.1, x: -2 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => router.back()}
-              className="p-2.5 rounded-2xl bg-gray-50 dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 text-gray-700 dark:text-gray-200 hover:text-orange-500 transition-all hover:shadow-md"
+              className="p-2.5 rounded-2xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-gray-700 dark:text-gray-200 hover:text-orange-500 transition-all hover:shadow-md"
               aria-label="Go back"
             >
               <ChevronLeft className="w-5 h-5" />

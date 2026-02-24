@@ -324,7 +324,7 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                         animate={{ translateY: "0%", opacity: 1 }}
                         exit={{ translateY: "100%", opacity: 0 }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="relative w-full max-w-lg bg-zinc-50 dark:bg-[#0B1121] overflow-hidden flex flex-col max-h-[100vh]"
+                        className="relative w-full max-w-lg bg-slate-50 dark:bg-[#0B1121] overflow-hidden flex flex-col max-h-[100vh]"
                     >
                         {/* Header Image */}
                         <div className="relative h-[220px] w-full shrink-0">
@@ -358,23 +358,23 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                         <div className="sticky top-0 z-30 bg-white dark:bg-[#0B1121] shadow-sm">
                             <div className="flex items-center justify-between px-2 py-2">
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                                         Order Quantity
                                     </span>
-                                    <span className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                                    <span className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
                                         {quantity} {quantity === 1 ? 'item' : 'items'}
                                     </span>
                                 </div>
 
-                                <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-xl p-1.5 border border-zinc-200 dark:border-zinc-800">
+                                <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900 rounded-xl p-1.5 border border-slate-200 dark:border-slate-800">
                                     <button
                                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                        className="w-9 h-9 rounded-lg border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-zinc-800 active:scale-95 transition-all"
+                                        className="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 active:scale-95 transition-all"
                                     >
                                         <Minus size={16} strokeWidth={2.5} />
                                     </button>
 
-                                    <span className="text-xl font-black tabular-nums text-gray-900 dark:text-white min-w-[2rem] text-center">
+                                    <span className="text-xl font-black tabular-nums text-slate-900 dark:text-white min-w-[2rem] text-center">
                                         {quantity}
                                     </span>
 
@@ -389,14 +389,14 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                         </div>
 
                         {/* Scrollable Options */}
-                        <div className="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-hide bg-zinc-50 dark:bg-[#0B1121]">
+                        <div className="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-hide bg-slate-50 dark:bg-[#0B1121]">
                             {/* Choice Groups */}
                             {food.choiceGroups?.map((group, gIdx) => {
                                 const hasImages = group.options.some(o => o.image);
                                 const groupSubtotal = getGroupSubtotal(gIdx);
 
                                 return (
-                                    <div key={gIdx} className="bg-white dark:bg-zinc-900 rounded-2xl p-2 border border-zinc-100 dark:border-zinc-800">
+                                    <div key={gIdx} className="bg-white dark:bg-slate-900 rounded-2xl p-2 border border-slate-100 dark:border-slate-800">
                                         {/* Group Header */}
                                         <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                                             <div className="flex items-center gap-3">
@@ -413,7 +413,7 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                                                                 REQ {group.minSelect}
                                                             </span>
                                                         )}
-                                                        <span className="text-[9px] font-bold text-gray-400 bg-gray-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded-full tracking-wider">
+                                                        <span className="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full tracking-wider">
                                                             OPTIONAL
                                                         </span>
                                                     </div>
@@ -437,11 +437,11 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                                                         key={oIdx}
                                                         className={`relative rounded-xl border transition-all ${isSelected
                                                             ? "border-orange-500 bg-orange-50 dark:bg-orange-900/10 ring-1 ring-orange-500/20"
-                                                            : "border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-orange-200"
+                                                            : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-orange-200"
                                                             } ${isOutOfStock ? "opacity-60 cursor-not-allowed" : ""}`}
                                                     >
                                                         <div className="grid grid-cols-[auto_1fr_auto] gap-3 items-center p-3">
-                                                            <div className="w-14 h-14 shrink-0 bg-zinc-100 dark:bg-zinc-800 rounded-lg overflow-hidden">
+                                                            <div className="w-14 h-14 shrink-0 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden">
                                                                 {option.image ? (
                                                                     <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
                                                                 ) : (
@@ -475,7 +475,7 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                                                                     </div>
                                                                 ) : isSelected ? (
                                                                     // Quantity Controls when selected
-                                                                    <div className="flex items-center bg-white dark:bg-zinc-800 rounded-lg border border-orange-200 dark:border-orange-900 shadow-sm overflow-hidden h-9">
+                                                                    <div className="flex items-center bg-white dark:bg-slate-800 rounded-lg border border-orange-200 dark:border-orange-900 shadow-sm overflow-hidden h-9">
                                                                         <button
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
@@ -516,7 +516,7 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                                         </div>
 
                                         {groupSubtotal > 0 && (
-                                            <div className="mt-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+                                            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
                                                 <span className="text-xs font-medium text-gray-500">Group Subtotal</span>
                                                 <span className="text-sm font-bold text-orange-600">
                                                     ₦{groupSubtotal.toLocaleString()}
@@ -531,7 +531,7 @@ export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, o
                         {/* Footer Actions */}
                         <div className="p-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#0B1121] z-20 shadow-[0_-5px_20px_rgba(0,0,0,0.02)]">
                             {packingFee > 0 && (
-                                <div className="mb-4 flex justify-between items-center text-sm font-medium text-gray-600 dark:text-gray-400 bg-zinc-50 dark:bg-zinc-900 rounded-xl p-3 border border-zinc-200 dark:border-zinc-800">
+                                <div className="mb-4 flex justify-between items-center text-sm font-medium text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
                                     <span className="flex items-center gap-2">
                                         <ShoppingBag size={16} />
                                         Packaging Fee

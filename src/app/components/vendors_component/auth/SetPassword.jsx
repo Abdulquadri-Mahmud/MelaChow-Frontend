@@ -87,7 +87,7 @@ export default function VendorSetPassword() {
     };
 
     return (
-        <div className="h-screen w-full bg-white dark:bg-zinc-900 flex items-center justify-center overflow-hidden p-4">
+        <div className="h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden p-4">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -99,18 +99,18 @@ export default function VendorSetPassword() {
                         <Lock size={36} />
                     </div>
 
-                    <h1 className="text-3xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white mb-3">
+                    <h1 className="text-3xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-3">
                         Secure Your <span className="text-orange-600">Business</span>
                     </h1>
-                    <p className="text-xs font-semibold text-zinc-500 mb-4">
+                    <p className="text-xs font-semibold text-slate-500 mb-4">
                         Set a password for<br />
-                        <span className="text-zinc-700 dark:text-zinc-300 font-bold">{email}</span>
+                        <span className="text-slate-700 dark:text-slate-300 font-bold">{email}</span>
                     </p>
                 </div>
 
                 <form onSubmit={handleSetPassword} className="space-y-4">
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">New Password</label>
+                        <label className="text-xs font-bold text-slate-600 dark:text-slate-400">New Password</label>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
@@ -118,12 +118,12 @@ export default function VendorSetPassword() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all pr-12"
+                                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all pr-12"
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-orange-600 transition-colors"
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-orange-600 transition-colors"
                                 tabIndex={-1}
                             >
                                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -132,14 +132,14 @@ export default function VendorSetPassword() {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Confirm Password</label>
+                        <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Confirm Password</label>
                         <input
                             type={showPassword ? "text" : "password"}
                             placeholder="Confirm new password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
-                            className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                            className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         />
                     </div>
 

@@ -26,7 +26,7 @@ export default function RealtimeNotificationListener() {
         // Show toast notification
         toast.custom((t) => (
             <div
-                className={`bg-white dark:bg-zinc-900 shadow-2xl rounded-2xl p-4 flex items-start gap-4 max-w-md border-l-4 ${latestNotification.type?.includes('order')
+                className={`bg-white dark:bg-slate-900 shadow-2xl rounded-2xl p-4 flex items-start gap-4 max-w-md border-l-4 ${latestNotification.type?.includes('order')
                     ? 'border-orange-500'
                     : latestNotification.type?.includes('promo')
                         ? 'border-green-500'
@@ -45,10 +45,10 @@ export default function RealtimeNotificationListener() {
                     {getIcon(latestNotification.type)}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-sm text-gray-900 dark:text-white mb-1">
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-1">
                         {latestNotification.title}
                     </h4>
-                    <p className="text-xs text-gray-600 dark:text-zinc-400 line-clamp-2">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
                         {latestNotification.body}
                     </p>
                     {latestNotification.url && (
@@ -62,7 +62,7 @@ export default function RealtimeNotificationListener() {
                         e.stopPropagation();
                         toast.dismiss(t.id);
                     }}
-                    className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                    className="text-slate-400 hover:text-slate-600 flex-shrink-0"
                 >
                     ✕
                 </button>

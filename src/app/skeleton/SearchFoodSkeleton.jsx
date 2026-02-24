@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 
 const Skeleton = ({ className = "" }) => (
-  <div className={`relative overflow-hidden bg-zinc-100 dark:bg-zinc-800 animate-pulse ${className}`} />
+  <div className={`relative overflow-hidden bg-slate-100 dark:bg-slate-800 animate-pulse ${className}`} />
 );
 
 export default function SearchFoodSkeleton({ items = 6 }) {
@@ -14,7 +14,7 @@ export default function SearchFoodSkeleton({ items = 6 }) {
           key={idx}
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-zinc-900 rounded-[32px] p-2 pr-4 border border-zinc-100 dark:border-zinc-800 flex items-center gap-4"
+          className="bg-white dark:bg-slate-900 rounded-[32px] p-2 pr-4 border border-slate-100 dark:border-slate-800 flex items-center gap-4"
         >
           {/* Image skeleton */}
           <Skeleton className="w-28 h-28 rounded-[24px] flex-shrink-0" />
@@ -26,7 +26,7 @@ export default function SearchFoodSkeleton({ items = 6 }) {
               <Skeleton className="h-4 w-12 rounded-lg" />
             </div>
             <Skeleton className="h-4 w-24 rounded-lg" />
-            <div className="flex justify-between pt-2 border-t border-zinc-50 dark:border-zinc-800">
+            <div className="flex justify-between pt-2 border-t border-slate-50 dark:border-slate-800">
               <Skeleton className="h-4 w-20 rounded-lg" />
               <Skeleton className="h-4 w-16 rounded-lg" />
             </div>

@@ -617,18 +617,18 @@ const TabButton = ({ active, onClick, icon, label, count, highlight }) => (
   <button
     onClick={onClick}
     className={`relative px-6 py-4 text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${active
-        ? 'text-orange-600 bg-orange-50'
-        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+      ? 'text-orange-600 bg-orange-50'
+      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
       }`}
   >
     {icon}
     <span>{label}</span>
     {count !== undefined && (
       <span className={`px-2 py-0.5 rounded-full text-xs font-black ${active
+        ? 'bg-orange-500 text-white'
+        : highlight
           ? 'bg-orange-500 text-white'
-          : highlight
-            ? 'bg-orange-500 text-white'
-            : 'bg-gray-200 text-gray-600'
+          : 'bg-gray-200 text-gray-600'
         }`}>
         {count}
       </span>
@@ -788,8 +788,8 @@ const StateCard = ({ state, index, onToggleStatus }) => (
     transition={{ delay: index * 0.05 }}
     whileHover={{ y: -4 }}
     className={`group relative bg-white border-2 rounded-2xl p-6 transition-all ${state.isActive
-        ? 'border-green-200 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20'
-        : 'border-gray-200 hover:border-gray-300 hover:shadow-lg'
+      ? 'border-green-200 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20'
+      : 'border-gray-200 hover:border-gray-300 hover:shadow-lg'
       }`}
   >
     <div className="flex items-start justify-between mb-4">
@@ -798,8 +798,8 @@ const StateCard = ({ state, index, onToggleStatus }) => (
         <Navigation className="w-6 h-6" />
       </div>
       <span className={`px-3 py-1 rounded-full text-xs font-black ${state.isActive
-          ? 'bg-green-100 text-green-700'
-          : 'bg-gray-100 text-gray-600'
+        ? 'bg-green-100 text-green-700'
+        : 'bg-gray-100 text-gray-600'
         }`}>
         {state.isActive ? 'Active' : 'Inactive'}
       </span>
@@ -813,8 +813,8 @@ const StateCard = ({ state, index, onToggleStatus }) => (
     <button
       onClick={() => onToggleStatus(state._id, state.isActive)}
       className={`w-full py-2.5 rounded-xl font-bold transition-all ${state.isActive
-          ? 'bg-red-50 text-red-600 hover:bg-red-100'
-          : 'bg-green-50 text-green-600 hover:bg-green-100'
+        ? 'bg-red-50 text-red-600 hover:bg-red-100'
+        : 'bg-green-50 text-green-600 hover:bg-green-100'
         }`}
     >
       {state.isActive ? (
@@ -1008,8 +1008,8 @@ const CityCard = ({ city, index, onToggleStatus }) => (
     transition={{ delay: index * 0.05 }}
     whileHover={{ y: -4 }}
     className={`group relative bg-white border-2 rounded-2xl p-6 transition-all ${city.isActive
-        ? 'border-green-200 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20'
-        : 'border-gray-200 hover:border-gray-300 hover:shadow-lg'
+      ? 'border-green-200 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20'
+      : 'border-gray-200 hover:border-gray-300 hover:shadow-lg'
       }`}
   >
     <div className="flex items-start justify-between mb-4">
@@ -1018,8 +1018,8 @@ const CityCard = ({ city, index, onToggleStatus }) => (
         <Building2 className="w-6 h-6" />
       </div>
       <span className={`px-3 py-1 rounded-full text-xs font-black ${city.isActive
-          ? 'bg-green-100 text-green-700'
-          : 'bg-gray-100 text-gray-600'
+        ? 'bg-green-100 text-green-700'
+        : 'bg-gray-100 text-gray-600'
         }`}>
         {city.isActive ? 'Active' : 'Inactive'}
       </span>
@@ -1034,8 +1034,8 @@ const CityCard = ({ city, index, onToggleStatus }) => (
     <button
       onClick={() => onToggleStatus(city._id, city.isActive)}
       className={`w-full py-2.5 rounded-xl font-bold transition-all ${city.isActive
-          ? 'bg-red-50 text-red-600 hover:bg-red-100'
-          : 'bg-green-50 text-green-600 hover:bg-green-100'
+        ? 'bg-red-50 text-red-600 hover:bg-red-100'
+        : 'bg-green-50 text-green-600 hover:bg-green-100'
         }`}
     >
       {city.isActive ? (

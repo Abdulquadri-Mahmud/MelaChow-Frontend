@@ -233,7 +233,7 @@ export default function VerifyAccount() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 flex items-center justify-center overflow-hidden relative">
+    <div className="min-h-screen bg-white dark:bg-slate-950 flex items-center justify-center overflow-hidden relative">
       {/* <div className="absolute top-[10%] left-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] animate-pulse" />
       <div className="absolute bottom-[10%] right-[5%] w-96 h-96 bg-orange-600/5 rounded-full blur-[120px] animate-pulse delay-700" /> */}
 
@@ -241,7 +241,7 @@ export default function VerifyAccount() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-[40px] p-2 md:p-6 relative z-10"
+        className="w-full max-w-md bg-white dark:bg-slate-900 rounded-[40px] p-2 md:p-6 relative z-10"
       >
         <div className="text-center">
           {/* <LogoImage /> */}
@@ -249,12 +249,12 @@ export default function VerifyAccount() {
             <ShieldCheck size={32} />
           </div>
 
-          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none mb-3">
+          <h1 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white leading-none mb-3">
             Verify <span className="text-orange-600">Account</span>
           </h1>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 leading-relaxed mb-8">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 leading-relaxed mb-8">
             A 6-digit code has been sent to<br />
-            <span className="text-zinc-600 dark:text-zinc-200 mt-1 inline-block">{email || "your-email@example.com"}</span>
+            <span className="text-slate-600 dark:text-slate-200 mt-1 inline-block">{email || "your-email@example.com"}</span>
           </p>
         </div>
 
@@ -275,7 +275,7 @@ export default function VerifyAccount() {
               onChange={(e) => handleChange(e.target.value, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               onPaste={index === 0 ? handlePaste : undefined}
-              className="w-12 h-14 text-center bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl text-xl font-black text-zinc-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all"
+              className="w-12 h-14 text-center bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl text-xl font-black text-slate-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all"
             />
           ))}
         </div>
@@ -300,7 +300,7 @@ export default function VerifyAccount() {
             whileTap={{ scale: 0.98 }}
             onClick={handleVerify}
             disabled={loading}
-            className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+            className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
           >
             {loading ? (
               <>
@@ -320,7 +320,7 @@ export default function VerifyAccount() {
             whileTap={{ scale: 0.98 }}
             onClick={handleResendOTP}
             disabled={resending}
-            className="w-full bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 hover:bg-zinc-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 py-4 rounded-2xl font-black uppercase italic tracking-widest flex items-center justify-center gap-3 hover:bg-slate-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {resending ? (
               <>
@@ -336,10 +336,10 @@ export default function VerifyAccount() {
           </motion.button>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-zinc-50 dark:border-zinc-800 text-center">
+        <div className="mt-4 pt-4 border-t border-slate-50 dark:border-slate-800 text-center">
           <Link
             href="/vendors/auth/login"
-            className="text-[9px] font-black uppercase tracking-[0.3em] text-zinc-400 hover:text-orange-500 transition-colors"
+            className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-orange-500 transition-colors"
           >
             Return to Login Screen
           </Link>

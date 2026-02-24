@@ -25,7 +25,7 @@ export default function Header() {
       animate={{ y: 0, opacity: 1 }}
       className="sticky top-0 z-50 w-full"
     >
-      <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-gray-100 dark:border-zinc-800/50 shadow-sm">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
 
           {/* Logo Section */}
@@ -45,7 +45,7 @@ export default function Header() {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className="text-xs font-black uppercase tracking-widest text-gray-500 hover:text-orange-600 dark:text-gray-400 dark:hover:text-orange-500 transition-colors"
+                  className="text-xs font-black uppercase tracking-widest text-slate-500 hover:text-orange-600 dark:text-slate-400 dark:hover:text-orange-500 transition-colors"
                 >
                   {link.name}
                 </Link>
@@ -63,16 +63,16 @@ export default function Header() {
               animate={{ width: isSearchFocused ? 240 : 180 }}
             >
               <div className={`w-full flex items-center gap-2 px-3 h-10 rounded-2xl border transition-all ${isSearchFocused
-                ? 'bg-white dark:bg-zinc-900 border-orange-500/50 shadow-md ring-4 ring-orange-500/5'
-                : 'bg-gray-50 dark:bg-zinc-900 border-transparent hover:border-gray-200 dark:hover:border-zinc-700'
+                ? 'bg-white dark:bg-slate-800 border-orange-500/50 shadow-md ring-4 ring-orange-500/5'
+                : 'bg-slate-50 dark:bg-slate-800 border-transparent hover:border-slate-200 dark:hover:border-slate-700'
                 }`}>
-                <Search size={16} className={isSearchFocused ? 'text-orange-500' : 'text-gray-400'} />
+                <Search size={16} className={isSearchFocused ? 'text-orange-500' : 'text-slate-400'} />
                 <input
                   type="text"
                   placeholder="Search dishes..."
                   onFocus={() => setIsSearchFocused(true)}
                   onBlur={() => setIsSearchFocused(false)}
-                  className="bg-transparent text-sm font-medium w-full focus:outline-none dark:text-white placeholder:text-gray-400"
+                  className="bg-transparent text-sm font-medium w-full focus:outline-none dark:text-white placeholder:text-slate-400"
                 />
               </div>
             </motion.div>
@@ -84,7 +84,7 @@ export default function Header() {
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="p-2.5 rounded-2xl bg-gray-50 dark:bg-zinc-900 border border-transparent hover:border-orange-200 dark:hover:border-zinc-700 text-gray-700 dark:text-gray-200 hover:text-orange-600 transition-all"
+                  className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-transparent hover:border-orange-200 dark:hover:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-orange-600 transition-all"
                 >
                   <ShoppingBag size={20} />
                 </motion.div>
@@ -92,18 +92,18 @@ export default function Header() {
 
               {/* User Entry */}
               {isLoading ? (
-                <div className="w-10 h-10 rounded-[18px] bg-gray-200 dark:bg-zinc-800 animate-pulse" />
+                <div className="w-10 h-10 rounded-[18px] bg-slate-200 dark:bg-slate-800 animate-pulse" />
               ) : userProfile ? (
                 <Link href="/profile">
                   <motion.div
                     whileHover={{ scale: 1.05 }}
-                    className="flex items-center gap-2 p-1 pl-1 pr-3 rounded-[20px] bg-gray-50 dark:bg-zinc-900 hover:bg-white dark:hover:bg-zinc-800 border border-transparent hover:border-orange-200 dark:hover:border-zinc-700 transition-all group relative"
+                    className="flex items-center gap-2 p-1 pl-1 pr-3 rounded-[20px] bg-slate-50 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 border border-transparent hover:border-orange-200 dark:hover:border-slate-700 transition-all group relative"
                   >
                     <div className="w-8 h-8 rounded-[15px] bg-gradient-to-tr from-orange-400 to-orange-600 flex items-center justify-center text-white font-black italic shadow-md relative">
                       {userProfile.firstname ? userProfile.firstname[0].toUpperCase() : <User size={16} />}
 
                       {/* Status Dot */}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-zinc-900 rounded-full"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
                     </div>
 
                     <div className="flex flex-col text-left">
@@ -116,7 +116,7 @@ export default function Header() {
                     {/* Notification Badge (Subtle Indicator) */}
                     {typeof window !== "undefined" && "Notification" in window && Notification.permission === "default" && (
                       <motion.div
-                        className="absolute -top-1 -right-0.5 w-3 h-3 bg-orange-500 rounded-full border-2 border-white dark:border-zinc-950 shadow-sm z-10"
+                        className="absolute -top-1 -right-0.5 w-3 h-3 bg-orange-500 rounded-full border-2 border-white dark:border-slate-900 shadow-sm z-10"
                         animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       />
@@ -128,7 +128,7 @@ export default function Header() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="px-6 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-black uppercase tracking-widest italic rounded-2xl shadow-lg shadow-zinc-200 dark:shadow-none hover:bg-orange-600 dark:hover:bg-orange-500 dark:hover:text-white transition-all"
+                    className="px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black uppercase tracking-widest italic rounded-2xl shadow-lg shadow-slate-200 dark:shadow-none hover:bg-orange-600 dark:hover:bg-orange-500 dark:hover:text-white transition-all"
                   >
                     Login
                   </motion.button>
@@ -137,7 +137,7 @@ export default function Header() {
             </div>
 
             {/* Mobile Menu Trigger */}
-            <button className="lg:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-zinc-900 transition-colors">
+            <button className="lg:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
               <Menu size={24} className="text-gray-700 dark:text-gray-200" />
             </button>
           </div>

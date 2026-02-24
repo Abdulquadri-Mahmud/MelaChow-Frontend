@@ -119,4 +119,40 @@ export const getVendorReviews = async () => {
   return response.data;
 };
 
+// Rider Management
+export const getVendorRiders = async (vendorId) => {
+  const response = await API.get(`/vendors/${vendorId}/riders`);
+  // console.log(response);
+  return response.data;
+};
+
+export const createVendorRider = async (vendorId, riderData) => {
+  const response = await API.post(`/vendors/${vendorId}/riders`, riderData);
+  console.log(response);
+
+  return response.data;
+};
+
+export const getAvailableRiders = async (vendorId) => {
+  const response = await API.get(`/vendors/${vendorId}/riders/available`);
+  return response.data;
+};
+
+export const assignRiderToOrder = async (vendorId, orderId, riderId) => {
+  const response = await API.post(`/vendors/${vendorId}/orders/${orderId}/assign-rider`, { riderId });
+  console.log(response.data);
+  
+  return response.data;
+};
+
+export const updateVendorRider = async (vendorId, riderId, riderData) => {
+  const response = await API.patch(`/vendors/${vendorId}/riders/${riderId}`, riderData);
+  return response.data;
+};
+
+export const deactivateVendorRider = async (vendorId, riderId) => {
+  const response = await API.delete(`/vendors/${vendorId}/riders/${riderId}`);
+  return response.data;
+};
+
 export default API;

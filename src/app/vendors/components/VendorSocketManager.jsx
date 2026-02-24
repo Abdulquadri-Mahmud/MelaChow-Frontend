@@ -15,6 +15,7 @@ export default function VendorSocketManager() {
     useEffect(() => {
         if (isConnected && vendorProfile?._id) {
             console.log(`🔌 Joining restaurant room: ${vendorProfile._id}`);
+            socketService.socket?.emit('vendor_connect', { vendorId: vendorProfile._id });
             socketService.subscribeToRestaurant(vendorProfile._id);
         }
     }, [isConnected, vendorProfile?._id]);

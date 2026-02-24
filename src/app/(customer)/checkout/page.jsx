@@ -59,11 +59,39 @@ export default function CheckoutPage() {
   /* ---------------- CALCULATIONS ---------------- */
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+  // Resolution logic for delivery fees
+  const [vendorFeesMap, setVendorFeesMap] = useState({});
+
+  useEffect(() => {
+    if (cart.length > 0 && isMounted) {
+      const uniqueIds = Array.from(new Set(cart.map(item => item.restaurantId)));
+      const fetchFees = async () => {
+        const fees = {};
+        await Promise.all(uniqueIds.map(async id => {
+          try {
+            const data = await getVendorById(id);
+            const v = data.vendor || data;
+            // Delivery fee resolution: vendor-managed vs platform-managed
+            const fee = v.deliveryManagedBy === "vendor"
+              ? (v.flatRateDeliveryFee || 0)
+              : (v.cityId?.platformDeliveryFee ?? 0);
+            fees[id] = fee;
+          } catch (e) {
+            console.error("Fee fetch error:", e);
+          }
+        }));
+        setVendorFeesMap(prev => ({ ...prev, ...fees }));
+      };
+      fetchFees();
+    }
+  }, [cart, isMounted]);
+
   // One delivery fee per restaurant
   const restaurantDeliveryMap = {};
   cart.forEach(item => {
     if (!restaurantDeliveryMap[item.restaurantId]) {
-      restaurantDeliveryMap[item.restaurantId] = Number(item.deliveryFee || 0);
+      // Use resolved fee if available, else fallback to item.deliveryFee
+      restaurantDeliveryMap[item.restaurantId] = vendorFeesMap[item.restaurantId] ?? Number(item.deliveryFee || 0);
     }
   });
 
@@ -190,8 +218,15 @@ export default function CheckoutPage() {
 
       // 5. Transform cart data to V2 format
       setProcessingStep("calculating");
+
+      // Use resolved fees for the payload
+      const resolvedCart = cart.map(item => ({
+        ...item,
+        deliveryFee: vendorFeesMap[item.restaurantId] ?? item.deliveryFee
+      }));
+
       const orderPayload = transformCartToOrderV2(
-        cart,
+        resolvedCart,
         defaultAddress,
         userData.phone,
         userData.email,

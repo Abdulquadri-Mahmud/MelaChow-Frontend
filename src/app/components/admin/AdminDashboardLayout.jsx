@@ -16,9 +16,10 @@ import {
     Menu,
     X,
     Bell,
-    ChevronDown,
     Shield,
     MapPin,
+    Bike,
+    ChevronDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import NotificationBell from "@/app/components/NotificationBell";
@@ -30,6 +31,7 @@ const menuItems = [
     { icon: Users, label: "Users", href: "/admin/users" },
     { icon: ShoppingBag, label: "Orders", href: "/admin/orders" },
     { icon: Star, label: "Reviews", href: "/admin/reviews" },
+    { icon: Bike, label: "Riders", href: "/admin/riders" },
     { icon: MapPin, label: "Locations", href: "/admin/locations" },
     { icon: Settings, label: "Settings", href: "/admin/settings" },
 ];

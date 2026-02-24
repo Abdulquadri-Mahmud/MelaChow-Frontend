@@ -4,7 +4,7 @@ import { useApi } from "@/app/context/ApiContext";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, Store, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, Store, CheckCircle2, AlertCircle, X, Bike } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
@@ -20,13 +20,13 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm"
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm"
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          className="bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl border border-zinc-100 dark:border-zinc-800 relative overflow-hidden"
+          className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 dark:border-slate-800 relative overflow-hidden"
         >
           {/* Decorative Background */}
           <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl opacity-20 ${type === 'success' ? 'bg-orange-500' : 'bg-rose-500'
@@ -34,7 +34,7 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
 
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+            className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <X size={20} />
           </button>
@@ -45,11 +45,11 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
               {type === 'success' ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
             </div>
 
-            <h3 className="text-2xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white mb-2">
+            <h3 className="text-2xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-2">
               {type === 'success' ? 'Welcome Back!' : 'Oops!'}
             </h3>
 
-            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-[240px]">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-[240px]">
               {message}
             </p>
 
@@ -59,7 +59,7 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
               onClick={onClose}
               className={`mt-8 w-full py-4 rounded-2xl font-bold text-sm transition-all shadow-lg ${type === 'success'
                 ? 'bg-orange-600 hover:bg-orange-700 text-white shadow-orange-500/20'
-                : 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-zinc-900/20'
+                : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-slate-900/20'
                 }`}
             >
               {type === 'success' ? 'Enter GrubDash' : 'Try Again'}
@@ -140,7 +140,7 @@ export default function Signin() {
   };
 
   return (
-    <div className="h-screen w-full bg-white dark:bg-zinc-900 flex items-center justify-center overflow-hidden p-4">
+    <div className="h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -148,31 +148,31 @@ export default function Signin() {
         className="w-full max-w-md flex flex-col h-full max-h-[90vh] justify-center"
       >
         <div className="text-center space-y-3 mb-10">
-          <h2 className="text-4xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white">
+          <h2 className="text-4xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white">
             Welcome <span className="text-orange-600">Back</span>
           </h2>
-          <p className="text-xs font-semibold text-zinc-500">
+          <p className="text-xs font-semibold text-slate-500">
             Sign in to continue ordering
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400 ml-1">Email Address</label>
+            <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">Email Address</label>
             <input
               type="email"
               name="email"
               placeholder="name@example.com"
               value={formData.email}
               onChange={handleChange}
-              className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-gray-200 focus:border-orange-500/20"
+              className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
               required
             />
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between items-center ml-1">
-              <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Password</label>
+              <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Password</label>
               <Link
                 href="/auth/forgot-password"
                 className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors"
@@ -187,13 +187,13 @@ export default function Signin() {
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all pr-12 border border-gray-200 focus:border-orange-500/20"
+                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all pr-12 border border-slate-200 focus:border-orange-500/20"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-orange-600 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-orange-600 transition-colors"
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
@@ -223,7 +223,7 @@ export default function Signin() {
         </form>
 
         <div className="mt-8 text-center space-y-6">
-          <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
             Don't have an account?{" "}
             <Link
               href="/auth/signup"
@@ -233,17 +233,35 @@ export default function Signin() {
             </Link>
           </p>
 
-          <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800">
+          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4 w-full">
             <Link
               href="/vendors/auth/login"
-              className="group inline-flex items-center gap-3 px-6 py-4 bg-orange-50/50 dark:bg-orange-500/5 rounded-[1.5rem] hover:bg-orange-100 dark:hover:bg-orange-500/10 transition-all duration-300 border border-gray-200 hover:border-orange-200"
+              className="group flex-1 flex items-center justify-between md:p-4 p-2 bg-orange-50/50 dark:bg-orange-500/5 rounded-3xl hover:bg-orange-100 dark:hover:bg-orange-500/10 transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-orange-200"
             >
-              <Store className="w-5 h-5 text-orange-600" />
-              <div className="text-left">
-                <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">Restaurant Owner?</p>
-                <p className="text-[10px] font-semibold text-orange-600 uppercase tracking-wider">Join as Vendor</p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
+                  <Store size={18} />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Vendor</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-orange-600">Login Portal</p>
+                </div>
               </div>
-              <ArrowRight className="w-4 h-4 text-orange-600 group-hover:translate-x-1 transition-transform ml-2" />
+            </Link>
+
+            <Link
+              href="/auth/rider/login"
+              className="group flex-1 flex items-center justify-between md:p-4 p-2 bg-blue-500/50 dark:bg-blue-500/5 rounded-3xl hover:bg-blue-100 dark:hover:bg-blue-500/10 transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-blue-200"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                  <Bike size={18} />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Rider</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-blue-600">Fleet Access</p>
+                </div>
+              </div>
             </Link>
           </div>
         </div>

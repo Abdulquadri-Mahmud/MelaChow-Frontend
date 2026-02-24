@@ -13,6 +13,8 @@ axios.interceptors.request.use(
       role = 'vendor';
     } else if (config.url?.includes('/api/admin/')) {
       role = 'admin';
+    } else if (config.url?.includes('/api/riders/') || config.url?.includes('/api/auth/rider/')) {
+      role = 'rider';
     }
 
     // Attach the appropriate token

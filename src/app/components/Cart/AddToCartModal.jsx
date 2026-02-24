@@ -42,7 +42,7 @@ export default function AddToCartModal({ food, isOpen, onClose, onAdd }) {
               damping: 25,
               mass: 1
             }}
-            className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-[40px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-zinc-100 dark:border-zinc-800"
+            className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-[40px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-slate-100 dark:border-slate-800"
           >
             {/* Glossy Image Section */}
             <div className="relative h-56 w-full p-3">
@@ -71,26 +71,26 @@ export default function AddToCartModal({ food, isOpen, onClose, onAdd }) {
             <div className="px-6 pb-8 pt-2">
               <div className="space-y-1 mb-6">
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-600">Add to Bag</p>
-                <h4 className="text-xl font-bold text-zinc-900 dark:text-white italic uppercase tracking-tighter leading-none">{food.name}</h4>
-                <p className="text-xs text-zinc-400 font-medium line-clamp-2 mt-2">
+                <h4 className="text-xl font-bold text-slate-900 dark:text-white italic uppercase tracking-tighter leading-none">{food.name}</h4>
+                <p className="text-xs text-slate-400 font-medium line-clamp-2 mt-2">
                   {food.description || "A masterfully crafted selection prepared with the finest ingredients."}
                 </p>
               </div>
 
               {/* Advanced Quantity Controls */}
               <div className="flex items-center justify-between gap-4 mb-8">
-                <div className="flex-1 flex items-center justify-between bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded-[24px] border border-zinc-100 dark:border-zinc-800">
+                <div className="flex-1 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-2 rounded-[24px] border border-slate-100 dark:border-slate-800">
                   <motion.button
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                    className="w-12 h-12 flex items-center justify-center bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white rounded-2xl shadow-sm hover:bg-zinc-50 transition-colors"
+                    className="w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-2xl shadow-sm hover:bg-slate-50 transition-colors"
                   >
                     <Minus size={18} strokeWidth={2.5} />
                   </motion.button>
 
                   <div className="flex flex-col items-center">
-                    <span className="text-sm font-black text-zinc-900 dark:text-white tabular-nums">{quantity}</span>
-                    <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Quantity</span>
+                    <span className="text-sm font-black text-slate-900 dark:text-white tabular-nums">{quantity}</span>
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Quantity</span>
                   </div>
 
                   <motion.button
@@ -111,7 +111,7 @@ export default function AddToCartModal({ food, isOpen, onClose, onAdd }) {
                   onAdd({ ...food, quantity });
                   onClose();
                 }}
-                className="w-full flex items-center justify-between bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 p-2 pl-6 rounded-[24px] shadow-2xl group transition-all"
+                className="w-full flex items-center justify-between bg-slate-900 dark:bg-white text-white dark:text-slate-900 p-2 pl-6 rounded-[24px] shadow-2xl group transition-all"
               >
                 <div className="flex flex-col items-start">
                   <span className="text-[9px] font-black uppercase tracking-widest opacity-60">Total Cost</span>

@@ -26,7 +26,7 @@ export default function HomePage() {
   }, [user, isLoading]);
 
   return (
-    <div className="min-h-screen bg-zinc-50 pb-20">
+    <div className="min-h-screen pb-20">
       <HomeHeader />
       <div className="md:px-4 p-2">
         <div className="space-y-">
