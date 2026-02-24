@@ -18,13 +18,13 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm"
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm"
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
-          className="bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl border border-zinc-100 dark:border-zinc-800 relative overflow-hidden"
+          className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 dark:border-slate-800 relative overflow-hidden"
         >
           {/* Decorative Background */}
           <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl opacity-20 ${type === 'success' ? 'bg-orange-500' : 'bg-rose-500'
@@ -32,7 +32,7 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
 
           <button
             onClick={onClose}
-            className="absolute top-6 right-6 p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
+            className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <X size={20} />
           </button>
@@ -43,11 +43,11 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
               {type === 'success' ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
             </div>
 
-            <h3 className="text-2xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white mb-2">
+            <h3 className="text-2xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-2">
               {type === 'success' ? 'Email Sent!' : 'Oops!'}
             </h3>
 
-            <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-[240px]">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-[240px]">
               {message}
             </p>
 
@@ -56,8 +56,8 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
               whileTap={{ scale: 0.98 }}
               onClick={onClose}
               className={`mt-8 w-full py-4 rounded-2xl font-bold text-sm transition-all shadow-lg ${type === 'success'
-                  ? 'bg-orange-600 hover:bg-orange-700 text-white shadow-orange-500/20'
-                  : 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-zinc-900/20'
+                ? 'bg-orange-600 hover:bg-orange-700 text-white shadow-orange-500/20'
+                : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-slate-900/20'
                 }`}
             >
               {type === 'success' ? 'Enter OTP' : 'Try Again'}
@@ -130,7 +130,7 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="h-screen w-full bg-white dark:bg-zinc-900 flex items-center justify-center overflow-hidden p-4">
+    <div className="h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -142,10 +142,10 @@ export default function ForgotPassword() {
             <ShieldQuestion size={36} />
           </div>
           <div className="text-center space-y-3">
-            <h1 className="text-4xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white">
+            <h1 className="text-4xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white">
               Recovery <span className="text-orange-600">Mode</span>
             </h1>
-            <p className="text-xs font-semibold text-zinc-500 max-w-[280px] mx-auto leading-relaxed">
+            <p className="text-xs font-semibold text-slate-500 max-w-[280px] mx-auto leading-relaxed">
               Lost your key? Enter your registered email and we'll help you reset your password.
             </p>
           </div>
@@ -153,14 +153,14 @@ export default function ForgotPassword() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400 ml-1">Email Address</label>
+            <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">Email Address</label>
             <input
               type="email"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm border border-transparent focus:border-orange-500/20"
+              className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm border border-transparent focus:border-orange-500/20"
             />
           </div>
 
@@ -188,7 +188,7 @@ export default function ForgotPassword() {
         <div className="mt-10 text-center">
           <Link
             href="/auth/signin"
-            className="inline-flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-orange-600 transition-all group"
+            className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-orange-600 transition-all group"
           >
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
             Back to Sign In

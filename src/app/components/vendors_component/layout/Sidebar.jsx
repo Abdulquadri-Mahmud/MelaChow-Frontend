@@ -15,7 +15,8 @@ import {
   ChevronRight,
   Wallet,
   TicketPercent,
-  Bell
+  Bell,
+  Bike
 } from "lucide-react";
 import Logo from "../../logo/Logo";
 import { useApi } from "@/app/context/ApiContext";
@@ -40,6 +41,11 @@ const navItems = [
     name: "Orders",
     icon: ClipboardList,
     href: "/vendors/order",
+  },
+  {
+    name: "Riders",
+    icon: Bike,
+    href: "/vendors/riders",
   },
   {
     name: "Notifications",

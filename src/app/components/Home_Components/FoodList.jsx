@@ -63,12 +63,12 @@ export default function FoodList({ user }) {
     if (errorMsg.includes("city and state")) {
       return (
         <div className="mt-8 px-4">
-          <div className="flex flex-col items-center justify-center p-8 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 text-center">
-            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-3">
+          <div className="flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-slate-800/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-slate-800 text-center">
+            <div className="w-12 h-12 bg-orange-100 dark:bg-orange-500/20 rounded-full flex items-center justify-center mb-3">
               <MapPin className="text-orange-500" size={24} />
             </div>
-            <h3 className="font-bold text-gray-900 mb-1">Location Required</h3>
-            <p className="text-xs text-gray-500 max-w-[200px]">Please set your City and State to discover amazing food near you.</p>
+            <h3 className="font-bold text-gray-900 dark:text-white mb-1">Location Required</h3>
+            <p className="text-xs text-gray-500 dark:text-slate-400 max-w-[200px]">Please set your City and State to discover amazing food near you.</p>
           </div>
         </div>
       );
@@ -88,7 +88,7 @@ export default function FoodList({ user }) {
           <div className="flex items-center justify-between px-4 mb-4">
             <div className="flex items-center gap-2">
               <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
-              <h2 className="text-lg font-bold text-gray-900 tracking-tight capitalize">{category}</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight capitalize">{category}</h2>
             </div>
           </div>
 
@@ -186,7 +186,7 @@ export default function FoodList({ user }) {
                 <div
                   key={food._id}
                   onClick={() => router.push(`/food-details/${food._id}`)}
-                  className={`group relative flex-none w-[250px] bg-white rounded-[24px] transition-all duration-300 cursor-pointer snap-start overflow-hidden border border-gray-100 ${!isOpen ? 'opacity-80 grayscale-[0.5]' : ''}`}
+                  className={`group relative flex-none w-[250px] bg-white dark:bg-slate-900 rounded-[24px] transition-all duration-300 cursor-pointer snap-start overflow-hidden border border-gray-100 dark:border-slate-800 ${!isOpen ? 'opacity-80 grayscale-[0.5]' : ''}`}
                 >
                   {/* Image Container */}
                   <div className="relative h-[140px] w-full bg-gray-100 overflow-hidden">
@@ -218,12 +218,12 @@ export default function FoodList({ user }) {
                     )}
 
                     {/* Price Badge */}
-                    <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-xl flex flex-col items-end leading-none gap-0.5 shadow-sm">
-                      <span className="text-[12px] font-black text-gray-900 tracking-tighter">
+                    <div className="absolute top-3 right-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-2.5 py-1 rounded-xl flex flex-col items-end leading-none gap-0.5 shadow-sm">
+                      <span className="text-[12px] font-black text-gray-900 dark:text-white tracking-tighter">
                         ₦{finalPrice.toLocaleString()}
                       </span>
                       {hasDiscount && (
-                        <span className="text-[9px] font-bold text-gray-400 line-through decoration-red-400">
+                        <span className="text-[9px] font-bold text-gray-400 dark:text-slate-500 line-through decoration-red-400">
                           ₦{Number(food.price).toLocaleString()}
                         </span>
                       )}
@@ -236,13 +236,13 @@ export default function FoodList({ user }) {
                   {/* Content */}
                   <div className="p-3">
                     <div className="mb-2">
-                      <h3 className="font-bold text-gray-900 text-sm truncate leading-tight tracking-tight mb-0.5">{food.name}</h3>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+                      <h3 className="font-bold text-gray-900 dark:text-white text-sm truncate leading-tight tracking-tight mb-0.5">{food.name}</h3>
+                      <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 mb-1">
                         <Store size={10} className="text-orange-500" />
                         <span className="truncate max-w-[180px] font-medium opacity-80">{vendor?.storeName || "GrubDash Vendor"}</span>
                       </div>
                       {/* Vendor Location */}
-                      <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                      <div className="flex items-center gap-1.5 text-[10px] text-gray-400 dark:text-slate-500">
                         <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                         </svg>
@@ -251,7 +251,7 @@ export default function FoodList({ user }) {
 
                       {/* Schedule Info Badge */}
                       {scheduleLabel && (
-                        <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-orange-50 border border-orange-100 rounded text-orange-600 w-fit">
+                        <div className="flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 rounded text-orange-600 dark:text-orange-400 w-fit">
                           <Clock size={10} className="stroke-[2.5]" />
                           <span className="text-[9px] font-bold tracking-tight">{scheduleLabel}</span>
                         </div>
@@ -259,17 +259,17 @@ export default function FoodList({ user }) {
                     </div>
 
                     {/* Footer Info */}
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-50 dark:border-slate-800">
                       <div className="flex items-center gap-1">
-                        <Truck size={12} className="text-gray-400" />
-                        <span className="text-[10px] font-bold text-gray-400">
+                        <Truck size={12} className="text-gray-400 dark:text-slate-500" />
+                        <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500">
                           ₦{food.deliveryFee || vendor?.flatRateDeliveryFee || 0}
                         </span>
                       </div>
 
-                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${!isOpen ? 'bg-red-50' : 'bg-gray-50'}`}>
+                      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${!isOpen ? 'bg-red-50 dark:bg-rose-500/10' : 'bg-gray-50 dark:bg-slate-800'}`}>
                         <Clock size={10} className={!isOpen ? "text-red-500" : "text-orange-500"} />
-                        <span className={`text-[9px] font-bold ${!isOpen ? 'text-red-500' : 'text-gray-700'}`}>
+                        <span className={`text-[9px] font-bold ${!isOpen ? 'text-red-500' : 'text-gray-700 dark:text-slate-300'}`}>
                           {isOpen ? `${food?.estimatedDeliveryTime || "25"}m` : friendlyStatus}
                         </span>
                       </div>

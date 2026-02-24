@@ -250,6 +250,33 @@ class AdminAPI {
             api.delete(`/api/categories/${categoryId}`)
         );
     }
+
+    // ==================== RIDER MANAGEMENT ====================
+
+    async getAllRiders(filters = {}) {
+        const params = new URLSearchParams(filters);
+        return this.handleResponse(
+            api.get(`/api/admin/riders?${params}`)
+        );
+    }
+
+    async createRider(vendorId, riderData) {
+        return this.handleResponse(
+            api.post(`/api/admin/vendors/${vendorId}/riders`, riderData)
+        );
+    }
+
+    async updateRider(riderId, riderData) {
+        return this.handleResponse(
+            api.patch(`/api/admin/riders/${riderId}`, riderData)
+        );
+    }
+
+    async deleteRider(riderId) {
+        return this.handleResponse(
+            api.delete(`/api/admin/riders/${riderId}`)
+        );
+    }
 }
 
 export default new AdminAPI();

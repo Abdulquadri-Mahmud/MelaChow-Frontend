@@ -42,7 +42,7 @@ export default function HomeHeader() {
       className="sticky top-0 z-50 w-full"
     >
       {/* Premium Glassmorphism Container */}
-      <div className="bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-gray-100 dark:border-zinc-800/50">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-slate-800/50">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
           <div className="flex items-center justify-between h-20">
 
@@ -60,7 +60,7 @@ export default function HomeHeader() {
                 onClick={handleLocationClick}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex flex-col cursor-pointer group px-3 py-1.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors"
+                className="flex flex-col cursor-pointer group px-3 py-1.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <span className="text-[10px] font-black uppercase text-orange-500 tracking-widest italic opacity-80">
@@ -92,7 +92,7 @@ export default function HomeHeader() {
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="relative p-2.5 bg-gray-100 dark:bg-zinc-900 rounded-2xl hover:bg-orange-50 dark:hover:bg-zinc-800 transition-all border border-transparent hover:border-orange-200 dark:hover:border-zinc-700"
+                  className="relative p-2.5 bg-gray-100 dark:bg-slate-800 rounded-2xl hover:bg-orange-50 dark:hover:bg-slate-700 transition-all border border-transparent hover:border-orange-200 dark:hover:border-slate-700"
                 >
                   <ShoppingBag className="text-gray-700 dark:text-gray-200" size={20} />
                   <AnimatePresence>
@@ -101,7 +101,7 @@ export default function HomeHeader() {
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         exit={{ scale: 0 }}
-                        className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-black ring-2 ring-white dark:ring-zinc-950"
+                        className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-black ring-2 ring-white dark:ring-slate-900"
                       >
                         {totalItems}
                       </motion.span>
@@ -113,13 +113,13 @@ export default function HomeHeader() {
               {/* User Profile - Premium Entry */}
               <Link href="/profile" className="flex items-center relative group">
                 {(!isMounted || isLoading) ? (
-                  <div className="w-10 h-10 rounded-[18px] bg-gray-200 dark:bg-zinc-800 animate-pulse" />
+                  <div className="w-10 h-10 rounded-[18px] bg-gray-200 dark:bg-slate-800 animate-pulse" />
                 ) : user?.avatar ? (
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     className="relative group p-0.5 rounded-[20px] bg-gradient-to-tr from-orange-400 to-orange-600"
                   >
-                    <div className="bg-white dark:bg-zinc-950 p-0.5 rounded-[18px]">
+                    <div className="bg-white dark:bg-slate-900 p-0.5 rounded-[18px]">
                       <img
                         src={user.avatar}
                         alt="Profile"
@@ -127,12 +127,12 @@ export default function HomeHeader() {
                       />
                     </div>
                     {/* Status Dot */}
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-zinc-950 rounded-full"></div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
 
                     {/* Notification Badge (Subtle Indicator) */}
                     {isMounted && "Notification" in window && Notification.permission === "default" && (
                       <motion.div
-                        className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full border-2 border-white dark:border-zinc-950 shadow-sm z-10"
+                        className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full border-2 border-white dark:border-slate-900 shadow-sm z-10"
                         animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       />
@@ -150,7 +150,7 @@ export default function HomeHeader() {
                     {/* Notification Badge (Subtle Indicator) */}
                     {isMounted && "Notification" in window && Notification.permission === "default" && (
                       <motion.div
-                        className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full border-2 border-white dark:border-zinc-950 shadow-sm z-10"
+                        className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full border-2 border-white dark:border-slate-900 shadow-sm z-10"
                         animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
                         transition={{ duration: 2, repeat: Infinity }}
                       />

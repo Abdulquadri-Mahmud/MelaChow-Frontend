@@ -84,7 +84,7 @@ export default function NotificationPromptBanner() {
                     {/* Shadow Glow Effect */}
                     <div className="absolute inset-0 bg-orange-500/20 blur-3xl rounded-[32px] -z-10 animate-pulse" />
 
-                    <div className="relative overflow-hidden bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl border border-white/50 dark:border-zinc-800/50 rounded-[32px] shadow-2xl p-6 group">
+                    <div className="relative overflow-hidden bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border border-white/50 dark:border-slate-800/50 rounded-[32px] shadow-2xl p-6 group">
 
                         {/* Interactive Background Elements */}
                         <motion.div
@@ -104,25 +104,25 @@ export default function NotificationPromptBanner() {
                                     <Bell className="text-white" size={28} />
                                 </motion.div>
                                 <div>
-                                    <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic tracking-tighter">
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase italic tracking-tighter">
                                         Stay in the Loop
                                     </h3>
                                     <div className="flex items-center gap-1 mt-0.5">
                                         <ShieldCheck size={12} className="text-green-500" />
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Secure & Real-time</span>
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Secure & Real-time</span>
                                     </div>
                                 </div>
                             </div>
                             <button
                                 onClick={handleDismiss}
-                                className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-slate-900 dark:hover:text-white"
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
                         {/* Body */}
-                        <p className="text-sm font-medium text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
                             Join 5,000+ users getting instant updates on their <span className="text-orange-600 dark:text-orange-500 font-bold">order status</span> and <span className="text-orange-600 dark:text-orange-500 font-bold">exclusive weekend deals</span>. 🎁
                         </p>
 
@@ -136,7 +136,7 @@ export default function NotificationPromptBanner() {
                         <div className="flex flex-col sm:flex-row gap-3">
                             <button
                                 onClick={handleRemindLater}
-                                className="flex-1 py-4 px-4 rounded-2xl bg-gray-50 dark:bg-zinc-800 text-gray-700 dark:text-gray-300 font-bold text-xs uppercase tracking-widest hover:bg-gray-100 dark:hover:bg-zinc-700 transition-all active:scale-95"
+                                className="flex-1 py-4 px-4 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700 transition-all active:scale-95"
                             >
                                 Not Now
                             </button>
@@ -157,7 +157,7 @@ export default function NotificationPromptBanner() {
                         {/* Dismiss Permanently Info */}
                         <button
                             onClick={handleDismiss}
-                            className="w-full mt-4 text-[9px] font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 uppercase tracking-[0.2em] transition-colors"
+                            className="w-full mt-4 text-[9px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 uppercase tracking-[0.2em] transition-colors"
                         >
                             Never show this again
                         </button>
@@ -170,9 +170,9 @@ export default function NotificationPromptBanner() {
 
 function BenefitPill({ icon: Icon, label }) {
     return (
-        <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-zinc-800/50 rounded-xl border border-gray-100 dark:border-zinc-800">
+        <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
             <Icon size={12} className="text-orange-500" />
-            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">{label}</span>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{label}</span>
         </div>
     );
 }

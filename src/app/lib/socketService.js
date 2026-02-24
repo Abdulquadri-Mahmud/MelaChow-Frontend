@@ -22,10 +22,10 @@ class SocketService {
             auth: {
                 token: token
             },
-            transports: ['websocket', 'polling'],
+            transports: ['polling', 'websocket'],
             reconnection: true,
             reconnectionDelay: 1000,
-            reconnectionAttempts: 5
+            reconnectionAttempts: 10
         });
 
         this.setupEventListeners();
@@ -76,6 +76,24 @@ class SocketService {
     }
 
     /**
+     * Subscribe to rider updates
+     */
+    subscribeToRider(riderId) {
+        if (!this.socket) return;
+        this.socket.emit('subscribe_rider', riderId);
+        console.log(`🛵 Subscribed to rider: ${riderId}`);
+    }
+
+    /**
+     * Subscribe to rider order updates
+     */
+    subscribeToRiderOrder(orderId) {
+        if (!this.socket) return;
+        this.socket.emit('subscribe_rider_order', orderId);
+        console.log(`📦 Rider subscribed to order: ${orderId}`);
+    }
+
+    /**
      * Subscribe to restaurant updates (for vendors)
      */
     subscribeToRestaurant(restaurantId) {
@@ -122,6 +140,14 @@ class SocketService {
     onNewOrder(callback) {
         if (!this.socket) return;
         this.socket.on('new_order', callback);
+    }
+
+    /**
+     * Listen for order assignments (for riders)
+     */
+    onOrderAssigned(callback) {
+        if (!this.socket) return;
+        this.socket.on('order_assigned', callback);
     }
 
     /**

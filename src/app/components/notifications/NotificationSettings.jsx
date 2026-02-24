@@ -53,9 +53,9 @@ export default function NotificationSettings() {
 
     if (!isSupported) {
         return (
-            <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-3xl border border-gray-100 dark:border-gray-800">
+            <div className="p-6 bg-gray-50 dark:bg-slate-800/50 rounded-3xl border border-gray-100 dark:border-slate-800">
                 <div className="flex items-center gap-4 text-gray-500">
-                    <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
                         <BellOff size={24} />
                     </div>
                     <div>
@@ -71,14 +71,14 @@ export default function NotificationSettings() {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-900 rounded-[32px] md:p-6 p-3 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-800 space-y-6"
+            className="bg-white dark:bg-slate-900 rounded-[32px] md:p-6 p-3 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-slate-800 space-y-6"
         >
             {/* Header */}
-            <div className="flex items-center justify-between pb-6 border-b border-gray-50 dark:border-gray-800">
+            <div className="flex items-center justify-between pb-6 border-b border-gray-50 dark:border-slate-800">
                 <div className="flex items-center gap-4">
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors shadow-inner ${isEnabled
-                            ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10"
-                            : "bg-gray-50 text-gray-400 dark:bg-gray-800"
+                        ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10"
+                        : "bg-gray-50 text-gray-400 dark:bg-slate-800"
                         }`}>
                         {isEnabled ? (
                             <Bell className="animate-bounce" size={28} />
@@ -103,8 +103,8 @@ export default function NotificationSettings() {
                     onClick={isEnabled ? unsubscribe : subscribe}
                     disabled={loading || isDenied}
                     className={`relative w-16 h-8 rounded-full transition-all duration-300 shadow-inner ${isEnabled
-                            ? "bg-emerald-500"
-                            : "bg-gray-200 dark:bg-gray-700"
+                        ? "bg-emerald-500"
+                        : "bg-gray-200 dark:bg-slate-700"
                         } ${isDenied ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105 active:scale-95'}`}
                 >
                     <motion.div
@@ -197,7 +197,7 @@ function PreferenceItem({ icon: Icon, title, desc, active, onToggle, color }) {
     };
 
     return (
-        <div className="flex items-center justify-between p-3 bg-gray-50/50 dark:bg-gray-800/30 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all group border border-transparent hover:border-gray-100 dark:hover:border-gray-700">
+        <div className="flex items-center justify-between p-3 bg-gray-50/50 dark:bg-slate-800/30 rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all group border border-transparent hover:border-gray-100 dark:hover:border-slate-700">
             <div className="flex items-center gap-4">
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform ${colorMap[color]}`}>
                     <Icon size={20} />
@@ -210,8 +210,8 @@ function PreferenceItem({ icon: Icon, title, desc, active, onToggle, color }) {
             <button
                 onClick={onToggle}
                 className={`relative w-14 h-7 rounded-full transition-all duration-300 ${active
-                        ? toggleColorMap[color]
-                        : "bg-gray-300 dark:bg-gray-700"
+                    ? toggleColorMap[color]
+                    : "bg-gray-300 dark:bg-slate-700"
                     }`}
             >
                 <motion.div

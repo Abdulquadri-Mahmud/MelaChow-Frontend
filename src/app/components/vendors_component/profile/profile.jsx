@@ -105,13 +105,15 @@ export default function VendorProfilePage({ vendor }) {
   const [address, setAddress] = useState({ street: "", city: "", state: "", postalCode: "" });
   const [cuisineTypes, setCuisineTypes] = useState([]);
   const [openingHours, setOpeningHours] = useState({});
+  const [deliverySettings, setDeliverySettings] = useState({
+    deliveryManagedBy: "admin",
+    flatRateDeliveryFee: 0,
+    deliveryRadiusKm: 5
+  });
   const [payoutDetails, setPayoutDetails] = useState({
     bankName: "",
     accountName: "",
     accountNumber: "",
-    acceptsDelivery: false,
-    flatRateDeliveryFee: 0,
-    deliveryRadiusKm: 5 // Default
   });
   const [logo, setLogo] = useState("");
   const [openSections, setOpenSections] = useState({ basicInfo: true }); // Default open first section
@@ -134,13 +136,15 @@ export default function VendorProfilePage({ vendor }) {
       });
       setCuisineTypes(vendor.cuisineTypes || []);
       setOpeningHours(vendor.openingHours || {});
+      setDeliverySettings({
+        deliveryManagedBy: vendor.deliveryManagedBy || "admin",
+        flatRateDeliveryFee: vendor.flatRateDeliveryFee || 0,
+        deliveryRadiusKm: vendor.deliveryRadiusKm || 5
+      });
       setPayoutDetails({
         bankName: vendor.payoutDetails?.bankName || "",
         accountName: vendor.payoutDetails?.accountName || "",
         accountNumber: vendor.payoutDetails?.accountNumber || "",
-        acceptsDelivery: vendor.acceptsDelivery || false,
-        flatRateDeliveryFee: vendor.flatRateDeliveryFee || 0,
-        deliveryRadiusKm: vendor.deliveryRadiusKm || 5
       });
       setLogo(vendor.logo || "");
     }
@@ -172,16 +176,19 @@ export default function VendorProfilePage({ vendor }) {
         payload = { cuisineTypes: data };
       } else if (section === "openingHours") {
         payload = { openingHours: data };
+      } else if (section === "deliverySettings") {
+        payload = {
+          deliveryManagedBy: data.deliveryManagedBy,
+          flatRateDeliveryFee: Number(data.flatRateDeliveryFee),
+          deliveryRadiusKm: Number(data.deliveryRadiusKm)
+        };
       } else if (section === "payoutDetails") {
         payload = {
           payoutDetails: {
             bankName: data.bankName,
             accountName: data.accountName,
             accountNumber: data.accountNumber,
-          },
-          acceptsDelivery: data.acceptsDelivery,
-          flatRateDeliveryFee: data.flatRateDeliveryFee,
-          deliveryRadiusKm: data.deliveryRadiusKm
+          }
         };
       } else if (section === "logo") {
         payload = { logo: data };
@@ -408,40 +415,74 @@ export default function VendorProfilePage({ vendor }) {
           </div>
         </Section>
 
-        {/* Payout & Delivery */}
+        {/* Delivery Settings */}
         <Section
-          title="Finance & Delivery"
+          title="Delivery Settings"
+          icon={Truck}
+          isOpen={openSections.deliverySettings}
+          onToggle={() => toggleSection('deliverySettings')}
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setDeliverySettings({ ...deliverySettings, deliveryManagedBy: "vendor" })}
+                className={`flex flex-col items-start p-4 rounded-2xl border-2 transition-all text-left ${deliverySettings.deliveryManagedBy === "vendor" ? "border-orange-600 bg-orange-50" : "border-gray-100 bg-white"}`}
+              >
+                <div className="flex items-center justify-between w-full mb-2">
+                  <Truck className={deliverySettings.deliveryManagedBy === "vendor" ? "text-orange-600" : "text-gray-400"} size={20} />
+                  {deliverySettings.deliveryManagedBy === "vendor" && <div className="w-4 h-4 rounded-full bg-orange-600 flex items-center justify-center"><Save className="text-white" size={10} /></div>}
+                </div>
+                <p className="text-sm font-bold text-gray-900">Manage my own delivery</p>
+                <p className="text-xs text-gray-500 mt-1">You use your own riders for fulfillment</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDeliverySettings({ ...deliverySettings, deliveryManagedBy: "admin", flatRateDeliveryFee: 0 })}
+                className={`flex flex-col items-start p-4 rounded-2xl border-2 transition-all text-left ${deliverySettings.deliveryManagedBy === "admin" ? "border-orange-600 bg-orange-50" : "border-gray-100 bg-white"}`}
+              >
+                <div className="flex items-center justify-between w-full mb-2">
+                  <Store className={deliverySettings.deliveryManagedBy === "admin" ? "text-orange-600" : "text-gray-400"} size={20} />
+                  {deliverySettings.deliveryManagedBy === "admin" && <div className="w-4 h-4 rounded-full bg-orange-600 flex items-center justify-center"><Save className="text-white" size={10} /></div>}
+                </div>
+                <p className="text-sm font-bold text-gray-900">Use platform delivery</p>
+                <p className="text-xs text-gray-500 mt-1">GrubDash handles delivery for you</p>
+              </button>
+            </div>
+
+            <AnimatePresence>
+              {deliverySettings.deliveryManagedBy === "vendor" && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <InputGroup label="Flat Delivery Fee (₦)" type="number" value={deliverySettings.flatRateDeliveryFee} onChange={(e) => setDeliverySettings({ ...deliverySettings, flatRateDeliveryFee: e.target.value })} placeholder="0" />
+                  <InputGroup label="Delivery Radius (KM)" type="number" value={deliverySettings.deliveryRadiusKm} onChange={(e) => setDeliverySettings({ ...deliverySettings, deliveryRadiusKm: e.target.value })} placeholder="5" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {deliverySettings.deliveryManagedBy === "admin" && (
+              <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
+                <p className="text-xs font-medium text-orange-800 flex items-center gap-2">
+                  <Save size={14} /> Platform delivery fees are set by the administrator for your city.
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="flex justify-end mt-6">
+            <button onClick={() => updateSection("deliverySettings", deliverySettings)} disabled={loadingSection === "deliverySettings"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">
+              {loadingSection === "deliverySettings" ? "Saving..." : <><Save size={18} /> Update Delivery</>}
+            </button>
+          </div>
+        </Section>
+
+        {/* Payout Details */}
+        <Section
+          title="Finance Details"
           icon={CreditCard}
           isOpen={openSections.payoutDetails}
           onToggle={() => toggleSection('payoutDetails')}
         >
           <div className="space-y-6">
-
-            <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-              <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Truck size={16} className="text-orange-500" /> Delivery Settings</h4>
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex-1 space-y-4">
-                  <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-900">Self Delivery</span>
-                      <span className="text-xs text-gray-500">Enable if you handle your own dispatch</span>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" checked={payoutDetails.acceptsDelivery} onChange={(e) => setPayoutDetails({ ...payoutDetails, acceptsDelivery: e.target.checked })} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
-                    </label>
-                  </div>
-
-                  {payoutDetails.acceptsDelivery && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-3">
-                      <InputGroup label="Flat Fee (₦)" type="number" value={payoutDetails.flatRateDeliveryFee} onChange={(e) => setPayoutDetails({ ...payoutDetails, flatRateDeliveryFee: e.target.value })} placeholder="0" />
-                      <InputGroup label="Delivery Radius (KM)" type="number" value={payoutDetails.deliveryRadiusKm} onChange={(e) => setPayoutDetails({ ...payoutDetails, deliveryRadiusKm: e.target.value })} placeholder="5" />
-                    </motion.div>
-                  )}
-                </div>
-              </div>
-            </div>
-
             <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
               <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><DollarSign size={16} className="text-emerald-500" /> Bank Details</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -452,7 +493,6 @@ export default function VendorProfilePage({ vendor }) {
                 <InputGroup label="Account Number" value={payoutDetails.accountNumber} onChange={(e) => setPayoutDetails({ ...payoutDetails, accountNumber: e.target.value })} icon={CreditCard} />
               </div>
             </div>
-
           </div>
           <div className="flex justify-end mt-6">
             <button onClick={() => updateSection("payoutDetails", payoutDetails)} disabled={loadingSection === "payoutDetails"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">

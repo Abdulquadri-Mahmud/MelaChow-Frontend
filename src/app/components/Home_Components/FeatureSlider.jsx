@@ -59,13 +59,13 @@ export default function FeatureSlider() {
             transition={{ duration: 0.6 }}
             className="bg-white shadow-lg rounded-2xl p-3 flex flex-col items-center justify-center text-center"
           >
-            <div className="bg-zinc-100 p-3 rounded-full">
+            <div className="bg-slate-100 p-3 rounded-full">
               {features[index].icon}
             </div>
             <h3 className="text-lg font-bold mt-3 text-orange-500">
               {features[index].title}
             </h3>
-            <p className="text-sm text-gray-600 mt-2">
+            <p className="text-sm text-slate-600 mt-2">
               {features[index].desc}
             </p>
           </motion.div>

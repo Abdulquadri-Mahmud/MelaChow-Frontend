@@ -26,28 +26,28 @@ const ContactMethod = ({ icon: Icon, name, description, url, colorClass }) => (
     rel="noopener noreferrer"
     whileHover={{ y: -5, shadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)" }}
     whileTap={{ scale: 0.98 }}
-    className="flex items-center gap-4 bg-white p-5 rounded-[24px] border border-gray-100 shadow-sm transition-all hover:border-orange-200"
+    className="flex items-center gap-4 bg-white p-5 rounded-[24px] border border-slate-100 shadow-sm transition-all hover:border-orange-200"
   >
     <div className={`p-4 rounded-2xl ${colorClass}`}>
       <Icon size={24} strokeWidth={2.5} />
     </div>
     <div className="flex-1">
-      <h3 className="font-bold text-gray-900">{name}</h3>
-      <p className="text-[12px] font-medium text-gray-400">{description}</p>
+      <h3 className="font-bold text-slate-900">{name}</h3>
+      <p className="text-[12px] font-medium text-slate-400">{description}</p>
     </div>
-    <ChevronRight size={18} className="text-gray-300" />
+    <ChevronRight size={18} className="text-slate-300" />
   </motion.a>
 );
 
 const CategoryCard = ({ icon: Icon, title }) => (
   <motion.div
     whileHover={{ scale: 1.02 }}
-    className="flex flex-col items-center justify-center p-6 bg-gray-50/50 rounded-[32px] border border-transparent hover:border-orange-100 hover:bg-white transition-all cursor-pointer group"
+    className="flex flex-col items-center justify-center p-6 bg-slate-50/50 rounded-[32px] border border-transparent hover:border-orange-100 hover:bg-white transition-all cursor-pointer group"
   >
     <div className="mb-3 p-3 rounded-2xl bg-white text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all shadow-sm">
       <Icon size={24} />
     </div>
-    <span className="text-sm font-bold text-gray-700">{title}</span>
+    <span className="text-sm font-bold text-slate-700">{title}</span>
   </motion.div>
 );
 
@@ -55,7 +55,7 @@ export default function GetHelp() {
   const router = useRouter();
 
   return (
-    <div className="bg-zinc-50 min-h-screen">
+    <div className="bg-slate-50 min-h-screen">
       {/* Hero Header */}
       <section className="relative bg-orange-500 pt-8 pb-32 px-6 overflow-hidden">
         <div className="absolute top-0 right-0 -mr-20 -mt-20 h-64 w-64 rounded-full bg-orange-400/20 blur-3xl opacity-50" />
@@ -103,7 +103,7 @@ export default function GetHelp() {
               transition={{ delay: 0.2 }}
               className="relative max-w-md mx-auto"
             >
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text"
                 placeholder="Search for help..."
@@ -124,7 +124,7 @@ export default function GetHelp() {
         </section>
 
         {/* Contact Methods */}
-        <h2 className="text-xl font-black text-gray-900 tracking-tight mb-6">Contact Support</h2>
+        <h2 className="text-xl font-black text-slate-900 tracking-tight mb-6">Contact Support</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
           <ContactMethod
             icon={MessageCircle}
@@ -152,7 +152,7 @@ export default function GetHelp() {
             name="Twitter / X"
             description="Get updates on Twitter"
             url="https://twitter.com/yourhandle"
-            colorClass="bg-gray-50 text-gray-900"
+            colorClass="bg-slate-50 text-slate-900"
           />
         </div>
 

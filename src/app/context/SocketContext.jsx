@@ -25,6 +25,7 @@ export const SocketProvider = ({ children }) => {
     const getRoleFromPath = (path) => {
         if (path?.startsWith('/vendors')) return 'vendor';
         if (path?.startsWith('/admin')) return 'admin';
+        if (path?.startsWith('/rider')) return 'rider';
         return 'user';
     };
 
@@ -33,10 +34,12 @@ export const SocketProvider = ({ children }) => {
     const fetchUnreadCount = async () => {
         const apiBase = role === 'vendor' ? '/api/vendors/notifications' :
             role === 'admin' ? '/api/admin/notifications' :
-                '/api/notifications';
+                role === 'rider' ? '/api/riders/notifications' :
+                    '/api/notifications';
 
         try {
-            const fetchUrl = role === 'vendor' ? `${apiBase}/history` : `${apiBase}/unread-count`;
+            // Refined fetching based on role-specific endpoints
+            const fetchUrl = (role === 'vendor' || role === 'rider') ? `${apiBase}/history` : `${apiBase}/unread-count`;
 
             const response = await fetch(fetchUrl, {
                 credentials: 'include',
@@ -47,7 +50,7 @@ export const SocketProvider = ({ children }) => {
                 const data = await response.json();
                 let count = 0;
 
-                if (role === 'vendor') {
+                if (role === 'vendor' || role === 'rider') {
                     count = data.unreadCount ?? data.count ?? data.data?.unreadCount ?? data.data?.count ?? 0;
                 } else {
                     count = data.count ?? data.data?.count ?? 0;
@@ -106,7 +109,34 @@ export const SocketProvider = ({ children }) => {
                     }
                 });
 
+                // Rider specific event
+                socketService.onOrderAssigned((data) => {
+                    if (role === 'rider') {
+                        console.log('🛵 Order assigned to rider:', data);
+                        const assignmentNotification = {
+                            _id: `assign-${Date.now()}`,
+                            title: 'New Job Assigned!',
+                            body: `You have a new pickup at ${data.vendorName || 'the restaurant'}`,
+                            type: 'order_assigned',
+                            orderId: data.orderId,
+                            data: data,
+                            createdAt: new Date().toISOString(),
+                            read: false
+                        };
+                        setLatestNotification(assignmentNotification);
+                        setUnreadCount(prev => prev + 1);
+                        window.dispatchEvent(new CustomEvent('notifications:updated', { detail: assignmentNotification }));
+
+                        // Also trigger a global event for the rider dashboard to react
+                        window.dispatchEvent(new CustomEvent('rider:new_assignment', { detail: data }));
+                    }
+                });
+
                 setIsConnected(true);
+
+                // Listen for connection state changes to update context state immediately
+                socketService.socket?.on('connect', () => setIsConnected(true));
+                socketService.socket?.on('disconnect', () => setIsConnected(false));
             }
         };
 

@@ -13,7 +13,7 @@ import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 const VendorSkeleton = () => (
     <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
         {[1, 2, 3].map((i) => (
-            <div key={i} className="min-w-[250px] h-48 bg-gray-100 rounded-[24px] animate-pulse"></div>
+            <div key={i} className="min-w-[250px] h-48 bg-gray-100 dark:bg-slate-800 rounded-[24px] animate-pulse"></div>
         ))}
     </div>
 );
@@ -49,7 +49,7 @@ export default function VendorList({ user }) {
 
     if (isLoading) return (
         <div className="mt-8 px-4 space-y-4" >
-            <div className="h-6 w-48 bg-gray-100 rounded-lg animate-pulse"></div>
+            <div className="h-6 w-48 bg-gray-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>
             <VendorSkeleton />
         </div >
     );
@@ -69,12 +69,12 @@ export default function VendorList({ user }) {
                 </div>
 
                 <div className="px-4">
-                    <div className="bg-orange-50/50 rounded-[24px] p-8 text-center border border-orange-100/50 flex flex-col items-center">
-                        <div className="bg-white p-3 rounded-full mb-3 shadow-sm">
+                    <div className="bg-orange-50/50 dark:bg-orange-500/5 rounded-[24px] p-8 text-center border border-orange-100/50 dark:border-orange-500/20 flex flex-col items-center">
+                        <div className="bg-white dark:bg-slate-800 p-3 rounded-full mb-3 shadow-sm">
                             <MapPin className="text-orange-500" size={24} />
                         </div>
-                        <h3 className="font-bold text-gray-900 text-base mb-1">Coming Soon to {defaultAddr?.city}!</h3>
-                        <p className="text-xs text-gray-500 max-w-[240px] leading-relaxed">
+                        <h3 className="font-bold text-gray-900 dark:text-white text-base mb-1">Coming Soon to {defaultAddr?.city}!</h3>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 max-w-[240px] leading-relaxed">
                             We're currently onboarding top-tier restaurants in your area.
                             Get your appetite ready!
                         </p>
@@ -89,11 +89,11 @@ export default function VendorList({ user }) {
             <div className="flex items-center justify-between px-4 mb-4">
                 <div className="flex items-center gap-2">
                     <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
-                    <h2 className="text-lg font-bold text-gray-900 tracking-tight">Featured Restaurants</h2>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Featured Restaurants</h2>
                 </div>
                 <button
                     onClick={() => router.push('/all-restaurants')} // Assuming this route exists based on context
-                    className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors bg-orange-50 px-3 py-1.5 rounded-full"
+                    className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors bg-orange-50 dark:bg-orange-500/10 px-3 py-1.5 rounded-full"
                 >
                     View All
                 </button>
@@ -108,7 +108,7 @@ export default function VendorList({ user }) {
                         <div
                             key={vendor._id}
                             onClick={() => router.push(`/restataurants/${vendor._id}`)}
-                            className="group relative flex-none w-[250px] bg-white rounded-[24px] transition-all duration-300 cursor-pointer snap-start border border-gray-100 overflow-hidden"
+                            className="group relative flex-none w-[250px] bg-white dark:bg-slate-900 rounded-[24px] transition-all duration-300 cursor-pointer snap-start border border-gray-100 dark:border-slate-800 overflow-hidden"
                         >
                             {/* Image Container */}
                             <div className="relative h-[140px] w-full bg-gray-100 overflow-hidden">
@@ -120,9 +120,9 @@ export default function VendorList({ user }) {
                                 />
 
                                 {/* Rating Badge */}
-                                <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2 py-1 rounded-xl flex items-center gap-1">
+                                <div className="absolute top-3 right-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-2 py-1 rounded-xl flex items-center gap-1">
                                     <Star size={10} className="fill-orange-500 text-orange-500" />
-                                    <span className="text-[10px] font-black text-gray-900 tracking-tighter">
+                                    <span className="text-[10px] font-black text-gray-900 dark:text-white tracking-tighter">
                                         {vendor.rating || "NEW"}
                                     </span>
                                 </div>
@@ -146,9 +146,9 @@ export default function VendorList({ user }) {
                             {/* Content */}
                             <div className="p-4">
                                 <div className="mb-2">
-                                    <h3 className="font-bold text-gray-900 text-sm truncate leading-tight tracking-tight mb-1">{vendor.storeName}</h3>
-                                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                        <MapPin size={12} className="text-gray-400" />
+                                    <h3 className="font-bold text-gray-900 dark:text-white text-sm truncate leading-tight tracking-tight mb-1">{vendor.storeName}</h3>
+                                    <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+                                        <MapPin size={12} className="text-gray-400 dark:text-slate-500" />
                                         <span className="truncate max-w-[180px] font-medium opacity-80">{vendor.address?.city || "Location info"}</span>
                                     </div>
                                 </div>

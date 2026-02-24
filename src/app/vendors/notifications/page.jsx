@@ -172,7 +172,7 @@ export default function VendorNotificationsPage() {
                         {notifications.length > 0 && (
                             <button
                                 onClick={markAllAsRead}
-                                className="px-6 py-3 bg-white dark:bg-orange-500 text-white dark:text-slate-900 rounded-2xl text-sm font-bold hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-slate-900/10 dark:shadow-white/5 flex items-center gap-2"
+                                className="px-6 py-3 bg-white dark:bg-orange-500 text-slate-900 dark:text-white rounded-2xl text-sm font-bold hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-slate-900/10 dark:shadow-white/5 flex items-center gap-2"
                             >
                                 <CheckCircle2 size={18} /> Mark All Read
                             </button>
@@ -243,7 +243,7 @@ export default function VendorNotificationsPage() {
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold capitalize transition-all ${activeTab === tab
-                                    ? 'bg-slate-900 dark:bg-orange-500 text-white dark:text-slate-900 shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)]'
+                                    ? 'bg-slate-900 dark:bg-orange-500 text-slate-900 dark:text-white shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)]'
                                     : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                                     }`}
                             >
