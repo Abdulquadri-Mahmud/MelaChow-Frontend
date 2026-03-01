@@ -42,7 +42,7 @@ const nextConfig = {
    * ✅ /api/admin/*    → Admin endpoints
    */
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://grub-dash-api.vercel.app';
 
     // ✅ Only log in development (reduce console noise in production)
     if (process.env.NODE_ENV === 'development') {
