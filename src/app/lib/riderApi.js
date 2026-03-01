@@ -62,4 +62,31 @@ export const getRiderWallet = async (riderId) => {
     return response.data;
 };
 
+// Notifications
+export const getRiderNotifications = async (limit = 20, unread = false) => {
+    const response = await API.get(`/riders/notifications?limit=${limit}&unread=${unread}`);
+    return response.data;
+};
+
+export const getRiderUnreadCount = async () => {
+    const response = await API.get(`/riders/notifications/unread`);
+    return response.data;
+};
+
+export const getSingleNotification = async (id) => {
+    const response = await API.get(`/riders/notifications/${id}`);
+    return response.data;
+};
+
+export const markNotificationAsRead = async (id) => {
+    const response = await API.patch(`/riders/notifications/${id}/read`);
+    return response.data;
+};
+
+// Single Order Detail
+export const getRiderSpecificOrder = async (riderId, orderId) => {
+    const response = await API.get(`/riders/${riderId}/orders/${orderId}`);
+    return response.data;
+};
+
 export default API;

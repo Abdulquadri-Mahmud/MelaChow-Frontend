@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { getVendorOrderById, updateOrderStatus, completeOrder } from "@/app/lib/vendorApi";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
+import RiderAssignmentModal from "../../riders/RiderAssignmentModal";
 
 export default function VendorOrderDetailsPage() {
     const { id } = useParams();
@@ -29,8 +30,10 @@ export default function VendorOrderDetailsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [assignmentModal, setAssignmentModal] = useState({ isOpen: false, orderId: null });
     const [showSuccessToast, setShowSuccessToast] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
+    const { vendorDetails } = useVendorStorage();
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -141,6 +144,16 @@ export default function VendorOrderDetailsPage() {
     const handleStatusUpdate = (newStatus) => {
         if (newStatus === 'cancelled') {
             setIsCancelModalOpen(true);
+        } else if (newStatus === 'rider_assigned') {
+            let vendorOrderId;
+            if (typeof order._id === 'string') {
+                vendorOrderId = order._id;
+            } else if (order._id?.$oid) {
+                vendorOrderId = order._id.$oid;
+            } else {
+                vendorOrderId = id;
+            }
+            setAssignmentModal({ isOpen: true, orderId: vendorOrderId });
         } else {
             performStatusUpdate(newStatus);
         }
@@ -740,6 +753,29 @@ export default function VendorOrderDetailsPage() {
                     </div>
                 )}
             </AnimatePresence>
+
+            <RiderAssignmentModal
+                isOpen={assignmentModal.isOpen}
+                onClose={() => setAssignmentModal({ isOpen: false, orderId: null })}
+                orderId={assignmentModal.orderId}
+                vendorId={vendorDetails?.vendor?._id || vendorDetails?.vendor?.id}
+                onAssigned={() => {
+                    const fetchOrder = async () => {
+                        try {
+                            if (!id) return;
+                            setIsLoading(true);
+                            const res = await getVendorOrderById(id);
+                            const data = res.data || res;
+                            setOrder(data);
+                        } catch (err) {
+                            console.error("Failed to fetch order details:", err);
+                        } finally {
+                            setIsLoading(false);
+                        }
+                    };
+                    fetchOrder();
+                }}
+            />
         </div>
     );
 }

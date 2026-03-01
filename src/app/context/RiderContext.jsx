@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getRiderProfile, toggleRiderAvailability } from '@/app/lib/riderApi';
+import { getRiderProfile, toggleRiderAvailability, getRiderNotifications } from '@/app/lib/riderApi';
 import { TokenManager } from '@/app/lib/auth-token';
 import toast from 'react-hot-toast';
 import socketService from '@/app/lib/socketService';
@@ -34,6 +34,8 @@ export const RiderProvider = ({ children }) => {
     const [rider, setRider] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isOnline, setIsOnline] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
 
     const refreshProfile = async () => {
         const token = TokenManager.getToken('rider');
@@ -56,6 +58,12 @@ export const RiderProvider = ({ children }) => {
             console.log('🛵 Rider loaded, id:', riderId);
             setRider(riderData);
             setIsOnline(riderData?.status === 'available' || riderData?.isAvailable === true);
+            const notifsRaw = await getRiderNotifications();
+            if (notifsRaw?.success && notifsRaw?.notifications) {
+                setNotifications(notifsRaw.notifications);
+                setUnreadCount(notifsRaw.notifications.filter(n => !n.read).length);
+            }
+
         } catch (error) {
             console.error('Failed to fetch rider profile:', error);
             if (error?.response?.status === 401) {
@@ -69,6 +77,14 @@ export const RiderProvider = ({ children }) => {
 
     useEffect(() => {
         refreshProfile();
+
+        // Listen for internal CustomEvent dispatched by SocketContext
+        const updateNotifs = (e) => {
+            setNotifications(prev => [e.detail, ...prev]);
+            setUnreadCount(prev => prev + 1);
+        };
+        window.addEventListener('notifications:updated', updateNotifs);
+        return () => window.removeEventListener('notifications:updated', updateNotifs);
     }, []);
 
     const { isConnected: wsConnected, socket } = useSocket();
@@ -164,6 +180,10 @@ export const RiderProvider = ({ children }) => {
             toggleAvailability,
             logout,
             refreshProfile,
+            notifications,
+            setNotifications,
+            unreadCount,
+            setUnreadCount
         }}>
             {children}
         </RiderContext.Provider>
