@@ -19,7 +19,8 @@ import {
     Edit3,
     CreditCard,
     Star,
-    Activity
+    Activity,
+    EyeOff
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getVendorRiders, createVendorRider, updateVendorRider, deactivateVendorRider } from "@/app/lib/vendorApi";

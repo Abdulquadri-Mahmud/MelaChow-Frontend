@@ -1,125 +1,123 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Bell, Package, AlertCircle, CheckCircle2, Info, Bike, Clock } from "lucide-react";
-
-// Simulated notifications — in production these would come from an API / socket
-const MOCK_NOTIFICATIONS = [
-    {
-        id: 1,
-        type: "assignment",
-        title: "New delivery assigned!",
-        body: "Order #A7F2C has been assigned to you. Pickup from GrubDash Kitchen.",
-        time: "2 min ago",
-        read: false,
-        icon: Bike,
-        color: "orange",
-    },
-    {
-        id: 2,
-        type: "info",
-        title: "Status updated",
-        body: "Your status was set to available by the system after completing Order #B91D.",
-        time: "1 hr ago",
-        read: false,
-        icon: Info,
-        color: "blue",
-    },
-    {
-        id: 3,
-        type: "success",
-        title: "Delivery completed!",
-        body: "Order #9C3E was delivered successfully. Great work! ₦1,200 earned.",
-        time: "3 hrs ago",
-        read: true,
-        icon: CheckCircle2,
-        color: "green",
-    },
-    {
-        id: 4,
-        type: "warning",
-        title: "Low rating warning",
-        body: "Your rating dropped slightly. Keep delivering great service to improve it.",
-        time: "Yesterday",
-        read: true,
-        icon: AlertCircle,
-        color: "yellow",
-    },
-];
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Bell, Bike, MapPin, AlertCircle, CheckCircle2, Info, Clock, Loader2 } from "lucide-react";
+import { useRider } from "@/app/context/RiderContext";
+import { markNotificationAsRead } from "@/app/lib/riderApi";
+import { formatDistanceToNow } from "date-fns";
+import { useRouter } from "next/navigation";
 
 const colorMap = {
-    orange: { bg: "bg-orange-500/10", text: "text-orange-500" },
-    blue: { bg: "bg-blue-500/10", text: "text-blue-400" },
-    green: { bg: "bg-green-500/10", text: "text-green-400" },
-    yellow: { bg: "bg-yellow-500/10", text: "text-yellow-400" },
+    order_assigned: { bg: "bg-orange-500/10", text: "text-orange-500", icon: Bike },
+    info: { bg: "bg-blue-500/10", text: "text-blue-400", icon: Info },
+    success: { bg: "bg-green-500/10", text: "text-green-400", icon: CheckCircle2 },
+    warning: { bg: "bg-yellow-500/10", text: "text-yellow-400", icon: AlertCircle },
 };
 
 export default function RiderNotificationsPage() {
-    const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+    const { notifications, setNotifications, setUnreadCount, unreadCount, loading: contextLoading } = useRider();
+    const router = useRouter();
+    const [isMarking, setIsMarking] = useState(null);
 
-    const markAllRead = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    const handleNotificationClick = async (notif) => {
+        if (!notif.read && !isMarking) {
+            setIsMarking(notif._id);
+            try {
+                await markNotificationAsRead(notif._id);
+                setNotifications(prev => prev.map(n => n._id === notif._id ? { ...n, read: true } : n));
+                setUnreadCount(prev => Math.max(0, prev - 1));
+            } catch (error) {
+                console.error("Failed to mark notification as read", error);
+            } finally {
+                setIsMarking(null);
+            }
+        }
+
+        if (notif.type === "order_assigned" || notif.orderId) {
+            router.push(`/rider/notifications/${notif._id}`);
+        }
     };
 
-    const unreadCount = notifications.filter(n => !n.read).length;
+    if (contextLoading) {
+        return (
+            <div className="flex justify-center py-20">
+                <Loader2 className="animate-spin text-orange-500" size={36} />
+            </div>
+        );
+    }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-2xl mx-auto pb-20">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-black text-white mb-1">Notifications</h1>
+                    <h1 className="text-3xl font-black text-white mb-1">Alerts</h1>
                     <p className="text-gray-500 font-medium">
                         {unreadCount > 0 ? `${unreadCount} unread alert${unreadCount > 1 ? "s" : ""}` : "You're all caught up!"}
                     </p>
                 </div>
-                {unreadCount > 0 && (
-                    <button
-                        onClick={markAllRead}
-                        className="text-orange-500 text-sm font-bold hover:underline"
-                    >
-                        Mark all read
-                    </button>
-                )}
             </div>
 
             <div className="space-y-3">
-                {notifications.map((notif, i) => {
-                    const c = colorMap[notif.color];
-                    const Icon = notif.icon;
-                    return (
-                        <motion.div
-                            key={notif.id}
-                            initial={{ opacity: 0, x: -12 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.05 }}
-                            onClick={() => setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n))}
-                            className={`relative bg-[#1A1D23] border rounded-2xl p-4 flex items-start gap-4 cursor-pointer transition-all hover:border-orange-500/20 ${notif.read ? "border-white/5 opacity-60" : "border-orange-500/20"
-                                }`}
-                        >
-                            {!notif.read && (
-                                <span className="absolute top-4 right-4 w-2 h-2 rounded-full bg-orange-500" />
-                            )}
-                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${c.bg}`}>
-                                <Icon size={20} className={c.text} />
-                            </div>
-                            <div className="flex-1 pr-4">
-                                <p className="font-bold text-white text-sm mb-0.5">{notif.title}</p>
-                                <p className="text-gray-400 text-xs leading-relaxed">{notif.body}</p>
-                                <div className="flex items-center gap-1 mt-2 text-gray-600 text-[11px] font-medium">
-                                    <Clock size={10} />
-                                    <span>{notif.time}</span>
+                <AnimatePresence>
+                    {notifications.map((notif, i) => {
+                        const style = colorMap[notif.type] || colorMap.info;
+                        const Icon = style.icon;
+                        const isUnread = !notif.read;
+
+                        return (
+                            <motion.div
+                                key={notif._id}
+                                layout
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ delay: i * 0.05 }}
+                                onClick={() => handleNotificationClick(notif)}
+                                className={`relative bg-[#1A1D23] border rounded-2xl p-4 flex items-start gap-4 cursor-pointer transition-all hover:border-orange-500/40 
+                                    ${isUnread ? "border-orange-500/20" : "border-white/5 opacity-70 hover:opacity-100"}
+                                `}
+                            >
+                                {isUnread && (
+                                    <span className="absolute top-4 right-4 w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                                )}
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${style.bg} ${isUnread ? "shadow-inner" : ""}`}>
+                                    <Icon size={22} className={style.text} />
                                 </div>
-                            </div>
-                        </motion.div>
-                    );
-                })}
+                                <div className="flex-1 pr-4 min-w-0">
+                                    <p className={`font-bold text-sm mb-0.5 truncate ${isUnread ? "text-white" : "text-gray-300"}`}>
+                                        {notif.title}
+                                    </p>
+                                    <p className={`text-xs leading-relaxed line-clamp-2 ${isUnread ? "text-gray-300" : "text-gray-500"}`}>
+                                        {notif.body}
+                                    </p>
+                                    <div className="flex items-center gap-1 mt-3 text-[10px] font-bold uppercase tracking-wider text-gray-600">
+                                        <Clock size={12} className="text-gray-500" />
+                                        <span>
+                                            {notif.createdAt ? formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true }) : "Just now"}
+                                        </span>
+                                    </div>
+                                </div>
+                                {isMarking === notif._id && (
+                                    <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] rounded-2xl flex items-center justify-center">
+                                        <Loader2 className="animate-spin text-orange-500" size={24} />
+                                    </div>
+                                )}
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
             </div>
 
-            {notifications.every(n => n.read) && (
-                <div className="text-center py-10 text-gray-600">
-                    <Bell size={36} className="mx-auto mb-3 opacity-30" />
-                    <p className="font-bold">No new notifications</p>
+            {notifications.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                        <Bell size={32} className="text-white/20" />
+                    </div>
+                    <h3 className="text-xl font-black text-white mb-2">No alerts yet</h3>
+                    <p className="text-gray-500 text-sm max-w-[200px]">
+                        When you get assigned to orders, they will appear here.
+                    </p>
                 </div>
             )}
         </div>

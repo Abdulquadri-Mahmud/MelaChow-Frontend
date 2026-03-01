@@ -127,6 +127,17 @@ export const SocketProvider = ({ children }) => {
                         setUnreadCount(prev => prev + 1);
                         window.dispatchEvent(new CustomEvent('notifications:updated', { detail: assignmentNotification }));
 
+                        // Play native notification sound
+                        try {
+                            const audio = new Audio('/sounds/notification.mp3');
+                            audio.play().catch(e => console.log('Audio play prevented by browser', e));
+                        } catch (e) { }
+
+                        // Toast from Socket Context
+                        import('react-hot-toast').then(({ default: toast }) => {
+                            toast.success('New Order Assigned! 🛵', { duration: 6000 });
+                        });
+
                         // Also trigger a global event for the rider dashboard to react
                         window.dispatchEvent(new CustomEvent('rider:new_assignment', { detail: data }));
                     }
