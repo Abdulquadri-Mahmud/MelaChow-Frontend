@@ -91,22 +91,6 @@ export const metadata = {
     ],
     creator: "@grubdash_app",
   },
-  icons: {
-    icon: '/icons/icon-192x192.png',
-    shortcut: '/icons/icon-192x192.png',
-    apple: '/icons/icon-192x192.png',
-    other: [
-      {
-        rel: 'apple-touch-icon',
-        url: '/icons/icon-192x192.png',
-      },
-      {
-        rel: 'apple-touch-icon',
-        sizes: '512x512',
-        url: '/icons/icon-512x512.png',
-      },
-    ],
-  },
   metadataBase: new URL("https://grubdash.vercel.app"),
 };
 
