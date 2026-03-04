@@ -11,22 +11,21 @@ const RiderContext = createContext(null);
 
 export const useRider = () => useContext(RiderContext);
 
-// ─── Helper: extract rider object from any API response shape ───────────────
+// Statuses that mean the rider is "active" / should show as ONLINE in the UI.
+// ✅ FIX: The original code only checked for 'available', so a rider who was
+// 'pending_assignment' or 'on_delivery' appeared OFFLINE after a page refresh.
+// That caused them to click the toggle, which called updateRiderStatus('available'),
+// which hit the service guard:
+//   if (status === "available" && rider.status === "pending_assignment") rider.currentOrderId = null
+// ...silently wiping their assigned order from the database.
+const ACTIVE_STATUSES = ['available', 'pending_assignment', 'on_delivery'];
+
 function extractRider(data) {
     if (!data) return null;
-
-    // Shape 1: { success, data: { rider: {...} } }
     if (data?.data?.rider?._id || data?.data?.rider?.id) return data.data.rider;
-
-    // Shape 2: { success, data: { _id, id, ... } }  ← YOUR ACTUAL SHAPE
     if (data?.data?._id || data?.data?.id) return data.data;
-
-    // Shape 3: { rider: {...} }
     if (data?.rider?._id || data?.rider?.id) return data.rider;
-
-    // Shape 4: raw rider object
     if (data?._id || data?.id) return data;
-
     return null;
 }
 
@@ -55,9 +54,12 @@ export const RiderProvider = ({ children }) => {
                 return;
             }
 
-            console.log('🛵 Rider loaded, id:', riderId);
+            console.log('🛵 Rider loaded, id:', riderId, '| status:', riderData?.status);
             setRider(riderData);
-            setIsOnline(riderData?.status === 'available' || riderData?.isAvailable === true);
+
+            // ✅ FIX: Check all active statuses, not just 'available'
+            setIsOnline(ACTIVE_STATUSES.includes(riderData?.status));
+
             const notifsRaw = await getRiderNotifications();
             if (notifsRaw?.success && notifsRaw?.notifications) {
                 setNotifications(notifsRaw.notifications);
@@ -78,7 +80,6 @@ export const RiderProvider = ({ children }) => {
     useEffect(() => {
         refreshProfile();
 
-        // Listen for internal CustomEvent dispatched by SocketContext
         const updateNotifs = (e) => {
             setNotifications(prev => [e.detail, ...prev]);
             setUnreadCount(prev => prev + 1);
@@ -92,7 +93,6 @@ export const RiderProvider = ({ children }) => {
 
     useEffect(() => {
         if (!socket || !rider?._id) return;
-
         console.log('🛵 Emitting rider_connect for:', rider._id);
         socket.emit('rider_connect', { riderId: rider._id });
     }, [socket, rider?._id]);
@@ -100,12 +100,12 @@ export const RiderProvider = ({ children }) => {
     useEffect(() => {
         if (!riderId || !wsConnected || !socket) return;
 
-        // Also ensure they are in the secondary room if used by subscribeToRider
         socketService.subscribeToRider(riderId);
 
         const handleStatusChange = (data) => {
             if (data.riderId === riderId) {
-                setIsOnline(data.status === 'available');
+                // ✅ FIX: Same check — all active statuses count as online
+                setIsOnline(ACTIVE_STATUSES.includes(data.status));
                 setRider(prev => prev ? { ...prev, status: data.status } : prev);
                 if (data.status === 'offline') {
                     toast.error('Your status was changed to offline');
@@ -121,9 +121,17 @@ export const RiderProvider = ({ children }) => {
         };
 
         const handleRiderAssigned = (data) => {
-            // console.log("Incoming assignment data:", data);
-            // Check both riderId and the object structure
-            if (data.riderId === riderId || data === riderId) {
+            const isForThisRider = !data.riderId || data.riderId === riderId;
+            if (isForThisRider) {
+                // ✅ FIX: Optimistically update local rider state so isOnline
+                // stays true immediately, before the next refreshProfile call.
+                // Prevents the OFFLINE flash that would trigger accidental toggle.
+                setRider(prev => prev ? {
+                    ...prev,
+                    status: 'pending_assignment',
+                    currentOrderId: data.orderId
+                } : prev);
+                setIsOnline(true);
                 window.dispatchEvent(new CustomEvent('rider:new_assignment', { detail: data }));
             }
         };
@@ -147,27 +155,34 @@ export const RiderProvider = ({ children }) => {
     };
 
     const toggleAvailability = async () => {
-        const riderId = rider?._id || rider?.id;
+        const currentRiderId = rider?._id || rider?.id;
 
-        if (!riderId) {
+        if (!currentRiderId) {
             toast.error('Rider profile not loaded yet. Please wait.');
             return;
         }
 
-        if (isOnline && rider?.currentOrderId) {
+        // ✅ FIX: Block going offline if assigned OR on delivery.
+        // The original only checked currentOrderId, but during pending_assignment
+        // the local state may not have currentOrderId set yet (it comes from the
+        // server). Checking the status string is the reliable guard.
+        const isAssignedOrDelivering =
+            rider?.currentOrderId ||
+            rider?.status === 'pending_assignment' ||
+            rider?.status === 'on_delivery';
+
+        if (isOnline && isAssignedOrDelivering) {
             toast.error('You cannot go offline while on an active delivery!');
             return;
         }
 
         const newStatus = isOnline ? 'offline' : 'available';
         try {
-            await toggleRiderAvailability(riderId, newStatus);
+            await toggleRiderAvailability(currentRiderId, newStatus);
             setIsOnline(!isOnline);
             setRider(prev => prev ? { ...prev, status: newStatus } : prev);
             toast.success(`You are now ${newStatus}`);
         } catch (error) {
-            console.log(error);
-
             toast.error(error?.response?.data?.message || 'Failed to update status');
         }
     };
