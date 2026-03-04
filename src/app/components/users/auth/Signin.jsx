@@ -233,35 +233,21 @@ export default function Signin() {
             </Link>
           </p>
 
-          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-4 w-full">
+          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-4 w-full">
             <Link
-              href="/vendors/auth/login"
-              className="group flex-1 flex items-center justify-between md:p-4 p-2 bg-orange-50/50 dark:bg-orange-500/5 rounded-3xl hover:bg-orange-100 dark:hover:bg-orange-500/10 transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-orange-200"
+              href="/auth/partner"
+              className="group flex-1 flex items-center justify-between md:p-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
-                  <Store size={18} />
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 group-hover:scale-110 transition-transform shadow-inner">
+                  <Store size={20} />
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Vendor</p>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-orange-600">Login Portal</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">Partner Portal</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Vendors & Riders</p>
                 </div>
               </div>
-            </Link>
-
-            <Link
-              href="/auth/rider/login"
-              className="group flex-1 flex items-center justify-between md:p-4 p-2 bg-blue-500/50 dark:bg-blue-500/5 rounded-3xl hover:bg-blue-100 dark:hover:bg-blue-500/10 transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-blue-200"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
-                  <Bike size={18} />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Rider</p>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-blue-600">Fleet Access</p>
-                </div>
-              </div>
+              <ArrowRight size={20} className="text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors mr-2" />
             </Link>
           </div>
         </div>
