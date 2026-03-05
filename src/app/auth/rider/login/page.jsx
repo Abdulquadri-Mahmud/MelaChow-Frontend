@@ -49,15 +49,15 @@ export default function RiderLoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0F1115] flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-white dark:bg-[#0F1115] flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
             {/* Background Decorations */}
-            <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] bg-orange-600/10 rounded-full blur-[120px]" />
-            <div className="absolute bottom-[-10%] left-[-10%] w-[300px] h-[300px] bg-red-600/10 rounded-full blur-[100px]" />
+            <div className="absolute top-[-10%] right-[-10%] w-[400px] h-[400px] bg-orange-600/5 dark:bg-orange-600/10 rounded-full blur-[120px]" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[300px] h-[300px] bg-red-600/5 dark:bg-red-600/10 rounded-full blur-[100px]" />
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md"
+                className="w-full max-w-md relative z-10"
             >
                 {/* Logo & Header */}
                 <div className="text-center mb-8">
@@ -68,12 +68,12 @@ export default function RiderLoginPage() {
                     >
                         <Bike size={32} />
                     </motion.div>
-                    <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Rider Dashboard</h1>
-                    <p className="text-gray-400 font-medium">Earn on your own terms. Log in to start.</p>
+                    <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">Rider Dashboard</h1>
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">Earn on your own terms. Log in to start.</p>
                 </div>
 
                 {/* Login Card */}
-                <div className="bg-[#1A1D23]/80 backdrop-blur-xl border border-white/5 rounded-3xl md:p-8 p-4 shadow-2xl relative overflow-hidden">
+                <div className="bg-white/80 dark:bg-[#1A1D23]/80 backdrop-blur-xl border border-gray-100 dark:border-white/5 rounded-3xl md:p-8 p-4 shadow-2xl dark:shadow-none relative overflow-hidden">
                     {/* Error Display */}
                     <AnimatePresence>
                         {error && (
@@ -92,10 +92,10 @@ export default function RiderLoginPage() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Phone Input */}
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-gray-400 ml-1">Phone Number</label>
+                            <label className="text-sm font-bold text-gray-600 dark:text-gray-400 ml-1">Phone Number</label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Phone size={18} className="text-gray-500 group-focus-within:text-orange-500 transition-colors" />
+                                    <Phone size={18} className="text-gray-400 dark:text-gray-500 group-focus-within:text-orange-500 transition-colors" />
                                 </div>
                                 <input
                                     type="tel"
@@ -103,7 +103,7 @@ export default function RiderLoginPage() {
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
                                     placeholder="08012345678"
-                                    className="w-full bg-[#252A31] border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all font-medium"
+                                    className="w-full bg-gray-50 dark:bg-[#252A31] border border-gray-100 dark:border-white/5 rounded-2xl py-4 pl-12 pr-4 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all font-medium"
                                 />
                             </div>
                         </div>
@@ -111,12 +111,12 @@ export default function RiderLoginPage() {
                         {/* Password Input */}
                         <div className="space-y-2">
                             <div className="flex justify-between items-center ml-1">
-                                <label className="text-sm font-bold text-gray-400">Password</label>
+                                <label className="text-sm font-bold text-gray-600 dark:text-gray-400">Password</label>
                                 <button type="button" className="text-orange-500 text-xs font-bold hover:underline">Forgot?</button>
                             </div>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Lock size={18} className="text-gray-500 group-focus-within:text-orange-500 transition-colors" />
+                                    <Lock size={18} className="text-gray-400 dark:text-gray-500 group-focus-within:text-orange-500 transition-colors" />
                                 </div>
                                 <input
                                     type={showPassword ? "text" : "password"}
@@ -124,12 +124,12 @@ export default function RiderLoginPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full bg-[#252A31] border border-white/5 rounded-2xl py-4 pl-12 pr-12 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all font-medium"
+                                    className="w-full bg-gray-50 dark:bg-[#252A31] border border-gray-100 dark:border-white/5 rounded-2xl py-4 pl-12 pr-12 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all font-medium"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-white transition-colors"
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 dark:text-gray-500 hover:text-orange-500 dark:hover:text-white transition-colors"
                                 >
                                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
@@ -159,7 +159,7 @@ export default function RiderLoginPage() {
 
                 {/* Footer Links */}
                 <div className="mt-8 text-center">
-                    <p className="text-gray-500 font-medium">
+                    <p className="text-gray-600 dark:text-gray-500 font-medium">
                         New at GrubDash? <button className="text-orange-500 font-bold hover:underline">Join as a Rider</button>
                     </p>
                 </div>
