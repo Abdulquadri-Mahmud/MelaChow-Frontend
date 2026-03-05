@@ -85,14 +85,14 @@ function RiderLayoutInner({ children }) {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#0F1115] text-gray-900 dark:text-white transition-colors duration-300">
+        <div className="min-h-screen bg-white dark:bg-[#0F1115] text-gray-900 dark:text-white transition-colors duration-300">
             <RiderHeader isOnline={isOnline} toggleAvailability={toggleAvailability} isToggling={isToggling} />
             <main className="pt-24 pb-20 px-4 max-w-7xl mx-auto">
                 {children}
             </main>
 
             {/* Bottom Navigation for Mobile */}
-            <div className="fixed bottom-3 left-2 right-2 z-50 sm:hidden">
+            <div className="fixed z-50 sm:hidden">
                 <nav className="bg-white/80 dark:bg-black/80 backdrop-blur-2xl border border-gray-200 dark:border-white/10 py-2 px-4 rounded-[32px] shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center justify-between relative overflow-hidden">
 
                     <Link href="/rider/dashboard" className="relative flex flex-col items-center gap-1 group py-1 min-w-[56px]">
