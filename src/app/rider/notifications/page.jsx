@@ -51,7 +51,7 @@ export default function RiderNotificationsPage() {
         <div className="space-y-6 max-w-2xl mx-auto pb-20">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-black text-white mb-1">Alerts</h1>
+                    <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-1">Alerts</h1>
                     <p className="text-gray-500 font-medium">
                         {unreadCount > 0 ? `${unreadCount} unread alert${unreadCount > 1 ? "s" : ""}` : "You're all caught up!"}
                     </p>
@@ -74,8 +74,8 @@ export default function RiderNotificationsPage() {
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 transition={{ delay: i * 0.05 }}
                                 onClick={() => handleNotificationClick(notif)}
-                                className={`relative bg-[#1A1D23] border rounded-2xl p-4 flex items-start gap-4 cursor-pointer transition-all hover:border-orange-500/40 
-                                    ${isUnread ? "border-orange-500/20" : "border-white/5 opacity-70 hover:opacity-100"}
+                                className={`relative bg-white dark:bg-[#1A1D23] shadow-sm dark:shadow-none border rounded-2xl p-4 flex items-start gap-4 cursor-pointer transition-all hover:border-orange-500/40 
+                                    ${isUnread ? "border-orange-500/20" : "border-gray-100 dark:border-white/5 opacity-70 hover:opacity-100"}
                                 `}
                             >
                                 {isUnread && (
@@ -85,10 +85,10 @@ export default function RiderNotificationsPage() {
                                     <Icon size={22} className={style.text} />
                                 </div>
                                 <div className="flex-1 pr-4 min-w-0">
-                                    <p className={`font-bold text-sm mb-0.5 truncate ${isUnread ? "text-white" : "text-gray-300"}`}>
+                                    <p className={`font-bold text-sm mb-0.5 truncate ${isUnread ? "text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}>
                                         {notif.title}
                                     </p>
-                                    <p className={`text-xs leading-relaxed line-clamp-2 ${isUnread ? "text-gray-300" : "text-gray-500"}`}>
+                                    <p className={`text-xs leading-relaxed line-clamp-2 ${isUnread ? "text-gray-800 dark:text-gray-300" : "text-gray-500"}`}>
                                         {notif.body}
                                     </p>
                                     <div className="flex items-center gap-1 mt-3 text-[10px] font-bold uppercase tracking-wider text-gray-600">
@@ -111,10 +111,10 @@ export default function RiderNotificationsPage() {
 
             {notifications.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4">
-                        <Bell size={32} className="text-white/20" />
+                    <div className="w-20 h-20 bg-black/5 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
+                        <Bell size={32} className="text-gray-400 dark:text-white/20" />
                     </div>
-                    <h3 className="text-xl font-black text-white mb-2">No alerts yet</h3>
+                    <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">No alerts yet</h3>
                     <p className="text-gray-500 text-sm max-w-[200px]">
                         When you get assigned to orders, they will appear here.
                     </p>

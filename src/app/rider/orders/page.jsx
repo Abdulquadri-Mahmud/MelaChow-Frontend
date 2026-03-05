@@ -56,7 +56,7 @@ export default function RiderOrdersPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-black text-white mb-1">Order History</h1>
+                <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-1">Order History</h1>
                 <p className="text-gray-500 font-medium">All your past and active deliveries</p>
             </div>
 
@@ -68,7 +68,7 @@ export default function RiderOrdersPage() {
                     placeholder="Search by order ID..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    className="w-full bg-[#1A1D23] border border-white/5 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500/40 transition-all"
+                    className="w-full bg-white dark:bg-[#1A1D23] border border-gray-200 dark:border-white/5 rounded-2xl py-3.5 pl-12 pr-4 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500/40 transition-all shadow-sm dark:shadow-none"
                 />
             </div>
 
@@ -79,8 +79,8 @@ export default function RiderOrdersPage() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id
-                                ? "bg-orange-600 text-white shadow-lg shadow-orange-600/20"
-                                : "bg-[#1A1D23] text-gray-400 border border-white/5 hover:border-orange-500/20"
+                            ? "bg-orange-600 text-white shadow-lg shadow-orange-600/20"
+                            : "bg-white dark:bg-[#1A1D23] text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5 hover:border-orange-500/20 shadow-sm dark:shadow-none"
                             }`}
                     >
                         {tab.label}
@@ -94,11 +94,11 @@ export default function RiderOrdersPage() {
                     <Loader2 className="animate-spin text-orange-500" size={36} />
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="text-center py-20 bg-[#1A1D23] rounded-[32px] border-2 border-dashed border-white/5">
-                    <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-5">
-                        <Bike size={36} className="text-gray-600" />
+                <div className="text-center py-20 bg-white dark:bg-[#1A1D23] rounded-[32px] border-2 border-dashed border-gray-200 dark:border-white/5 shadow-sm dark:shadow-none">
+                    <div className="w-20 h-20 bg-black/5 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-5">
+                        <Bike size={36} className="text-gray-400 dark:text-gray-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-white mb-2">No orders yet</h3>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No orders yet</h3>
                     <p className="text-gray-500 text-sm">Your delivery history will appear here once you start accepting jobs.</p>
                 </div>
             ) : (
@@ -117,7 +117,7 @@ export default function RiderOrdersPage() {
                                     initial={{ opacity: 0, y: 12 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: i * 0.04 }}
-                                    className="bg-[#1A1D23] border border-white/5 rounded-2xl p-4 flex items-center gap-4 hover:border-orange-500/20 transition-all cursor-pointer group"
+                                    className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none rounded-2xl p-4 flex items-center gap-4 hover:border-orange-500/20 transition-all cursor-pointer group"
                                 >
                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${status.bg}`}>
                                         <Package size={20} className={status.text} />
@@ -125,7 +125,7 @@ export default function RiderOrdersPage() {
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-0.5">
-                                            <span className="font-bold text-white text-sm">Order #{orderId}</span>
+                                            <span className="font-bold text-gray-900 dark:text-white text-sm">Order #{orderId}</span>
                                             <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${status.bg} ${status.text}`}>
                                                 {status.label}
                                             </span>
@@ -137,10 +137,10 @@ export default function RiderOrdersPage() {
                                     </div>
 
                                     <div className="text-right shrink-0">
-                                        <div className="font-black text-white text-sm">
+                                        <div className="font-black text-gray-900 dark:text-white text-sm">
                                             ₦{(order.earnings || order.deliveryFee || 0).toLocaleString()}
                                         </div>
-                                        <ChevronRight size={16} className="text-gray-600 group-hover:text-orange-500 transition-colors ml-auto mt-1" />
+                                        <ChevronRight size={16} className="text-gray-400 dark:text-gray-600 group-hover:text-orange-500 transition-colors ml-auto mt-1" />
                                     </div>
                                 </motion.div>
                             );

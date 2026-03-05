@@ -73,19 +73,19 @@ export default function RiderWalletPage() {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => router.back()}
-                        className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-white hover:bg-white/10 transition-colors"
+                        className="w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center justify-center text-gray-700 dark:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
                     >
                         <ChevronLeft size={20} />
                     </button>
                     <div>
-                        <h1 className="text-2xl font-black text-white italic">Rider Wallet</h1>
+                        <h1 className="text-2xl font-black text-gray-900 dark:text-white italic">Rider Wallet</h1>
                         <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">Earnings Management</p>
                     </div>
                 </div>
                 <button
                     onClick={() => fetchWallet(true)}
                     disabled={refreshing}
-                    className={`w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-white hover:bg-white/10 transition-colors ${refreshing ? 'animate-spin opacity-50' : ''}`}
+                    className={`w-10 h-10 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center justify-center text-gray-700 dark:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors ${refreshing ? 'animate-spin opacity-50' : ''}`}
                 >
                     <RefreshCw size={18} />
                 </button>
@@ -130,7 +130,7 @@ export default function RiderWalletPage() {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 gap-4">
-                <button className="bg-white text-black font-black py-4 rounded-3xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-white/5">
+                <button className="bg-gray-900 dark:bg-white text-white dark:text-black font-black py-4 rounded-3xl flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-black/5 dark:shadow-white/5">
                     <ArrowUpRight size={20} />
                     Cash Out Earnings
                 </button>
@@ -139,7 +139,7 @@ export default function RiderWalletPage() {
             {/* Transaction History */}
             <div className="space-y-6">
                 <div className="flex items-center justify-between px-2">
-                    <h2 className="text-lg font-black text-white flex items-center gap-2">
+                    <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
                         <Clock className="text-orange-500" size={18} />
                         Transaction History
                     </h2>
@@ -155,17 +155,17 @@ export default function RiderWalletPage() {
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: idx * 0.05 }}
-                                    className="bg-[#1A1D23] border border-white/5 rounded-3xl p-5 flex items-center justify-between hover:border-orange-500/30 transition-all group"
+                                    className="bg-white dark:bg-[#1A1D23] shadow-sm dark:shadow-none border border-gray-100 dark:border-white/5 rounded-3xl p-5 flex items-center justify-between hover:border-orange-500/30 transition-all group"
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${tx.type === 'credit'
-                                            ? 'bg-green-500/10 text-green-500'
-                                            : 'bg-red-500/10 text-red-500'
+                                            ? 'bg-green-500/10 text-green-600 dark:text-green-500'
+                                            : 'bg-red-500/10 text-red-600 dark:text-red-500'
                                             }`}>
                                             {tx.type === 'credit' ? <ArrowUpCircle size={24} /> : <ArrowDownCircle size={24} />}
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-white group-hover:text-orange-400 transition-colors uppercase tracking-tight">
+                                            <p className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors uppercase tracking-tight">
                                                 {tx.description || (tx.type === 'credit' ? 'Order Earning' : 'Wallet Withdrawal')}
                                             </p>
                                             <p className="text-[10px] text-gray-500 font-bold mt-1 flex items-center gap-1.5 uppercase tracking-widest">
@@ -193,12 +193,12 @@ export default function RiderWalletPage() {
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="bg-[#1A1D23] border border-white/5 border-dashed rounded-[40px] p-16 flex flex-col items-center justify-center text-center"
+                                className="bg-white dark:bg-[#1A1D23] shadow-sm dark:shadow-none border border-gray-200 dark:border-white/5 border-dashed rounded-[40px] p-16 flex flex-col items-center justify-center text-center"
                             >
-                                <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6 text-gray-600">
+                                <div className="w-20 h-20 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center mb-6 text-gray-500 dark:text-gray-600">
                                     <Clock size={40} />
                                 </div>
-                                <h3 className="text-white font-black text-lg mb-1">No Transactions Yet</h3>
+                                <h3 className="text-gray-900 dark:text-white font-black text-lg mb-1">No Transactions Yet</h3>
                                 <p className="text-gray-500 text-xs font-bold uppercase tracking-widest max-w-[200px] leading-relaxed">
                                     Complete your first delivery to see your earnings flow here.
                                 </p>
