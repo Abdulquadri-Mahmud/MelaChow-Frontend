@@ -3,12 +3,12 @@
 import { RiderProvider } from "@/app/context/RiderContext";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bike, LayoutDashboard, History, Settings, Bell, LogOut, Menu, X, Power } from "lucide-react";
+import { Bike, LayoutDashboard, History, Settings, Bell, LogOut, Menu, X, Power, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRider } from "@/app/context/RiderContext";
 
-function RiderHeader({ isOnline, toggleAvailability }) {
+function RiderHeader({ isOnline, toggleAvailability, isToggling }) {
     const { rider, logout } = useRider();
     const [scrolled, setScrolled] = useState(false);
 
@@ -35,12 +35,13 @@ function RiderHeader({ isOnline, toggleAvailability }) {
                     {/* Status Toggle */}
                     <button
                         onClick={toggleAvailability}
+                        disabled={isToggling}
                         className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs transition-all border ${isOnline
                                 ? 'bg-green-500/10 border-green-500/20 text-green-500'
                                 : 'bg-red-500/10 border-red-500/20 text-red-500'
-                            }`}
+                            } ${isToggling ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}`}
                     >
-                        <Power size={14} />
+                        {isToggling ? <Loader2 size={14} className="animate-spin" /> : <Power size={14} />}
                         {isOnline ? 'ONLINE' : 'OFFLINE'}
                     </button>
 
@@ -57,7 +58,7 @@ function RiderHeader({ isOnline, toggleAvailability }) {
 }
 
 function RiderLayoutInner({ children }) {
-    const { isOnline, toggleAvailability, loading, rider } = useRider();
+    const { isOnline, toggleAvailability, loading, rider, isToggling } = useRider();
     const pathname = usePathname();
 
     if (loading) {
@@ -75,7 +76,7 @@ function RiderLayoutInner({ children }) {
 
     return (
         <div className="min-h-screen bg-[#0F1115] text-white">
-            <RiderHeader isOnline={isOnline} toggleAvailability={toggleAvailability} />
+            <RiderHeader isOnline={isOnline} toggleAvailability={toggleAvailability} isToggling={isToggling} />
             <main className="pt-24 pb-20 px-4 max-w-7xl mx-auto">
                 {children}
             </main>
@@ -90,12 +91,14 @@ function RiderLayoutInner({ children }) {
                     <History size={20} />
                     <span className="text-[10px] font-bold uppercase tracking-wider">Orders</span>
                 </Link>
-                <Link href="/rider/earnings" className={`flex flex-col items-center gap-1 ${pathname === '/rider/earnings' ? 'text-orange-500' : 'text-gray-500'}`}>
-                    <div className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center -mt-8 shadow-lg shadow-orange-600/30 border-4 border-[#0F1115] text-white">
-                        <Power size={20} onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleAvailability(); }} />
+                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleAvailability(); }} disabled={isToggling} className={`flex flex-col flex-1 items-center gap-1 text-gray-500`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center -mt-8 shadow-lg shadow-black/50 border-[6px] border-[#0F1115] text-white transition-all
+                        ${isOnline ? 'bg-green-500 shadow-green-500/30' : 'bg-orange-600 shadow-orange-600/30'}
+                        ${isToggling ? 'opacity-50' : 'active:scale-95'}`}>
+                        {isToggling ? <Loader2 size={18} className="animate-spin" /> : <Power size={18} />}
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Toggle</span>
-                </Link>
+                    <span className="text-[10px] font-bold uppercase tracking-wider">{isOnline ? 'ONLINE' : 'OFFLINE'}</span>
+                </button>
                 <Link href="/rider/notifications" className={`flex flex-col items-center gap-1 ${pathname === '/rider/notifications' ? 'text-orange-500' : 'text-gray-500'}`}>
                     <Bell size={20} />
                     <span className="text-[10px] font-bold uppercase tracking-wider">Alerts</span>

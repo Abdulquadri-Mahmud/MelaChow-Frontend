@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Bike, Navigation, MapPin, Package, CheckCircle2, AlertCircle,
     Wallet, Star, Phone, Loader2, Activity,
-    ArrowUpRight
+    ArrowUpRight, RefreshCcw
 } from "lucide-react";
 import { useRider } from "@/app/context/RiderContext";
 import { getActiveRiderOrder, riderPickedUpOrder, riderDeliveredOrder } from "@/app/lib/riderApi";
@@ -15,10 +15,11 @@ import socketService from "@/app/lib/socketService";
 import { useSocket } from "@/app/context/SocketContext";
 
 export default function RiderDashboard() {
-    const { rider, isOnline } = useRider();
+    const { rider, isOnline, refreshProfile } = useRider();
     const { socket } = useSocket();
     const [activeOrder, setActiveOrder] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const riderId = rider?._id || rider?.id;
 
@@ -26,6 +27,9 @@ export default function RiderDashboard() {
         if (!riderId) return;
         try {
             const data = await getActiveRiderOrder(riderId);
+
+            console.log(data);
+            
             const order = data?.data?.order || data?.order || (data?._id ? data : null);
             setActiveOrder(order);
         } catch (error) {
@@ -35,6 +39,22 @@ export default function RiderDashboard() {
             setActiveOrder(null);
         } finally {
             setLoading(false);
+        }
+    };
+
+    console.log(activeOrder);
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            await Promise.all([
+                fetchActiveOrder(),
+                refreshProfile()
+            ]);
+            toast.success("Dashboard refreshed");
+        } catch (error) {
+            console.error("Refresh failed:", error);
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
@@ -104,13 +124,22 @@ export default function RiderDashboard() {
         <div className="space-y-6">
 
             {/* Greeting */}
-            <div>
-                <h1 className="text-3xl font-black text-white">
-                    Hey, {rider?.name?.split(" ")[0] || "Rider"} 👋
-                </h1>
-                <p className="text-gray-500 font-medium mt-1">
-                    {isOnline ? "You're online. Ready for deliveries!" : "Switch online to start earning."}
-                </p>
+            <div className="flex justify-between items-start">
+                <div>
+                    <h1 className="text-3xl font-black text-white">
+                        Hey, {rider?.name?.split(" ")[0] || "Rider"} 👋
+                    </h1>
+                    <p className="text-gray-500 font-medium mt-1">
+                        {isOnline ? "You're online. Ready for deliveries!" : "Switch online to start earning."}
+                    </p>
+                </div>
+                <button
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className={`p-2 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 transition-all ${isRefreshing ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                >
+                    <RefreshCcw size={20} className={isRefreshing ? 'animate-spin' : ''} />
+                </button>
             </div>
 
             {/* Quick Stats */}

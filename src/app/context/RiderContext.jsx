@@ -33,6 +33,7 @@ export const RiderProvider = ({ children }) => {
     const [rider, setRider] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isOnline, setIsOnline] = useState(false);
+    const [isToggling, setIsToggling] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
 
@@ -177,6 +178,7 @@ export const RiderProvider = ({ children }) => {
         }
 
         const newStatus = isOnline ? 'offline' : 'available';
+        setIsToggling(true);
         try {
             await toggleRiderAvailability(currentRiderId, newStatus);
             setIsOnline(!isOnline);
@@ -184,6 +186,8 @@ export const RiderProvider = ({ children }) => {
             toast.success(`You are now ${newStatus}`);
         } catch (error) {
             toast.error(error?.response?.data?.message || 'Failed to update status');
+        } finally {
+            setIsToggling(false);
         }
     };
 
@@ -192,6 +196,7 @@ export const RiderProvider = ({ children }) => {
             rider,
             loading,
             isOnline,
+            isToggling,
             toggleAvailability,
             logout,
             refreshProfile,
