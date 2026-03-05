@@ -85,7 +85,7 @@ function RiderLayoutInner({ children }) {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#0F1115] text-gray-900 dark:text-white transition-colors duration-300">
+        <div className="min-h-screen bg-white dark:bg-[#0F1115] text-gray-900 dark:text-white transition-colors duration-300">
             <RiderHeader isOnline={isOnline} toggleAvailability={toggleAvailability} isToggling={isToggling} />
             <main className="pt-24 pb-20 px-4 max-w-7xl mx-auto">
                 {children}
