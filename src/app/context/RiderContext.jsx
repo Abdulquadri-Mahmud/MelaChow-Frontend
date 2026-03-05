@@ -93,10 +93,10 @@ export const RiderProvider = ({ children }) => {
     const riderId = rider?._id || rider?.id;
 
     useEffect(() => {
-        if (!socket || !rider?._id) return;
+        if (!socket || !rider?._id || !isOnline) return;
         console.log('🛵 Emitting rider_connect for:', rider._id);
         socket.emit('rider_connect', { riderId: rider._id });
-    }, [socket, rider?._id]);
+    }, [socket, rider?._id, isOnline]);
 
     useEffect(() => {
         if (!riderId || !wsConnected || !socket) return;
@@ -140,11 +140,13 @@ export const RiderProvider = ({ children }) => {
         socket.on('rider_status_changed', handleStatusChange);
         socket.on('rider_deactivated', handleRiderDeactivated);
         socket.on('order_assigned', handleRiderAssigned);
+        socket.on('ORDER_ASSIGNED_TO_RIDER', handleRiderAssigned);
 
         return () => {
             socket.off('rider_status_changed', handleStatusChange);
             socket.off('rider_deactivated', handleRiderDeactivated);
             socket.off('order_assigned', handleRiderAssigned);
+            socket.off('ORDER_ASSIGNED_TO_RIDER', handleRiderAssigned);
         };
     }, [riderId, wsConnected, socket]);
 

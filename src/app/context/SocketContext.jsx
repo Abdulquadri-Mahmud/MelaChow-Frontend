@@ -110,13 +110,13 @@ export const SocketProvider = ({ children }) => {
                 });
 
                 // Rider specific event
-                socketService.onOrderAssigned((data) => {
+                const handleAssignment = (data) => {
                     if (role === 'rider') {
                         console.log('🛵 Order assigned to rider:', data);
                         const assignmentNotification = {
                             _id: `assign-${Date.now()}`,
                             title: 'New Job Assigned!',
-                            body: `You have a new pickup at ${data.vendorName || 'the restaurant'}`,
+                            body: `You have a new pickup at ${data.vendorName || data.restaurantName || 'the restaurant'}`,
                             type: 'order_assigned',
                             orderId: data.orderId,
                             data: data,
@@ -135,13 +135,16 @@ export const SocketProvider = ({ children }) => {
 
                         // Toast from Socket Context
                         import('react-hot-toast').then(({ default: toast }) => {
-                            toast.success('New Order Assigned! 🛵', { duration: 6000 });
+                            toast.success('New Order Assigned! 🛵', { duration: 8000 });
                         });
 
                         // Also trigger a global event for the rider dashboard to react
                         window.dispatchEvent(new CustomEvent('rider:new_assignment', { detail: data }));
                     }
-                });
+                };
+
+                socketService.onOrderAssigned(handleAssignment);
+                socketService.socket?.on('ORDER_ASSIGNED_TO_RIDER', handleAssignment);
 
                 setIsConnected(true);
 

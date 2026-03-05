@@ -13,6 +13,7 @@ import { getActiveRiderOrder, riderPickedUpOrder, riderDeliveredOrder } from "@/
 import toast from "react-hot-toast";
 import socketService from "@/app/lib/socketService";
 import { useSocket } from "@/app/context/SocketContext";
+import { toggleRiderAvailability } from "@/app/lib/riderApi";
 
 export default function RiderDashboard() {
     const { rider, isOnline, refreshProfile } = useRider();
@@ -29,7 +30,7 @@ export default function RiderDashboard() {
             const data = await getActiveRiderOrder(riderId);
 
             console.log(data);
-            
+
             const order = data?.data?.order || data?.order || (data?._id ? data : null);
             setActiveOrder(order);
         } catch (error) {
@@ -105,6 +106,15 @@ export default function RiderDashboard() {
             } else if (action === "deliver") {
                 await riderDeliveredOrder(riderId, orderId);
                 toast.success("Order delivered! Well done. 🎉");
+            } else if (action === "accept") {
+                await toggleRiderAvailability(riderId, "on_delivery");
+                toast.success("Delivery Accepted! 🛵");
+                await refreshProfile();
+            } else if (action === "reject") {
+                await toggleRiderAvailability(riderId, "available");
+                toast.success("Order rejected");
+                setActiveOrder(null);
+                await refreshProfile();
             }
             fetchActiveOrder();
         } catch (error) {
@@ -126,7 +136,7 @@ export default function RiderDashboard() {
             {/* Greeting */}
             <div className="flex justify-between items-start">
                 <div>
-                    <h1 className="text-3xl font-black text-white">
+                    <h1 className="text-3xl font-black text-gray-900 dark:text-white">
                         Hey, {rider?.name?.split(" ")[0] || "Rider"} 👋
                     </h1>
                     <p className="text-gray-500 font-medium mt-1">
@@ -136,7 +146,7 @@ export default function RiderDashboard() {
                 <button
                     onClick={handleRefresh}
                     disabled={isRefreshing}
-                    className={`p-2 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:text-white hover:bg-white/10 transition-all ${isRefreshing ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                    className={`p-2 rounded-xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 text-gray-600 dark:text-white/70 hover:text-black dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-all ${isRefreshing ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                 >
                     <RefreshCcw size={20} className={isRefreshing ? 'animate-spin' : ''} />
                 </button>
@@ -146,29 +156,29 @@ export default function RiderDashboard() {
             <div className="grid grid-cols-2 gap-4">
                 <Link
                     href="/rider/wallet"
-                    className="bg-[#1A1D23] border border-white/5 rounded-3xl md:p-5 p-3 shadow-lg cursor-pointer hover:border-orange-500/30 transition-all group block"
+                    className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none cursor-pointer hover:border-orange-500/30 transition-all group block"
                 >
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-orange-500/10 text-orange-500 rounded-lg group-hover:bg-orange-500 group-hover:text-white transition-colors">
+                        <div className="p-2 bg-orange-500/10 text-orange-500 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition-colors">
                             <Wallet size={16} />
                         </div>
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Earnings</span>
                     </div>
-                    <div className="text-2xl font-black text-white flex items-center justify-between">
+                    <div className="text-2xl font-black text-gray-900 dark:text-white flex items-center justify-between">
                         ₦{Number(rider?.totalEarnings ?? 0).toLocaleString()}
                         <ArrowUpRight size={16} className="text-gray-600 group-hover:text-orange-500 transition-colors" />
                     </div>
                     <div className="text-[10px] text-gray-600 font-bold mt-1">lifetime total</div>
                 </Link>
 
-                <div className="bg-[#1A1D23] border border-white/5 rounded-3xl md:p-5 p-3 shadow-lg">
+                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-yellow-500/10 text-yellow-500 rounded-lg">
+                        <div className="p-2 bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 rounded-lg">
                             <Star size={16} />
                         </div>
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Rating</span>
                     </div>
-                    <div className="text-2xl font-black text-white">
+                    <div className="text-2xl font-black text-gray-900 dark:text-white">
                         {rider?.rating ? Number(rider.rating).toFixed(1) : "New"}
                     </div>
                     <div className="text-[10px] text-gray-600 font-bold mt-1">
@@ -176,27 +186,27 @@ export default function RiderDashboard() {
                     </div>
                 </div>
 
-                <div className="bg-[#1A1D23] border border-white/5 rounded-3xl md:p-5 p-3 shadow-lg">
+                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-blue-500/10 text-blue-500 rounded-lg">
+                        <div className="p-2 bg-blue-500/10 text-blue-600 dark:text-blue-500 rounded-lg">
                             <Activity size={16} />
                         </div>
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Deliveries</span>
                     </div>
-                    <div className="text-2xl font-black text-white">
+                    <div className="text-2xl font-black text-gray-900 dark:text-white">
                         {rider?.totalDeliveries ?? 0}
                     </div>
                     <div className="text-[10px] text-gray-600 font-bold mt-1">lifetime</div>
                 </div>
 
-                <div className="bg-[#1A1D23] border border-white/5 rounded-3xl md:p-5 p-3 shadow-lg">
+                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none">
                     <div className="flex items-center gap-3 mb-2">
-                        <div className={`p-2 rounded-lg ${isOnline ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"}`}>
+                        <div className={`p-2 rounded-lg ${isOnline ? "bg-green-500/10 text-green-600 dark:text-green-500" : "bg-red-500/10 text-red-600 dark:text-red-500"}`}>
                             <Bike size={16} />
                         </div>
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status</span>
                     </div>
-                    <div className={`text-xl font-black ${isOnline ? "text-green-400" : "text-red-400"}`}>
+                    <div className={`text-xl font-black ${isOnline ? "text-green-500 dark:text-green-400" : "text-red-500 dark:text-red-400"}`}>
                         {isOnline ? "Online" : "Offline"}
                     </div>
                     <div className="text-[10px] text-gray-600 font-bold mt-1">
@@ -210,90 +220,147 @@ export default function RiderDashboard() {
                 {activeOrder ? (
                     <motion.div
                         key="active"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="bg-orange-600 rounded-[32px] p-6 shadow-2xl shadow-orange-600/20 relative overflow-hidden"
+                        className="relative overflow-hidden group"
                     >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-bl-[60px] flex items-center justify-center">
-                            <Bike size={48} className="text-white/20" />
-                        </div>
+                        {/* Premium Background with Glow */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 to-green-700 dark:from-emerald-700 dark:to-green-900 rounded-[40px]" />
+                        <div className="absolute -right-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+                        <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl" />
 
-                        <div className="relative z-10">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-wider text-white mb-6">
-                                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                                Active Delivery
+                        <div className="relative z-10 p-6 md:p-8">
+                            {/* Header Section */}
+                            <div className="flex justify-between items-start mb-8">
+                                <div className="space-y-1">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full border border-white/20 text-[10px] font-black uppercase tracking-widest text-white">
+                                        <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-ping" />
+                                        Live Job
+                                    </div>
+                                    <h2 className="text-3xl font-black text-white leading-tight">
+                                        {rider?.status === "pending_assignment" ? "New Request" :
+                                            activeOrder.status === "assigned" ? "Head to Store" : "Out for Delivery"}
+                                    </h2>
+                                    <p className="text-white/70 text-xs font-bold uppercase tracking-tighter">
+                                        Order #{String(activeOrder.orderId || activeOrder._id || "").toUpperCase().slice(-8)}
+                                    </p>
+                                </div>
+                                <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl">
+                                    <Bike size={32} className="text-white animate-pulse" />
+                                </div>
                             </div>
 
-                            <h2 className="text-3xl font-black text-white mb-2 leading-tight">
-                                {activeOrder.status === "assigned" ? "Pickup from Restaurant" : "Deliver to Customer"}
-                            </h2>
-                            <p className="text-white/80 text-sm font-medium mb-8">
-                                Order #{String(activeOrder._id || "").slice(-6).toUpperCase()} • {activeOrder.items?.length ?? 0} items
-                            </p>
+                            {/* Route Visualization */}
+                            <div className="relative space-y-8 mb-8">
+                                {/* Vertical Path Line */}
+                                <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-white/20 border-dashed border-l" />
 
-                            <div className="space-y-6 mb-8">
+                                {/* Pickup */}
                                 <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-                                        <MapPin size={20} className="text-white" />
+                                    <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 z-10 border border-white/20">
+                                        <Package size={20} className="text-white" />
                                     </div>
-                                    <div className="min-w-0">
-                                        <div className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-0.5">
-                                            Pickup Location
-                                        </div>
-                                        <div className="text-white font-bold truncate">
-                                            {activeOrder.restaurantName || activeOrder.restaurantId?.name || "GrubDash Kitchen"}
-                                        </div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-0.5">Pickup Point</div>
+                                        <h4 className="text-white font-black text-base truncate">
+                                            {activeOrder.restaurantId?.name || activeOrder.restaurantName || "Restaurant"}
+                                        </h4>
+                                        <p className="text-white/70 text-xs font-medium truncate">
+                                            {activeOrder.restaurantId?.address?.state || ''} {activeOrder.restaurantId?.address?.city || ''}, {activeOrder.restaurantId?.address?.street || activeOrder.restaurantName || "Restaurant Address"}
+                                        </p>
                                     </div>
                                 </div>
 
+                                {/* Drop-off */}
                                 <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-                                        <Navigation size={20} className="text-white" />
+                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shrink-0 z-10 shadow-lg">
+                                        <MapPin size={20} className="text-emerald-600" />
                                     </div>
-                                    <div className="min-w-0">
-                                        <div className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-0.5">
-                                            Drop-off Location
-                                        </div>
-                                        <div className="text-white font-bold truncate">
+                                    <div className="min-w-0 flex-1">
+                                        <div className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-0.5">Delivery Point</div>
+                                        <h4 className="text-white font-black text-base truncate">
+                                            {activeOrder.userId?.firstname ? `${activeOrder.userId.firstname} ${activeOrder.userId.lastname || ''}` : "Customer"}
+                                        </h4>
+                                        <p className="text-white/70 text-xs font-medium line-clamp-2">
                                             {activeOrder.deliveryAddress?.address ||
                                                 activeOrder.userOrderId?.deliveryAddress?.addressLine ||
                                                 "Customer Address"}
-                                        </div>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Customer & Call Section */}
+                            <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-4 mb-8 flex items-center justify-between border border-white/5">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 items-center justify-center hidden sm:flex">
+                                        <Star size={18} className="text-emerald-300" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest leading-none mb-1">Customer</p>
+                                        <p className="text-white font-bold text-sm leading-none">
+                                            {activeOrder.userId?.firstname || "Guest"}
+                                        </p>
                                     </div>
                                 </div>
 
-                                {(activeOrder.userPhone || activeOrder.userOrderId?.phone) && (
-
-                                    <a href={`tel:${activeOrder.userPhone || activeOrder.userOrderId?.phone}`}
-                                        className="flex items-center gap-3 bg-white/10 rounded-2xl p-3 hover:bg-white/20 transition-colors">
-                                        <Phone size={18} className="text-white" />
-                                        <span className="text-white font-bold text-sm">Call Customer</span>
-                                    </a>
-                                )}
+                                <a
+                                    href={`tel:${activeOrder.userPhone || activeOrder.userId?.phone || activeOrder.userOrderId?.phone || ''}`}
+                                    className="h-10 px-4 rounded-xl bg-white text-emerald-700 flex items-center gap-2 font-black text-xs hover:bg-emerald-50 transition-colors shadow-lg active:scale-95"
+                                >
+                                    <Phone size={14} />
+                                    CALL
+                                </a>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <button className="bg-white/10 hover:bg-white/20 h-14 rounded-2xl flex items-center justify-center text-white transition-all font-bold">
-                                    <Navigation size={20} className="mr-2" />
-                                    Maps
-                                </button>
-                                {activeOrder.status === "assigned" ? (
-                                    <button
-                                        onClick={() => handleAction("pickup")}
-                                        className="bg-white text-orange-600 h-14 rounded-2xl flex items-center justify-center font-black shadow-xl transition-all active:scale-95"
-                                    >
-                                        <Package size={20} className="mr-2" />
-                                        Picked Up
-                                    </button>
+                            {/* Actions Zone */}
+                            <div className="grid grid-cols-2 gap-4">
+                                {rider?.status === "pending_assignment" || activeOrder.status === "assigned" ? (
+                                    <>
+                                        <button
+                                            onClick={() => handleAction("reject")}
+                                            className="h-16 rounded-2xl bg-white/10 hover:bg-red-500/20 text-white font-black text-sm transition-all border border-white/10 hover:border-red-500/30"
+                                        >
+                                            REJECT
+                                        </button>
+                                        <button
+                                            onClick={() => handleAction("accept")}
+                                            className="h-16 rounded-2xl bg-white text-emerald-700 flex items-center justify-center font-black text-sm shadow-2xl transition-all active:scale-95"
+                                        >
+                                            <CheckCircle2 size={20} className="mr-2" />
+                                            ACCEPT
+                                        </button>
+                                    </>
+                                ) : activeOrder.status === "out_for_delivery" || rider?.status === "on_delivery" ? (
+                                    <>
+                                        <button
+                                            onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(activeOrder.deliveryAddress?.address || activeOrder.userOrderId?.deliveryAddress?.addressLine)}`)}
+                                            className="h-16 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-black text-sm flex items-center justify-center transition-all border border-white/10 shadow-inner"
+                                        >
+                                            <Navigation size={20} className="mr-2 text-emerald-300" />
+                                            OPEN MAPS
+                                        </button>
+                                        {activeOrder.orderStatus === "rider_assigned" || activeOrder.status === "assigned" ? (
+                                            <button
+                                                onClick={() => handleAction("pickup")}
+                                                className="h-16 rounded-2xl bg-white text-emerald-700 flex items-center justify-center font-black text-sm shadow-2xl transition-all active:scale-95"
+                                            >
+                                                <Package size={20} className="mr-2" />
+                                                PICKED UP
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => handleAction("deliver")}
+                                                className="h-16 rounded-2xl bg-green-400 text-emerald-900 flex items-center justify-center font-black text-sm shadow-[0_0_30px_rgba(72,229,144,0.4)] transition-all active:scale-95"
+                                            >
+                                                <CheckCircle2 size={20} className="mr-2" />
+                                                DELIVERED
+                                            </button>
+                                        )}
+                                    </>
                                 ) : (
-                                    <button
-                                        onClick={() => handleAction("deliver")}
-                                        className="bg-green-500 text-white h-14 rounded-2xl flex items-center justify-center font-black shadow-xl transition-all active:scale-95"
-                                    >
-                                        <CheckCircle2 size={20} className="mr-2" />
-                                        Delivered
-                                    </button>
+                                    <p className="col-span-2 text-center text-white/60 text-xs font-bold py-4">Order status: {activeOrder.status}</p>
                                 )}
                             </div>
                         </div>
@@ -304,15 +371,15 @@ export default function RiderDashboard() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         className={`p-10 rounded-[32px] border-2 border-dashed flex flex-col items-center justify-center text-center transition-all ${isOnline
-                            ? "bg-orange-600/5 border-orange-500/20"
-                            : "bg-red-500/5 border-red-500/20 opacity-60"
+                            ? "bg-orange-50 dark:bg-orange-600/5 border-orange-200 dark:border-orange-500/20"
+                            : "bg-red-50 dark:bg-red-500/5 border-red-200 dark:border-red-500/20 opacity-60"
                             }`}
                     >
-                        <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${isOnline ? "bg-orange-500/10 text-orange-500" : "bg-red-500/10 text-red-500"
+                        <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-6 ${isOnline ? "bg-orange-100 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500" : "bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-500"
                             }`}>
                             <Bike size={40} className={isOnline ? "animate-bounce" : ""} />
                         </div>
-                        <h3 className="text-xl font-black text-white mb-2">
+                        <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">
                             {isOnline ? "Waiting for Orders..." : "You are Offline"}
                         </h3>
                         <p className="text-gray-500 text-sm font-medium max-w-[220px]">

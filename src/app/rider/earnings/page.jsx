@@ -21,7 +21,7 @@ const StatCard = ({ icon: Icon, label, value, sub, color = "orange", delay = 0 }
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay }}
-            className="bg-[#1A1D23] border border-white/5 rounded-3xl p-5"
+            className="bg-white dark:bg-[#1A1D23] shadow-sm dark:shadow-none border border-gray-100 dark:border-white/5 rounded-3xl p-5 transition-colors"
         >
             <div className="flex items-center gap-3 mb-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${c.bg}`}>
@@ -29,7 +29,7 @@ const StatCard = ({ icon: Icon, label, value, sub, color = "orange", delay = 0 }
                 </div>
                 <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{label}</span>
             </div>
-            <div className="text-2xl font-black text-white mb-1">{value}</div>
+            <div className="text-2xl font-black text-gray-900 dark:text-white mb-1">{value}</div>
             {sub && <div className="text-[11px] text-gray-500 font-medium">{sub}</div>}
         </motion.div>
     );
@@ -70,7 +70,7 @@ export default function RiderEarningsPage() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-black text-white mb-1">Earnings</h1>
+                <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-1">Earnings</h1>
                 <p className="text-gray-500 font-medium">Your performance & payment overview</p>
             </div>
 
@@ -87,13 +87,15 @@ export default function RiderEarningsPage() {
                         className="bg-gradient-to-br from-orange-600 to-red-600 rounded-[32px] p-8 relative overflow-hidden shadow-2xl shadow-orange-600/20"
                     >
                         <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-bl-[80px]" />
-                        <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Wallet size={20} className="text-white/80" />
-                                <span className="text-white/80 text-sm font-bold uppercase tracking-wider">Total Earned</span>
-                            </div>
-                            <div className="text-5xl font-black text-white mb-4">
-                                ₦{(stats?.totalEarnings || 0).toLocaleString()}
+                        <div className="relative z-10 flex flex-col justify-between h-full min-h-[160px]">
+                            <div>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Wallet size={20} className="text-white/80" />
+                                    <span className="text-white/80 text-sm font-bold uppercase tracking-wider">Total Earned</span>
+                                </div>
+                                <div className="text-5xl font-black text-white mb-4">
+                                    ₦{(stats?.totalEarnings || 0).toLocaleString()}
+                                </div>
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-green-300 text-sm font-bold">
@@ -135,11 +137,11 @@ export default function RiderEarningsPage() {
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.25 }}
-                        className="bg-[#1A1D23] border border-white/5 rounded-3xl p-6"
+                        className="bg-white dark:bg-[#1A1D23] shadow-sm dark:shadow-none border border-gray-100 dark:border-white/5 rounded-3xl p-6 transition-colors"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <div>
-                                <h3 className="font-black text-white">This Week</h3>
+                                <h3 className="font-black text-gray-900 dark:text-white">This Week</h3>
                                 <p className="text-xs text-gray-500 font-medium mt-0.5">Daily earnings breakdown</p>
                             </div>
                             <div className="flex items-center gap-1.5 bg-green-500/10 px-3 py-1.5 rounded-full">
@@ -155,7 +157,7 @@ export default function RiderEarningsPage() {
                                         initial={{ height: 0 }}
                                         animate={{ height: `${(d.amount / maxAmount) * 100}%` }}
                                         transition={{ delay: 0.3 + i * 0.06, type: "spring", stiffness: 200 }}
-                                        className={`w-full rounded-t-lg ${i === 5 || i === 6 ? "bg-orange-600" : "bg-white/10"
+                                        className={`w-full rounded-t-lg ${i === 5 || i === 6 ? "bg-orange-600 dark:bg-orange-500" : "bg-gray-200 dark:bg-white/10"
                                             }`}
                                     />
                                     <span className="text-[10px] font-bold text-gray-500">{d.day}</span>
@@ -169,11 +171,11 @@ export default function RiderEarningsPage() {
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.4 }}
-                        className="bg-[#1A1D23] border border-white/5 rounded-3xl p-6"
+                        className="bg-white dark:bg-[#1A1D23] shadow-sm dark:shadow-none border border-gray-100 dark:border-white/5 rounded-3xl p-6 transition-colors"
                     >
                         <div className="flex items-center gap-3 mb-4">
-                            <Calendar size={18} className="text-orange-500" />
-                            <h3 className="font-black text-white">Payout Schedule</h3>
+                            <Calendar size={18} className="text-orange-600 dark:text-orange-500" />
+                            <h3 className="font-black text-gray-900 dark:text-white">Payout Schedule</h3>
                         </div>
                         <div className="space-y-3">
                             {[
@@ -181,9 +183,9 @@ export default function RiderEarningsPage() {
                                 { label: "Payout method", value: "Bank Transfer" },
                                 { label: "Frequency", value: "Every Monday" },
                             ].map(item => (
-                                <div key={item.label} className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+                                <div key={item.label} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-white/5 last:border-0">
                                     <span className="text-sm text-gray-500 font-medium">{item.label}</span>
-                                    <span className={`text-sm font-bold ${item.highlight ? "text-orange-500" : "text-white"}`}>
+                                    <span className={`text-sm font-bold ${item.highlight ? "text-orange-600 dark:text-orange-500" : "text-gray-900 dark:text-white"}`}>
                                         {item.value}
                                     </span>
                                 </div>
