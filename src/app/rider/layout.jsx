@@ -92,8 +92,8 @@ function RiderLayoutInner({ children }) {
             </main>
 
             {/* Bottom Navigation for Mobile */}
-            <div className="fixed z-50 sm:hidden">
-                <nav className="bg-white/80 dark:bg-black/80 backdrop-blur-2xl border border-gray-200 dark:border-white/10 py-2 px-4 rounded-[32px] shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center justify-between relative overflow-hidden">
+            <div className="fixed bottom-0 left-0 right-0 z-50 sm:hidden">
+                <nav className="bg-white/80 dark:bg-black/80 backdrop-blur-2xl border border-gray-200 dark:border-white/10 py-3 px-4 rounded-t-[32px] shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center justify-between relative overflow-hidden">
 
                     <Link href="/rider/dashboard" className="relative flex flex-col items-center gap-1 group py-1 min-w-[56px]">
                         <motion.div
