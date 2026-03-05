@@ -23,7 +23,7 @@ export const getApiUrl = () => {
     // Check if we're in browser environment
     if (typeof window === 'undefined') {
         // Server-side: use environment variable or default
-        return process.env.NEXT_PUBLIC_API_URL || 'https://grub-dash-api.vercel.app/api';
+        return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
     }
 
     // Client-side: Use relative URL to leverage Next.js proxy
