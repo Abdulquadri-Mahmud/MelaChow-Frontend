@@ -129,7 +129,7 @@ function RiderLayoutInner({ children }) {
                             className="relative"
                         >
                             <motion.div
-                                className={`w-12 h-12 rounded-full flex items-center justify-center border-[4px] border-gray-50 dark:border-[#0F1115] shadow-xl text-white transition-all
+                                className={`w-10 h-10 mt-5 rounded-full flex items-center justify-center border-[1px] border-gray-50 dark:border-[#0F1115] shadow-xl text-white transition-all
                                     ${isOnline ? 'bg-green-500 shadow-green-500/40' : 'bg-orange-600 shadow-orange-600/40'}
                                     ${isToggling ? 'opacity-50' : ''}`}
                                 whileHover={{ scale: 1.05 }}
