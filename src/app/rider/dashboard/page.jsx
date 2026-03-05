@@ -226,11 +226,11 @@ export default function RiderDashboard() {
                         className="relative overflow-hidden group"
                     >
                         {/* Premium Background with Glow */}
-                        <div className="absolute inset-0 bg-green-50/50 dark:bg-gradient-to-br dark:from-emerald-800 dark:to-green-950 rounded-[40px] border border-green-100 dark:border-white/5 shadow-sm dark:shadow-none transition-all" />
+                        <div className="absolute inset-0 bg-green-50/50 dark:bg-gradient-to-br dark:from-emerald-800 dark:to-green-950 rounded-[20px] border border-green-100 dark:border-white/5 shadow-sm dark:shadow-none transition-all" />
                         <div className="absolute -right-20 -top-20 w-64 h-64 bg-green-200/20 dark:bg-white/10 rounded-full blur-3xl opacity-50 transition-all" />
                         <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-emerald-100/20 dark:bg-green-300/10 rounded-full blur-3xl opacity-30 transition-all" />
 
-                        <div className="relative z-10 p-6 md:p-8">
+                        <div className="relative z-10 md:p-6 p-3 md:p-8">
                             {/* Header Section */}
                             <div className="flex justify-between items-start mb-8">
                                 <div className="space-y-1">
