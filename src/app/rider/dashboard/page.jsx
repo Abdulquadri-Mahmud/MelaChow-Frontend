@@ -264,10 +264,12 @@ export default function RiderDashboard() {
                                     <div className="min-w-0 flex-1">
                                         <div className="text-[10px] font-black text-green-600/60 dark:text-white/50 uppercase tracking-widest mb-0.5">Pickup Point</div>
                                         <h4 className="text-gray-900 dark:text-white font-black text-base truncate">
-                                            {activeOrder.restaurantId?.name || activeOrder.restaurantName || "Restaurant"}
+                                            {activeOrder.restaurantName || activeOrder.restaurantId?.storeName || activeOrder.restaurantId?.name || "Restaurant"}
                                         </h4>
                                         <p className="text-gray-500 dark:text-white/70 text-xs font-medium truncate">
-                                            {activeOrder.restaurantId?.address?.state || ''} {activeOrder.restaurantId?.address?.city || ''}, {activeOrder.restaurantId?.address?.street || activeOrder.restaurantName || "Restaurant Address"}
+                                            {activeOrder.restaurantId?.fullAddress ||
+                                                (activeOrder.restaurantId?.address ? `${activeOrder.restaurantId.address.street}, ${activeOrder.restaurantId.address.city}, ${activeOrder.restaurantId.address.state}` : "") ||
+                                                activeOrder.restaurantName || "Restaurant Address"}
                                         </p>
                                     </div>
                                 </div>
@@ -280,10 +282,11 @@ export default function RiderDashboard() {
                                     <div className="min-w-0 flex-1">
                                         <div className="text-[10px] font-black text-green-600/60 dark:text-white/50 uppercase tracking-widest mb-0.5">Delivery Point</div>
                                         <h4 className="text-gray-900 dark:text-white font-black text-base truncate">
-                                            {activeOrder.userId?.firstname ? `${activeOrder.userId.firstname} ${activeOrder.userId.lastname || ''}` : "Customer"}
+                                            {activeOrder.userName || (activeOrder.userId?.firstname ? `${activeOrder.userId.firstname} ${activeOrder.userId.lastname || ''}` : "Customer")}
                                         </h4>
                                         <p className="text-gray-500 dark:text-white/70 text-xs font-medium line-clamp-2">
-                                            {activeOrder.deliveryAddress?.address ||
+                                            {activeOrder.deliveryFullAddress ||
+                                                activeOrder.deliveryAddress?.address ||
                                                 activeOrder.userOrderId?.deliveryAddress?.addressLine ||
                                                 "Customer Address"}
                                         </p>
@@ -300,7 +303,7 @@ export default function RiderDashboard() {
                                     <div>
                                         <p className="text-[10px] font-black text-gray-400 dark:text-white/40 uppercase tracking-widest leading-none mb-1">Customer</p>
                                         <p className="text-gray-900 dark:text-white font-bold text-sm leading-none">
-                                            {activeOrder.userId?.firstname || "Guest"}
+                                            {activeOrder.userName || activeOrder.userId?.firstname || "Guest"}
                                         </p>
                                     </div>
                                 </div>

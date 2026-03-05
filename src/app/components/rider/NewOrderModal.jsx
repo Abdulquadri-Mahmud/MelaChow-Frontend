@@ -122,8 +122,8 @@ export default function NewOrderModal({ riderId, assignmentData, onClose, onRefr
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Pickup From</p>
-                                        <h4 className="font-bold text-gray-900 dark:text-white truncate">{order?.restaurantId?.name || order?.restaurantName || "Store"}</h4>
-                                        <p className="text-xs text-gray-500 line-clamp-1">{order?.restaurantId?.address?.street || order?.vendorLocation?.address || "Restaurant Address"}</p>
+                                        <h4 className="font-bold text-gray-900 dark:text-white truncate">{order?.restaurantName || order?.restaurantId?.storeName || order?.restaurantId?.name || "Store"}</h4>
+                                        <p className="text-xs text-gray-500 line-clamp-1">{order?.restaurantId?.fullAddress || order?.restaurantId?.address?.street || order?.vendorLocation?.address || "Restaurant Address"}</p>
                                     </div>
                                 </div>
 
@@ -133,8 +133,8 @@ export default function NewOrderModal({ riderId, assignmentData, onClose, onRefr
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Deliver To</p>
-                                        <h4 className="font-bold text-gray-900 dark:text-white truncate">{order?.userId?.firstname || "Customer"}</h4>
-                                        <p className="text-xs text-gray-500 line-clamp-1">{order?.deliveryAddress?.addressLine || "Customer Address"}</p>
+                                        <h4 className="font-bold text-gray-900 dark:text-white truncate">{order?.userName || (order?.userId?.firstname ? `${order.userId.firstname} ${order.userId.lastname || ''}` : "Customer")}</h4>
+                                        <p className="text-xs text-gray-500 line-clamp-1">{order?.deliveryFullAddress || order?.deliveryAddress?.addressLine || "Customer Address"}</p>
                                     </div>
                                 </div>
                             </div>
