@@ -286,9 +286,11 @@ export default function RiderDashboard() {
                                         </h4>
                                         <p className="text-gray-500 dark:text-white/70 text-xs font-medium line-clamp-2">
                                             {activeOrder.deliveryFullAddress ||
-                                                activeOrder.deliveryAddress?.address ||
-                                                activeOrder.userOrderId?.deliveryAddress?.addressLine ||
-                                                "Customer Address"}
+                                                (activeOrder.deliveryAddress?.addressLine
+                                                    ? `${activeOrder.deliveryAddress.addressLine}, ${activeOrder.deliveryAddress.city || ''}, ${activeOrder.deliveryAddress.state || ''}`.replace(/,,/g, ',').trim()
+                                                    : activeOrder.deliveryAddress?.address ||
+                                                    activeOrder.userOrderId?.deliveryAddress?.addressLine ||
+                                                    "Customer Address")}
                                         </p>
                                     </div>
                                 </div>

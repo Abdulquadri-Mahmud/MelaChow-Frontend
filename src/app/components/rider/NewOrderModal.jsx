@@ -134,7 +134,12 @@ export default function NewOrderModal({ riderId, assignmentData, onClose, onRefr
                                     <div className="min-w-0">
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Deliver To</p>
                                         <h4 className="font-bold text-gray-900 dark:text-white truncate">{order?.userName || (order?.userId?.firstname ? `${order.userId.firstname} ${order.userId.lastname || ''}` : "Customer")}</h4>
-                                        <p className="text-xs text-gray-500 line-clamp-1">{order?.deliveryFullAddress || order?.deliveryAddress?.addressLine || "Customer Address"}</p>
+                                        <p className="text-xs text-gray-500 line-clamp-1">
+                                            {order?.deliveryFullAddress ||
+                                                (order?.deliveryAddress?.addressLine
+                                                    ? `${order.deliveryAddress.addressLine}, ${order.deliveryAddress.city || ''}, ${order.deliveryAddress.state || ''}`.replace(/,,/g, ',').trim()
+                                                    : order?.deliveryAddress?.addressLine || "Customer Address")}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
