@@ -64,7 +64,7 @@ export default function VendorList({ user }) {
                 <div className="flex items-center justify-between px-4 mb-4">
                     <div className="flex items-center gap-2">
                         <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
-                        <h2 className="text-lg font-bold text-gray-900 tracking-tight">Featured Restaurants</h2>
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Featured Restaurants</h2>
                     </div>
                 </div>
 
@@ -111,7 +111,7 @@ export default function VendorList({ user }) {
                             className="group relative flex-none w-[250px] bg-white dark:bg-slate-900 rounded-[24px] transition-all duration-300 cursor-pointer snap-start border border-gray-100 dark:border-slate-800 overflow-hidden"
                         >
                             {/* Image Container */}
-                            <div className="relative h-[140px] w-full bg-gray-100 overflow-hidden">
+                            <div className="relative h-[140px] w-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
                                 <img
                                     src={vendor.logo || "/placeholder.jpg"}
                                     alt={vendor.storeName}
@@ -140,7 +140,7 @@ export default function VendorList({ user }) {
                                     <span className="text-[9px] font-bold uppercase tracking-wider">{isOpen ? "Open" : "Closed"}</span>
                                 </div>
 
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-40" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
                             </div>
 
                             {/* Content */}

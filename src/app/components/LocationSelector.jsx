@@ -14,12 +14,12 @@ import toast from "react-hot-toast";
 const LocationSkeleton = ({ className }) => (
   <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${className}`}>
     <div className="space-y-2">
-      <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-      <div className="h-12 w-full bg-gray-100 rounded-lg animate-pulse" />
+      <div className="h-4 w-20 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+      <div className="h-12 w-full bg-gray-100 dark:bg-slate-800 rounded-lg animate-pulse" />
     </div>
     <div className="space-y-2">
-      <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
-      <div className="h-12 w-full bg-gray-100 rounded-lg animate-pulse" />
+      <div className="h-4 w-20 bg-gray-200 dark:bg-slate-700 rounded animate-pulse" />
+      <div className="h-12 w-full bg-gray-100 dark:bg-slate-800 rounded-lg animate-pulse" />
     </div>
   </div>
 );
@@ -28,10 +28,10 @@ const LocationSkeleton = ({ className }) => (
  * Enhanced Location Error State Component
  */
 const LocationErrorState = ({ error, onRetry }) => (
-  <div className="location-error bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+  <div className="location-error bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/50 rounded-lg p-4 text-center">
     <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-3" />
-    <h4 className="font-semibold text-red-800 mb-2">⚠️ Unable to Load Locations</h4>
-    <p className="text-red-600 text-sm mb-3">{error}</p>
+    <h4 className="font-semibold text-red-800 dark:text-red-400 mb-2">⚠️ Unable to Load Locations</h4>
+    <p className="text-red-600 dark:text-red-500 text-sm mb-3">{error}</p>
     <button
       onClick={onRetry}
       className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -152,10 +152,10 @@ export default function LocationSelector({
   if (locations.length === 0) {
     return (
       <div className={`space-y-4 ${className}`}>
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-          <MapPin className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-600 text-sm">No locations available at the moment.</p>
-          <p className="text-gray-500 text-xs mt-1">Please contact support for assistance.</p>
+        <div className="bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-800 rounded-lg p-6 text-center">
+          <MapPin className="w-8 h-8 text-gray-400 dark:text-slate-600 mx-auto mb-2" />
+          <p className="text-gray-600 dark:text-slate-400 text-sm">No locations available at the moment.</p>
+          <p className="text-gray-500 dark:text-slate-500 text-xs mt-1">Please contact support for assistance.</p>
         </div>
       </div>
     );
@@ -167,11 +167,11 @@ export default function LocationSelector({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* State Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
             {stateLabel} {required && <span className="text-red-500">*</span>}
           </label>
           <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500">
               <Navigation className="w-4 h-4" />
             </div>
             <select
@@ -179,9 +179,9 @@ export default function LocationSelector({
               onChange={handleStateChange}
               disabled={disabled}
               required={required}
-              className={`w-full appearance-none rounded-lg border bg-white py-3 pl-10 pr-10 text-sm outline-none transition-all focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 disabled:opacity-50 disabled:cursor-not-allowed ${stateError
-                ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10'
-                : 'border-gray-300'
+              className={`w-full appearance-none rounded-lg border bg-white dark:bg-slate-800 py-3 pl-10 pr-10 text-sm text-gray-900 dark:text-slate-100 outline-none transition-all focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 disabled:opacity-50 disabled:cursor-not-allowed ${stateError
+                ? 'border-red-300 dark:border-red-900 focus:border-red-500 focus:ring-red-500/10'
+                : 'border-gray-300 dark:border-slate-700'
                 }`}
             >
               <option value="">Select {stateLabel}</option>
@@ -194,7 +194,7 @@ export default function LocationSelector({
                 </option>
               ))}
             </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-slate-500">
               <ChevronDown className="w-4 h-4" />
             </div>
           </div>
@@ -205,11 +205,11 @@ export default function LocationSelector({
 
         {/* City Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-sm font-medium text-gray-700 dark:text-slate-300">
             {cityLabel} {required && <span className="text-red-500">*</span>}
           </label>
           <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500">
               <Building2 className="w-4 h-4" />
             </div>
             <select
@@ -217,9 +217,9 @@ export default function LocationSelector({
               onChange={handleCityChange}
               disabled={disabled || !selectedStateId}
               required={required}
-              className={`w-full appearance-none rounded-lg border bg-white py-3 pl-10 pr-10 text-sm outline-none transition-all focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 disabled:opacity-50 disabled:cursor-not-allowed ${cityError
-                ? 'border-red-300 focus:border-red-500 focus:ring-red-500/10'
-                : 'border-gray-300'
+              className={`w-full appearance-none rounded-lg border bg-white dark:bg-slate-800 py-3 pl-10 pr-10 text-sm text-gray-900 dark:text-slate-100 outline-none transition-all focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 disabled:opacity-50 disabled:cursor-not-allowed ${cityError
+                ? 'border-red-300 dark:border-red-900 focus:border-red-500 focus:ring-red-500/10'
+                : 'border-gray-300 dark:border-slate-700'
                 }`}
             >
               <option value="">
@@ -234,7 +234,7 @@ export default function LocationSelector({
                 </option>
               ))}
             </select>
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-slate-500">
               <ChevronDown className="w-4 h-4" />
             </div>
           </div>

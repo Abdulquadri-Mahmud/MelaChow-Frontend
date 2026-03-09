@@ -47,7 +47,7 @@ export default function PendingVendorsPage() {
         const fetchPending = async () => {
             try {
                 setLoading(true);
-                const data = await adminApi.getAllVendors({ verified: "false" });
+                const data = await adminApi.getAllVendors({ isApproved: "false" });
                 console.log(data);
                 const sorted = (data.vendors || []).sort(
                     (a, b) => new Date(a.createdAt) - new Date(b.createdAt)

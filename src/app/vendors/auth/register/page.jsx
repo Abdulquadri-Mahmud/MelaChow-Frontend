@@ -326,46 +326,124 @@ export default function VendorRegisterPage() {
       setStep(TOTAL_STEPS);
       return;
     }
+
     setSubmitting(true);
-    // Show slick loading modal
-    setModal({ open: true, title: "Creating Store", message: "Please wait while we set everything up...", type: "loading" });
+    // 3. Open loading modal with message "Uploading assets..."
+    setModal({
+      open: true,
+      title: "Uploading assets",
+      message: "Please wait while we upload your store logo...",
+      type: "loading"
+    });
 
     try {
-      // Simplified payload for new auth flow
-      const simplePayload = {
+      // 4. Upload logo via uploadToCloudinary if files.logo exists
+      let logoUrl = payload.logo || "";
+      if (files.logo) {
+        logoUrl = await uploadToCloudinary(files.logo);
+        if (!logoUrl) {
+          setModal({
+            open: true,
+            title: "Upload Failed",
+            message: "Logo upload failed. Please try again.",
+            type: "error"
+          });
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      // 5. Update modal message to "Setting up your store..."
+      setModal({
+        open: true,
+        title: "Creating Store",
+        message: "Setting up your store profile...",
+        type: "loading"
+      });
+
+      // 6. Build fullPayload with all fields as listed
+      const fullPayload = {
+        // Step 1 - Account
         name: payload.name,
         email: payload.email,
         phone: payload.phone,
+
+        // Step 2 - Store Details
         storeName: payload.storeName,
+        storeDescription: payload.storeDescription,
+        logo: logoUrl,
+        cuisineTypes: payload.cuisineTypes,
+
+        // Step 3 - Address
+        address: {
+          street: payload.address.street,
+          city: payload.address.city,
+          state: payload.address.state,
+          postalCode: payload.address.postalCode,
+        },
+
+        // Step 4 - Operations
+        openingHours: payload.openingHours,
+
+        // Step 5 - Payout & Delivery
+        payoutDetails: {
+          bankName: payload.payoutDetails.bankName,
+          accountName: payload.payoutDetails.accountName,
+          accountNumber: payload.payoutDetails.accountNumber,
+          payoutMethod: payload.payoutDetails.payoutMethod,
+          payoutEnabled: payload.payoutDetails.payoutEnabled,
+        },
         deliveryManagedBy: payload.deliveryManagedBy,
-        flatRateDeliveryFee: payload.deliveryManagedBy === "vendor" ? Number(payload.flatRateDeliveryFee) : 0
+        flatRateDeliveryFee: payload.deliveryManagedBy === "vendor"
+          ? Number(payload.flatRateDeliveryFee)
+          : 0,
       };
 
       const endpoint = `${baseUrl}/vendor/auth/register`;
 
       if (process.env.NODE_ENV === 'development') {
         console.log('[VendorRegister] Sending request to:', endpoint);
-        console.log('[VendorRegister] Payload:', simplePayload);
+        console.log('[VendorRegister] Payload:', fullPayload);
       }
 
-      const res = await axios.post(endpoint, simplePayload);
+      // 7. POST fullPayload to the registration endpoint
+      const res = await axios.post(endpoint, fullPayload);
 
+      // 8. On success (status 200 or 201)
       if (res.status === 200 || res.status === 201) {
-        setModal({ open: true, title: "Registration Successful", message: "Verification code sent! 📧", type: "success" });
-        // Don't clear session yet, maybe needed later? Or clear it as flow restarts.
+        setModal({
+          open: true,
+          title: "Registration Successful",
+          message: "Verification code sent! 📧",
+          type: "success"
+        });
+
+        // Clear sessionStorage keys
         sessionStorage.removeItem("vendor_reg_data");
         sessionStorage.removeItem("vendor_reg_step");
 
-        // Redirect after 2s
+        // After 2 seconds redirect to verify-account page
         setTimeout(() => {
-          router.push(`/vendors/auth/verify-registration?email=${encodeURIComponent(payload.email)}`);
+          router.push(`/vendors/auth/verify-account?email=${encodeURIComponent(payload.email)}`);
         }, 2000);
       } else {
-        setModal({ open: true, title: "Registration Failed", message: res.data?.message || "Server error.", type: "error" });
+        setModal({
+          open: true,
+          title: "Registration Failed",
+          message: res.data?.message || "Server error.",
+          type: "error"
+        });
       }
     } catch (err) {
-      setModal({ open: true, title: "Registration Failed", message: err?.response?.data?.message || err.message, type: "error" });
+      // 9. On error: show error modal with err?.response?.data?.message
+      setModal({
+        open: true,
+        title: "Registration Failed",
+        message: err?.response?.data?.message || err.message || "An unexpected error occurred.",
+        type: "error"
+      });
     } finally {
+      // 10. finally: setSubmitting(false)
       setSubmitting(false);
     }
   };

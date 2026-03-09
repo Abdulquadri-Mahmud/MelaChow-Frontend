@@ -80,7 +80,9 @@ export default function VerifyAccount() {
   };
 
   // Verify OTP
-  const handleVerify = async (currentOtp = otp) => {
+  const handleVerify = async (val) => {
+    // If called via button click, val is an event object. Use state 'otp' instead.
+    const currentOtp = Array.isArray(val) ? val : otp;
     const otpString = currentOtp.join("");
     if (otpString.length !== 6) {
       setMessage("⚠️ Please enter a valid 6-digit OTP.");
@@ -117,30 +119,12 @@ export default function VerifyAccount() {
         return;
       }
 
-      // ✅ Extract ALL vendor data from response
-      const { accessToken, token, vendor, ...rest } = data;
-      const vendorData = vendor || rest;
-
-      // ✅ Save accessToken as fallback for iOS
-      const finalToken = accessToken || token;
-      if (finalToken) {
-        TokenManager.setToken(finalToken);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[VendorVerify] OTP verified successfully. Proceeding to set password.');
       }
 
-      // ✅ Save COMPLETE vendor data (not just id and slug)
-      if (vendorData) {
-        saveVendor(vendorData);
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[VendorVerify] Saved vendor data:', {
-            hasVendor: !!vendorData,
-            vendorId: vendorData._id || vendorData.id,
-          });
-        }
-      }
-
-      setMessage("✅ Verified successfully! Redirecting...");
-      setTimeout(() => router.push("/vendors/dashboard"), 1500);
+      setMessage("✅ Verified successfully! Now set your password...");
+      setTimeout(() => router.push(`/vendors/auth/set-password?email=${encodeURIComponent(email)}`), 1500);
     } catch (error) {
       console.error('[VendorVerify] Verification error:', error);
 

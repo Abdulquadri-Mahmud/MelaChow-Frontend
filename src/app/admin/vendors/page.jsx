@@ -435,7 +435,7 @@ export default function AdminVendorsPage() {
                                                     <span className="font-black text-gray-900">{(vendor.commissionRate * 100).toFixed(0)}%</span>
                                                 </td>
                                                 <td className="px-8 py-6">
-                                                    <div className="flex flex-col gap-1">
+                                                    <div className="flex flex-col gap-2">
                                                         {vendor.suspended ? (
                                                             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 rounded-full text-[10px] font-black uppercase tracking-wider w-fit">
                                                                 Suspended
@@ -449,9 +449,21 @@ export default function AdminVendorsPage() {
                                                                 Inactive
                                                             </span>
                                                         )}
-                                                        {!vendor.verified && (
-                                                            <span className="text-[10px] font-bold text-orange-500 uppercase">Pending Review</span>
+
+                                                        {vendor.verified && !vendor.isApproved && (
+                                                            <motion.span
+                                                                animate={{ opacity: [1, 0.5, 1] }}
+                                                                transition={{ duration: 1.5, repeat: Infinity }}
+                                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 text-orange-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-orange-200 shadow-sm w-fit"
+                                                            >
+                                                                <AlertCircle size={12} className="animate-pulse" /> NEEDS REVIEW
+                                                            </motion.span>
                                                         )}
+
+                                                        {!vendor.verified && (
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase px-1">Email Unverified</span>
+                                                        )}
+
                                                         {vendor.locationStatus === "pending_review" && (
                                                             <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 uppercase">
                                                                 <MapPin size={10} /> Location ⚠
