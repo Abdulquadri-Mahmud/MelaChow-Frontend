@@ -5,6 +5,7 @@ import { useRealtimeNotifications } from './useRealtimeNotifications';
 import { usePushNotifications } from './usePushNotifications';
 import axios from 'axios';
 import socketService from '@/app/lib/socketService';
+import adminApi from '@/app/lib/adminApi';
 
 /**
  * UNIFIED NOTIFICATION MANAGER
@@ -32,8 +33,11 @@ export function useNotificationManager(options = {}) {
 
         if (role === 'admin') {
             const base = '/api/admin/notifications';
+            if (action === 'unread-count') return `${base}/unread-count`;
             if (action === 'history') return `${base}/history`;
             if (action === 'subscribe') return `${base}/subscribe`;
+            if (action === 'mark-read') return `${base}/${id}/read`;
+            if (action === 'mark-all-read') return `${base}/read-all`;
             return base;
         }
 
@@ -127,18 +131,27 @@ export function useNotificationManager(options = {}) {
         setLoading(true);
         const targetPage = reset ? 1 : page + 1;
         try {
-            const response = await axios.get(getEndpoint('history'), {
-                withCredentials: true,
-                params: {
+            let responseData;
+            if (role === 'admin') {
+                responseData = await adminApi.getAdminNotifications({
                     limit: 15,
-                    page: targetPage,
-                    ...(restaurantId && { restaurantId })
-                }
-            });
+                    page: targetPage
+                });
+            } else {
+                const response = await axios.get(getEndpoint('history'), {
+                    withCredentials: true,
+                    params: {
+                        limit: 15,
+                        page: targetPage,
+                        ...(restaurantId && { restaurantId })
+                    }
+                });
+                responseData = response.data;
+            }
 
-            const data = response.data.notifications || response.data.data?.notifications || response.data.data || [];
-            const newTotal = response.data.total ?? response.data.data?.total ?? data.length;
-            const newHasMore = response.data.hasMore ?? response.data.data?.hasMore ?? (data.length === 15);
+            const data = responseData.notifications || responseData.data?.notifications || responseData.data || [];
+            const newTotal = responseData.total ?? responseData.data?.total ?? data.length;
+            const newHasMore = responseData.hasMore ?? responseData.data?.hasMore ?? (data.length === 15);
 
             if (reset) {
                 setNotifications(data);
@@ -152,8 +165,8 @@ export function useNotificationManager(options = {}) {
             setTotal(newTotal);
 
             // Update unread count if provided in history
-            const count = response.data.unreadCount ?? response.data.count ?? response.data.unread_count ??
-                response.data.data?.unreadCount ?? response.data.data?.count;
+            const count = responseData.unreadCount ?? responseData.count ?? responseData.unread_count ??
+                responseData.data?.unreadCount ?? responseData.data?.count;
 
             if (count !== undefined) {
                 setApiUnreadCount(count);
@@ -168,13 +181,19 @@ export function useNotificationManager(options = {}) {
 
     const fetchUnreadCountFromAPI = async () => {
         try {
-            const response = await axios.get(getEndpoint('unread-count'), {
-                withCredentials: true,
-                params: {
-                    ...(restaurantId && { restaurantId })
-                }
-            });
-            const count = response.data.unreadCount ?? response.data.count ?? response.data?.data?.count ?? response.data?.data ?? 0;
+            let responseData;
+            if (role === 'admin') {
+                responseData = await adminApi.getAdminUnreadCount();
+            } else {
+                const response = await axios.get(getEndpoint('unread-count'), {
+                    withCredentials: true,
+                    params: {
+                        ...(restaurantId && { restaurantId })
+                    }
+                });
+                responseData = response.data;
+            }
+            const count = responseData.unreadCount ?? responseData.count ?? responseData?.data?.count ?? responseData?.data ?? 0;
             setApiUnreadCount(count);
             if (refreshUnreadCount) refreshUnreadCount();
         } catch (error) {

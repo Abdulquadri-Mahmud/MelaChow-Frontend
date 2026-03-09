@@ -18,6 +18,10 @@ export default function ProfilePage() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["user"], // removed token from key
     queryFn: () => fetchUser(), // removed token arg
+    staleTime: 1000 * 60 * 15, // 15 minutes
+    gcTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     retry: false,
   });
 

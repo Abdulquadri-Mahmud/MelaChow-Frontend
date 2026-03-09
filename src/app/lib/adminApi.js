@@ -110,9 +110,9 @@ class AdminAPI {
         );
     }
 
-    async approveVendor(vendorId) {
+    async approveVendor(vendorId, locationBody = {}) {
         return this.handleResponse(
-            api.patch(`/api/admin/vendors/approve?vendorId=${vendorId}`)
+            api.patch(`/api/admin/vendors/approve?vendorId=${vendorId}`, locationBody)
         );
     }
 
@@ -165,6 +165,12 @@ class AdminAPI {
     async getVendorFoods(vendorId) {
         return this.handleResponse(
             api.get(`/api/admin/vendors/foods?vendorId=${vendorId}`)
+        );
+    }
+
+    async updateVendorDeliveryMode(vendorId, deliveryManagedBy) {
+        return this.handleResponse(
+            api.patch(`/api/admin/vendors/${vendorId}/delivery-mode`, { deliveryManagedBy })
         );
     }
 
@@ -251,6 +257,37 @@ class AdminAPI {
         );
     }
 
+    // ==================== LOCATION MANAGEMENT ====================
+
+    async getAllStates() {
+        return this.handleResponse(api.get("/api/admin/locations/states"));
+    }
+
+    async createState(stateData) {
+        return this.handleResponse(api.post("/api/admin/locations/states", stateData));
+    }
+
+    async toggleStateStatus(stateId, isActive) {
+        return this.handleResponse(api.patch(`/api/admin/locations/states/${stateId}/activate`, { isActive }));
+    }
+
+    async getAllCities(stateId = null) {
+        const url = stateId ? `/api/admin/locations/cities?stateId=${stateId}` : "/api/admin/locations/cities";
+        return this.handleResponse(api.get(url));
+    }
+
+    async createCity(cityData) {
+        return this.handleResponse(api.post("/api/admin/locations/cities", cityData));
+    }
+
+    async updateCity(cityId, cityData) {
+        return this.handleResponse(api.patch(`/api/admin/locations/cities/${cityId}`, cityData));
+    }
+
+    async toggleCityStatus(cityId, isActive) {
+        return this.handleResponse(api.patch(`/api/admin/locations/cities/${cityId}/activate`, { isActive }));
+    }
+
     // ==================== RIDER MANAGEMENT ====================
 
     async getAllRiders(filters = {}) {
@@ -276,6 +313,97 @@ class AdminAPI {
         return this.handleResponse(
             api.delete(`/api/admin/riders/${riderId}`)
         );
+    }
+
+    // ==================== ACTIVITY & AUDIT LOGS ====================
+
+    async getActivities(filters = {}) {
+        const params = new URLSearchParams(filters);
+        return this.handleResponse(
+            api.get(`/api/admin/activities?${params}`)
+        );
+    }
+
+    // ==================== NOTIFICATIONS ====================
+
+    async getAdminUnreadCount() {
+        return this.handleResponse(api.get('/api/admin/notifications/unread-count'));
+    }
+
+    async getAdminNotifications(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return this.handleResponse(api.get(`/api/admin/notifications?${query}`));
+    }
+
+    // ==================== ORDER MANAGEMENT ====================
+
+    async getAllOrders(filters = {}) {
+        const params = new URLSearchParams(filters);
+        const data = await this.handleResponse(api.get(`/api/admin/orders?${params}`));
+        console.log("All Orders Response:", data);
+        return data;
+    }
+
+    async getOrderStats(filters = {}) {
+        const params = new URLSearchParams(filters);
+        const data = await this.handleResponse(api.get(`/api/admin/orders/stats?${params}`));
+        console.log("Order Stats Response:", data);
+        return data;
+    }
+
+    async getSingleOrder(orderId) {
+        const data = await this.handleResponse(api.get(`/api/admin/orders/${orderId}`));
+        console.log("Single Order Response:", data);
+        return data;
+    }
+
+    async adminOverrideOrderStatus(orderId, status, reason) {
+        return this.handleResponse(
+            api.patch(`/api/admin/orders/${orderId}/status`, { status, reason })
+        );
+    }
+
+    async getPlatformManagedOrders(filters = {}) {
+        const params = new URLSearchParams(filters);
+        const data = await this.handleResponse(api.get(`/api/admin/orders/platform-managed?${params}`));
+        console.log("Platform Managed Orders Response:", data);
+        return data;
+    }
+
+    async getCommissionLedger(filters = {}) {
+        const params = new URLSearchParams(filters);
+        const data = await this.handleResponse(api.get(`/api/admin/orders/commission-ledger?${params}`));
+        console.log("Commission Ledger Response:", data);
+        return data;
+    }
+
+    // ==================== FINANCE & REVENUE ====================
+
+    async getFinanceSummary(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        const data = await this.handleResponse(api.get(`/api/admin/finance/summary?${query}`));
+        console.log("Finance Summary Response:", data);
+        return data;
+    }
+
+    async getFinanceChart(period = "7days") {
+        const data = await this.handleResponse(api.get(`/api/admin/finance/chart?period=${period}`));
+        console.log("Finance Chart Response:", data);
+        return data;
+    }
+
+    async getTransactions(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        const data = await this.handleResponse(api.get(`/api/admin/finance/transactions?${query}`));
+        console.log("Transactions Response:", data);
+        return data;
+    }
+
+    async getVendorBreakdown(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        const data = await this.handleResponse(api.get(`/api/admin/finance/vendor-breakdown?${query}`));
+        console.log("Vendor Revenue Breakdown Response:", data);
+        return data;
     }
 }
 

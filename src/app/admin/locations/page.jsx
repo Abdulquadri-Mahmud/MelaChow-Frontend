@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
 import AdminDashboardLayout from "@/app/components/admin/AdminDashboardLayout";
+import adminApi from "@/app/lib/adminApi";
 
 function AdminLocationManagement() {
   const [activeTab, setActiveTab] = useState('states');
@@ -34,11 +35,15 @@ function AdminLocationManagement() {
   const [showCityModal, setShowCityModal] = useState(false);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState(null);
+  const [confirmDeactivate, setConfirmDeactivate] = useState(null); // { type: 'state'|'city', id, name }
 
   // Form states
   const [newStateName, setNewStateName] = useState('');
   const [newCityName, setNewCityName] = useState('');
   const [selectedStateId, setSelectedStateId] = useState('');
+  const [newPlatformDeliveryFee, setNewPlatformDeliveryFee] = useState(0);
+  const [editingCityId, setEditingCityId] = useState(null);
+
   const [resolveState, setResolveState] = useState('');
   const [resolveCity, setResolveCity] = useState('');
   const [createLocation, setCreateLocation] = useState(false);
@@ -46,43 +51,30 @@ function AdminLocationManagement() {
   const baseUrl = "https://grub-dash-api.vercel.app/api";
 
   useEffect(() => {
-    checkBackendEndpoints();
-  }, []);
-
-  const checkBackendEndpoints = async () => {
     setLoading(true);
-    try {
-      const response = await axios.get(`${baseUrl}/admin/locations/states`, {
-        withCredentials: true
-      });
-
-      if (response.data.success) {
+    const init = async () => {
+      try {
+        await Promise.all([
+          fetchStates(),
+          fetchCities(),
+          fetchPendingRequests()
+        ]);
         setBackendStatus('available');
-        fetchStates();
-        fetchCities();
-        fetchPendingRequests();
-      }
-    } catch (err) {
-      if (err.response?.status === 404) {
-        setBackendStatus('not-implemented');
-      } else if (err.response?.status === 401) {
-        setBackendStatus('unauthorized');
-      } else {
+      } catch (err) {
+        console.error('Initialization error:', err);
         setBackendStatus('error');
+      } finally {
+        setLoading(false);
       }
-      console.error('Backend endpoints not available:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    init();
+  }, []);
 
   const fetchStates = async () => {
     try {
-      const response = await axios.get(`${baseUrl}/admin/locations/states`, {
-        withCredentials: true
-      });
-      if (response.data.success) {
-        setStates(response.data.states || []);
+      const data = await adminApi.getAllStates();
+      if (data.success) {
+        setStates(data.states || []);
       }
     } catch (err) {
       console.error('Error fetching states:', err);
@@ -91,11 +83,9 @@ function AdminLocationManagement() {
 
   const fetchCities = async () => {
     try {
-      const response = await axios.get(`${baseUrl}/admin/locations/cities`, {
-        withCredentials: true
-      });
-      if (response.data.success) {
-        setCities(response.data.cities || []);
+      const data = await adminApi.getAllCities();
+      if (data.success) {
+        setCities(data.cities || []);
       }
     } catch (err) {
       console.error('Error fetching cities:', err);
@@ -146,7 +136,7 @@ function AdminLocationManagement() {
     }
   };
 
-  const createCity = async (e) => {
+  const submitCity = async (e) => {
     e.preventDefault();
     if (!newCityName.trim() || !selectedStateId) {
       toast.error('Please fill in all fields');
@@ -155,41 +145,77 @@ function AdminLocationManagement() {
 
     try {
       setLoading(true);
-      const response = await axios.post(`${baseUrl}/admin/locations/cities`, {
+      const payload = {
         name: newCityName.trim(),
-        stateId: selectedStateId
-      }, {
-        withCredentials: true
-      });
+        stateId: selectedStateId,
+        platformDeliveryFee: Number(newPlatformDeliveryFee) || 0
+      };
 
-      if (response.data.success) {
-        toast.success('City created successfully! 🎉');
-        setNewCityName('');
-        setSelectedStateId('');
-        setShowCityModal(false);
-        fetchCities();
+      if (editingCityId) {
+        const response = await axios.patch(`${baseUrl}/admin/locations/cities/${editingCityId}`, payload, {
+          withCredentials: true
+        });
+
+        if (response.data.success) {
+          toast.success('City updated successfully! 🎉');
+          resetCityForm();
+          fetchCities();
+          fetchStates();
+        } else {
+          toast.error(response.data.message || 'Failed to update city');
+        }
       } else {
-        toast.error(response.data.message || 'Failed to create city');
+        const response = await axios.post(`${baseUrl}/admin/locations/cities`, payload, {
+          withCredentials: true
+        });
+
+        if (response.data.success) {
+          toast.success('City created successfully! 🎉');
+          resetCityForm();
+          fetchCities();
+          fetchStates();
+        } else {
+          toast.error(response.data.message || 'Failed to create city');
+        }
       }
     } catch (err) {
-      console.error('Error creating city:', err);
-      toast.error(err.response?.data?.message || 'Error creating city');
+      console.error('Error saving city:', err);
+      toast.error(err.response?.data?.message || 'Error saving city');
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleStateStatus = async (stateId, currentStatus) => {
-    try {
-      const response = await axios.patch(`${baseUrl}/admin/locations/states/${stateId}/activate`, {
-        isActive: !currentStatus
-      }, {
-        withCredentials: true
-      });
+  const handleEditCity = (city) => {
+    setEditingCityId(city._id);
+    setNewCityName(city.name);
+    setSelectedStateId(city.stateId?._id || city.stateId || '');
+    setNewPlatformDeliveryFee(city.platformDeliveryFee || 0);
+    setShowCityModal(true);
+  };
 
-      if (response.data.success) {
+  const resetCityForm = () => {
+    setNewCityName('');
+    setSelectedStateId('');
+    setNewPlatformDeliveryFee(0);
+    setEditingCityId(null);
+    setShowCityModal(false);
+  };
+
+  const toggleStateStatus = async (stateId, currentStatus) => {
+    if (currentStatus && !confirmDeactivate) {
+      const state = states.find(s => s._id === stateId);
+      setConfirmDeactivate({ type: 'state', id: stateId, name: state?.name });
+      return;
+    }
+
+    try {
+      const data = await adminApi.toggleStateStatus(stateId, !currentStatus);
+
+      if (data.success) {
         toast.success(`State ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
         fetchStates();
+        setConfirmDeactivate(null);
       } else {
         toast.error('Failed to update state status');
       }
@@ -200,16 +226,19 @@ function AdminLocationManagement() {
   };
 
   const toggleCityStatus = async (cityId, currentStatus) => {
-    try {
-      const response = await axios.patch(`${baseUrl}/admin/locations/cities/${cityId}/activate`, {
-        isActive: !currentStatus
-      }, {
-        withCredentials: true
-      });
+    if (currentStatus && !confirmDeactivate) {
+      const city = cities.find(c => c._id === cityId);
+      setConfirmDeactivate({ type: 'city', id: cityId, name: city?.name });
+      return;
+    }
 
-      if (response.data.success) {
+    try {
+      const data = await adminApi.toggleCityStatus(cityId, !currentStatus);
+
+      if (data.success) {
         toast.success(`City ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
         fetchCities();
+        setConfirmDeactivate(null);
       } else {
         toast.error('Failed to update city status');
       }
@@ -295,104 +324,14 @@ function AdminLocationManagement() {
     pendingRequests: pendingRequests.length
   }), [states, cities, pendingRequests]);
 
-  // If backend endpoints are not implemented
-  if (backendStatus === 'not-implemented') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/20 to-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
-            <h1 className="text-4xl font-black text-gray-900 mb-2 bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
-              Location Management
-            </h1>
-            <p className="text-gray-600 font-medium">Database-driven location system for managing states and cities</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-12"
-          >
-            <div className="text-center">
-              <div className="mx-auto flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-100 to-orange-100 rounded-full mb-6 relative">
-                <div className="absolute inset-0 bg-yellow-200/50 rounded-full animate-ping opacity-20"></div>
-                <AlertTriangle className="w-10 h-10 text-orange-600 relative z-10" />
-              </div>
-
-              <h2 className="text-3xl font-black text-gray-900 mb-3">Backend Implementation Required</h2>
-              <p className="text-gray-600 mb-8 max-w-2xl mx-auto font-medium">
-                The admin location management endpoints are not yet implemented on the backend.
-                The frontend is ready and waiting for the backend API endpoints.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-2xl p-6">
-                  <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-xl mx-auto mb-3">
-                    <CheckCircle2 className="w-6 h-6 text-green-600" />
-                  </div>
-                  <h3 className="font-black text-green-900 mb-2 text-lg">Frontend Complete</h3>
-                  <ul className="text-sm text-green-700 space-y-1 font-medium">
-                    <li>✅ User address components updated</li>
-                    <li>✅ Admin location management UI</li>
-                    <li>✅ Search & filter functionality</li>
-                    <li>✅ Dynamic location fetching</li>
-                  </ul>
-                </div>
-
-                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-6">
-                  <div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-xl mx-auto mb-3">
-                    <Clock className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <h3 className="font-black text-yellow-900 mb-2 text-lg">Backend Pending</h3>
-                  <ul className="text-sm text-yellow-700 space-y-1 font-medium">
-                    <li>⏳ Admin location endpoints</li>
-                    <li>⏳ State/city CRUD operations</li>
-                    <li>⏳ Location request management</li>
-                    <li>⏳ Database schema updates</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  onClick={checkBackendEndpoints}
-                  disabled={loading}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-500/30 disabled:opacity-50 font-bold"
-                >
-                  {loading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <RefreshCw className="w-5 h-5" />
-                  )}
-                  Check Backend Status
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
-
   // If checking backend status
   if (backendStatus === 'checking') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-orange-50/20 to-gray-50 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <div className="relative mb-6">
-            <Loader2 className="w-16 h-16 animate-spin text-orange-500 mx-auto" />
-            <div className="absolute inset-0 bg-orange-200/30 rounded-full animate-ping"></div>
-          </div>
-          <h2 className="text-2xl font-black text-gray-900 mb-2">Checking Backend Status</h2>
-          <p className="text-gray-600 font-medium">Verifying admin location endpoints...</p>
-        </motion.div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-orange-500 mx-auto mb-4" />
+          <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Synchronizing Locations...</p>
+        </div>
       </div>
     );
   }
@@ -440,7 +379,7 @@ function AdminLocationManagement() {
               fetchPendingRequests();
               toast.success('Data refreshed!');
             }}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-2xl hover:border-orange-500 hover:text-orange-600 transition-all font-bold shadow-sm"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-2xl hover:border-orange-500 hover:text-orange-600 transition-all font-bold"
           >
             <RefreshCw className="w-4 h-4" />
             Refresh
@@ -492,7 +431,7 @@ function AdminLocationManagement() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
+          className="bg-white rounded-3xl border border-gray-100 overflow-hidden"
         >
           <div className="flex border-b border-gray-100 overflow-x-auto">
             <TabButton
@@ -546,12 +485,19 @@ function AdminLocationManagement() {
                   loading={loading}
                   onToggleStatus={toggleCityStatus}
                   showModal={showCityModal}
-                  setShowModal={setShowCityModal}
+                  setShowModal={(val) => {
+                    if (!val) resetCityForm();
+                    else setShowCityModal(true);
+                  }}
                   newCityName={newCityName}
                   setNewCityName={setNewCityName}
                   selectedStateId={selectedStateId}
                   setSelectedStateId={setSelectedStateId}
-                  onCreateCity={createCity}
+                  newPlatformDeliveryFee={newPlatformDeliveryFee}
+                  setNewPlatformDeliveryFee={setNewPlatformDeliveryFee}
+                  editingCityId={editingCityId}
+                  onSubmitCity={submitCity}
+                  onEditCity={handleEditCity}
                   searchTerm={citySearch}
                   setSearchTerm={setCitySearch}
                   filter={cityFilter}
@@ -583,6 +529,24 @@ function AdminLocationManagement() {
             </AnimatePresence>
           </div>
         </motion.div>
+
+        {/* Deactivation Confirmation Modal */}
+        <AnimatePresence>
+          {confirmDeactivate && (
+            <DeactivationConfirmModal
+              item={confirmDeactivate}
+              onClose={() => setConfirmDeactivate(null)}
+              onConfirm={() => {
+                if (confirmDeactivate.type === 'state') {
+                  toggleStateStatus(confirmDeactivate.id, true);
+                } else {
+                  toggleCityStatus(confirmDeactivate.id, true);
+                }
+              }}
+              loading={loading}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -601,9 +565,9 @@ const StatCard = ({ icon, label, value, color, highlight }) => {
   return (
     <motion.div
       whileHover={{ y: -4, scale: 1.02 }}
-      className={`bg-white rounded-2xl p-4 border-2 ${highlight ? 'border-orange-500 shadow-lg shadow-orange-500/20' : 'border-gray-100'} transition-all`}
+      className={`bg-white rounded-2xl p-4 border-2 ${highlight ? 'border-orange-500' : 'border-gray-100'} transition-all`}
     >
-      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colors[color]} flex items-center justify-center text-white mb-3 shadow-lg`}>
+      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colors[color]} flex items-center justify-center text-white mb-3`}>
         {icon}
       </div>
       <p className="text-2xl font-black text-gray-900">{value}</p>
@@ -695,7 +659,7 @@ const StatesPanel = ({
 
       <button
         onClick={() => setShowModal(true)}
-        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg shadow-orange-500/30"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold"
       >
         <Plus className="w-5 h-5" />
         Add State
@@ -758,7 +722,7 @@ const StatesPanel = ({
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg shadow-orange-500/30 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <>
@@ -836,7 +800,8 @@ const StateCard = ({ state, index, onToggleStatus }) => (
 const CitiesPanel = ({
   cities, states, loading, onToggleStatus,
   showModal, setShowModal, newCityName, setNewCityName,
-  selectedStateId, setSelectedStateId, onCreateCity,
+  selectedStateId, setSelectedStateId, newPlatformDeliveryFee, setNewPlatformDeliveryFee,
+  editingCityId, onSubmitCity, onEditCity,
   searchTerm, setSearchTerm, filter, setFilter, stateFilter, setStateFilter
 }) => (
   <motion.div
@@ -901,7 +866,7 @@ const CitiesPanel = ({
 
       <button
         onClick={() => setShowModal(true)}
-        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold shadow-lg shadow-orange-500/30"
+        className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl hover:from-orange-600 hover:to-orange-700 transition-all font-bold"
       >
         <Plus className="w-5 h-5" />
         Add City
@@ -927,6 +892,7 @@ const CitiesPanel = ({
             city={city}
             index={index}
             onToggleStatus={onToggleStatus}
+            onEditCity={onEditCity}
           />
         ))}
       </div>
@@ -936,10 +902,10 @@ const CitiesPanel = ({
     <AnimatePresence>
       {showModal && (
         <Modal
-          title="Create New City"
+          title={editingCityId ? "Edit City Details" : "Create New City"}
           onClose={() => setShowModal(false)}
         >
-          <form onSubmit={onCreateCity} className="space-y-6">
+          <form onSubmit={onSubmitCity} className="space-y-6">
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">State *</label>
               <select
@@ -967,6 +933,22 @@ const CitiesPanel = ({
               />
             </div>
 
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Platform Delivery Fee (₦) *</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">₦</span>
+                <input
+                  type="number"
+                  value={newPlatformDeliveryFee}
+                  onChange={(e) => setNewPlatformDeliveryFee(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-transparent focus:border-orange-500 rounded-2xl outline-none transition-all font-bold"
+                  placeholder="0"
+                  required
+                />
+              </div>
+              <p className="text-[10px] font-medium text-gray-400 mt-2 ml-1">This rate applies to all admin-managed deliveries in this city.</p>
+            </div>
+
             <div className="flex gap-3">
               <button
                 type="button"
@@ -983,12 +965,12 @@ const CitiesPanel = ({
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Creating...
+                    Saving...
                   </>
                 ) : (
                   <>
-                    <Plus className="w-4 h-4" />
-                    Create City
+                    {editingCityId ? <Edit3 className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                    {editingCityId ? "Update City" : "Create City"}
                   </>
                 )}
               </button>
@@ -1001,57 +983,73 @@ const CitiesPanel = ({
 );
 
 // City Card Component
-const CityCard = ({ city, index, onToggleStatus }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: index * 0.05 }}
-    whileHover={{ y: -4 }}
-    className={`group relative bg-white border-2 rounded-2xl p-6 transition-all ${city.isActive
-      ? 'border-green-200 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20'
-      : 'border-gray-200 hover:border-gray-300 hover:shadow-lg'
-      }`}
-  >
-    <div className="flex items-start justify-between mb-4">
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${city.isActive ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
-        }`}>
-        <Building2 className="w-6 h-6" />
-      </div>
-      <span className={`px-3 py-1 rounded-full text-xs font-black ${city.isActive
-        ? 'bg-green-100 text-green-700'
-        : 'bg-gray-100 text-gray-600'
-        }`}>
-        {city.isActive ? 'Active' : 'Inactive'}
-      </span>
-    </div>
+const CityCard = ({ city, index, onToggleStatus, onEditCity }) => {
+  const fmt = (val) => new Intl.NumberFormat().format(val || 0);
 
-    <h3 className="text-xl font-black text-gray-900 mb-1">{city.name}</h3>
-    <p className="text-sm font-bold text-orange-600 mb-2">{city.stateId?.name || 'N/A'}</p>
-    <p className="text-sm text-gray-500 font-medium mb-4">
-      Created {new Date(city.createdAt).toLocaleDateString()}
-    </p>
-
-    <button
-      onClick={() => onToggleStatus(city._id, city.isActive)}
-      className={`w-full py-2.5 rounded-xl font-bold transition-all ${city.isActive
-        ? 'bg-red-50 text-red-600 hover:bg-red-100'
-        : 'bg-green-50 text-green-600 hover:bg-green-100'
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      whileHover={{ y: -4 }}
+      className={`group relative bg-white border-2 rounded-2xl p-6 transition-all ${city.isActive
+        ? 'border-green-200 hover:border-green-500 hover:shadow-lg hover:shadow-green-500/20'
+        : 'border-gray-200 hover:border-gray-300 hover:shadow-lg'
         }`}
     >
-      {city.isActive ? (
-        <span className="flex items-center justify-center gap-2">
-          <EyeOff className="w-4 h-4" />
-          Deactivate
-        </span>
-      ) : (
-        <span className="flex items-center justify-center gap-2">
-          <Eye className="w-4 h-4" />
-          Activate
-        </span>
-      )}
-    </button>
-  </motion.div>
-);
+      <div className="flex items-start justify-between mb-4">
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${city.isActive ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+          }`}>
+          <Building2 className="w-6 h-6" />
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onEditCity(city)}
+            className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors flex items-center justify-center"
+          >
+            <Edit3 size={16} />
+          </button>
+          <span className={`px-3 py-1 rounded-full text-xs font-black ${city.isActive
+            ? 'bg-green-100 text-green-700'
+            : 'bg-gray-100 text-gray-600'
+            }`}>
+            {city.isActive ? 'Active' : 'Inactive'}
+          </span>
+        </div>
+      </div>
+
+      <h3 className="text-xl font-black text-gray-900 mb-1">{city.name}</h3>
+      <p className="text-sm font-bold text-orange-600 mb-3">{city.stateId?.name || 'N/A'}</p>
+
+      <div className="bg-orange-50/50 border border-orange-100 rounded-xl p-3 mb-4">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">Platform Rate</span>
+          <span className="font-black text-gray-900 text-sm">₦{fmt(city.platformDeliveryFee)}</span>
+        </div>
+      </div>
+
+      <button
+        onClick={() => onToggleStatus(city._id, city.isActive)}
+        className={`w-full py-2.5 rounded-xl font-bold transition-all ${city.isActive
+          ? 'bg-red-50 text-red-600 hover:bg-red-100'
+          : 'bg-green-50 text-green-600 hover:bg-green-100'
+          }`}
+      >
+        {city.isActive ? (
+          <span className="flex items-center justify-center gap-2">
+            <EyeOff className="w-4 h-4" />
+            Deactivate
+          </span>
+        ) : (
+          <span className="flex items-center justify-center gap-2">
+            <Eye className="w-4 h-4" />
+            Activate
+          </span>
+        )}
+      </button>
+    </motion.div>
+  );
+};
 
 // Pending Requests Panel Component
 const PendingRequestsPanel = ({
@@ -1244,6 +1242,52 @@ const RequestCard = ({ vendor, index, onResolve }) => (
         Resolve
       </button>
     </div>
+  </motion.div>
+);
+
+// Deactivation Confirmation Modal Component
+const DeactivationConfirmModal = ({ item, onClose, onConfirm, loading }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4"
+    onClick={onClose}
+  >
+    <motion.div
+      initial={{ scale: 0.9, y: 20 }}
+      animate={{ scale: 1, y: 0 }}
+      exit={{ scale: 0.9, y: 20 }}
+      onClick={(e) => e.stopPropagation()}
+      className="bg-white rounded-[32px] p-8 w-full max-w-sm shadow-2xl border-2 border-red-50 text-center"
+    >
+      <div className="mx-auto w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6">
+        <AlertTriangle className="w-10 h-10 text-red-600" />
+      </div>
+
+      <h3 className="text-2xl font-black text-gray-900 mb-2">Confirm Deactivation</h3>
+      <p className="text-gray-600 font-medium mb-8">
+        Are you sure you want to deactivate <span className="font-black text-gray-900">"{item.name}"</span>?
+        This will hide it from vendors and users immediately.
+      </p>
+
+      <div className="flex flex-col gap-3">
+        <button
+          onClick={onConfirm}
+          disabled={loading}
+          className="w-full py-4 bg-red-600 text-white rounded-2xl hover:bg-red-700 transition-all font-black shadow-lg shadow-red-500/30 disabled:opacity-50 flex items-center justify-center gap-2"
+        >
+          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <EyeOff className="w-5 h-5" />}
+          Deactivate Now
+        </button>
+        <button
+          onClick={onClose}
+          className="w-full py-4 text-gray-500 hover:text-gray-700 transition-all font-bold"
+        >
+          I changed my mind
+        </button>
+      </div>
+    </motion.div>
   </motion.div>
 );
 

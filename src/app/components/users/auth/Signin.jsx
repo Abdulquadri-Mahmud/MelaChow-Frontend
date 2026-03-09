@@ -244,7 +244,10 @@ export default function Signin() {
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-bold text-slate-900 dark:text-white">Partner Portal</p>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">Vendors & Riders</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Vendors 
+                    {/* & Riders */}
+                  </p>
                 </div>
               </div>
               <ArrowRight size={20} className="text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors mr-2" />

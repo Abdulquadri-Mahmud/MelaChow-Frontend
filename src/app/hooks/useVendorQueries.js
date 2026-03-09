@@ -40,7 +40,10 @@ export const useVendors = () => {
       return false;
     },
     retryDelay: (attemptIndex) => Math.min(100 * Math.pow(2, attemptIndex), 1000),
+    staleTime: 1000 * 60 * 10, // 10 minutes
+    gcTime: Infinity,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // ✅ Use isFetched directly for session check check
