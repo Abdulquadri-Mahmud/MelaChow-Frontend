@@ -20,6 +20,12 @@ import {
     MapPin,
     Bike,
     ChevronDown,
+    Clock,
+    PanelLeft,
+    BarChart3,
+    Activity,
+    Truck,
+    Percent,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import NotificationBell from "@/app/components/NotificationBell";
@@ -28,8 +34,13 @@ const menuItems = [
     { icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
     { icon: FolderTree, label: "Categories", href: "/admin/categories" },
     { icon: Store, label: "Vendors", href: "/admin/vendors" },
+    { icon: Clock, label: "Pending Approvals", href: "/admin/vendors/pending" },
     { icon: Users, label: "Users", href: "/admin/users" },
     { icon: ShoppingBag, label: "Orders", href: "/admin/orders" },
+    { icon: Truck, label: "Logistics", href: "/admin/orders/platform" },
+    { icon: BarChart3, label: "Finance Hub", href: "/admin/finance" },
+    { icon: Percent, label: "Revenue Ledger", href: "/admin/orders/commission" },
+    { icon: Activity, label: "Activities", href: "/admin/audit-logs" },
     { icon: Star, label: "Reviews", href: "/admin/reviews" },
     { icon: Bike, label: "Riders", href: "/admin/riders" },
     { icon: MapPin, label: "Locations", href: "/admin/locations" },
@@ -38,6 +49,7 @@ const menuItems = [
 
 export default function AdminDashboardLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
     const [profileOpen, setProfileOpen] = useState(false);
     const { admin, logout } = useAdmin();
     const pathname = usePathname();
@@ -55,7 +67,10 @@ export default function AdminDashboardLayout({ children }) {
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Sidebar - Desktop */}
-            <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-72 lg:flex-col bg-slate-900 border-r border-slate-800">
+            <aside
+                className={`fixed inset-y-0 left-0 z-40 hidden lg:flex lg:w-72 lg:flex-col bg-slate-900 border-r border-slate-800 transition-all duration-300 transform ${desktopSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                    }`}
+            >
                 <div className="flex flex-col flex-1 min-h-0">
                     {/* Logo */}
                     <div className="flex items-center gap-3 px-6 py-6 border-b border-slate-800">
@@ -180,17 +195,32 @@ export default function AdminDashboardLayout({ children }) {
             </AnimatePresence>
 
             {/* Main Content */}
-            <div className="lg:pl-72">
+            <div className={`transition-all duration-300 ${desktopSidebarOpen ? "lg:pl-72" : "lg:pl-0"}`}>
                 {/* Top Navigation Bar */}
-                <header className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
+                <header className="sticky top-0 z-30 bg-white border-b border-gray-200">
                     <div className="flex items-center justify-between px-4 py-4">
-                        {/* Mobile Menu Button */}
-                        <button
-                            onClick={() => setSidebarOpen(true)}
-                            className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
-                        >
-                            <Menu size={24} />
-                        </button>
+                        {/* Sidebar Toggle Buttons */}
+                        <div className="flex items-center gap-2">
+                            {/* Mobile Menu Button */}
+                            <button
+                                onClick={() => setSidebarOpen(true)}
+                                className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+                            >
+                                <Menu size={24} />
+                            </button>
+
+                            {/* Desktop Toggle Button */}
+                            <button
+                                onClick={() => setDesktopSidebarOpen(!desktopSidebarOpen)}
+                                className="hidden lg:flex p-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-all active:scale-95"
+                                title={desktopSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
+                            >
+                                <PanelLeft
+                                    size={24}
+                                    className={`transition-transform duration-300 ${!desktopSidebarOpen ? "rotate-180" : ""}`}
+                                />
+                            </button>
+                        </div>
 
                         {/* Page Title - Hidden on mobile, shown on desktop */}
                         <div className="hidden lg:block">
@@ -261,7 +291,7 @@ export default function AdminDashboardLayout({ children }) {
                 </header>
 
                 {/* Page Content */}
-                <main className="p-4 lg:p-8">{children}</main>
+                <main className="p-4">{children}</main>
             </div>
         </div>
     );

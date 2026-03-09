@@ -61,7 +61,7 @@ export default function PartnerPortalPage() {
                     </Link>
 
                     {/* Rider Card */}
-                    <Link href="/auth/rider/login" className="block outline-none select-none group">
+                    {/* <Link href="/auth/rider/login" className="block outline-none select-none group">
                         <motion.div
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -80,7 +80,7 @@ export default function PartnerPortalPage() {
                                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                             </div>
                         </motion.div>
-                    </Link>
+                    </Link> */}
                 </div>
 
                 <div className="mt-12 text-center pb-4 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600">

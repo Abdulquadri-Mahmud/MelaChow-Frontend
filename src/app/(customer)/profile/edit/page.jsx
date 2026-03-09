@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useApi } from "@/app/context/ApiContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
 
 import {
     ArrowLeft, CheckCircle2, User, Mail, Phone, Camera, Save,
@@ -71,6 +72,8 @@ export default function EditProfilePage() {
         }
     }, [user]);
 
+    const queryClient = useQueryClient();
+
     const handleSaveProfile = async (e) => {
         e.preventDefault(); // Prevent accidental form submit refreshing
         try {
@@ -92,8 +95,13 @@ export default function EditProfilePage() {
             if (data.status) {
                 setAvatarSuccess("Your profile details have been updated.");
                 setOpenProfileMessage(true);
+
+                // ✅ Invalidate profile queries
+                queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+                queryClient.invalidateQueries({ queryKey: ["user"] });
+
                 setTimeout(() => {
-                    window.location.reload();
+                    // window.location.reload(); // Removed to allow cache to handle it
                 }, 1500);
             } else {
                 setAvatarSuccess("Failed to update profile. Please try again.");
@@ -134,6 +142,11 @@ export default function EditProfilePage() {
             if (data.status) {
                 setAvatarSuccess("Profile photo updated!");
                 setOpenProfileMessage(true);
+
+                // ✅ Invalidate profile queries
+                queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+                queryClient.invalidateQueries({ queryKey: ["user"] });
+
                 setTimeout(() => setOpenProfileMessage(false), 2000);
             } else {
                 setAvatarSuccess("Failed to save profile photo.");

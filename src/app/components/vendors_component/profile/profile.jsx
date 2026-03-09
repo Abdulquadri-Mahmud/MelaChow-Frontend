@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { updateVendor } from "@/app/lib/vendorProfileApi";
+import { useQueryClient } from "@tanstack/react-query";
 
 const CLOUDINARY_PRESET = "GrubDash";
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
@@ -157,6 +158,8 @@ export default function VendorProfilePage({ vendor }) {
     }));
   };
 
+  const queryClient = useQueryClient();
+
   const updateSection = async (section, data) => {
     setLoadingSection(section);
     try {
@@ -195,6 +198,10 @@ export default function VendorProfilePage({ vendor }) {
       }
 
       await updateVendor({ id: vendor._id, data: payload });
+
+      // ✅ Invalidate vendor profile query
+      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+
       toast.success(`${section.replace(/([A-Z])/g, ' $1').trim()} updated successfully!`, {
         icon: '✅',
         style: { borderRadius: '10px', background: '#333', color: '#fff' }

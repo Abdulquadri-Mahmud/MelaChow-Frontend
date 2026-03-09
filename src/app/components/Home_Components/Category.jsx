@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from 'framer-motion';
 import { useApi } from "../../context/ApiContext";
+import { useCategories } from "@/app/hooks/useCategories";
 import {
     Flame,
     UtensilsCrossed,
@@ -15,52 +16,8 @@ import {
 
 export default function CategoryList() {
     const router = useRouter();
-    const { baseUrl } = useApi();
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { data: categories = [], isLoading: loading } = useCategories();
     const [activeCategory, setActiveCategory] = useState(null);
-
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                if (!baseUrl) return;
-
-                const res = await axios.get(`${baseUrl}/categories/public`, {
-                    withCredentials: true,
-                    maxContentLength: Infinity, // ✅ Allow unlimited response size
-                    maxBodyLength: Infinity,
-                    timeout: 10000, // 10 second timeout
-                });
-
-                // console.log('[CategoryList] Response:', res);
-
-                if (res.data && res.data.success) {
-                    setCategories(res.data.data || []);
-                }
-            } catch (error) {
-                console.error("[CategoryList] Failed to fetch:", error);
-
-                // ✅ Better error debugging
-                if (error.response) {
-                    console.error("Status:", error.response.status);
-                    console.error("Headers:", error.response.headers);
-                    console.error("Data preview:",
-                        typeof error.response.data === 'string'
-                            ? error.response.data.substring(0, 500)
-                            : error.response.data
-                    );
-                } else if (error.request) {
-                    console.error("No response received:", error.request);
-                } else {
-                    console.error("Request setup error:", error.message);
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchCategories();
-    }, [baseUrl]);
 
     const handleCategoryClick = (category) => {
         setActiveCategory(category.name);

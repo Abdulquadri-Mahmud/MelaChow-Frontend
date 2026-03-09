@@ -108,8 +108,8 @@ export const VendorProfileProvider = ({ children }) => {
             }
         },
 
-        staleTime: 0,
-        gcTime: 1000 * 60 * 5,
+        staleTime: 1000 * 60 * 10, // 10 minutes
+        gcTime: Infinity,
 
         retry: (failureCount, error) => {
             if (error?.message?.includes("Vendor session expired")) return false;
@@ -120,7 +120,7 @@ export const VendorProfileProvider = ({ children }) => {
 
         retryDelay: (attemptIndex) => Math.min(100 * Math.pow(2, attemptIndex), 500),
 
-        refetchOnMount: "always",
+        refetchOnMount: false,
         refetchOnWindowFocus: false,
         refetchOnReconnect: true,
     });

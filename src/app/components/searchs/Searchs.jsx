@@ -10,6 +10,7 @@ import Link from "next/link";
 import NoFoodsFound from "../NoFoodsFound";
 import SearchFoodSkeleton from "@/app/skeleton/SearchFoodSkeleton";
 import { getVendorOpenAndCloseStatus as checkVendorStatus } from "@/app/lib/vendor-time/OpenOrClose";
+import { useCategories } from "@/app/hooks/useCategories";
 
 export const dynamic = "force-dynamic";
 
@@ -31,31 +32,12 @@ export default function FoodSearchMobile() {
   const dropdownRef = useRef(null);
   const selectedCategory = searchParams.get("category");
 
-  // const [categories, setCategories] = useState([]); // Will replace static
-  const [categories, setCategories] = useState([]);
+  const { data: categories = [] } = useCategories();
 
-  // Hydration & Category Fetch
+  // Hydration
   useEffect(() => {
     setHydrated(true);
-
-    const fetchCategories = async () => {
-      try {
-        const res = await axios.get(`${baseUrl}/categories/public`, {
-          withCredentials: true
-        });
-
-        if (res.data && res.data.success) {
-          setCategories(res.data.data || []);
-        }
-      } catch (err) {
-        console.error("Failed to fetch categories", err.message);
-      }
-    };
-
-    if (baseUrl) {
-      fetchCategories();
-    }
-  }, [baseUrl]);
+  }, []);
 
   // Fetch trending searches
   useEffect(() => {

@@ -110,8 +110,8 @@ export const ProfileProvider = ({ children }) => {
       }
     },
 
-    staleTime: 0,
-    gcTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 15, // 15 minutes
+    gcTime: Infinity,
 
     retry: (failureCount, error) => {
       if (error?.message?.includes("Session expired")) return false;
@@ -122,7 +122,7 @@ export const ProfileProvider = ({ children }) => {
 
     retryDelay: (attemptIndex) => Math.min(100 * Math.pow(2, attemptIndex), 500),
 
-    refetchOnMount: "always",
+    refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
   });
