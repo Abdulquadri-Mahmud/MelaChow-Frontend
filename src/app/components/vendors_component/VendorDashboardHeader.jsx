@@ -10,7 +10,7 @@ export default function VendorDashboardHeader({ vendor, onMenuClick }) {
   const { theme, toggleTheme } = useTheme();
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 transition-all">
-      <div className="flex items-center gap-6 flex-1">
+      <div className="flex items-center gap-3 flex-1">
         {/* Mobile Toggle (Visible on small screens) */}
         <button
           onClick={onMenuClick}
@@ -38,11 +38,11 @@ export default function VendorDashboardHeader({ vendor, onMenuClick }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
-          className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-orange-500/30 hover:text-orange-500 transition-all shadow-sm"
+          className="p-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-orange-500/30 hover:text-orange-500 transition-all"
           title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
         >
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
@@ -109,7 +109,7 @@ export default function VendorDashboardHeader({ vendor, onMenuClick }) {
           </AnimatePresence>
         </div>
 
-        <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden md:block"></div>
+        {/* <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 hidden md:block"></div> */}
 
         {/* Notification Bell */}
         <NotificationBell
