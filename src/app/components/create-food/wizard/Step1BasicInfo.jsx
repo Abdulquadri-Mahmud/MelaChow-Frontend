@@ -63,78 +63,80 @@ export default function Step1BasicInfo({ onNext }) {
         }
     };
 
+    const PREDEFINED_TAGS = ["Spicy", "Vegan", "Sweet", "Bestseller", "New", "Healthy", "Gluten-Free"];
+
     return (
         <div className="max-w-xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
-                <h2 className="text-2xl font-black text-slate-900 mb-2">Let's start with the basics</h2>
-                <p className="text-slate-500">What are you cooking? Add a name, description, and an appetizing photo.</p>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Let's start with the basics</h2>
+                <p className="text-slate-500 dark:text-slate-400 font-medium">What are you cooking? Add a name, description, and an appetizing photo.</p>
             </div>
 
             <div className="space-y-6">
                 {/* Name */}
                 <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-900 uppercase tracking-wide">Food Name *</label>
+                    <div className="flex justify-between items-baseline mb-1">
+                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest">Food Name <span className="text-rose-500">*</span></label>
+                        <span className={`text-[10px] uppercase font-bold tracking-wider ${store.name.length >= 2 ? "text-emerald-500 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"}`}>{store.name.length}/80</span>
+                    </div>
                     <input
                         type="text"
                         value={store.name}
                         onChange={(e) => store.setField("name", e.target.value.substring(0, 80))}
-                        placeholder="e.g. Jollof Rice, Chicken Suya, Chapman"
-                        className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all font-medium text-slate-900 text-lg"
+                        placeholder="e.g. Jollof Rice, Chicken Suya"
+                        className="w-full h-14 px-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 dark:focus:ring-orange-500/10 transition-all font-bold text-slate-900 dark:text-white text-lg placeholder:font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
                     />
-                    <div className="text-right text-xs text-slate-400 font-medium">
-                        {store.name.length}/80
-                    </div>
                 </div>
 
                 {/* Description */}
                 <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-900 uppercase tracking-wide">Description</label>
+                    <div className="flex justify-between items-baseline mb-1">
+                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest">Description</label>
+                        <span className={`text-[10px] uppercase font-bold tracking-wider ${store.description.length >= 10 ? "text-emerald-500 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"}`}>{store.description.length}/300</span>
+                    </div>
                     <textarea
                         value={store.description}
                         onChange={(e) => store.setField("description", e.target.value.substring(0, 300))}
                         placeholder="Tell customers what makes this special. e.g. Smoky party jollof cooked fresh daily."
-                        className="w-full p-4 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all font-medium text-slate-900 min-h-[100px] resize-y"
+                        className="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 dark:focus:ring-orange-500/10 transition-all font-medium text-slate-900 dark:text-white text-base min-h-[120px] resize-y placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
                     />
-                    <div className="text-right text-xs text-slate-400 font-medium">
-                        {store.description.length}/300
-                    </div>
                 </div>
 
                 {/* Photo */}
                 <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-900 uppercase tracking-wide">Food Photo</label>
-                    <div className="relative border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors overflow-hidden group">
+                    <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block mb-1">Food Photo</label>
+                    <div className="relative border border-dashed border-slate-300 dark:border-slate-700 rounded-3xl bg-slate-50/50 dark:bg-slate-800/30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors overflow-hidden group">
                         <input
                             type="file"
                             accept="image/jpeg,image/png,image/webp"
                             onChange={handleImageUpload}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                         />
-                        <div className="p-8 flex flex-col items-center justify-center text-center gap-2">
+                        <div className="p-10 flex flex-col items-center justify-center text-center gap-3">
                             {uploading ? (
                                 <Loader2 className="animate-spin text-orange-500 mb-2" size={32} />
                             ) : store.image_url ? (
                                 <img src={store.image_url} alt="Food Upload" className="absolute inset-0 w-full h-full object-cover" />
                             ) : (
-                                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-2 text-slate-400 group-hover:text-orange-500 transition-colors">
-                                    <ImageIcon size={24} />
+                                <div className="w-16 h-16 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-center mb-2 text-slate-400 dark:text-slate-500 group-hover:text-orange-500 dark:group-hover:text-orange-500 group-hover:scale-110 transition-all duration-300">
+                                    <ImageIcon size={28} />
                                 </div>
                             )}
 
                             {!store.image_url && !uploading && (
                                 <>
-                                    <p className="text-sm font-bold text-slate-900">Add a photo (optional)</p>
-                                    <p className="text-xs text-slate-500">Tap or drag an image here. JPG, PNG, WEBP.</p>
+                                    <p className="text-base font-black text-slate-900 dark:text-white tracking-tight">Add a photo <span className="text-slate-400 dark:text-slate-500 font-medium text-sm">(optional)</span></p>
+                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Tap or drag an image here. JPG, PNG, WEBP.</p>
                                 </>
                             )}
                         </div>
                         {store.image_url && !uploading && (
-                            <div className="absolute top-2 right-2 z-20">
+                            <div className="absolute top-3 right-3 z-20">
                                 <button
                                     onClick={(e) => { e.preventDefault(); store.setField("image_url", null) }}
-                                    className="w-8 h-8 flex items-center justify-center bg-white/90 rounded-full text-slate-900 hover:text-rose-500 shadow-sm"
+                                    className="w-10 h-10 flex items-center justify-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl text-slate-600 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all border border-slate-200 dark:border-slate-800"
                                 >
-                                    <X size={16} />
+                                    <X size={18} />
                                 </button>
                             </div>
                         )}
@@ -143,8 +145,8 @@ export default function Step1BasicInfo({ onNext }) {
 
                 {/* Type & Prep Time */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-900 uppercase tracking-wide">Food Type *</label>
+                    <div className="space-y-3">
+                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Food Type <span className="text-rose-500">*</span></label>
                         <div className="flex flex-wrap gap-2">
                             {["Mixed", "Veg 🌿", "Non-Veg 🍗", "Vegan 🌱", "Halal ✅"].map(type => {
                                 const cleanType = type.split(" ")[0];
@@ -154,7 +156,9 @@ export default function Step1BasicInfo({ onNext }) {
                                         key={cleanType}
                                         type="button"
                                         onClick={() => store.setField("item_type", cleanType)}
-                                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all border ${isSelected ? "bg-orange-50 text-orange-600 border-orange-200" : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"}`}
+                                        className={`px-4 h-10 rounded-xl text-xs flex items-center justify-center font-bold tracking-wide transition-all border ${isSelected
+                                            ? "bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-500/30"
+                                            : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
                                     >
                                         {type}
                                     </button>
@@ -163,35 +167,37 @@ export default function Step1BasicInfo({ onNext }) {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-900 uppercase tracking-wide block">How long to prepare?</label>
-                        <span className="text-[10px] text-slate-500 block -mt-1 mb-2">Customers see this as estimated wait time</span>
-                        <div className="flex items-center h-12 bg-white border border-slate-200 rounded-xl overflow-hidden w-[160px]">
+                    <div className="space-y-3">
+                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Preparation Time</label>
+                        <div className="flex items-center h-14 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-[180px] p-1">
                             <button
                                 type="button"
                                 disabled={store.prep_time_minutes <= 5}
                                 onClick={() => store.setField("prep_time_minutes", store.prep_time_minutes - 5)}
-                                className="w-12 h-full flex items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                                className="w-12 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl disabled:opacity-50 transition-colors"
                             >-</button>
-                            <div className="flex-1 text-center font-bold text-slate-900 text-lg">{store.prep_time_minutes}</div>
+                            <div className="flex-1 flex flex-col items-center justify-center leading-none">
+                                <span className="font-black text-slate-900 dark:text-white text-lg">{store.prep_time_minutes}</span>
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">MINS</span>
+                            </div>
                             <button
                                 type="button"
                                 disabled={store.prep_time_minutes >= 120}
                                 onClick={() => store.setField("prep_time_minutes", store.prep_time_minutes + 5)}
-                                className="w-12 h-full flex items-center justify-center text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                                className="w-12 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl disabled:opacity-50 transition-colors"
                             >+</button>
                         </div>
                     </div>
                 </div>
 
                 {/* Tags */}
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-900 uppercase tracking-wide">Tags</label>
-                    <div className="p-2 bg-white border border-slate-200 rounded-xl focus-within:border-orange-500 focus-within:ring-4 focus-within:ring-orange-500/10 transition-all flex flex-wrap gap-2 items-center min-h-[48px]">
+                <div className="space-y-3">
+                    <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Search Tags</label>
+                    <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl focus-within:border-orange-500 dark:focus-within:border-orange-500 focus-within:ring-4 focus-within:ring-orange-500/10 dark:focus-within:ring-orange-500/10 transition-all flex flex-wrap gap-2 items-center min-h-[60px]">
                         {store.tags.map(tag => (
-                            <span key={tag} className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 text-sm font-bold rounded-lg select-none">
+                            <span key={tag} className="flex items-center gap-1.5 px-3 h-8 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg select-none">
                                 {tag}
-                                <button type="button" onClick={() => store.removeTag(tag)} className="text-slate-400 hover:text-rose-500"><X size={14} /></button>
+                                <button type="button" onClick={() => store.removeTag(tag)} className="text-slate-400 hover:text-rose-500 ml-1 transition-colors"><X size={14} /></button>
                             </span>
                         ))}
                         <input
@@ -199,20 +205,36 @@ export default function Step1BasicInfo({ onNext }) {
                             value={tagInput}
                             onChange={e => setTagInput(e.target.value)}
                             onKeyDown={handleTagKey}
-                            placeholder={store.tags.length < 6 ? "Type label and exact enter..." : "Max 6 tags reached"}
+                            placeholder={store.tags.length < 6 ? "Type a tag and press Enter..." : "Max 6 tags reached"}
                             disabled={store.tags.length >= 6}
-                            className="flex-1 min-w-[120px] bg-transparent outline-none h-8 px-2 text-sm text-slate-900 placeholder:text-slate-400 font-medium disabled:opacity-50"
+                            className="flex-1 min-w-[150px] bg-transparent outline-none h-8 px-2 text-sm text-slate-900 dark:text-white font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 disabled:opacity-50"
                         />
                     </div>
+                    {store.tags.length < 6 && (
+                        <div className="flex flex-wrap gap-2 mt-2 pt-1">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider py-1.5 mr-1">Suggestions:</span>
+                            {PREDEFINED_TAGS.filter(t => !store.tags.includes(t.toLowerCase())).slice(0, 5).map(tag => (
+                                <button
+                                    key={tag}
+                                    type="button"
+                                    onClick={() => store.addTag(tag)}
+                                    className="px-2.5 py-1 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                                >
+                                    + {tag}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
-            <div className="pt-8 border-t border-slate-100 flex justify-end">
+            <div className="pt-8 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                 <button
+                    type="button"
                     onClick={handleNext}
-                    className="h-12 px-8 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors shadow-sm active:scale-95"
+                    className="h-14 px-8 bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2"
                 >
-                    Next: Category & Pricing →
+                    Next Step <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
                 </button>
             </div>
         </div>
