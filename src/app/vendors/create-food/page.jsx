@@ -62,7 +62,7 @@ export default function CreateFoodWizardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] pb-32">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-10 transition-colors">
 
       {/* Draft Continuation Prompt overlay */}
       <AnimatePresence>
@@ -71,41 +71,44 @@ export default function CreateFoodWizardPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              className="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative"
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 max-w-sm w-full relative border border-slate-100 dark:border-slate-800 shadow-2xl overflow-hidden"
             >
-              <h3 className="text-xl font-black text-slate-900 mb-2">Continue drafting?</h3>
-              <p className="text-slate-500 text-sm mb-6">You have an unsaved food item "{store.name || "Untitled"}". Do you want to continue where you left off?</p>
-              <div className="flex flex-col gap-3">
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Continue drafting?</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 font-medium leading-relaxed">You have an unsaved food item "{store.name || "Untitled"}". Do you want to continue where you left off?</p>
+              <div className="flex flex-col gap-3 relative z-10">
                 <button
                   onClick={() => setShowDraftPrompt(false)}
-                  className="w-full h-12 bg-orange-500 text-white font-bold rounded-xl active:scale-95 transition-all shadow-md shadow-orange-500/20"
+                  className="w-full h-14 bg-orange-500 text-white text-sm uppercase tracking-widest font-black rounded-2xl active:scale-95 transition-all shadow-md shadow-orange-500/20"
                 >
                   Yes, Continue
                 </button>
                 <button
                   onClick={handleClearDraft}
-                  className="w-full h-12 bg-slate-100 text-slate-600 font-bold rounded-xl active:scale-95 transition-all hover:bg-slate-200"
+                  className="w-full h-14 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm uppercase tracking-widest font-black rounded-2xl border border-transparent dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 active:scale-95 transition-all"
                 >
                   Start Fresh
                 </button>
               </div>
+
+              {/* Decorative Accent */}
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl" />
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="max-w-4xl mx-auto pt-6 px-4 md:px-8">
+      <div className="max-w-xl mx-auto pt-6 px-4 md:px-8">
         {/* Header Strip */}
         <div className="flex items-center justify-between mb-8">
           <BackButton label="Back to Menu" className="py-2" />
           {store.isDirty && (
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse" /> Draft Saved
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm">
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" /> Draft Saved
             </div>
           )}
         </div>
@@ -114,7 +117,7 @@ export default function CreateFoodWizardPage() {
         <div className="mb-12">
           <div className="flex items-center justify-between relative">
             {/* Background Track */}
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 rounded-full z-0" />
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full z-0" />
 
             {/* Progress Fill */}
             <div
@@ -136,12 +139,12 @@ export default function CreateFoodWizardPage() {
                   className={`relative z-10 flex flex-col items-center group ${isFuture ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-black text-xs md:text-sm transition-all duration-500 border-2 ${isPast ? "bg-orange-500 border-orange-500 text-white" :
-                      isCurrent ? "bg-white border-orange-500 text-orange-600 shadow-md shadow-orange-500/20" :
-                        "bg-white border-slate-200 text-slate-400"
+                    isCurrent ? "bg-white dark:bg-slate-900 border-orange-500 text-orange-600 dark:text-orange-500" :
+                      "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400"
                     }`}>
                     {isPast ? "✓" : step.id}
                   </div>
-                  <span className={`absolute -bottom-6 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-colors hidden md:block ${isCurrent ? "text-orange-600" : isPast ? "text-slate-600" : "text-slate-400"
+                  <span className={`absolute -bottom-6 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors hidden md:block ${isCurrent ? "text-orange-600 dark:text-orange-500" : isPast ? "text-slate-600 dark:text-slate-300" : "text-slate-400 dark:text-slate-600"
                     }`}>
                     {step.title}
                   </span>
@@ -152,7 +155,7 @@ export default function CreateFoodWizardPage() {
         </div>
 
         {/* Step Content */}
-        <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-6 md:p-10 min-h-[500px]">
+        <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 p-6 md:p-10 min-h-[500px]">
           {store.currentStep === 1 && <Step1BasicInfo onNext={handleNext} />}
           {store.currentStep === 2 && <Step2Categories onNext={handleNext} onBack={handleBack} />}
           {store.currentStep === 3 && <Step3Portions onNext={handleNext} onBack={handleBack} />}
