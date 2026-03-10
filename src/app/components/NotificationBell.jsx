@@ -14,7 +14,7 @@ export default function NotificationBell({ restaurantId, role, href = '/notifica
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => router.push(href)}
-            className="relative p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-orange-500/30 transition-all group shadow-sm"
+            className="relative p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-orange-500/30 transition-all group"
             aria-label="Notifications"
             title={isRealtimeConnected ? 'Real-time updates active' : 'Using fallback polling'}
         >
