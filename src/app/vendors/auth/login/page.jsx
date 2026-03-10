@@ -53,6 +53,11 @@ export default function VendorLoginPage() {
       const vendorData = vendor || rest;
       const finalToken = accessToken || token;
 
+      // Clear any cached vendor object from previous sessions that may be missing isApproved
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem("grubdash_vendor_cache");
+      }
+
       if (finalToken) {
         TokenManager.setToken(finalToken, 'vendor');
       }

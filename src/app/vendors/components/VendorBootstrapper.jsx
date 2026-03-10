@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useVendorStorage } from "@/app/hooks/vendorStorage";
+import React, { useEffect, useRef } from "react";
+import { useVendorProfile } from "@/app/context/VendorProfileContext";
 import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import VendorLogoutHandler from "./VendorLogoutHandler";
@@ -10,70 +10,70 @@ export default function VendorBootstrapper({ children }) {
     const pathname = usePathname();
     const router = useRouter();
 
-    // Monitor Vendor Auth State ONLY
-    const { vendorDetails, hasCheckedSession } = useVendorStorage();
+    // ✅ CORRECT source — API-backed, always fresh, has isApproved
+    // Do NOT switch this back to useVendorStorage under any circumstances.
+    // useVendorStorage reads localStorage which can serve stale data
+    // missing critical auth fields like isApproved.
+    const { vendorProfile, hasCheckedSession } = useVendorProfile();
 
-    // Determine if vendor is authenticated
-    const isAuthenticated = !!vendorDetails;
+    const isAuthenticated = !!vendorProfile;
 
-    const [isRedirecting, setIsRedirecting] = useState(false);
+    // Ref — not state. A ref does not trigger re-renders and cannot
+    // cause redirect loops when pathname changes reset it.
+    const isRedirecting = useRef(false);
 
-    // ✅ Debug logging
     useEffect(() => {
         if (process.env.NODE_ENV === 'development') {
-            console.log('[VendorBootstrapper] 🔐 Vendor Auth Check:', {
+            console.log('[VendorBootstrapper] Auth Check:', {
                 pathname,
                 hasCheckedSession,
                 isAuthenticated,
-                vendor: !!vendorDetails,
+                isApproved: vendorProfile?.isApproved,
+                vendorId: vendorProfile?._id || vendorProfile?.id,
             });
         }
-    }, [pathname, hasCheckedSession, isAuthenticated, vendorDetails]);
+    }, [pathname, hasCheckedSession, isAuthenticated, vendorProfile]);
 
     useEffect(() => {
-        // Only process after auth is resolved
         if (!hasCheckedSession) return;
+        if (isRedirecting.current) return;
 
-        // ✅ Redirect if not authenticated (since this is now ONLY used for protected routes)
+        // Not logged in — send to login
         if (!isAuthenticated) {
-            if (!isRedirecting) {
-                console.log("🔒 Unauthorized vendor access. Redirecting to login...");
-                setIsRedirecting(true);
-                router.replace("/vendors/auth/login");
-            }
+            console.log("🔒 Unauthorized. Redirecting to login...");
+            isRedirecting.current = true;
+            router.replace("/vendors/auth/login");
             return;
         }
 
-        // ✅ Redirect to pending-approval if authenticated but NOT approved
-        const isApproved = vendorDetails?.vendor?.isApproved;
+        // isApproved lives directly on vendorProfile — no nesting
+        const isApproved = vendorProfile?.isApproved;
         const isPendingPage = pathname === "/vendors/pending-approval";
 
-        if (!isApproved && !isPendingPage && !isRedirecting) {
-            console.log("⏳ Vendor not approved. Redirecting to pending page...");
-            setIsRedirecting(true);
+        // Logged in but not approved — send to pending page
+        if (!isApproved && !isPendingPage) {
+            console.log("⏳ Not approved. Redirecting to pending...");
+            isRedirecting.current = true;
             router.replace("/vendors/pending-approval");
+            return;
         }
 
-        // ✅ Redirect away from pending-approval if already approved
-        if (isApproved && isPendingPage && !isRedirecting) {
-            console.log("✅ Vendor approved. Moving to dashboard...");
-            setIsRedirecting(true);
+        // Approved but sitting on pending page — send to dashboard
+        if (isApproved && isPendingPage) {
+            console.log("✅ Approved. Redirecting to dashboard...");
+            isRedirecting.current = true;
             router.replace("/vendors/dashboard");
+            return;
         }
-    }, [
-        hasCheckedSession,
-        isAuthenticated,
-        pathname,
-        router,
-        isRedirecting,
-    ]);
 
-    // Reset redirecting flag when pathname changes
+    }, [hasCheckedSession, isAuthenticated, vendorProfile, pathname, router]);
+
+    // Reset ref when pathname settles after a completed redirect
     useEffect(() => {
-        setIsRedirecting(false);
+        isRedirecting.current = false;
     }, [pathname]);
 
-    // Keep render empty while auth boots. Allows native PWA Splash Screen to cleanly cover startup gap.
+    // Hold render until auth resolves — prevents flash redirect
     if (!hasCheckedSession) {
         return null;
     }

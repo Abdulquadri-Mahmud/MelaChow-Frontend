@@ -143,7 +143,18 @@ export const VendorProfileProvider = ({ children }) => {
 
     useEffect(() => {
         if (data && typeof window !== 'undefined') {
-            localStorage.setItem("grubdash_vendor_cache", JSON.stringify(data));
+            // Guard: only write to cache when the object contains
+            // the auth fields that VendorBootstrapper depends on.
+            // If isApproved is missing, clear the cache instead of
+            // storing a broken object that causes redirect loops.
+            if (data.isApproved !== undefined) {
+                localStorage.setItem("grubdash_vendor_cache", JSON.stringify(data));
+            } else {
+                localStorage.removeItem("grubdash_vendor_cache");
+                if (process.env.NODE_ENV === 'development') {
+                    console.warn('[VendorProfileContext] ⚠️ isApproved missing from vendor data — cache cleared to prevent auth loop');
+                }
+            }
         }
     }, [data]);
 
