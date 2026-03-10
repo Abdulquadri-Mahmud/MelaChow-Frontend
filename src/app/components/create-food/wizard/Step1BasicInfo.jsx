@@ -63,7 +63,7 @@ export default function Step1BasicInfo({ onNext }) {
         }
     };
 
-    const PREDEFINED_TAGS = ["Spicy", "Vegan", "Sweet", "Bestseller", "New", "Healthy", "Gluten-Free"];
+    const PREDEFINED_TAGS = ["Spicy", "Delicious", "Vegan", "Sweet", "Bestseller", "New", "Healthy", "Gluten-Free"];
 
     return (
         <div className="max-w-xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -105,14 +105,14 @@ export default function Step1BasicInfo({ onNext }) {
                 {/* Photo */}
                 <div className="space-y-2">
                     <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block mb-1">Food Photo</label>
-                    <div className="relative border border-dashed border-slate-300 dark:border-slate-700 rounded-3xl bg-slate-50/50 dark:bg-slate-800/30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors overflow-hidden group">
+                    <div className="relative border border-dashed border-slate-300 dark:border-slate-700 rounded-3xl bg-slate-50/50 dark:bg-slate-800/30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors overflow-hidden group h-[250px]">
                         <input
                             type="file"
                             accept="image/jpeg,image/png,image/webp"
                             onChange={handleImageUpload}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                         />
-                        <div className="p-10 flex flex-col items-center justify-center text-center gap-3">
+                        <div className="h-full flex flex-col items-center justify-center text-center gap-3 p-10">
                             {uploading ? (
                                 <Loader2 className="animate-spin text-orange-500 mb-2" size={32} />
                             ) : store.image_url ? (
@@ -213,7 +213,7 @@ export default function Step1BasicInfo({ onNext }) {
                     {store.tags.length < 6 && (
                         <div className="flex flex-wrap gap-2 mt-2 pt-1">
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider py-1.5 mr-1">Suggestions:</span>
-                            {PREDEFINED_TAGS.filter(t => !store.tags.includes(t.toLowerCase())).slice(0, 5).map(tag => (
+                            {PREDEFINED_TAGS.filter(t => !store.tags.includes(t.toLowerCase())).map(tag => (
                                 <button
                                     key={tag}
                                     type="button"
