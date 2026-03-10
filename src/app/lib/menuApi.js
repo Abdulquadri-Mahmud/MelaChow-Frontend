@@ -1,71 +1,222 @@
 import axios from "axios";
+import { TokenManager } from "./auth-token";
 
-const menuApi = axios.create({
-    baseURL: "/api",
-    withCredentials: true,
-    headers: { "Content-Type": "application/json" },
-});
+const getMenuAxios = () => {
+    const token = TokenManager.getToken('vendor');
 
-// Re-dispatch unauthorized events
-menuApi.interceptors.response.use(
-    (res) => res,
-    (err) => {
-        if (err.response?.status === 401 && typeof window !== "undefined") {
-            window.dispatchEvent(new Event("vendor:unauthorized"));
-        }
-        return Promise.reject(err);
-    }
-);
+    return axios.create({
+        baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+        withCredentials: true,
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+    });
+};
 
-// ─── Platform Categories ────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// PLATFORM CATEGORIES (public, no auth needed)
+// ─────────────────────────────────────────────
+
 export const getPlatformCategories = async () => {
-    const res = await menuApi.get("/v1/menu/platform-categories");
+    const res = await getMenuAxios().get('/v1/menu/platform-categories');
     return res.data;
 };
 
-// ─── Vendor Sections ────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// VENDOR SECTIONS
+// ─────────────────────────────────────────────
+
 export const getVendorSections = async (vendorId) => {
-    const res = await menuApi.get(`/v1/menu/${vendorId}/sections`);
+    const res = await getMenuAxios().get(`/v1/menu/${vendorId}/sections`);
     return res.data;
 };
 
 export const createVendorSection = async (vendorId, name) => {
-    const res = await menuApi.post(`/v1/menu/${vendorId}/sections`, { name });
+    const res = await getMenuAxios().post(`/v1/menu/${vendorId}/sections`, { name });
     return res.data;
 };
 
-// ─── Menu Items ──────────────────────────────────────────────────────────────
+export const updateVendorSection = async (vendorId, sectionId, data) => {
+    const res = await getMenuAxios().put(`/v1/menu/${vendorId}/sections/${sectionId}`, data);
+    return res.data;
+};
+
+export const deleteVendorSection = async (vendorId, sectionId) => {
+    const res = await getMenuAxios().delete(`/v1/menu/${vendorId}/sections/${sectionId}`);
+    return res.data;
+};
+
+// ─────────────────────────────────────────────
+// MENU ITEMS
+// ─────────────────────────────────────────────
+
+/**
+ * Create a menu item (Step 1 of the sequential create flow).
+ * Does NOT include price — price lives on portions.
+ *
+ * Payload shape:
+ * {
+ *   platform_category_id: string (required, must be leaf category)
+ *   vendor_section_id: string | null
+ *   name: string
+ *   description: string | undefined
+ *   image_url: string | undefined
+ *   item_type: "FOOD" | "DRINK" | "SIDE" | "SOUP" | "SWALLOW" | "PROTEIN"
+ *   prep_time_minutes: number
+ *   tags: string[]
+ * }
+ *
+ * Returns: { item: { _id, name, ... } }
+ */
 export const createMenuItem = async (vendorId, payload) => {
-    const res = await menuApi.post(`/v1/menu/${vendorId}/items`, payload);
+    const res = await getMenuAxios().post(`/v1/menu/${vendorId}/items`, payload);
     return res.data;
 };
 
 export const updateMenuItem = async (vendorId, itemId, payload) => {
-    const res = await menuApi.put(`/v1/menu/${vendorId}/items/${itemId}`, payload);
+    const res = await getMenuAxios().put(`/v1/menu/${vendorId}/items/${itemId}`, payload);
     return res.data;
 };
 
-// ─── Portions ─────────────────────────────────────────────────────────────────
+export const toggleMenuItemAvailability = async (vendorId, itemId, is_available) => {
+    const res = await getMenuAxios().patch(
+        `/v1/menu/${vendorId}/items/${itemId}/availability`,
+        { is_available }
+    );
+    return res.data;
+};
+
+export const toggleMenuItemStock = async (vendorId, itemId, is_in_stock) => {
+    const res = await getMenuAxios().patch(
+        `/v1/menu/${vendorId}/items/${itemId}/stock`,
+        { is_in_stock }
+    );
+    return res.data;
+};
+
+/**
+ * Soft delete — sets is_archived: true.
+ * The item is never destroyed in the database.
+ * Do NOT use DELETE method for items.
+ */
+export const archiveMenuItem = async (vendorId, itemId) => {
+    const res = await getMenuAxios().put(
+        `/v1/menu/${vendorId}/items/${itemId}`,
+        { is_archived: true }
+    );
+    return res.data;
+};
+
+export const moveItemToSection = async (vendorId, itemId, vendor_section_id) => {
+    const res = await getMenuAxios().patch(
+        `/v1/menu/${vendorId}/items/${itemId}/section`,
+        { vendor_section_id }
+    );
+    return res.data;
+};
+
+// ─────────────────────────────────────────────
+// PORTIONS
+// ─────────────────────────────────────────────
+
+/**
+ * Add a portion to an existing menu item (Step 2 of sequential create).
+ * PRICE IS IN KOBO. Convert from naira before calling: price_naira * 100
+ *
+ * Payload shape:
+ * {
+ *   label: string        e.g. "Small", "Medium", "1 Portion"
+ *   price: number        IN KOBO — ₦500 = 50000
+ *   is_default: boolean
+ *   max_quantity: number | null
+ *   sort_order: number
+ * }
+ */
 export const addPortion = async (vendorId, itemId, payload) => {
-    const res = await menuApi.post(`/v1/menu/${vendorId}/items/${itemId}/portions`, payload);
+    const res = await getMenuAxios().post(
+        `/v1/menu/${vendorId}/items/${itemId}/portions`,
+        payload
+    );
     return res.data;
 };
 
 export const updatePortion = async (vendorId, itemId, portionId, payload) => {
-    const res = await menuApi.put(`/v1/menu/${vendorId}/items/${itemId}/portions/${portionId}`, payload);
+    const res = await getMenuAxios().put(
+        `/v1/menu/${vendorId}/items/${itemId}/portions/${portionId}`,
+        payload
+    );
     return res.data;
 };
 
-// ─── Choice Groups ────────────────────────────────────────────────────────────
+export const togglePortionStock = async (vendorId, itemId, portionId, is_in_stock) => {
+    const res = await getMenuAxios().patch(
+        `/v1/menu/${vendorId}/items/${itemId}/portions/${portionId}/stock`,
+        { is_in_stock }
+    );
+    return res.data;
+};
+
+// ─────────────────────────────────────────────
+// CHOICE GROUPS & OPTIONS
+// ─────────────────────────────────────────────
+
+/**
+ * Add a choice group to an item (Step 3 of sequential create).
+ *
+ * Payload shape:
+ * {
+ *   name: string           e.g. "Choose Protein"
+ *   min_selections: number  0 = optional, 1+ = required
+ *   max_selections: number
+ *   is_required: boolean
+ *   sort_order: number
+ * }
+ *
+ * Returns: { choiceGroup: { _id, name, ... } }
+ */
 export const addChoiceGroup = async (vendorId, itemId, payload) => {
-    const res = await menuApi.post(`/v1/menu/${vendorId}/items/${itemId}/choice-groups`, payload);
+    const res = await getMenuAxios().post(
+        `/v1/menu/${vendorId}/items/${itemId}/choice-groups`,
+        payload
+    );
     return res.data;
 };
 
-// ─── Choice Options ───────────────────────────────────────────────────────────
+/**
+ * Add an option to an existing choice group (Step 4 of sequential create).
+ * PRICE MODIFIER IS IN KOBO. Convert before calling: price_modifier_naira * 100
+ * Use 0 for free options.
+ *
+ * Payload shape:
+ * {
+ *   label: string              e.g. "Chicken Lap"
+ *   price_modifier: number     IN KOBO — 0 = free, 50000 = +₦500
+ *   is_available: boolean
+ *   sort_order: number
+ * }
+ *
+ * NOTE: groupId here is the real MongoDB _id returned by addChoiceGroup,
+ * NOT a frontend tempId.
+ */
 export const addChoiceOption = async (groupId, payload) => {
-    const res = await menuApi.post(`/v1/menu/choice-groups/${groupId}/options`, payload);
+    const res = await getMenuAxios().post(
+        `/v1/menu/choice-groups/${groupId}/options`,
+        payload
+    );
     return res.data;
 };
 
-export default menuApi;
+// ─────────────────────────────────────────────
+// CUSTOMER MENU (reading the full menu)
+// ─────────────────────────────────────────────
+
+export const getFullVendorMenu = async (vendorId) => {
+    const res = await getMenuAxios().get(`/v1/vendors/${vendorId}/menu`);
+    return res.data;
+};
+
+export const getMenuItemDetails = async (vendorId, itemId) => {
+    const res = await getMenuAxios().get(`/v1/vendors/${vendorId}/menu/items/${itemId}`);
+    return res.data;
+};

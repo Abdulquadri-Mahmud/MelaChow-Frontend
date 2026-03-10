@@ -20,31 +20,28 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 
-import { getFoods } from "@/app/lib/vendorFoodApi";
 import { getVendorDetails } from "@/app/lib/vendorApi";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
+import { useVendorMenu } from "@/app/hooks/useMenu";
 import VendorDashboardSkeleton from "@/app/skeleton/VendorDashboardSkeleton";
 
 export default function VendorDashboard() {
   const [vendorData, setVendorData] = useState(null);
-  const [foods, setFoods] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { vendorDetails } = useVendorStorage();
+
+  const vendorId = vendorDetails?.vendor?.id || vendorDetails?._id || vendorDetails?.id;
+  const { data: menuData, isLoading: isMenuLoading } = useVendorMenu(vendorId);
+  const foods = menuData?.data || menuData || [];
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // if (!vendorDetails?.vendor?.id) return; // Removed ID check strictness if cookie is enough? 
-        // But layout might need vendorDetails for other things. 
-        // For data fetching, cookie is source.
-
         setIsLoading(true);
-        const [vendorRes, foodsRes] = await Promise.all([
-          getVendorDetails(),
-          getFoods()
+        const [vendorRes] = await Promise.all([
+          getVendorDetails()
         ]);
         setVendorData(vendorRes.data || vendorRes);
-        setFoods(foodsRes?.data || []);
       } catch (err) {
         console.error("Dashboard fetch error:", err);
       } finally {
@@ -53,14 +50,7 @@ export default function VendorDashboard() {
     };
 
     fetchData();
-  }, []); // Run once on mount 
-  // If we rely on cookie, we don't strictly *need* `vendorDetails` in dependency if the cookie is set. 
-  // But typically `useVendorStorage` implies session state.
-  // I will leave it empty dependency or minimal. 
-  // Wait, `vendorDetails` might be null initially. 
-  // `useVendorStorage` usually hydrates from localStorage.
-  // If we are logged in, we have cookie.
-  // I will just call fetchData.
+  }, []);
 
 
   // Derived Values & Calculations

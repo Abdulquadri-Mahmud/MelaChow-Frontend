@@ -2,7 +2,7 @@
 
 import { useCreateFoodStore } from "@/app/context/CreateFoodStore";
 import { useVendorProfile } from "@/app/context/VendorProfileContext";
-import { createMenuItem, addPortion, addChoiceGroup, addChoiceOption } from "@/app/lib/menuApi";
+import { useCreateMenuItem } from "@/app/hooks/useMenu";
 import { Edit2, ImageIcon, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -13,80 +13,48 @@ export default function Step5Review({ onBack, onComplete, onSetStep }) {
     const { vendorProfile } = useVendorProfile();
     const vendorId = vendorProfile?._id || vendorProfile?.id;
 
+    // ✅ Use the orchestration hook — handles all sequential calls + kobo conversion
+    const createMutation = useCreateMenuItem(vendorId);
+
     const handlePublish = async () => {
         if (!vendorId) {
             toast.error("Vendor session not found. Please log in again.");
             return;
         }
 
+        if (store.portions.length === 0) {
+            toast.error("You need at least one portion with a price.");
+            return;
+        }
+
         store.setField("isSubmitting", true);
-        const loadingToast = toast.loading("Creating your food...");
 
         try {
-            // 1. Create Base Item
-            const itemPayload = {
-                platform_category_id: store.platform_category_id,
-                vendor_section_id: store.vendor_section_id,
-                name: store.name.trim(),
-                description: store.description.trim() || undefined,
-                image_url: store.image_url || undefined,
-                item_type: store.item_type,
-                prep_time_minutes: store.prep_time_minutes,
-                tags: store.tags,
-            };
+            await createMutation.mutateAsync({
+                item: {
+                    platform_category_id: store.platform_category_id,
+                    vendor_section_id: store.vendor_section_id,
+                    name: store.name,
+                    description: store.description,
+                    image_url: store.image_url,
+                    item_type: store.item_type,
+                    prep_time_minutes: store.prep_time_minutes,
+                    tags: store.tags,
+                },
+                // Pass price_naira — the hook converts to kobo internally
+                portions: store.portions,
+                // Pass price_modifier_naira — the hook converts to kobo internally
+                choice_groups: store.choice_groups,
+            });
 
-            const itemRes = await createMenuItem(vendorId, itemPayload);
-            const itemId = itemRes.data?._id || itemRes.data?.id;
-
-            if (!itemId) throw new Error("Could not retrieve created food ID");
-
-            // 2. Create Portions (Sequentially)
-            for (const p of store.portions) {
-                const portionPayload = {
-                    label: p.label,
-                    price: p.price_naira * 100, // Convert to kobo
-                    is_default: p.is_default,
-                    max_quantity: p.max_quantity || null,
-                    sort_order: p.sort_order,
-                };
-                await addPortion(vendorId, itemId, portionPayload);
-            }
-
-            // 3 & 4. Create Choice Groups & Options
-            for (const g of store.choice_groups) {
-                const groupPayload = {
-                    name: g.name,
-                    min_selections: g.min_selections,
-                    max_selections: g.max_selections,
-                    is_required: g.is_required,
-                    sort_order: g.sort_order,
-                };
-
-                const groupRes = await addChoiceGroup(vendorId, itemId, groupPayload);
-                const groupId = groupRes.data?._id || groupRes.data?.id;
-
-                if (!groupId) continue;
-
-                for (const o of g.options) {
-                    const optPayload = {
-                        label: o.label,
-                        price_modifier: o.price_modifier_naira * 100, // Convert to kobo
-                        is_available: o.is_available,
-                        sort_order: o.sort_order,
-                    };
-                    await addChoiceOption(groupId, optPayload);
-                }
-            }
-
-            // Success
-            toast.success("Food is live on your menu!", { id: loadingToast });
+            // Only runs if mutateAsync resolves without throwing
             store.resetForm();
             onComplete?.();
             router.push("/vendors/my-foods");
 
-        } catch (error) {
-            console.error(error);
-            toast.error(error?.response?.data?.message || "Something went wrong. Your work is saved, please try again.", { id: loadingToast });
+        } catch {
+            // Error is already handled and toasted inside useCreateMenuItem
+            // Just unblock the submit button
             store.setField("isSubmitting", false);
         }
     };
