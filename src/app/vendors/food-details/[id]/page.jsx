@@ -27,7 +27,8 @@ import {
 import Link from "next/link";
 import FoodListSkeleton from "@/app/skeleton/FoodListSkeleton";
 import { useState } from "react";
-import { deleteFood } from "@/app/lib/vendorFoodApi";
+import { useArchiveMenuItem } from "@/app/hooks/useMenu";
+import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import toast from "react-hot-toast";
 import PreviewModal from "@/app/modals/create/PreviewModal";
 import DeleteConfirmModal from "@/app/modals/DeleteConfirmModal";
@@ -38,6 +39,10 @@ export default function FoodDetailsPage() {
     const { id } = useParams();
     const { food: foodRes, isLoading } = useFoodById(id);
     const food = foodRes?.data;
+
+    const { vendorDetails } = useVendorStorage();
+    const vendorId = vendorDetails?.vendor?.id || vendorDetails?._id || vendorDetails?.id;
+    const archiveMutation = useArchiveMenuItem(vendorId);
 
     const [activeTab, setActiveTab] = useState("overview");
     const [previewOpen, setPreviewOpen] = useState(false);
@@ -50,7 +55,7 @@ export default function FoodDetailsPage() {
         setDeleteModalOpen(false);
         const toastId = toast.loading("Deleting food...");
         try {
-            await deleteFood(food._id, { deleteAll: true });
+            await archiveMutation.mutateAsync(food._id || id);
             toast.success("Food deleted successfully", { id: toastId });
             router.push("/vendors/my-foods");
         } catch (error) {
