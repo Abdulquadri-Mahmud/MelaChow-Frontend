@@ -78,7 +78,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto px-4 py-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto px-4 py-4">
           <motion.div
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             initial={{ opacity: 0 }}
@@ -88,14 +88,14 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
           />
 
           <motion.div
-            className="relative w-full max-w-lg mx-auto overflow-hidden rounded-3xl bg-white shadow-2xl"
+            className="relative w-full max-w-lg mx-auto overflow-hidden rounded-3xl bg-white dark:bg-slate-900 shadow-2xl border border-transparent dark:border-slate-800"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
             {/* Header with Background Pattern */}
-            <div className="relative bg-orange-500 px-6 py-8 text-white overflow-hidden">
+            <div className="relative bg-orange-500 px-4 py-6 text-white overflow-hidden">
               <div className="absolute top-0 right-0 -mr-10 -mt-10 h-40 w-40 rounded-full bg-orange-400/20 blur-3xl" />
               <div className="absolute bottom-0 left-0 -ml-10 -mb-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
 
@@ -125,7 +125,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
             </div>
 
             {/* Form Section */}
-            <div className="p-6 sm:p-8 space-y-6">
+            <div className="p-3 sm:p-6 space-y-6">
               {/* Info Banner - Only show for first-time users */}
               {/* {!hasExistingAddress && (
                 <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
@@ -158,9 +158,9 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
 
               {/* Address Line */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 ml-1">Full Delivery Address</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300 ml-1">Full Delivery Address</label>
                 <div className="relative group">
-                  <div className="absolute left-3 top-4 text-gray-400 group-focus-within:text-orange-500 transition-colors">
+                  <div className="absolute left-3 top-4 text-gray-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors">
                     <Home className="h-4 w-4" />
                   </div>
                   <textarea
@@ -168,7 +168,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
                     value={addressLine}
                     onChange={(e) => setAddressLine(e.target.value)}
                     rows={3}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-10 pr-4 text-sm outline-none transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 resize-none"
+                    className="w-full rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/50 py-3 pl-10 pr-4 text-sm text-gray-900 dark:text-slate-100 outline-none transition-all focus:border-orange-500 dark:focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-orange-500/10 resize-none"
                     required
                   />
                 </div>
@@ -181,7 +181,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
                   <button
                     type="button"
                     onClick={() => setIsOpen(false)}
-                    className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-gray-500 transition-colors hover:bg-gray-100"
+                    className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-gray-500 dark:text-slate-400 transition-colors hover:bg-gray-100 dark:hover:bg-slate-800"
                   >
                     Cancel
                   </button>
@@ -210,8 +210,8 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
             </div>
 
             {/* Footer Tip */}
-            <div className="bg-gray-50 px-8 py-4 text-center">
-              <p className="text-xs text-gray-500">
+            <div className="bg-gray-50 dark:bg-slate-900/50 px-8 py-4 text-center border-t dark:border-slate-800">
+              <p className="text-xs text-gray-500 dark:text-slate-400">
                 {hasExistingAddress
                   ? '🔒 Your address is secure and only used for delivery'
                   : '🎉 Once saved, you\'ll see all nearby restaurants!'}

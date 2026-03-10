@@ -38,12 +38,12 @@ export default function VendorLayout({ children }) {
     );
   }
 
-  // Don't apply DashboardLayout or Bootstrapper to auth routes
-  const isAuthRoute = isMounted && pathname?.startsWith("/vendors/auth");
+  // Don't apply DashboardLayout or Bootstrapper to auth or pending status routes
+  const isExcludedRoute = isMounted && (pathname?.startsWith("/vendors/auth") || pathname === "/vendors/pending-approval");
 
   return (
     <VendorProfileProvider>
-      {isAuthRoute ? (
+      {isExcludedRoute ? (
         <>
           {children}
           <RealtimeNotificationListener />

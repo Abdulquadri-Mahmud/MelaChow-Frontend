@@ -19,55 +19,103 @@ export default function BottomBar() {
   const { cart } = useCart();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-      <div className="flex justify-around items-center py-2">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href;
-          const Icon = item.icon;
-          const isOrder = item.name === "Order";
+    <div className="fixed bottom-4 left-0 right-0 px-4 md:px-0 md:max-w-md md:mx-auto z-[9999]">
+      <motion.nav
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-gray-200/50 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[32px] px-2 py-3"
+      >
+        <div className="flex justify-between items-center relative">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            const Icon = item.icon;
+            const isOrder = item.name === "Order";
 
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className="relative flex flex-col items-center"
-            >
-              <motion.div
-                whileTap={{ scale: 0.9 }}
-                className={`flex flex-col items-center justify-center ${
-                  isOrder
-                    ? "bg-orange-500 text-white rounded-full w-10 h-10"
-                    : isActive
-                    ? "text-orange-500"
-                    : "text-gray-500 hover:text-orange-600"
-                }`}
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="relative flex-1 group"
               >
-                <Icon className={`w-6 h-6 ${isOrder ? "text-white" : ""}`} />
-              </motion.div>
-              <span
-                className={`text-xs font-medium mt-1 ${
-                  isOrder ? "text-orange-500" : ""
-                }`}
-              >
-                {item.name}
-              </span>
+                <div className="flex flex-col items-center justify-center py-1">
+                  <motion.div
+                    whileTap={{ scale: 0.85 }}
+                    whileHover={{ scale: 1.05 }}
+                    className="relative z-10"
+                  >
+                    {/* Active Background Pill (Subtle) */}
+                    {isActive && !isOrder && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute inset-0 -m-2 bg-orange-500/10 dark:bg-orange-500/20 rounded-2xl"
+                        transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+                      />
+                    )}
 
-              {/* Animated Cart Badge */}
-              {isOrder && cart.length > 0 && (
-                <motion.span
-                  key={cart.length} // triggers animation on cart change
-                  initial={{ scale: 0 }}
-                  animate={{ scale: [0, 1.4, 0.9, 1] }}
-                  transition={{ type: "keyframes", duration: 0.5 }}
-                  className="absolute -top-2 -right-2 bg-white text-orange-500 text-xs font-semibold px-2 py-0.5 rounded-full shadow-md"
-                >
-                  {cart.length}
-                </motion.span>
-              )}
-            </Link>
-          );
-        })}
-      </div>
+                    <div className={`flex flex-col items-center gap-1 transition-all duration-300 ${isOrder
+                        ? "-mt-10"
+                        : isActive
+                          ? "text-orange-500"
+                          : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
+                      }`}>
+                      {isOrder ? (
+                        <div className="relative">
+                          {/* Animated ring for Order button */}
+                          <motion.div
+                            animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.2, 0.5] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className="absolute -inset-2 bg-orange-500 rounded-full blur-md"
+                          />
+                          <div className="bg-gradient-to-tr from-orange-400 to-orange-600 p-3.5 rounded-full shadow-[0_8px_20px_rgba(249,115,22,0.4)] text-white relative z-20 hover:rotate-[10deg] transition-transform">
+                            <Icon size={24} strokeWidth={2.5} />
+                          </div>
+                        </div>
+                      ) : (
+                        <Icon
+                          size={22}
+                          strokeWidth={isActive ? 2.5 : 2}
+                          className="transition-all"
+                        />
+                      )}
+
+                      <span className={`text-[10px] font-black uppercase tracking-widest leading-none mt-1 transition-all ${isOrder
+                          ? "text-orange-600 translate-y-2 opacity-100"
+                          : isActive
+                            ? "opacity-100 translate-y-0"
+                            : "opacity-40 group-hover:opacity-70"
+                        }`}>
+                        {item.name}
+                      </span>
+                    </div>
+
+                    {/* Active Dot Selector */}
+                    {isActive && !isOrder && (
+                      <motion.div
+                        layoutId="activeDot"
+                        className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.8)]"
+                      />
+                    )}
+                  </motion.div>
+
+                  {/* Cart Badge - Refined */}
+                  {isOrder && cart.length > 0 && (
+                    <motion.div
+                      key={cart.length}
+                      initial={{ scale: 0, y: 10 }}
+                      animate={{ scale: 1, y: 0 }}
+                      className="absolute -top-10 right-[22%] z-30"
+                    >
+                      <div className="bg-white dark:bg-slate-900 text-orange-600 text-[10px] font-black min-w-[18px] h-[18px] flex items-center justify-center rounded-full shadow-lg ring-2 ring-orange-500/20 border border-orange-100 dark:border-orange-500/30 px-1">
+                        {cart.length}
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </motion.nav>
     </div>
   );
 }

@@ -35,10 +35,30 @@ export default function VendorBootstrapper({ children }) {
         if (!hasCheckedSession) return;
 
         // ✅ Redirect if not authenticated (since this is now ONLY used for protected routes)
-        if (!isAuthenticated && !isRedirecting) {
-            console.log("🔒 Unauthorized vendor access. Redirecting to login...");
+        if (!isAuthenticated) {
+            if (!isRedirecting) {
+                console.log("🔒 Unauthorized vendor access. Redirecting to login...");
+                setIsRedirecting(true);
+                router.replace("/vendors/auth/login");
+            }
+            return;
+        }
+
+        // ✅ Redirect to pending-approval if authenticated but NOT approved
+        const isApproved = vendorDetails?.vendor?.isApproved;
+        const isPendingPage = pathname === "/vendors/pending-approval";
+
+        if (!isApproved && !isPendingPage && !isRedirecting) {
+            console.log("⏳ Vendor not approved. Redirecting to pending page...");
             setIsRedirecting(true);
-            router.replace("/vendors/auth/login");
+            router.replace("/vendors/pending-approval");
+        }
+
+        // ✅ Redirect away from pending-approval if already approved
+        if (isApproved && isPendingPage && !isRedirecting) {
+            console.log("✅ Vendor approved. Moving to dashboard...");
+            setIsRedirecting(true);
+            router.replace("/vendors/dashboard");
         }
     }, [
         hasCheckedSession,

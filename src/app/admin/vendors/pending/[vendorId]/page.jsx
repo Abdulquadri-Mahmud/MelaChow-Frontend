@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import adminApi from "@/app/lib/adminApi";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
@@ -11,59 +11,54 @@ import {
     ArrowLeft, Store, User, Mail, Phone, MapPin,
     CheckCircle2, AlertCircle, XCircle, Clock, Loader2,
     ShieldCheck, Truck, Utensils, ChevronDown, ChevronUp,
-    TriangleAlert, CircleCheck, Info, Flag, Banknote, Globe
+    TriangleAlert, CircleCheck, Info, Flag, Banknote, Globe,
+    RefreshCw, Calendar, Smartphone, Building2, Map, CreditCard,
+    ExternalLink
 } from "lucide-react";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────
+// ─── Shared Components ──────────────────────────────────────────────────
 const formatDate = (d) => d
-    ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+    ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })
     : "—";
 
-function FieldRow({ label, value, required, children }) {
+function DetailRow({ label, value, icon: Icon, required, warning }) {
     const isEmpty = value === undefined || value === null || value === "" || (Array.isArray(value) && value.length === 0);
     return (
-        <div className="flex items-start justify-between py-3.5 border-b border-gray-50 last:border-0 gap-4">
-            <div className="flex items-center gap-2 shrink-0">
-                {required
-                    ? isEmpty
-                        ? <XCircle size={16} className="text-rose-500" />
-                        : <CircleCheck size={16} className="text-emerald-500" />
-                    : isEmpty
-                        ? <TriangleAlert size={16} className="text-amber-400" />
-                        : <CircleCheck size={16} className="text-emerald-400" />
-                }
-                <span className="text-sm font-semibold text-gray-700">{label}</span>
-                {required && <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Required</span>}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50/50 px-2 -mx-2 rounded-lg transition-colors">
+            <div className="flex items-center gap-2.5 mb-1 sm:mb-0">
+                <div className={`p-1.5 rounded-lg ${isEmpty ? "bg-slate-100 text-slate-400" : warning ? "bg-amber-50 text-amber-600" : "bg-slate-50 text-slate-500"}`}>
+                    {Icon ? <Icon size={14} /> : <div className="w-3.5 h-3.5" />}
+                </div>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{label}</span>
+                {required && <span className="text-[9px] font-black text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100 uppercase tracking-tighter">Required</span>}
             </div>
-            <div className="text-right">
-                {children || (
-                    <span className={`text-sm font-bold truncate ${isEmpty ? "text-gray-400 italic" : "text-gray-900"}`}>
-                        {isEmpty
-                            ? "Missing"
-                            : typeof value === "boolean"
-                                ? (value ? "Yes" : "No")
-                                : Array.isArray(value)
-                                    ? value.join(", ")
-                                    : String(value)
-                        }
-                    </span>
-                )}
+            <div className="flex items-center gap-2">
+                <span className={`text-xs font-black tracking-tight ${isEmpty ? "text-slate-300 italic" : warning ? "text-amber-700" : "text-slate-900"}`}>
+                    {isEmpty ? "MISSING" : typeof value === "boolean" ? (value ? "ENABLED" : "DISABLED") : Array.isArray(value) ? value.join(", ") : String(value)}
+                </span>
+                {!isEmpty && !warning && <CheckCircle2 size={12} className="text-emerald-500" />}
+                {warning && <TriangleAlert size={12} className="text-amber-500" />}
             </div>
         </div>
     );
 }
 
-function SectionCard({ icon: Icon, title, iconColor = "text-orange-600", iconBg = "bg-orange-100", children, badge }) {
+function SectionCard({ title, icon: Icon, children, badge, action }) {
     return (
-        <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden">
-            <div className="bg-gray-50 border-b border-gray-100 px-6 py-4 flex items-center gap-3">
-                <div className={`w-8 h-8 ${iconBg} rounded-xl flex items-center justify-center`}>
-                    <Icon className={iconColor} size={18} />
+        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-slate-50/80 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg flex items-center justify-center text-slate-600 shadow-sm">
+                        <Icon size={16} />
+                    </div>
+                    <h3 className="text-xs font-black text-slate-800 uppercase tracking-[0.15em]">{title}</h3>
                 </div>
-                <h2 className="font-black text-gray-900 uppercase text-sm tracking-widest">{title}</h2>
-                {badge && <span className="ml-auto">{badge}</span>}
+                <div className="flex items-center gap-2">
+                    {badge}
+                    {action}
+                </div>
             </div>
-            <div className="p-6">{children}</div>
+            <div className="p-4">{children}</div>
         </div>
     );
 }
@@ -74,58 +69,55 @@ export default function VendorReviewPage() {
 
     const [vendor, setVendor] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [isActioning, setIsActioning] = useState(false);
 
-    // Location state
     const [locState, setLocState] = useState("");
     const [locCity, setLocCity] = useState("");
     const [createLocation, setCreateLocation] = useState(false);
     const [locationHint, setLocationHint] = useState("");
-
-    // Reject modal
     const [rejectModal, setRejectModal] = useState({ show: false, reason: "" });
-
-    // Foods collapse
     const [foodsExpanded, setFoodsExpanded] = useState(false);
 
-    useEffect(() => {
-        const load = async () => {
-            try {
-                setLoading(true);
-                const data = await adminApi.getVendorById(vendorId);
-                const v = data.vendor || data;
-                setVendor(v);
-                if (v.locationStatus === "pending_review") {
-                    setLocState(v.requestedState || "");
-                    setLocCity(v.requestedCity || "");
-                }
-            } catch (err) {
-                toast.error("Failed to load vendor: " + err.message);
-            } finally {
-                setLoading(false);
+    const loadVendor = useCallback(async (isSilent = false) => {
+        try {
+            if (!isSilent) setLoading(true);
+            else setRefreshing(true);
+
+            const data = await adminApi.getVendorById(vendorId);
+            const v = data.vendor || data;
+            setVendor(v);
+
+            if (v.locationStatus === "pending_review") {
+                setLocState(prev => prev || v.requestedState || "");
+                setLocCity(prev => prev || v.requestedCity || "");
             }
-        };
-        if (vendorId) load();
+            if (isSilent) toast.success("Refreshed");
+        } catch (err) {
+            toast.error("Failed to load vendor: " + err.message);
+        } finally {
+            setLoading(false);
+            setRefreshing(false);
+        }
     }, [vendorId]);
 
-    // ── Blocking guard ─────────────────────────────────────────────────────
+    useEffect(() => {
+        if (vendorId) loadVendor();
+    }, [vendorId, loadVendor]);
+
     const blockingIssues = vendor ? [
-        !vendor.name && "Owner name is missing",
-        !vendor.email && "Email address is missing",
-        !vendor.phone && "Phone number is missing",
-        !vendor.storeName && "Store name is missing",
-        !vendor.address?.street && "Street address is missing",
-        vendor.suspended && "Vendor is currently suspended",
-        vendor.deletedAt && "Vendor account has been soft-deleted",
-        (vendor.locationStatus === "pending_review" && (!locState.trim() || !locCity.trim()))
-        && "Location pending — enter a valid state and city",
-        vendor.locationStatus === null && !vendor.address?.street
-        && "No address at all — cannot approve",
+        !vendor.name && "Legal name missing",
+        !vendor.email && "Email contact missing",
+        !vendor.phone && "Mobile number missing",
+        !vendor.storeName && "Commercial name missing",
+        !vendor.address?.street && "Primary address missing",
+        vendor.suspended && "Account under suspension",
+        vendor.deletedAt && "Account marked for deletion",
+        (vendor.locationStatus === "pending_review" && (!locState.trim() || !locCity.trim())) && "Geography unmapped — Resolution required",
     ].filter(Boolean) : [];
 
     const canApprove = blockingIssues.length === 0;
 
-    // ── Handlers ──────────────────────────────────────────────────────────
     const handleApprove = async () => {
         if (!canApprove) return;
         setIsActioning(true);
@@ -135,12 +127,12 @@ export default function VendorReviewPage() {
                 ? { state: locState.trim(), city: locCity.trim(), createLocation }
                 : {};
             await adminApi.approveVendor(vendorId, body);
-            toast.success(`Vendor approved! A confirmation email was sent to ${vendor.email}.`);
+            toast.success("Application approved successfully.");
             router.push("/admin/vendors/pending");
         } catch (err) {
             const raw = err.message || "";
-            if (raw.toLowerCase().includes("location") || raw.toLowerCase().includes("hint")) {
-                setLocationHint("Location not found in database. Check the state/city spelling, or enable 'Create location' to add it.");
+            if (raw.toLowerCase().includes("location")) {
+                setLocationHint("GIS Error: Location not mapped. Confirm spelling or enable 'Auto-Create'.");
             } else {
                 toast.error(raw || "Approval failed");
             }
@@ -150,10 +142,11 @@ export default function VendorReviewPage() {
     };
 
     const handleReject = async () => {
+        if (!rejectModal.reason.trim()) return toast.error("Reason required for rejection reporting.");
         setIsActioning(true);
         try {
             await adminApi.rejectVendor(vendorId, rejectModal.reason);
-            toast.success(`Vendor rejected. A notification email was sent to ${vendor.email}.`);
+            toast.success("Application rejected. Vendor notified.");
             router.push("/admin/vendors/pending");
         } catch (err) {
             toast.error(err.message || "Rejection failed");
@@ -163,403 +156,310 @@ export default function VendorReviewPage() {
         }
     };
 
-    // ── Loading state ─────────────────────────────────────────────────────
     if (loading) return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="flex items-center justify-center min-h-[60vh]">
-                    <div className="text-center space-y-4">
-                        <Loader2 size={48} className="text-orange-500 animate-spin mx-auto" />
-                        <p className="font-black text-[10px] uppercase tracking-widest text-gray-400">Loading Vendor Profile...</p>
+                <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+                    <div className="relative">
+                        <div className="w-16 h-16 border-4 border-slate-100 rounded-full" />
+                        <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin absolute inset-0" />
                     </div>
+                    <p className="font-black text-[10px] uppercase tracking-widest text-slate-400">Initializing Terminal...</p>
                 </div>
             </AdminDashboardLayout>
         </AdminProtectedRoute>
     );
-
-    if (!vendor) return (
-        <AdminProtectedRoute>
-            <AdminDashboardLayout>
-                <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
-                    <AlertCircle size={48} className="text-gray-300" />
-                    <p className="font-semibold text-gray-500">Vendor not found.</p>
-                    <button onClick={() => router.back()} className="text-orange-500 font-bold text-sm hover:underline">← Go back</button>
-                </div>
-            </AdminDashboardLayout>
-        </AdminProtectedRoute>
-    );
-
-    const foods = vendor.foods || [];
 
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="max-w-5xl mx-auto space-y-6">
-
-                    {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="max-w-[1600px] mx-auto space-y-6">
+                    {/* Integrated Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => router.back()}
-                                className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-xl text-gray-400 hover:text-gray-900 transition-all active:scale-95"
+                                className="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-slate-900 transition-all shadow-sm active:scale-95"
                             >
-                                <ArrowLeft size={20} />
+                                <ArrowLeft size={18} />
                             </button>
                             <div>
-                                <p className="text-[11px] font-black text-orange-500 uppercase tracking-widest mb-0.5">Pending Approval → Review</p>
-                                <h1 className="text-3xl font-black text-gray-900">{vendor.storeName || "Unnamed Vendor"}</h1>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Case ID:</span>
+                                    <code className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono uppercase">{vendorId}</code>
+                                </div>
+                                <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                                    {vendor.storeName || "Vendor Detail Review"}
+                                    {vendor.verified && <CheckCircle2 size={20} className="text-emerald-500" />}
+                                </h1>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <span className="flex items-center gap-1.5 px-4 py-2 bg-amber-50 text-amber-700 font-black text-xs uppercase tracking-widest rounded-xl border border-amber-100">
-                                <Clock size={16} /> Pending Approval
+
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => loadVendor(true)}
+                                disabled={refreshing || isActioning}
+                                className="h-11 px-4 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-all flex items-center gap-2 text-xs font-bold active:scale-95 disabled:opacity-50 shadow-sm"
+                            >
+                                <RefreshCw size={14} className={refreshing ? "animate-spin text-orange-500" : ""} />
+                                {refreshing ? "Syncing..." : "Refresh Case"}
+                            </button>
+                            <span className="h-11 px-5 flex items-center gap-2 bg-amber-50 text-amber-700 font-black text-[10px] uppercase tracking-widest rounded-xl border border-amber-200/50 shadow-sm shadow-amber-500/5">
+                                <Clock size={14} className="animate-pulse" /> Pending Review
                             </span>
-                            {vendor.locationStatus === "pending_review" && (
-                                <span className="flex items-center gap-1.5 px-4 py-2 bg-rose-50 text-rose-700 font-black text-xs uppercase tracking-widest rounded-xl border border-rose-100">
-                                    <MapPin size={16} /> Location Pending
-                                </span>
-                            )}
                         </div>
                     </div>
 
-                    {/* Blocking Banner */}
-                    {blockingIssues.length > 0 && (
-                        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5 flex gap-4">
-                            <AlertCircle className="text-rose-500 mt-0.5 shrink-0" size={22} />
-                            <div>
-                                <p className="font-black text-sm text-rose-800 uppercase tracking-widest mb-2">Cannot Approve — Issues Found</p>
-                                <ul className="space-y-1">
-                                    {blockingIssues.map((issue, i) => (
-                                        <li key={i} className="text-sm font-semibold text-rose-700 flex items-center gap-2">
-                                            <span className="w-1.5 h-1.5 bg-rose-400 rounded-full" />{issue}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-                    )}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        {/* Main Info Stream */}
+                        <div className="lg:col-span-8 space-y-6">
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div className="lg:col-span-2 space-y-5">
-
-                            {/* Section A — Identity */}
-                            {vendor.suspended && (
-                                <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 font-semibold text-sm">
-                                    <TriangleAlert size={18} className="shrink-0 text-amber-500" />
-                                    ⚠ This vendor is currently <strong>suspended</strong>. Investigate before approving.
-                                </div>
-                            )}
-                            {vendor.deletedAt && (
-                                <div className="flex items-center gap-3 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-800 font-semibold text-sm">
-                                    <XCircle size={18} className="shrink-0 text-rose-500" />
-                                    ⛔ This vendor soft-deleted their account on {formatDate(vendor.deletedAt)}.
-                                </div>
-                            )}
-
-                            <SectionCard icon={User} title="Identity & Contact" iconColor="text-blue-600" iconBg="bg-blue-100">
-                                <FieldRow label="Owner Name" value={vendor.name} required />
-                                <FieldRow label="Email Address" value={vendor.email} required />
-                                <FieldRow label="Phone Number" value={vendor.phone} required />
-                                <FieldRow label="Store Name" value={vendor.storeName} required />
-                                <FieldRow label="Street Address" value={vendor.address?.street} required />
-                            </SectionCard>
-
-                            {/* Section B — Store Info */}
-                            <SectionCard icon={Store} title="Store Information" iconColor="text-orange-600" iconBg="bg-orange-100">
-                                {/* Logo */}
-                                <div className="flex items-center gap-4 mb-4 pb-4 border-b border-gray-50">
-                                    <div className="w-20 h-20 bg-gray-100 rounded-2xl overflow-hidden flex items-center justify-center text-gray-400 relative border border-gray-200 shrink-0">
-                                        {vendor.logo
-                                            ? <img src={vendor.logo} alt="" className="w-full h-full object-cover" />
-                                            : <Store size={28} />
-                                        }
-                                        {!vendor.logo && (
-                                            <div className="absolute bottom-0 right-0 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center border-2 border-white">
-                                                <TriangleAlert size={9} className="text-white" />
-                                            </div>
-                                        )}
+                            {/* Blocking Notifications */}
+                            {blockingIssues.length > 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="bg-rose-50/50 border border-rose-200 rounded-2xl p-4 flex gap-4"
+                                >
+                                    <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-rose-600 shrink-0">
+                                        <TriangleAlert size={20} />
                                     </div>
                                     <div>
-                                        {!vendor.logo && <p className="text-xs font-bold text-amber-600 mb-1">⚠ No logo uploaded</p>}
-                                        <p className="text-sm font-semibold text-gray-700 leading-relaxed">{vendor.storeDescription || <span className="italic text-gray-400">No description</span>}</p>
-                                    </div>
-                                </div>
-
-                                <FieldRow label="Cuisine Types" value={vendor.cuisineTypes} />
-                                <FieldRow label="Accepts Delivery" value={vendor.acceptsDelivery} />
-
-                                {/* Delivery Mode — prominent badge */}
-                                <div className="flex items-center justify-between py-3.5 border-b border-gray-50">
-                                    <span className="text-sm font-semibold text-gray-700">Delivery Managed By</span>
-                                    {vendor.deliveryManagedBy === "vendor"
-                                        ? <span className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-xl text-xs font-black uppercase tracking-widest border border-blue-100"><Utensils size={13} /> Vendor Manages Riders (Cash Pay)</span>
-                                        : vendor.deliveryManagedBy === "admin"
-                                            ? <span className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 rounded-xl text-xs font-black uppercase tracking-widest border border-purple-100"><Truck size={13} /> GrubDash Manages Riders (Wallet Pay)</span>
-                                            : <span className="text-sm text-gray-400 italic font-medium">Not set</span>
-                                    }
-                                </div>
-
-                                {/* Opening Hours */}
-                                <div className="mt-4">
-                                    <p className="text-[11px] font-black text-gray-400 uppercase tracking-widest mb-3">Opening Hours</p>
-                                    {vendor.openingHours && Object.keys(vendor.openingHours).length > 0 ? (
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                            {Object.entries(vendor.openingHours).map(([day, h]) => (
-                                                <div key={day} className={`p-2.5 rounded-xl border text-xs ${h?.closed ? "bg-gray-50 border-gray-100 text-gray-400" : "bg-emerald-50 border-emerald-100 text-emerald-700"}`}>
-                                                    <p className="font-black uppercase text-[9px] tracking-widest mb-0.5 capitalize">{day}</p>
-                                                    {h?.closed ? "Closed" : <span className="font-bold">{h?.open} – {h?.close}</span>}
+                                        <p className="font-black text-xs text-rose-800 uppercase tracking-wider mb-2">Compliance Check Failed</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+                                            {blockingIssues.map((issue, i) => (
+                                                <div key={i} className="text-[11px] font-bold text-rose-700 flex items-center gap-2">
+                                                    <div className="w-1 h-1 bg-rose-400 rounded-full" /> {issue}
                                                 </div>
                                             ))}
                                         </div>
-                                    ) : (
-                                        <p className="text-sm text-amber-600 font-semibold flex items-center gap-2"><TriangleAlert size={15} /> Hours not configured</p>
-                                    )}
-                                </div>
-                            </SectionCard>
-
-                            {/* Section C — Location Resolution */}
-                            <div className={`bg-white border rounded-3xl overflow-hidden ${vendor.locationStatus === "pending_review" ? "border-rose-200" : "border-gray-200"}`}>
-                                <div className={`border-b px-6 py-4 flex items-center gap-3 ${vendor.locationStatus === "pending_review" ? "bg-rose-50 border-rose-100" : "bg-gray-50 border-gray-100"}`}>
-                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${vendor.locationStatus === "pending_review" ? "bg-rose-100" : "bg-emerald-100"}`}>
-                                        <MapPin className={vendor.locationStatus === "pending_review" ? "text-rose-600" : "text-emerald-600"} size={18} />
                                     </div>
-                                    <h2 className="font-black text-gray-900 uppercase text-sm tracking-widest">Location Resolution</h2>
-                                </div>
-                                <div className="p-6">
-                                    {vendor.locationStatus === "approved" && (
-                                        <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-700 font-semibold text-sm">
-                                            <CircleCheck size={18} className="shrink-0" />
-                                            ✅ Location verified — {[vendor.address?.city, vendor.address?.state].filter(Boolean).join(", ") || "Confirmed in database"}
-                                        </div>
-                                    )}
+                                </motion.div>
+                            )}
 
-                                    {!vendor.locationStatus && !vendor.address?.street && (
-                                        <div className="flex items-center gap-3 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 font-semibold text-sm">
-                                            <XCircle size={18} className="shrink-0" />
-                                            ❌ Vendor registered with no address. Cannot approve — reject and ask them to resubmit with a full address.
-                                        </div>
-                                    )}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Identity */}
+                                <SectionCard title="Vendor Identity" icon={User}>
+                                    <DetailRow label="Legal Name" value={vendor.name} icon={User} required />
+                                    <DetailRow label="Primary Email" value={vendor.email} icon={Mail} required />
+                                    <DetailRow label="Mobile Line" value={vendor.phone} icon={Smartphone} required />
+                                    <DetailRow label="Brand Name" value={vendor.storeName} icon={Store} required />
+                                </SectionCard>
 
-                                    {!vendor.locationStatus && vendor.address?.street && (
-                                        <div className="flex items-center gap-3 p-4 bg-gray-50 border border-gray-100 rounded-2xl text-gray-600 font-semibold text-sm">
-                                            <Info size={18} className="shrink-0" />
-                                            Address on file: {vendor.address.street}. Location system did not flag any issues.
-                                        </div>
-                                    )}
-
-                                    {vendor.locationStatus === "pending_review" && (
-                                        <div className="space-y-4">
-                                            <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 text-sm font-semibold">
-                                                <TriangleAlert size={18} className="shrink-0 mt-0.5 text-amber-500" />
-                                                <div>
-                                                    ⚠ This vendor's location was not found in the GrubDash database. They requested: <strong>{vendor.requestedState}</strong> / <strong>{vendor.requestedCity}</strong>
-                                                    <br />Review and confirm the correct location before approving.
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div>
-                                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest block mb-1.5">State</label>
-                                                    <input
-                                                        value={locState}
-                                                        onChange={e => setLocState(e.target.value)}
-                                                        placeholder="e.g. Lagos"
-                                                        className="w-full h-12 px-4 bg-white border border-amber-200 focus:border-amber-500 rounded-xl outline-none font-semibold text-sm transition-colors"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest block mb-1.5">City</label>
-                                                    <input
-                                                        value={locCity}
-                                                        onChange={e => setLocCity(e.target.value)}
-                                                        placeholder="e.g. Ikeja"
-                                                        className="w-full h-12 px-4 bg-white border border-amber-200 focus:border-amber-500 rounded-xl outline-none font-semibold text-sm transition-colors"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <label className="flex items-center gap-3 cursor-pointer">
-                                                <div
-                                                    onClick={() => setCreateLocation(!createLocation)}
-                                                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 ${createLocation ? "bg-amber-500 border-amber-500" : "border-gray-300 hover:border-amber-400"}`}
-                                                >
-                                                    {createLocation && <CheckCircle2 size={14} className="text-white" strokeWidth={3} />}
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-sm text-gray-800">Create this location in the database if it doesn't exist</p>
-                                                    <p className="text-xs text-gray-500">Maps to <code className="bg-gray-100 px-1 rounded">createLocation: true</code> in the approve request</p>
-                                                </div>
-                                            </label>
-
-                                            {locationHint && (
-                                                <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl text-sm font-semibold text-rose-700">
-                                                    <Info size={16} className="shrink-0" /> {locationHint}
-                                                </div>
-                                            )}
-
-                                            <div className="grid grid-cols-2 gap-2 pt-1">
-                                                <div className="bg-gray-50 rounded-xl p-3">
-                                                    <span className="font-black text-gray-400 uppercase tracking-widest text-[9px] block mb-1">Requested State</span>
-                                                    <span className="font-bold text-sm text-gray-700">{vendor.requestedState || "—"}</span>
-                                                </div>
-                                                <div className="bg-gray-50 rounded-xl p-3">
-                                                    <span className="font-black text-gray-400 uppercase tracking-widest text-[9px] block mb-1">Requested City</span>
-                                                    <span className="font-bold text-sm text-gray-700">{vendor.requestedCity || "—"}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
+                                {/* Location */}
+                                <SectionCard title="Geographic Data" icon={MapPin}>
+                                    <DetailRow label="Street Address" value={vendor.address?.street} icon={Building2} required />
+                                    <DetailRow label="Post Code" value={vendor.address?.postalCode} icon={Map} />
+                                    <DetailRow label="Lat / Lng" value={vendor.address?.coordinates?.coordinates?.join(", ")} icon={Globe} />
+                                    <DetailRow label="Current Status" value={vendor.locationStatus?.replace("_", " ")} icon={Flag} warning={vendor.locationStatus === "pending_review"} />
+                                </SectionCard>
                             </div>
 
-                            {/* Section D — Foods (informational) */}
-                            <SectionCard icon={Utensils} title="Menu Items" iconColor="text-slate-600" iconBg="bg-slate-100"
-                                badge={<span className="px-3 py-1 bg-slate-100 text-slate-600 font-black text-xs rounded-lg uppercase tracking-widest">Informational</span>}
-                            >
-                                <div className="flex items-center justify-between mb-4">
-                                    <p className="font-bold text-gray-700 text-sm">{foods.length} item{foods.length !== 1 ? "s" : ""} linked to this vendor</p>
-                                    {foods.length > 0 && (
-                                        <button
-                                            onClick={() => setFoodsExpanded(!foodsExpanded)}
-                                            className="flex items-center gap-1 text-xs font-black text-gray-400 hover:text-gray-700 transition-colors uppercase tracking-widest"
-                                        >
-                                            {foodsExpanded ? <><ChevronUp size={14} /> Hide</> : <><ChevronDown size={14} /> Show all</>}
-                                        </button>
-                                    )}
-                                </div>
-                                {foods.length === 0 ? (
-                                    <p className="text-sm text-gray-400 font-medium italic">No food items yet.</p>
-                                ) : (
-                                    <AnimatePresence>
-                                        {foodsExpanded && (
-                                            <motion.div
-                                                initial={{ height: 0, opacity: 0 }}
-                                                animate={{ height: "auto", opacity: 1 }}
-                                                exit={{ height: 0, opacity: 0 }}
-                                                className="overflow-hidden"
-                                            >
-                                                <div className="space-y-2">
-                                                    {foods.map(f => (
-                                                        <div key={f._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                                                            <span className="text-sm font-semibold text-gray-800">{f.name}</span>
-                                                            <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg ${f.available || f.isAvailable ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"}`}>
-                                                                {f.available || f.isAvailable ? "Available" : "Unavailable"}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </motion.div>
+                            {/* Location Resolution Module */}
+                            {vendor.locationStatus === "pending_review" && (
+                                <SectionCard
+                                    title="Geography Mapping Resolution"
+                                    icon={MapPin}
+                                    badge={<span className="text-[9px] font-black bg-rose-500 text-white px-2 py-0.5 rounded animate-pulse">GIS ACTION REQUIRED</span>}
+                                >
+                                    <div className="space-y-4">
+                                        <p className="text-[11px] font-bold text-slate-500 leading-relaxed uppercase tracking-wide border-l-2 border-orange-500 pl-3">
+                                            The automated mapping system failed to resolve requested location:
+                                            <span className="text-slate-900 block mt-1 font-black">"{vendor.requestedState} / {vendor.requestedCity}"</span>
+                                        </p>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Target Administrative State</label>
+                                                <input
+                                                    value={locState}
+                                                    onChange={e => setLocState(e.target.value)}
+                                                    className="w-full h-11 px-4 bg-white border border-slate-200 focus:border-orange-500 rounded-xl outline-none font-bold text-xs transition-all shadow-sm"
+                                                    placeholder="e.g. Lagos"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Target Logical City</label>
+                                                <input
+                                                    value={locCity}
+                                                    onChange={e => setLocCity(e.target.value)}
+                                                    className="w-full h-11 px-4 bg-white border border-slate-200 focus:border-orange-500 rounded-xl outline-none font-bold text-xs transition-all shadow-sm"
+                                                    placeholder="e.g. Victoria Island"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <label className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
+                                            <input
+                                                type="checkbox"
+                                                checked={createLocation}
+                                                onChange={e => setCreateLocation(e.target.checked)}
+                                                className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500"
+                                            />
+                                            <div className="flex-1">
+                                                <p className="text-[11px] font-black text-slate-900">AUTO-PROVISION GEOGRAPHY</p>
+                                                <p className="text-[10px] text-slate-500 font-medium tracking-tight">Add new State/City to system registry if not found.</p>
+                                            </div>
+                                        </label>
+
+                                        {locationHint && (
+                                            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-[10px] font-bold text-rose-700 flex items-center gap-2">
+                                                <Info size={14} className="shrink-0" /> {locationHint}
+                                            </div>
                                         )}
-                                    </AnimatePresence>
-                                )}
-                            </SectionCard>
+                                    </div>
+                                </SectionCard>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Operations */}
+                                <SectionCard title="Commercial Profile" icon={Store}>
+                                    <div className="flex items-center gap-4 mb-4 border-b border-slate-100 pb-4">
+                                        <div className="w-16 h-16 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shrink-0 flex items-center justify-center">
+                                            {vendor.logo ? (
+                                                <img src={vendor.logo} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Store size={24} className="text-slate-300" />
+                                            )}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-1">Company Description</p>
+                                            <p className="text-xs font-bold text-slate-700 line-clamp-2 leading-relaxed italic">
+                                                "{vendor.storeDescription || "No commercial summary provided."}"
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <DetailRow label="Cuisine Types" value={vendor.cuisineTypes} icon={Utensils} />
+                                    <DetailRow label="Delivery Ready" value={vendor.acceptsDelivery} icon={Truck} />
+                                    <DetailRow label="Fulfillment" value={vendor.deliveryManagedBy === 'admin' ? "GRUBDASH" : "SELF-MANAGED"} icon={Truck} warning={!vendor.deliveryManagedBy} />
+                                </SectionCard>
+
+                                {/* Banking */}
+                                <SectionCard title="Payout Infrastructure" icon={Banknote}>
+                                    <DetailRow label="Financial Institution" value={vendor.payoutDetails?.bankName} icon={Building2} />
+                                    <DetailRow label="A/C Designation" value={vendor.payoutDetails?.accountName} icon={User} />
+                                    <DetailRow label="Account Serial" value={vendor.payoutDetails?.accountNumber} icon={CreditCard} />
+                                    <DetailRow label="Payout State" value={vendor.payoutDetails?.payoutEnabled} icon={CheckCircle2} />
+                                </SectionCard>
+                            </div>
+
                         </div>
 
-                        {/* Right — Status & Actions (sticky) */}
-                        <div className="space-y-5">
-                            <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden sticky top-20">
-                                <div className="bg-gray-50 border-b border-gray-100 px-6 py-4">
-                                    <h2 className="font-black text-gray-900 uppercase text-sm tracking-widest">Account Status</h2>
-                                </div>
-                                <div className="p-6 space-y-3">
-                                    {[
-                                        { label: "Verified", ok: vendor.verified, val: vendor.verified ? "Yes" : "No" },
-                                        { label: "Active", ok: vendor.active, val: vendor.active ? "Yes" : "No" },
-                                        { label: "Suspended", ok: !vendor.suspended, val: vendor.suspended ? "⚠ Yes" : "No" },
-                                        { label: "Deleted", ok: !vendor.deletedAt, val: vendor.deletedAt ? "⛔ Yes" : "No" },
-                                    ].map(item => (
-                                        <div key={item.label} className="flex justify-between items-center">
-                                            <span className="text-sm font-semibold text-gray-600">{item.label}</span>
-                                            <span className={`text-xs font-black px-2.5 py-1 rounded-lg uppercase tracking-widest ${item.ok ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
-                                                {item.val}
-                                            </span>
-                                        </div>
-                                    ))}
-                                    <div className="flex justify-between items-center pt-1 border-t border-gray-50">
-                                        <span className="text-sm font-semibold text-gray-600">Registered</span>
-                                        <span className="text-sm font-bold text-gray-900">{formatDate(vendor.createdAt)}</span>
+                        {/* Workflow Actions Side Panel */}
+                        <div className="lg:col-span-4 space-y-6">
+
+                            {/* Status Terminal */}
+                            <div className="bg-slate-900 rounded-2xl p-6 shadow-2xl space-y-6 sticky top-4">
+                                <div>
+                                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Workflow Terminal</h3>
+                                    <div className="space-y-3">
+                                        {[
+                                            { label: "Account Email Verified", ok: vendor.verified },
+                                            { label: "Document Compliance", ok: !!vendor.logo && !!vendor.payoutDetails?.accountNumber },
+                                            { label: "Geography Resolved", ok: vendor.locationStatus !== "pending_review" && !!vendor.address?.street },
+                                            { label: "Administrative Lock", ok: !vendor.suspended },
+                                        ].map((step, i) => (
+                                            <div key={i} className="flex items-center justify-between text-[11px]">
+                                                <span className="text-slate-400 font-bold">{step.label}</span>
+                                                {step.ok ? (
+                                                    <CheckCircle2 size={14} className="text-emerald-500" />
+                                                ) : (
+                                                    <XCircle size={14} className="text-rose-500" strokeWidth={3} />
+                                                )}
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
 
-                                <div className="px-6 pb-6 space-y-3">
+                                <div className="pt-6 border-t border-slate-800 space-y-4">
                                     <button
                                         disabled={!canApprove || isActioning}
                                         onClick={handleApprove}
-                                        title={!canApprove ? blockingIssues[0] : "Approve vendor"}
-                                        className={`w-full h-14 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 ${canApprove
-                                            ? "bg-emerald-500 text-white hover:bg-emerald-600"
-                                            : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                        className={`w-full h-12 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 ${canApprove
+                                            ? "bg-orange-500 text-white hover:bg-orange-600 shadow-lg shadow-orange-500/20"
+                                            : "bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700"
                                             }`}
                                     >
-                                        {isActioning ? <Loader2 size={20} className="animate-spin" /> : <ShieldCheck size={20} />}
-                                        Approve Vendor
+                                        {isActioning ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
+                                        Finalize Approval
                                     </button>
+
                                     <button
                                         disabled={isActioning}
                                         onClick={() => setRejectModal({ show: true, reason: "" })}
-                                        className="w-full h-14 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100"
+                                        className="w-full h-12 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 border border-rose-500/30 text-rose-500 hover:bg-rose-500/5 transition-all"
                                     >
-                                        <XCircle size={20} /> Reject Vendor
+                                        <XCircle size={18} /> Decline Application
                                     </button>
+                                </div>
+
+                                <div className="text-center">
+                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Operator: System Administrator</p>
+                                    <p className="text-[9px] text-slate-700 font-mono mt-1">v.2.0.4-audit</p>
                                 </div>
                             </div>
 
-                            {/* Payout */}
-                            <SectionCard icon={Banknote} title="Payout" iconColor="text-green-600" iconBg="bg-green-100"
-                                badge={<span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Informational</span>}
-                            >
-                                <FieldRow label="Bank Name" value={vendor.payoutDetails?.bankName} />
-                                <FieldRow label="Account No." value={vendor.payoutDetails?.accountNumber} />
-                                <FieldRow label="Payout Enabled" value={vendor.payoutDetails?.payoutEnabled} />
+                            {/* Stats Detail */}
+                            <SectionCard title="Audit History" icon={Calendar}>
+                                <DetailRow label="Created On" value={formatDate(vendor.createdAt)} icon={Calendar} />
+                                <DetailRow label="Last Modifier" value={formatDate(vendor.updatedAt)} icon={Clock} />
+                                <DetailRow label="Products Count" value={vendor.foods?.length || 0} icon={Utensils} />
+                                <DetailRow label="System Status" value={vendor.active ? "NOMINAL" : "DORMANT"} icon={ShieldCheck} />
                             </SectionCard>
+
                         </div>
+
                     </div>
                 </div>
 
-                {/* Reject Modal */}
+                {/* Reject Confirmation Modal */}
                 <AnimatePresence>
                     {rejectModal.show && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                             <motion.div
-                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
                                 onClick={() => !isActioning && setRejectModal({ show: false, reason: "" })}
-                                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+                                className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
                             />
                             <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                initial={{ opacity: 0, scale: 0.95, y: 10 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-md bg-white rounded-[40px] overflow-hidden"
+                                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                                className="relative w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl shadow-black/50"
                             >
-                                <div className="p-10">
-                                    <div className="w-20 h-20 bg-rose-50 rounded-[32px] flex items-center justify-center mx-auto mb-6">
-                                        <XCircle className="text-rose-500" size={40} />
+                                <div className="p-8">
+                                    <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mx-auto mb-6 text-rose-500">
+                                        <XCircle size={32} />
                                     </div>
-                                    <h3 className="text-2xl font-black text-slate-900 uppercase text-center mb-2 tracking-tight">Reject Vendor</h3>
-                                    <p className="text-gray-500 font-medium text-center mb-6 text-sm leading-relaxed">
-                                        State the reason for rejecting <strong>{vendor.storeName}</strong>. This will be emailed to the vendor.
+                                    <h3 className="text-xl font-black text-slate-900 text-center mb-2 uppercase tracking-tight">Revoke Application</h3>
+                                    <p className="text-slate-500 font-medium text-center mb-6 text-xs leading-relaxed max-w-sm mx-auto uppercase tracking-wide">
+                                        Specify the exact deficit in this application. The vendor will receive these notes via official communication.
                                     </p>
+
                                     <textarea
                                         autoFocus
                                         value={rejectModal.reason}
                                         onChange={e => setRejectModal(prev => ({ ...prev, reason: e.target.value }))}
-                                        placeholder="e.g. Invalid documents, location outside service area..."
-                                        className="w-full min-h-[100px] p-5 bg-gray-50 border border-transparent focus:border-rose-400 focus:bg-white rounded-3xl outline-none font-semibold resize-none text-sm mb-6 transition-all"
+                                        placeholder="e.g. Identity documents are unreadable; Payout account is closed; Unauthorized service area..."
+                                        className="w-full min-h-[120px] p-4 bg-slate-50 border border-slate-200 focus:border-rose-500 focus:bg-white rounded-2xl outline-none font-bold text-xs resize-none mb-6 transition-all"
                                     />
-                                    <div className="grid grid-cols-2 gap-4">
+
+                                    <div className="flex gap-3">
                                         <button
                                             disabled={isActioning}
                                             onClick={() => setRejectModal({ show: false, reason: "" })}
-                                            className="h-14 rounded-3xl bg-gray-100 text-gray-500 font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition-all"
+                                            className="flex-1 h-12 rounded-xl bg-slate-100 text-slate-500 font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all"
                                         >
-                                            Cancel
+                                            Discard Action
                                         </button>
                                         <button
-                                            disabled={isActioning}
+                                            disabled={isActioning || !rejectModal.reason.trim()}
                                             onClick={handleReject}
-                                            className="h-14 rounded-3xl bg-rose-500 text-white font-black text-sm uppercase tracking-widest hover:bg-rose-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                            className="flex-[2] h-12 rounded-xl bg-rose-600 text-white font-black text-[10px] uppercase tracking-widest hover:bg-rose-700 transition-all shadow-lg shadow-rose-600/20 disabled:opacity-50"
                                         >
-                                            {isActioning ? <Loader2 size={20} className="animate-spin" /> : "Confirm Reject"}
+                                            {isActioning ? <Loader2 size={16} className="animate-spin" /> : "Confirm Decline"}
                                         </button>
                                     </div>
                                 </div>

@@ -152,7 +152,7 @@ const User_Profile = ({ userData, isLoading }) => {
       {/* Profile Hero / Header */}
       <section className="relative p-6 pt-10 text-center flex flex-col items-center">
         {/* Background Decor */}
-        <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-orange-50/50 to-transparent pointer-events-none -z-10" />
+        <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-orange-500/5 dark:from-orange-500/10 to-transparent pointer-events-none -z-10" />
 
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}

@@ -15,7 +15,7 @@ export default function FoodList() {
   const [error, setError] = useState(null);
   const [width, setWidth] = useState(0);
   const scrollRef = useRef(null);
-  const {baseUrl} = useApi();
+  const { baseUrl } = useApi();
 
   // ✅ Fetch foods from API
   useEffect(() => {
@@ -29,18 +29,18 @@ export default function FoodList() {
         // console.log("API response data:", data?.data);
 
         setFoods(data?.data || []);
-    } catch (err) {
+      } catch (err) {
         console.error("Error fetching foods:", err);
         setError("Failed to load foods. Please try again later.");
-    } finally {
+      } finally {
         setIsLoading(false);
-    }
-};
+      }
+    };
 
-fetchFoods();
-}, []);
+    fetchFoods();
+  }, []);
 
-// console.log("Fetched foods:", foods);
+  // console.log("Fetched foods:", foods);
 
   // ✅ Group foods by category
   const foodsByCategory = useMemo(() => {
@@ -73,8 +73,8 @@ fetchFoods();
   return (
     <div className="space-y-3 flex-1 mt-2">
       {Object.entries(foodsByCategory).map(([category, foods]) => (
-        <div key={category} className="space-y-3 bg-white md:p-3 p-2 rounded-xl">
-          <h2 className="text-lg font-semibold text-gray-800">{category}</h2>
+        <div key={category} className="space-y-3 bg-white dark:bg-slate-900 md:p-3 p-2 rounded-xl border border-gray-100 dark:border-slate-800">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">{category}</h2>
 
           <motion.div ref={scrollRef} className="cursor-grab active:cursor-grabbing overflow-x-auto no-scrollbar snap-x snap-mandatory scroll" whileTap={{ cursor: "grabbing" }}>
             <motion.div drag="x" dragConstraints={{ right: 0, left: -width }} dragElastic={0.15} className="flex gap-4">
@@ -89,7 +89,7 @@ fetchFoods();
                     boxShadow: "0 8px 20px rgba(0,0,0,0.15)",
                   }}
                   transition={{ duration: 0.25 }}
-                  className="bg-white p-2 rounded-md shadow-md min-w-[250px] cursor-pointer snap-start"
+                  className="bg-white dark:bg-slate-800 p-2 rounded-md shadow-md min-w-[250px] cursor-pointer snap-start border border-gray-50 dark:border-slate-700"
                   onClick={() => router.push(`/food-details/${food._id}`)}
                 >
                   {/* Image */}
@@ -100,11 +100,10 @@ fetchFoods();
                       className="w-full h-32 object-cover rounded-md"
                     />
                     <span
-                      className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full ${
-                        food.available
+                      className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full ${food.available
                           ? "bg-green-500 text-white"
                           : "bg-gray-400 text-white"
-                      }`}
+                        }`}
                     >
                       {food.available ? "Available" : "Unavailable"}
                     </span>
@@ -112,10 +111,10 @@ fetchFoods();
 
                   {/* Details */}
                   <div className="mt-2">
-                    <h3 className="truncate text-md font-semibold text-gray-800">
+                    <h3 className="truncate text-md font-semibold text-gray-800 dark:text-white">
                       {food.name}
                     </h3>
-                    <p className="text-sm text-gray-500 mb-1 truncate">
+                    <p className="text-sm text-gray-500 dark:text-slate-400 mb-1 truncate">
                       {food.vendor?.storeName || "Unknown Store"}
                     </p>
 
@@ -126,7 +125,7 @@ fetchFoods();
                           {food.rating || 0} ({food.ratingCount || 0})
                         </span>
                       </div>
-                      <span className="text-xs font-medium text-gray-700">
+                      <span className="text-xs font-medium text-gray-700 dark:text-slate-300">
                         ₦{(food.price || 0).toLocaleString()}
                       </span>
                     </div>

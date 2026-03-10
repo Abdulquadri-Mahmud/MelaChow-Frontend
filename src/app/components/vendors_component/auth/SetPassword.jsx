@@ -57,21 +57,30 @@ export default function VendorSetPassword() {
                 console.log('[VendorSetPassword] Response:', data);
             }
 
-            // Handle successful login/session creation
-            const { accessToken, token, vendor, ...rest } = data;
+            if (process.env.NODE_ENV === 'development') {
+                console.log('[VendorSetPassword] Password set response:', data);
+            }
+
+            // Guide: If Approved (rare for signups), tokens are returned.
+            const { accessToken, token, vendor, requiresApproval, ...rest } = data;
             const finalToken = accessToken || token;
             const vendorData = vendor || rest;
 
             if (finalToken) {
-                TokenManager.setToken(finalToken);
+                TokenManager.setToken(finalToken, 'vendor');
             }
 
-            if (vendorData) {
+            if (vendorData && vendorData.storeName) {
                 saveVendor(vendorData);
             }
 
-            setMessage("✅ Vendor account ready! Redirecting to dashboard...");
-            setTimeout(() => router.push("/vendors/dashboard"), 1500);
+            if (requiresApproval) {
+                setMessage("✅ Password set! Redirecting for business review...");
+                setTimeout(() => router.push("/vendors/pending-approval"), 1500);
+            } else {
+                setMessage("✅ Registration complete! Welcome to GrubDash.");
+                setTimeout(() => router.push("/vendors/dashboard"), 1500);
+            }
 
         } catch (error) {
             console.error('[VendorSetPassword] Error:', error);

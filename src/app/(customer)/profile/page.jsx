@@ -39,10 +39,10 @@ export default function ProfilePage() {
   // Show login prompt if fetch fails (401 etc) or no data
   if (isError) {
     return (
-      <div className="bg-zinc-50 min-h-screen font-display text-[#181410]">
+      <div className="bg-zinc-50 dark:bg-slate-950 min-h-screen font-display text-[#181410]">
         <Header2 />
         <div className="p-4 max-w-md mx-auto">
-          <div className="bg-white p-4 rounded-xl mt-10">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] mt-10 border border-gray-100 dark:border-slate-800 shadow-xl">
             <div className="w-full flex justify-center items-center mb-5">
               <img
                 src="/logo.png"
@@ -53,25 +53,25 @@ export default function ProfilePage() {
             <h2 className="text-2xl font-semibold text-orange-500 mb-2 text-center">
               Welcome to GrubDash!
             </h2>
-            <p className="text-center text-gray-600 mb-4">
+            <p className="text-center text-gray-600 dark:text-slate-400 mb-6">
               Please log in to view and manage your profile.
             </p>
             <Link href="/get-help">
-              <div className="my-4 border border-orange-500 p-3 rounded-md flex justify-between items-center">
+              <div className="my-4 border border-orange-500/20 dark:border-orange-500/10 p-4 rounded-2xl flex justify-between items-center bg-orange-50/30 dark:bg-orange-500/5 group hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="bg-orange-100 p-1 h-10 w-10 rounded-full flex items-center justify-center">
-                    <div className="bg-orange-500 text-white p-1 h-6 w-6 rounded-full flex items-center justify-center">
-                      <BiQuestionMark />
+                  <div className="bg-orange-100 dark:bg-orange-500/20 p-1 h-10 w-10 rounded-full flex items-center justify-center">
+                    <div className="bg-orange-500 text-white p-1 h-6 w-6 rounded-full flex items-center justify-center shadow-lg shadow-orange-500/20">
+                      <BiQuestionMark size={16} />
                     </div>
                   </div>
                   <div>
-                    <h3>FAQs & Support</h3>
-                    <p className="text-xs text-gray-400">
+                    <h3 className="font-bold text-gray-900 dark:text-white">FAQs & Support</h3>
+                    <p className="text-xs text-gray-500 dark:text-slate-500 font-medium">
                       Get support or send feedback
                     </p>
                   </div>
                 </div>
-                <span className="text-gray-400 text-lg">›</span>
+                <span className="text-orange-500 text-xl font-bold opacity-30 group-hover:opacity-100 transform transition-transform group-hover:translate-x-1">›</span>
               </div>
             </Link>
             <Link href="/auth/signin" className='cursor-pointer'>
@@ -88,15 +88,15 @@ export default function ProfilePage() {
   // Show loading if query is in progress or userData is not yet available
   if (isLoading || !userData) {
     return (
-      <div>
+      <div className="bg-zinc-50 dark:bg-slate-950 min-h-screen">
         <Header2 />
         <div className="flex flex-col items-center justify-center py-20">
           <div className="animate-pulse flex flex-col gap-3 items-center">
-            <div className="w-24 h-24 bg-gray-300 rounded-full" />
-            <div className="w-40 h-5 bg-gray-300 rounded-md" />
-            <div className="w-52 h-4 bg-gray-200 rounded-md" />
+            <div className="w-24 h-24 bg-gray-300 dark:bg-slate-800 rounded-full" />
+            <div className="w-40 h-5 bg-gray-300 dark:bg-slate-800 rounded-md" />
+            <div className="w-52 h-4 bg-gray-200 dark:bg-slate-800 rounded-md" />
           </div>
-          <p className="text-gray-500 mt-6">Loading your profile...</p>
+          <p className="text-gray-500 dark:text-slate-400 mt-6">Loading your profile...</p>
         </div>
       </div>
     );
@@ -105,7 +105,7 @@ export default function ProfilePage() {
   // Show user profile once data is ready
   return (
     <ProtectedRoute>
-      <div className="bg-zinc-50 font-display text-[#181410]">
+      <div className="bg-zinc-50 dark:bg-slate-950 min-h-screen font-display text-[#181410] dark:text-white">
         {/* <Header2 /> */}
         <div className="">
           <User_Profile

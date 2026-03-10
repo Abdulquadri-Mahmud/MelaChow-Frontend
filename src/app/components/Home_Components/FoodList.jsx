@@ -189,7 +189,7 @@ export default function FoodList({ user }) {
                   className={`group relative flex-none w-[250px] bg-white dark:bg-slate-900 rounded-[24px] transition-all duration-300 cursor-pointer snap-start overflow-hidden border border-gray-100 dark:border-slate-800 ${!isOpen ? 'opacity-80 grayscale-[0.5]' : ''}`}
                 >
                   {/* Image Container */}
-                  <div className="relative h-[140px] w-full bg-gray-100 overflow-hidden">
+                  <div className="relative h-[140px] w-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
                     <img
                       src={food.image || "/placeholder.jpg"}
                       alt={food.name}
@@ -259,7 +259,7 @@ export default function FoodList({ user }) {
                     </div>
 
                     {/* Footer Info */}
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-50 dark:border-slate-800">
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-slate-800/50">
                       <div className="flex items-center gap-1">
                         <Truck size={12} className="text-gray-400 dark:text-slate-500" />
                         <span className="text-[10px] font-bold text-gray-400 dark:text-slate-500">

@@ -48,14 +48,6 @@ export default function VendorLoginPage() {
 
       const data = res.data;
 
-      if (data.requiresVerification) {
-        setMessage("Account requires verification. Redirecting...");
-        setTimeout(() => {
-          router.push(`/vendors/auth/verify-registration?email=${encodeURIComponent(formData.email)}`);
-        }, 1500);
-        return;
-      }
-
       // Handle successful login
       const { accessToken, token, vendor, ...rest } = data;
       const vendorData = vendor || rest;
@@ -77,16 +69,28 @@ export default function VendorLoginPage() {
     } catch (err) {
       console.error('[VendorLogin] Error:', err);
 
-      if (err.response) {
-        if (err.response.status === 423) {
-          setMessage("Account locked. Please try again in 15 minutes.");
-        } else if (err.response.status === 401) {
-          setMessage("Invalid credentials.");
-        } else {
-          setMessage(err.response.data.message || "Login failed.");
-        }
+      const errorData = err.response?.data;
+      const status = err.response?.status;
+
+      if (status === 403 && errorData?.requiresApproval) {
+        // Guide: Account verified but NOT yet approved.
+        setMessage(errorData.message || "Your account is pending admin approval.");
+        setTimeout(() => {
+          router.push("/vendors/pending-approval");
+        }, 2000);
+      } else if (status === 401 && errorData?.requiresVerification) {
+        // Guide: Email isn't verified.
+        setMessage("Email not verified. Redirecting to verification center...");
+        setTimeout(() => {
+          router.push(`/vendors/auth/verify-registration?email=${encodeURIComponent(formData.email)}`);
+        }, 2000);
+      } else if (status === 423) {
+        // Guide: Brute force lock.
+        setMessage("🚨 Security Lock: Too many attempts. Please wait 15 minutes.");
+      } else if (status === 401) {
+        setMessage("Invalid credentials. Please check your email and password.");
       } else {
-        setMessage("Network error. Please try again.");
+        setMessage(errorData?.message || "Login failed. Please check your network.");
       }
     } finally {
       setLoading(false);
