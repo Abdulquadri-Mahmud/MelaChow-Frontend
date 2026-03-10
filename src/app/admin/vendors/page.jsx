@@ -24,7 +24,9 @@ import {
     RefreshCcw,
     Eye,
     ExternalLink,
-    MapPin
+    MapPin,
+    ChevronRight,
+    Clock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
@@ -313,189 +315,241 @@ export default function AdminVendorsPage() {
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="space-y-8">
-                    {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="max-w-[1600px] mx-auto p-4 space-y-6">
+                    {/* Integrated Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
                         <div>
-                            <h1 className="text-4xl font-black text-gray-900 mb-2">Vendor Management</h1>
-                            <p className="text-gray-500 font-medium">Manage restaurant partners, commissions, and delivery modes</p>
+                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                                <Store size={12} />
+                                <span>Core Registry</span>
+                                <ChevronRight size={10} />
+                                <span className="text-orange-600">Partner Directory</span>
+                            </div>
+                            <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                                Vendor Management
+                                <span className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full font-bold uppercase tracking-widest">{vendors.length} Total</span>
+                            </h1>
                         </div>
-                        <div className="flex gap-2">
+
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={fetchVendors}
+                                disabled={loading}
+                                className="h-10 px-4 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-all flex items-center gap-2 text-xs font-bold active:scale-95 disabled:opacity-50 shadow-sm"
+                            >
+                                <RefreshCcw size={14} className={loading ? "animate-spin text-orange-500" : ""} />
+                                {loading ? "Syncing..." : "Refresh Database"}
+                            </button>
                             <button
                                 onClick={() => {
                                     setModalMode("commission");
                                     setShowModal(true);
                                 }}
-                                className="bg-slate-900 hover:bg-slate-800 text-white font-black px-6 py-3 rounded-2xl flex items-center gap-2 transition-all active:scale-95"
+                                className="h-10 px-4 bg-slate-900 text-white rounded-xl flex items-center gap-2 text-xs font-bold shadow-lg shadow-slate-900/20 active:scale-95 transition-all"
                             >
-                                <Percent size={20} />
-                                Global Commission
+                                <Percent size={14} />
+                                <span>Global Commission</span>
                             </button>
                         </div>
                     </div>
 
-                    {/* Stats & Search */}
-                    <div className="flex flex-col md:flex-row gap-4">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    {/* Quick Stats Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        {[
+                            { label: "Active Partners", val: vendors.filter(v => v.active && !v.suspended).length, icon: CheckCircle2, color: "emerald" },
+                            { label: "Pending Verification", val: vendors.filter(v => !v.verified).length, icon: Clock, color: "amber" },
+                            { label: "Under Suspension", val: vendors.filter(v => v.suspended).length, icon: Ban, color: "rose" },
+                            { label: "Avg Commission", val: vendors.length ? `${(vendors.reduce((acc, v) => acc + (v.commissionRate || 0), 0) / vendors.length * 100).toFixed(1)}%` : "0%", icon: Percent, color: "blue" },
+                        ].map((stat, i) => (
+                            <div key={i} className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-4 transition-all hover:border-slate-300 shadow-sm">
+                                <div className={`w-10 h-10 rounded-xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-600`}>
+                                    <stat.icon size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{stat.label}</p>
+                                    <p className="text-lg font-black text-slate-900">{stat.val}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Filters & Search */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center bg-slate-50/50 p-3 rounded-2xl border border-slate-100">
+                        <div className="lg:col-span-6 relative group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={16} />
                             <input
                                 type="text"
-                                placeholder="Search vendors by store name or email..."
+                                placeholder="Search by Store Name, UID, or Email..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full h-14 pl-14 pr-6 bg-white border border-gray-200 rounded-2xl focus:border-orange-500 outline-none font-medium transition-all"
+                                className="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-xl focus:border-orange-500 outline-none font-bold text-xs transition-all shadow-sm"
                             />
                         </div>
-                        <div className="flex gap-2">
+                        <div className="lg:col-span-6 flex gap-2 overflow-x-auto pb-1 lg:pb-0">
                             <select
                                 value={filter.active}
                                 onChange={(e) => setFilter({ ...filter, active: e.target.value })}
-                                className="h-14 px-6 bg-white border border-gray-200 rounded-2xl focus:border-orange-500 outline-none font-semibold cursor-pointer hover:border-orange-200 transition-colors"
+                                className="flex-1 min-w-[120px] h-11 px-4 bg-white border border-slate-200 rounded-xl focus:border-orange-500 outline-none font-black text-[10px] uppercase tracking-widest cursor-pointer shadow-sm"
                             >
-                                <option value="">Status: All</option>
-                                <option value="true">Active Only</option>
-                                <option value="false">Inactive Only</option>
+                                <option value="">Live Status: All</option>
+                                <option value="true">NOMINAL (Active)</option>
+                                <option value="false">DORMANT (Inactive)</option>
                             </select>
                             <select
                                 value={filter.verified}
                                 onChange={(e) => setFilter({ ...filter, verified: e.target.value })}
-                                className="h-14 px-6 bg-white border border-gray-200 rounded-2xl focus:border-orange-500 outline-none font-semibold cursor-pointer hover:border-orange-200 transition-colors"
+                                className="flex-1 min-w-[120px] h-11 px-4 bg-white border border-slate-200 rounded-xl focus:border-orange-500 outline-none font-black text-[10px] uppercase tracking-widest cursor-pointer shadow-sm"
                             >
-                                <option value="">Verify: All</option>
-                                <option value="true">Verified Only</option>
-                                <option value="false">Unverified Only</option>
+                                <option value="">Security: All</option>
+                                <option value="true">VERIFIED</option>
+                                <option value="false">GATE-LOCKED</option>
                             </select>
+                            {(search || filter.verified || filter.active) && (
+                                <button
+                                    onClick={() => {
+                                        setSearch("");
+                                        setFilter({ verified: "", suspended: "", active: "" });
+                                    }}
+                                    className="h-11 px-4 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border border-rose-200/50 flex items-center gap-2 shrink-0"
+                                >
+                                    <X size={14} /> Reset
+                                </button>
+                            )}
                         </div>
-                        {(search || filter.verified || filter.active || filter.suspended) && (
-                            <button
-                                onClick={() => {
-                                    setSearch("");
-                                    setFilter({ verified: "", suspended: "", active: "" });
-                                }}
-                                className="h-14 px-8 bg-gray-50 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border border-gray-100 flex items-center gap-2"
-                            >
-                                <X size={14} /> Clear
-                            </button>
-                        )}
                     </div>
 
                     {/* Vendor Table */}
-                    <div className="bg-white border border-gray-200 rounded-[32px] overflow-hidden">
+                    <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-sm">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left">
+                            <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="bg-gray-50/50 border-b border-gray-100">
-                                        <th className="px-4 py-5 text-[11px] font-black uppercase text-gray-400 tracking-widest">Store Information</th>
-                                        <th className="px-4 py-5 text-[11px] font-black uppercase text-gray-400 tracking-widest">Delivery Mode</th>
-                                        <th className="px-4 py-5 text-[11px] font-black uppercase text-gray-400 tracking-widest">Commission</th>
-                                        <th className="px-4 py-5 text-[11px] font-black uppercase text-gray-400 tracking-widest">Status</th>
-                                        <th className="px-4 py-5 text-[11px] font-black uppercase text-gray-400 tracking-widest text-right">Actions</th>
+                                    <tr className="bg-slate-50/50 border-b border-slate-100">
+                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Brand Identification</th>
+                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Service Logistics</th>
+                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Financials</th>
+                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">System Status</th>
+                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Terminal</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-50">
+                                <tbody className="divide-y divide-slate-50">
                                     {loading ? (
-                                        <tr><td colSpan="5" className="p-6 text-center"><Loader2 className="animate-spin mx-auto text-orange-500" size={32} /></td></tr>
+                                        <tr>
+                                            <td colSpan="5" className="py-24 text-center">
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <Loader2 className="animate-spin text-orange-500" size={32} />
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">Accessing Registry...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     ) : filteredVendors.length > 0 ? (
                                         filteredVendors.map((vendor) => (
-                                            <tr key={vendor._id} className="hover:bg-gray-50 transition-colors group">
-                                                <td className="px-5 py-3">
+                                            <tr key={vendor._id} className="hover:bg-slate-50/50 transition-all group border-l-2 border-transparent hover:border-orange-500">
+                                                <td className="px-6 py-4">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 overflow-hidden">
-                                                            {vendor.logo ? <img src={vendor.logo} alt="" className="w-full h-full object-cover" /> : <Store size={24} />}
+                                                        <div className="w-11 h-11 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
+                                                            {vendor.logo ? (
+                                                                <img src={vendor.logo} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                            ) : (
+                                                                <Store size={18} className="text-slate-300" />
+                                                            )}
                                                         </div>
-                                                        <div>
-                                                            <div className="font-bold text-gray-900 flex items-center gap-1">
-                                                                {vendor.storeName}
-                                                                {vendor.verified && <CheckCircle2 size={14} className="text-blue-500" />}
+                                                        <div className="min-w-0">
+                                                            <div className="flex items-center gap-1.5 mb-0.5">
+                                                                <span className="font-black text-slate-900 tracking-tight truncate uppercase text-xs">
+                                                                    {vendor.storeName}
+                                                                </span>
+                                                                {vendor.verified && <ShieldCheck size={14} className="text-emerald-500" />}
                                                             </div>
-                                                            <div className="text-xs text-gray-500">{vendor.email}</div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-bold text-slate-400 truncate">{vendor.email}</span>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-5 py-3">
-                                                    <button
-                                                        onClick={() => handleToggleDeliveryMode(vendor._id, vendor.deliveryManagedBy)}
-                                                        className={`group/toggle flex items-center gap-3 p-1.5 pr-4 rounded-2xl border transition-all active:scale-95 ${vendor.deliveryManagedBy === "admin"
-                                                            ? "bg-blue-50 border-blue-100 text-blue-700 hover:bg-blue-100"
-                                                            : "bg-emerald-50 border-emerald-100 text-emerald-700 hover:bg-emerald-100"
-                                                            }`}
+                                                <td className="px-6 py-4">
+                                                    <div
+                                                        className="inline-flex items-center gap-3 p-1.5 pr-4 rounded-xl border border-slate-100 bg-slate-50/50 transition-all group-hover:bg-white group-hover:border-slate-200 group-hover:shadow-sm"
                                                     >
-                                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-transform group-hover/toggle:scale-110 ${vendor.deliveryManagedBy === "admin" ? "bg-blue-500 text-white" : "bg-emerald-500 text-white"}`}>
-                                                            {vendor.deliveryManagedBy === "admin" ? <Truck size={16} /> : <Utensils size={16} />}
+                                                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${vendor.deliveryManagedBy === "admin" ? "bg-orange-500 text-white shadow-orange-500/20 shadow-md" : "bg-emerald-500 text-white shadow-emerald-500/20 shadow-md"}`}>
+                                                            {vendor.deliveryManagedBy === "admin" ? <Truck size={14} /> : <Utensils size={14} strokeWidth={3} />}
                                                         </div>
                                                         <div className="text-left">
-                                                            <div className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">
-                                                                {vendor.deliveryManagedBy === "admin" ? "Platform" : "Vendor"}
+                                                            <div className="text-[9px] font-black uppercase tracking-widest text-slate-900 leading-none mb-0.5">
+                                                                {vendor.deliveryManagedBy === "admin" ? "Platform-Riders" : "Self-Fulfillment"}
                                                             </div>
-                                                            <div className="text-[9px] font-bold opacity-60">Click to switch</div>
+                                                            <div className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Logstics Mode</div>
                                                         </div>
-                                                    </button>
+                                                    </div>
                                                 </td>
-                                                <td className="px-8 py-6">
-                                                    <span className="font-black text-gray-900">{(vendor.commissionRate * 100).toFixed(0)}%</span>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="font-black text-slate-900 text-xs">{(vendor.commissionRate * 100).toFixed(1)}%</span>
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Commission Rate</span>
+                                                    </div>
                                                 </td>
-                                                <td className="px-8 py-6">
-                                                    <div className="flex flex-col gap-2">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-col gap-1.5 items-start">
                                                         {vendor.suspended ? (
-                                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 rounded-full text-[10px] font-black uppercase tracking-wider w-fit">
+                                                            <span className="px-2 py-0.5 bg-rose-50 text-rose-600 rounded-md text-[9px] font-black uppercase tracking-[0.1em] border border-rose-100">
                                                                 Suspended
                                                             </span>
                                                         ) : vendor.active ? (
-                                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-black uppercase tracking-wider w-fit">
-                                                                Active
+                                                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-md text-[9px] font-black uppercase tracking-[0.1em] border border-emerald-100">
+                                                                Active Terminal
                                                             </span>
                                                         ) : (
-                                                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-[10px] font-black uppercase tracking-wider w-fit">
-                                                                Inactive
+                                                            <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-[9px] font-black uppercase tracking-[0.1em] border border-slate-200">
+                                                                Dormant
                                                             </span>
                                                         )}
 
                                                         {vendor.verified && !vendor.isApproved && (
-                                                            <motion.span
-                                                                animate={{ opacity: [1, 0.5, 1] }}
-                                                                transition={{ duration: 1.5, repeat: Infinity }}
-                                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-100 text-orange-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-orange-200 shadow-sm w-fit"
-                                                            >
-                                                                <AlertCircle size={12} className="animate-pulse" /> NEEDS REVIEW
-                                                            </motion.span>
-                                                        )}
-
-                                                        {!vendor.verified && (
-                                                            <span className="text-[10px] font-bold text-slate-400 uppercase px-1">Email Unverified</span>
-                                                        )}
-
-                                                        {vendor.locationStatus === "pending_review" && (
-                                                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 uppercase">
-                                                                <MapPin size={10} /> Location ⚠
+                                                            <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-md text-[9px] font-black uppercase tracking-[0.1em] border border-amber-200/50 flex items-center gap-1 animate-pulse">
+                                                                <AlertCircle size={10} /> Pending Approval
                                                             </span>
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-5 py-3 text-right">
+                                                <td className="px-6 py-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        {!vendor.verified && (
-                                                            <button
-                                                                onClick={() => router.push(`/admin/vendors/${vendor._id}`)}
-                                                                className="flex items-center gap-1.5 px-4 py-2 bg-orange-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all active:scale-95"
-                                                            >
-                                                                <ExternalLink size={13} /> Review
-                                                            </button>
-                                                        )}
+                                                        <button
+                                                            onClick={() => router.push(`/admin/vendors/${vendor._id}`)}
+                                                            className="h-9 px-3 bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-900 rounded-lg transition-all active:scale-95 shadow-sm"
+                                                            title="Review Case"
+                                                        >
+                                                            <Eye size={16} />
+                                                        </button>
                                                         <button
                                                             onClick={() => setActionMenu({ show: true, vendor })}
-                                                            className="w-10 h-10 flex items-center justify-center bg-gray-50 text-gray-400 hover:bg-gray-900 hover:text-white rounded-xl transition-all"
+                                                            className="w-9 h-9 flex items-center justify-center bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all active:scale-95 shadow-md shadow-slate-950/10"
                                                         >
-                                                            <MoreVertical size={20} />
+                                                            <MoreVertical size={18} />
                                                         </button>
                                                     </div>
                                                 </td>
                                             </tr>
                                         ))
                                     ) : (
-                                        <tr><td colSpan="5" className="p-20 text-center text-gray-500 font-medium whitespace-nowrap">No vendors found.</td></tr>
+                                        <tr>
+                                            <td colSpan="5" className="py-24 text-center">
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <XCircle className="text-slate-200" size={48} />
+                                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">No Vendors Found</h3>
+                                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wide">Refine your search parameters or registry filters.</p>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                        {/* Footer Detail */}
+                        <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Platform Provider Terminal — Secure Access Root</span>
+                            <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                                System Nominal
+                            </span>
                         </div>
                     </div>
                 </div>
