@@ -73,6 +73,9 @@ export default function Step5Review({ onBack, onComplete, onSetStep }) {
 
             // Only runs if mutateAsync resolves without throwing
             store.resetForm();
+            if (typeof window !== "undefined") {
+                sessionStorage.removeItem("gd_create_food_wizard");
+            }
             onComplete?.();
             router.push("/vendors/my-foods");
 

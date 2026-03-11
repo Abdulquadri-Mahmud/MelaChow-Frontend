@@ -261,8 +261,9 @@ export const addChoiceOption = async (groupId, payload) => {
 };
 
 export const updateChoiceOption = async (groupId, optionId, payload) => {
-    const res = await getMenuAxios().put(
-        `/v1/menu/choice-groups/${groupId}/options/${optionId}`,
+    // Note: groupId is not needed for the endpoint, but kept in signature so existing calls don't break
+    const res = await getMenuAxios().patch(
+        `/v1/menu/choice-options/${optionId}`,
         payload
     );
     return res.data;
