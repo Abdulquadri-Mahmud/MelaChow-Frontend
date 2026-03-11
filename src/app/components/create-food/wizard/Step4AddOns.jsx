@@ -2,8 +2,55 @@
 
 import { useState } from "react";
 import { useCreateFoodStore } from "@/app/context/CreateFoodStore";
-import { Edit2, Plus, Trash2, X, ArrowLeft, GripVertical, CheckCircle2 } from "lucide-react";
+import { Edit2, Plus, Trash2, X, ArrowLeft } from "lucide-react";
 import toast from "react-hot-toast";
+
+const GROUP_TITLE_PRESETS = {
+    "Protein & Meat": [
+        "Choose your protein",
+        "Choose your meat cut",
+        "Choose your fish type",
+        "Choose your suya cut",
+    ],
+    "Swallows & Soups": [
+        "Choose your swallow",
+        "Choose your soup",
+        "Soup or stew?",
+    ],
+    "Rice & Pasta": [
+        "Choose your rice type",
+        "Choose your pasta type",
+    ],
+    "Sides": [
+        "Choose your side",
+        "Add a side dish",
+        "Plantain or chips?",
+    ],
+    "Sauce & Spice": [
+        "Choose your sauce",
+        "Spice level",
+        "How spicy?",
+    ],
+    "Drinks": [
+        "Add a drink",
+        "Choose your drink",
+    ],
+    "Bread, Wraps & Shawarma": [
+        "Choose your bread type",
+        "Choose your wrap filling",
+        "Add wrap extras",
+    ],
+    "Extras & Toppings": [
+        "Add toppings",
+        "Add proteins",
+        "Add extras",
+        "Add-ons",
+    ],
+    "Packaging & Requests": [
+        "Packaging preference",
+        "Any special requests?",
+    ],
+};
 
 export default function Step4AddOns({ onBack, onNext }) {
     const store = useCreateFoodStore();
@@ -14,7 +61,8 @@ export default function Step4AddOns({ onBack, onNext }) {
     const [groupName, setGroupName] = useState("");
     const [isRequired, setIsRequired] = useState(false);
     const [minSelections, setMinSelections] = useState("0");
-    const [maxSelections, setMaxSelections] = useState("1");
+    const [maxSelections, setMaxSelections] = useState("100");
+    const [isCustomTitle, setIsCustomTitle] = useState(false);
 
     // Inline Option State (one per group)
     const [optionInputs, setOptionInputs] = useState({});
@@ -26,12 +74,17 @@ export default function Step4AddOns({ onBack, onNext }) {
             setIsRequired(existing.is_required);
             setMinSelections(existing.min_selections.toString());
             setMaxSelections(existing.max_selections.toString());
+            // If the name matches a preset, use select mode; otherwise text mode
+            const allPresets = Object.values(GROUP_TITLE_PRESETS).flat();
+            const isPreset = allPresets.includes(existing.name);
+            setIsCustomTitle(!isPreset);
         } else {
             setGroupId(null);
             setGroupName("");
             setIsRequired(false);
             setMinSelections("0");
-            setMaxSelections("1");
+            setMaxSelections("100");
+            setIsCustomTitle(false);
         }
         setShowGroupForm(true);
     };
@@ -70,19 +123,22 @@ export default function Step4AddOns({ onBack, onNext }) {
     };
 
     const handleAddOption = (gId) => {
-        const input = optionInputs[gId] || { name: "", price: "" };
+        const input = optionInputs[gId] || { name: "", price: "", image_url: "" };
         if (!input.name.trim()) return;
 
         store.addChoiceOption(gId, {
             tempId: Date.now().toString(),
             label: input.name.trim(),
             price_modifier_naira: Number(input.price) || 0,
+            image_url: input.image_url?.trim() || null,
             is_available: true,
             sort_order: 0,
         });
 
-        // Clear input for this group
-        setOptionInputs(prev => ({ ...prev, [gId]: { name: "", price: "" } }));
+        setOptionInputs(prev => ({
+            ...prev,
+            [gId]: { name: "", price: "", image_url: "", showImageField: false }
+        }));
     };
 
     const handleNext = () => {
@@ -125,53 +181,151 @@ export default function Step4AddOns({ onBack, onNext }) {
                         </div>
 
                         {/* Options List */}
-                        <div className="p-3 space-y-2">
+                        <div className="p-3 space-y-1">
                             {group.options.map(opt => (
-                                <div key={opt.tempId} className="flex items-center justify-between p-3 pl-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-2xl group/opt transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <GripVertical size={16} className="text-slate-300 dark:text-slate-600 cursor-grab opacity-0 group-hover/opt:opacity-100 transition-opacity" />
-                                        <div className={`w-4 h-4 rounded-full border-2 ${opt.is_available ? "border-emerald-500 dark:border-emerald-400 bg-emerald-500/20 dark:bg-emerald-500/10" : "border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800"}`} />
-                                        <span className="font-bold text-slate-900 dark:text-white text-[15px]">{opt.label}</span>
+                                <div
+                                    key={opt.tempId}
+                                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-2xl group/opt transition-colors"
+                                >
+                                    {/* Image thumbnail — shown only if image_url exists */}
+                                    {opt.image_url ? (
+                                        <img
+                                            src={opt.image_url}
+                                            alt={opt.label}
+                                            className="w-9 h-9 rounded-xl object-cover border border-slate-100 dark:border-slate-700 shrink-0"
+                                            onError={e => { e.target.style.display = 'none'; }}
+                                        />
+                                    ) : (
+                                        <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center shrink-0">
+                                            <span className="text-xs font-black text-slate-400 dark:text-slate-500">
+                                                {opt.label.charAt(0).toUpperCase()}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Label + price */}
+                                    <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
+                                        <span className="font-bold text-slate-900 dark:text-white text-sm">
+                                            {opt.label}
+                                        </span>
                                         {opt.price_modifier_naira > 0 ? (
-                                            <span className="text-xs font-black text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 px-2.5 py-0.5 rounded-full tracking-wide">+₦{opt.price_modifier_naira}</span>
+                                            <span className="text-[10px] font-black text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded-full">
+                                                +₦{opt.price_modifier_naira.toLocaleString()}
+                                            </span>
                                         ) : (
-                                            <span className="text-[10px] uppercase tracking-widest font-black text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full">FREE</span>
+                                            <span className="text-[9px] uppercase tracking-widest font-black text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                                                Free
+                                            </span>
                                         )}
                                     </div>
-                                    <button onClick={() => store.removeChoiceOption(group.tempId, opt.tempId)} className="p-2 text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 opacity-0 group-hover/opt:opacity-100 transition-all">
-                                        <X size={18} />
+
+                                    {/* Delete — hover only */}
+                                    <button
+                                        onClick={() => store.removeChoiceOption(group.tempId, opt.tempId)}
+                                        className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 opacity-0 group-hover/opt:opacity-100 transition-all rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                                    >
+                                        <X size={15} />
                                     </button>
                                 </div>
                             ))}
 
                             {/* Add Option Inline */}
-                            <div className="flex items-center gap-2 p-3 mt-3 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
-                                <input
-                                    type="text"
-                                    placeholder="Option Name"
-                                    value={optionInputs[group.tempId]?.name || ""}
-                                    onChange={e => setOptionInputs({ ...optionInputs, [group.tempId]: { ...optionInputs[group.tempId], name: e.target.value } })}
-                                    className="flex-1 h-11 px-4 text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-orange-500 dark:focus:border-orange-500 placeholder:font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
-                                    onKeyDown={e => e.key === 'Enter' && handleAddOption(group.tempId)}
-                                />
-                                <div className="relative w-32 shrink-0">
-                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 dark:text-slate-500 font-black">+₦</span>
+                            <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
+
+                                {/* Row 1: Name + Price + Add button */}
+                                <div className="flex items-center gap-2">
                                     <input
-                                        type="number"
-                                        placeholder="0"
-                                        value={optionInputs[group.tempId]?.price || ""}
-                                        onChange={e => setOptionInputs({ ...optionInputs, [group.tempId]: { ...optionInputs[group.tempId], price: e.target.value } })}
-                                        className="w-full h-11 pl-9 pr-3 text-sm font-black text-orange-600 dark:text-orange-400 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-orange-500 dark:focus:border-orange-500 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                                        type="text"
+                                        placeholder="Option name"
+                                        value={optionInputs[group.tempId]?.name || ""}
+                                        onChange={e => setOptionInputs(prev => ({
+                                            ...prev,
+                                            [group.tempId]: { ...prev[group.tempId], name: e.target.value }
+                                        }))}
                                         onKeyDown={e => e.key === 'Enter' && handleAddOption(group.tempId)}
+                                        className="flex-1 h-10 px-3.5 text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-orange-500 dark:focus:border-orange-500 placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
                                     />
+
+                                    <div className="relative w-28 shrink-0">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 dark:text-slate-500 font-black pointer-events-none">
+                                            +₦
+                                        </span>
+                                        <input
+                                            type="number"
+                                            placeholder="0"
+                                            value={optionInputs[group.tempId]?.price || ""}
+                                            onChange={e => setOptionInputs(prev => ({
+                                                ...prev,
+                                                [group.tempId]: { ...prev[group.tempId], price: e.target.value }
+                                            }))}
+                                            onKeyDown={e => e.key === 'Enter' && handleAddOption(group.tempId)}
+                                            className="w-full h-10 pl-8 pr-3 text-sm font-black text-orange-600 dark:text-orange-400 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-orange-500 dark:focus:border-orange-500 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={() => handleAddOption(group.tempId)}
+                                        disabled={!optionInputs[group.tempId]?.name?.trim()}
+                                        className="h-10 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl disabled:opacity-40 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-slate-700 dark:hover:bg-slate-200 active:scale-95 shrink-0"
+                                    >
+                                        Add
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={() => handleAddOption(group.tempId)}
-                                    disabled={!optionInputs[group.tempId]?.name?.trim()}
-                                    className="h-11 px-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl disabled:opacity-50 font-black uppercase tracking-widest text-[10px] transition-all shrink-0 hover:bg-slate-800 dark:hover:bg-slate-200 disabled:hover:bg-slate-900 dark:disabled:hover:bg-white"
-                                >
-                                    Add
-                                </button>
+
+                                {/* Row 2: Image URL toggle — always visible, dimmed until name exists */}
+                                <div className={`transition-opacity ${optionInputs[group.tempId]?.name?.trim()
+                                    ? "opacity-100"
+                                    : "opacity-35 pointer-events-none"
+                                    }`}>
+                                    {optionInputs[group.tempId]?.showImageField ? (
+                                        <div className="flex items-center gap-2">
+                                            {/* Live preview thumbnail */}
+                                            <div className="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0 flex items-center justify-center">
+                                                {optionInputs[group.tempId]?.image_url ? (
+                                                    <img
+                                                        src={optionInputs[group.tempId].image_url}
+                                                        alt="preview"
+                                                        className="w-full h-full object-cover"
+                                                        onError={e => { e.target.style.display = 'none'; }}
+                                                    />
+                                                ) : (
+                                                    <span className="text-[10px] text-slate-300 dark:text-slate-600 font-bold">IMG</span>
+                                                )}
+                                            </div>
+
+                                            <input
+                                                type="url"
+                                                placeholder="Paste image URL (optional)"
+                                                value={optionInputs[group.tempId]?.image_url || ""}
+                                                onChange={e => setOptionInputs(prev => ({
+                                                    ...prev,
+                                                    [group.tempId]: { ...prev[group.tempId], image_url: e.target.value }
+                                                }))}
+                                                className="flex-1 h-9 px-3.5 text-xs font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-orange-500 dark:focus:border-orange-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
+                                            />
+
+                                            <button
+                                                onClick={() => setOptionInputs(prev => ({
+                                                    ...prev,
+                                                    [group.tempId]: { ...prev[group.tempId], showImageField: false, image_url: "" }
+                                                }))}
+                                                className="text-[10px] font-bold text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors px-1 shrink-0"
+                                            >
+                                                Remove
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => setOptionInputs(prev => ({
+                                                ...prev,
+                                                [group.tempId]: { ...prev[group.tempId], showImageField: true }
+                                            }))}
+                                            className="text-[10px] font-black uppercase tracking-widest text-white dark:text-slate-500 hover:text-orange-100 dark:hover:text-orange-400 transition-colors flex items-center gap-1.5 px-2 py-2.5 rounded mt-4 bg-orange-500"
+                                        >
+                                            <Plus size={11} /> Add image to this option
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -198,16 +352,74 @@ export default function Step4AddOns({ onBack, onNext }) {
                     </div>
 
                     <div className="space-y-6">
-                        <div className="space-y-3">
-                            <label className="text-[11px] font-black uppercase text-slate-900 dark:text-slate-300 tracking-widest">Group Title <span className="text-rose-500">*</span></label>
-                            <input
-                                autoFocus
-                                type="text"
-                                value={groupName}
-                                onChange={e => setGroupName(e.target.value)}
-                                placeholder="e.g. Choose your protein, Add Extras"
-                                className="w-full h-14 px-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-900 dark:focus:border-slate-500 focus:ring-4 focus:ring-slate-900/10 dark:focus:ring-slate-500/10 transition-all font-bold text-slate-900 dark:text-white text-lg placeholder:font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
-                            />
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-black uppercase text-slate-900 dark:text-slate-300 tracking-widest">
+                                Group Title <span className="text-rose-500">*</span>
+                            </label>
+
+                            {!isCustomTitle ? (
+                                /* SELECT MODE — default */
+                                <div className="relative">
+                                    <select
+                                        autoFocus
+                                        value={groupName}
+                                        onChange={e => {
+                                            if (e.target.value === "Custom...") {
+                                                setIsCustomTitle(true);
+                                                setGroupName("");
+                                            } else {
+                                                setGroupName(e.target.value);
+                                            }
+                                        }}
+                                        className="w-full h-14 px-4 pr-10 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-900 dark:focus:border-slate-500 focus:ring-4 focus:ring-slate-900/10 dark:focus:ring-slate-500/10 transition-all font-bold text-slate-900 dark:text-white text-base outline-none appearance-none cursor-pointer"
+                                    >
+                                        <option value="" disabled>Pick a group type...</option>
+
+                                        {Object.entries(GROUP_TITLE_PRESETS).map(([groupLabel, presets]) => (
+                                            <optgroup key={groupLabel} label={groupLabel}>
+                                                {presets.map(preset => (
+                                                    <option key={preset} value={preset}>{preset}</option>
+                                                ))}
+                                            </optgroup>
+                                        ))}
+
+                                        {/* Custom is always last, outside all optgroups */}
+                                        <option value="Custom...">Custom...</option>
+                                    </select>
+                                    {/* Custom chevron */}
+                                    <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="m6 9 6 6 6-6" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            ) : (
+                                /* TEXT MODE — only when "Custom..." is picked */
+                                <div className="flex gap-2">
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        value={groupName}
+                                        onChange={e => setGroupName(e.target.value)}
+                                        placeholder="Describe the choice e.g. Choose your garnish"
+                                        className="flex-1 h-14 px-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-900 dark:focus:border-slate-500 focus:ring-4 focus:ring-slate-900/10 dark:focus:ring-slate-500/10 transition-all font-bold text-slate-900 dark:text-white text-base placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => { setIsCustomTitle(false); setGroupName(""); }}
+                                        className="h-14 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500 transition-all whitespace-nowrap shrink-0"
+                                    >
+                                        ← Pick from list
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Confirmation line when a preset is selected */}
+                            {!isCustomTitle && groupName && groupName !== "Custom..." && (
+                                <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 pl-1">
+                                    ✓ Customers will see: "{groupName}"
+                                </p>
+                            )}
                         </div>
 
                         <div className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-5">
@@ -228,7 +440,12 @@ export default function Step4AddOns({ onBack, onNext }) {
                                     <input type="number" min="0" value={minSelections} onChange={e => setMinSelections(e.target.value)} className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold text-slate-900 dark:text-white outline-none focus:border-slate-900 dark:focus:border-slate-400" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 tracking-widest uppercase">Maximum Allowed</label>
+                                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 tracking-widest uppercase">
+                                        Maximum Allowed
+                                        <span className="ml-1 normal-case tracking-normal font-medium text-slate-400 dark:text-slate-500">
+                                            (100 = unlimited)
+                                        </span>
+                                    </label>
                                     <input type="number" min="1" value={maxSelections} onChange={e => setMaxSelections(e.target.value)} className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold text-slate-900 dark:text-white outline-none focus:border-slate-900 dark:focus:border-slate-400" />
                                 </div>
                             </div>
