@@ -5,7 +5,7 @@ import { useCreateComboStore } from "@/app/context/CreateComboStore";
 import ComboStep1Basics from "./components/ComboStep1Basics";
 import ComboStep2Components from "./components/ComboStep2Components";
 import ComboStep3Swaps from "./components/ComboStep3Swaps";
-import { ChevronRight, Home, LayoutGrid, RotateCcw } from "lucide-react";
+import { ChevronRight, Home, LayoutGrid, RotateCcw, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
@@ -50,8 +50,14 @@ export default function CreateComboPage() {
                 <div className="max-w-5xl mx-auto px-4 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <button
-                            onClick={() => router.push("/vendors/dashboard")}
+                            onClick={() => router.back()}
                             className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+                        >
+                            <ArrowLeft size={20} />
+                        </button>
+                        <button
+                            onClick={() => router.push("/vendors/dashboard")}
+                            className="w-11 h-11 flex items-center justify-center rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:scale-105 transition-all shadow-lg shadow-slate-900/10 dark:shadow-white/10"
                         >
                             <Home size={20} />
                         </button>
@@ -81,10 +87,10 @@ export default function CreateComboPage() {
                             <div key={step.id} className="flex items-center flex-1 last:flex-none">
                                 <div className="flex flex-col items-center gap-2">
                                     <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-500 ${store.currentStep === step.id
-                                            ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 scale-110 shadow-lg shadow-slate-900/10 dark:shadow-white/10 ring-4 ring-slate-900/10 dark:ring-white/10"
-                                            : store.currentStep > step.id
-                                                ? "bg-emerald-500 text-white"
-                                                : "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600"
+                                        ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 scale-110 shadow-lg shadow-slate-900/10 dark:shadow-white/10 ring-4 ring-slate-900/10 dark:ring-white/10"
+                                        : store.currentStep > step.id
+                                            ? "bg-emerald-500 text-white"
+                                            : "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600"
                                         }`}>
                                         {store.currentStep > step.id ? (
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>

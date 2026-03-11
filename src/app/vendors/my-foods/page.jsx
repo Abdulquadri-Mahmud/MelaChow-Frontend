@@ -120,7 +120,7 @@ export default function MyFoodsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rounded-md">
-      <div className="max-w-6xl mx-auto p-4 space-y-8">
+      <div className="max-w-6xl mx-auto space-y-4">
 
         {/* Page Header */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -204,7 +204,7 @@ export default function MyFoodsPage() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-2">
             {isLoading
               ? Array.from({ length: 8 }).map((_, i) => (
                 <FoodCardSkeleton key={i} />

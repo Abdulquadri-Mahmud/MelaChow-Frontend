@@ -281,3 +281,25 @@ export const addVariantChoiceGroup = async (vendorId, variantId, data) => {
     );
     return res.data;
 };
+
+/**
+ * Add a swap option to a choice group
+ */
+export const addVariantChoiceOption = async (groupId, data) => {
+    const res = await getMenuAxios().post(
+        `/v1/menu/variant-choice-groups/${groupId}/options`,
+        data
+    );
+    return res.data;
+};
+
+/**
+ * Make the combo available/unavailable
+ */
+export const toggleVariantAvailability = async (vendorId, variantId, is_available) => {
+    const res = await getMenuAxios().patch(
+        `/v1/menu/${vendorId}/variants/${variantId}/availability`,
+        { is_available }
+    );
+    return res.data;
+};
