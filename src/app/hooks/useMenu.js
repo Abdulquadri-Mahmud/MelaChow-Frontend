@@ -118,6 +118,7 @@ export const useCreateMenuItem = (vendorId) => {
 
             // ── Steps 3 & 4: Add choice groups and their options ──────────
             for (const g of choice_groups) {
+                // Step 3: create the group, capture the REAL _id
                 const groupRes = await addChoiceGroup(vendorId, itemId, {
                     name: g.name,
                     min_selections: g.min_selections,
@@ -126,20 +127,43 @@ export const useCreateMenuItem = (vendorId) => {
                     sort_order: g.sort_order,
                 });
 
-                // Handle both { choiceGroup: { _id } } and { data: { _id } }
-                const groupId = groupRes?.choiceGroup?._id
+                // Handle various response shapes to extract the real MongoDB _id
+                // Backend typically returns { success: true, group: { _id, ... } }
+                const realGroupId = groupRes?.group?._id
+                    || groupRes?.choiceGroup?._id
                     || groupRes?.data?._id
                     || groupRes?._id;
 
-                if (!groupId) continue; // skip options if group ID not returned
+                if (!realGroupId) {
+                    console.error("[publish] Choice group created but _id not found in response:", groupRes);
+                    continue; // Skip options for this group rather than crashing
+                }
 
-                for (const o of g.options) {
-                    await addChoiceOption(groupId, {
+                // Step 4: create each option using the real group _id
+                for (let i = 0; i < g.options.length; i++) {
+                    const o = g.options[i];
+                    const optionPayload = {
                         label: o.label,
-                        price_modifier: o.price_modifier_naira * 100, // ← KOBO CONVERSION
-                        is_available: o.is_available,
-                        sort_order: o.sort_order,
-                    });
+                        price_modifier: Math.round((Number(o.price_modifier_naira) || 0) * 100), // kobo
+                        price_modifier_naira: Number(o.price_modifier_naira) || 0, // naira
+                        image_url: o.image_url || null,
+                        image: o.image_url || null, // alternative key
+                        is_available: o.is_available ?? true,
+                        sort_order: i,
+                    };
+
+                    console.log(`[publish] AddOption to ${realGroupId}:`, optionPayload);
+
+                    try {
+                        await addChoiceOption(realGroupId, optionPayload);
+                    } catch (optionErr) {
+                        // Surface the error — don't swallow it completely
+                        console.error(
+                            `[publish] Failed to save option "${o.label}" in group "${g.name}":`,
+                            optionErr?.response?.data || optionErr.message
+                        );
+                        // We continue saving other options even if one fails
+                    }
                 }
             }
 

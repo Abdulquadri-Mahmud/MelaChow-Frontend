@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useVendorProfile } from "@/app/context/VendorProfileContext";
 import { useVendorFoods } from "@/app/hooks/useVendorFoods";
 import { useQueryClient } from "@tanstack/react-query";
-import { toggleMenuItemAvailability, archiveMenuItem } from "@/app/lib/menuApi";
+import { toggleMenuItemAvailability, archiveMenuItem, deleteMenuItem } from "@/app/lib/menuApi";
 import FoodCard from "./components/FoodCard";
 import FoodCardSkeleton from "./components/FoodCardSkeleton";
 import FoodsFilterBar from "./components/FoodsFilterBar";
@@ -105,6 +105,51 @@ export default function MyFoodsPage() {
   // Navigate to edit page
   const handleEdit = (itemId) => {
     router.push(`/vendors/my-foods/${itemId}/edit`);
+  };
+
+  // Permanently delete a menu item (with confirmation toast)
+  const handleDelete = (itemId, itemName) => {
+    toast((t) => (
+      <div className="flex flex-col gap-3 min-w-[260px]">
+        <div>
+          <p className="font-black text-sm text-slate-900 dark:text-white">
+            Delete &ldquo;{itemName}&rdquo;?
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+            Permanently removes this item, all its sizes, choices, and options.
+            This cannot be undone.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            className="flex-1 h-9 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={async () => {
+              toast.dismiss(t.id);
+              try {
+                await deleteMenuItem(vendorId, itemId);
+                invalidate();
+                toast.success(`"${itemName}" deleted`);
+              } catch (err) {
+                const msg = err?.response?.data?.message;
+                const blocked = err?.response?.data?.combos;
+                toast.error(msg || "Could not delete item", {
+                  duration: blocked ? 6000 : 4000,
+                  icon: blocked ? "🍱" : "❌",
+                });
+              }
+            }}
+            className="flex-1 h-9 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-colors"
+          >
+            Delete Forever
+          </button>
+        </div>
+      </div>
+    ), { duration: 8000 });
   };
 
   // Clear all filters
@@ -222,6 +267,7 @@ export default function MyFoodsPage() {
                     onToggleAvailability={handleToggleAvailability}
                     onArchive={handleArchive}
                     onEdit={handleEdit}
+                    onDelete={handleDelete}
                   />
                 ))
             }

@@ -22,10 +22,33 @@ export default function Step5Review({ onBack, onComplete, onSetStep }) {
             return;
         }
 
+        // Guard: name is required
+        if (!store.name?.trim()) {
+            toast.error("Please go back to Step 1 and enter a food name.");
+            return;
+        }
+
+        // Guard: category is required — backend will reject null
+        if (!store.platform_category_id) {
+            toast.error("Please go back to Step 2 and select a food category.");
+            return;
+        }
+
         if (store.portions.length === 0) {
             toast.error("You need at least one portion with a price.");
             return;
         }
+
+        // Diagnostic — confirm store values at publish time
+        console.log("[publish] store snapshot:", {
+            name: store.name,
+            platform_category_id: store.platform_category_id,
+            platform_category_label: store.platform_category_label,
+            dietary_type: store.dietary_type,
+            item_type: store.item_type,
+            portions_count: store.portions.length,
+            choice_groups_count: store.choice_groups.length,
+        });
 
         store.setField("isSubmitting", true);
 
@@ -38,6 +61,7 @@ export default function Step5Review({ onBack, onComplete, onSetStep }) {
                     description: store.description,
                     image_url: store.image_url,
                     item_type: store.item_type,
+                    dietary_type: store.dietary_type,   // ← was missing
                     prep_time_minutes: store.prep_time_minutes,
                     tags: store.tags,
                 },
