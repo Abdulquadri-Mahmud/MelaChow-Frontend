@@ -205,6 +205,7 @@ export default function EditFoodPage() {
                 description: store.description.trim() || undefined,
                 image_url: store.image_url || undefined,
                 item_type: store.item_type,
+                dietary_type: store.dietary_type, // ← added missing field
                 prep_time_minutes: store.prep_time_minutes,
                 tags: store.tags,
             };
@@ -275,7 +276,10 @@ export default function EditFoodPage() {
             }
 
             toast.success("Food updated successfully!", { id: loadingToast });
-            store.setField("isDirty", false);
+            store.resetForm();
+            if (typeof window !== "undefined") {
+                sessionStorage.removeItem("gd_create_food_wizard");
+            }
             router.push("/vendors/my-foods");
 
         } catch (error) {
