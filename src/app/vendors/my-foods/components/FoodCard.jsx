@@ -16,22 +16,17 @@ const DIETARY_BADGE = {
     vegan: { label: "Vegan", color: "text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-500/10" },
     kosher: { label: "Kosher", color: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10" },
     "non-veg": { label: "Non-Veg", color: "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10" },
-    mixed: null, // show nothing for mixed — it's the default
+    mixed: null,
 };
 
 export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit }) {
     const dietary = DIETARY_BADGE[item.dietary_type];
 
-    // Safety checks for portions data
-    const portionsCount = item.portions?.count || 0;
-    const minPrice = item.portions?.min_price_naira || 0;
-    const maxPrice = item.portions?.max_price_naira || 0;
-
-    const priceDisplay = portionsCount === 0
+    const priceDisplay = item.portions.count === 0
         ? "No price set"
-        : minPrice === maxPrice
-            ? `₦${minPrice.toLocaleString()}`
-            : `₦${minPrice.toLocaleString()} – ₦${maxPrice.toLocaleString()}`;
+        : item.portions.min_price_naira === item.portions.max_price_naira
+            ? `₦${item.portions.min_price_naira?.toLocaleString()}`
+            : `₦${item.portions.min_price_naira?.toLocaleString()} – ₦${item.portions.max_price_naira?.toLocaleString()}`;
 
     return (
         <div className={`group relative bg-white dark:bg-slate-900 border rounded-3xl overflow-hidden transition-all hover:shadow-lg hover:shadow-slate-200/60 dark:hover:shadow-none hover:-translate-y-0.5 ${item.is_archived
@@ -39,7 +34,7 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
             : "border-slate-100 dark:border-slate-800"
             }`}>
 
-            {/* ── IMAGE ───────────────────────────────────── */}
+            {/* Image */}
             <div className="relative h-44 bg-slate-100 dark:bg-slate-800 overflow-hidden">
                 {item.image_url ? (
                     <img
@@ -53,44 +48,44 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                     </div>
                 )}
 
-                {/* Status badges — top left */}
+                {/* Status badges top-left */}
                 <div className="absolute top-3 left-3 flex flex-col gap-1.5">
                     {item.is_archived && (
-                        <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-slate-900/80 text-white backdrop-blur-sm shadow-sm">
+                        <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-slate-900/80 text-white backdrop-blur-sm">
                             Archived
                         </span>
                     )}
                     {!item.is_archived && !item.is_available && (
-                        <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-amber-500/90 text-white backdrop-blur-sm shadow-sm">
+                        <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-amber-500/90 text-white backdrop-blur-sm">
                             Hidden
                         </span>
                     )}
                     {!item.is_archived && !item.is_in_stock && (
-                        <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-rose-500/90 text-white backdrop-blur-sm shadow-sm">
+                        <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-rose-500/90 text-white backdrop-blur-sm">
                             Sold Out
                         </span>
                     )}
                 </div>
 
-                {/* Dietary badge — top right */}
+                {/* Dietary badge top-right */}
                 {dietary && (
-                    <span className={`absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg backdrop-blur-sm shadow-sm border border-black/5 dark:border-white/5 ${dietary.color}`}>
+                    <span className={`absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg backdrop-blur-sm ${dietary.color}`}>
                         {dietary.label}
                     </span>
                 )}
 
-                {/* Quick action overlay — appears on hover */}
-                <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-[2px]">
+                {/* Hover action overlay */}
+                <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
                     <button
                         onClick={() => onEdit(item._id)}
-                        className="w-10 h-10 rounded-2xl bg-white text-slate-900 flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all shadow-xl active:scale-90"
+                        className="w-10 h-10 rounded-2xl bg-white text-slate-900 flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all"
                         title="Edit food"
                     >
                         <Edit2 size={15} />
                     </button>
                     <button
                         onClick={() => onToggleAvailability(item._id)}
-                        className="w-10 h-10 rounded-2xl bg-white text-slate-900 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all shadow-xl active:scale-90"
+                        className="w-10 h-10 rounded-2xl bg-white text-slate-900 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all"
                         title={item.is_available ? "Hide from menu" : "Show on menu"}
                     >
                         {item.is_available
@@ -100,8 +95,15 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                     </button>
                     <button
                         onClick={() => onArchive(item._id)}
-                        className="w-10 h-10 rounded-2xl bg-white text-slate-900 flex items-center justify-center hover:bg-slate-700 hover:text-white transition-all shadow-xl active:scale-90"
-                        title={item.is_archived ? "Unarchive" : "Archive"}
+                        className={`w-10 h-10 rounded-2xl bg-white text-slate-900 flex items-center justify-center transition-all ${item.combos?.length > 0 && !item.is_archived
+                                ? "opacity-50 cursor-not-allowed hover:bg-white"
+                                : "hover:bg-slate-700 hover:text-white"
+                            }`}
+                        title={
+                            item.combos?.length > 0 && !item.is_archived
+                                ? `Remove from combos first: ${item.combos.map(c => c.name).join(", ")}`
+                                : item.is_archived ? "Restore" : "Archive"
+                        }
                     >
                         {item.is_archived
                             ? <ArchiveRestore size={15} />
@@ -111,35 +113,42 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                 </div>
             </div>
 
-            {/* ── BODY ────────────────────────────────────── */}
+            {/* Body */}
             <div className="p-4 space-y-3">
 
-                {/* Name + category */}
+                {/* Name + location */}
                 <div>
                     <h3 className="font-black text-slate-900 dark:text-white text-base tracking-tight leading-tight line-clamp-1">
                         {item.name}
                     </h3>
-                    {item.category && (
-                        <p className="text-[11px] font-bold text-slate-400 dark:text-slate-500 mt-0.5">
-                            {item.section
-                                ? `${item.section.name} · ${item.category.name}`
-                                : item.category.name
-                            }
-                        </p>
-                    )}
+                    <div className="flex flex-col gap-1 mt-1">
+                        {item.category && (
+                            <p className="text-[10px] font-bold text-orange-500 dark:text-orange-400 uppercase tracking-widest bg-orange-50 dark:bg-orange-500/10 w-fit px-1.5 py-0.5 rounded">
+                                {item.section
+                                    ? `${item.section.name} · ${item.category.name}`
+                                    : item.category.name
+                                }
+                            </p>
+                        )}
+                        {item.description && (
+                            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 line-clamp-2 leading-normal">
+                                {item.description}
+                            </p>
+                        )}
+                    </div>
                 </div>
 
-                {/* Price range */}
+                {/* Price + prep time */}
                 <div className="flex items-center justify-between">
-                    <span className={`font-black text-base tracking-tight ${portionsCount === 0
+                    <span className={`font-black text-base tracking-tight ${item.portions.count === 0
                         ? "text-slate-300 dark:text-slate-600 text-sm"
-                        : "text-orange-600 dark:text-orange-400"
+                        : "text-slate-900 dark:text-white"
                         }`}>
                         {priceDisplay}
                     </span>
                     {item.prep_time_minutes && (
-                        <span className="flex items-center gap-1 text-[11px] font-bold text-slate-400 dark:text-slate-500">
-                            <Clock size={11} />
+                        <span className="flex items-center gap-1 text-[11px] font-bold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded-lg border border-slate-100 dark:border-slate-800">
+                            <Clock size={11} className="text-orange-500" />
                             {item.prep_time_minutes}m
                         </span>
                     )}
@@ -147,18 +156,31 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
 
                 {/* Metadata chips */}
                 <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-                        {portionsCount} {portionsCount === 1 ? "portion" : "portions"}
+                    <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 shadow-sm px-2.5 py-1.5 rounded-xl">
+                        <span className="w-1 h-1 rounded-full bg-slate-400" />
+                        {item.portions.count} {item.portions.count === 1 ? "Size" : "Sizes"}
                     </span>
-                    {item.choice_groups?.count > 0 && (
-                        <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-                            {item.choice_groups.count} {item.choice_groups.count === 1 ? "add-on" : "add-ons"}
+                    {item.choice_groups.count > 0 && (
+                        <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 shadow-sm px-2.5 py-1.5 rounded-xl">
+                            <span className="w-1 h-1 rounded-full bg-slate-400" />
+                            {item.choice_groups.count} {item.choice_groups.count === 1 ? "Add-on" : "Add-ons"}
                         </span>
                     )}
                     {item.tags?.length > 0 && (
-                        <span className="flex items-center gap-1 text-[10px] font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-                            <Tag size={10} />
+                        <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 shadow-sm px-2.5 py-1.5 rounded-xl">
+                            <Tag size={10} className="text-slate-400" />
                             {item.tags.length}
+                        </span>
+                    )}
+                    {item.combos?.length > 0 && (
+                        <span
+                            title={item.combos.map(c => c.name).join(", ")}
+                            className="flex items-center gap-1 text-[10px] font-black text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 border border-violet-100 dark:border-violet-500/20 px-2.5 py-1 rounded-lg cursor-default"
+                        >
+                            🍱 {item.combos.length === 1
+                                ? `In "${item.combos[0].name}"`
+                                : `In ${item.combos.length} combos`
+                            }
                         </span>
                     )}
                 </div>

@@ -1,66 +1,31 @@
 "use client";
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
-import { getMenuItemDetails } from "@/app/lib/menuApi";
-import { useVendorProfile } from "@/app/context/VendorProfileContext";
+import { useQuery } from "@tanstack/react-query";
+import { getMenuAxios } from "@/app/lib/menuApi";
 
-// ✅ Custom hook for managing foods
-export const useFoods = () => {
-  const queryClient = useQueryClient();
+// Fetch a single menu item by ID with its full details
+// including portions and choice groups
+const fetchFoodById = async (vendorId, foodId) => {
+  const ax = getMenuAxios();
+  const res = await ax.get(
+    `/v1/vendors/${vendorId}/menu/items/${foodId}`
+  );
+  return res.data;
+};
 
-  const { data: foods, isLoading, isError, refetch } = useQuery({
-    queryKey: ["foods"],
-    queryFn: async () => [],
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (data) => { },
-    onSuccess: () => { },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }) => { },
-    onSuccess: () => { },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async ({ id, options }) => { },
-    onSuccess: () => { },
+export const useFoodById = (foodId, vendorId) => {
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["food-item", foodId],
+    queryFn: () => fetchFoodById(vendorId, foodId),
+    enabled: !!foodId && !!vendorId,
+    staleTime: 1000 * 60 * 5,    // 5 minutes
+    retry: 2,
   });
 
   return {
-    foods,
+    food: data,          // full response object { success, item, portions, choice_groups }
     isLoading,
     isError,
-    refetch,
-    createFood: createMutation.mutate,
-    updateFood: updateMutation.mutate,
+    error,
   };
-};
-
-export const useFoodById = (id) => {
-  const { vendorProfile } = useVendorProfile();
-  const vendorId = vendorProfile?._id || vendorProfile?.id;
-
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["food", id],
-    queryFn: async () => {
-      if (!vendorId) return null;
-      return await getMenuItemDetails(vendorId, id);
-    },
-    enabled: !!id && !!vendorId,
-  });
-
-  return { food: data, isLoading, isError };
-};
-
-export const useVendorFood = (vendorId) => {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["food", vendorId],
-    queryFn: async () => [],
-    enabled: !!vendorId,
-  });
-
-  return { foods: data, isLoading, isError };
 };

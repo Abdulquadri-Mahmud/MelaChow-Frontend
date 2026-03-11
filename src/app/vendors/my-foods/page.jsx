@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useVendorProfile } from "@/app/context/VendorProfileContext";
 import { useVendorFoods } from "@/app/hooks/useVendorFoods";
@@ -10,7 +10,7 @@ import FoodCard from "./components/FoodCard";
 import FoodCardSkeleton from "./components/FoodCardSkeleton";
 import FoodsFilterBar from "./components/FoodsFilterBar";
 import EmptyFoods from "./components/EmptyFoods";
-import { Plus } from "lucide-react";
+import { Plus, RotateCw } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function MyFoodsPage() {
@@ -19,42 +19,39 @@ export default function MyFoodsPage() {
   const { vendorProfile } = useVendorProfile();
   const vendorId = vendorProfile?._id || vendorProfile?.id;
 
-  // ── FILTER STATE ────────────────────────────────────────
+  // Filter state
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [activeSection, setActiveSection] = useState(null);
   const [page, setPage] = useState(1);
-
-  // Debounce search
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [search]);
 
   const handleSearch = useCallback((value) => {
     setSearch(value);
+    clearTimeout(window._searchTimer);
+    window._searchTimer = setTimeout(() => {
+      setDebouncedSearch(value);
+      setPage(1);
+    }, 350);
   }, []);
 
-  // ── FETCH ───────────────────────────────────────────────
+  // Build filters object for the hook
   const filters = {
-    status: status === "all" ? undefined : status,
+    status,
     section: activeSection || undefined,
     search: debouncedSearch || undefined,
     page,
-    limit: 24, // Use a clean multiple of grid columns
+    limit: 50,
   };
 
-  const { data, isLoading, isError, isFetching } = useVendorFoods(vendorId, filters);
+  const { data, isLoading, isError, isFetching } =
+    useVendorFoods(vendorId, filters);
 
   const items = data?.items || [];
   const stats = data?.stats || {};
   const pagination = data?.pagination || {};
 
-  // ── DERIVE SECTIONS from items for filter bar ───────────
+  // Derive unique sections from fetched items for filter bar
   const sections = useMemo(() => {
     const seen = new Map();
     items.forEach(item => {
@@ -65,19 +62,17 @@ export default function MyFoodsPage() {
     return Array.from(seen.values());
   }, [items]);
 
-  // ── ACTIONS ─────────────────────────────────────────────
+  // Invalidate and refetch
   const invalidate = () => {
     queryClient.invalidateQueries(["vendor-foods", vendorId]);
   };
 
+  // Toggle availability
   const handleToggleAvailability = async (itemId) => {
-    const item = items.find(i => i._id === itemId);
-    if (!item) return;
-
     try {
-      await toggleMenuItemAvailability(vendorId, itemId, !item.is_available);
+      await toggleMenuItemAvailability(vendorId, itemId);
       invalidate();
-      toast.success(item.is_available ? "Item hidden" : "Item is now live");
+      toast.success("Availability updated");
     } catch {
       toast.error("Failed to update availability");
     }
@@ -86,20 +81,33 @@ export default function MyFoodsPage() {
   const handleArchive = async (itemId) => {
     const item = items.find(i => i._id === itemId);
     if (!item) return;
-
     try {
-      await archiveMenuItem(vendorId, itemId);
+      await archiveMenuItem(vendorId, itemId, !item.is_archived);
       invalidate();
-      toast.success("Food moved to archives");
-    } catch {
-      toast.error("Failed to archive food");
+      toast.success(item.is_archived ? "Food restored" : "Food archived");
+    } catch (err) {
+      const serverMsg = err?.response?.data?.message;
+      const blockedByCombos = err?.response?.data?.combos;
+
+      if (blockedByCombos?.length > 0) {
+        // Specific combo-block message
+        toast.error(serverMsg, {
+          duration: 6000,    // longer — vendor needs to read it
+          icon: "🍱",
+        });
+      } else {
+        // Generic fallback
+        toast.error(serverMsg || "Failed to update food");
+      }
     }
   };
 
+  // Navigate to edit page
   const handleEdit = (itemId) => {
     router.push(`/vendors/my-foods/${itemId}/edit`);
   };
 
+  // Clear all filters
   const handleClearFilters = () => {
     setSearch("");
     setDebouncedSearch("");
@@ -110,23 +118,33 @@ export default function MyFoodsPage() {
 
   const isFiltered = !!(debouncedSearch || status !== "all" || activeSection);
 
-  // ── RENDER ───────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <div className="max-w-7xl mx-auto space-y-10">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 rounded-md">
+      <div className="max-w-6xl mx-auto p-4 space-y-8">
 
-        {/* ── PAGE HEADER ─────────────────────────── */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        {/* Page Header */}
+        <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-              My Menu Catalogue
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              My Foods
             </h1>
-            <p className="text-base font-medium text-slate-500 dark:text-slate-400 mt-2">
-              Manage your full food list, availability, and pricing.
+            <p className="text-sm font-medium text-slate-400 dark:text-slate-500 mt-1">
+              Manage your full menu catalogue
             </p>
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Refresh Button */}
+            <button
+              onClick={invalidate}
+              disabled={isFetching}
+              className={`h-12 w-12 flex items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 transition-all ${isFetching ? "opacity-50" : "active:scale-95"}`}
+              title="Refresh list"
+            >
+              <RotateCw size={18} className={isFetching ? "animate-spin" : ""} />
+            </button>
+
+            {/* Create Combo — secondary */}
             <button
               onClick={() => router.push("/vendors/menu/create-combo")}
               disabled={stats.total < 2}
@@ -134,21 +152,22 @@ export default function MyFoodsPage() {
                 ? "Add at least 2 foods before creating a combo"
                 : "Bundle foods into a combo deal"
               }
-              className="h-12 px-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 active:scale-95 shadow-sm"
+              className="h-12 px-5 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               🍱 Create Combo
             </button>
 
+            {/* Add Food — primary */}
             <button
               onClick={() => router.push("/vendors/create-food")}
-              className="h-12 px-8 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl transition-all active:scale-95 flex items-center gap-2 shadow-xl shadow-orange-500/25"
+              className="h-12 px-6 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-orange-500/25"
             >
-              <Plus size={18} strokeWidth={3} /> Add New Food
+              <Plus size={16} /> Add Food
             </button>
           </div>
         </div>
 
-        {/* ── FILTERS ─────────────────────────────── */}
+        {/* Filter Bar */}
         <FoodsFilterBar
           search={search}
           onSearch={handleSearch}
@@ -160,88 +179,78 @@ export default function MyFoodsPage() {
           stats={stats}
         />
 
-        {/* ── RESULTS ─────────────────────────────── */}
+        {/* Results count */}
+        {!isLoading && items.length > 0 && (
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+              {pagination.total} {pagination.total === 1 ? "food" : "foods"}
+              {isFiltered && " matching filters"}
+              {isFetching && " · Updating..."}
+            </p>
+          </div>
+        )}
+
+        {/* Grid */}
         {isError ? (
-          <div className="py-24 text-center space-y-4">
-            <div className="w-16 h-16 bg-rose-50 dark:bg-rose-500/10 text-rose-500 rounded-3xl flex items-center justify-center mx-auto">
-              <Plus size={32} className="rotate-45" />
-            </div>
-            <p className="text-base font-bold text-slate-500 dark:text-slate-400">
-              Failed to load your menu items.
+          <div className="py-20 text-center">
+            <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
+              Failed to load your foods.
             </p>
             <button
               onClick={invalidate}
-              className="px-6 h-10 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black uppercase tracking-widest transition-all active:scale-95"
+              className="mt-4 text-xs font-black text-orange-500 hover:text-orange-600 uppercase tracking-widest"
             >
               Try again
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
-            {!isLoading && items.length > 0 && (
-              <div className="flex items-center justify-between px-1">
-                <p className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
-                  Displaying {items.length} of {pagination.total || 0} items
-                  {isFiltered && <span className="text-orange-500"> (Filtered)</span>}
-                  {isFetching && <span className="ml-2 animate-pulse">···</span>}
-                </p>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {isLoading
-                ? Array.from({ length: 8 }).map((_, i) => (
-                  <FoodCardSkeleton key={i} />
-                ))
-                : items.length === 0
-                  ? <EmptyFoods
-                    isFiltered={isFiltered}
-                    onClearFilters={handleClearFilters}
-                    onAddFood={() => router.push("/vendors/create-food")}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {isLoading
+              ? Array.from({ length: 8 }).map((_, i) => (
+                <FoodCardSkeleton key={i} />
+              ))
+              : items.length === 0
+                ? <EmptyFoods
+                  isFiltered={isFiltered}
+                  onClearFilters={handleClearFilters}
+                  onAddFood={() => router.push("/vendors/create-food")}
+                />
+                : items.map(item => (
+                  <FoodCard
+                    key={item._id}
+                    item={item}
+                    onToggleAvailability={handleToggleAvailability}
+                    onArchive={handleArchive}
+                    onEdit={handleEdit}
                   />
-                  : items.map(item => (
-                    <FoodCard
-                      key={item._id}
-                      item={item}
-                      onToggleAvailability={handleToggleAvailability}
-                      onArchive={handleArchive}
-                      onEdit={handleEdit}
-                    />
-                  ))
-              }
-            </div>
+                ))
+            }
           </div>
         )}
 
-        {/* ── PAGINATION ──────────────────────────── */}
+        {/* Pagination */}
         {pagination.pages > 1 && (
-          <div className="flex items-center justify-center gap-4 pt-10">
+          <div className="flex items-center justify-center gap-2 pt-4">
             <button
-              onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="h-12 px-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-black text-slate-600 dark:text-slate-300 disabled:opacity-30 hover:border-slate-400 transition-all active:scale-95 shadow-sm"
+              className="h-10 px-5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 dark:text-slate-400 disabled:opacity-40 hover:border-slate-400 transition-all"
             >
               Previous
             </button>
-
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-black text-slate-900 dark:text-white">
-                {page}
-              </span>
-              <span className="text-sm font-bold text-slate-400 dark:text-slate-500">
-                of {pagination.pages}
-              </span>
-            </div>
-
+            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 px-3">
+              Page {page} of {pagination.pages}
+            </span>
             <button
-              onClick={() => { setPage(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              onClick={() => setPage(p => p + 1)}
               disabled={!pagination.hasMore}
-              className="h-12 px-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-black text-slate-600 dark:text-slate-300 disabled:opacity-30 hover:border-slate-400 transition-all active:scale-95 shadow-sm"
+              className="h-10 px-5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 dark:text-slate-400 disabled:opacity-40 hover:border-slate-400 transition-all"
             >
               Next
             </button>
           </div>
         )}
+
       </div>
     </div>
   );

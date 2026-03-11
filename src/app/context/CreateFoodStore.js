@@ -32,6 +32,7 @@ export const useCreateFoodStore = create(
             isSubmitting: false,
             isDirty: false,
             createdItemId: null,
+            _id: null,
 
             // ─── Actions ───────────────────────────────────────────────────────
             setField: (field, value) =>
@@ -39,7 +40,7 @@ export const useCreateFoodStore = create(
 
             setStep: (step) => set({ currentStep: step }),
 
-            // Tags
+            // ... (other actions)
             addTag: (tag) => {
                 const t = tag.trim().toLowerCase();
                 if (t && get().tags.length < 6 && !get().tags.includes(t)) {
@@ -135,49 +136,64 @@ export const useCreateFoodStore = create(
                     isDirty: true,
                 })),
 
-            initFromFood: (food) => {
-                set({
-                    name: food.name || "",
-                    description: food.description || "",
-                    image_url: food.image_url || null,
-                    item_type: food.item_type || "FOOD",
-                    dietary_type: food.dietary_type || "mixed",
-                    prep_time_minutes: food.prep_time_minutes || 20,
-                    tags: food.tags || [],
-                    platform_category_id: food.platform_category_id || null,
-                    platform_category_label: food.platform_category?.name || "Other", // simplistic fallback
-                    vendor_section_id: food.vendor_section_id || null,
-                    vendor_section_label: food.vendor_section?.name || null,
-                    portions: food.portions?.map(p => ({
-                        tempId: p._id || Date.now().toString() + Math.random(),
-                        label: p.label,
-                        price_naira: (p.price || 0) / 100,
-                        is_default: p.is_default || false,
-                        max_quantity: p.max_quantity || null,
-                        sort_order: p.sort_order || 0,
-                    })) || [],
-                    choice_groups: food.choice_groups?.map(g => ({
-                        tempId: g._id || Date.now().toString() + Math.random(),
-                        name: g.name,
-                        min_selections: g.min_selections || 0,
-                        max_selections: g.max_selections || 1,
-                        is_required: g.is_required || false,
-                        sort_order: g.sort_order || 0,
-                        options: g.options?.map(o => ({
-                            tempId: o._id || Date.now().toString() + Math.random(),
-                            label: o.label,
-                            price_modifier_naira: (o.price_modifier || 0) / 100,
-                            image_url: o.image_url || null,
-                            is_available: o.is_available !== false,
-                            sort_order: o.sort_order || 0,
-                        })) || [],
-                    })) || [],
-                    currentStep: 1,
-                    isSubmitting: false,
-                    isDirty: false,
-                    createdItemId: food._id,
-                });
-            },
+            initFromFood: (food) => set({
+                // Preserve the original item ID for update calls
+                _id: food._id || null,
+
+                // Step 1 — Basic Info
+                name: food.name || "",
+                description: food.description || "",
+                image_url: food.image_url || null,
+                item_type: food.item_type || "FOOD",
+                dietary_type: food.dietary_type || "mixed",
+                prep_time_minutes: food.prep_time_minutes || null,
+                tags: food.tags || [],
+
+                // Step 2 — Categories
+                platform_category_id: food.platform_category_id || null,
+                platform_category_label: food.platform_category
+                    ? `${food.platform_category?.parent?.name
+                        ? food.platform_category.parent.name + " → "
+                        : ""}${food.platform_category.name}`
+                    : null,
+                vendor_section_id: food.vendor_section_id || null,
+                vendor_section_label: food.vendor_section?.name || null,
+
+                // Step 3 — Portions
+                // Convert kobo → naira for display
+                // Assign tempId using the real _id from the DB
+                portions: (food.portions || []).map(p => ({
+                    tempId: p._id?.toString() || Date.now().toString(),
+                    label: p.label,
+                    price_naira: p.price / 100,    // kobo → naira
+                    is_default: p.is_default,
+                    max_quantity: p.max_quantity || null,
+                    sort_order: p.sort_order || 0,
+                })),
+
+                // Step 4 — Choice Groups
+                choice_groups: (food.choice_groups || []).map(g => ({
+                    tempId: g._id?.toString() || Date.now().toString(),
+                    name: g.name,
+                    is_required: g.is_required,
+                    min_selections: g.min_selections,
+                    max_selections: g.max_selections,
+                    options: (g.options || []).map(o => ({
+                        tempId: o._id?.toString() || Date.now().toString(),
+                        label: o.label,
+                        price_modifier_naira: o.price_modifier / 100,  // kobo → naira
+                        image_url: o.image_url || null,
+                        is_available: o.is_available,
+                        sort_order: o.sort_order || 0,
+                    })),
+                })),
+
+                // Meta — reset wizard state for edit mode
+                currentStep: 1,
+                isSubmitting: false,
+                isDirty: false,
+                createdItemId: food._id || null,
+            }),
 
             resetForm: () =>
                 set({
@@ -198,6 +214,7 @@ export const useCreateFoodStore = create(
                     isSubmitting: false,
                     isDirty: false,
                     createdItemId: null,
+                    _id: null,
                 }),
         }),
         {

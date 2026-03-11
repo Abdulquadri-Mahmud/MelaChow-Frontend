@@ -33,7 +33,8 @@ export default function EditFoodPage() {
     const { vendorProfile } = useVendorProfile();
     const vendorId = vendorProfile?._id || vendorProfile?.id;
 
-    const { food: fetchedData, isLoading: fetching } = useFoodById(foodId);
+    const { food: fetchedData, isLoading: fetching, isError } =
+        useFoodById(foodId, vendorId);
     const [mounted, setMounted] = useState(false);
     const [initialized, setInitialized] = useState(false);
 
@@ -49,29 +50,66 @@ export default function EditFoodPage() {
         return () => window.removeEventListener("beforeunload", handleBeforeUnload);
     }, [store.isDirty]);
 
+    // Wait for vendor profile to load before rendering
+    if (!vendorId && !fetching) {
+        return (
+            <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+                <Loader2 className="animate-spin text-orange-500" size={32} />
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-4">
+                <p className="text-slate-500 font-bold">
+                    Failed to load this food item.
+                </p>
+                <button
+                    onClick={() => router.push("/vendors/my-foods")}
+                    className="h-11 px-6 rounded-2xl bg-orange-500 text-white text-xs font-black uppercase tracking-widest"
+                >
+                    Back to My Foods
+                </button>
+            </div>
+        );
+    }
+
     // Initialize Store with Fetched Data
     useEffect(() => {
-        if (fetchedData?.data && !initialized) {
-            const d = fetchedData.data;
+        if (fetchedData?.item && !initialized) {
+            const d = fetchedData.item;
+
             store.initFromFood({
-                _id: d._id || d.id,
+                _id: d._id,
                 name: d.name,
                 description: d.description,
-                image_url: d.image_url || d.images?.[0]?.url || (typeof d.images?.[0] === 'string' ? d.images[0] : null),
+                image_url: d.image_url || null,
                 item_type: d.item_type || "FOOD",
                 dietary_type: d.dietary_type || "mixed",
-                prep_time_minutes: d.prep_time_minutes || d.prepTime || 20,
+                prep_time_minutes: d.prep_time_minutes || null,
                 tags: d.tags || [],
-                platform_category_id: d.category?._id || d.platform_category_id,
-                platform_category: d.category,
-                vendor_section_id: d.section?._id || d.vendor_section_id,
-                vendor_section: d.section,
-                portions: d.portions || [],
-                choice_groups: d.choice_groups || d.choiceGroups || []
+
+                // Category — buildFullItem populates these
+                platform_category_id: d.platform_category_id?._id
+                    || d.platform_category_id
+                    || null,
+                platform_category: d.platform_category_id || null,
+
+                // Section
+                vendor_section_id: d.vendor_section_id?._id
+                    || d.vendor_section_id
+                    || null,
+                vendor_section: d.vendor_section_id || null,
+
+                // Portions and choice groups come as top-level arrays from buildFullItem
+                portions: fetchedData.portions || d.portions || [],
+                choice_groups: fetchedData.choice_groups || d.choice_groups || [],
             });
+
             setInitialized(true);
         }
-    }, [fetchedData, initialized, store]);
+    }, [fetchedData, initialized]);
 
     if (!mounted) return null;
 

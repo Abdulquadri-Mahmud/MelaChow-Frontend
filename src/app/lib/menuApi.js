@@ -2,7 +2,7 @@ import axios from "axios";
 import { TokenManager } from "./auth-token";
 
 // menuApi.js — change this one line
-const getMenuAxios = () => {
+export const getMenuAxios = () => {
     const token = TokenManager.getToken('vendor');
 
     return axios.create({
@@ -80,10 +80,9 @@ export const updateMenuItem = async (vendorId, itemId, payload) => {
     return res.data;
 };
 
-export const toggleMenuItemAvailability = async (vendorId, itemId, is_available) => {
+export const toggleMenuItemAvailability = async (vendorId, itemId) => {
     const res = await getMenuAxios().patch(
-        `/v1/menu/${vendorId}/items/${itemId}/availability`,
-        { is_available }
+        `/v1/menu/${vendorId}/items/${itemId}/availability`
     );
     return res.data;
 };
@@ -101,10 +100,10 @@ export const toggleMenuItemStock = async (vendorId, itemId, is_in_stock) => {
  * The item is never destroyed in the database.
  * Do NOT use DELETE method for items.
  */
-export const archiveMenuItem = async (vendorId, itemId) => {
-    const res = await getMenuAxios().put(
-        `/v1/menu/${vendorId}/items/${itemId}`,
-        { is_archived: true }
+export const archiveMenuItem = async (vendorId, itemId, archived) => {
+    const res = await getMenuAxios().patch(
+        `/v1/menu/${vendorId}/items/${itemId}/archive`,
+        { archived }    // true = archive, false = restore
     );
     return res.data;
 };
@@ -156,6 +155,25 @@ export const togglePortionStock = async (vendorId, itemId, portionId, is_in_stoc
         { is_in_stock }
     );
     return res.data;
+};
+
+// Fetch full portions for a single menu item
+// Used by combo builder to let vendor pick which portion
+// is included in the combo
+// Fetch full item detail including populated choice groups
+// and options. Used by the combo builder to preview what
+// choices a customer will make when ordering this item.
+//
+// IMPORTANT: Uses /vendors/ prefix — this is the customer-
+// facing endpoint that runs buildFullItem with full population.
+// The vendor /menu/ endpoint does NOT return choice group arrays.
+export const getMenuItemDetail = async (vendorId, itemId) => {
+    const ax = getMenuAxios();
+    const res = await ax.get(
+        `/v1/vendors/${vendorId}/menu/items/${itemId}`
+    );
+    return res.data;
+    // res.data.item.choice_groups is a fully populated array
 };
 
 // ─────────────────────────────────────────────

@@ -39,7 +39,19 @@ export const useCreateComboStore = create(
                     }));
                 } else {
                     set((state) => ({
-                        components: [...state.components, { ...item, quantity: 1, tempId: Date.now().toString() }],
+                        components: [
+                            ...state.components,
+                            {
+                                tempId: Date.now().toString(),
+                                menu_item_id: item.menu_item_id,
+                                menu_item_name: item.menu_item_name,
+                                menu_item_image: item.menu_item_image,
+                                menu_item_section: item.menu_item_section || null,
+                                unit_price_naira: item.unit_price_naira,
+                                quantity: 1,
+                                choice_group_count: item.choice_group_count || 0,
+                            }
+                        ],
                     }));
                 }
             },

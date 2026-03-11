@@ -20,14 +20,14 @@ export default function EmptyFoods({ isFiltered, onClearFilters, onAddFood }) {
             {isFiltered ? (
                 <button
                     onClick={onClearFilters}
-                    className="h-11 px-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-sm font-black text-slate-600 dark:text-slate-300 hover:border-slate-400 transition-all active:scale-95"
+                    className="h-11 px-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-sm font-black text-slate-600 dark:text-slate-300 hover:border-slate-400 transition-all"
                 >
                     Clear Filters
                 </button>
             ) : (
                 <button
                     onClick={onAddFood}
-                    className="h-11 px-6 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-black flex items-center gap-2 transition-all active:scale-95 shadow-lg shadow-orange-500/20"
+                    className="h-11 px-6 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-black flex items-center gap-2 transition-all active:scale-95"
                 >
                     <Plus size={16} /> Add Your First Food
                 </button>

@@ -8,7 +8,7 @@ export const useVendorFoods = (vendorId, filters = {}) => {
         queryKey: ["vendor-foods", vendorId, filters],
         queryFn: () => getVendorMenuItems(vendorId, filters),
         enabled: !!vendorId,
-        staleTime: 1000 * 60 * 2,   // 2 minutes
-        placeholderData: (previousData) => previousData, // smooth transitions (TanStack Query v5 version of keepPreviousData)
+        staleTime: 1000 * 60 * 2,
+        keepPreviousData: true,
     });
 };
