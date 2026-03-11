@@ -1,11 +1,12 @@
 import axios from "axios";
 import { TokenManager } from "./auth-token";
 
+// menuApi.js — change this one line
 const getMenuAxios = () => {
     const token = TokenManager.getToken('vendor');
 
     return axios.create({
-        baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+        baseURL: process.env.NEXT_PUBLIC_API_URL, // ← was NEXT_PUBLIC_API_BASE_URL
         withCredentials: true,
         headers: {
             'Content-Type': 'application/json',
@@ -218,5 +219,47 @@ export const getFullVendorMenu = async (vendorId) => {
 
 export const getMenuItemDetails = async (vendorId, itemId) => {
     const res = await getMenuAxios().get(`/v1/vendors/${vendorId}/menu/items/${itemId}`);
+    return res.data;
+};
+
+// ─────────────────────────────────────────────
+// COMBOS & VARIANTS
+// ─────────────────────────────────────────────
+
+/**
+ * Get all vendor menu items with filtering and pagination
+ */
+export const getVendorMenuItems = async (vendorId, params = {}) => {
+    const res = await getMenuAxios().get(`/v1/menu/${vendorId}/items`, { params });
+    return res.data;
+};
+
+/**
+ * Create combo variant
+ */
+export const createVariant = async (vendorId, data) => {
+    const res = await getMenuAxios().post(`/v1/menu/${vendorId}/variants`, data);
+    return res.data;
+};
+
+/**
+ * Add component to variant
+ */
+export const addVariantComponent = async (vendorId, variantId, data) => {
+    const res = await getMenuAxios().post(
+        `/v1/menu/${vendorId}/variants/${variantId}/components`,
+        data
+    );
+    return res.data;
+};
+
+/**
+ * Add choice group to variant (for swaps)
+ */
+export const addVariantChoiceGroup = async (vendorId, variantId, data) => {
+    const res = await getMenuAxios().post(
+        `/v1/menu/${vendorId}/variants/${variantId}/choice-groups`,
+        data
+    );
     return res.data;
 };

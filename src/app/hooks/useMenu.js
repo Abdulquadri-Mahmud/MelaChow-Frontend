@@ -89,6 +89,7 @@ export const useCreateMenuItem = (vendorId) => {
                 description: item.description?.trim() || undefined,
                 image_url: item.image_url || undefined,
                 item_type: item.item_type,
+                dietary_type: item.dietary_type || "mixed",
                 prep_time_minutes: item.prep_time_minutes,
                 tags: item.tags,
             };

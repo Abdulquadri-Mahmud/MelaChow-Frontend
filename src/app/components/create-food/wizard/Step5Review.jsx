@@ -145,12 +145,26 @@ export default function Step5Review({ onBack, onComplete, onSetStep }) {
                                         <h4 className="font-black text-slate-900 dark:text-white text-base tracking-tight">{g.name}</h4>
                                         {g.is_required && <span className="text-[9px] px-1.5 py-0.5 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded border border-orange-200 dark:border-orange-500/30 uppercase font-black tracking-widest">Required</span>}
                                     </div>
-                                    <div className="space-y-2 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
+                                    <div className="space-y-3 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
                                         {g.options.map(o => (
                                             <div key={o.tempId} className="flex items-center justify-between text-[13px] font-bold text-slate-600 dark:text-slate-400">
-                                                <span>{o.label}</span>
+                                                <div className="flex items-center gap-2.5">
+                                                    {o.image_url ? (
+                                                        <img
+                                                            src={o.image_url}
+                                                            alt=""
+                                                            className="w-7 h-7 rounded-lg object-cover border border-slate-100 dark:border-slate-800"
+                                                            onError={e => { e.target.style.display = 'none'; }}
+                                                        />
+                                                    ) : (
+                                                        <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-400">
+                                                            {o.label.charAt(0).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                    <span>{o.label}</span>
+                                                </div>
                                                 <span className={`${o.price_modifier_naira > 0 ? "text-orange-600 dark:text-orange-400 font-black" : "text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full"}`}>
-                                                    {o.price_modifier_naira > 0 ? `+₦${o.price_modifier_naira}` : 'FREE'}
+                                                    {o.price_modifier_naira > 0 ? `+₦${o.price_modifier_naira.toLocaleString()}` : 'FREE'}
                                                 </span>
                                             </div>
                                         ))}

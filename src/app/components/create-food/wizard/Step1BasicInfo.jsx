@@ -65,6 +65,26 @@ export default function Step1BasicInfo({ onNext }) {
 
     const PREDEFINED_TAGS = ["Spicy", "Delicious", "Vegan", "Sweet", "Bestseller", "New", "Healthy", "Gluten-Free"];
 
+    const ITEM_TYPE_OPTIONS = [
+        { label: "Food", value: "FOOD", emoji: "🍽️" },
+        { label: "Drink", value: "DRINK", emoji: "🥤" },
+        { label: "Soup", value: "SOUP", emoji: "🥘" },
+        { label: "Swallow", value: "SWALLOW", emoji: "🫓" },
+        { label: "Protein", value: "PROTEIN", emoji: "🍗" },
+        { label: "Side", value: "SIDE", emoji: "🍟" },
+        { label: "Dessert", value: "DESSERT", emoji: "🍰" },
+        { label: "Other", value: "OTHER", emoji: "🍴" },
+    ];
+
+    const DIETARY_TYPE_OPTIONS = [
+        { label: "Mixed", value: "mixed", emoji: "🍽️", hint: "No restrictions" },
+        { label: "Halal", value: "halal", emoji: "☪️", hint: "Halal certified" },
+        { label: "Non-Veg", value: "non-veg", emoji: "🥩", hint: "Contains meat" },
+        { label: "Veg", value: "veg", emoji: "🥦", hint: "Vegetarian" },
+        { label: "Vegan", value: "vegan", emoji: "🌱", hint: "No animal products" },
+        { label: "Kosher", value: "kosher", emoji: "✡️", hint: "Kosher certified" },
+    ];
+
     return (
         <div className="max-w-xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
@@ -143,50 +163,88 @@ export default function Step1BasicInfo({ onNext }) {
                     </div>
                 </div>
 
-                {/* Type & Prep Time */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Food Type <span className="text-rose-500">*</span></label>
-                        <div className="flex flex-wrap gap-2">
-                            {["Mixed", "Veg 🌿", "Non-Veg 🍗", "Vegan 🌱", "Halal ✅"].map(type => {
-                                const cleanType = type.split(" ")[0];
-                                const isSelected = store.item_type === cleanType;
-                                return (
-                                    <button
-                                        key={cleanType}
-                                        type="button"
-                                        onClick={() => store.setField("item_type", cleanType)}
-                                        className={`px-4 h-10 rounded-xl text-xs flex items-center justify-center font-bold tracking-wide transition-all border ${isSelected
-                                            ? "bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-200 dark:border-orange-500/30"
-                                            : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
-                                    >
-                                        {type}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                {/* Item Category */}
+                <div className="space-y-3">
+                    <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">What kind of item is this? <span className="text-rose-500">*</span></label>
+                    <div className="flex flex-wrap gap-2">
+                        {ITEM_TYPE_OPTIONS.map(option => {
+                            const isSelected = store.item_type === option.value;
+                            return (
+                                <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => store.setField("item_type", option.value)}
+                                    className={`h-9 px-4 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${isSelected
+                                            ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white"
+                                            : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500"
+                                        }`}
+                                >
+                                    <span>{option.emoji}</span>
+                                    {option.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* ── DIETARY TYPE ─────────────────────────────────────── */}
+                <div className="space-y-3">
+                    <div>
+                        <label className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-300">
+                            Dietary Type
+                        </label>
+                        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mt-0.5">
+                            Helps customers with dietary preferences find your food.
+                        </p>
                     </div>
 
-                    <div className="space-y-3">
-                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Preparation Time</label>
-                        <div className="flex items-center h-14 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-[180px] p-1">
-                            <button
-                                type="button"
-                                disabled={store.prep_time_minutes <= 5}
-                                onClick={() => store.setField("prep_time_minutes", store.prep_time_minutes - 5)}
-                                className="w-12 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl disabled:opacity-50 transition-colors"
-                            >-</button>
-                            <div className="flex-1 flex flex-col items-center justify-center leading-none">
-                                <span className="font-black text-slate-900 dark:text-white text-lg">{store.prep_time_minutes}</span>
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">MINS</span>
-                            </div>
-                            <button
-                                type="button"
-                                disabled={store.prep_time_minutes >= 120}
-                                onClick={() => store.setField("prep_time_minutes", store.prep_time_minutes + 5)}
-                                className="w-12 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl disabled:opacity-50 transition-colors"
-                            >+</button>
+                    <div className="flex flex-wrap gap-2">
+                        {DIETARY_TYPE_OPTIONS.map(option => {
+                            const isSelected = store.dietary_type === option.value;
+                            return (
+                                <button
+                                    key={option.value}
+                                    type="button"
+                                    onClick={() => store.setField("dietary_type", option.value)}
+                                    title={option.hint}
+                                    className={`h-9 px-4 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${isSelected
+                                            ? "bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-500/20"
+                                            : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-500/40"
+                                        }`}
+                                >
+                                    <span>{option.emoji}</span>
+                                    {option.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Hint for selected value */}
+                    <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 pl-1">
+                        {DIETARY_TYPE_OPTIONS.find(o => o.value === store.dietary_type)?.hint || ""}
+                    </p>
+                </div>
+
+                {/* Prep Time */}
+                <div className="space-y-3">
+                    <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Preparation Time</label>
+                    <div className="flex items-center h-14 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-[180px] p-1 shadow-sm transition-colors">
+                        <button
+                            type="button"
+                            disabled={store.prep_time_minutes <= 5}
+                            onClick={() => store.setField("prep_time_minutes", Math.max(5, (store.prep_time_minutes || 20) - 5))}
+                            className="w-12 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl disabled:opacity-30 transition-colors"
+                        >-</button>
+                        <div className="flex-1 flex flex-col items-center justify-center leading-none">
+                            <span className="font-black text-slate-900 dark:text-white text-lg">{store.prep_time_minutes || 20}</span>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">MINS</span>
                         </div>
+                        <button
+                            type="button"
+                            disabled={store.prep_time_minutes >= 120}
+                            onClick={() => store.setField("prep_time_minutes", Math.min(120, (store.prep_time_minutes || 20) + 5))}
+                            className="w-12 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl disabled:opacity-30 transition-colors"
+                        >+</button>
                     </div>
                 </div>
 

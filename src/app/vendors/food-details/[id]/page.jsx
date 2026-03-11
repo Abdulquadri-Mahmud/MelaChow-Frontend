@@ -123,7 +123,7 @@ export default function FoodDetailsPage() {
                         >
                             <Eye size={16} /> Preview
                         </button>
-                        <Link href={`/vendors/update-food/${id}`} className="flex items-center gap-2 bg-[#FF6B00] hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95">
+                        <Link href={`/vendors/my-foods/${id}/edit`} className="flex items-center gap-2 bg-[#FF6B00] hover:bg-orange-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-orange-500/20 transition-all active:scale-95">
                             <Edit3 size={18} /> Edit Details
                         </Link>
                     </div>

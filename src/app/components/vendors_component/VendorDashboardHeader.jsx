@@ -1,4 +1,4 @@
-import { Search, Bell, Zap, Menu, Utensils, ShoppingBag, Monitor, Sun, Moon } from "lucide-react";
+import { Search, Bell, Zap, Menu, Utensils, ShoppingBag, Monitor, Sun, Moon, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import NotificationBell from "@/app/components/NotificationBell";
@@ -72,6 +72,16 @@ export default function VendorDashboardHeader({ vendor, onMenuClick }) {
                   className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-20"
                 >
                   <div className="p-2">
+                    <Link
+                      href="/vendors/my-foods"
+                      onClick={() => setShowQuickActions(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors group"
+                    >
+                      <div className="bg-emerald-100 dark:bg-emerald-500/10 p-2 rounded-lg text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                        <UtensilsCrossed size={14} />
+                      </div>
+                      My Menu
+                    </Link>
                     <Link
                       href="/vendors/create-food"
                       onClick={() => setShowQuickActions(false)}

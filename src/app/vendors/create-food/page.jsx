@@ -26,14 +26,9 @@ export default function CreateFoodWizardPage() {
   const store = useCreateFoodStore();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [showDraftPrompt, setShowDraftPrompt] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Check for existing dirty draft not on step 1
-    if (store.isDirty && store.currentStep > 1) {
-      setShowDraftPrompt(true);
-    }
 
     const handleBeforeUnload = (e) => {
       if (store.isDirty) {
@@ -44,12 +39,7 @@ export default function CreateFoodWizardPage() {
 
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [store.isDirty, store.currentStep]);
-
-  const handleClearDraft = () => {
-    store.resetForm();
-    setShowDraftPrompt(false);
-  };
+  }, [store.isDirty]);
 
   if (!mounted) return null; // Avoid hydration mismatch
 
@@ -63,44 +53,6 @@ export default function CreateFoodWizardPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-10 transition-colors">
-
-      {/* Draft Continuation Prompt overlay */}
-      <AnimatePresence>
-        {showDraftPrompt && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-          >
-            <motion.div
-              initial={{ scale: 0.95, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 max-w-sm w-full relative border border-slate-100 dark:border-slate-800 shadow-2xl overflow-hidden"
-            >
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Continue drafting?</h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 font-medium leading-relaxed">You have an unsaved food item "{store.name || "Untitled"}". Do you want to continue where you left off?</p>
-              <div className="flex flex-col gap-3 relative z-10">
-                <button
-                  onClick={() => setShowDraftPrompt(false)}
-                  className="w-full h-14 bg-orange-500 text-white text-sm uppercase tracking-widest font-black rounded-2xl active:scale-95 transition-all shadow-md shadow-orange-500/20"
-                >
-                  Yes, Continue
-                </button>
-                <button
-                  onClick={handleClearDraft}
-                  className="w-full h-14 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-sm uppercase tracking-widest font-black rounded-2xl border border-transparent dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 active:scale-95 transition-all"
-                >
-                  Start Fresh
-                </button>
-              </div>
-
-              {/* Decorative Accent */}
-              <div className="absolute -top-24 -right-24 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl" />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <div className="max-w-xl mx-auto pt-6 px-4 md:px-8">
         {/* Header Strip */}
@@ -155,7 +107,7 @@ export default function CreateFoodWizardPage() {
         </div>
 
         {/* Step Content */}
-        <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 p-6 md:p-10 min-h-[500px]">
+        <div className="bg-white dark:bg-slate-900 rounded-[1rem] border border-slate-200 dark:border-slate-800 p-3 md:p-4 min-h-[500px]">
           {store.currentStep === 1 && <Step1BasicInfo onNext={handleNext} />}
           {store.currentStep === 2 && <Step2Categories onNext={handleNext} onBack={handleBack} />}
           {store.currentStep === 3 && <Step3Portions onNext={handleNext} onBack={handleBack} />}
