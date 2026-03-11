@@ -6,7 +6,8 @@ import {
     createVariant,
     addVariantComponent,
     addVariantChoiceGroup,
-    addChoiceOption
+    addVariantChoiceOption,
+    toggleVariantAvailability,
 } from "@/app/lib/menuApi";
 import {
     Plus,
@@ -60,58 +61,86 @@ export default function ComboStep3Swaps({ onBack }) {
     };
 
     const handlePublish = async () => {
-        if (!vendorId) return;
+        if (!vendorId) {
+            toast.error("Vendor session not found.");
+            return;
+        }
+
         store.setField("isSubmitting", true);
+        const loadingToast = toast.loading("Publishing your combo...");
 
         try {
-            // STEP A: Create Variant
+            // ── A. Create the base variant ────────────────────────
             const variantRes = await createVariant(vendorId, {
-                name: store.name,
-                description: store.description,
-                image_url: store.image_url,
-                price: Math.round(Number(store.price_naira) * 100),
-                is_available: store.is_available,
+                name: store.name.trim(),
+                description: store.description?.trim() || undefined,
+                image_url: store.image_url || undefined,
+                price: Math.round(Number(store.price_naira) * 100), // naira → kobo
+                prep_time_minutes: store.prep_time_minutes || undefined,
+                tags: store.tags || [],
             });
-            const variantId = variantRes.variant?._id || variantRes.variant?.id || variantRes._id;
-            store.setField("createdVariantId", variantId);
 
-            // STEP B: Add Components (sequential)
-            for (const comp of store.components) {
+            const variantId = variantRes?.variant?._id || variantRes?.variant?.id || variantRes?._id;
+            if (!variantId) {
+                throw new Error("Combo was created but ID was not returned.");
+            }
+
+            // ── B. Add fixed components (one per selected item) ───
+            for (let i = 0; i < store.components.length; i++) {
+                const comp = store.components[i];
                 await addVariantComponent(vendorId, variantId, {
+                    component_type: "FIXED",
                     menu_item_id: comp.menu_item_id,
-                    quantity: comp.quantity,
+                    quantity: comp.quantity || 1,
+                    label: comp.menu_item_name,
+                    sort_order: i,
                 });
             }
 
-            // STEP C: Add Swap Groups (sequential)
-            for (const sg of store.swap_groups) {
-                if (sg.options.length === 0) continue;
+            // ── C + D. Add swap groups and their options ──────────
+            if (store.swap_groups && store.swap_groups.length > 0) {
+                for (let i = 0; i < store.swap_groups.length; i++) {
+                    const swapGroup = store.swap_groups[i];
+                    if (swapGroup.options.length === 0) continue;
 
-                const groupRes = await addVariantChoiceGroup(vendorId, variantId, {
-                    name: sg.label,
-                    min_selections: 0,
-                    max_selections: 1,
-                    is_required: false,
-                });
-                const groupId = groupRes.choiceGroup?._id || groupRes.choiceGroup?.id || groupRes._id;
-
-                // Add Options (sequential)
-                for (const opt of sg.options) {
-                    await addChoiceOption(groupId, {
-                        label: opt.label,
-                        price_modifier: Math.round(Number(opt.price_modifier_naira) * 100),
-                        is_available: true,
-                        sort_order: 0,
+                    const groupRes = await addVariantChoiceGroup(vendorId, variantId, {
+                        name: swapGroup.label,
+                        min_selections: 0, // usually optional for swaps
+                        max_selections: 1,
+                        is_required: false,
+                        sort_order: i,
                     });
+
+                    const groupId = groupRes?.group?._id || groupRes?.choiceGroup?._id || groupRes?.id;
+                    if (!groupId) continue;
+
+                    // Add options for this swap group
+                    for (let j = 0; j < (swapGroup.options || []).length; j++) {
+                        const opt = swapGroup.options[j];
+                        await addVariantChoiceOption(groupId, {
+                            label: opt.label,
+                            menu_item_id: opt.menu_item_id || null,
+                            price_modifier: Math.round(Number(opt.price_modifier_naira || 0) * 100),
+                            is_available: true,
+                            sort_order: j,
+                        });
+                    }
                 }
             }
 
-            toast.success("Combo published successfully!");
+            // ── E. Make the combo available ───────────────────────
+            await toggleVariantAvailability(vendorId, variantId, true);
+
+            toast.success("Combo is live on your menu! 🎉", { id: loadingToast });
             store.reset();
-            router.push("/vendors/dashboard");
-        } catch (err) {
-            console.error("Publishing error", err);
-            toast.error("Failed to publish combo. You can try again.");
+            router.push("/vendors/my-foods");
+
+        } catch (error) {
+            console.error("Publishing error", error);
+            const msg = error?.response?.data?.message || error?.message;
+            toast.error(msg || "Something went wrong. Please try again.", {
+                id: loadingToast,
+            });
         } finally {
             store.setField("isSubmitting", false);
         }
@@ -149,8 +178,8 @@ export default function ComboStep3Swaps({ onBack }) {
                                 <button
                                     onClick={() => handleToggleSwap(comp)}
                                     className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${swapGroup
-                                            ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
-                                            : "bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                        ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                                        : "bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white"
                                         }`}
                                 >
                                     <span className="text-[10px] font-black uppercase tracking-widest">Allow swaps</span>
@@ -179,10 +208,10 @@ export default function ComboStep3Swaps({ onBack }) {
                                                     <span className="text-sm font-bold text-slate-900 dark:text-white">{opt.label}</span>
                                                     <div className="flex items-center gap-3">
                                                         <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${opt.price_modifier_naira > 0
-                                                                ? "bg-orange-100 text-orange-600"
-                                                                : opt.price_modifier_naira < 0
-                                                                    ? "bg-emerald-100 text-emerald-600"
-                                                                    : "bg-slate-100 text-slate-500"
+                                                            ? "bg-orange-100 text-orange-600"
+                                                            : opt.price_modifier_naira < 0
+                                                                ? "bg-emerald-100 text-emerald-600"
+                                                                : "bg-slate-100 text-slate-500"
                                                             }`}>
                                                             {opt.price_modifier_naira > 0 ? `+₦${opt.price_modifier_naira}` : opt.price_modifier_naira < 0 ? `-₦${Math.abs(opt.price_modifier_naira)}` : 'FREE'}
                                                         </span>

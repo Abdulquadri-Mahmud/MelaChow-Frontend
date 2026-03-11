@@ -4,6 +4,7 @@ import {
     Edit2, Archive, ArchiveRestore, ToggleLeft,
     ToggleRight, ChevronRight, Clock, Tag
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const ITEM_TYPE_EMOJI = {
     FOOD: "🍽️", DRINK: "🥤", SOUP: "🥘", SWALLOW: "🫓",
@@ -20,6 +21,7 @@ const DIETARY_BADGE = {
 };
 
 export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit }) {
+    const router = useRouter();
     const dietary = DIETARY_BADGE[item.dietary_type];
 
     const priceDisplay = item.portions.count === 0
@@ -96,8 +98,8 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                     <button
                         onClick={() => onArchive(item._id)}
                         className={`w-10 h-10 rounded-2xl bg-white text-slate-900 flex items-center justify-center transition-all ${item.combos?.length > 0 && !item.is_archived
-                                ? "opacity-50 cursor-not-allowed hover:bg-white"
-                                : "hover:bg-slate-700 hover:text-white"
+                            ? "opacity-50 cursor-not-allowed hover:bg-white"
+                            : "hover:bg-slate-700 hover:text-white"
                             }`}
                         title={
                             item.combos?.length > 0 && !item.is_archived
@@ -185,17 +187,25 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                     )}
                 </div>
 
-                {/* Edit link */}
-                <button
-                    onClick={() => onEdit(item._id)}
-                    className="w-full flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800 text-xs font-black text-slate-400 dark:text-slate-500 hover:text-orange-500 dark:hover:text-orange-400 transition-colors group/edit"
-                >
-                    <span>Edit & manage</span>
-                    <ChevronRight
-                        size={14}
-                        className="group-hover/edit:translate-x-0.5 transition-transform"
-                    />
-                </button>
+                {/* Bottom actions row */}
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                        onClick={() => router.push(`/vendors/my-foods/${item._id}`)}
+                        className="text-xs font-black text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors uppercase tracking-widest"
+                    >
+                        View Details
+                    </button>
+                    <button
+                        onClick={() => onEdit(item._id)}
+                        className="flex items-center gap-1.5 text-xs font-black text-orange-500 hover:text-orange-600 transition-colors uppercase tracking-widest group/edit"
+                    >
+                        Edit
+                        <ChevronRight
+                            size={13}
+                            className="group-hover/edit:translate-x-0.5 transition-transform"
+                        />
+                    </button>
+                </div>
             </div>
         </div>
     );
