@@ -95,29 +95,6 @@ const nextConfig = {
     ];
   },
 
-  // ✅ FIX: Suppress source map warnings in development
-  webpack: (config, { dev, isServer }) => {
-    if (dev && !isServer) {
-      // Use faster source maps in development (reduces warnings)
-      config.devtool = 'eval-cheap-source-map';
-    }
-    return config;
-  },
-
-  // ✅ FIX: Optimize Turbopack configuration
-  experimental: {
-    // Suppress Turbopack source map warnings
-    turbo: {
-      rules: {
-        '*.js': {
-          loaders: ['source-map-loader'],
-          options: {
-            filterSourceMappingUrl: () => false,
-          },
-        },
-      },
-    },
-  },
 
   // ✅ Optional: Environment variable validation
   env: {
