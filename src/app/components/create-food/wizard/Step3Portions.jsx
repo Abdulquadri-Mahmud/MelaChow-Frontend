@@ -7,24 +7,24 @@ import toast from "react-hot-toast";
 
 // Portion size presets — label + suggested price anchor in naira
 const PRESETS = [
-    { label: "Small",     hint: "e.g. ₦500–₦1,500" },
-    { label: "Medium",    hint: "e.g. ₦1,500–₦3,000" },
-    { label: "Large",     hint: "e.g. ₦3,000–₦5,000" },
+    { label: "Small", hint: "e.g. ₦500–₦1,500" },
+    { label: "Medium", hint: "e.g. ₦1,500–₦3,000" },
+    { label: "Large", hint: "e.g. ₦3,000–₦5,000" },
     { label: "1 Portion", hint: "e.g. ₦1,000–₦2,500" },
     { label: "Per Piece", hint: "e.g. ₦200–₦500" },
     { label: "Full Wrap", hint: "e.g. ₦2,000–₦4,000" },
 ];
 
-export default function Step3Portions({ onBack, onNext }) {
+export default function Step3Portions({ onBack, onNext, onDeletePortion }) {
     const store = useCreateFoodStore();
     const [showForm, setShowForm] = useState(false);
 
     // Form state
-    const [tempId, setTempId]         = useState(null);
-    const [label, setLabel]           = useState("");
+    const [tempId, setTempId] = useState(null);
+    const [label, setLabel] = useState("");
     const [priceNaira, setPriceNaira] = useState("");
-    const [maxQty, setMaxQty]         = useState("");
-    const [isDefault, setIsDefault]   = useState(false);
+    const [maxQty, setMaxQty] = useState("");
+    const [isDefault, setIsDefault] = useState(false);
 
     const handleOpenForm = (existing = null) => {
         if (existing) {
@@ -82,12 +82,18 @@ export default function Step3Portions({ onBack, onNext }) {
         setShowForm(false);
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (store.portions.length === 1) {
             toast.error("You need at least one portion");
             return;
         }
-        store.removePortion(id);
+        if (onDeletePortion) {
+            // Edit mode — fire real API delete first, then remove from store
+            await onDeletePortion(id);
+        } else {
+            // Create mode — only stored locally, not persisted yet
+            store.removePortion(id);
+        }
     };
 
     const handleNext = () => {
@@ -191,11 +197,10 @@ export default function Step3Portions({ onBack, onNext }) {
                         <button
                             type="button"
                             onClick={() => setIsDefault(!isDefault)}
-                            className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
-                                isDefault
+                            className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${isDefault
                                     ? "bg-orange-500 border-orange-500 shadow-lg shadow-orange-500/25"
                                     : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                            }`}
+                                }`}
                         >
                             <div className="text-left">
                                 <div className={`text-xs font-black uppercase tracking-widest ${isDefault ? "text-white" : "text-slate-700 dark:text-slate-200"}`}>
@@ -205,9 +210,8 @@ export default function Step3Portions({ onBack, onNext }) {
                                     Customers see this pre-selected
                                 </div>
                             </div>
-                            <div className={`w-12 h-6 rounded-full flex items-center transition-all px-1 ${
-                                isDefault ? "bg-white/25 justify-end" : "bg-slate-200 dark:bg-slate-700 justify-start"
-                            }`}>
+                            <div className={`w-12 h-6 rounded-full flex items-center transition-all px-1 ${isDefault ? "bg-white/25 justify-end" : "bg-slate-200 dark:bg-slate-700 justify-start"
+                                }`}>
                                 <div className={`w-4 h-4 rounded-full ${isDefault ? "bg-white" : "bg-white dark:bg-slate-400"} shadow-sm transition-all`} />
                             </div>
                         </button>
@@ -237,27 +241,24 @@ export default function Step3Portions({ onBack, onNext }) {
                     {store.portions.map((p, index) => (
                         <div
                             key={p.tempId}
-                            className={`group relative flex items-center gap-4 p-4 rounded-[1.25rem] border transition-all ${
-                                p.is_default
+                            className={`group relative flex items-center gap-4 p-4 rounded-[1.25rem] border transition-all ${p.is_default
                                     ? "border-orange-200 dark:border-orange-500/30 bg-gradient-to-r from-orange-50 to-amber-50/50 dark:from-orange-500/10 dark:to-amber-500/5"
                                     : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-200 dark:hover:border-slate-700"
-                            }`}
+                                }`}
                         >
                             {/* Left — portion index / default badge */}
-                            <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${
-                                p.is_default
+                            <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${p.is_default
                                     ? "bg-orange-500 text-white shadow-md shadow-orange-500/30"
                                     : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
-                            }`}>
+                                }`}>
                                 {p.is_default ? "★" : index + 1}
                             </div>
 
                             {/* Center — label + price */}
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-baseline gap-2 flex-wrap">
-                                    <span className={`font-black text-base tracking-tight ${
-                                        p.is_default ? "text-slate-900 dark:text-white" : "text-slate-800 dark:text-slate-200"
-                                    }`}>
+                                    <span className={`font-black text-base tracking-tight ${p.is_default ? "text-slate-900 dark:text-white" : "text-slate-800 dark:text-slate-200"
+                                        }`}>
                                         {p.label}
                                     </span>
                                     {p.is_default && (
@@ -353,11 +354,10 @@ export default function Step3Portions({ onBack, onNext }) {
                     {/* Custom add button */}
                     <button
                         onClick={() => handleOpenForm()}
-                        className={`w-full flex items-center justify-between px-5 rounded-2xl border transition-all active:scale-[0.99] group ${
-                            store.portions.length === 0
+                        className={`w-full flex items-center justify-between px-5 rounded-2xl border transition-all active:scale-[0.99] group ${store.portions.length === 0
                                 ? "h-14 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-orange-300 dark:hover:border-orange-500/40"
                                 : "h-12 border-dashed border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                        }`}
+                            }`}
                     >
                         <span className="flex items-center gap-2.5 text-sm font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
                             <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/20 flex items-center justify-center text-slate-400 group-hover:text-orange-500 transition-all">
@@ -396,7 +396,7 @@ export default function Step3Portions({ onBack, onNext }) {
                             : "Next Step"
                         }
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                            <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
                         </svg>
                     </button>
                 </div>

@@ -52,7 +52,7 @@ const GROUP_TITLE_PRESETS = {
     ],
 };
 
-export default function Step4AddOns({ onBack, onNext }) {
+export default function Step4AddOns({ onBack, onNext, onDeleteGroup, onDeleteOption }) {
     const store = useCreateFoodStore();
     const [showGroupForm, setShowGroupForm] = useState(false);
 
@@ -176,7 +176,17 @@ export default function Step4AddOns({ onBack, onNext }) {
                             </div>
                             <div className="flex gap-2">
                                 <button onClick={() => handleOpenGroupForm(group)} className="w-9 h-9 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-white bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 border-b-2 dark:border-b-slate-900 transition-all"><Edit2 size={14} /></button>
-                                <button onClick={() => store.removeChoiceGroup(group.tempId)} className="w-9 h-9 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 border-b-2 dark:border-b-slate-900 transition-all"><Trash2 size={14} /></button>
+                                <button
+                                    onClick={() => {
+                                        if (onDeleteGroup) {
+                                            // Edit mode — API delete with confirmation toast
+                                            onDeleteGroup(group.tempId, group.name);
+                                        } else {
+                                            // Create mode — local store only
+                                            store.removeChoiceGroup(group.tempId);
+                                        }
+                                    }}
+                                    className="w-9 h-9 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 border-b-2 dark:border-b-slate-900 transition-all"><Trash2 size={14} /></button>
                             </div>
                         </div>
 
@@ -221,7 +231,15 @@ export default function Step4AddOns({ onBack, onNext }) {
 
                                     {/* Delete — hover only */}
                                     <button
-                                        onClick={() => store.removeChoiceOption(group.tempId, opt.tempId)}
+                                        onClick={() => {
+                                            if (onDeleteOption) {
+                                                // Edit mode — API delete (no confirmation, low stakes)
+                                                onDeleteOption(group.tempId, opt.tempId, opt.label);
+                                            } else {
+                                                // Create mode — local store only
+                                                store.removeChoiceOption(group.tempId, opt.tempId);
+                                            }
+                                        }}
                                         className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 opacity-0 group-hover/opt:opacity-100 transition-all rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10"
                                     >
                                         <X size={15} />

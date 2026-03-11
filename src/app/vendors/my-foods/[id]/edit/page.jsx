@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCreateFoodStore } from "@/app/context/CreateFoodStore";
 import { useFoodById } from "@/app/hooks/useVendorFoodQuery";
-import { updateMenuItem, updatePortion, addPortion, addChoiceGroup, addChoiceOption } from "@/app/lib/menuApi";
+import { updateMenuItem, updatePortion, addPortion, addChoiceGroup, addChoiceOption, updateChoiceGroup, updateChoiceOption, deleteMenuItemPortion, deleteChoiceGroup, deleteChoiceOption } from "@/app/lib/menuApi";
 import { useVendorProfile } from "@/app/context/VendorProfileContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -128,6 +128,65 @@ export default function EditFoodPage() {
         if (stepId < store.currentStep) store.setStep(stepId);
     };
 
+    // ── Live-delete handlers (fire real API + sync store) ─────────────
+    const handleDeletePortion = async (portionId) => {
+        // portionId here is tempId which equals the real MongoDB _id
+        try {
+            await deleteMenuItemPortion(vendorId, foodId, portionId);
+            store.removePortion(portionId);
+            toast.success("Size removed");
+        } catch (err) {
+            toast.error(err?.response?.data?.message || "Could not remove size");
+        }
+    };
+
+    const handleDeleteGroup = (groupId, groupName) => {
+        toast((t) => (
+            <div className="flex flex-col gap-3 min-w-[240px]">
+                <p className="text-sm font-black text-slate-900 dark:text-white">
+                    Delete &ldquo;{groupName}&rdquo;?
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Removes the group and all its options.
+                </p>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => toast.dismiss(t.id)}
+                        className="flex-1 h-8 rounded-lg border border-slate-200 text-xs font-black text-slate-500 hover:bg-slate-50 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={async () => {
+                            toast.dismiss(t.id);
+                            try {
+                                await deleteChoiceGroup(vendorId, foodId, groupId);
+                                store.removeChoiceGroup(groupId);
+                                toast.success("Choice group removed");
+                            } catch (err) {
+                                toast.error(err?.response?.data?.message || "Could not remove group");
+                            }
+                        }}
+                        className="flex-1 h-8 rounded-lg bg-rose-600 text-white text-xs font-black hover:bg-rose-700 transition-colors"
+                    >
+                        Delete
+                    </button>
+                </div>
+            </div>
+        ), { duration: 8000 });
+    };
+
+    const handleDeleteOption = async (groupId, optionId, optionLabel) => {
+        // In edit mode optionId is tempId which equals the real MongoDB _id
+        try {
+            await deleteChoiceOption(groupId, optionId);
+            store.removeChoiceOption(groupId, optionId);
+            toast.success(`"${optionLabel}" removed`);
+        } catch (err) {
+            toast.error(err?.response?.data?.message || "Could not remove option");
+        }
+    };
+
     const handleUpdatePublish = async () => {
         if (!vendorId) {
             toast.error("Vendor session not found.");
@@ -156,15 +215,62 @@ export default function EditFoodPage() {
             for (const p of store.portions) {
                 const portionPayload = {
                     label: p.label,
-                    price: p.price_naira * 100, // Make sure to convert kobo to actual if your backend logic demands it. Here keeping consistent.
+                    price: p.price_naira * 100,
                     is_default: p.is_default,
                     max_quantity: p.max_quantity || null,
                     sort_order: p.sort_order,
                 };
-                if (p.tempId && !p.tempId.includes(foodId) && p.tempId.length > 15) {
+                const isExistingPortion = p.tempId && p.tempId.length === 24;
+
+                if (isExistingPortion) {
                     await updatePortion(vendorId, foodId, p.tempId, portionPayload);
                 } else {
                     await addPortion(vendorId, foodId, portionPayload);
+                }
+            }
+
+            // ── Steps 3 & 4: Update choice groups and options ─────────────
+            for (const g of store.choice_groups) {
+                const isExistingGroup = g.tempId && g.tempId.length === 24; // Simple MongoDB ID check
+
+                const groupPayload = {
+                    name: g.name,
+                    min_selections: g.minSelect ?? (g.min_selections || 0),
+                    max_selections: g.maxSelect ?? (g.max_selections || 1),
+                    is_required: (g.minSelect ?? g.min_selections) > 0,
+                    sort_order: g.sort_order || 0,
+                };
+
+                let realGroupId;
+                if (isExistingGroup) {
+                    await updateChoiceGroup(vendorId, foodId, g.tempId, groupPayload);
+                    realGroupId = g.tempId;
+                } else {
+                    const groupRes = await addChoiceGroup(vendorId, foodId, groupPayload);
+                    realGroupId = groupRes?.group?._id || groupRes?.choiceGroup?._id || groupRes?.id;
+                }
+
+                if (realGroupId) {
+                    for (let i = 0; i < (g.options || []).length; i++) {
+                        const o = g.options[i];
+                        const isExistingOption = o.tempId && o.tempId.length === 24;
+
+                        const optionPayload = {
+                            label: o.name || o.label,
+                            price_modifier: Math.round((Number(o.price || o.price_modifier_naira || 0)) * 100),
+                            price_modifier_naira: Number(o.price || o.price_modifier_naira || 0),
+                            image_url: o.image || o.image_url || null,
+                            image: o.image || o.image_url || null,
+                            is_available: o.is_available ?? true,
+                            sort_order: i,
+                        };
+
+                        if (isExistingOption) {
+                            await updateChoiceOption(realGroupId, o.tempId, optionPayload);
+                        } else {
+                            await addChoiceOption(realGroupId, optionPayload);
+                        }
+                    }
                 }
             }
 
@@ -231,8 +337,8 @@ export default function EditFoodPage() {
                 <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 p-6 md:p-10 min-h-[500px]">
                     {store.currentStep === 1 && <Step1BasicInfo onNext={handleNext} />}
                     {store.currentStep === 2 && <Step2Categories onNext={handleNext} onBack={handleBack} />}
-                    {store.currentStep === 3 && <Step3Portions onNext={handleNext} onBack={handleBack} />}
-                    {store.currentStep === 4 && <Step4AddOns onNext={handleNext} onBack={handleBack} />}
+                    {store.currentStep === 3 && <Step3Portions onNext={handleNext} onBack={handleBack} onDeletePortion={handleDeletePortion} />}
+                    {store.currentStep === 4 && <Step4AddOns onNext={handleNext} onBack={handleBack} onDeleteGroup={handleDeleteGroup} onDeleteOption={handleDeleteOption} />}
                     {store.currentStep === 5 && <Step5Review onBack={handleBack} onSetStep={(s) => store.setStep(s)} onComplete={handleUpdatePublish} />}
                 </div>
             </div>

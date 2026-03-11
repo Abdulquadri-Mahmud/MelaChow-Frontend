@@ -80,6 +80,15 @@ export const updateMenuItem = async (vendorId, itemId, payload) => {
     return res.data;
 };
 
+/**
+ * Hard delete a menu item and ALL its portions, choice groups, and options.
+ * Guard: 400 if item is in active combos → err.response.data.combos contains combo names.
+ */
+export const deleteMenuItem = async (vendorId, itemId) => {
+    const res = await getMenuAxios().delete(`/v1/menu/${vendorId}/items/${itemId}`);
+    return res.data;
+};
+
 export const toggleMenuItemAvailability = async (vendorId, itemId) => {
     const res = await getMenuAxios().patch(
         `/v1/menu/${vendorId}/items/${itemId}/availability`
@@ -137,6 +146,16 @@ export const addPortion = async (vendorId, itemId, payload) => {
     const res = await getMenuAxios().post(
         `/v1/menu/${vendorId}/items/${itemId}/portions`,
         payload
+    );
+    return res.data;
+};
+
+/**
+ * Delete a single portion. Guard: 400 if it is the only remaining portion.
+ */
+export const deleteMenuItemPortion = async (vendorId, itemId, portionId) => {
+    const res = await getMenuAxios().delete(
+        `/v1/menu/${vendorId}/items/${itemId}/portions/${portionId}`
     );
     return res.data;
 };
@@ -202,6 +221,21 @@ export const addChoiceGroup = async (vendorId, itemId, payload) => {
     return res.data;
 };
 
+export const updateChoiceGroup = async (vendorId, itemId, groupId, payload) => {
+    const res = await getMenuAxios().put(
+        `/v1/menu/${vendorId}/items/${itemId}/choice-groups/${groupId}`,
+        payload
+    );
+    return res.data;
+};
+
+export const deleteChoiceGroup = async (vendorId, itemId, groupId) => {
+    const res = await getMenuAxios().delete(
+        `/v1/menu/${vendorId}/items/${itemId}/choice-groups/${groupId}`
+    );
+    return res.data;
+};
+
 /**
  * Add an option to an existing choice group (Step 4 of sequential create).
  * PRICE MODIFIER IS IN KOBO. Convert before calling: price_modifier_naira * 100
@@ -222,6 +256,21 @@ export const addChoiceOption = async (groupId, payload) => {
     const res = await getMenuAxios().post(
         `/v1/menu/choice-groups/${groupId}/options`,
         payload
+    );
+    return res.data;
+};
+
+export const updateChoiceOption = async (groupId, optionId, payload) => {
+    const res = await getMenuAxios().put(
+        `/v1/menu/choice-groups/${groupId}/options/${optionId}`,
+        payload
+    );
+    return res.data;
+};
+
+export const deleteChoiceOption = async (groupId, optionId) => {
+    const res = await getMenuAxios().delete(
+        `/v1/menu/choice-groups/${groupId}/options/${optionId}`
     );
     return res.data;
 };
@@ -267,6 +316,18 @@ export const addVariantComponent = async (vendorId, variantId, data) => {
     const res = await getMenuAxios().post(
         `/v1/menu/${vendorId}/variants/${variantId}/components`,
         data
+    );
+    return res.data;
+};
+
+/**
+ * Remove a component from a combo variant.
+ * Guard: 400 if combo would drop below 2 FIXED items.
+ * TODO: Add remove button per component once combo edit page is built.
+ */
+export const deleteVariantComponent = async (vendorId, variantId, componentId) => {
+    const res = await getMenuAxios().delete(
+        `/v1/menu/${vendorId}/variants/${variantId}/components/${componentId}`
     );
     return res.data;
 };

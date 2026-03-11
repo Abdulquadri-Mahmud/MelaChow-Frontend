@@ -2,7 +2,7 @@
 
 import {
     Edit2, Archive, ArchiveRestore, ToggleLeft,
-    ToggleRight, ChevronRight, Clock, Tag
+    ToggleRight, ChevronRight, Clock, Tag, Trash2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -20,7 +20,7 @@ const DIETARY_BADGE = {
     mixed: null,
 };
 
-export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit }) {
+export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit, onDelete }) {
     const router = useRouter();
     const dietary = DIETARY_BADGE[item.dietary_type];
 
@@ -112,6 +112,19 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                             : <Archive size={15} />
                         }
                     </button>
+                    {/* Delete — only shown if item is NOT in active combos */}
+                    {(!item.combos || item.combos.length === 0) && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onDelete(item._id, item.name);
+                            }}
+                            className="w-10 h-10 rounded-2xl bg-white text-slate-900 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all"
+                            title="Permanently delete this item"
+                        >
+                            <Trash2 size={15} />
+                        </button>
+                    )}
                 </div>
             </div>
 
