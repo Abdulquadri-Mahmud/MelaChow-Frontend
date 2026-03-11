@@ -3,7 +3,7 @@
 import { ArrowLeft, Clock, Search, Star, ArrowRight, MapPin } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { useVendorFood } from "@/app/hooks/useVendorFoodQuery";
+import { useVendorFoods } from "@/app/hooks/useVendorFoods";
 import VendorSkeleton from "@/app/skeleton/VendorSkeleton";
 import { getVendorOpenStatus } from "@/app/lib/vendor-time/vendorTime";
 import { useState, useMemo } from "react";
@@ -13,7 +13,7 @@ export default function ViewVendor() {
   const { id } = useParams();
   const router = useRouter();
 
-  const { foods, isLoading, isError } = useVendorFood(id);
+  const { data: foods, isLoading, isError } = useVendorFoods(id);
 
   const foodList = foods?.data || [];
   const vendor = foodList?.[0]?.vendor;
@@ -261,7 +261,7 @@ export default function ViewVendor() {
             {/* REVIEWS CONTENT */}
             {activeTab === 'reviews' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <ReviewsSectionFixed 
+                <ReviewsSectionFixed
                   vendorId={id}
                   vendor={vendor}
                   foodList={foodList}
