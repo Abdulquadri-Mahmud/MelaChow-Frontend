@@ -108,299 +108,196 @@ export default function Step3Portions({ onBack, onNext, onDeletePortion }) {
     const fmt = (n) => Number(n).toLocaleString("en-NG");
 
     return (
-        <div className="space-y-0 animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-            {/* ── PAGE HEADER ─────────────────────────────────────── */}
-            <div className="pb-8">
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
-                    Set your price
-                </h2>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1.5 leading-relaxed">
-                    One price, or different sizes at different prices — your choice.
-                </p>
-            </div>
-
-            {/* ── FORM ─────────────────────────────────────────────── */}
-            {showForm && (
-                <div className="mb-6 rounded-[1.75rem] overflow-hidden border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-300/30 dark:shadow-none">
-
-                    {/* Form header stripe */}
-                    <div className="bg-slate-900 dark:bg-slate-800 px-6 py-4 flex items-center justify-between">
-                        <span className="text-white font-black uppercase tracking-[0.15em] text-[11px]">
-                            {tempId ? "Edit Portion" : "New Portion"}
-                        </span>
-                        <button
-                            onClick={() => setShowForm(false)}
-                            className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white transition-all"
-                        >
-                            <X size={14} />
-                        </button>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 p-2 lg:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                
+                {/* ── LEFT COLUMN: PRICING STRATEGY ─────────── */}
+                <div className="lg:col-span-4 space-y-8">
+                    <div>
+                        <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Set your price</h2>
+                        <p className="text-slate-600 dark:text-slate-400 font-medium text-base leading-relaxed">
+                            Define how much customers will pay. You can add multiple sizes (e.g. Small, Large) with different prices.
+                        </p>
                     </div>
 
-                    <div className="p-6 space-y-5">
-
-                        {/* Portion name */}
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
-                                Portion Name <span className="text-rose-500">*</span>
-                            </label>
-                            <input
-                                autoFocus
-                                type="text"
-                                value={label}
-                                onChange={e => setLabel(e.target.value)}
-                                placeholder="e.g. Small, Full Plate, 1 Wrap"
-                                className="w-full h-13 px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-base placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal focus:outline-none focus:border-orange-400 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-400/10 transition-all"
-                            />
+                    {!showForm && (
+                        <div className="space-y-4">
+                            <h3 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Quick Presets</h3>
+                            <div className="grid grid-cols-1 gap-2">
+                                {PRESETS.map(p => {
+                                    const exists = store.portions.some(existing => existing.label.toLowerCase() === p.label.toLowerCase());
+                                    return (
+                                        <button
+                                            key={p.label}
+                                            onClick={() => handlePreset(p)}
+                                            disabled={exists}
+                                            className={`group flex items-center justify-between p-4 rounded-2xl border transition-all active:scale-95 text-left ${exists 
+                                                ? "bg-slate-50 dark:bg-slate-800/10 border-slate-100 dark:border-slate-800 opacity-50 grayscale cursor-not-allowed" 
+                                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 hover:shadow-xl hover:shadow-orange-500/5 hover:-translate-y-0.5"}`}
+                                        >
+                                            <div className="flex flex-col">
+                                                <span className={`font-black text-sm tracking-tight ${exists ? "text-slate-400" : "text-slate-900 dark:text-white group-hover:text-orange-500"}`}>{p.label}</span>
+                                                <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">{p.hint}</span>
+                                            </div>
+                                            {!exists && <Plus size={16} className="text-slate-300 group-hover:text-orange-500 transition-colors" />}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
+                    )}
 
-                        {/* Price — hero field, gets the most visual weight */}
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
-                                Price <span className="text-rose-500">*</span>
-                            </label>
-                            <div className="relative flex items-center">
-                                {/* Currency prefix — visually dominant */}
-                                <div className="absolute left-0 h-full flex items-center pl-4 pr-3 border-r border-slate-200 dark:border-slate-700 pointer-events-none select-none">
-                                    <span className="text-2xl font-black text-slate-300 dark:text-slate-600">₦</span>
+                    {!showForm && store.portions.length > 0 && (
+                        <div className="p-5 bg-orange-500/5 dark:bg-orange-500/10 border border-orange-200/50 dark:border-orange-500/20 rounded-3xl">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+                                    <Check size={16} strokeWidth={3} />
                                 </div>
-                                <input
-                                    type="number"
-                                    value={priceNaira}
-                                    onChange={e => setPriceNaira(e.target.value)}
-                                    placeholder="0"
-                                    className="w-full h-16 pl-16 pr-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-black text-3xl tracking-tight placeholder:text-slate-200 dark:placeholder:text-slate-700 focus:outline-none focus:border-orange-400 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-400/10 transition-all"
-                                />
-                                {priceNaira && Number(priceNaira) > 0 && (
-                                    <div className="absolute right-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pointer-events-none">
-                                        ₦{fmt(priceNaira)}
+                                <span className="font-black text-slate-900 dark:text-white text-sm">Pricing Active</span>
+                            </div>
+                            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
+                                You have {store.portions.length} active pricing {store.portions.length === 1 ? "option" : "options"}. Make sure to set a default for the best customer experience.
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                {/* ── RIGHT COLUMN: PORTIONS & FORM ─────────── */}
+                <div className="lg:col-span-8 space-y-6">
+                    {/* FORM UI */}
+                    {showForm ? (
+                        <div className="rounded-[2.5rem] overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-200/50 dark:shadow-none animate-in zoom-in-95 duration-500">
+                            <div className="bg-slate-900 dark:bg-slate-800 px-8 py-5 flex items-center justify-between">
+                                <span className="text-white font-black uppercase tracking-[0.2em] text-[12px]">
+                                    {tempId ? "Update Pricing Details" : "Create New Price Point"}
+                                </span>
+                                <button onClick={() => setShowForm(false)} className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white transition-all">
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            <div className="p-8 lg:p-10 space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* Name */}
+                                    <div className="space-y-3">
+                                        <label className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">Portion Name</label>
+                                        <input
+                                            autoFocus
+                                            type="text"
+                                            value={label}
+                                            onChange={e => setLabel(e.target.value)}
+                                            placeholder="Small, Medium, Large..."
+                                            className="w-full h-14 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white font-bold text-lg placeholder:font-medium placeholder:text-slate-400 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
+                                        />
                                     </div>
-                                )}
-                            </div>
-                        </div>
 
-                        {/* Max quantity — secondary, collapsed visually */}
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
-                                Max order qty <span className="text-slate-300 dark:text-slate-600 font-medium normal-case tracking-normal">(optional)</span>
-                            </label>
-                            <input
-                                type="number"
-                                value={maxQty}
-                                onChange={e => setMaxQty(e.target.value)}
-                                placeholder="No limit"
-                                className="w-full h-12 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-base placeholder:text-slate-400 dark:placeholder:text-slate-500 placeholder:font-normal focus:outline-none focus:border-orange-400 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-400/10 transition-all"
-                            />
-                        </div>
-
-                        {/* Default toggle — feels like a physical switch */}
-                        <button
-                            type="button"
-                            onClick={() => setIsDefault(!isDefault)}
-                            className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${isDefault
-                                    ? "bg-orange-500 border-orange-500 shadow-lg shadow-orange-500/25"
-                                    : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                                }`}
-                        >
-                            <div className="text-left">
-                                <div className={`text-xs font-black uppercase tracking-widest ${isDefault ? "text-white" : "text-slate-700 dark:text-slate-200"}`}>
-                                    Set as default
+                                    {/* Price */}
+                                    <div className="space-y-3">
+                                        <label className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">Price (₦)</label>
+                                        <div className="relative">
+                                            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-2xl font-black text-slate-300">₦</span>
+                                            <input
+                                                type="number"
+                                                value={priceNaira}
+                                                onChange={e => setPriceNaira(e.target.value)}
+                                                placeholder="0"
+                                                className="w-full h-14 pl-12 pr-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white font-black text-2xl focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className={`text-[11px] font-medium mt-0.5 ${isDefault ? "text-white/70" : "text-slate-400 dark:text-slate-500"}`}>
-                                    Customers see this pre-selected
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                                    {/* Max Qty */}
+                                    <div className="space-y-3">
+                                        <label className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">Max Order Per Customer (Optional)</label>
+                                        <input
+                                            type="number"
+                                            value={maxQty}
+                                            onChange={e => setMaxQty(e.target.value)}
+                                            placeholder="No limit"
+                                            className="w-full h-14 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white font-bold text-lg placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
+                                        />
+                                    </div>
+
+                                    {/* Default Switch */}
+                                    <div className="pt-6">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsDefault(!isDefault)}
+                                            className={`w-full h-14 flex items-center justify-between px-6 rounded-2xl border transition-all ${isDefault ? "bg-orange-500 border-orange-500 shadow-lg shadow-orange-500/20" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"}`}
+                                        >
+                                            <span className={`text-xs font-black uppercase tracking-widest ${isDefault ? "text-white" : "text-slate-700 dark:text-slate-200"}`}>Default Selection</span>
+                                            <div className={`w-10 h-5 rounded-full flex items-center px-1 transition-all ${isDefault ? "bg-white/30 justify-end" : "bg-slate-200 dark:bg-slate-700 justify-start"}`}>
+                                                <div className={`w-3 h-3 rounded-full ${isDefault ? "bg-white" : "bg-white dark:bg-slate-500"} shadow-sm`} />
+                                            </div>
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className={`w-12 h-6 rounded-full flex items-center transition-all px-1 ${isDefault ? "bg-white/25 justify-end" : "bg-slate-200 dark:bg-slate-700 justify-start"
-                                }`}>
-                                <div className={`w-4 h-4 rounded-full ${isDefault ? "bg-white" : "bg-white dark:bg-slate-400"} shadow-sm transition-all`} />
-                            </div>
-                        </button>
 
-                        {/* Form actions */}
-                        <div className="flex gap-3 pt-2">
-                            <button
-                                onClick={() => setShowForm(false)}
-                                className="flex-1 h-13 py-3.5 rounded-2xl font-black uppercase tracking-widest text-[11px] text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                className="flex-[2] h-13 py-3.5 rounded-2xl font-black uppercase tracking-widest text-[11px] text-white bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-700 dark:hover:bg-slate-200 shadow-lg shadow-slate-900/20 active:scale-95 transition-all"
-                            >
-                                Save Portion
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ── PORTIONS LIST ─────────────────────────────────────── */}
-            {!showForm && store.portions.length > 0 && (
-                <div className="space-y-2 mb-4">
-                    {store.portions.map((p, index) => (
-                        <div
-                            key={p.tempId}
-                            className={`group relative flex items-center gap-4 p-4 rounded-[1.25rem] border transition-all ${p.is_default
-                                    ? "border-orange-200 dark:border-orange-500/30 bg-gradient-to-r from-orange-50 to-amber-50/50 dark:from-orange-500/10 dark:to-amber-500/5"
-                                    : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-200 dark:hover:border-slate-700"
-                                }`}
-                        >
-                            {/* Left — portion index / default badge */}
-                            <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm ${p.is_default
-                                    ? "bg-orange-500 text-white shadow-md shadow-orange-500/30"
-                                    : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
-                                }`}>
-                                {p.is_default ? "★" : index + 1}
-                            </div>
-
-                            {/* Center — label + price */}
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-baseline gap-2 flex-wrap">
-                                    <span className={`font-black text-base tracking-tight ${p.is_default ? "text-slate-900 dark:text-white" : "text-slate-800 dark:text-slate-200"
-                                        }`}>
-                                        {p.label}
-                                    </span>
-                                    {p.is_default && (
-                                        <span className="text-[9px] font-black uppercase tracking-[0.15em] text-orange-500 bg-orange-100 dark:bg-orange-500/20 px-2 py-0.5 rounded-full">
-                                            Default
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                    <span className="text-orange-600 dark:text-orange-400 font-black text-lg tracking-tight">
-                                        ₦{fmt(p.price_naira)}
-                                    </span>
-                                    {p.max_quantity && (
-                                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                                            · max {p.max_quantity}
-                                        </span>
-                                    )}
+                                <div className="flex gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                    <button onClick={() => setShowForm(false)} className="px-8 h-14 rounded-2xl font-black uppercase tracking-widest text-xs text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">Cancel</button>
+                                    <button onClick={handleSave} className="flex-1 h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-slate-900/20 active:scale-[0.98] transition-all">
+                                        {tempId ? "Update Price Point" : "Add Price Point"}
+                                    </button>
                                 </div>
                             </div>
-
-                            {/* Right — actions, visible on hover */}
-                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                                <button
-                                    onClick={() => handleOpenForm(p)}
-                                    className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all"
-                                >
-                                    <Edit2 size={14} />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(p.tempId)}
-                                    className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-all"
-                                >
-                                    <Trash2 size={14} />
-                                </button>
-                            </div>
                         </div>
-                    ))}
-                </div>
-            )}
-
-            {/* ── EMPTY STATE ───────────────────────────────────────── */}
-            {!showForm && store.portions.length === 0 && (
-                <div className="mb-6 p-8 rounded-[1.75rem] bg-slate-50 dark:bg-slate-800/50 border border-dashed border-slate-200 dark:border-slate-700">
-                    <p className="text-sm font-bold text-slate-400 dark:text-slate-500 text-center mb-6">
-                        Pick a size to start — or add a custom one below
-                    </p>
-                    {/* Presets as the primary CTA for empty state */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {PRESETS.map(p => (
-                            <button
-                                key={p.label}
-                                onClick={() => handlePreset(p)}
-                                className="group flex flex-col items-start p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-500/40 hover:shadow-md hover:shadow-orange-500/5 transition-all active:scale-95 text-left"
-                            >
-                                <span className="font-black text-slate-900 dark:text-white text-sm group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                                    {p.label}
-                                </span>
-                                <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">
-                                    {p.hint}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* ── ADD MORE / CUSTOM ─────────────────────────────────── */}
-            {!showForm && (
-                <div className="space-y-3 mb-8">
-                    {/* Preset strip — visible after first portion is added */}
-                    {store.portions.length > 0 && store.portions.length < 5 && (
-                        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
-                            <span className="text-[10px] uppercase font-black tracking-[0.15em] text-slate-300 dark:text-slate-600 shrink-0">
-                                Add:
-                            </span>
-                            {PRESETS.filter(p =>
-                                !store.portions.some(existing =>
-                                    existing.label.toLowerCase() === p.label.toLowerCase()
-                                )
-                            ).map(p => (
-                                <button
-                                    key={p.label}
-                                    onClick={() => handlePreset(p)}
-                                    className="shrink-0 h-8 px-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400 hover:border-orange-300 dark:hover:border-orange-500/40 hover:text-orange-600 dark:hover:text-orange-400 transition-all flex items-center gap-1.5"
-                                >
-                                    <Plus size={11} />
-                                    {p.label}
-                                </button>
-                            ))}
+                    ) : (
+                        /* LIST UI */
+                        <div className="space-y-4">
+                            {store.portions.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center p-16 bg-slate-50 dark:bg-slate-800/20 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-center space-y-4">
+                                    <div className="w-20 h-20 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-700 shadow-sm">
+                                        <Plus size={40} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xl font-black text-slate-900 dark:text-white italic tracking-tight">Price List Empty</p>
+                                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Add at least one price to continue.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleOpenForm()}
+                                        className="h-12 px-8 bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-95"
+                                    >
+                                        + Add Your First Price
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between px-2">
+                                        <h3 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Active Portions ({store.portions.length})</h3>
+                                        <button onClick={() => handleOpenForm()} className="text-[10px] font-black text-orange-500 uppercase tracking-widest hover:text-orange-600">+ Add Another</button>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-3">
+                                        {store.portions.map((p, idx) => (
+                                            <div key={p.tempId} className={`group flex items-center gap-6 p-6 rounded-[2rem] border transition-all ${p.is_default ? "bg-orange-50 dark:bg-orange-500/5 border-orange-200 dark:border-orange-500/20 ring-1 ring-orange-500/10" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"}`}>
+                                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg ${p.is_default ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30" : "bg-slate-100 dark:bg-slate-800 text-slate-400"}`}>
+                                                    {p.is_default ? "★" : idx + 1}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="font-black text-lg text-slate-900 dark:text-white tracking-tight">{p.label}</span>
+                                                        {p.is_default && <span className="bg-orange-500/10 text-orange-600 text-[10px] font-black uppercase px-2 py-0.5 rounded-lg border border-orange-500/10">Default</span>}
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-2xl font-black text-slate-900 dark:text-white">₦{fmt(p.price_naira)}</span>
+                                                        {p.max_quantity && <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-l border-slate-200 dark:border-slate-800 pl-3">Limit {p.max_quantity}</span>}
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => handleOpenForm(p)} className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-400 hover:bg-slate-900 dark:hover:bg-white hover:text-white dark:hover:text-slate-900 flex items-center justify-center transition-all"><Edit2 size={16} /></button>
+                                                    <button onClick={() => handleDelete(p.tempId)} className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-400 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all"><Trash2 size={16} /></button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
-
-                    {/* Custom add button */}
-                    <button
-                        onClick={() => handleOpenForm()}
-                        className={`w-full flex items-center justify-between px-5 rounded-2xl border transition-all active:scale-[0.99] group ${store.portions.length === 0
-                                ? "h-14 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-orange-300 dark:hover:border-orange-500/40"
-                                : "h-12 border-dashed border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                            }`}
-                    >
-                        <span className="flex items-center gap-2.5 text-sm font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-                            <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-orange-100 dark:group-hover:bg-orange-500/20 flex items-center justify-center text-slate-400 group-hover:text-orange-500 transition-all">
-                                <Plus size={13} />
-                            </div>
-                            {store.portions.length === 0 ? "Add custom portion" : "Add another size"}
-                        </span>
-                        <ChevronRight size={15} className="text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 transition-colors" />
-                    </button>
-                </div>
-            )}
-
-            {/* ── ACTIONS ───────────────────────────────────────────── */}
-            <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <button
-                    onClick={onBack}
-                    className="h-14 px-6 flex items-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-all font-black uppercase tracking-widest gap-2 active:scale-95 text-xs"
-                >
-                    <ArrowLeft size={16} /> Back
-                </button>
-                <div className="flex gap-3">
-                    {store.portions.length === 0 && (
-                        <button
-                            onClick={onNext}
-                            className="h-14 px-6 rounded-2xl font-black uppercase tracking-widest text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
-                        >
-                            Skip
-                        </button>
-                    )}
-                    <button
-                        onClick={handleNext}
-                        className="h-14 px-8 bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-orange-500/25"
-                    >
-                        {store.portions.length > 0
-                            ? `Continue (${store.portions.length} ${store.portions.length === 1 ? "portion" : "portions"})`
-                            : "Next Step"
-                        }
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-                        </svg>
-                    </button>
                 </div>
             </div>
+
         </div>
     );
 }

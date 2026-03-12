@@ -133,6 +133,9 @@ export default function ComboStep3Swaps({ onBack }) {
 
             toast.success("Combo is live on your menu! 🎉", { id: loadingToast });
             store.reset();
+            if (typeof window !== "undefined") {
+                sessionStorage.removeItem("gd_create_combo_wizard");
+            }
             router.push("/vendors/my-foods");
 
         } catch (error) {

@@ -26,6 +26,17 @@ const ITEM_TYPE_META = {
     OTHER:   { emoji: "🍴", label: "Other" },
 };
 
+const GROUP_TITLE_PRESETS = {
+    "Protein & Meat": ["Choose your protein", "Choose your meat cut", "Choose your fish type", "Choose your suya cut"],
+    "Swallows & Soups": ["Choose your swallow", "Choose your soup", "Soup or stew?"],
+    "Rice & Pasta": ["Choose your rice type", "Choose your pasta type"],
+    "Sides": ["Choose your side", "Add a side dish", "Plantain or chips?"],
+    "Sauce & Spice": ["Choose your sauce", "Spice level", "How spicy?"],
+    "Drinks": ["Add a drink", "Choose your drink"],
+    "Extras & Toppings": ["Add toppings", "Add proteins", "Add extras", "Add-ons"],
+    "Packaging & Requests": ["Packaging preference", "Any special requests?"],
+};
+
 const DIETARY_COLORS = {
     veg: "bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400",
     vegan: "bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400",
@@ -36,18 +47,20 @@ const DIETARY_COLORS = {
 };
 
 const DietaryBadge = ({ type }) => (
-    <span className={`text-[10px] px-2.5 py-1 rounded-lg font-black uppercase tracking-widest border border-transparent ${DIETARY_COLORS[type] || DIETARY_COLORS.mixed}`}>
+    <span className={`text-[9px] px-3 py-1 rounded-full font-black uppercase tracking-[0.15em] border ${DIETARY_COLORS[type] || DIETARY_COLORS.mixed} shadow-sm transition-all`}>
         {type || "mixed"}
     </span>
 );
 
-const SectionCard = ({ title, action, children }) => (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[1.5rem] overflow-hidden transition-colors mb-6">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800">
-            <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">{title}</h3>
-            {action}
+const SectionCard = ({ title, action, children, className = "" }) => (
+    <div className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] overflow-hidden transition-all h-full shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] ${className}`}>
+        <div className="flex items-center justify-between px-8 py-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 backdrop-blur-sm">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500">{title}</h3>
+            <div className="flex items-center gap-2">
+                {action}
+            </div>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-8">{children}</div>
     </div>
 );
 
@@ -117,50 +130,71 @@ const BasicInfoSection = ({ item, vendorId, itemId, queryClient }) => {
     const typeMeta = ITEM_TYPE_META[item.item_type] || ITEM_TYPE_META.FOOD;
 
     if (!editing) return (
-        <SectionCard title="Basic Info" action={<button onClick={openEdit} className="h-8 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 transition-all">Edit</button>}>
-            <div className="space-y-5">
+        <SectionCard title="Basic Info" action={<button onClick={openEdit} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-orange-500 hover:border-orange-200 transition-all active:scale-95 shadow-sm">Edit</button>}>
+            <div className="space-y-6">
                 {/* Image + description row */}
-                <div className="flex gap-4">
-                    <div className="shrink-0 w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-800">
+                <div className="flex gap-6 items-start">
+                    <div className="shrink-0 w-24 h-24 rounded-3xl overflow-hidden bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-inner group relative">
                         {item.image_url
-                            ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                            : <div className="w-full h-full flex items-center justify-center text-3xl">{typeMeta.emoji}</div>}
+                            ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                            : <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">{typeMeta.emoji}</div>}
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">Description</p>
-                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400 leading-relaxed">{item.description || <span className="italic text-slate-300 dark:text-slate-600">No description provided.</span>}</p>
+                    <div className="flex-1 min-w-0 pt-1">
+                        <div className="flex items-center gap-2 mb-2">
+                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Description</span>
+                             <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
+                        </div>
+                        <p className="text-[15px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                            "{item.description || "No description provided for this item."}"
+                        </p>
                     </div>
                 </div>
+
                 {/* Meta chips */}
-                <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-1"><ChefHat size={10}/> Type</p>
-                        <p className="text-sm font-black text-slate-800 dark:text-white">{typeMeta.emoji} {typeMeta.label}</p>
-                    </div>
-                    <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-1"><Leaf size={10}/> Dietary</p>
-                        <DietaryBadge type={item.dietary_type} />
-                    </div>
-                    {item.prep_time_minutes && (
-                        <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-1"><Clock size={10}/> Prep Time</p>
-                            <p className="text-sm font-black text-slate-800 dark:text-white">{item.prep_time_minutes} min</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="p-4 bg-white dark:bg-slate-950 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-500">
+                             <ChefHat size={20} strokeWidth={2.5}/>
                         </div>
-                    )}
-                    {item.image_url && (
-                        <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800 col-span-1">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Image URL</p>
-                            <p className="text-[11px] font-medium text-slate-500 truncate">{item.image_url}</p>
+                        <div>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Category Type</p>
+                            <p className="text-sm font-black text-slate-800 dark:text-white">{typeMeta.label}</p>
+                        </div>
+                    </div>
+
+                    <div className="p-4 bg-white dark:bg-slate-950 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                             <Leaf size={20} strokeWidth={2.5}/>
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Dietary Standard</p>
+                            <DietaryBadge type={item.dietary_type} />
+                        </div>
+                    </div>
+
+                    {item.prep_time_minutes && (
+                        <div className="p-4 bg-white dark:bg-slate-950 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                 <Clock size={20} strokeWidth={2.5}/>
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Prep Estimate</p>
+                                <p className="text-sm font-black text-slate-800 dark:text-white">{item.prep_time_minutes} Minutes</p>
+                            </div>
                         </div>
                     )}
                 </div>
+
                 {/* Tags */}
                 {item.tags?.length > 0 && (
-                    <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1"><Tag size={10}/> Tags</p>
-                        <div className="flex flex-wrap gap-1.5">
+                    <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center gap-2 mb-3">
+                             <Tag size={12} className="text-orange-500" />
+                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Search Tags</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
                             {item.tags.map(t => (
-                                <span key={t} className="h-7 px-3 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">#{t}</span>
+                                <span key={t} className="h-8 px-4 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-700 hover:border-orange-200 transition-colors">#{t}</span>
                             ))}
                         </div>
                     </div>
@@ -222,11 +256,11 @@ const BasicInfoSection = ({ item, vendorId, itemId, queryClient }) => {
                         <button onClick={addTag} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black hover:bg-orange-50 hover:text-orange-600 transition-all"><Plus size={14}/></button>
                     </div>
                 </div>
-                <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                    <button onClick={handleSave} disabled={saving} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest flex gap-2 items-center active:scale-95 transition-all">
-                        {saving && <Loader2 className="animate-spin" size={16} />} Save Changes
+                <div className="flex gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+                    <button onClick={handleSave} disabled={saving} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-12 px-10 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] flex gap-3 items-center justify-center active:scale-95 transition-all shadow-lg disabled:opacity-50">
+                        {saving ? <Loader2 className="animate-spin" size={16} /> : <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />} Save Changes
                     </button>
-                    <button onClick={() => setEditing(false)} className="text-slate-500 hover:text-slate-800 dark:hover:text-white h-11 px-4 font-bold text-sm transition-all">Cancel</button>
+                    <button onClick={() => setEditing(false)} className="text-slate-500 hover:text-slate-800 dark:hover:text-white h-12 px-6 font-bold text-xs transition-all">Discard</button>
                 </div>
             </div>
         </SectionCard>
@@ -279,23 +313,42 @@ const CategorySection = ({ item, vendorId, itemId, queryClient, allSections }) =
     const cat = item.platform_category;
 
     if (!editing) return (
-        <SectionCard title="Category & Section" action={<button onClick={openEdit} className="h-8 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 transition-all">Edit</button>}>
+        <SectionCard title="Category & Section" action={<button onClick={openEdit} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-orange-500 hover:border-orange-200 transition-all active:scale-95 shadow-sm">Edit</button>}>
             <div className="space-y-4">
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1"><FolderOpen size={10}/> Platform Category</p>
+                <div className="p-5 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-slate-100 dark:border-slate-800 group hover:border-orange-200 transition-colors">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 flex items-center gap-2"><div className="w-1 h-3 bg-orange-500 rounded-full" /> Platform Category</p>
                     {cat ? (
-                        <div className="flex items-center gap-2">
-                            {cat.parent && <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{cat.parent.name}</span>}
-                            {cat.parent && <span className="text-slate-300 dark:text-slate-700">›</span>}
-                            <span className="text-sm font-black text-orange-600 dark:text-orange-400">{cat.name}</span>
+                        <div className="flex flex-wrap items-center gap-2.5">
+                            {cat.parent && (
+                                <div className="flex items-center gap-2.5">
+                                    <span className="text-sm font-bold text-slate-500 dark:text-slate-400">{cat.parent.name}</span>
+                                    <span className="text-slate-300 dark:text-slate-700">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                    </span>
+                                </div>
+                            )}
+                            <div className="h-9 px-4 rounded-xl bg-orange-500/10 text-orange-600 dark:text-orange-400 text-sm font-black flex items-center border border-orange-500/20">
+                                {cat.name}
+                            </div>
                         </div>
-                    ) : <p className="text-sm font-medium text-slate-400">No category set</p>}
+                    ) : <p className="text-sm font-medium text-slate-400 italic">No category assigned to this item.</p>}
                 </div>
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1"><LayoutGrid size={10}/> Your Menu Section</p>
-                    {sectionName
-                        ? <span className="h-8 px-4 inline-flex items-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-black text-slate-800 dark:text-white">{sectionName}</span>
-                        : <p className="text-sm font-medium text-slate-400">All items / no specific section</p>}
+
+                <div className="p-5 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-slate-100 dark:border-slate-800 group hover:border-emerald-200 transition-colors">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 flex items-center gap-2"><div className="w-1 h-3 bg-emerald-500 rounded-full" /> Internal Section</p>
+                    {sectionName ? (
+                         <div className="flex items-center gap-2">
+                             <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                                 <LayoutGrid size={16} />
+                             </div>
+                             <span className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">{sectionName}</span>
+                         </div>
+                    ) : (
+                        <div className="flex items-center gap-2 text-slate-400 italic">
+                             <LayoutGrid size={16} className="opacity-40" />
+                             <p className="text-sm font-medium">Ungrouped / Master List</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </SectionCard>
@@ -323,7 +376,7 @@ const CategorySection = ({ item, vendorId, itemId, queryClient, allSections }) =
                         {activeRoot.subCategories.map(sub => {
                             const isSelected = form.platform_category_id === sub._id;
                             return (
-                                <button key={sub._id} onClick={() => setForm({ ...form, platform_category_id: sub._id, platform_category_label: sub.name })} className={`p-3 rounded-xl border text-xs font-bold transition-all text-left ${isSelected ? "border-orange-500 bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400 shadow-sm ring-2 ring-orange-500/20" : "border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 hover:border-orange-300 hover:bg-orange-50/40"}`}>
+                                <button key={sub._id} onClick={() => setForm({ ...form, platform_category_id: sub._id, platform_category_label: sub.name })} className={`p-3 rounded-xl border text-xs font-bold transition-all text-left ${isSelected ? "border-orange-500 bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400 ring-2 ring-orange-500/20" : "border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 hover:border-orange-300 hover:bg-orange-50/40"}`}>
                                     {sub.name}
                                 </button>
                             );
@@ -399,28 +452,46 @@ const PortionsSection = ({ item, vendorId, itemId, queryClient }) => {
     };
 
     return (
-        <SectionCard title="Sizes & Prices" action={!showAdd && <button onClick={() => setShowAdd(true)} className="text-[10px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-colors">+ Add Size</button>}>
+        <SectionCard title="Sizes & Prices" action={!showAdd && <button onClick={() => setShowAdd(true)} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-colors shadow-sm active:scale-95">+ Add Size</button>}>
             <div className="space-y-3 mt-2">
                 {item.portions?.map(p => (
-                    <div key={p._id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                    <div key={p._id} className="p-5 bg-white dark:bg-slate-950 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 group transition-all hover:border-orange-200 hover:shadow-md hover:shadow-orange-500/5">
                         {editingPortionId === p._id ? (
-                            <div className="flex-1 flex flex-wrap gap-2 items-center">
-                                <input className="h-10 px-3 w-32 rounded-xl text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" placeholder="Label" value={portionForm.label} onChange={e => setPortionForm({ ...portionForm, label: e.target.value })} />
-                                <input className="h-10 px-3 w-28 rounded-xl text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" type="number" placeholder="Price ₦" value={portionForm.price_naira} onChange={e => setPortionForm({ ...portionForm, price_naira: e.target.value })} />
-                                <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 ml-2"><input type="checkbox" className="rounded" checked={portionForm.is_default} onChange={e => setPortionForm({ ...portionForm, is_default: e.target.checked })} /> Default</label>
-                                <button onClick={() => handleSave(p._id)} disabled={saving} className="h-10 ml-auto px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-bold active:scale-95 transition-all">Save</button>
-                                <button onClick={() => setEditingPortionId(null)} className="h-10 px-3 text-xs font-bold text-slate-500 transition-all">Cancel</button>
+                            <div className="flex-1 flex flex-wrap gap-3 items-center">
+                                <input className="h-11 px-4 w-36 rounded-xl text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500 font-bold outline-none" placeholder="Label" value={portionForm.label} onChange={e => setPortionForm({ ...portionForm, label: e.target.value })} />
+                                <div className="relative">
+                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">₦</span>
+                                     <input className="h-11 pl-10 pr-4 w-32 rounded-xl text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500 font-black text-orange-600 outline-none" type="number" placeholder="Price" value={portionForm.price_naira} onChange={e => setPortionForm({ ...portionForm, price_naira: e.target.value })} />
+                                </div>
+                                <label className="flex items-center gap-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 cursor-pointer">
+                                     <input type="checkbox" className="w-4 h-4 rounded-md border-slate-300 text-orange-500 focus:ring-orange-500" checked={portionForm.is_default} onChange={e => setPortionForm({ ...portionForm, is_default: e.target.checked })} /> 
+                                     Set as Default
+                                </label>
+                                <div className="flex gap-2 ml-auto">
+                                     <button onClick={() => handleSave(p._id)} disabled={saving} className="h-11 px-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg">Save</button>
+                                     <button onClick={() => setEditingPortionId(null)} className="h-11 px-4 text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">Cancel</button>
+                                </div>
                             </div>
                         ) : (
                             <>
-                                <div className="flex items-center gap-4 text-sm font-bold">
-                                    <span className="text-slate-800 dark:text-white">{p.label}</span>
-                                    <span className="text-orange-600 dark:text-orange-400">₦{p.price_naira?.toLocaleString()}</span>
-                                    {p.is_default && <span className="text-[10px] bg-indigo-50 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 font-black uppercase tracking-widest px-2.5 py-1 rounded-md">Default</span>}
+                                <div className="flex items-center gap-6">
+                                    <div className="flex flex-col">
+                                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Size/Portion</span>
+                                         <span className="text-lg font-black text-slate-800 dark:text-white leading-tight">{p.label}</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Base Price</span>
+                                         <span className="text-xl font-black text-orange-600 dark:text-orange-400">₦{p.price_naira?.toLocaleString()}</span>
+                                    </div>
+                                    {p.is_default && (
+                                        <div className="self-end pb-1">
+                                             <span className="text-[9px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-[0.15em] px-3 py-1 rounded-full border border-indigo-500/20 shadow-sm">Primary Default</span>
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="flex gap-1 ml-auto shrink-0">
-                                    <button onClick={() => openEdit(p)} className="h-8 px-3 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-slate-400 transition-all active:scale-95">Edit</button>
-                                    <button onClick={() => handleDelete(p._id)} disabled={item.portions.length <= 1} className="h-8 px-3 rounded-lg text-xs font-black text-rose-500 lg:bg-white dark:lg:bg-slate-900 lg:border lg:border-slate-200 dark:border-slate-700 hover:text-rose-700 hover:border-rose-300 transition-all disabled:opacity-30 active:scale-95">✕</button>
+                                <div className="flex gap-2 ml-auto shrink-0 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                    <button onClick={() => openEdit(p)} className="h-9 px-5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-300 hover:text-orange-500 transition-all active:scale-95 shadow-sm">Edit</button>
+                                    <button onClick={() => handleDelete(p._id)} disabled={item.portions.length <= 1} className="h-9 w-9 rounded-2xl flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all disabled:opacity-30 active:scale-95"><X size={16} strokeWidth={3}/></button>
                                 </div>
                             </>
                         )}
@@ -446,10 +517,14 @@ const AddOnsSection = ({ item, vendorId, itemId, queryClient }) => {
     const [editingOptionId, setEditingOptionId] = useState(null);
     const [optionForm, setOptionForm] = useState({});
 
+    // Group naming mode: preset vs custom
+    const [isCustomTitle, setIsCustomTitle] = useState(false);
+    const [isAddingCustomTitle, setIsAddingCustomTitle] = useState(false);
+
     const [showAddGroup, setShowAddGroup] = useState(false);
     const [newGroup, setNewGroup] = useState({ name: "", is_required: false });
     const [addingToGroup, setAddingToGroup] = useState(null);
-    const [newOption, setNewOption] = useState({ label: "", price_modifier_naira: "" });
+    const [newOption, setNewOption] = useState({ label: "", price_modifier_naira: "", image_url: "" });
 
     const handleSaveGroup = async (gId) => {
         if (!groupForm.name?.trim()) return toast.error("Name required");
@@ -500,83 +575,186 @@ const AddOnsSection = ({ item, vendorId, itemId, queryClient }) => {
     const handleAddOption = async (gId) => {
         if (!newOption.label?.trim()) return toast.error("Label required");
         try {
-            await addChoiceOption(gId, { label: newOption.label.trim(), price_modifier_naira: Number(newOption.price_modifier_naira) || 0, is_available: true, sort_order: 999 });
+            await addChoiceOption(gId, { label: newOption.label.trim(), price_modifier_naira: Number(newOption.price_modifier_naira) || 0, image_url: newOption.image_url?.trim() || null, is_available: true, sort_order: 999 });
             queryClient.invalidateQueries({ queryKey: ["food-item", itemId] });
-            setAddingToGroup(null); setNewOption({ label: "", price_modifier_naira: "" });
+            setAddingToGroup(null); setNewOption({ label: "", price_modifier_naira: "", image_url: "" });
             toast.success("Option added");
-        } catch (err) { toast.error("Error adding option"); }
+        } catch (err) { toast.error(err?.response?.data?.message || "Error adding option"); }
     };
 
     return (
-        <SectionCard title="Customer Choices" action={!showAddGroup && <button onClick={() => setShowAddGroup(true)} className="text-[10px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-colors">+ Add Group</button>}>
-            <div className="space-y-6">
+        <SectionCard title="Customer Choices" action={!showAddGroup && <button onClick={() => setShowAddGroup(true)} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-colors shadow-sm active:scale-95">+ Add Group</button>}>
+            <div className="space-y-8">
                 {item.choice_groups?.map(g => (
-                    <div key={g._id} className="border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
-                        <div className="bg-slate-50 dark:bg-slate-800/50 px-5 py-4 flex flex-col sm:flex-row justify-between sm:items-center border-b border-slate-100 dark:border-slate-800 gap-4">
+                    <div key={g._id} className="border border-slate-100 dark:border-slate-800 rounded-[2rem] overflow-hidden bg-white dark:bg-slate-950 transition-all hover:shadow-xl hover:shadow-slate-200/40 dark:hover:shadow-none">
+                        <div className="bg-slate-50/50 dark:bg-slate-900 px-6 py-5 flex flex-col lg:flex-row justify-between lg:items-center border-b border-slate-100 dark:border-slate-800 gap-4">
                             {editingGroupId === g._id ? (
-                                <div className="flex-1 flex flex-wrap gap-2 items-center">
-                                    <input className="h-10 px-3 min-w-[150px] flex-1 rounded-xl text-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" placeholder="Group Name e.g Add Extra Meat" value={groupForm.name} onChange={e => setGroupForm({ ...groupForm, name: e.target.value })} />
-                                    <label className="text-xs font-bold flex items-center gap-2 text-slate-700 dark:text-slate-300 ml-2"><input type="checkbox" className="rounded" checked={groupForm.is_required} onChange={e => setGroupForm({ ...groupForm, is_required: e.target.checked })} /> Required</label>
-                                    <input type="number" className="h-10 px-3 w-20 rounded-xl text-sm border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" value={groupForm.max_selections} onChange={e => setGroupForm({ ...groupForm, max_selections: e.target.value })} placeholder="Max" />
-                                    <div className="flex gap-2 w-full sm:w-auto mt-2 sm:mt-0 ml-auto">
-                                        <button onClick={() => handleSaveGroup(g._id)} className="h-10 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-bold active:scale-95 transition-all">Save</button>
-                                        <button onClick={() => setEditingGroupId(null)} className="h-10 px-3 text-xs font-bold text-slate-500">Cancel</button>
+                                <div className="flex-1 flex flex-col gap-4">
+                                    <div className="flex flex-wrap gap-3 items-end">
+                                        {!isCustomTitle ? (
+                                            <div className="space-y-4 flex-1 min-w-[300px]">
+                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl max-h-[250px] overflow-y-auto shadow-inner">
+                                                    {Object.entries(GROUP_TITLE_PRESETS).map(([hdr, list]) => (
+                                                        <div key={hdr} className="col-span-full first:mt-0 mt-3">
+                                                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1.5 block pl-1">{hdr}</span>
+                                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                                {list.map(p => (
+                                                                    <button 
+                                                                        key={p} 
+                                                                        onClick={() => setGroupForm({ ...groupForm, name: p })}
+                                                                        className={`p-3 rounded-2xl border text-[10px] font-black leading-tight text-left transition-all ${groupForm.name === p ? "border-orange-500 bg-orange-50 text-orange-600 dark:bg-orange-500/10" : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:border-orange-200"}`}
+                                                                    >
+                                                                        {p}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <button onClick={() => { setIsCustomTitle(true); setGroupForm({ ...groupForm, name: "" }); }} className="text-[10px] font-black text-orange-500 uppercase tracking-widest pl-2 hover:translate-x-1 transition-transform">+ Use Custom Group Name</button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex-1 flex flex-col gap-1">
+                                                <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Group Name</label>
+                                                <div className="flex gap-2">
+                                                    <input className="h-12 px-4 flex-1 rounded-2xl text-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:border-orange-500 font-bold outline-none shadow-sm" placeholder="Enter custom name" value={groupForm.name} onChange={e => setGroupForm({ ...groupForm, name: e.target.value })} autoFocus />
+                                                    <button onClick={() => setIsCustomTitle(false)} className="px-4 text-xs font-bold text-slate-500 hover:text-slate-800">Use presets</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                        
+                                        <div className="flex flex-col gap-1">
+                                             <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Max Select</label>
+                                             <input type="number" className="h-12 px-4 w-20 rounded-2xl text-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:border-orange-500 font-black outline-none shadow-sm" value={groupForm.max_selections} onChange={e => setGroupForm({ ...groupForm, max_selections: e.target.value })} placeholder="Max" />
+                                        </div>
+
+                                        <label className="h-12 px-4 flex items-center gap-3 text-sm font-bold text-slate-700 dark:text-slate-300 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 cursor-pointer shadow-sm">
+                                             <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500" checked={groupForm.is_required} onChange={e => setGroupForm({ ...groupForm, is_required: e.target.checked })} /> 
+                                             Required
+                                        </label>
+                                    </div>
+                                    <div className="flex gap-3 justify-end pt-2 border-t border-slate-100 dark:border-slate-800">
+                                        <button onClick={() => handleSaveGroup(g._id)} className="h-11 px-8 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg">Save Group</button>
+                                        <button onClick={() => setEditingGroupId(null)} className="h-11 px-5 text-xs font-bold text-slate-500 hover:text-slate-800">Cancel</button>
                                     </div>
                                 </div>
                             ) : (
                                 <>
-                                    <div className="flex flex-col gap-1.5">
+                                    <div className="flex flex-col gap-2">
                                         <div className="flex items-center gap-3">
-                                            <h4 className="font-black text-[15px] text-slate-800 dark:text-white uppercase tracking-tight">{g.name}</h4>
+                                            <h4 className="font-black text-lg text-slate-800 dark:text-white uppercase tracking-tight">{g.name}</h4>
                                             {g.is_required ? (
-                                                <span className="bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 text-[10px] px-2 py-0.5 rounded font-black tracking-widest uppercase">Required</span>
+                                                <span className="bg-orange-500 text-white text-[9px] px-2.5 py-1 rounded-lg font-black tracking-[0.15em] uppercase shadow-lg shadow-orange-500/20">Required</span>
                                             ) : (
-                                                <span className="bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400 text-[10px] px-2 py-0.5 rounded font-black tracking-widest uppercase">Optional</span>
+                                                <span className="bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400 text-[9px] px-2.5 py-1 rounded-lg font-black tracking-[0.15em] uppercase border border-slate-300/30">Optional</span>
                                             )}
                                         </div>
-                                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Can select up to {g.max_selections || 1} {g.max_selections > 1 ? "options" : "option"}</span>
+                                        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+                                             <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+                                             Selection Rule: Choose up to <span className="font-black text-slate-700 dark:text-slate-200">{g.max_selections || 1} {g.max_selections > 1 ? "options" : "option"}</span>
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2 shrink-0 self-start sm:self-auto">
-                                        <button onClick={() => { setGroupForm({ name: g.name, is_required: g.is_required, min_selections: g.min_selections, max_selections: g.max_selections }); setEditingGroupId(g._id); }} className="h-8 px-3 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-slate-400 transition-all active:scale-95">Edit</button>
-                                        <button onClick={() => handleDeleteGroup(g._id, g.name)} className="h-8 px-3 rounded-lg text-xs font-black text-rose-500 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:text-rose-700 hover:border-rose-300 transition-all active:scale-95">✕</button>
+                                    <div className="flex gap-2 shrink-0">
+                                        <button onClick={() => { setGroupForm({ name: g.name, is_required: g.is_required, min_selections: g.min_selections, max_selections: g.max_selections }); setEditingGroupId(g._id); }} className="h-10 px-5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-200 hover:text-orange-500 transition-all active:scale-95 shadow-sm">Edit Group</button>
+                                        <button onClick={() => handleDeleteGroup(g._id, g.name)} className="h-10 w-10 rounded-xl flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all border border-transparent active:scale-95">✕</button>
                                     </div>
                                 </>
                             )}
                         </div>
-                        <div className="p-2 space-y-1">
+                        <div className="p-3 bg-white dark:bg-slate-950/50 space-y-2">
                             {g.options?.map(o => (
-                                <div key={o._id} className="flex flex-wrap justify-between items-center p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl group transition-colors">
+                                <div key={o._id} className="flex flex-wrap justify-between items-center p-4 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-[1.5rem] group/item transition-all border border-transparent hover:border-slate-100 dark:hover:border-slate-800">
                                     {editingOptionId === o._id ? (
-                                        <div className="flex-1 flex flex-wrap gap-2 items-center">
-                                            <input className="h-9 px-3 w-40 rounded-lg text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500" placeholder="Option Label" value={optionForm.label} onChange={e => setOptionForm({ ...optionForm, label: e.target.value })} />
-                                            <input className="h-9 px-3 w-28 rounded-lg text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500" type="number" placeholder="+₦" value={optionForm.price_modifier_naira} onChange={e => setOptionForm({ ...optionForm, price_modifier_naira: e.target.value })} />
-                                            <button onClick={() => handleSaveOption(g._id, o._id)} className="h-9 px-4 ml-auto lg:ml-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-xs font-bold active:scale-95">Save</button>
-                                            <button onClick={() => setEditingOptionId(null)} className="h-9 px-3 text-xs font-bold text-slate-500">Cancel</button>
+                                        <div className="flex-1 flex flex-col gap-4 py-2">
+                                            <div className="flex flex-wrap gap-3 items-end">
+                                                <div className="flex flex-col gap-1">
+                                                     <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Option Label</label>
+                                                     <input className="h-11 px-4 w-48 rounded-2xl text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500 font-bold outline-none" placeholder="Label" value={optionForm.label} onChange={e => setOptionForm({ ...optionForm, label: e.target.value })} />
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                     <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Upcharge</label>
+                                                     <div className="relative">
+                                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">₦</span>
+                                                         <input className="h-11 pl-10 pr-4 w-32 rounded-2xl text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500 font-black text-orange-600 outline-none" type="number" placeholder="+₦" value={optionForm.price_modifier_naira} onChange={e => setOptionForm({ ...optionForm, price_modifier_naira: e.target.value })} />
+                                                     </div>
+                                                </div>
+                                                <div className="flex flex-col gap-1 flex-1 min-w-[200px]">
+                                                     <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Image URL (Optional)</label>
+                                                     <input className="h-11 px-4 w-full rounded-2xl text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500 font-medium outline-none" placeholder="https://..." value={optionForm.image_url || ""} onChange={e => setOptionForm({ ...optionForm, image_url: e.target.value })} />
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2 justify-end pt-2">
+                                                 <button onClick={() => handleSaveOption(g._id, o._id)} className="h-10 px-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all">Update</button>
+                                                 <button onClick={() => setEditingOptionId(null)} className="h-10 px-4 text-xs font-bold text-slate-500">Cancel</button>
+                                            </div>
                                         </div>
                                     ) : (
                                         <>
-                                            <div className="flex items-center gap-3 w-full sm:w-auto">
-                                                <div className="w-5 h-5 rounded-full border-2 border-slate-200 dark:border-slate-700 shrink-0" />
-                                                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{o.label}</span>
-                                                <span className={`text-[11px] font-black uppercase tracking-widest ml-1 ${o.price_modifier_naira > 0 ? 'text-slate-500 dark:text-slate-400' : 'text-emerald-500 dark:text-emerald-400'}`}>{o.price_modifier_naira > 0 ? `+ ₦${o.price_modifier_naira?.toLocaleString()}` : "FREE"}</span>
+                                            <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                <div className="w-14 h-14 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex items-center justify-center shrink-0 shadow-inner group/img relative">
+                                                     {o.image_url ? (
+                                                         <img src={o.image_url} alt={o.label} className="w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500" />
+                                                     ) : (
+                                                         <ImageIcon size={20} className="text-slate-300" strokeWidth={1.5} />
+                                                     )}
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="text-[15px] font-bold text-slate-700 dark:text-slate-200 truncate">{o.label}</span>
+                                                    <div className="flex items-center gap-2">
+                                                         <span className={`text-[11px] font-black uppercase tracking-[0.1em] ${o.price_modifier_naira > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-emerald-500 dark:text-emerald-400'}`}>
+                                                              {o.price_modifier_naira > 0 ? `+ ₦${o.price_modifier_naira?.toLocaleString()}` : "Free"}
+                                                         </span>
+                                                         <div className="w-1 h-1 rounded-full bg-slate-300" />
+                                                         <span className="text-[10px] font-medium text-slate-400">Option ID: {o._id.slice(-6).toUpperCase()}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="flex gap-2 ml-auto mt-2 sm:mt-0 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button onClick={() => { setOptionForm({ label: o.label, price_modifier_naira: o.price_modifier_naira, image_url: o.image_url }); setEditingOptionId(o._id); }} className="text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white px-2">Edit</button>
-                                                <button onClick={() => handleDeleteOption(g._id, o._id)} className="text-xs font-bold text-rose-500 hover:text-rose-700 px-2 lg:bg-white dark:lg:bg-slate-900 lg:border lg:border-slate-200 dark:lg:border-slate-700 rounded-lg">✕</button>
+                                            <div className="flex gap-2 ml-auto shrink-0 opacity-100 lg:opacity-0 group-hover/item:opacity-100 transition-all">
+                                                <button onClick={() => { setOptionForm({ label: o.label, price_modifier_naira: o.price_modifier_naira, image_url: o.image_url || "" }); setEditingOptionId(o._id); }} className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all">Edit</button>
+                                                <button onClick={() => handleDeleteOption(g._id, o._id)} className="h-9 w-9 rounded-xl flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-rose-50 transition-all">✕</button>
                                             </div>
                                         </>
                                     )}
                                 </div>
                             ))}
+                            
                             {addingToGroup === g._id ? (
-                                <div className="p-3 my-2 mx-2 bg-orange-50 dark:bg-orange-500/10 rounded-xl flex flex-wrap gap-2 items-center border border-orange-200 dark:border-orange-500/30">
-                                    <input className="h-9 px-3 w-40 rounded-lg text-sm border bg-white dark:bg-slate-900 border-orange-200 dark:border-orange-500/30 focus:border-orange-500" placeholder="Option Label" value={newOption.label} onChange={e => setNewOption({ ...newOption, label: e.target.value })} autoFocus />
-                                    <input className="h-9 px-3 w-28 rounded-lg text-sm border bg-white dark:bg-slate-900 border-orange-200 dark:border-orange-500/30 focus:border-orange-500" type="number" placeholder="+₦" value={newOption.price_modifier_naira} onChange={e => setNewOption({ ...newOption, price_modifier_naira: e.target.value })} />
-                                    <button onClick={() => handleAddOption(g._id)} className="h-9 px-4 ml-auto lg:ml-2 bg-orange-500 text-white rounded-lg text-xs font-bold active:scale-95 transition-all">Add</button>
-                                    <button onClick={() => setAddingToGroup(null)} className="h-9 px-3 text-xs font-bold text-slate-500">Cancel</button>
+                                <div className="p-6 my-2 mx-2 bg-slate-50 dark:bg-slate-900/80 rounded-[2rem] flex flex-col gap-5 border border-slate-200 dark:border-slate-800 shadow-inner">
+                                    <div className="flex items-center gap-2 mb-1">
+                                         <div className="p-1.5 bg-orange-500 rounded-lg shadow-lg shadow-orange-500/20">
+                                              <Plus size={14} className="text-white" />
+                                         </div>
+                                         <span className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">Quick Add Option</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Display Label *</label>
+                                            <input className="h-12 px-4 rounded-2xl text-sm border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:border-orange-500 font-bold outline-none shadow-sm" placeholder="e.g. Extra Cheese" value={newOption.label} onChange={e => setNewOption({ ...newOption, label: e.target.value })} autoFocus />
+                                        </div>
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Upcharge Amount</label>
+                                            <div className="relative">
+                                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">₦</span>
+                                                 <input className="h-12 pl-10 pr-4 w-full rounded-2xl text-sm border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:border-orange-500 font-black text-orange-600 outline-none shadow-sm" type="number" placeholder="0.00" value={newOption.price_modifier_naira} onChange={e => setNewOption({ ...newOption, price_modifier_naira: e.target.value })} />
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-1.5 md:col-span-2">
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Image Reference (Optional)</label>
+                                            <div className="flex gap-3">
+                                                 <input className="h-12 px-4 flex-1 rounded-2xl text-sm border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:border-orange-500 font-medium outline-none shadow-sm" placeholder="https://image-hosting.com/image.jpg" value={newOption.image_url} onChange={e => setNewOption({ ...newOption, image_url: e.target.value })} />
+                                                 <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
+                                                      {newOption.image_url ? <img src={newOption.image_url} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={18} className="text-slate-300" />}
+                                                 </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3 pt-2">
+                                        <button onClick={() => handleAddOption(g._id)} className="flex-1 h-12 bg-orange-500 hover:bg-orange-600 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-widest active:scale-95 transition-all shadow-[0_8px_20px_-6px_rgba(249,115,22,0.5)]">Confirm & Add</button>
+                                        <button onClick={() => setAddingToGroup(null)} className="h-12 px-6 text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">Dismiss</button>
+                                    </div>
                                 </div>
                             ) : (
-                                <button onClick={() => setAddingToGroup(g._id)} className="w-full text-left py-3 px-4 text-[11px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-colors hover:bg-orange-50/50 dark:hover:bg-orange-500/5 rounded-xl">+ Add Option</button>
+                                <button onClick={() => setAddingToGroup(g._id)} className="w-full text-center py-4 text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 hover:text-orange-600 transition-all hover:bg-orange-50/50 dark:hover:bg-orange-500/5 rounded-2xl border-2 border-dashed border-slate-100 dark:border-slate-800 mt-2">+ New Option for {g.name}</button>
                             )}
                         </div>
                     </div>
@@ -585,11 +763,40 @@ const AddOnsSection = ({ item, vendorId, itemId, queryClient }) => {
                 {showAddGroup && (
                     <div className="p-5 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-[1.5rem] flex flex-col gap-4">
                         <p className="text-xs font-black uppercase text-orange-600 dark:text-orange-400 tracking-widest">New Choice Group</p>
-                        <input className="h-11 px-4 rounded-xl border border-orange-200 dark:border-orange-500/30 bg-white dark:bg-slate-900 text-sm focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" placeholder="e.g. Choose Protein" value={newGroup.name} onChange={e => setNewGroup({ ...newGroup, name: e.target.value })} autoFocus />
+                        
+                        {!isAddingCustomTitle ? (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-3 bg-white dark:bg-slate-900 border border-orange-100 dark:border-orange-500/20 rounded-[2rem] max-h-[300px] overflow-y-auto">
+                                    {Object.entries(GROUP_TITLE_PRESETS).map(([hdr, list]) => (
+                                        <div key={hdr} className="col-span-full first:mt-0 mt-3">
+                                            <span className="text-[10px] font-black text-orange-600/50 dark:text-orange-400/50 uppercase tracking-widest mb-1.5 block pl-1">{hdr}</span>
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                                {list.map(p => (
+                                                    <button 
+                                                        key={p} 
+                                                        onClick={() => setNewGroup({ ...newGroup, name: p })}
+                                                        className={`p-3 rounded-2xl border text-[11px] font-black leading-tight text-left transition-all ${newGroup.name === p ? "border-orange-500 bg-orange-50 text-orange-600 dark:bg-emerald-500/10 dark:text-orange-400" : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:border-orange-200"}`}
+                                                    >
+                                                        {p}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button onClick={() => { setIsAddingCustomTitle(true); setNewGroup({ ...newGroup, name: "" }); }} className="text-[10px] font-black text-orange-500 uppercase tracking-widest pl-2 hover:translate-x-1 transition-transform">+ Set Custom Group Name</button>
+                            </div>
+                        ) : (
+                            <div className="flex gap-2">
+                                <input className="h-12 px-4 flex-1 rounded-xl border border-orange-200 dark:border-orange-500/30 bg-white dark:bg-slate-900 text-sm focus:border-orange-500 font-bold outline-none" placeholder="e.g. Extra Toppings" value={newGroup.name} onChange={e => setNewGroup({ ...newGroup, name: e.target.value })} autoFocus />
+                                <button onClick={() => setIsAddingCustomTitle(false)} className="px-3 text-xs font-bold text-orange-600">Preset list</button>
+                            </div>
+                        )}
+
                         <label className="text-sm font-bold flex items-center gap-2 text-slate-700 dark:text-slate-300 ml-1"><input type="checkbox" className="rounded" checked={newGroup.is_required} onChange={e => setNewGroup({ ...newGroup, is_required: e.target.checked })} /> Required choice</label>
                         <div className="flex gap-3 pt-2">
                             <button onClick={handleAddGroup} className="h-11 px-6 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all">Create Group</button>
-                            <button onClick={() => setShowAddGroup(false)} className="h-11 px-4 text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">Cancel</button>
+                            <button onClick={() => { setShowAddGroup(false); setIsAddingCustomTitle(false); }} className="h-11 px-4 text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">Cancel</button>
                         </div>
                     </div>
                 )}
@@ -657,68 +864,154 @@ export default function FoodManagementPage() {
     );
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-24 transition-colors">
-            <div className="max-w-xl mx-auto pt-6 px-4 md:px-8 space-y-6">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-32 transition-all duration-500">
+            <div className="max-w-[1400px] mx-auto px-6 md:px-12 space-y-12">
 
-                {/* BACK BUTTON */}
-                <BackButton label="Back to My Foods" href="/vendors/my-foods" />
-
-                {/* HEADER STRIP */}
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-[1.5rem] shadow-sm mb-6">
-                    <div className="relative h-48 rounded-[1rem] overflow-hidden bg-slate-100 dark:bg-slate-800">
-                        {item.image_url ? (
-                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                                <ImageIcon size={48} className="text-slate-300 dark:text-slate-700" />
+                {/* PAGE TITLE & INFO */}
+                <div className="pt-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                            <BackButton label="" href="/vendors/my-foods" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 shadow-sm hover:border-orange-200 transition-all active:scale-95" />
+                            <div>
+                                <div className="flex items-center gap-2 mb-2">
+                                     <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Inventory Manager</span>
+                                </div>
+                                <h1 className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-none">Command Center</h1>
                             </div>
-                        )}
-                        <div className="absolute top-3 left-3 flex gap-2">
-                            {item.is_archived && <span className="px-3 py-1 bg-slate-900/80 text-white text-[10px] font-black uppercase tracking-widest rounded-full backdrop-blur">Archived</span>}
-                            {!item.is_available && !item.is_archived && <span className="px-3 py-1 bg-amber-500/90 text-white text-[10px] font-black uppercase tracking-widest rounded-full backdrop-blur">Hidden</span>}
-                            {item.is_available && <span className="px-3 py-1 bg-emerald-500/90 text-white text-[10px] font-black uppercase tracking-widest rounded-full backdrop-blur">Live</span>}
                         </div>
+                        <p className="text-lg text-slate-500 dark:text-slate-400 font-medium max-w-2xl leading-relaxed pl-[66px]">
+                            Operational oversight for <span className="text-slate-900 dark:text-white font-bold underline decoration-orange-500/30 decoration-2 underline-offset-4">"{item.name}"</span>. 
+                        </p>
                     </div>
 
-                    <div className="flex items-start justify-between gap-4 mt-4 px-2">
-                        <div>
-                            <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">{item.name}</h1>
-                            <div className="flex flex-wrap items-center gap-2 mt-2">
-                                <DietaryBadge type={item.dietary_type} />
-                                <span className="text-[10px] px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest rounded-lg">{item.item_type}</span>
-                                {item.prep_time_minutes && <span className="text-[10px] px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 font-black rounded-lg">⏱ {item.prep_time_minutes} min</span>}
-                            </div>
-                        </div>
+                    <div className="flex items-center gap-4 pl-[66px] md:pl-0">
+                         <div className="flex flex-col items-end">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Last Synced</span>
+                              <span className="text-xs font-black text-slate-900 dark:text-slate-300">Just moments ago</span>
+                         </div>
+                         <div className="h-10 w-px bg-slate-200 dark:bg-slate-800" />
+                         <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-orange-500 shadow-sm">
+                              <ChefHat size={24} />
+                         </div>
+                    </div>
+                </div>
 
-                        <div className="flex gap-2 shrink-0 flex-col sm:flex-row">
-                            <button onClick={handleToggleAvailability} className="h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300 hover:border-slate-400 transition-all active:scale-95 bg-white dark:bg-slate-900">
-                                {item.is_available ? "Hide" : "Show"}
-                            </button>
-                            <button onClick={handleArchiveToggle} className="h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 hover:border-rose-300 hover:text-rose-500 transition-all active:scale-95 bg-white dark:bg-slate-900">
-                                {item.is_archived ? "Restore" : "Archive"}
-                            </button>
+                {/* MASTER STATUS CARD */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-[4rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] dark:shadow-none relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/5 rounded-full -mr-48 -mt-48 blur-3xl animate-pulse" />
+                    
+                    <div className="bg-slate-50/50 dark:bg-slate-800/40 rounded-[3.5rem] p-2 border border-slate-100 dark:border-slate-800 relative z-10">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                            {/* Visual Asset Container */}
+                            <div className="lg:col-span-3">
+                                <div className="relative aspect-square rounded-[3rem] overflow-hidden bg-slate-200 dark:bg-slate-950 border-4 border-white dark:border-slate-800 shadow-2xl group/thumb pointer-events-none">
+                                    {item.image_url ? (
+                                        <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-1000" />
+                                    ) : (
+                                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 gap-4">
+                                            <ImageIcon size={64} strokeWidth={1} />
+                                            <span className="text-[10px] font-black uppercase tracking-widest">No Visual Attached</span>
+                                        </div>
+                                    )}
+                                    <div className="absolute top-6 left-6 flex flex-col gap-2">
+                                        {item.is_archived && <span className="px-4 py-2 bg-slate-900/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest rounded-2xl border border-white/20">Archived</span>}
+                                        {!item.is_available && !item.is_archived && <span className="px-5 py-2 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-amber-500/30">Offline</span>}
+                                        {item.is_available && <span className="px-5 py-2 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-500/30">Live Now</span>}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Essential Details & Quick Moves */}
+                            <div className="lg:col-span-9 flex flex-col xl:flex-row justify-between xl:items-center gap-10">
+                                <div className="space-y-6">
+                                    <div>
+                                        <h1 className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tighter leading-[1.05] mb-6">{item.name}</h1>
+                                        <div className="flex flex-wrap items-center gap-4">
+                                            <DietaryBadge type={item.dietary_type} />
+                                            <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
+                                            <span className="h-10 px-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black uppercase tracking-[0.2em] rounded-2xl flex items-center text-[10px] shadow-lg shadow-slate-950/10 dark:shadow-none">{item.item_type}</span>
+                                            {item.prep_time_minutes && (
+                                                <span className="h-10 px-5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3 text-[10px]">
+                                                    <Clock size={16} className="text-orange-500" /> {item.prep_time_minutes} MINS
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-4 shrink-0">
+                                    <button 
+                                        onClick={handleToggleAvailability} 
+                                        className={`h-16 px-10 rounded-[2rem] border text-[12px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 flex items-center justify-center gap-4 shadow-2xl ${item.is_available 
+                                            ? 'bg-white border-slate-200 text-slate-600 hover:border-slate-900 hover:text-slate-900 group/btn' 
+                                            : 'bg-emerald-500 border-emerald-400 text-white hover:bg-emerald-600 hover:shadow-emerald-500/40'}`}
+                                    >
+                                        <div className={`w-2.5 h-2.5 rounded-full ${item.is_available ? 'bg-slate-300 group-hover/btn:bg-orange-500 group-hover/btn:animate-ping' : 'bg-white animate-pulse'}`} />
+                                        {item.is_available ? "Deactivate on App" : "Publish to Customers"}
+                                    </button>
+                                    <button 
+                                        onClick={handleArchiveToggle} 
+                                        className="h-16 px-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 text-[12px] font-black uppercase tracking-[0.2em] text-slate-400 hover:border-rose-300 hover:text-rose-500 transition-all active:scale-95 bg-white dark:bg-slate-950 shadow-sm flex items-center justify-center"
+                                    >
+                                        {item.is_archived ? "Restore Content" : "Archive"}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* COMPONENT SECTIONS */}
-                <BasicInfoSection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} />
-                <CategorySection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} allSections={allSections} />
-                <PortionsSection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} />
-                <AddOnsSection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} />
+                {/* MANAGEMENT GRID */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                    {/* PRIMARY CONFIGURATION COLUMN */}
+                    <div className="lg:col-span-7 space-y-10">
+                        <BasicInfoSection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} />
+                        <AddOnsSection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} />
+                    </div>
 
-                {item.combos?.length > 0 && (
-                    <SectionCard title="In Combos">
-                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-4">This item is part of these combos. Archive or remove it from a combo before deleting.</p>
-                        <div className="flex flex-wrap gap-2">
-                            {item.combos.map(combo => (
-                                <span key={combo._id} className="h-8 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 shadow-sm">
-                                    🍱 {combo.name} <span className="text-slate-400 dark:text-slate-500 font-medium">₦{combo.price_naira?.toLocaleString()}</span>
-                                </span>
-                            ))}
+                    {/* SIDEBAR LOGISTICS COLUMN */}
+                    <div className="lg:col-span-5 space-y-10 lg:sticky lg:top-12">
+                        <CategorySection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} allSections={allSections} />
+                        <PortionsSection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} />
+
+                        {item.combos?.length > 0 && (
+                            <SectionCard title="Cross-Platform Combos" className="border-indigo-100 dark:border-indigo-500/20 bg-indigo-50/10">
+                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-6 flex items-start gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-indigo-100 dark:border-slate-800">
+                                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1 shrink-0" />
+                                     This item is integrated into the following active combos. You must remove it from these bundles before complete deletion.
+                                </p>
+                                <div className="grid grid-cols-1 gap-3">
+                                    {item.combos.map(combo => (
+                                        <div key={combo._id} className="p-4 rounded-[1.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-default transition-all hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/5">
+                                            <div className="flex items-center gap-3">
+                                                 <div className="text-xl">🍱</div>
+                                                 <div>
+                                                      <span className="text-sm font-black text-slate-800 dark:text-white block tracking-tight uppercase">{combo.name}</span>
+                                                      <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 tracking-widest uppercase">Combo Base</span>
+                                                 </div>
+                                            </div>
+                                            <span className="text-sm font-black text-slate-900 dark:text-white">₦{combo.price_naira?.toLocaleString()}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </SectionCard>
+                        )}
+
+                        {/* Quick Tips or Audit Trail Placeholder */}
+                        <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-2xl relative overflow-hidden">
+                             <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+                             <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-400 mb-4">Merchant Tip</h4>
+                             <p className="text-sm font-medium leading-relaxed text-slate-300 italic mb-6">
+                                "High-quality photos and detailed add-on descriptions can increase your conversion rate by up to <span className="text-white font-black underline decoration-orange-500">40%</span>. Ensure your visual assets are eye-catching!"
+                             </p>
+                             <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs">💡</div>
+                                  <span className="text-xs font-bold text-slate-400">Merchant Success Board</span>
+                             </div>
                         </div>
-                    </SectionCard>
-                )}
+                    </div>
+                </div>
             </div>
         </div>
     );

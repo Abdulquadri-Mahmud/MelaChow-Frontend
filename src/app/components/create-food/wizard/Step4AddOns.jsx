@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useCreateFoodStore } from "@/app/context/CreateFoodStore";
-import { Edit2, Plus, Trash2, X, ArrowLeft } from "lucide-react";
+import { Edit2, Plus, Trash2, X, ArrowLeft, Search } from "lucide-react";
 import toast from "react-hot-toast";
 
 const GROUP_TITLE_PRESETS = {
@@ -66,6 +66,8 @@ export default function Step4AddOns({ onBack, onNext, onDeleteGroup, onDeleteOpt
 
     // Inline Option State (one per group)
     const [optionInputs, setOptionInputs] = useState({});
+
+    const [templateSearch, setTemplateSearch] = useState("");
 
     const handleOpenGroupForm = (existing = null) => {
         if (existing) {
@@ -153,345 +155,253 @@ export default function Step4AddOns({ onBack, onNext, onDeleteGroup, onDeleteOpt
     };
 
     return (
-        <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-12">
-            <div>
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Do customers get to choose extras?</h2>
-                <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">This is optional. For example: "Choose your protein", "Add a drink", "Extra toppings".</p>
-            </div>
-
-            {/* Existing Groups */}
-            <div className="space-y-6">
-                {store.choice_groups.map(group => (
-                    <div key={group.tempId} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm transition-colors">
-                        {/* Group Header */}
-                        <div className="bg-slate-50/50 dark:bg-slate-800/30 p-5 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between">
-                            <div>
-                                <div className="flex items-center gap-3 mb-1.5">
-                                    <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">{group.name}</h3>
-                                    {group.is_required && <span className="text-[9px] px-2.5 py-1 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded-lg uppercase font-black tracking-widest leading-none">Required</span>}
-                                </div>
-                                <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                                    Select min {group.min_selections}, max {group.max_selections}
-                                </div>
-                            </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => handleOpenGroupForm(group)} className="w-9 h-9 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-white bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 border-b-2 dark:border-b-slate-900 transition-all"><Edit2 size={14} /></button>
-                                <button
-                                    onClick={() => {
-                                        if (onDeleteGroup) {
-                                            // Edit mode — API delete with confirmation toast
-                                            onDeleteGroup(group.tempId, group.name);
-                                        } else {
-                                            // Create mode — local store only
-                                            store.removeChoiceGroup(group.tempId);
-                                        }
-                                    }}
-                                    className="w-9 h-9 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 border-b-2 dark:border-b-slate-900 transition-all"><Trash2 size={14} /></button>
-                            </div>
-                        </div>
-
-                        {/* Options List */}
-                        <div className="p-3 space-y-1">
-                            {group.options.map(opt => (
-                                <div
-                                    key={opt.tempId}
-                                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-2xl group/opt transition-colors"
-                                >
-                                    {/* Image thumbnail — shown only if image_url exists */}
-                                    {opt.image_url ? (
-                                        <img
-                                            src={opt.image_url}
-                                            alt={opt.label}
-                                            className="w-9 h-9 rounded-xl object-cover border border-slate-100 dark:border-slate-700 shrink-0"
-                                            onError={e => { e.target.style.display = 'none'; }}
-                                        />
-                                    ) : (
-                                        <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex items-center justify-center shrink-0">
-                                            <span className="text-xs font-black text-slate-400 dark:text-slate-500">
-                                                {opt.label.charAt(0).toUpperCase()}
-                                            </span>
-                                        </div>
-                                    )}
-
-                                    {/* Label + price */}
-                                    <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-                                        <span className="font-bold text-slate-900 dark:text-white text-sm">
-                                            {opt.label}
-                                        </span>
-                                        {opt.price_modifier_naira > 0 ? (
-                                            <span className="text-[10px] font-black text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded-full">
-                                                +₦{opt.price_modifier_naira.toLocaleString()}
-                                            </span>
-                                        ) : (
-                                            <span className="text-[9px] uppercase tracking-widest font-black text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
-                                                Free
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {/* Delete — hover only */}
-                                    <button
-                                        onClick={() => {
-                                            if (onDeleteOption) {
-                                                // Edit mode — API delete (no confirmation, low stakes)
-                                                onDeleteOption(group.tempId, opt.tempId, opt.label);
-                                            } else {
-                                                // Create mode — local store only
-                                                store.removeChoiceOption(group.tempId, opt.tempId);
-                                            }
-                                        }}
-                                        className="p-1.5 text-slate-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 opacity-0 group-hover/opt:opacity-100 transition-all rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10"
-                                    >
-                                        <X size={15} />
-                                    </button>
-                                </div>
-                            ))}
-
-                            {/* Add Option Inline */}
-                            <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
-
-                                {/* Row 1: Name + Price + Add button */}
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="text"
-                                        placeholder="Option name"
-                                        value={optionInputs[group.tempId]?.name || ""}
-                                        onChange={e => setOptionInputs(prev => ({
-                                            ...prev,
-                                            [group.tempId]: { ...prev[group.tempId], name: e.target.value }
-                                        }))}
-                                        onKeyDown={e => e.key === 'Enter' && handleAddOption(group.tempId)}
-                                        className="flex-1 h-10 px-3.5 text-sm font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-orange-500 dark:focus:border-orange-500 placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
-                                    />
-
-                                    <div className="relative w-28 shrink-0">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 dark:text-slate-500 font-black pointer-events-none">
-                                            +₦
-                                        </span>
-                                        <input
-                                            type="number"
-                                            placeholder="0"
-                                            value={optionInputs[group.tempId]?.price || ""}
-                                            onChange={e => setOptionInputs(prev => ({
-                                                ...prev,
-                                                [group.tempId]: { ...prev[group.tempId], price: e.target.value }
-                                            }))}
-                                            onKeyDown={e => e.key === 'Enter' && handleAddOption(group.tempId)}
-                                            className="w-full h-10 pl-8 pr-3 text-sm font-black text-orange-600 dark:text-orange-400 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-orange-500 dark:focus:border-orange-500 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600"
-                                        />
-                                    </div>
-
-                                    <button
-                                        onClick={() => handleAddOption(group.tempId)}
-                                        disabled={!optionInputs[group.tempId]?.name?.trim()}
-                                        className="h-10 px-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl disabled:opacity-40 font-black text-[10px] uppercase tracking-widest transition-all hover:bg-slate-700 dark:hover:bg-slate-200 active:scale-95 shrink-0"
-                                    >
-                                        Add
-                                    </button>
-                                </div>
-
-                                {/* Row 2: Image URL toggle — always visible, dimmed until name exists */}
-                                <div className={`transition-opacity ${optionInputs[group.tempId]?.name?.trim()
-                                    ? "opacity-100"
-                                    : "opacity-35 pointer-events-none"
-                                    }`}>
-                                    {optionInputs[group.tempId]?.showImageField ? (
-                                        <div className="flex items-center gap-2">
-                                            {/* Live preview thumbnail */}
-                                            <div className="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0 flex items-center justify-center">
-                                                {optionInputs[group.tempId]?.image_url ? (
-                                                    <img
-                                                        src={optionInputs[group.tempId].image_url}
-                                                        alt="preview"
-                                                        className="w-full h-full object-cover"
-                                                        onError={e => { e.target.style.display = 'none'; }}
-                                                    />
-                                                ) : (
-                                                    <span className="text-[10px] text-slate-300 dark:text-slate-600 font-bold">IMG</span>
-                                                )}
-                                            </div>
-
-                                            <input
-                                                type="url"
-                                                placeholder="Paste image URL (optional)"
-                                                value={optionInputs[group.tempId]?.image_url || ""}
-                                                onChange={e => setOptionInputs(prev => ({
-                                                    ...prev,
-                                                    [group.tempId]: { ...prev[group.tempId], image_url: e.target.value }
-                                                }))}
-                                                className="flex-1 h-9 px-3.5 text-xs font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-orange-500 dark:focus:border-orange-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all"
-                                            />
-
-                                            <button
-                                                onClick={() => setOptionInputs(prev => ({
-                                                    ...prev,
-                                                    [group.tempId]: { ...prev[group.tempId], showImageField: false, image_url: "" }
-                                                }))}
-                                                className="text-[10px] font-bold text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors px-1 shrink-0"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => setOptionInputs(prev => ({
-                                                ...prev,
-                                                [group.tempId]: { ...prev[group.tempId], showImageField: true }
-                                            }))}
-                                            className="text-[10px] font-black uppercase tracking-widest text-white dark:text-slate-500 hover:text-orange-100 dark:hover:text-orange-400 transition-colors flex items-center gap-1.5 px-2 py-2.5 rounded mt-4 bg-orange-500"
-                                        >
-                                            <Plus size={11} /> Add image to this option
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-
-                {!showGroupForm && (
-                    <button
-                        onClick={() => handleOpenGroupForm()}
-                        className="w-full h-14 border border-dashed border-slate-300 dark:border-slate-700 rounded-2xl flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-800 dark:hover:text-white transition-all text-sm"
-                    >
-                        <Plus size={18} /> Add an Add-On Group
-                    </button>
-                )}
-            </div>
-
-            {/* Group Form */}
-            {showGroupForm && (
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none rounded-[2rem] p-8 relative overflow-hidden animate-in zoom-in-95 duration-200">
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-slate-900 dark:bg-slate-400" />
-
-                    <div className="flex items-center justify-between mb-8">
-                        <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{groupId ? "Edit Group" : "New Add-on Group"}</h3>
-                        <button onClick={() => setShowGroupForm(false)} className="w-10 h-10 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors"><X size={18} /></button>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 p-2">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                
+                <div className="lg:col-span-4 space-y-4 lg:border-r lg:border-slate-100 lg:dark:border-slate-800 lg:pr-3">
+                    <div>
+                        <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Choice Groups</h2>
+                        <p className="text-slate-600 dark:text-slate-400 font-medium text-base leading-relaxed">
+                            Create groups of options for your customers. For example, "Choose your protein" or "Spice Level".
+                        </p>
                     </div>
 
-                    <div className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[11px] font-black uppercase text-slate-900 dark:text-slate-300 tracking-widest">
-                                Group Title <span className="text-rose-500">*</span>
-                            </label>
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Group Templates</h3>
+                        </div>
 
-                            {!isCustomTitle ? (
-                                /* SELECT MODE — default */
-                                <div className="relative">
-                                    <select
-                                        autoFocus
-                                        value={groupName}
-                                        onChange={e => {
-                                            if (e.target.value === "Custom...") {
-                                                setIsCustomTitle(true);
-                                                setGroupName("");
-                                            } else {
-                                                setGroupName(e.target.value);
-                                            }
-                                        }}
-                                        className="w-full h-14 px-4 pr-10 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-900 dark:focus:border-slate-500 focus:ring-4 focus:ring-slate-900/10 dark:focus:ring-slate-500/10 transition-all font-bold text-slate-900 dark:text-white text-base outline-none appearance-none cursor-pointer"
-                                    >
-                                        <option value="" disabled>Pick a group type...</option>
+                        {/* Search Templates */}
+                        <div className="relative group">
+                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-orange-500" />
+                            <input 
+                                type="text"
+                                placeholder="Search templates..."
+                                value={templateSearch}
+                                onChange={(e) => setTemplateSearch(e.target.value)}
+                                className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm font-bold focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
+                            />
+                        </div>
 
-                                        {Object.entries(GROUP_TITLE_PRESETS).map(([groupLabel, presets]) => (
-                                            <optgroup key={groupLabel} label={groupLabel}>
-                                                {presets.map(preset => (
-                                                    <option key={preset} value={preset}>{preset}</option>
-                                                ))}
-                                            </optgroup>
-                                        ))}
+                        {/* Scrollable Templates */}
+                        <div className="h-[400px] overflow-y-auto pr-2 space-y-6 custom-scrollbar">
+                            {Object.entries(GROUP_TITLE_PRESETS).map(([category, presets]) => {
+                                const filtered = presets.filter(p => p.toLowerCase().includes(templateSearch.toLowerCase()));
+                                if (filtered.length === 0) return null;
 
-                                        {/* Custom is always last, outside all optgroups */}
-                                        <option value="Custom...">Custom...</option>
-                                    </select>
-                                    {/* Custom chevron */}
-                                    <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                            <path d="m6 9 6 6 6-6" />
-                                        </svg>
+                                return (
+                                    <div key={category} className="space-y-2">
+                                        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">{category}</span>
+                                        <div className="grid grid-cols-1 gap-1.5">
+                                            {filtered.map(preset => {
+                                                const isActive = groupName === preset;
+                                                return (
+                                                    <button
+                                                        key={preset}
+                                                        onClick={() => {
+                                                            if (!showGroupForm) {
+                                                                handleOpenGroupForm();
+                                                                setGroupName(preset);
+                                                            } else {
+                                                                setGroupName(preset);
+                                                            }
+                                                        }}
+                                                        className={`group flex items-center justify-between p-3.5 rounded-xl border transition-all text-left ${isActive 
+                                                            ? "bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/20" 
+                                                            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-orange-500 hover:text-orange-500 dark:hover:text-orange-400"}`}
+                                                    >
+                                                        <span className={`text-xs font-black tracking-tight ${isActive ? "text-white" : "text-slate-700 dark:text-slate-200 group-hover:text-orange-500"}`}>{preset}</span>
+                                                        <Plus size={14} className={isActive ? "text-white" : "text-slate-300"} />
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
-                            ) : (
-                                /* TEXT MODE — only when "Custom..." is picked */
-                                <div className="flex gap-2">
-                                    <input
-                                        autoFocus
-                                        type="text"
-                                        value={groupName}
-                                        onChange={e => setGroupName(e.target.value)}
-                                        placeholder="Describe the choice e.g. Choose your garnish"
-                                        className="flex-1 h-14 px-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-slate-900 dark:focus:border-slate-500 focus:ring-4 focus:ring-slate-900/10 dark:focus:ring-slate-500/10 transition-all font-bold text-slate-900 dark:text-white text-base placeholder:font-normal placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => { setIsCustomTitle(false); setGroupName(""); }}
-                                        className="h-14 px-4 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-500 transition-all whitespace-nowrap shrink-0"
-                                    >
-                                        ← Pick from list
-                                    </button>
+                                );
+                            })}
+                            
+                            {/* Empty State for Search */}
+                            {Object.values(GROUP_TITLE_PRESETS).flat().filter(p => p.toLowerCase().includes(templateSearch.toLowerCase())).length === 0 && (
+                                <div className="text-center py-10 space-y-3">
+                                    <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto text-slate-300">
+                                        <Search size={24} />
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-400">No matching templates</p>
                                 </div>
                             )}
-
-                            {/* Confirmation line when a preset is selected */}
-                            {!isCustomTitle && groupName && groupName !== "Custom..." && (
-                                <p className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 pl-1">
-                                    ✓ Customers will see: "{groupName}"
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-5">
-                            <label className="flex items-center justify-between cursor-pointer group">
-                                <div>
-                                    <div className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Required Choice?</div>
-                                    <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1">Must they pick something before ordering?</div>
-                                </div>
-                                <div className={`w-14 h-7 rounded-full p-1 transition-colors border ${isRequired ? 'bg-emerald-500 border-emerald-500' : 'bg-slate-200 dark:bg-slate-700 border-slate-300 dark:border-slate-600'}`}>
-                                    <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${isRequired ? 'translate-x-7' : 'translate-x-0'}`} />
-                                </div>
-                                <input type="checkbox" checked={isRequired} onChange={e => setIsRequired(e.target.checked)} className="hidden" />
-                            </label>
-
-                            <div className="grid grid-cols-2 gap-6 pt-5 border-t border-slate-200/80 dark:border-slate-700/80">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 tracking-widest uppercase">Minimum Required</label>
-                                    <input type="number" min="0" value={minSelections} onChange={e => setMinSelections(e.target.value)} className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold text-slate-900 dark:text-white outline-none focus:border-slate-900 dark:focus:border-slate-400" />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 dark:text-slate-400 tracking-widest uppercase">
-                                        Maximum Allowed
-                                        <span className="ml-1 normal-case tracking-normal font-medium text-slate-400 dark:text-slate-500">
-                                            (100 = unlimited)
-                                        </span>
-                                    </label>
-                                    <input type="number" min="1" value={maxSelections} onChange={e => setMaxSelections(e.target.value)} className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold text-slate-900 dark:text-white outline-none focus:border-slate-900 dark:focus:border-slate-400" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="pt-4 flex gap-4">
-                            <button onClick={() => setShowGroupForm(false)} className="flex-[1] h-14 rounded-2xl font-black uppercase tracking-widest text-xs text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all">Cancel</button>
-                            <button onClick={handleSaveGroup} className="flex-[2] h-14 rounded-2xl font-black uppercase tracking-widest text-xs text-white bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 shadow-[0_8px_16px_-6px_rgba(0,0,0,0.3)] hover:shadow-xl dark:shadow-[0_8px_16px_-6px_rgba(255,255,255,0.2)] active:scale-95 transition-all">Save Group</button>
                         </div>
                     </div>
                 </div>
-            )}
 
-            {/* Actions */}
-            <div className="pt-8 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between mt-12">
-                <button
-                    onClick={onBack}
-                    className="h-14 px-6 flex items-center py-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800 rounded-2xl transition-all font-black uppercase tracking-widest gap-2 active:scale-95 text-xs"
-                >
-                    <ArrowLeft size={16} /> Back
-                </button>
-                <button
-                    onClick={handleNext}
-                    className="h-14 px-8 bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 shadow-[0_8px_16px_-6px_rgba(16,185,129,0.3)]"
-                >
-                    Review & Publish <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
-                </button>
+                {/* ── RIGHT COLUMN: ACTIVE GROUPS & FORM ─────────── */}
+                <div className="lg:col-span-8 space-y-6">
+                    {showGroupForm ? (
+                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-200/50 dark:shadow-none rounded-[2.5rem] overflow-hidden animate-in zoom-in-95 duration-300">
+                             <div className="bg-slate-900 dark:bg-slate-800 px-8 py-5 flex items-center justify-between">
+                                <span className="text-white font-black uppercase tracking-[0.2em] text-[12px]">
+                                    {groupId ? "Update Choice Group" : "Create New Choice Group"}
+                                </span>
+                                <button onClick={() => setShowGroupForm(false)} className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white transition-all">
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            <div className="p-8 lg:p-10 space-y-8">
+                                <div className="space-y-3">
+                                    <label className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">Group Name</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            autoFocus
+                                            type="text"
+                                            value={groupName}
+                                            onChange={e => { setGroupName(e.target.value); setIsCustomTitle(true); }}
+                                            placeholder="e.g. Add proteins, Side dishes..."
+                                            className="flex-1 h-14 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-900 dark:text-white font-bold text-lg placeholder:font-medium focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
+                                        />
+                                    </div>
+                                     <p className="text-[11px] font-medium text-slate-400">Tip: Click a template on the left to auto-fill common group names.</p>
+                                </div>
+
+                                <div className="p-6 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-slate-100 dark:border-slate-800 space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">Mandatory Group</span>
+                                            <p className="text-[11px] text-slate-500">Should customers be forced to pick an option?</p>
+                                        </div>
+                                        <button 
+                                            onClick={() => setIsRequired(!isRequired)}
+                                            className={`w-14 h-7 rounded-full p-1 transition-all ${isRequired ? "bg-orange-500" : "bg-slate-200 dark:bg-slate-700"}`}
+                                        >
+                                            <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-all ${isRequired ? "translate-x-7" : "translate-x-0"}`} />
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-6 pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Min Selections</label>
+                                            <input type="number" min="0" value={minSelections} onChange={e => setMinSelections(e.target.value)} className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold text-slate-900 dark:text-white outline-none focus:border-orange-500" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Max Selections</label>
+                                            <input type="number" min="1" value={maxSelections} onChange={e => setMaxSelections(e.target.value)} className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold text-slate-900 dark:text-white outline-none focus:border-orange-500" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4 pt-4">
+                                    <button onClick={() => setShowGroupForm(false)} className="px-8 h-14 rounded-2xl font-black uppercase tracking-widest text-xs text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">Cancel</button>
+                                    <button onClick={handleSaveGroup} className="flex-1 h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-slate-900/20 active:scale-[0.98] transition-all">
+                                        {groupId ? "Update Group" : "Create Group"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {store.choice_groups.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center p-20 bg-slate-50 dark:bg-slate-800/20 rounded-[3rem] border-2 border-dashed border-slate-200 dark:border-slate-800 text-center space-y-4">
+                                    <div className="w-20 h-20 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-700 shadow-sm">
+                                        <Plus size={40} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xl font-black text-slate-900 dark:text-white italic tracking-tight">No Extras Yet</p>
+                                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Add customization groups like "Proteins" or "Drinks".</p>
+                                    </div>
+                                    <button
+                                        onClick={() => handleOpenGroupForm()}
+                                        className="h-12 px-8 bg-orange-500 hover:bg-orange-600 text-white font-black uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-95"
+                                    >
+                                        + Start Creating Groups
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between px-2">
+                                        <h3 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Active Groups ({store.choice_groups.length})</h3>
+                                        <button onClick={() => handleOpenGroupForm()} className="text-[10px] font-black text-orange-500 uppercase tracking-widest hover:text-orange-600">+ Add Group</button>
+                                    </div>
+
+                                    {store.choice_groups.map(group => (
+                                        <div key={group.tempId} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all group/card">
+                                            <div className="bg-slate-50 dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700/50 p-6 flex items-start justify-between">
+                                                <div>
+                                                    <div className="flex items-center gap-3 mb-1">
+                                                        <h4 className="font-black text-xl text-slate-900 dark:text-white tracking-tight">{group.name}</h4>
+                                                        {group.is_required && <span className="text-[9px] font-black uppercase bg-orange-500 text-white px-2 py-0.5 rounded-md shadow-md shadow-orange-500/10">Required</span>}
+                                                    </div>
+                                                    <p className="text-xs font-medium text-slate-500">Customers can select {group.min_selections} to {group.max_selections} options</p>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => handleOpenGroupForm(group)} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 text-slate-400 hover:text-orange-500 border border-slate-100 dark:border-slate-700 flex items-center justify-center transition-all shadow-sm"><Edit2 size={16} /></button>
+                                                    <button onClick={() => store.removeChoiceGroup(group.tempId)} className="w-10 h-10 rounded-xl bg-white dark:bg-slate-900 text-slate-400 hover:text-rose-500 border border-slate-100 dark:border-slate-700 flex items-center justify-center transition-all shadow-sm"><Trash2 size={16} /></button>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-4 space-y-2">
+                                                {group.options.map(opt => (
+                                                    <div key={opt.tempId} className="flex items-center gap-4 p-4 rounded-3xl hover:bg-slate-50 dark:hover:bg-slate-800/50 group/opt transition-all">
+                                                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                                                            {opt.image_url ? <img src={opt.image_url} alt="" className="w-full h-full object-cover" /> : <Plus size={16} className="text-slate-300" />}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <div className="font-bold text-slate-900 dark:text-white">{opt.label}</div>
+                                                            <div className="text-xs font-black text-orange-600 dark:text-orange-400">+₦{opt.price_modifier_naira.toLocaleString()}</div>
+                                                        </div>
+                                                        <button onClick={() => store.removeChoiceOption(group.tempId, opt.tempId)} className="w-8 h-8 rounded-lg text-slate-300 hover:text-rose-500 hover:bg-rose-50 opacity-0 group-hover/opt:opacity-100 transition-all flex items-center justify-center"><X size={16} /></button>
+                                                    </div>
+                                                ))}
+
+                                                {/* Inline Option Builder */}
+                                                <div className="mt-4 p-6 bg-slate-50 dark:bg-slate-800/30 rounded-[2rem] border border-slate-100 dark:border-slate-800 space-y-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <input 
+                                                            type="text" 
+                                                            placeholder="Option name (e.g. Extra Cheese)" 
+                                                            value={optionInputs[group.tempId]?.name || ""}
+                                                            onChange={e => setOptionInputs(prev => ({ ...prev, [group.tempId]: { ...prev[group.tempId], name: e.target.value } }))}
+                                                            className="h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-bold focus:border-orange-500 outline-none"
+                                                        />
+                                                        <div className="relative">
+                                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">+₦</span>
+                                                            <input 
+                                                                type="number" 
+                                                                placeholder="Price modifier" 
+                                                                value={optionInputs[group.tempId]?.price || ""}
+                                                                onChange={e => setOptionInputs(prev => ({ ...prev, [group.tempId]: { ...prev[group.tempId], price: e.target.value } }))}
+                                                                className="w-full h-12 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-black text-orange-600 outline-none focus:border-orange-500"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                                                            {optionInputs[group.tempId]?.image_url ? <img src={optionInputs[group.tempId].image_url} className="w-full h-full object-cover" /> : <div className="text-[9px] font-black text-slate-300">IMG</div>}
+                                                        </div>
+                                                        <input 
+                                                            type="url" 
+                                                            placeholder="Image URL (optional)" 
+                                                            value={optionInputs[group.tempId]?.image_url || ""}
+                                                            onChange={e => setOptionInputs(prev => ({ ...prev, [group.tempId]: { ...prev[group.tempId], image_url: e.target.value } }))}
+                                                            className="flex-1 h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium focus:border-orange-500 outline-none"
+                                                        />
+                                                        <button 
+                                                            onClick={() => handleAddOption(group.tempId)}
+                                                            className="h-12 px-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95"
+                                                        >
+                                                            Add Option
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
+
         </div>
     );
 }
