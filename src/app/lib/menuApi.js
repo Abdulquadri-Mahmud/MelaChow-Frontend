@@ -191,6 +191,8 @@ export const getMenuItemDetail = async (vendorId, itemId) => {
     const res = await ax.get(
         `/v1/vendors/${vendorId}/menu/items/${itemId}`
     );
+
+    // console.log(res)
     return res.data;
     // res.data.item.choice_groups is a fully populated array
 };
