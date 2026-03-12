@@ -11,7 +11,7 @@ import {
 } from "@/app/lib/menuApi";
 import { useVendorProfile } from "@/app/context/VendorProfileContext";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, ImageIcon, CheckCircle2 } from "lucide-react";
+import { Loader2, ImageIcon } from "lucide-react";
 import toast from "react-hot-toast";
 import BackButton from "@/app/components/BackButton";
 
