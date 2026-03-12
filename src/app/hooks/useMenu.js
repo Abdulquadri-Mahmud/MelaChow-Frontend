@@ -172,8 +172,9 @@ export const useCreateMenuItem = (vendorId) => {
 
         onSuccess: () => {
             toast.success("Food is live on your menu! 🎉");
-            // Invalidate so vendor menu re-fetches with the new item
+            // Invalidate so vendor menu lists re-fetch with the new item
             queryClient.invalidateQueries({ queryKey: ["vendor-menu", vendorId] });
+            queryClient.invalidateQueries({ queryKey: ["vendor-foods", vendorId] });
         },
 
         onError: (error) => {

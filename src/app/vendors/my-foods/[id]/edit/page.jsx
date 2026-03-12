@@ -9,6 +9,7 @@ import { useVendorProfile } from "@/app/context/VendorProfileContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import BackButton from "@/app/components/BackButton";
 
 // Steps
@@ -29,6 +30,7 @@ const STEPS = [
 export default function EditFoodPage() {
     const { id: foodId } = useParams();
     const router = useRouter();
+    const queryClient = useQueryClient();
     const store = useCreateFoodStore();
     const { vendorProfile } = useVendorProfile();
     const vendorId = vendorProfile?._id || vendorProfile?.id;
@@ -284,6 +286,12 @@ export default function EditFoodPage() {
             if (typeof window !== "undefined") {
                 sessionStorage.removeItem("gd_create_food_wizard");
             }
+
+            // Wipe relevant cache so list/detail pages show new values
+            queryClient.invalidateQueries({ queryKey: ["vendor-foods", vendorId] });
+            queryClient.invalidateQueries({ queryKey: ["vendor-menu", vendorId] });
+            queryClient.invalidateQueries({ queryKey: ["food-item", foodId] });
+
             router.push("/vendors/my-foods");
 
         } catch (error) {
@@ -307,7 +315,7 @@ export default function EditFoodPage() {
                     <div className="flex items-center justify-between relative">
                         {/* Background Track */}
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full z-0" />
-                        
+
                         {/* Progress Fill */}
                         <div
                             className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-orange-500 rounded-full z-0 transition-all duration-500"
