@@ -102,9 +102,9 @@ export default function MyFoodsPage() {
     }
   };
 
-  // Navigate to edit page
+  // Navigate to food management page (inline editing — wizard deprecated)
   const handleEdit = (itemId) => {
-    router.push(`/vendors/my-foods/${itemId}/edit`);
+    router.push(`/vendors/my-foods/${itemId}`);
   };
 
   // Permanently delete a menu item (with confirmation toast)

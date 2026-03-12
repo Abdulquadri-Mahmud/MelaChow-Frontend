@@ -4,7 +4,6 @@ import {
     Edit2, Archive, ArchiveRestore, ToggleLeft,
     ToggleRight, ChevronRight, Clock, Tag, Trash2
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 const ITEM_TYPE_EMOJI = {
     FOOD: "🍽️", DRINK: "🥤", SOUP: "🥘", SWALLOW: "🫓",
@@ -21,7 +20,6 @@ const DIETARY_BADGE = {
 };
 
 export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit, onDelete }) {
-    const router = useRouter();
     const dietary = DIETARY_BADGE[item.dietary_type];
 
     const priceDisplay = item.portions.count === 0
@@ -202,17 +200,14 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
 
                 {/* Bottom actions row */}
                 <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button
-                        onClick={() => router.push(`/vendors/my-foods/${item._id}`)}
-                        className="text-xs font-black text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors uppercase tracking-widest"
-                    >
-                        View Details
-                    </button>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        {item.portions.count} {item.portions.count === 1 ? "size" : "sizes"} · {item.choice_groups.count} {item.choice_groups.count === 1 ? "add-on" : "add-ons"}
+                    </span>
                     <button
                         onClick={() => onEdit(item._id)}
                         className="flex items-center gap-1.5 text-xs font-black text-orange-500 hover:text-orange-600 transition-colors uppercase tracking-widest group/edit"
                     >
-                        Edit
+                        Manage
                         <ChevronRight
                             size={13}
                             className="group-hover/edit:translate-x-0.5 transition-transform"
