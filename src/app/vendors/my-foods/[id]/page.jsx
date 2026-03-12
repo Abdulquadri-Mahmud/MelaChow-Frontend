@@ -11,9 +11,20 @@ import {
 } from "@/app/lib/menuApi";
 import { useVendorProfile } from "@/app/context/VendorProfileContext";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, ImageIcon } from "lucide-react";
+import { Loader2, ImageIcon, X, Plus, Tag, Clock, ChefHat, Leaf, FolderOpen, LayoutGrid } from "lucide-react";
 import toast from "react-hot-toast";
 import BackButton from "@/app/components/BackButton";
+
+const ITEM_TYPE_META = {
+    FOOD:    { emoji: "🍽️", label: "Food" },
+    DRINK:   { emoji: "🥤", label: "Drink" },
+    SOUP:    { emoji: "🥘", label: "Soup" },
+    SWALLOW: { emoji: "🫓", label: "Swallow" },
+    PROTEIN: { emoji: "🍗", label: "Protein" },
+    SIDE:    { emoji: "🍟", label: "Side" },
+    DESSERT: { emoji: "🍰", label: "Dessert" },
+    OTHER:   { emoji: "🍴", label: "Other" },
+};
 
 const DIETARY_COLORS = {
     veg: "bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400",
@@ -62,6 +73,7 @@ const BasicInfoSection = ({ item, vendorId, itemId, queryClient }) => {
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [form, setForm] = useState({});
+    const [tagInput, setTagInput] = useState("");
 
     const openEdit = () => {
         setForm({
@@ -69,6 +81,7 @@ const BasicInfoSection = ({ item, vendorId, itemId, queryClient }) => {
             item_type: item.item_type || "FOOD", dietary_type: item.dietary_type || "mixed",
             prep_time_minutes: item.prep_time_minutes || "", tags: item.tags || [],
         });
+        setTagInput("");
         setEditing(true);
     };
 
@@ -93,60 +106,155 @@ const BasicInfoSection = ({ item, vendorId, itemId, queryClient }) => {
         }
     };
 
+    const addTag = () => {
+        const t = tagInput.trim().toLowerCase();
+        if (!t || form.tags.includes(t)) { setTagInput(""); return; }
+        setForm({ ...form, tags: [...form.tags, t] });
+        setTagInput("");
+    };
+    const removeTag = (t) => setForm({ ...form, tags: form.tags.filter(x => x !== t) });
+
+    const typeMeta = ITEM_TYPE_META[item.item_type] || ITEM_TYPE_META.FOOD;
+
     if (!editing) return (
-        <SectionCard title="Basic Info" action={<button onClick={openEdit} className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">Edit</button>}>
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">{item.description || "No description provided."}</p>
+        <SectionCard title="Basic Info" action={<button onClick={openEdit} className="h-8 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 transition-all">Edit</button>}>
+            <div className="space-y-5">
+                {/* Image + description row */}
+                <div className="flex gap-4">
+                    <div className="shrink-0 w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-800">
+                        {item.image_url
+                            ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                            : <div className="w-full h-full flex items-center justify-center text-3xl">{typeMeta.emoji}</div>}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">Description</p>
+                        <p className="text-sm font-medium text-slate-600 dark:text-slate-400 leading-relaxed">{item.description || <span className="italic text-slate-300 dark:text-slate-600">No description provided.</span>}</p>
+                    </div>
+                </div>
+                {/* Meta chips */}
+                <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-1"><ChefHat size={10}/> Type</p>
+                        <p className="text-sm font-black text-slate-800 dark:text-white">{typeMeta.emoji} {typeMeta.label}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-1"><Leaf size={10}/> Dietary</p>
+                        <DietaryBadge type={item.dietary_type} />
+                    </div>
+                    {item.prep_time_minutes && (
+                        <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-1"><Clock size={10}/> Prep Time</p>
+                            <p className="text-sm font-black text-slate-800 dark:text-white">{item.prep_time_minutes} min</p>
+                        </div>
+                    )}
+                    {item.image_url && (
+                        <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800 col-span-1">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Image URL</p>
+                            <p className="text-[11px] font-medium text-slate-500 truncate">{item.image_url}</p>
+                        </div>
+                    )}
+                </div>
+                {/* Tags */}
+                {item.tags?.length > 0 && (
+                    <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1"><Tag size={10}/> Tags</p>
+                        <div className="flex flex-wrap gap-1.5">
+                            {item.tags.map(t => (
+                                <span key={t} className="h-7 px-3 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">#{t}</span>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
         </SectionCard>
     );
 
+    const DIETARY_OPTIONS = ["mixed","veg","vegan","halal","kosher","non-veg"];
+    const TYPE_OPTIONS = ["FOOD","DRINK","SIDE","PROTEIN","SWALLOW","SOUP","DESSERT","OTHER"];
+
     return (
         <SectionCard title="Editing Basic Info">
-            <div className="space-y-4">
-                <input className="h-10 px-3 w-full rounded-xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" placeholder="Food Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
-                <textarea className="p-3 w-full rounded-xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
-                <input className="h-10 px-3 w-full rounded-xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" placeholder="Image URL" value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} />
-                <div className="flex flex-wrap gap-2">
-                    <select className="h-10 px-3 flex-1 rounded-xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" value={form.item_type} onChange={e => setForm({ ...form, item_type: e.target.value })}>
-                        <option value="FOOD">Food</option><option value="DRINK">Drink</option><option value="SIDE">Side</option>
-                        <option value="PROTEIN">Protein</option><option value="SWALLOW">Swallow</option><option value="SOUP">Soup</option>
-                        <option value="DESSERT">Dessert</option><option value="OTHER">Other</option>
-                    </select>
-                    <select className="h-10 px-3 flex-1 rounded-xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" value={form.dietary_type} onChange={e => setForm({ ...form, dietary_type: e.target.value })}>
-                        <option value="mixed">Mixed</option><option value="veg">Veg</option><option value="vegan">Vegan</option>
-                        <option value="halal">Halal</option><option value="kosher">Kosher</option><option value="non-veg">Non-Veg</option>
-                    </select>
+            <div className="space-y-5">
+                <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Food Name *</label>
+                    <input className="h-11 px-4 w-full rounded-xl border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white font-bold focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all" placeholder="e.g. Jollof Rice" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
                 </div>
-                <input className="h-10 px-3 w-full rounded-xl border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" type="number" placeholder="Prep time (mins)" value={form.prep_time_minutes} onChange={e => setForm({ ...form, prep_time_minutes: e.target.value })} />
-                <div className="flex gap-2">
-                    <button onClick={handleSave} disabled={saving} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-10 px-4 rounded-xl font-bold flex gap-2 items-center active:scale-95 transition-all">
-                        {saving && <Loader2 className="animate-spin" size={16} />} Save Basic Info
+                <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Description</label>
+                    <textarea rows={3} className="p-4 w-full rounded-xl border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-medium leading-relaxed focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all resize-none" placeholder="Describe this dish — ingredients, flavours, what makes it special..." value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} />
+                </div>
+                <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Image URL</label>
+                    <input className="h-11 px-4 w-full rounded-xl border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all" placeholder="https://..." value={form.image_url} onChange={e => setForm({ ...form, image_url: e.target.value })} />
+                    {form.image_url && <img src={form.image_url} alt="preview" className="mt-2 h-20 w-20 rounded-xl object-cover border border-slate-200 dark:border-slate-800" onError={e => e.target.style.display='none'} />}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Item Type</label>
+                        <select className="h-11 px-3 w-full rounded-xl border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white font-bold focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all" value={form.item_type} onChange={e => setForm({ ...form, item_type: e.target.value })}>
+                            {TYPE_OPTIONS.map(t => <option key={t} value={t}>{ITEM_TYPE_META[t]?.emoji} {ITEM_TYPE_META[t]?.label || t}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Dietary Type</label>
+                        <select className="h-11 px-3 w-full rounded-xl border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white font-bold focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all" value={form.dietary_type} onChange={e => setForm({ ...form, dietary_type: e.target.value })}>
+                            {DIETARY_OPTIONS.map(d => <option key={d} value={d}>{d.charAt(0).toUpperCase()+d.slice(1)}</option>)}
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Prep Time (minutes)</label>
+                    <input className="h-11 px-4 w-32 rounded-xl border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white font-bold focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all" type="number" placeholder="e.g. 15" value={form.prep_time_minutes} onChange={e => setForm({ ...form, prep_time_minutes: e.target.value })} />
+                </div>
+                {/* Tags */}
+                <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Tags</label>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                        {form.tags.map(t => (
+                            <span key={t} className="flex items-center gap-1 h-7 px-3 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                #{t}
+                                <button onClick={() => removeTag(t)} className="ml-0.5 text-slate-400 hover:text-rose-500 transition-colors"><X size={10}/></button>
+                            </span>
+                        ))}
+                    </div>
+                    <div className="flex gap-2">
+                        <input className="h-9 px-3 flex-1 rounded-xl border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-sm font-medium focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none" placeholder="Add a tag e.g. bestseller" value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addTag())} />
+                        <button onClick={addTag} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-black hover:bg-orange-50 hover:text-orange-600 transition-all"><Plus size={14}/></button>
+                    </div>
+                </div>
+                <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <button onClick={handleSave} disabled={saving} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest flex gap-2 items-center active:scale-95 transition-all">
+                        {saving && <Loader2 className="animate-spin" size={16} />} Save Changes
                     </button>
-                    <button onClick={() => setEditing(false)} className="text-slate-500 hover:text-slate-800 dark:hover:text-white h-10 px-4 font-bold transition-all">Cancel</button>
+                    <button onClick={() => setEditing(false)} className="text-slate-500 hover:text-slate-800 dark:hover:text-white h-11 px-4 font-bold text-sm transition-all">Cancel</button>
                 </div>
             </div>
         </SectionCard>
     );
 };
 
-const CategorySection = ({ item, vendorId, itemId, queryClient }) => {
+const CategorySection = ({ item, vendorId, itemId, queryClient, allSections }) => {
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [form, setForm] = useState({});
     const [categoryTree, setCategoryTree] = useState([]);
-    const [sections, setSections] = useState([]);
+    const [editSections, setEditSections] = useState([]);
 
     useEffect(() => {
         if (!editing) return;
         getPlatformCategories().then(r => setCategoryTree(buildCategoryTree(r.categories || [])));
-        getVendorSections(vendorId).then(r => setSections(r.sections || []));
+        getVendorSections(vendorId).then(r => setEditSections(r.sections || []));
     }, [editing, vendorId]);
+
+    const catId = item.platform_category?.id || item.platform_category?._id || item.platform_category_id;
+    const sectionId = item.vendor_section_id;
+    const sectionName = allSections.find(s => s._id === sectionId)?.name;
 
     const openEdit = () => {
         setForm({
-            platform_category_id: item.platform_category?._id || item.platform_category?.id || item.platform_category_id || null,
-            platform_category_label: item.platform_category ? item.platform_category.name : null,
-            vendor_section_id: item.vendor_section?._id || item.vendor_section?.id || item.vendor_section_id || null,
-            vendor_section_label: item.vendor_section ? item.vendor_section.name : null,
+            platform_category_id: catId || null,
+            platform_category_label: item.platform_category?.name || null,
+            vendor_section_id: sectionId || null,
             activeRootId: null
         });
         setEditing(true);
@@ -168,16 +276,26 @@ const CategorySection = ({ item, vendorId, itemId, queryClient }) => {
         }
     };
 
+    const cat = item.platform_category;
+
     if (!editing) return (
-        <SectionCard title="Category & Section" action={<button onClick={openEdit} className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">Edit</button>}>
-            <div className="flex gap-4">
-                <div className="flex-1">
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Platform Category</p>
-                    <p className="font-bold text-slate-700 dark:text-slate-300">{item.platform_category?.name || "None"}</p>
+        <SectionCard title="Category & Section" action={<button onClick={openEdit} className="h-8 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:hover:text-white hover:border-slate-400 transition-all">Edit</button>}>
+            <div className="space-y-4">
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1"><FolderOpen size={10}/> Platform Category</p>
+                    {cat ? (
+                        <div className="flex items-center gap-2">
+                            {cat.parent && <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{cat.parent.name}</span>}
+                            {cat.parent && <span className="text-slate-300 dark:text-slate-700">›</span>}
+                            <span className="text-sm font-black text-orange-600 dark:text-orange-400">{cat.name}</span>
+                        </div>
+                    ) : <p className="text-sm font-medium text-slate-400">No category set</p>}
                 </div>
-                <div className="flex-1">
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Menu Section</p>
-                    <p className="font-bold text-slate-700 dark:text-slate-300">{item.vendor_section?.name || "Other"}</p>
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-1"><LayoutGrid size={10}/> Your Menu Section</p>
+                    {sectionName
+                        ? <span className="h-8 px-4 inline-flex items-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-black text-slate-800 dark:text-white">{sectionName}</span>
+                        : <p className="text-sm font-medium text-slate-400">All items / no specific section</p>}
                 </div>
             </div>
         </SectionCard>
@@ -189,19 +307,23 @@ const CategorySection = ({ item, vendorId, itemId, queryClient }) => {
         <SectionCard title="Editing Category & Section">
             <div className="space-y-6">
                 <div>
-                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">1. Select Platform Category</p>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">1. Category Group</label>
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
                         {categoryTree.map(root => (
-                            <button key={root._id} onClick={() => setForm({ ...form, activeRootId: root._id })} className={`shrink-0 h-9 px-4 rounded-xl text-xs font-bold border ${form.activeRootId === root._id || (activeRoot?._id === root._id && !form.activeRootId) ? "bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900" : "bg-white text-slate-600 border-slate-200 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300"}`}>
+                            <button key={root._id} onClick={() => setForm({ ...form, activeRootId: root._id })} className={`shrink-0 h-9 px-4 rounded-xl text-xs font-bold border transition-all ${form.activeRootId === root._id || (activeRoot?._id === root._id && !form.activeRootId) ? "bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900" : "bg-white text-slate-600 border-slate-200 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 hover:border-slate-400"}`}>
                                 {root.name}
                             </button>
                         ))}
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2 p-2 bg-slate-50 dark:bg-slate-800/40 rounded-xl">
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mt-4 mb-2">2. Select Subcategory</label>
+                    {form.platform_category_id && form.platform_category_label && (
+                        <p className="text-xs font-bold text-orange-600 dark:text-orange-400 mb-2">✓ Selected: {form.platform_category_label}</p>
+                    )}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-slate-50 dark:bg-slate-800/40 rounded-2xl">
                         {activeRoot.subCategories.map(sub => {
                             const isSelected = form.platform_category_id === sub._id;
                             return (
-                                <button key={sub._id} onClick={() => setForm({ ...form, platform_category_id: sub._id, platform_category_label: sub.name })} className={`p-2 rounded-xl border text-xs font-bold transition-all ${isSelected ? "border-orange-500 bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400 shadow-sm" : "border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 hover:border-orange-300"}`}>
+                                <button key={sub._id} onClick={() => setForm({ ...form, platform_category_id: sub._id, platform_category_label: sub.name })} className={`p-3 rounded-xl border text-xs font-bold transition-all text-left ${isSelected ? "border-orange-500 bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400 shadow-sm ring-2 ring-orange-500/20" : "border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 hover:border-orange-300 hover:bg-orange-50/40"}`}>
                                     {sub.name}
                                 </button>
                             );
@@ -209,19 +331,19 @@ const CategorySection = ({ item, vendorId, itemId, queryClient }) => {
                     </div>
                 </div>
                 <div>
-                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">2. Select Your Menu Section</p>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">3. Your Menu Section (optional)</label>
                     <div className="flex flex-wrap gap-2">
-                        <button onClick={() => setForm({ ...form, vendor_section_id: null })} className={`h-9 px-4 rounded-xl text-xs font-bold border ${!form.vendor_section_id ? "bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900" : "bg-white text-slate-600 border-slate-200 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300"}`}>No section</button>
-                        {sections.map(s => (
-                            <button key={s._id} onClick={() => setForm({ ...form, vendor_section_id: s._id })} className={`h-9 px-4 rounded-xl text-xs font-bold border ${form.vendor_section_id === s._id ? "bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900" : "bg-white text-slate-600 border-slate-200 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300"}`}>{s.name}</button>
+                        <button onClick={() => setForm({ ...form, vendor_section_id: null })} className={`h-9 px-4 rounded-xl text-xs font-bold border transition-all ${!form.vendor_section_id ? "bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900" : "bg-white text-slate-600 border-slate-200 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 hover:border-slate-400"}`}>No section</button>
+                        {editSections.map(s => (
+                            <button key={s._id} onClick={() => setForm({ ...form, vendor_section_id: s._id })} className={`h-9 px-4 rounded-xl text-xs font-bold border transition-all ${form.vendor_section_id === s._id ? "bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900" : "bg-white text-slate-600 border-slate-200 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300 hover:border-slate-400"}`}>{s.name}</button>
                         ))}
                     </div>
                 </div>
-                <div className="flex gap-2 pt-2">
-                    <button onClick={handleSave} disabled={saving} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-10 px-4 rounded-xl font-bold flex gap-2 items-center active:scale-95 transition-all">
+                <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <button onClick={handleSave} disabled={saving} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest flex gap-2 items-center active:scale-95 transition-all">
                         {saving && <Loader2 className="animate-spin" size={16} />} Save Category
                     </button>
-                    <button onClick={() => setEditing(false)} className="text-slate-500 hover:text-slate-800 dark:hover:text-white h-10 px-4 font-bold transition-all">Cancel</button>
+                    <button onClick={() => setEditing(false)} className="text-slate-500 hover:text-slate-800 dark:hover:text-white h-11 px-4 font-bold transition-all">Cancel</button>
                 </div>
             </div>
         </SectionCard>
@@ -482,6 +604,12 @@ export default function FoodManagementPage() {
     const { vendorProfile } = useVendorProfile();
     const vendorId = vendorProfile?._id || vendorProfile?.id;
     const queryClient = useQueryClient();
+    const [allSections, setAllSections] = useState([]);
+
+    useEffect(() => {
+        if (!vendorId) return;
+        getVendorSections(vendorId).then(r => setAllSections(r.sections || [])).catch(() => {});
+    }, [vendorId]);
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ["food-item", itemId],
@@ -575,7 +703,7 @@ export default function FoodManagementPage() {
 
                 {/* COMPONENT SECTIONS */}
                 <BasicInfoSection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} />
-                <CategorySection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} />
+                <CategorySection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} allSections={allSections} />
                 <PortionsSection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} />
                 <AddOnsSection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} />
 
