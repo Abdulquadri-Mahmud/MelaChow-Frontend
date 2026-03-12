@@ -91,8 +91,8 @@ export default function CreateFoodWizardPage() {
                   className={`relative z-10 flex flex-col items-center group ${isFuture ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-black text-xs md:text-sm transition-all duration-500 border-2 ${isPast ? "bg-orange-500 border-orange-500 text-white" :
-                    isCurrent ? "bg-white dark:bg-slate-900 border-orange-500 text-orange-600 dark:text-orange-500" :
-                      "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400"
+                    isCurrent ? "bg-white dark:bg-slate-900 border-orange-500 text-orange-600 dark:text-orange-500 shadow-md shadow-orange-500/20" :
+                      "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500"
                     }`}>
                     {isPast ? "✓" : step.id}
                   </div>
@@ -107,7 +107,7 @@ export default function CreateFoodWizardPage() {
         </div>
 
         {/* Step Content */}
-        <div className="bg-white dark:bg-slate-900 rounded-[1rem] border border-slate-200 dark:border-slate-800 p-3 md:p-4 min-h-[500px]">
+        <div className="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm border border-slate-200 dark:border-slate-800 p-3 min-h-[500px] transition-colors">
           {store.currentStep === 1 && <Step1BasicInfo onNext={handleNext} />}
           {store.currentStep === 2 && <Step2Categories onNext={handleNext} onBack={handleBack} />}
           {store.currentStep === 3 && <Step3Portions onNext={handleNext} onBack={handleBack} />}
