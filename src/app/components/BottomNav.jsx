@@ -16,7 +16,10 @@ const navItems = [
 
 export default function BottomBar() {
   const pathname = usePathname();
-  const { cart } = useCart();
+  const { cart, isModalOpen } = useCart();
+
+  // Hide the bottom nav when the customization modal is open
+  if (isModalOpen) return null;
 
   return (
     <div className="fixed bottom-4 left-0 right-0 px-4 md:px-0 md:max-w-md md:mx-auto z-[9999]">

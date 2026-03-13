@@ -1,562 +1,378 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Minus, Plus, ShoppingBag, Check, Leaf, AlertTriangle } from "lucide-react";
+import { X, Minus, Plus, ShoppingBag, Check, ShoppingCart } from "lucide-react";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useCart } from "@/app/context/CartContext";
 
-export default function FoodCustomizationModal({ food, isOpen, onClose, onAdd, onUpdate, initialVariant, initialPortion, initialEditItem }) {
-    const router = useRouter();
+export default function FoodCustomizationModal({ 
+    food, 
+    isOpen, 
+    onClose, 
+    onAdd, 
+    onUpdate, 
+    initialEditItem 
+}) {
+    const defaultPortion = food?.portions?.find(p => p.is_default)
+                           || food?.portions?.[0];
+    const [selectedPortion, setSelectedPortion] = useState(defaultPortion);
     const [selections, setSelections] = useState({});
     const [quantity, setQuantity] = useState(1);
+    const { setIsModalOpen } = useCart();
 
-    // If initialVariant or initialPortion changes, reset state
+    useEffect(() => {
+        setIsModalOpen(isOpen);
+        return () => setIsModalOpen(false);
+    }, [isOpen, setIsModalOpen]);
+
     useEffect(() => {
         if (isOpen) {
             if (initialEditItem) {
-                // Populate from edit item
                 setQuantity(initialEditItem.quantity || 1);
-
+                const foundPortion = food?.portions?.find(p => p._id === initialEditItem.portionId);
+                setSelectedPortion(foundPortion || defaultPortion);
+                
+                // Map initialEditItem.selected_options back to selections state
                 const newSelections = {};
-                const choices = initialEditItem.metadata?.choices || [];
-
-                // Create a frequency map of choices to handle repeated items
-                const choiceCounts = choices.reduce((acc, c) => {
-                    const name = (typeof c === 'string' ? c : c.name || "").trim();
-                    acc[name] = (acc[name] || 0) + 1;
-                    return acc;
-                }, {});
-
-                let matchedCount = 0;
-
-                (food.choiceGroups || []).forEach((group, gIdx) => {
-                    const groupOptions = group.options || [];
-                    const matchedOptions = [];
-
-                    // Find all options from this group that are present in the initialEditItem's choices
-                    // And aggregate quantities
-                    groupOptions.forEach(opt => {
-                        const optName = (opt.name || "").trim();
-                        const count = choiceCounts[optName];
-                        if (count) {
-                            matchedOptions.push({ ...opt, qty: count });
-                            matchedCount += count;
-                        }
-                    });
-
-                    if (matchedOptions.length > 0) {
-                        if (group.maxSelect === 1) {
-                            // Radio behavior
-                            newSelections[gIdx] = matchedOptions[0];
+                (food?.choice_groups || []).forEach((group, gIdx) => {
+                    const groupOptions = initialEditItem.selected_options?.filter(
+                        opt => opt.group_id === group._id
+                    );
+                    if (groupOptions && groupOptions.length > 0) {
+                        if (group.max_selections > 1) {
+                            newSelections[gIdx] = groupOptions.map(opt => ({
+                                _id: opt.option_id,
+                                label: opt.label,
+                                price_modifier_naira: opt.price_modifier_naira
+                            }));
                         } else {
-                            // Checkbox behavior
-                            newSelections[gIdx] = matchedOptions;
+                            const opt = groupOptions[0];
+                            newSelections[gIdx] = {
+                                _id: opt.option_id,
+                                label: opt.label,
+                                price_modifier_naira: opt.price_modifier_naira
+                            };
                         }
                     }
                 });
-
-                if (matchedCount < choices.length) {
-                    toast.error("Some options from your cart are no longer available in the menu.");
-                }
-
                 setSelections(newSelections);
-
             } else {
+                setSelectedPortion(defaultPortion);
                 setSelections({});
                 setQuantity(1);
             }
         }
-    }, [isOpen, initialVariant, initialPortion, initialEditItem, food]);
+    }, [isOpen, food, initialEditItem, defaultPortion]);
 
     if (!food || !isOpen) return null;
 
-    const activeItem = initialVariant || initialPortion || food;
-    const isVariant = !!initialVariant;
-    const isPortion = !!initialPortion && !isVariant;
-
-    // Base Price
-    const basePrice = Number(activeItem.price) || 0;
-
-    // Helper: Get current selected item from group (returns object or undefined)
-    const getSelectedItem = (groupIndex, optionName) => {
-        const selection = selections[groupIndex];
-        if (Array.isArray(selection)) {
-            return selection.find(i => i.name === optionName);
+    const basePriceNaira = selectedPortion?.price_naira || 0;
+    
+    // Sum of selected options price_modifier_naira
+    const addonsPrice = Object.values(selections).reduce((acc, sel) => {
+        if (Array.isArray(sel)) {
+            return acc + sel.reduce((s, o) => s + (o.price_modifier_naira || 0), 0);
         }
-        return selection?.name === optionName ? selection : undefined;
-    };
-
-    const isOptionSelected = (groupIndex, optionName) => {
-        return !!getSelectedItem(groupIndex, optionName);
-    };
-
-    // Toggle Choice (Select / Deselect)
-    const toggleChoice = (groupIndex, group, option) => {
-        setSelections((prev) => {
-            const current = prev[groupIndex];
-            const isMulti = group.maxSelect > 1;
-
-            if (!isMulti) {
-                // Radio behavior: Toggle off if same, else set new
-                if (current?.name === option.name) {
-                    const newSel = { ...prev };
-                    delete newSel[groupIndex];
-                    return newSel;
-                }
-                return { ...prev, [groupIndex]: { ...option, qty: 1 } };
-            }
-
-            // Checkbox behavior
-            const list = Array.isArray(current) ? current : [];
-            const exists = list.find((i) => i.name === option.name);
-
-            if (exists) {
-                // Remove if exists
-                return { ...prev, [groupIndex]: list.filter((i) => i.name !== option.name) };
-            }
-
-            // Add new (Unlimited selection)
-            return { ...prev, [groupIndex]: [...list, { ...option, qty: 1 }] };
-        });
-    };
-
-    // Update Option Quantity (+ / -)
-    const updateOptionQty = (groupIndex, groupOption, delta) => {
-        const group = food.choiceGroups[groupIndex];
-        setSelections((prev) => {
-            const current = prev[groupIndex];
-            const isMulti = group.maxSelect > 1;
-
-            if (!isMulti) {
-                // Radio: Just update qty of the single item (unlikely to need >1 for radio but supported)
-                if (current && current.name === groupOption.name) {
-                    const newQty = current.qty + delta;
-                    if (newQty <= 0) {
-                        const newSel = { ...prev };
-                        delete newSel[groupIndex]; // Remove if 0
-                        return newSel;
-                    }
-                    return { ...prev, [groupIndex]: { ...current, qty: newQty } };
-                }
-                return prev;
-            }
-
-            // Checkbox: find item in list
-            const list = Array.isArray(current) ? current : [];
-            const itemIndex = list.findIndex(i => i.name === groupOption.name);
-
-            if (itemIndex === -1) {
-                // Not selected, try to add if delta > 0
-                if (delta > 0) return toggleChoice(groupIndex, group, groupOption);
-                return prev;
-            }
-
-            const item = list[itemIndex];
-            const newQty = item.qty + delta;
-
-            // Increment (Unlimited selection)
-            if (delta > 0) {
-                // No max limit check
-            }
-
-            if (newQty <= 0) {
-                // Remove
-                return { ...prev, [groupIndex]: list.filter((_, idx) => idx !== itemIndex) };
-            }
-
-            // Update qty
-            const newList = [...list];
-            newList[itemIndex] = { ...item, qty: newQty };
-            return { ...prev, [groupIndex]: newList };
-        });
-    };
-
-    // Helper to get subtotal for a specific group
-    const getGroupSubtotal = (groupIndex) => {
-        const selection = selections[groupIndex];
-        if (!selection) return 0;
-
-        if (Array.isArray(selection)) {
-            return selection.reduce((sum, item) => sum + ((Number(item.price) || 0) * item.qty), 0);
-        } else {
-            return (Number(selection.price) || 0) * (selection.qty || 1);
-        }
-    };
-
-    // Total Addons Price = Sum of all group subtotals
-    const addonsPrice = (food.choiceGroups || []).reduce((acc, _, index) => {
-        return acc + getGroupSubtotal(index);
+        return acc + (sel?.price_modifier_naira || 0);
     }, 0);
 
-    const packingFee = Number(food.packagingFee) || 0;
+    const totalUnit = basePriceNaira + addonsPrice;
+    const total = totalUnit * quantity;
 
-    // Final Unit Price = Base + All Addons + Packing
-    const finalUnitPrice = basePrice + addonsPrice + packingFee;
+    const isOptionSelected = (groupIndex, label) => {
+        const sel = selections[groupIndex];
+        if (Array.isArray(sel)) return sel.some(i => i.label === label);
+        return sel?.label === label;
+    };
 
-    // Total Price = Unit Price * Master Quantity
-    const totalPrice = finalUnitPrice * quantity;
+    const toggleChoice = (groupIndex, group, option) => {
+        setSelections(prev => {
+            const current = prev[groupIndex];
+            const isMulti = group.max_selections > 1;
 
-    // Validation & Add
-    const handleConfirm = () => {
-        // Required Checks
-        const choiceGroups = food.choiceGroups || [];
-        for (let i = 0; i < choiceGroups.length; i++) {
-            const group = choiceGroups[i];
-
-            const selection = selections[i];
-            let selectedCount = 0;
-            if (Array.isArray(selection)) {
-                selectedCount = selection.reduce((acc, item) => acc + item.qty, 0);
-            } else if (selection) {
-                selectedCount = selection.qty || 1;
+            if (!isMulti) {
+                if (current?.label === option.label) {
+                    const n = { ...prev };
+                    delete n[groupIndex];
+                    return n;
+                }
+                return { ...prev, [groupIndex]: option };
             }
 
-            if (group.minSelect > 0 && selectedCount < group.minSelect) {
-                toast.error(`Please select at least ${group.minSelect} option(s) for ${group.name}`);
+            const list = Array.isArray(current) ? current : [];
+            const exists = list.find(i => i.label === option.label);
+            if (exists) {
+                return {
+                    ...prev,
+                    [groupIndex]: list.filter(i => i.label !== option.label)
+                };
+            }
+            if (list.length >= group.max_selections) {
+                toast.error(`Max ${group.max_selections} selections`);
+                return prev;
+            }
+            return { ...prev, [groupIndex]: [...list, option] };
+        });
+    };
+
+    const handleConfirm = () => {
+        if (!selectedPortion) {
+            toast.error("Please select a size");
+            return;
+        }
+
+        for (let i = 0; i < (food.choice_groups || []).length; i++) {
+            const group = food.choice_groups[i];
+            const sel = selections[i];
+            let count = 0;
+            if (Array.isArray(sel)) count = sel.length;
+            else if (sel) count = 1;
+
+            if (group.is_required && count < group.min_selections) {
+                toast.error(
+                    `Please select at least ${group.min_selections} option for "${group.name}"`
+                );
                 return;
             }
         }
 
-        // Construct Name
-        let variantName = food.name;
-        if (isVariant) variantName += ` (${activeItem.name})`;
-        if (isPortion) variantName += ` (${activeItem.label})`;
-
-        // Flatten selections
-        const allSelectedChoices = [];
-
+        // Flatten selected options
+        const selectedOptions = [];
         Object.keys(selections).forEach(key => {
             const gIdx = Number(key);
+            const group = food.choice_groups[gIdx];
             const sel = selections[key];
-            const groupName = food.choiceGroups?.[gIdx]?.name || "Extras";
-
-            const processItem = (item) => {
-                const n = item.qty || 1;
-                for (let q = 0; q < n; q++) {
-                    allSelectedChoices.push({
-                        group: groupName,
-                        name: item.name,
-                        price: Number(item.price),
-                        stock: item.stock
-                    });
-                }
-            };
-
-            if (Array.isArray(sel)) {
-                sel.forEach(processItem);
-            } else if (sel) {
-                processItem(sel);
-            }
+            const items = Array.isArray(sel) ? sel : (sel ? [sel] : []);
+            items.forEach(opt => {
+                selectedOptions.push({
+                    group_id:             group._id,
+                    group_name:           group.name,
+                    option_id:            opt._id,
+                    label:                opt.label,
+                    price_modifier_naira: opt.price_modifier_naira,
+                });
+            });
         });
-
-        // Group choices for variant name suffix
-        const choiceCounts = allSelectedChoices.reduce((acc, item) => {
-            acc[item.name] = (acc[item.name] || 0) + 1;
-            return acc;
-        }, {});
-
-        Object.entries(choiceCounts).forEach(([name, count]) => {
-            variantName += count > 1 ? ` + ${count}x ${name}` : ` + ${name}`;
-        });
-
-        // Image
-        let displayImage = activeItem.image || (activeItem.images?.[0]) || (food.images?.[0]) || "";
-        const imageUrl = typeof displayImage === 'string' ? displayImage : displayImage?.url || "";
 
         const payload = {
-            foodId: food._id,
-            restaurantId: food.vendor?._id || food.vendor,
-            storeName: food.vendor?.storeName || "",
-            name: food.name,
-            variantId: initialEditItem?.variantId || activeItem?._id,
-            variant: {
-                name: variantName,
-                price: finalUnitPrice,
-                image: imageUrl,
-                stock: activeItem.stock
-            },
-            price: finalUnitPrice,
-            quantity: quantity,
-            stock: food.stock,
-            selectedChoices: allSelectedChoices,
-            metadata: {
-                portion: isPortion ? activeItem.label : (isVariant ? activeItem.name : "Standard"),
-                choices: allSelectedChoices,
-                spiceLevel: food.metadata?.spiceLevel,
-                chefSpecial: food.metadata?.chefSpecial,
-            },
-            deliveryFee: food.deliveryFee || 0,
-            vendorDeliveryFees: [{
-                restaurantId: food.vendor?._id || food.vendor,
-                deliveryFee: food.deliveryFee || 0
-            }],
-            estimatedDeliveryTime: {
-                min: (food.estimatedDeliveryTime - 5) || 0,
-                max: food.estimatedDeliveryTime || 0
-            },
-            deliveryType: food.vendor?.acceptsDelivery ? "Instant Delivery" : "Pickup",
+            foodId:       food._id,
+            portionId:    selectedPortion._id,
+            vendorId:     food.vendor?._id,
+            storeName:    food.vendor?.storeName || "",
+            name:         food.name,
+            image_url:    food.image_url || "",
+            portion_label: selectedPortion.label,
+            price_naira:  totalUnit,
+            quantity,
+            selected_options: selectedOptions,
+            dietary_type: food.dietary_type,
+            item_type:    food.item_type,
         };
 
         if (initialEditItem && onUpdate) {
-            onUpdate(payload);
+            onUpdate(food._id, initialEditItem.portionId, payload);
         } else {
             onAdd(payload);
         }
         onClose();
-        router.push('/orders');
     };
 
     return (
         <AnimatePresence>
-            {isOpen && (
-                <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4">
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                        onClick={onClose}
-                    />
+            <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                    onClick={onClose}
+                />
 
-                    <motion.div
-                        initial={{ translateY: "100%", opacity: 0 }}
-                        animate={{ translateY: "0%", opacity: 1 }}
-                        exit={{ translateY: "100%", opacity: 0 }}
-                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="relative w-full max-w-lg bg-slate-50 dark:bg-[#0B1121] overflow-hidden flex flex-col max-h-[100vh]"
-                    >
-                        {/* Header Image */}
-                        <div className="relative h-[220px] w-full shrink-0">
-                            <img
-                                src={
-                                    activeItem.image ||
-                                    (Array.isArray(activeItem.images) ? activeItem.images[0]?.url : null) ||
-                                    food.images?.[0]?.url ||
-                                    "/placeholder.jpg"
-                                }
-                                alt={activeItem.name || food.name}
-                                className="w-full h-full object-cover"
-                            />
-                            <button
-                                onClick={onClose}
-                                className="absolute top-4 right-4 p-2 bg-black/20 backdrop-blur-md rounded-full text-white hover:bg-black/40 transition-colors"
-                            >
-                                <X size={20} />
-                            </button>
-                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                                <h3 className="text-xl font-bold text-white max-w-[80%] leading-tight">
-                                    {activeItem.name || activeItem.label || food.name}
-                                </h3>
-                                <p className="text-white/90 text-sm font-medium mt-1">
-                                    Base Price: ₦{basePrice.toLocaleString()}
+                <motion.div
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col max-h-[100vh]"
+                >
+                    {/* Header Image */}
+                    <div className="relative h-[250px] sm:h-56 shrink-0">
+                        <img
+                            src={food.image_url || "/placeholder.jpg"}
+                            alt={food.name}
+                            className="w-full h-full object-cover"
+                        />
+                        <button
+                            onClick={onClose}
+                            className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/40 transition-colors"
+                        >
+                            <X size={20} />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto scrollbar-none pb-32">
+                        {/* Food Info */}
+                        <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white">
+                                {food.name}
+                            </h3>
+                            {food.description && (
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                    {food.description}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* Portion Selector */}
+                        {food.portions?.length > 1 && (
+                            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                                    Choose Size
+                                </p>
+                                <div className="flex gap-2 scroll overflow-x-auto scrollbar-none">
+                                    {food.portions.map(portion => (
+                                        <button
+                                            key={portion._id}
+                                            onClick={() => setSelectedPortion(portion)}
+                                            className={`shrink-0 h-10 px-4 rounded-xl border text-xs font-bold transition-all ${
+                                                selectedPortion?._id === portion._id
+                                                    ? "bg-orange-500 border-orange-500 text-white"
+                                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"
+                                            }`}
+                                        >
+                                            {portion.label}
+                                            <span className="ml-1.5 opacity-70">
+                                                ₦{portion.price_naira?.toLocaleString()}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Choice Groups */}
+                        <div className="p-4 space-y-6">
+                            {food.choice_groups?.map((group, gIdx) => (
+                                <div key={group._id} className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <h4 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-widest">
+                                            {group.name}
+                                        </h4>
+                                        {group.is_required && (
+                                            <span className="text-[9px] font-bold text-white bg-rose-500 px-1.5 py-0.5 rounded-full">
+                                                REQUIRED
+                                            </span>
+                                        )}
+                                        {!group.is_required && (
+                                            <span className="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full">
+                                                OPTIONAL
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-slate-400 font-medium mb-3">
+                                        {group.max_selections > 1
+                                            ? `Select up to ${group.max_selections}`
+                                            : "Select one"}
+                                    </p>
+
+                                    <div className="space-y-2">
+                                        {group.options
+                                            .filter(o => o.is_available)
+                                            .map(option => {
+                                                const isSelected = isOptionSelected(gIdx, option.label);
+                                                return (
+                                                    <div key={option._id}
+                                                         onClick={() => toggleChoice(gIdx, group, option)}
+                                                         className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                                                             isSelected
+                                                                 ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10"
+                                                                 : "border-slate-200 dark:border-slate-700 hover:border-orange-200"
+                                                         }`}>
+                                                        {/* Option image */}
+                                                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0">
+                                                            {option.image_url ? (
+                                                                <img src={option.image_url}
+                                                                     alt={option.label}
+                                                                     className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <div className="w-full h-full flex items-center justify-center text-xl">
+                                                                    🍽️
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Label + price */}
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                                                                {option.label}
+                                                            </p>
+                                                            {option.price_modifier_naira > 0 && (
+                                                                <p className="text-xs font-bold text-orange-500">
+                                                                    +₦{option.price_modifier_naira.toLocaleString()}
+                                                                </p>
+                                                            )}
+                                                            {option.price_modifier_naira === 0 && (
+                                                                <p className="text-[10px] font-bold text-slate-400 uppercase">
+                                                                    Free
+                                                                </p>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Check indicator */}
+                                                        {isSelected && (
+                                                            <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center shrink-0">
+                                                                <Check size={12} className="text-white" strokeWidth={3} />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center justify-between mb-4 px-2">
+                            <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+                                <button
+                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                                >
+                                    <Minus size={16} />
+                                </button>
+                                <span className="w-8 text-center font-bold text-slate-900 dark:text-white">
+                                    {quantity}
+                                </span>
+                                <button
+                                    onClick={() => setQuantity(quantity + 1)}
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                                >
+                                    <Plus size={16} />
+                                </button>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                    Total Price
+                                </p>
+                                <p className="text-xl font-black text-orange-500">
+                                    ₦{total.toLocaleString()}
                                 </p>
                             </div>
                         </div>
 
-                        {/* Sticky Quantity Controls */}
-                        <div className="sticky top-0 z-30 bg-white dark:bg-[#0B1121] shadow-sm">
-                            <div className="flex items-center justify-between px-2 py-2">
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                                        Order Quantity
-                                    </span>
-                                    <span className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                                        {quantity} {quantity === 1 ? 'item' : 'items'}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-900 rounded-xl p-1.5 border border-slate-200 dark:border-slate-800">
-                                    <button
-                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                        className="w-9 h-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 active:scale-95 transition-all"
-                                    >
-                                        <Minus size={16} strokeWidth={2.5} />
-                                    </button>
-
-                                    <span className="text-xl font-black tabular-nums text-slate-900 dark:text-white min-w-[2rem] text-center">
-                                        {quantity}
-                                    </span>
-
-                                    <button
-                                        onClick={() => setQuantity(quantity + 1)}
-                                        className="w-9 h-9 rounded-lg bg-orange-500 text-white flex items-center justify-center hover:bg-orange-600 active:scale-95 transition-all shadow-md shadow-orange-500/20"
-                                    >
-                                        <Plus size={16} strokeWidth={2.5} />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Scrollable Options */}
-                        <div className="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-hide bg-slate-50 dark:bg-[#0B1121]">
-                            {/* Choice Groups */}
-                            {food.choiceGroups?.map((group, gIdx) => {
-                                const hasImages = group.options.some(o => o.image);
-                                const groupSubtotal = getGroupSubtotal(gIdx);
-
-                                return (
-                                    <div key={gIdx} className="bg-white dark:bg-slate-900 rounded-2xl p-2 border border-slate-100 dark:border-slate-800">
-                                        {/* Group Header */}
-                                        <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-                                            <div className="flex items-center gap-3">
-                                                {group.image && (
-                                                    <img src={group.image} alt={group.name} className="w-10 h-10 rounded-lg object-cover bg-gray-100" />
-                                                )}
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <h4 className="font-black text-gray-900 dark:text-white uppercase text-sm tracking-wider">
-                                                            {group.name}
-                                                        </h4>
-                                                        {group.minSelect > 0 && (
-                                                            <span className="text-[9px] font-bold text-white bg-rose-500 px-1.5 py-0.5 rounded-full tracking-wider">
-                                                                REQ {group.minSelect}
-                                                            </span>
-                                                        )}
-                                                        <span className="text-[9px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded-full tracking-wider">
-                                                            OPTIONAL
-                                                        </span>
-                                                    </div>
-                                                    <span className="text-xs text-slate-400 font-medium block mt-0.5">
-                                                        {group.maxSelect > 1 ? "Select multiple options" : "Select an option"}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className={hasImages ? "space-y-3" : "space-y-2"}>
-                                            {group.options.map((option, oIdx) => {
-                                                const selectedItem = getSelectedItem(gIdx, option.name);
-                                                const isSelected = !!selectedItem;
-                                                const itemQty = selectedItem?.qty || 0;
-
-                                                const isOutOfStock = !option.stock || Number(option.stock) <= 0;
-
-                                                return (
-                                                    <div
-                                                        key={oIdx}
-                                                        className={`relative rounded-xl border transition-all ${isSelected
-                                                            ? "border-orange-500 bg-orange-50 dark:bg-orange-900/10 ring-1 ring-orange-500/20"
-                                                            : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-orange-200"
-                                                            } ${isOutOfStock ? "opacity-60 cursor-not-allowed" : ""}`}
-                                                    >
-                                                        <div className="grid grid-cols-[auto_1fr_auto] gap-3 items-center p-3">
-                                                            <div className="w-14 h-14 shrink-0 bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden">
-                                                                {option.image ? (
-                                                                    <img src={option.image} alt={option.name} className="w-full h-full object-cover" />
-                                                                ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center">
-                                                                        <span className="text-2xl">🍽️</span>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-
-                                                            <div className="flex flex-col justify-center min-w-0">
-                                                                <span className={`text-sm font-semibold leading-tight truncate ${isSelected
-                                                                    ? "text-gray-900 dark:text-white"
-                                                                    : "text-gray-700 dark:text-gray-300"
-                                                                    }`}>
-                                                                    {option.name}
-                                                                </span>
-                                                                {Number(option.price) > 0 && (
-                                                                    <span className="text-xs font-bold text-orange-600 dark:text-orange-500 mt-0.5">
-                                                                        +₦{Number(option.price).toLocaleString()}
-                                                                    </span>
-                                                                )}
-                                                                {isOutOfStock && (
-                                                                    <span className="text-[9px] font-black text-red-500 uppercase mt-1">Sold Out</span>
-                                                                )}
-                                                            </div>
-
-                                                            <div className="flex items-center shrink-0">
-                                                                {isOutOfStock ? (
-                                                                    <div className="w-20 h-9 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg">
-                                                                        <span className="text-[10px] font-black text-gray-400 uppercase">Out</span>
-                                                                    </div>
-                                                                ) : isSelected ? (
-                                                                    // Quantity Controls when selected
-                                                                    <div className="flex items-center bg-white dark:bg-slate-800 rounded-lg border border-orange-200 dark:border-orange-900 shadow-sm overflow-hidden h-9">
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                updateOptionQty(gIdx, option, -1);
-                                                                            }}
-                                                                            className="w-8 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-red-500 transition-colors"
-                                                                        >
-                                                                            <Minus size={12} strokeWidth={3} />
-                                                                        </button>
-                                                                        <span className="w-6 text-center text-xs font-bold text-orange-600 dark:text-orange-400">{itemQty}</span>
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                updateOptionQty(gIdx, option, 1);
-                                                                            }}
-                                                                            className="w-8 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-green-500 transition-colors"
-                                                                        >
-                                                                            <Plus size={12} strokeWidth={3} />
-                                                                        </button>
-                                                                    </div>
-                                                                ) : (
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            toggleChoice(gIdx, group, option);
-                                                                        }}
-                                                                        className="w-20 h-9 rounded-lg flex items-center justify-center gap-1.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 shadow-sm transition-all font-semibold text-xs"
-                                                                    >
-                                                                        <Plus size={14} strokeWidth={2.5} />
-                                                                        Select
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-
-                                        {groupSubtotal > 0 && (
-                                            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                                                <span className="text-xs font-medium text-gray-500">Group Subtotal</span>
-                                                <span className="text-sm font-bold text-orange-600">
-                                                    ₦{groupSubtotal.toLocaleString()}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        {/* Footer Actions */}
-                        <div className="p-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#0B1121] z-20 shadow-[0_-5px_20px_rgba(0,0,0,0.02)]">
-                            {packingFee > 0 && (
-                                <div className="mb-4 flex justify-between items-center text-sm font-medium text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-xl p-3 border border-slate-200 dark:border-slate-800">
-                                    <span className="flex items-center gap-2">
-                                        <ShoppingBag size={16} />
-                                        Packaging Fee
-                                    </span>
-                                    <span className="font-bold text-gray-900 dark:text-white">₦{packingFee.toLocaleString()}</span>
-                                </div>
-                            )}
-
-                            <button
-                                onClick={handleConfirm}
-                                className="w-full py-2 rounded-2xl font-semibold text-lg flex items-center justify-between md:px-6 p-3 shadow-xl transition-all bg-[#FF6600] text-white hover:bg-[#ff7b24] active:scale-[0.98] shadow-orange-500/20"
-                            >
-                                <span>{initialEditItem ? "Update Order" : "Add to Order"}</span>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-sm opacity-80 font-medium">Total</span>
-                                    <span className="bg-white/20 px-3 py-1 rounded-lg text-lg">
-                                        ₦{totalPrice.toLocaleString()}
-                                    </span>
-                                </div>
-                            </button>
-                        </div>
-
-                    </motion.div>
-                </div>
-            )}
+                        <button
+                            onClick={handleConfirm}
+                            className="w-full h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-orange-500/20"
+                        >
+                            <ShoppingCart size={18} />
+                            {initialEditItem ? "Update Cart" : "Add to Cart"}
+                        </button>
+                    </div>
+                </motion.div>
+            </div>
         </AnimatePresence>
     );
 }

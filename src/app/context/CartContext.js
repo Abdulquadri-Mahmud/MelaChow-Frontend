@@ -9,6 +9,7 @@ export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -24,7 +25,7 @@ export const CartProvider = ({ children }) => {
   // Add item
   const addToCart = (item) => {
     const exists = cart.some(
-      (c) => c.foodId === item.foodId && c.variantId === item.variantId
+      (c) => c.foodId === item.foodId && c.portionId === item.portionId
     );
 
     if (exists) {
@@ -37,10 +38,10 @@ export const CartProvider = ({ children }) => {
   };
 
   // Increase Quantity
-  const increaseQuantity = (foodId, variantId) => {
+  const increaseQuantity = (foodId, portionId) => {
     setCart((prev) =>
       prev.map((item) =>
-        item.foodId === foodId && item.variantId === variantId
+        item.foodId === foodId && item.portionId === portionId
           ? { ...item, quantity: item.quantity + 1 }
           : item
       )
@@ -49,8 +50,8 @@ export const CartProvider = ({ children }) => {
   };
 
   // Decrease Quantity
-  const decreaseQuantity = (foodId, variantId) => {
-    const item = cart.find(i => i.foodId === foodId && i.variantId === variantId);
+  const decreaseQuantity = (foodId, portionId) => {
+    const item = cart.find(i => i.foodId === foodId && i.portionId === portionId);
 
     if (!item) return;
 
@@ -63,7 +64,7 @@ export const CartProvider = ({ children }) => {
     setCart((prev) =>
       prev
         .map((item) =>
-          item.foodId === foodId && item.variantId === variantId
+          item.foodId === foodId && item.portionId === portionId
             ? { ...item, quantity: Math.max(0, item.quantity - 1) }
             : item
         )
@@ -72,24 +73,24 @@ export const CartProvider = ({ children }) => {
   };
 
   // Remove item
-  const removeFromCart = (foodId, variantId) => {
+  const removeFromCart = (foodId, portionId) => {
     setCart((prev) =>
       prev.filter(
-        (c) => !(c.foodId === foodId && c.variantId === variantId)
+        (c) => !(c.foodId === foodId && c.portionId === portionId)
       )
     );
     showAnimatedToast("error", "Item removed from cart", "cart-remove");
   };
 
   // Update item (for editing options)
-  const updateCartItem = (foodId, variantId, updatedItem) => {
+  const updateCartItem = (foodId, portionId, updatedItem) => {
     setCart((prev) => {
       // 1. Remove the old item
-      const filtered = prev.filter(c => !(c.foodId === foodId && c.variantId === variantId));
+      const filtered = prev.filter(c => !(c.foodId === foodId && c.portionId === portionId));
 
       // 2. Check if the updated item already exists in the remaining items
       const existingIndex = filtered.findIndex(c =>
-        c.foodId === updatedItem.foodId && c.variantId === updatedItem.variantId
+        c.foodId === updatedItem.foodId && c.portionId === updatedItem.portionId
       );
 
       if (existingIndex > -1) {
@@ -118,6 +119,8 @@ export const CartProvider = ({ children }) => {
     <CartContext.Provider
       value={{
         cart,
+        isModalOpen,
+        setIsModalOpen,
         addToCart,
         increaseQuantity,
         decreaseQuantity,
@@ -130,3 +133,4 @@ export const CartProvider = ({ children }) => {
     </CartContext.Provider>
   );
 };
+
