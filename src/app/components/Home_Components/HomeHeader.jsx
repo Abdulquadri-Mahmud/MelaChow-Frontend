@@ -110,64 +110,7 @@ export default function HomeHeader() {
                 </motion.div>
               </Link>
 
-              {/* User Profile - Premium Entry */}
-              <Link href="/profile" className="flex items-center relative group">
-                {(!isMounted || isLoading) ? (
-                  <div className="w-10 h-10 rounded-[18px] bg-gray-200 dark:bg-slate-800 animate-pulse" />
-                ) : user?.avatar ? (
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className="relative group p-0.5 rounded-[20px] bg-gradient-to-tr from-orange-400 to-orange-600"
-                  >
-                    <div className="bg-white dark:bg-slate-900 p-0.5 rounded-[18px]">
-                      <img
-                        src={user.avatar}
-                        alt="Profile"
-                        className="w-9 h-9 rounded-[16px] object-cover"
-                      />
-                    </div>
-                    {/* Status Dot */}
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
-
-                    {/* Notification Badge (Subtle Indicator) */}
-                    {isMounted && "Notification" in window && Notification.permission === "default" && (
-                      <motion.div
-                        className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full border-2 border-white dark:border-slate-900 shadow-sm z-10"
-                        animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      />
-                    )}
-                  </motion.div>
-                ) : (
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className="relative w-10 h-10 rounded-[18px] bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-950/30 dark:to-orange-900/40 flex items-center justify-center border border-orange-200/50 dark:border-orange-500/20"
-                  >
-                    <span className="text-orange-600 dark:text-orange-400 font-black italic text-sm">
-                      {user?.firstname?.[0] || user?.firstName?.[0] || "G"}
-                    </span>
-
-                    {/* Notification Badge (Subtle Indicator) */}
-                    {isMounted && "Notification" in window && Notification.permission === "default" && (
-                      <motion.div
-                        className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full border-2 border-white dark:border-slate-900 shadow-sm z-10"
-                        animate={{ scale: [1, 1.2, 1], opacity: [1, 0.8, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      />
-                    )}
-                  </motion.div>
-                )}
-
-                {/* Desktop Greeting */}
-                <div className="hidden lg:flex flex-col ml-3 text-left">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter leading-none mb-0.5">
-                    {greeting}
-                  </span>
-                  <span className="text-sm font-black text-gray-900 dark:text-white leading-none">
-                    {user?.firstname || user?.firstName || 'Guest'}
-                  </span>
-                </div>
-              </Link>
+              
             </div>
           </div>
         </div>

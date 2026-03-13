@@ -38,22 +38,10 @@ function OrdersContent() {
     setIsFetchingFood(true);
     setEditingItem(item);
     try {
-      const res = await axios.get(`${baseUrl}/vendors/foods/get-food?id=${item.foodId}`);
-      if (res.data && res.data.data) {
-        const food = res.data.data;
+      const res = await axios.get(`${baseUrl}/v1/vendors/${item.vendorId}/menu/items/${item.foodId}`);
+      if (res.data && res.data.item) {
+        const food = { ...res.data.item, vendor: { _id: item.vendorId, storeName: item.storeName } };
         setFoodForEdit(food);
-
-        let v = null;
-        let p = null;
-        if (item.variantId) {
-          v = food.variants?.find(fv => fv._id === item.variantId);
-        }
-        if (!v && item.metadata?.portion && item.metadata.portion !== "Standard") {
-          p = food.portions?.find(fp => fp.label === item.metadata.portion);
-        }
-
-        setEditingVariant(v);
-        setEditingPortion(p);
         setEditModalOpen(true);
       } else {
         toast.error("Item details unavailable");
@@ -66,9 +54,9 @@ function OrdersContent() {
     }
   };
 
-  const handleUpdateOrder = (payload) => {
+  const handleUpdateOrder = (foodId, portionId, payload) => {
     if (editingItem) {
-      updateCartItem(editingItem.foodId, editingItem.variantId, payload);
+      updateCartItem(foodId, portionId, payload);
     }
     setEditModalOpen(false);
     setEditingItem(null);
@@ -77,32 +65,32 @@ function OrdersContent() {
 
   const fetchUserOrders = async () => {
     if (!user) return { orders: [] };
-    const res = await axios.get(`${baseUrl}/orders/my-orders`, {
-      withCredentials: true, // ✅ Use cookie-based auth
+    const res = await axios.get(`${baseUrl}/v1/orders/my-orders`, {
+      withCredentials: true,
     });
-    //  console.log(res)
     return res.data;
   };
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["userOrders", user?._id],
     queryFn: fetchUserOrders,
-    enabled: !!user && activeTab === "orders", // Fetch only when user exists and tab is orders
+    enabled: !!user && activeTab === "orders",
     retry: false,
   });
 
   const orders = data?.orders || [];
 
-  // console.log(orders);
-  // Group items by restaurant for Cart
+  // Group items by vendorId for Cart
   const groupedCart = cart.reduce((acc, item) => {
-    const store = item.storeName || "Unknown Store";
-    if (!acc[store]) acc[store] = [];
-    acc[store].push(item);
+    const key = item.vendorId || "unknown";
+    if (!acc[key]) {
+      acc[key] = { storeName: item.storeName, items: [] };
+    }
+    acc[key].items.push(item);
     return acc;
   }, {});
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + item.price_naira * item.quantity, 0);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">
@@ -212,8 +200,7 @@ function OrdersContent() {
                       <div className="flex justify-between items-center bg-slate-50/80 dark:bg-slate-800/80 rounded-xl p-2.5">
                         <div className="flex -space-x-1.5">
                           {order.items.slice(0, 4).map((item, i) => (
-                            // Use Item Variant Image if available
-                            <img key={i} src={item.variant?.image || item.image || "/placeholder.jpg"} className="w-7 h-7 rounded-lg border-2 border-white dark:border-slate-800 object-cover" alt="" title={item.variant?.name || item.name} />
+                            <img key={i} src={item.image_url || "/placeholder.jpg"} className="w-7 h-7 rounded-lg border-2 border-white dark:border-slate-800 object-cover" alt="" title={item.name} />
                           ))}
                           {order.items.length > 4 && (
                             <div className="w-7 h-7 rounded-lg bg-white dark:bg-slate-700 border-2 border-slate-50 dark:border-slate-800 flex items-center justify-center text-[9px] font-bold text-slate-600 dark:text-slate-300">
@@ -255,28 +242,26 @@ function OrdersContent() {
                 ) : (
                   <>
                     <div className="space-y-4">
-                      {Object.entries(groupedCart).map(([storeName, items]) => (
-                        <div key={storeName} className="bg-white dark:bg-slate-900 rounded-[32px] p-4 border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden relative">
+                      {Object.entries(groupedCart).map(([vendorId, group]) => (
+                        <div key={vendorId} className="bg-white dark:bg-slate-900 rounded-[32px] p-4 border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden relative">
                           {/* Store Header */}
                           <div className="flex justify-between items-center mb-5 pb-3 border-b border-slate-50 dark:border-slate-800">
                             <div className="flex items-center gap-2">
                               <div className="w-1.5 h-4 bg-orange-500 rounded-full" />
-                              <h3 className="font-black text-slate-900 dark:text-white text-[11px] uppercase tracking-widest italic">{storeName}</h3>
+                              <h3 className="font-black text-slate-900 dark:text-white text-[11px] uppercase tracking-widest italic">{group.storeName}</h3>
                             </div>
                             <span className="text-[9px] font-black text-slate-400 bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-lg uppercase">
-                              {items.length} {items.length === 1 ? 'item' : 'items'}
+                              {group.items.length} {group.items.length === 1 ? 'item' : 'items'}
                             </span>
                           </div>
 
                           <div className="space-y-4">
-                            {items.map((item, idx) => {
-                              // Unique key fallback if variantId is missing/not unique in payload
-                              const itemKey = item.variantId || `${item.foodId}-${idx}`;
+                            {group.items.map((item) => {
                               return (
-                                <div key={itemKey} className="flex gap-4 group">
+                                <div key={`${item.foodId}-${item.portionId}`} className="flex gap-4 group">
                                   <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-800 flex-shrink-0 shadow-inner">
                                     <img
-                                      src={item.variant?.image || item.image || "/placeholder.jpg"}
+                                      src={item.image_url || "/placeholder.jpg"}
                                       alt={item.name}
                                       className="w-full h-full object-cover transition-transform group-hover:scale-110"
                                     />
@@ -286,31 +271,25 @@ function OrdersContent() {
                                     <div className="flex justify-between items-start">
                                       <div>
                                         <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{item.name}</h4>
-                                        {/* Variants and Options */}
+                                        {/* Portions and Options */}
                                         <div className="text-[10px] text-slate-500 mt-1 space-y-0.5">
-                                          {(item.metadata?.portion && item.metadata.portion !== "Standard") && (
-                                            <p className="font-medium bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded w-fit text-slate-700 dark:text-slate-300">Size: {item.metadata.portion}</p>
-                                          )}
-                                          {item.metadata?.choices?.length > 0 && (
+                                          <p className="font-medium bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded w-fit text-slate-700 dark:text-slate-300">Size: {item.portion_label}</p>
+                                          {item.selected_options?.length > 0 && (
                                             <p className="opacity-80 flex flex-wrap gap-1">
-                                              {Object.entries(item.metadata.choices.reduce((acc, c) => {
-                                                const name = (typeof c === 'string' ? c : c.name || "").trim();
-                                                acc[name] = (acc[name] || 0) + 1;
-                                                return acc;
-                                              }, {})).map(([choice, count], i) => (
+                                              {item.selected_options.map((opt, i) => (
                                                 <span key={i} className="after:content-[','] last:after:content-['']">
-                                                  {count > 1 ? `${count}x ` : ""}{choice}
+                                                  {opt.label}
                                                 </span>
                                               ))}
                                             </p>
                                           )}
                                         </div>
                                       </div>
-                                      <p className="text-sm font-black text-slate-900 dark:text-white tabular-nums">₦{(item.price * item.quantity).toLocaleString()}</p>
+                                      <p className="text-sm font-black text-slate-900 dark:text-white tabular-nums">₦{(item.price_naira * item.quantity).toLocaleString()}</p>
                                     </div>
 
                                     <div className="flex items-end justify-between mt-auto pt-2">
-                                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter self-center">₦{item.price.toLocaleString()} / unit</p>
+                                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter self-center">₦{item.price_naira.toLocaleString()} / unit</p>
 
                                       <div className="flex items-center gap-3">
                                         <button
@@ -321,21 +300,21 @@ function OrdersContent() {
                                         </button>
                                         <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-1 border border-slate-100 dark:border-slate-800 shadow-inner">
                                           <button
-                                            onClick={() => decreaseQuantity(item.foodId, item.variantId)}
+                                            onClick={() => decreaseQuantity(item.foodId, item.portionId)}
                                             className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 shadow-sm hover:text-orange-600 transition-all border border-zinc-100 dark:border-zinc-700"
                                           >
                                             <Minus size={12} strokeWidth={3} />
                                           </button>
                                           <span className="w-6 text-center text-[11px] font-black text-zinc-900 dark:text-white tabular-nums">{item.quantity}</span>
                                           <button
-                                            onClick={() => increaseQuantity(item.foodId, item.variantId)}
+                                            onClick={() => increaseQuantity(item.foodId, item.portionId)}
                                             className="w-7 h-7 flex items-center justify-center rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all"
                                           >
                                             <Plus size={12} strokeWidth={3} />
                                           </button>
                                         </div>
                                         <button
-                                          onClick={() => removeFromCart(item.foodId, item.variantId)}
+                                          onClick={() => removeFromCart(item.foodId, item.portionId)}
                                           className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all active:scale-90 bg-white border border-gray-100 shadow-sm"
                                         >
                                           <Trash2 size={14} />
@@ -410,8 +389,6 @@ function OrdersContent() {
         onClose={() => setEditModalOpen(false)}
         initialEditItem={editingItem}
         onUpdate={handleUpdateOrder}
-        initialVariant={editingVariant}
-        initialPortion={editingPortion}
         onAdd={() => { }}
       />
     </div>

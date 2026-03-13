@@ -17,17 +17,17 @@
  */
 const groupItemsByRestaurant = (cartItems) => {
     return cartItems.reduce((acc, item) => {
-        const restaurantId = item.restaurantId;
+        const vendorId = item.vendorId || item.restaurantId;
 
-        if (!acc[restaurantId]) {
-            acc[restaurantId] = {
+        if (!acc[vendorId]) {
+            acc[vendorId] = {
                 items: [],
                 deliveryFee: Number(item.deliveryFee || 0),
                 restaurantName: item.storeName || "Unknown Store"
             };
         }
 
-        acc[restaurantId].items.push(item);
+        acc[vendorId].items.push(item);
         return acc;
     }, {});
 };
@@ -78,21 +78,15 @@ export const transformCartToOrderV2 = (cartItems, deliveryAddress, phone, email,
 
         return {
             foodId: item.foodId,
-            restaurantId: item.restaurantId,
-            variant: {
-                // Use strict variant name from metadata to pass backend validation
-                name: item.metadata?.portion || "Standard",
-                price: Number(item.price),
-                image: item.variant?.image || item.image || ""
-            },
+            vendorId: item.vendorId || item.restaurantId,
+            portion_id: item.portionId || item.variantId,
+            price_naira: Number(item.price_naira || item.price || 0),
             quantity: Number(item.quantity),
             note: restaurantNote,
+            selected_options: item.selected_options || item.selectedChoices || [],
             metadata: {
-                // Include any custom metadata from the cart item
                 ...(item.metadata || {}),
-                // Add variant ID if available
-                variantId: item.variantId,
-                // Add any other relevant data
+                portion_label: item.portion_label || item.metadata?.portion,
                 storeName: item.storeName,
                 estimatedDeliveryTime: item.estimatedDeliveryTime
             }
@@ -100,9 +94,9 @@ export const transformCartToOrderV2 = (cartItems, deliveryAddress, phone, email,
     });
 
     // Calculate delivery fees per vendor
-    const vendorDeliveryFees = Object.keys(itemsByRestaurant).map(restaurantId => ({
-        restaurantId,
-        deliveryFee: Number(itemsByRestaurant[restaurantId].deliveryFee || 0)
+    const vendorDeliveryFees = Object.keys(itemsByRestaurant).map(vendorId => ({
+        vendorId,
+        deliveryFee: Number(itemsByRestaurant[vendorId].deliveryFee || 0)
     }));
 
     // Format delivery address
@@ -166,12 +160,12 @@ export const validateCartItems = (cartItems) => {
             });
         }
 
-        if (!item.restaurantId) {
+        if (!item.vendorId && !item.restaurantId) {
             errors.push({
                 type: "missing_field",
                 itemIndex: index,
                 itemName,
-                message: `${itemName}: Missing restaurant ID`
+                message: `${itemName}: Missing vendor ID`
             });
         }
 
@@ -186,7 +180,7 @@ export const validateCartItems = (cartItems) => {
         }
 
         // Check price
-        if (!item.price || item.price <= 0) {
+        if (!(item.price_naira || item.price) || (item.price_naira || item.price) <= 0) {
             errors.push({
                 type: "invalid_price",
                 itemIndex: index,
@@ -276,14 +270,15 @@ export const validateCartItems = (cartItems) => {
 export const calculateOrderTotals = (cartItems) => {
     // Calculate subtotal
     const subtotal = cartItems.reduce((sum, item) => {
-        return sum + (Number(item.price) * Number(item.quantity));
+        return sum + (Number(item.price_naira || item.price || 0) * Number(item.quantity));
     }, 0);
 
     // Calculate delivery fees (one per restaurant)
     const restaurantDeliveryMap = {};
     cartItems.forEach(item => {
-        if (!restaurantDeliveryMap[item.restaurantId]) {
-            restaurantDeliveryMap[item.restaurantId] = Number(item.deliveryFee || 0);
+        const vId = item.vendorId || item.restaurantId;
+        if (!restaurantDeliveryMap[vId]) {
+            restaurantDeliveryMap[vId] = Number(item.deliveryFee || 0);
         }
     });
 

@@ -260,7 +260,7 @@ export default function AllRestaurants() {
                                 <div
                                     key={vendor._id}
                                     className="bg-white dark:bg-zinc-900 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-zinc-100 dark:border-zinc-800 transition-all duration-300 cursor-pointer group"
-                                    onClick={() => router.push(`/restataurants/${String(vendor._id)}`)}
+                                    onClick={() => router.push(`/restaurants/${String(vendor._id)}`)}
                                 >
                                     <div className="relative h-48">
                                         {!imgLoaded[vendor._id] && <Skeleton height="100%" width="100%" />}

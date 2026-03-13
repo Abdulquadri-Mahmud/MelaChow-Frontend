@@ -41,50 +41,13 @@ export function useCartValidation(cartItems) {
         }
 
         cartItems.forEach((item, index) => {
-            // Check if variant is selected (if item has variants)
-            if (item.variants && item.variants.length > 0 && !item.selectedVariant) {
+            // Check if portion is selected
+            if (!item.portionId) {
                 errors.push({
                     itemIndex: index,
                     itemName: item.name,
-                    field: "variant",
-                    message: "Please select a portion size"
-                });
-            }
-
-            // Check if required choices are selected
-            if (item.choiceGroups) {
-                item.choiceGroups.forEach(group => {
-                    const selectedCount = item.selectedChoices?.filter(
-                        c => c.group === group.name
-                    ).length || 0;
-
-                    if (group.minSelect && selectedCount < group.minSelect) {
-                        errors.push({
-                            itemIndex: index,
-                            itemName: item.name,
-                            field: "choices",
-                            message: `Please select at least ${group.minSelect} ${group.name}`
-                        });
-                    }
-
-                    if (group.maxSelect && selectedCount > group.maxSelect) {
-                        errors.push({
-                            itemIndex: index,
-                            itemName: item.name,
-                            field: "choices",
-                            message: `You can only select up to ${group.maxSelect} ${group.name}`
-                        });
-                    }
-                });
-            }
-
-            // Check quantity
-            if (!item.quantity || item.quantity < 1) {
-                errors.push({
-                    itemIndex: index,
-                    itemName: item.name,
-                    field: "quantity",
-                    message: "Quantity must be at least 1"
+                    field: "portion",
+                    message: "Please select a size"
                 });
             }
 
@@ -98,20 +61,20 @@ export function useCartValidation(cartItems) {
                 });
             }
 
-            if (!item.restaurantId) {
+            if (!item.vendorId) {
                 errors.push({
                     itemIndex: index,
                     itemName: item.name,
-                    field: "restaurantId",
-                    message: "Missing restaurant ID - please re-add this item"
+                    field: "vendorId",
+                    message: "Missing vendor ID - please re-add this item"
                 });
             }
 
-            if (!item.price || item.price <= 0) {
+            if (!item.price_naira || item.price_naira <= 0) {
                 errors.push({
                     itemIndex: index,
                     itemName: item.name,
-                    field: "price",
+                    field: "price_naira",
                     message: "Invalid price - please re-add this item"
                 });
             }
