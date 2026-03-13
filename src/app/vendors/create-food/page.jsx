@@ -195,7 +195,7 @@ export default function CreateFoodWizardPage() {
 
       {/* FIXED FOOTER */}
       <div className="fixed bottom-0 left-0 right-0 z-50 p-4 lg:p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 transition-all duration-500 animate-in slide-in-from-bottom-full">
-         <div className="lg:max-w-7xl mx-auto flex items-center justify-between gap-4">
+         <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
             <div className="flex-1">
                {store.currentStep > 1 && (
                   <button 

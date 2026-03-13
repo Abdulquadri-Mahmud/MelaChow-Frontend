@@ -192,7 +192,8 @@ export const getMenuItemDetail = async (vendorId, itemId) => {
         `/v1/vendors/${vendorId}/menu/items/${itemId}`
     );
 
-    // console.log(res)
+    // console.log(res);
+
     return res.data;
     // res.data.item.choice_groups is a fully populated array
 };
@@ -367,3 +368,26 @@ export const toggleVariantAvailability = async (vendorId, variantId, is_availabl
     );
     return res.data;
 };
+
+/**
+ * Update combo basics (name, price, description, image).
+ * Price sent as naira — backend converts to kobo.
+ *
+ * Payload shape:
+ * {
+ *   name?: string
+ *   description?: string
+ *   image_url?: string
+ *   price_naira?: number   ← naira, NOT kobo
+ *   prep_time_minutes?: number
+ *   tags?: string[]
+ * }
+ */
+export const updateVariant = async (vendorId, variantId, payload) => {
+    const res = await getMenuAxios().put(
+        `/v1/menu/${vendorId}/variants/${variantId}`,
+        payload
+    );
+    return res.data;
+};
+
