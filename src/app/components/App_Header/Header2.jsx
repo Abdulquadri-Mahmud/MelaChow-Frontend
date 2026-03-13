@@ -7,7 +7,7 @@ import { ChevronLeft } from "lucide-react";
 import ProfileIconWithBadge from "./ProfileIconWithBadge";
 import { motion } from "framer-motion";
 
-export default function Header2() {
+export default function Header2({ title, subtitle }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -18,6 +18,9 @@ export default function Header2() {
     .pop()
     ?.replace(/-/g, " ") // Handle kebab-case routes
     .replace(/\b\w/g, (char) => char.toUpperCase()) || "Home";
+
+  const displayTitle = title || routeName;
+  const displaySubtitle = subtitle || "GrubDash";
 
   return (
     <motion.header
@@ -43,10 +46,10 @@ export default function Header2() {
             {/* Current Page Title - High Refinement */}
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase text-orange-500 tracking-[0.2em] italic opacity-70 leading-none mb-1">
-                GrubDash
+                {displaySubtitle}
               </span>
-              <h1 className="text-base font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-none">
-                {routeName}
+              <h1 className="text-base font-black text-gray-900 dark:text-white uppercase italic tracking-tighter leading-none max-w-[200px] truncate sm:max-w-xs">
+                {displayTitle}
               </h1>
             </div>
           </div>

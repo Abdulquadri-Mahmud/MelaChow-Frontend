@@ -49,7 +49,7 @@ const DIETARY_COLORS = {
 };
 
 const DietaryBadge = ({ type }) => (
-    <span className={`text-[9px] px-3 py-1 rounded-full font-black uppercase tracking-[0.15em] border ${DIETARY_COLORS[type] || DIETARY_COLORS.mixed} shadow-sm transition-all`}>
+    <span className={`text-[9px] px-3 py-1 rounded-full font-black uppercase tracking-[0.15em] border ${DIETARY_COLORS[type] || DIETARY_COLORS.mixed} transition-all`}>
         {type || "mixed"}
     </span>
 );
@@ -62,7 +62,7 @@ const SectionCard = ({ title, action, children, className = "" }) => (
                 {action}
             </div>
         </div>
-        <div className="p-8">{children}</div>
+        <div className="p-3">{children}</div>
     </div>
 );
 
@@ -132,7 +132,7 @@ const BasicInfoSection = ({ item, vendorId, itemId, queryClient }) => {
     const typeMeta = ITEM_TYPE_META[item.item_type] || ITEM_TYPE_META.FOOD;
 
     if (!editing) return (
-        <SectionCard title="Basic Info" action={<button onClick={openEdit} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-orange-500 hover:border-orange-200 transition-all active:scale-95 shadow-sm">Edit</button>}>
+        <SectionCard title="Basic Info" action={<button onClick={openEdit} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-orange-500 hover:border-orange-200 transition-all active:scale-95">Edit</button>}>
             <div className="space-y-6">
                 {/* Image + description row */}
                 <div className="flex gap-3 items-start">
@@ -154,7 +154,7 @@ const BasicInfoSection = ({ item, vendorId, itemId, queryClient }) => {
 
                 {/* Meta chips */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="p-4 bg-white dark:bg-slate-950 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                    <div className="p-4 bg-white dark:bg-slate-950 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-500">
                              <ChefHat size={20} strokeWidth={2.5}/>
                         </div>
@@ -164,7 +164,7 @@ const BasicInfoSection = ({ item, vendorId, itemId, queryClient }) => {
                         </div>
                     </div>
 
-                    <div className="p-4 bg-white dark:bg-slate-950 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                    <div className="p-4 bg-white dark:bg-slate-950 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                              <Leaf size={20} strokeWidth={2.5}/>
                         </div>
@@ -175,7 +175,7 @@ const BasicInfoSection = ({ item, vendorId, itemId, queryClient }) => {
                     </div>
 
                     {item.prep_time_minutes && (
-                        <div className="p-4 bg-white dark:bg-slate-950 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4">
+                        <div className="p-4 bg-white dark:bg-slate-950 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 flex items-center gap-4">
                             <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-500">
                                  <Clock size={20} strokeWidth={2.5}/>
                             </div>
@@ -315,7 +315,7 @@ const CategorySection = ({ item, vendorId, itemId, queryClient, allSections }) =
     const cat = item.platform_category;
 
     if (!editing) return (
-        <SectionCard title="Category & Section" action={<button onClick={openEdit} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-orange-500 hover:border-orange-200 transition-all active:scale-95 shadow-sm">Edit</button>}>
+        <SectionCard title="Category & Section" action={<button onClick={openEdit} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-orange-500 hover:border-orange-200 transition-all active:scale-95">Edit</button>}>
             <div className="space-y-4">
                 <div className="p-5 bg-slate-50 dark:bg-slate-800/30 rounded-3xl border border-slate-100 dark:border-slate-800 group hover:border-orange-200 transition-colors">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 flex items-center gap-2"><div className="w-1 h-3 bg-orange-500 rounded-full" /> Platform Category</p>
@@ -411,11 +411,12 @@ const PortionsSection = ({ item, vendorId, itemId, queryClient }) => {
     const [saving, setSaving] = useState(false);
 
     const [showAdd, setShowAdd] = useState(false);
-    const [newPortion, setNewPortion] = useState({ label: "", price_naira: "" });
+    const [newPortion, setNewPortion] = useState({ label: "", price_naira: "", max_quantity: "" });
     const [adding, setAdding] = useState(false);
 
     const openEdit = (p) => {
-        setPortionForm({ label: p.label, price_naira: p.price_naira, is_default: p.is_default });
+        setPortionForm({ label: p.label, price_naira: p.price_naira, is_default: p.is_default, max_quantity: p.max_quantity || '' });
+
         setEditingPortionId(p._id);
     };
 
@@ -423,7 +424,7 @@ const PortionsSection = ({ item, vendorId, itemId, queryClient }) => {
         if (!portionForm.price_naira || Number(portionForm.price_naira) <= 0) return toast.error("Price must be > 0");
         setSaving(true);
         try {
-            await updatePortion(vendorId, itemId, pId, { label: portionForm.label.trim(), price: Math.round(Number(portionForm.price_naira) * 100), is_default: portionForm.is_default });
+            await updatePortion(vendorId, itemId, pId, { label: portionForm.label.trim(), price: Math.round(Number(portionForm.price_naira) * 100), is_default: portionForm.is_default, max_quantity: portionForm.max_quantity ? parseInt(portionForm.max_quantity, 10) : null });
             queryClient.invalidateQueries({ queryKey: ["food-item", itemId] });
             setEditingPortionId(null);
             toast.success("Size updated");
@@ -445,16 +446,16 @@ const PortionsSection = ({ item, vendorId, itemId, queryClient }) => {
         if (!newPortion.price_naira || Number(newPortion.price_naira) <= 0) return toast.error("Price must be > 0");
         setAdding(true);
         try {
-            await addPortion(vendorId, itemId, { label: newPortion.label.trim(), price: Math.round(Number(newPortion.price_naira) * 100), is_default: item.portions.length === 0, sort_order: item.portions.length });
+            await addPortion(vendorId, itemId, { label: newPortion.label.trim(), price: Math.round(Number(newPortion.price_naira) * 100), is_default: item.portions.length === 0, sort_order: item.portions.length, max_quantity: newPortion.max_quantity ? parseInt(newPortion.max_quantity, 10) : null });
             queryClient.invalidateQueries({ queryKey: ["food-item", itemId] });
-            setShowAdd(false); setNewPortion({ label: "", price_naira: "" });
+            setShowAdd(false); setNewPortion({ label: "", price_naira: "", max_quantity: "" });
             toast.success("Size added");
         } catch (err) { toast.error(err?.response?.data?.message || "Error adding"); }
         finally { setAdding(false); }
     };
 
     return (
-        <SectionCard title="Sizes & Prices" action={!showAdd && <button onClick={() => setShowAdd(true)} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-colors shadow-sm active:scale-95">+ Add Size</button>}>
+        <SectionCard title="Sizes & Prices" action={!showAdd && <button onClick={() => setShowAdd(true)} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-colors active:scale-95">+ Add Size</button>}>
             <div className="space-y-3 mt-2">
                 {item.portions?.map(p => (
                     <div key={p._id} className="p-5 bg-white dark:bg-slate-950 rounded-3xl border border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 group transition-all hover:border-orange-200 hover:shadow-md hover:shadow-orange-500/5">
@@ -462,13 +463,14 @@ const PortionsSection = ({ item, vendorId, itemId, queryClient }) => {
                             <div className="flex-1 flex flex-wrap gap-3 items-center">
                                 <input className="h-11 px-4 w-36 rounded-xl text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500 font-bold outline-none" placeholder="Label" value={portionForm.label} onChange={e => setPortionForm({ ...portionForm, label: e.target.value })} />
                                 <div className="relative">
-                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">₦</span>
-                                     <input className="h-11 pl-10 pr-4 w-32 rounded-xl text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500 font-black text-orange-600 outline-none" type="number" placeholder="Price" value={portionForm.price_naira} onChange={e => setPortionForm({ ...portionForm, price_naira: e.target.value })} />
-                                </div>
-                                <label className="flex items-center gap-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 cursor-pointer">
-                                     <input type="checkbox" className="w-4 h-4 rounded-md border-slate-300 text-orange-500 focus:ring-orange-500" checked={portionForm.is_default} onChange={e => setPortionForm({ ...portionForm, is_default: e.target.checked })} /> 
-                                     Set as Default
-                                </label>
+                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">₦</span>
+                                 <input className="h-11 pl-10 pr-4 w-32 rounded-xl text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500 font-black text-orange-600 outline-none" type="number" placeholder="Price" value={portionForm.price_naira} onChange={e => setPortionForm({ ...portionForm, price_naira: e.target.value })} />
+                            </div>
+                            <input className="h-11 px-4 w-28 rounded-xl text-sm border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 focus:border-orange-500 font-bold outline-none" type="number" placeholder="Max Qty" value={portionForm.max_quantity} onChange={e => setPortionForm({ ...portionForm, max_quantity: e.target.value })} />
+                            <label className="flex items-center gap-2.5 text-xs font-bold text-slate-700 dark:text-slate-300 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 cursor-pointer">
+                                 <input type="checkbox" className="w-4 h-4 rounded-md border-slate-300 text-orange-500 focus:ring-orange-500" checked={portionForm.is_default} onChange={e => setPortionForm({ ...portionForm, is_default: e.target.checked })} /> 
+                                 Set as Default
+                            </label>
                                 <div className="flex gap-2 ml-auto">
                                      <button onClick={() => handleSave(p._id)} disabled={saving} className="h-11 px-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-black uppercase tracking-widest active:scale-95 transition-all shadow-lg">Save</button>
                                      <button onClick={() => setEditingPortionId(null)} className="h-11 px-4 text-xs font-bold text-slate-500 hover:text-slate-800 transition-all">Cancel</button>
@@ -482,17 +484,23 @@ const PortionsSection = ({ item, vendorId, itemId, queryClient }) => {
                                          <span className="text-lg font-black text-slate-800 dark:text-white leading-tight">{p.label}</span>
                                     </div>
                                     <div className="flex flex-col">
-                                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Base Price</span>
-                                         <span className="text-xl font-black text-orange-600 dark:text-orange-400">₦{p.price_naira?.toLocaleString()}</span>
-                                    </div>
+                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Base Price</span>
+                                 <span className="text-xl font-black text-orange-600 dark:text-orange-400">₦{p.price_naira?.toLocaleString()}</span>
+                            </div>
+                            {p.max_quantity && (
+                                <div className="flex flex-col ml-2">
+                                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Max Limit</span>
+                                     <span className="text-sm font-bold text-slate-600 dark:text-slate-400">{p.max_quantity} qty</span>
+                                </div>
+                            )}
                                     {p.is_default && (
                                         <div className="self-end pb-1">
-                                             <span className="text-[9px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-[0.15em] px-3 py-1 rounded-full border border-indigo-500/20 shadow-sm">Primary Default</span>
+                                             <span className="text-[9px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-[0.15em] px-3 py-1 rounded-full border border-indigo-500/20">Primary Default</span>
                                         </div>
                                     )}
                                 </div>
                                 <div className="flex gap-2 ml-auto shrink-0 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                    <button onClick={() => openEdit(p)} className="h-9 px-5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-300 hover:text-orange-500 transition-all active:scale-95 shadow-sm">Edit</button>
+                                    <button onClick={() => openEdit(p)} className="h-9 px-5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-300 hover:text-orange-500 transition-all active:scale-95">Edit</button>
                                     <button onClick={() => handleDelete(p._id)} disabled={item.portions.length <= 1} className="h-9 w-9 rounded-2xl flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all disabled:opacity-30 active:scale-95"><X size={16} strokeWidth={3}/></button>
                                 </div>
                             </>
@@ -504,6 +512,7 @@ const PortionsSection = ({ item, vendorId, itemId, queryClient }) => {
                     <div className="p-4 bg-orange-50 dark:bg-orange-500/10 rounded-2xl border border-orange-200 dark:border-orange-500/20 flex flex-wrap gap-2 items-center mt-4">
                         <input className="h-10 px-3 w-32 rounded-xl text-sm border border-orange-200 dark:border-orange-500/30 bg-white dark:bg-slate-900 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" placeholder="Label e.g. Medium" value={newPortion.label} onChange={e => setNewPortion({ ...newPortion, label: e.target.value })} autoFocus />
                         <input className="h-10 px-3 w-28 rounded-xl text-sm border border-orange-200 dark:border-orange-500/30 bg-white dark:bg-slate-900 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" type="number" placeholder="Price ₦" value={newPortion.price_naira} onChange={e => setNewPortion({ ...newPortion, price_naira: e.target.value })} />
+                        <input className="h-10 px-3 w-24 rounded-xl text-sm border border-orange-200 dark:border-orange-500/30 bg-white dark:bg-slate-900 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" type="number" placeholder="Max Qty" value={newPortion.max_quantity} onChange={e => setNewPortion({ ...newPortion, max_quantity: e.target.value })} />
                         <button onClick={handleAdd} disabled={adding} className="h-10 ml-auto px-5 bg-orange-500 text-white rounded-xl text-xs font-bold active:scale-95 transition-all">Add Size</button>
                         <button onClick={() => setShowAdd(false)} className="h-10 px-4 text-xs font-bold text-slate-500 transition-all">Cancel</button>
                     </div>
@@ -585,7 +594,7 @@ const AddOnsSection = ({ item, vendorId, itemId, queryClient }) => {
     };
 
     return (
-        <SectionCard title="Customer Choices" action={!showAddGroup && <button onClick={() => setShowAddGroup(true)} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-colors shadow-sm active:scale-95">+ Add Group</button>}>
+        <SectionCard title="Customer Choices" action={!showAddGroup && <button onClick={() => setShowAddGroup(true)} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-orange-500 hover:text-orange-600 transition-colors active:scale-95">+ Add Group</button>}>
             <div className="space-y-8">
                 {item.choice_groups?.map(g => (
                     <div key={g._id} className="border border-slate-100 dark:border-slate-800 rounded-[2rem] overflow-hidden bg-white dark:bg-slate-950 transition-all hover:shadow-xl hover:shadow-slate-200/40 dark:hover:shadow-none">
@@ -619,7 +628,7 @@ const AddOnsSection = ({ item, vendorId, itemId, queryClient }) => {
                                             <div className="flex-1 flex flex-col gap-1">
                                                 <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Group Name</label>
                                                 <div className="flex gap-2">
-                                                    <input className="h-12 px-4 flex-1 rounded-2xl text-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:border-orange-500 font-bold outline-none shadow-sm" placeholder="Enter custom name" value={groupForm.name} onChange={e => setGroupForm({ ...groupForm, name: e.target.value })} autoFocus />
+                                                    <input className="h-12 px-4 flex-1 rounded-2xl text-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:border-orange-500 font-bold outline-none" placeholder="Enter custom name" value={groupForm.name} onChange={e => setGroupForm({ ...groupForm, name: e.target.value })} autoFocus />
                                                     <button onClick={() => setIsCustomTitle(false)} className="px-4 text-xs font-bold text-slate-500 hover:text-slate-800">Use presets</button>
                                                 </div>
                                             </div>
@@ -627,10 +636,10 @@ const AddOnsSection = ({ item, vendorId, itemId, queryClient }) => {
                                         
                                         <div className="flex flex-col gap-1">
                                              <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest ml-1">Max Select</label>
-                                             <input type="number" className="h-12 px-4 w-20 rounded-2xl text-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:border-orange-500 font-black outline-none shadow-sm" value={groupForm.max_selections} onChange={e => setGroupForm({ ...groupForm, max_selections: e.target.value })} placeholder="Max" />
+                                             <input type="number" className="h-12 px-4 w-20 rounded-2xl text-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:border-orange-500 font-black outline-none" value={groupForm.max_selections} onChange={e => setGroupForm({ ...groupForm, max_selections: e.target.value })} placeholder="Max" />
                                         </div>
 
-                                        <label className="h-12 px-4 flex items-center gap-3 text-sm font-bold text-slate-700 dark:text-slate-300 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 cursor-pointer shadow-sm">
+                                        <label className="h-12 px-4 flex items-center gap-3 text-sm font-bold text-slate-700 dark:text-slate-300 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-950 cursor-pointer">
                                              <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500" checked={groupForm.is_required} onChange={e => setGroupForm({ ...groupForm, is_required: e.target.checked })} /> 
                                              Required
                                         </label>
@@ -657,7 +666,7 @@ const AddOnsSection = ({ item, vendorId, itemId, queryClient }) => {
                                         </div>
                                     </div>
                                     <div className="flex gap-2 shrink-0">
-                                        <button onClick={() => { setGroupForm({ name: g.name, is_required: g.is_required, min_selections: g.min_selections, max_selections: g.max_selections }); setEditingGroupId(g._id); }} className="h-10 px-5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-200 hover:text-orange-500 transition-all active:scale-95 shadow-sm">Edit Group</button>
+                                        <button onClick={() => { setGroupForm({ name: g.name, is_required: g.is_required, min_selections: g.min_selections, max_selections: g.max_selections }); setEditingGroupId(g._id); }} className="h-10 px-5 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-200 hover:text-orange-500 transition-all active:scale-95">Edit Group</button>
                                         <button onClick={() => handleDeleteGroup(g._id, g.name)} className="h-10 w-10 rounded-xl flex items-center justify-center text-rose-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all border border-transparent active:scale-95">✕</button>
                                     </div>
                                 </>
@@ -731,20 +740,20 @@ const AddOnsSection = ({ item, vendorId, itemId, queryClient }) => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1.5">
                                             <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Display Label *</label>
-                                            <input className="h-12 px-4 rounded-2xl text-sm border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:border-orange-500 font-bold outline-none shadow-sm" placeholder="e.g. Extra Cheese" value={newOption.label} onChange={e => setNewOption({ ...newOption, label: e.target.value })} autoFocus />
+                                            <input className="h-12 px-4 rounded-2xl text-sm border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:border-orange-500 font-bold outline-none" placeholder="e.g. Extra Cheese" value={newOption.label} onChange={e => setNewOption({ ...newOption, label: e.target.value })} autoFocus />
                                         </div>
                                         <div className="flex flex-col gap-1.5">
                                             <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Upcharge Amount</label>
                                             <div className="relative">
                                                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">₦</span>
-                                                 <input className="h-12 pl-10 pr-4 w-full rounded-2xl text-sm border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:border-orange-500 font-black text-orange-600 outline-none shadow-sm" type="number" placeholder="0.00" value={newOption.price_modifier_naira} onChange={e => setNewOption({ ...newOption, price_modifier_naira: e.target.value })} />
+                                                 <input className="h-12 pl-10 pr-4 w-full rounded-2xl text-sm border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:border-orange-500 font-black text-orange-600 outline-none" type="number" placeholder="0.00" value={newOption.price_modifier_naira} onChange={e => setNewOption({ ...newOption, price_modifier_naira: e.target.value })} />
                                             </div>
                                         </div>
                                         <div className="flex flex-col gap-1.5 md:col-span-2">
                                             <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Image Reference (Optional)</label>
                                             <div className="flex gap-3">
-                                                 <input className="h-12 px-4 flex-1 rounded-2xl text-sm border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:border-orange-500 font-medium outline-none shadow-sm" placeholder="https://image-hosting.com/image.jpg" value={newOption.image_url} onChange={e => setNewOption({ ...newOption, image_url: e.target.value })} />
-                                                 <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
+                                                 <input className="h-12 px-4 flex-1 rounded-2xl text-sm border bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus:border-orange-500 font-medium outline-none" placeholder="https://image-hosting.com/image.jpg" value={newOption.image_url} onChange={e => setNewOption({ ...newOption, image_url: e.target.value })} />
+                                                 <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
                                                       {newOption.image_url ? <img src={newOption.image_url} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={18} className="text-slate-300" />}
                                                  </div>
                                             </div>
@@ -923,7 +932,7 @@ export default function FoodManagementPage() {
                 <div className="pt-3 flex flex-col md:flex-row md:items-center justify-between gap-8">
                     <div className="space-y-3">
                         <div className="flex items-center gap-3">
-                            <BackButton label="" href="/vendors/my-foods" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2.5 shadow-sm hover:border-orange-200 transition-all active:scale-95" />
+                            <BackButton label="" href="/vendors/my-foods" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2.5 hover:border-orange-200 transition-all active:scale-95" />
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
                                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
@@ -943,7 +952,7 @@ export default function FoodManagementPage() {
                               <span className="text-xs font-black text-slate-900 dark:text-slate-300">Just moments ago</span>
                          </div>
                          <div className="h-10 w-px bg-slate-200 dark:bg-slate-800" />
-                         <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-orange-500 shadow-sm">
+                         <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-orange-500">
                               <ChefHat size={24} />
                          </div>
                     </div>
@@ -984,7 +993,7 @@ export default function FoodManagementPage() {
                                             <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
                                             <span className="h-10 px-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black uppercase tracking-[0.2em] rounded-2xl flex items-center text-[10px] shadow-lg shadow-slate-950/10 dark:shadow-none">{item.item_type}</span>
                                             {item.prep_time_minutes && (
-                                                <span className="h-10 px-5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3 text-[10px]">
+                                                <span className="h-10 px-5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-3 text-[10px]">
                                                     <Clock size={16} className="text-orange-500" /> {item.prep_time_minutes} MINS
                                                 </span>
                                             )}
@@ -1004,7 +1013,7 @@ export default function FoodManagementPage() {
                                     </button>
                                     <button 
                                         onClick={handleArchiveToggle} 
-                                        className="h-16 px-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 text-[12px] font-black uppercase tracking-[0.2em] text-slate-400 hover:border-rose-300 hover:text-rose-500 transition-all active:scale-95 bg-white dark:bg-slate-950 shadow-sm flex items-center justify-center"
+                                        className="h-16 px-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 text-[12px] font-black uppercase tracking-[0.2em] text-slate-400 hover:border-rose-300 hover:text-rose-500 transition-all active:scale-95 bg-white dark:bg-slate-950 flex items-center justify-center"
                                     >
                                         {item.is_archived ? "Restore Content" : "Archive"}
                                     </button>
@@ -1015,7 +1024,7 @@ export default function FoodManagementPage() {
                 </div>
 
                 {/* MANAGEMENT GRID */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
                     {/* PRIMARY CONFIGURATION COLUMN */}
                     <div className="lg:col-span-7 space-y-10">
                         <BasicInfoSection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} />
@@ -1123,7 +1132,7 @@ export default function FoodManagementPage() {
                                                                     <input
                                                                         value={comboForm.name}
                                                                         onChange={e => setComboForm(f => ({ ...f, name: e.target.value }))}
-                                                                        className="w-full h-12 px-4 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all"
+                                                                        className="w-full h-12 px-4 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
                                                                         placeholder="Combo Name"
                                                                     />
                                                                 </div>
@@ -1136,7 +1145,7 @@ export default function FoodManagementPage() {
                                                                             type="number"
                                                                             value={comboForm.price_naira}
                                                                             onChange={e => setComboForm(f => ({ ...f, price_naira: e.target.value }))}
-                                                                            className="w-full h-12 pl-10 pr-4 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-black text-orange-600 dark:text-orange-400 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all"
+                                                                            className="w-full h-12 pl-10 pr-4 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-black text-orange-600 dark:text-orange-400 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -1149,7 +1158,7 @@ export default function FoodManagementPage() {
                                                                             type="number"
                                                                             value={comboForm.prep_time_minutes}
                                                                             onChange={e => setComboForm(f => ({ ...f, prep_time_minutes: e.target.value }))}
-                                                                            className="w-full h-12 pl-10 pr-4 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all"
+                                                                            className="w-full h-12 pl-10 pr-4 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
                                                                             placeholder="Est. prep"
                                                                         />
                                                                     </div>
@@ -1161,7 +1170,7 @@ export default function FoodManagementPage() {
                                                                         value={comboForm.description}
                                                                         onChange={e => setComboForm(f => ({ ...f, description: e.target.value }))}
                                                                         rows={2}
-                                                                        className="w-full px-4 py-3 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all resize-none"
+                                                                        className="w-full px-4 py-3 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all resize-none"
                                                                         placeholder="Tell customers what's in the bundle..."
                                                                     />
                                                                 </div>
@@ -1208,7 +1217,7 @@ export default function FoodManagementPage() {
                                                                     <div className="grid grid-cols-1 gap-2">
                                                                         {combo.components.map(comp => (
                                                                             <div key={comp._id} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-transparent hover:border-slate-200 dark:hover:border-slate-800 transition-all">
-                                                                                <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center border border-slate-100 dark:border-slate-700 shadow-sm font-black text-xs text-slate-400">
+                                                                                <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center border border-slate-100 dark:border-slate-700 font-black text-xs text-slate-400">
                                                                                     {comp.image_url ? <img src={comp.image_url} alt={comp.name} className="w-full h-full object-cover" /> : "🍽"}
                                                                                 </div>
                                                                                 <div className="flex-1 min-w-0">
@@ -1233,7 +1242,7 @@ export default function FoodManagementPage() {
                                                                     </div>
                                                                     <div className="space-y-4">
                                                                         {combo.swap_groups.map(group => (
-                                                                            <div key={group._id} className="p-4 rounded-[1.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700 shadow-sm relative overflow-hidden">
+                                                                            <div key={group._id} className="p-4 rounded-[1.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700 relative overflow-hidden">
                                                                                 <div className="absolute top-0 right-0 w-16 h-16 bg-orange-500/5 rounded-full -mr-8 -mt-8 grayscale blur-xl" />
                                                                                 <div className="flex items-center gap-2 mb-3">
                                                                                     <div className="w-1 h-3 bg-orange-500 rounded-full" />

@@ -288,8 +288,10 @@ export const getFullVendorMenu = async (vendorId) => {
     return res.data;
 };
 
-export const getMenuItemDetails = async (vendorId, itemId) => {
-    const res = await getMenuAxios().get(`/v1/vendors/${vendorId}/menu/items/${itemId}`);
+export const getVendorStorefront = async (vendorId) => {
+    const res = await getMenuAxios().get(
+        `/v1/vendors/${vendorId}/menu`
+    );
     return res.data;
 };
 
