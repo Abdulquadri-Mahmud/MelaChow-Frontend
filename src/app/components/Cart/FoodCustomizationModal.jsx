@@ -44,14 +44,16 @@ export default function FoodCustomizationModal({
                             newSelections[gIdx] = groupOptions.map(opt => ({
                                 _id: opt.option_id,
                                 label: opt.label,
-                                price_modifier_naira: opt.price_modifier_naira
+                                price_modifier_naira: opt.price_modifier_naira,
+                                selectionQuantity: opt.quantity || 1
                             }));
                         } else {
                             const opt = groupOptions[0];
                             newSelections[gIdx] = {
                                 _id: opt.option_id,
                                 label: opt.label,
-                                price_modifier_naira: opt.price_modifier_naira
+                                price_modifier_naira: opt.price_modifier_naira,
+                                selectionQuantity: opt.quantity || 1
                             };
                         }
                     }
@@ -69,12 +71,12 @@ export default function FoodCustomizationModal({
 
     const basePriceNaira = selectedPortion?.price_naira || 0;
     
-    // Sum of selected options price_modifier_naira
+    // Sum of selected options price_modifier_naira * quantity
     const addonsPrice = Object.values(selections).reduce((acc, sel) => {
         if (Array.isArray(sel)) {
-            return acc + sel.reduce((s, o) => s + (o.price_modifier_naira || 0), 0);
+            return acc + sel.reduce((s, o) => s + ((o.price_modifier_naira || 0) * (o.selectionQuantity || 1)), 0);
         }
-        return acc + (sel?.price_modifier_naira || 0);
+        return acc + ((sel?.price_modifier_naira || 0) * (sel?.selectionQuantity || 1));
     }, 0);
 
     const totalUnit = basePriceNaira + addonsPrice;
@@ -97,7 +99,7 @@ export default function FoodCustomizationModal({
                     delete n[groupIndex];
                     return n;
                 }
-                return { ...prev, [groupIndex]: option };
+                return { ...prev, [groupIndex]: { ...option, selectionQuantity: 1 } };
             }
 
             const list = Array.isArray(current) ? current : [];
@@ -108,11 +110,61 @@ export default function FoodCustomizationModal({
                     [groupIndex]: list.filter(i => i.label !== option.label)
                 };
             }
-            if (list.length >= group.max_selections) {
-                toast.error(`Max ${group.max_selections} selections`);
+
+            // Check total quantity in group
+            const totalInGroup = list.reduce((acc, curr) => acc + (curr.selectionQuantity || 1), 0);
+            if (totalInGroup >= group.max_selections) {
+                toast.error(`Max ${group.max_selections} total items for ${group.name}`);
                 return prev;
             }
-            return { ...prev, [groupIndex]: [...list, option] };
+
+            return { ...prev, [groupIndex]: [...list, { ...option, selectionQuantity: 1 }] };
+        });
+    };
+
+    const updateOptionQuantity = (groupIndex, optionLabel, delta, group) => {
+        setSelections(prev => {
+            const current = prev[groupIndex];
+            const isMulti = group.max_selections > 1;
+
+            if (!isMulti) {
+                if (!current || current.label !== optionLabel) return prev;
+                const newQty = (current.selectionQuantity || 1) + delta;
+                if (newQty <= 0) {
+                    const n = { ...prev };
+                    delete n[groupIndex];
+                    return n;
+                }
+                if (delta > 0 && newQty > group.max_selections) {
+                    toast.error(`Max ${group.max_selections} selections for ${group.name}`);
+                    return prev;
+                }
+                return { ...prev, [groupIndex]: { ...current, selectionQuantity: newQty } };
+            }
+
+            const list = Array.isArray(current) ? current : [];
+            const index = list.findIndex(i => i.label === optionLabel);
+            if (index === -1) return prev;
+
+            const item = list[index];
+            const newQty = (item.selectionQuantity || 1) + delta;
+            
+            if (newQty <= 0) {
+                return {
+                    ...prev,
+                    [groupIndex]: list.filter(i => i.label !== optionLabel)
+                };
+            }
+
+            const totalInGroup = list.reduce((acc, curr, i) => acc + (i === index ? newQty : (curr.selectionQuantity || 1)), 0);
+            if (delta > 0 && totalInGroup > group.max_selections) {
+                toast.error(`Max ${group.max_selections} selections for ${group.name}`);
+                return prev;
+            }
+
+            const newList = [...list];
+            newList[index] = { ...item, selectionQuantity: newQty };
+            return { ...prev, [groupIndex]: newList };
         });
     };
 
@@ -126,8 +178,12 @@ export default function FoodCustomizationModal({
             const group = food.choice_groups[i];
             const sel = selections[i];
             let count = 0;
-            if (Array.isArray(sel)) count = sel.length;
-            else if (sel) count = 1;
+            if (Array.isArray(sel)) {
+                count = sel.reduce((acc, curr) => acc + (curr.selectionQuantity || 1), 0);
+            }
+            else if (sel) {
+                count = (sel.selectionQuantity || 1);
+            }
 
             if (group.is_required && count < group.min_selections) {
                 toast.error(
@@ -151,6 +207,7 @@ export default function FoodCustomizationModal({
                     option_id:            opt._id,
                     label:                opt.label,
                     price_modifier_naira: opt.price_modifier_naira,
+                    quantity:             opt.selectionQuantity || 1
                 });
             });
         });
@@ -196,7 +253,7 @@ export default function FoodCustomizationModal({
                     className="relative w-full max-w-lg bg-white dark:bg-slate-900  overflow-hidden flex flex-col max-h-[100vh]"
                 >
                     {/* Header Image */}
-                    <div className="relative h-[250px] sm:h-56 shrink-0">
+                    <div className="relative h-[220px] sm:h-56 shrink-0">
                         <img
                             src={food.image_url || "/placeholder.jpg"}
                             alt={food.name}
@@ -318,15 +375,33 @@ export default function FoodCustomizationModal({
                                                             )}
                                                         </div>
 
-                                                        {/* Check indicator */}
-                                                        {isSelected && (
-                                                            <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center shrink-0">
-                                                                <Check size={12} className="text-white" strokeWidth={3} />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
+                                                         {/* Check indicator / Quantity Selector */}
+                                                         {isSelected ? (
+                                                             <div className="flex items-center gap-3 bg-white dark:bg-slate-900 rounded-xl p-1 border border-orange-200 dark:border-orange-500/30" onClick={e => e.stopPropagation()}>
+                                                                 <button 
+                                                                     onClick={() => updateOptionQuantity(gIdx, option.label, -1, group)}
+                                                                     className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-orange-100 dark:hover:bg-orange-500/20 text-orange-600 transition-colors"
+                                                                 >
+                                                                     <Minus size={14} strokeWidth={3} />
+                                                                 </button>
+                                                                 <span className="text-sm font-black text-slate-900 dark:text-white min-w-[16px] text-center">
+                                                                     {Array.isArray(selections[gIdx]) 
+                                                                         ? selections[gIdx].find(i => i.label === option.label)?.selectionQuantity || 1
+                                                                         : selections[gIdx]?.selectionQuantity || 1}
+                                                                 </span>
+                                                                 <button 
+                                                                     onClick={() => updateOptionQuantity(gIdx, option.label, 1, group)}
+                                                                     className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-orange-100 dark:hover:bg-orange-500/20 text-orange-600 transition-colors"
+                                                                 >
+                                                                     <Plus size={14} strokeWidth={3} />
+                                                                 </button>
+                                                             </div>
+                                                         ) : (
+                                                            <div className="w-6 h-6 rounded-full border-2 border-slate-200 dark:border-slate-700" />
+                                                         )}
+                                                     </div>
+                                                 );
+                                             })}
                                     </div>
                                 </div>
                             ))}

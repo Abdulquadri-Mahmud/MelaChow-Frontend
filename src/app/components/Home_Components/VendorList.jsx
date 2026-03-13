@@ -47,6 +47,8 @@ export default function VendorList({ user }) {
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 
+    console.log(vendors);
+
     if (isLoading) return (
         <div className="mt-8 px-4 space-y-4" >
             <div className="h-6 w-48 bg-gray-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>
@@ -107,7 +109,7 @@ export default function VendorList({ user }) {
                     return (
                         <div
                             key={vendor._id}
-                            onClick={() => router.push(`/restataurants/${vendor._id}`)}
+                            onClick={() => router.push(`/restaurants/${vendor._id}`)}
                             className="group relative flex-none w-[250px] bg-white dark:bg-slate-900 rounded-[24px] transition-all duration-300 cursor-pointer snap-start border border-gray-100 dark:border-slate-800 overflow-hidden"
                         >
                             {/* Image Container */}

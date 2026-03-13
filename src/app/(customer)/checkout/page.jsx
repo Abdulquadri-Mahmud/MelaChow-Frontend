@@ -57,14 +57,14 @@ export default function CheckoutPage() {
   const defaultAddress = userData?.addresses?.find(a => a.isDefault);
 
   /* ---------------- CALCULATIONS ---------------- */
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + (item.price_naira || item.price || 0) * item.quantity, 0);
 
   // Resolution logic for delivery fees
   const [vendorFeesMap, setVendorFeesMap] = useState({});
 
   useEffect(() => {
     if (cart.length > 0 && isMounted) {
-      const uniqueIds = Array.from(new Set(cart.map(item => item.restaurantId)));
+      const uniqueIds = Array.from(new Set(cart.map(item => item.vendorId || item.restaurantId)));
       const fetchFees = async () => {
         const fees = {};
         await Promise.all(uniqueIds.map(async id => {
@@ -89,9 +89,10 @@ export default function CheckoutPage() {
   // One delivery fee per restaurant
   const restaurantDeliveryMap = {};
   cart.forEach(item => {
-    if (!restaurantDeliveryMap[item.restaurantId]) {
+    const vId = item.vendorId || item.restaurantId;
+    if (!restaurantDeliveryMap[vId]) {
       // Use resolved fee if available, else fallback to item.deliveryFee
-      restaurantDeliveryMap[item.restaurantId] = vendorFeesMap[item.restaurantId] ?? Number(item.deliveryFee || 0);
+      restaurantDeliveryMap[vId] = vendorFeesMap[vId] ?? Number(item.deliveryFee || 0);
     }
   });
 
@@ -128,11 +129,11 @@ export default function CheckoutPage() {
         deliveryFee,
         items: cart.map(item => ({
           foodId: item.foodId,
-          variantId: item.variantId,
-          restaurantId: item.restaurantId,
+          portionId: item.portionId || item.variantId,
+          vendorId: item.vendorId || item.restaurantId,
           quantity: item.quantity,
           storeName: item.storeName,
-          price: item.price
+          price_naira: item.price_naira || item.price
         }))
       };
       const res = await verifyDiscount(payload);
@@ -222,7 +223,7 @@ export default function CheckoutPage() {
       // Use resolved fees for the payload
       const resolvedCart = cart.map(item => ({
         ...item,
-        deliveryFee: vendorFeesMap[item.restaurantId] ?? item.deliveryFee
+        deliveryFee: vendorFeesMap[item.vendorId || item.restaurantId] ?? item.deliveryFee
       }));
 
       const orderPayload = transformCartToOrderV2(
@@ -486,7 +487,7 @@ export default function CheckoutPage() {
                 <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-tight italic">{storeName}</h3>
                 <div className="text-xs text-gray-500 flex flex-col items-end">
                   <span className="flex items-center gap-1 font-bold text-orange-600">
-                    ₦{restaurantDeliveryMap[items[0].restaurantId].toLocaleString()}
+                    ₦{restaurantDeliveryMap[items[0].vendorId || items[0].restaurantId]?.toLocaleString()}
                   </span>
                   {estTime && (
                     <span className="flex items-center gap-1 mt-1 font-medium bg-gray-50 px-2 py-0.5 rounded-full text-[10px]">
@@ -498,14 +499,17 @@ export default function CheckoutPage() {
 
               {/* Items */}
               {items.map(item => (
-                <div key={item.foodId + item.variantId} className="flex gap-3 border-b border-b-gray-50/50 last:border-0 pb-3 items-center group">
+                <div key={(item.foodId || '') + (item.portionId || item.variantId || '')} className="flex gap-3 border-b border-b-gray-50/50 last:border-0 pb-3 items-center group">
                   <div className="relative overflow-hidden rounded-xl">
-                    <img src={item.variant?.image || item.image} alt={item.name} className="w-12 h-12 object-cover transition-transform group-hover:scale-110" />
+                    <img src={item.image_url || item.image || "/placeholder.jpg"} alt={item.name} className="w-12 h-12 object-cover transition-transform group-hover:scale-110" />
                   </div>
                   <div className="flex-1 flex flex-col gap-0.5 min-w-0">
-                    <p className="text-sm text-gray-800 font-semibold uppercase italic leading-tight break-words">{item.variant?.name || item.variantName || item.name}</p>
+                    <p className="text-sm text-gray-800 font-semibold uppercase italic leading-tight break-words">{item.name}</p>
+                    {item.portion_label && (
+                      <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">{item.portion_label}</p>
+                    )}
                     <p className="text-[10px] text-gray-400 truncate font-bold uppercase tracking-tighter">{item.storeName}</p>
-                    <p className="text-xs text-gray-500 font-medium">₦{(item.price * item.quantity).toLocaleString()}</p>
+                    <p className="text-xs text-gray-500 font-medium">₦{((item.price_naira || item.price || 0) * item.quantity).toLocaleString()}</p>
                   </div>
                   <div className="bg-orange-50 px-2 py-1 rounded-lg">
                     <span className="text-sm font-black text-orange-600 italic">x{item.quantity}</span>
