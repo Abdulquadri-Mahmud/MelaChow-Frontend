@@ -193,7 +193,7 @@ export default function FoodCustomizationModal({
                     initial={{ y: "100%" }}
                     animate={{ y: 0 }}
                     exit={{ y: "100%" }}
-                    className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col max-h-[100vh]"
+                    className="relative w-full max-w-lg bg-white dark:bg-slate-900  overflow-hidden flex flex-col max-h-[100vh]"
                 >
                     {/* Header Image */}
                     <div className="relative h-[250px] sm:h-56 shrink-0">
@@ -210,7 +210,7 @@ export default function FoodCustomizationModal({
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto scrollbar-none pb-32">
+                    <div className="flex-1 overflow-y-auto scroll scrollbar-none pb-32">
                         {/* Food Info */}
                         <div className="p-4 border-b border-slate-100 dark:border-slate-800">
                             <h3 className="text-xl font-black text-slate-900 dark:text-white">
@@ -347,7 +347,13 @@ export default function FoodCustomizationModal({
                                     {quantity}
                                 </span>
                                 <button
-                                    onClick={() => setQuantity(quantity + 1)}
+                                    onClick={() => {
+                                        if (selectedPortion?.max_quantity && quantity >= selectedPortion.max_quantity) {
+                                            toast.error(`Maximum quantity allowed is ${selectedPortion.max_quantity}`);
+                                        } else {
+                                            setQuantity(quantity + 1);
+                                        }
+                                    }}
                                     className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 transition-colors"
                                 >
                                     <Plus size={16} />
