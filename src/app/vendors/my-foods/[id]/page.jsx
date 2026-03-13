@@ -11,7 +11,9 @@ import {
 } from "@/app/lib/menuApi";
 import { useVendorProfile } from "@/app/context/VendorProfileContext";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, ImageIcon, X, Plus, Tag, Clock, ChefHat, Leaf, FolderOpen, LayoutGrid } from "lucide-react";
+import { Plus, Tag, Clock, ChefHat, Leaf, FolderOpen, LayoutGrid, Edit2, Package, RefreshCw, Zap, Info, ChevronDown, ChevronUp, ImageIcon, Loader2, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { updateVariant } from "@/app/lib/menuApi";
 import toast from "react-hot-toast";
 import BackButton from "@/app/components/BackButton";
 
@@ -133,7 +135,7 @@ const BasicInfoSection = ({ item, vendorId, itemId, queryClient }) => {
         <SectionCard title="Basic Info" action={<button onClick={openEdit} className="h-9 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-orange-500 hover:border-orange-200 transition-all active:scale-95 shadow-sm">Edit</button>}>
             <div className="space-y-6">
                 {/* Image + description row */}
-                <div className="flex gap-6 items-start">
+                <div className="flex gap-3 items-start">
                     <div className="shrink-0 w-24 h-24 rounded-3xl overflow-hidden bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 shadow-inner group relative">
                         {item.image_url
                             ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -719,7 +721,7 @@ const AddOnsSection = ({ item, vendorId, itemId, queryClient }) => {
                             ))}
                             
                             {addingToGroup === g._id ? (
-                                <div className="p-6 my-2 mx-2 bg-slate-50 dark:bg-slate-900/80 rounded-[2rem] flex flex-col gap-5 border border-slate-200 dark:border-slate-800 shadow-inner">
+                                <div className="p-3 my-2 mx-2 bg-slate-50 dark:bg-slate-900/80 rounded-[2rem] flex flex-col gap-5 border border-slate-200 dark:border-slate-800 shadow-inner">
                                     <div className="flex items-center gap-2 mb-1">
                                          <div className="p-1.5 bg-orange-500 rounded-lg shadow-lg shadow-orange-500/20">
                                               <Plus size={14} className="text-white" />
@@ -813,6 +815,12 @@ export default function FoodManagementPage() {
     const queryClient = useQueryClient();
     const [allSections, setAllSections] = useState([]);
 
+    // Combo editing state
+    const [editingComboId, setEditingComboId]   = useState(null);
+    const [comboForm, setComboForm]             = useState({});
+    const [savingCombo, setSavingCombo]         = useState(false);
+    const [expandedComboId, setExpandedComboId] = useState(null);
+
     useEffect(() => {
         if (!vendorId) return;
         getVendorSections(vendorId).then(r => setAllSections(r.sections || [])).catch(() => {});
@@ -849,6 +857,50 @@ export default function FoodManagementPage() {
         }
     };
 
+    const openComboEdit = (combo) => {
+        setComboForm({
+            name:              combo.name,
+            description:       combo.description || "",
+            image_url:         combo.image_url || "",
+            price_naira:       combo.price_naira,
+            prep_time_minutes: combo.prep_time_minutes || "",
+        });
+        setEditingComboId(combo._id);
+        // Close expansion when editing
+        setExpandedComboId(null);
+    };
+
+    const handleSaveCombo = async (comboId) => {
+        if (!comboForm.name?.trim()) {
+            toast.error("Combo name is required");
+            return;
+        }
+        if (!comboForm.price_naira || Number(comboForm.price_naira) <= 0) {
+            toast.error("Price must be greater than zero");
+            return;
+        }
+        setSavingCombo(true);
+        try {
+            await updateVariant(vendorId, comboId, {
+                name:              comboForm.name.trim(),
+                description:       comboForm.description.trim() || null,
+                image_url:         comboForm.image_url.trim() || null,
+                price_naira:       Number(comboForm.price_naira),
+                prep_time_minutes: comboForm.prep_time_minutes
+                                   ? Number(comboForm.prep_time_minutes)
+                                   : null,
+            });
+            queryClient.invalidateQueries({ queryKey: ["food-item", itemId] });
+            queryClient.invalidateQueries({ queryKey: ["vendor-foods", vendorId] });
+            setEditingComboId(null);
+            toast.success("Combo updated");
+        } catch (err) {
+            toast.error(err?.response?.data?.message || "Could not update combo");
+        } finally {
+            setSavingCombo(false);
+        }
+    };
+
     if (isLoading || !item) return (
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 flex flex-col items-center justify-center">
             <Loader2 className="animate-spin text-orange-500 mb-4" size={40} />
@@ -864,20 +916,20 @@ export default function FoodManagementPage() {
     );
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-32 transition-all duration-500">
-            <div className="max-w-[1400px] mx-auto px-6 md:px-12 space-y-12">
+        <div className="min-h-screen bg-[#F8FAFC] rounded-md dark:bg-slate-950 pb-32 transition-all duration-500">
+            <div className="max-w-[1400px] mx-auto px-2 md:px-12 space-y-12">
 
                 {/* PAGE TITLE & INFO */}
-                <div className="pt-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <BackButton label="" href="/vendors/my-foods" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 shadow-sm hover:border-orange-200 transition-all active:scale-95" />
+                <div className="pt-3 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                            <BackButton label="" href="/vendors/my-foods" className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-2.5 shadow-sm hover:border-orange-200 transition-all active:scale-95" />
                             <div>
                                 <div className="flex items-center gap-2 mb-2">
                                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
                                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Inventory Manager</span>
                                 </div>
-                                <h1 className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-none">Command Center</h1>
+                                <h2 className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">Command Center</h2>
                             </div>
                         </div>
                         <p className="text-lg text-slate-500 dark:text-slate-400 font-medium max-w-2xl leading-relaxed pl-[66px]">
@@ -901,8 +953,8 @@ export default function FoodManagementPage() {
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-[4rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] dark:shadow-none relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/5 rounded-full -mr-48 -mt-48 blur-3xl animate-pulse" />
                     
-                    <div className="bg-slate-50/50 dark:bg-slate-800/40 rounded-[3.5rem] p-2 border border-slate-100 dark:border-slate-800 relative z-10">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                    <div className="bg-slate-50/50 dark:bg-slate-800/40 rounded-[3.5rem] md:p-2 border border-slate-100 dark:border-slate-800 relative z-10">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
                             {/* Visual Asset Container */}
                             <div className="lg:col-span-3">
                                 <div className="relative aspect-square rounded-[3rem] overflow-hidden bg-slate-200 dark:bg-slate-950 border-4 border-white dark:border-slate-800 shadow-2xl group/thumb pointer-events-none">
@@ -914,7 +966,7 @@ export default function FoodManagementPage() {
                                             <span className="text-[10px] font-black uppercase tracking-widest">No Visual Attached</span>
                                         </div>
                                     )}
-                                    <div className="absolute top-6 left-6 flex flex-col gap-2">
+                                    <div className="absolute top-3 left-6 flex flex-col gap-2">
                                         {item.is_archived && <span className="px-4 py-2 bg-slate-900/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest rounded-2xl border border-white/20">Archived</span>}
                                         {!item.is_available && !item.is_archived && <span className="px-5 py-2 bg-amber-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-amber-500/30">Offline</span>}
                                         {item.is_available && <span className="px-5 py-2 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-emerald-500/30">Live Now</span>}
@@ -924,9 +976,9 @@ export default function FoodManagementPage() {
 
                             {/* Essential Details & Quick Moves */}
                             <div className="lg:col-span-9 flex flex-col xl:flex-row justify-between xl:items-center gap-10">
-                                <div className="space-y-6">
+                                <div className="space-y-6 md:px-0 px-2">
                                     <div>
-                                        <h1 className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tighter leading-[1.05] mb-6">{item.name}</h1>
+                                        <h1 className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tighter leading-[1.05] mb-6">{item.name}</h1>
                                         <div className="flex flex-wrap items-center gap-4">
                                             <DietaryBadge type={item.dietary_type} />
                                             <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1" />
@@ -976,27 +1028,247 @@ export default function FoodManagementPage() {
                         <PortionsSection item={item} vendorId={vendorId} itemId={itemId} queryClient={queryClient} />
 
                         {item.combos?.length > 0 && (
-                            <SectionCard title="Cross-Platform Combos" className="border-indigo-100 dark:border-indigo-500/20 bg-indigo-50/10">
-                                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-6 flex items-start gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-indigo-100 dark:border-slate-800">
-                                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1 shrink-0" />
-                                     This item is integrated into the following active combos. You must remove it from these bundles before complete deletion.
-                                </p>
-                                <div className="grid grid-cols-1 gap-3">
+                            <SectionCard
+                                title="In Combos"
+                                action={
+                                    <div className="flex items-center gap-2">
+                                        <Package size={14} className="text-orange-500" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                            {item.combos.length} bundle{item.combos.length > 1 ? "s" : ""}
+                                        </span>
+                                    </div>
+                                }
+                            >
+                                <div className="p-4 mb-6 rounded-2xl bg-orange-50/50 dark:bg-orange-500/5 border border-orange-100 dark:border-orange-500/10 flex gap-3 items-start">
+                                    <Info size={16} className="text-orange-500 mt-0.5 shrink-0" />
+                                    <p className="text-[11px] font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
+                                        This item is currently bundled in the active combos listed below. Changes to the base item may affect customer selection in these bundles.
+                                    </p>
+                                </div>
+
+                                <div className="space-y-4">
                                     {item.combos.map(combo => (
-                                        <div key={combo._id} className="p-4 rounded-[1.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-between group cursor-default transition-all hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/5">
-                                            <div className="flex items-center gap-3">
-                                                 <div className="text-xl">🍱</div>
-                                                 <div>
-                                                      <span className="text-sm font-black text-slate-800 dark:text-white block tracking-tight uppercase">{combo.name}</span>
-                                                      <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 tracking-widest uppercase">Combo Base</span>
-                                                 </div>
+                                        <div key={combo._id}
+                                             className={`rounded-[2rem] border overflow-hidden transition-all duration-300 ${
+                                                 editingComboId === combo._id 
+                                                 ? 'border-orange-500 shadow-2xl shadow-orange-500/10 bg-white dark:bg-slate-950 ring-4 ring-orange-500/5' 
+                                                 : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:border-orange-200 dark:hover:border-slate-700'
+                                             }`}>
+
+                                            {/* ── COMBO HEADER ROW ─────────────────── */}
+                                            <div className="flex items-center justify-between gap-4 p-5">
+                                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                    {/* Combo image or emoji fallback */}
+                                                    <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 shadow-inner group-hover:scale-105 transition-transform">
+                                                        {combo.image_url ? (
+                                                            <img src={combo.image_url} alt={combo.name} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <Package size={20} className="text-slate-400" />
+                                                        )}
+                                                    </div>
+
+                                                    {/* Name + price */}
+                                                    <div className="min-w-0">
+                                                        <h4 className="font-black text-[15px] text-slate-900 dark:text-white truncate uppercase tracking-tight">
+                                                            {combo.name}
+                                                        </h4>
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            <span className="text-sm font-black text-orange-600 dark:text-orange-400">
+                                                                ₦{combo.price_naira?.toLocaleString()}
+                                                            </span>
+                                                            <div className="w-1 h-1 rounded-full bg-slate-300" />
+                                                            <span className={`text-[9px] font-black uppercase tracking-widest ${combo.is_available ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                                                {combo.is_available ? "Live" : "Offline"}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    <button
+                                                        onClick={() => setExpandedComboId(expandedComboId === combo._id ? null : combo._id)}
+                                                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                                                            expandedComboId === combo._id
+                                                            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
+                                                            : 'bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                                        }`}>
+                                                        {expandedComboId === combo._id ? <ChevronUp size={16} strokeWidth={3} /> : <ChevronDown size={16} strokeWidth={3} />}
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => openComboEdit(combo)}
+                                                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                                                            editingComboId === combo._id
+                                                            ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
+                                                            : 'bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10'
+                                                        }`}>
+                                                        <Edit2 size={14} strokeWidth={3} />
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <span className="text-sm font-black text-slate-900 dark:text-white">₦{combo.price_naira?.toLocaleString()}</span>
+
+                                            {/* ── INLINE EDIT FORM ─────────────────── */}
+                                            <AnimatePresence>
+                                                {editingComboId === combo._id && (
+                                                    <motion.div 
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: "auto", opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        className="overflow-hidden border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30"
+                                                    >
+                                                        <div className="p-6 space-y-5">
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                                                <div className="sm:col-span-2">
+                                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2 px-1">Bundle Identity</label>
+                                                                    <input
+                                                                        value={comboForm.name}
+                                                                        onChange={e => setComboForm(f => ({ ...f, name: e.target.value }))}
+                                                                        className="w-full h-12 px-4 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all"
+                                                                        placeholder="Combo Name"
+                                                                    />
+                                                                </div>
+
+                                                                <div>
+                                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2 px-1">Smart Price (₦)</label>
+                                                                    <div className="relative">
+                                                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-300">₦</span>
+                                                                        <input
+                                                                            type="number"
+                                                                            value={comboForm.price_naira}
+                                                                            onChange={e => setComboForm(f => ({ ...f, price_naira: e.target.value }))}
+                                                                            className="w-full h-12 pl-10 pr-4 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-black text-orange-600 dark:text-orange-400 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div>
+                                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2 px-1">Prep Time (min)</label>
+                                                                    <div className="relative">
+                                                                        <Clock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                                                                        <input
+                                                                            type="number"
+                                                                            value={comboForm.prep_time_minutes}
+                                                                            onChange={e => setComboForm(f => ({ ...f, prep_time_minutes: e.target.value }))}
+                                                                            className="w-full h-12 pl-10 pr-4 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all"
+                                                                            placeholder="Est. prep"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="sm:col-span-2">
+                                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2 px-1">Description / Market Catchphrase</label>
+                                                                    <textarea
+                                                                        value={comboForm.description}
+                                                                        onChange={e => setComboForm(f => ({ ...f, description: e.target.value }))}
+                                                                        rows={2}
+                                                                        className="w-full px-4 py-3 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-medium text-slate-700 dark:text-slate-300 focus:outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all resize-none"
+                                                                        placeholder="Tell customers what's in the bundle..."
+                                                                    />
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex gap-3 pt-2">
+                                                                <button
+                                                                    onClick={() => setEditingComboId(null)}
+                                                                    className="flex-1 h-12 rounded-[1.25rem] border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800 transition-all uppercase tracking-widest"
+                                                                >
+                                                                    Discard Changes
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleSaveCombo(combo._id)}
+                                                                    disabled={savingCombo}
+                                                                    className="flex-1 h-12 rounded-[1.25rem] bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black disabled:opacity-50 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-xl uppercase tracking-widest"
+                                                                >
+                                                                    {savingCombo ? <Loader2 size={16} className="animate-spin" /> : <Zap size={14} className="fill-current" />}
+                                                                    Apply Update
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+
+                                            {/* ── EXPANDED DETAIL (components + swaps) ─ */}
+                                            <AnimatePresence>
+                                                {expandedComboId === combo._id && editingComboId !== combo._id && (
+                                                    <motion.div 
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: "auto", opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        className="overflow-hidden border-t border-slate-100 dark:border-slate-800"
+                                                    >
+                                                        <div className="p-5 space-y-6">
+                                                            {/* Components */}
+                                                            {combo.components?.length > 0 && (
+                                                                <div className="space-y-3">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <LayoutGrid size={12} className="text-orange-500" />
+                                                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Bundle Contents</span>
+                                                                    </div>
+                                                                    <div className="grid grid-cols-1 gap-2">
+                                                                        {combo.components.map(comp => (
+                                                                            <div key={comp._id} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-transparent hover:border-slate-200 dark:hover:border-slate-800 transition-all">
+                                                                                <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 overflow-hidden shrink-0 flex items-center justify-center border border-slate-100 dark:border-slate-700 shadow-sm font-black text-xs text-slate-400">
+                                                                                    {comp.image_url ? <img src={comp.image_url} alt={comp.name} className="w-full h-full object-cover" /> : "🍽"}
+                                                                                </div>
+                                                                                <div className="flex-1 min-w-0">
+                                                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 block truncate">{comp.name}</span>
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{comp.component_type || "FIXED"}</span>
+                                                                                        {comp.quantity > 1 && <span className="text-[10px] font-black text-orange-500 bg-orange-500/10 px-1.5 py-0.5 rounded-md">×{comp.quantity}</span>}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {/* Swap groups */}
+                                                            {combo.swap_groups?.length > 0 && (
+                                                                <div className="space-y-3">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <RefreshCw size={12} className="text-orange-500" />
+                                                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Customization Swaps</span>
+                                                                    </div>
+                                                                    <div className="space-y-4">
+                                                                        {combo.swap_groups.map(group => (
+                                                                            <div key={group._id} className="p-4 rounded-[1.5rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700 shadow-sm relative overflow-hidden">
+                                                                                <div className="absolute top-0 right-0 w-16 h-16 bg-orange-500/5 rounded-full -mr-8 -mt-8 grayscale blur-xl" />
+                                                                                <div className="flex items-center gap-2 mb-3">
+                                                                                    <div className="w-1 h-3 bg-orange-500 rounded-full" />
+                                                                                    <p className="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-tight">{group.name}</p>
+                                                                                </div>
+                                                                                <div className="flex flex-wrap gap-2 pl-3">
+                                                                                    {group.options.map(opt => (
+                                                                                        <span key={opt._id} className="text-[10px] px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                                                                            {opt.name}
+                                                                                            {opt.price_modifier_naira > 0 ? <span className="text-orange-500 font-black">+₦{opt.price_modifier_naira.toLocaleString()}</span> : <span className="text-emerald-500 uppercase">Free</span>}
+                                                                                        </span>
+                                                                                    ))}
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {combo.swap_groups?.length === 0 && (
+                                                                <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 text-center">
+                                                                    <Package size={24} className="text-slate-300 mx-auto mb-2 opacity-50" />
+                                                                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Standard Combo · Rigid Contents</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
                                         </div>
                                     ))}
                                 </div>
                             </SectionCard>
                         )}
+
 
                         {/* Quick Tips or Audit Trail Placeholder */}
                         <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-2xl relative overflow-hidden">

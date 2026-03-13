@@ -3,24 +3,15 @@
 import { useCreateComboStore } from "@/app/context/CreateComboStore";
 import { useVendorProfile } from "@/app/context/VendorProfileContext";
 import {
-    createVariant,
-    addVariantComponent,
-    addVariantChoiceGroup,
-    addVariantChoiceOption,
-    toggleVariantAvailability,
-} from "@/app/lib/menuApi";
-import {
     Plus,
     X,
-    ArrowLeft,
-    Rocket,
-    Loader2,
     ChevronRight,
     ToggleLeft,
-    ToggleRight
+    ToggleRight,
+    RotateCcw, // Added RotateCcw as it's used in JSX
+    Info // Added Info as it's used in JSX
 } from "lucide-react";
 import { useState } from "react";
-import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 export default function ComboStep3Swaps({ onBack }) {
@@ -29,6 +20,11 @@ export default function ComboStep3Swaps({ onBack }) {
     const { vendorProfile } = useVendorProfile();
     const vendorId = vendorProfile?._id || vendorProfile?.id;
 
+    const [activeCompId, setActiveCompId] = useState(store.components[0]?.tempId);
+    const activeComp = store.components.find(c => c.tempId === activeCompId) || store.components[0];
+    const activeGroup = store.swap_groups.find(g => g.component_tempId === activeCompId);
+
+    // Added optionInputs state as it's used in handleAddOption and JSX
     const [optionInputs, setOptionInputs] = useState({});
 
     const handleToggleSwap = (comp) => {
@@ -39,7 +35,7 @@ export default function ComboStep3Swaps({ onBack }) {
             store.addSwapGroup({
                 tempId: Date.now().toString(),
                 component_tempId: comp.tempId,
-                label: `Swap your ${comp.menu_item_name}`,
+                label: `Swap ${comp.menu_item_name}`,
                 options: []
             });
         }
@@ -60,238 +56,250 @@ export default function ComboStep3Swaps({ onBack }) {
         }));
     };
 
-    const handlePublish = async () => {
-        if (!vendorId) {
-            toast.error("Vendor session not found.");
-            return;
-        }
-
-        store.setField("isSubmitting", true);
-        const loadingToast = toast.loading("Publishing your combo...");
-
-        try {
-            // ── A. Create the base variant ────────────────────────
-            const variantRes = await createVariant(vendorId, {
-                name: store.name.trim(),
-                description: store.description?.trim() || undefined,
-                image_url: store.image_url || undefined,
-                price: Math.round(Number(store.price_naira) * 100), // naira → kobo
-                prep_time_minutes: store.prep_time_minutes || undefined,
-                tags: store.tags || [],
-            });
-
-            const variantId = variantRes?.variant?._id || variantRes?.variant?.id || variantRes?._id;
-            if (!variantId) {
-                throw new Error("Combo was created but ID was not returned.");
-            }
-
-            // ── B. Add fixed components (one per selected item) ───
-            for (let i = 0; i < store.components.length; i++) {
-                const comp = store.components[i];
-                await addVariantComponent(vendorId, variantId, {
-                    component_type: "FIXED",
-                    menu_item_id: comp.menu_item_id,
-                    quantity: comp.quantity || 1,
-                    label: comp.menu_item_name,
-                    sort_order: i,
-                });
-            }
-
-            // ── C + D. Add swap groups and their options ──────────
-            if (store.swap_groups && store.swap_groups.length > 0) {
-                for (let i = 0; i < store.swap_groups.length; i++) {
-                    const swapGroup = store.swap_groups[i];
-                    if (swapGroup.options.length === 0) continue;
-
-                    const groupRes = await addVariantChoiceGroup(vendorId, variantId, {
-                        name: swapGroup.label,
-                        min_selections: 0, // usually optional for swaps
-                        max_selections: 1,
-                        is_required: false,
-                        sort_order: i,
-                    });
-
-                    const groupId = groupRes?.group?._id || groupRes?.choiceGroup?._id || groupRes?.id;
-                    if (!groupId) continue;
-
-                    // Add options for this swap group
-                    for (let j = 0; j < (swapGroup.options || []).length; j++) {
-                        const opt = swapGroup.options[j];
-                        await addVariantChoiceOption(groupId, {
-                            label: opt.label,
-                            menu_item_id: opt.menu_item_id || null,
-                            price_modifier: Math.round(Number(opt.price_modifier_naira || 0) * 100),
-                            is_available: true,
-                            sort_order: j,
-                        });
-                    }
-                }
-            }
-
-            // ── E. Make the combo available ───────────────────────
-            await toggleVariantAvailability(vendorId, variantId, true);
-
-            toast.success("Combo is live on your menu! 🎉", { id: loadingToast });
-            store.reset();
-            if (typeof window !== "undefined") {
-                sessionStorage.removeItem("gd_create_combo_wizard");
-            }
-            router.push("/vendors/my-foods");
-
-        } catch (error) {
-            console.error("Publishing error", error);
-            const msg = error?.response?.data?.message || error?.message;
-            toast.error(msg || "Something went wrong. Please try again.", {
-                id: loadingToast,
-            });
-        } finally {
-            store.setField("isSubmitting", false);
-        }
-    };
-
     return (
-        <div className="max-w-2xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
-            <div>
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Want customers to swap any item?</h2>
-                <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">Optional. Allow customers to swap components (e.g. Chicken for Fish) for a price modifier.</p>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 p-3 lg:p-6 pb-20">
+            {/* ── SWAP EDUCATION BANNER ─────────────────────────── */}
+            <div className="p-5 rounded-[1.5rem] bg-orange-50 dark:bg-orange-500/10
+                            border border-orange-100 dark:border-orange-500/20
+                            flex gap-4 items-start mb-10">
+                <span className="text-2xl shrink-0 mt-0.5">🔄</span>
+                <div className="space-y-1.5">
+                    <p className="text-sm font-black text-orange-800 dark:text-orange-400
+                                  tracking-tight">
+                        What are swaps?
+                    </p>
+                    <p className="text-[13px] text-orange-700/80 dark:text-orange-400/70
+                                  font-medium leading-relaxed">
+                        Swaps let customers personalise your combo without you
+                        rebuilding it from scratch. A combo is a fixed bundle —
+                        but customers always have preferences. Someone ordering
+                        your Family Meal might want Jollof instead of Fried Rice,
+                        or Fish instead of Chicken.
+                    </p>
+                    <p className="text-[13px] text-orange-700/80 dark:text-orange-400/70
+                                  font-medium leading-relaxed">
+                        Define the allowed swaps here once. Customers pick at
+                        checkout — your combo stays as one clean product on the menu.
+                    </p>
+                    <p className="text-[11px] font-black text-orange-500/70
+                                  dark:text-orange-500/50 uppercase tracking-widest mt-2">
+                        Optional — skip this step if your combo has no swaps
+                    </p>
+                </div>
             </div>
 
-            <div className="space-y-6">
-                {store.components.map(comp => {
-                    const swapGroup = store.swap_groups.find(g => g.component_tempId === comp.tempId);
+            <div>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-1">
+                    Swap Configuration
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    Give customers flexibility. Toggle which items can be swapped and set price modifiers.
+                </p>
+            </div>
 
-                    return (
-                        <div key={comp.tempId} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm transition-all">
-                            {/* Component Header */}
-                            <div className="p-5 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 overflow-hidden shrink-0 flex items-center justify-center font-black text-slate-400 text-[10px]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                {/* LEFT: COMPONENT LIST */}
+                <div className="lg:col-span-4 space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">
+                        Select Component
+                    </label>
+                    <div className="space-y-3">
+                        {store.components.map(comp => {
+                            const isSwappable = store.swap_groups.some(g => g.component_tempId === comp.tempId);
+                            const isActive = activeCompId === comp.tempId;
+
+                            return (
+                                <button
+                                    key={comp.tempId}
+                                    onClick={() => setActiveCompId(comp.tempId)}
+                                    className={`w-full p-4 rounded-2xl border transition-all flex items-center gap-4 text-left group ${
+                                        isActive 
+                                            ? "bg-white dark:bg-slate-900 border-orange-500 shadow-lg shadow-orange-500/5 translate-x-1" 
+                                            : "bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900"
+                                    }`}
+                                >
+                                    <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0 overflow-hidden shadow-inner">
                                         {comp.menu_item_image ? (
                                             <img src={comp.menu_item_image} alt="" className="w-full h-full object-cover" />
                                         ) : (
-                                            comp.menu_item_name.charAt(0).toUpperCase()
+                                            <div className="w-full h-full flex items-center justify-center font-black text-slate-400 text-xs">
+                                                {comp.menu_item_name.charAt(0).toUpperCase()}
+                                            </div>
                                         )}
                                     </div>
-                                    <div>
-                                        <h4 className="font-bold text-slate-900 dark:text-white leading-tight">{comp.menu_item_name}</h4>
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Component</p>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className={`font-bold text-sm truncate tracking-tight transition-colors ${isActive ? "text-orange-600 dark:text-orange-400" : "text-slate-900 dark:text-white"}`}>
+                                            {comp.menu_item_name}
+                                        </h4>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            {isSwappable ? (
+                                                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1">
+                                                    <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                                                    Swappable
+                                                </span>
+                                            ) : (
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Fixed</span>
+                                            )}
+                                        </div>
                                     </div>
+                                    {isActive && (
+                                        <ChevronRight size={16} className="text-orange-500" />
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* RIGHT: CONFIGURATION WORKSPACE */}
+                <div className="lg:col-span-8">
+                    {activeComp ? (
+                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-sm animate-in fade-in zoom-in-95 duration-300">
+                            {/* Workspace Header */}
+                            <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/30 dark:bg-slate-950/20">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="w-1 h-1 rounded-full bg-orange-500" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Swap Hub</p>
+                                    </div>
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                        {activeComp.menu_item_name}
+                                    </h3>
                                 </div>
 
                                 <button
-                                    onClick={() => handleToggleSwap(comp)}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all ${swapGroup
-                                        ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
-                                        : "bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                                        }`}
+                                    onClick={() => handleToggleSwap(activeComp)}
+                                    className={`flex items-center gap-3 px-5 py-3 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest ${
+                                        activeGroup
+                                            ? "bg-emerald-500 text-white shadow-xl shadow-emerald-500/20"
+                                            : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                                    }`}
                                 >
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Allow swaps</span>
-                                    {swapGroup ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
+                                    {activeGroup ? (
+                                        <><ToggleRight size={22} className="stroke-[2.5px]" /> Enabled</>
+                                    ) : (
+                                        <><ToggleLeft size={22} className="stroke-[2.5px]" /> Disabled</>
+                                    )}
                                 </button>
                             </div>
 
-                            {/* Swap Options Form & List */}
-                            {swapGroup && (
-                                <div className="p-6 bg-slate-50/50 dark:bg-slate-800/10 space-y-6 animate-in slide-in-from-top-2 duration-300">
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Swap Group Label</label>
-                                        <input
-                                            type="text"
-                                            value={swapGroup.label}
-                                            onChange={(e) => store.updateSwapGroup(swapGroup.tempId, { label: e.target.value })}
-                                            className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-bold text-slate-900 dark:text-white outline-none focus:border-slate-900"
-                                        />
-                                    </div>
+                            {/* Configuration Body */}
+                            <div className="p-8">
+                                {activeGroup ? (
+                                    <div className="space-y-8">
+                                        <div className="space-y-3">
+                                            <label className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-300">
+                                                Customer Choice Label
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={activeGroup.label}
+                                                placeholder="e.g. Choose your Protein swap"
+                                                onChange={(e) => store.updateSwapGroup(activeGroup.tempId, { label: e.target.value })}
+                                                className="w-full h-14 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-orange-500 dark:focus:border-orange-500 transition-all font-bold text-slate-900 dark:text-white outline-none"
+                                            />
+                                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 px-1">
+                                                This is the heading customers will see in the ordering flow.
+                                            </p>
+                                        </div>
 
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Added Options</label>
-                                        <div className="space-y-2">
-                                            {swapGroup.options.map(opt => (
-                                                <div key={opt.tempId} className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl group/opt">
-                                                    <span className="text-sm font-bold text-slate-900 dark:text-white">{opt.label}</span>
-                                                    <div className="flex items-center gap-3">
-                                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${opt.price_modifier_naira > 0
-                                                            ? "bg-orange-100 text-orange-600"
-                                                            : opt.price_modifier_naira < 0
-                                                                ? "bg-emerald-100 text-emerald-600"
-                                                                : "bg-slate-100 text-slate-500"
-                                                            }`}>
-                                                            {opt.price_modifier_naira > 0 ? `+₦${opt.price_modifier_naira}` : opt.price_modifier_naira < 0 ? `-₦${Math.abs(opt.price_modifier_naira)}` : 'FREE'}
-                                                        </span>
-                                                        <button
-                                                            onClick={() => store.removeSwapOption(swapGroup.tempId, opt.tempId)}
-                                                            className="text-slate-300 hover:text-rose-500 opacity-0 group-hover/opt:opacity-100 transition-opacity"
-                                                        ><X size={14} /></button>
+                                        <div className="space-y-4">
+                                            <label className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-300">
+                                                Swap Options
+                                            </label>
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                                                {activeGroup.options.length > 0 ? (
+                                                    activeGroup.options.map(opt => (
+                                                        <div key={opt.tempId} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl group/opt animate-in slide-in-from-top-2">
+                                                            <div className="min-w-0">
+                                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{opt.label}</p>
+                                                                <p className={`text-[10px] font-black mt-0.5 ${
+                                                                    opt.price_modifier_naira > 0 ? "text-orange-500" : opt.price_modifier_naira < 0 ? "text-emerald-500" : "text-slate-400"
+                                                                }`}>
+                                                                    {opt.price_modifier_naira > 0 ? `+₦${opt.price_modifier_naira.toLocaleString()}` : opt.price_modifier_naira < 0 ? `-₦${Math.abs(opt.price_modifier_naira).toLocaleString()}` : 'FREE SWAP'}
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => store.removeSwapOption(activeGroup.tempId, opt.tempId)}
+                                                                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
+                                                            ><X size={14} strokeWidth={3} /></button>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="md:col-span-2 p-8 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-[2rem] text-center">
+                                                        <p className="text-xs font-bold text-slate-400">No swap options added yet.</p>
                                                     </div>
-                                                </div>
-                                            ))}
-
-                                            {/* Form to add */}
-                                            <div className="flex items-center gap-2 pt-2">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Option name eg. Beef Pattle"
-                                                    value={optionInputs[swapGroup.tempId]?.name || ""}
-                                                    onChange={(e) => setOptionInputs(prev => ({
-                                                        ...prev,
-                                                        [swapGroup.tempId]: { ...prev[swapGroup.tempId], name: e.target.value }
-                                                    }))}
-                                                    className="flex-1 h-10 px-3.5 text-xs font-bold text-slate-900 bg-white dark:bg-slate-900 dark:text-white rounded-lg border border-slate-200 dark:border-slate-800 outline-none focus:border-slate-900"
-                                                />
-                                                <div className="relative w-24">
-                                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 pointer-events-none">₦</span>
-                                                    <input
-                                                        type="number"
-                                                        placeholder="0"
-                                                        value={optionInputs[swapGroup.tempId]?.price || ""}
-                                                        onChange={(e) => setOptionInputs(prev => ({
-                                                            ...prev,
-                                                            [swapGroup.tempId]: { ...prev[swapGroup.tempId], price: e.target.value }
-                                                        }))}
-                                                        className="w-full h-10 pl-6 pr-2 text-xs font-black text-slate-900 bg-white dark:bg-slate-900 dark:text-white rounded-lg border border-slate-200 dark:border-slate-800 outline-none focus:border-slate-900"
-                                                    />
-                                                </div>
-                                                <button
-                                                    onClick={() => handleAddOption(swapGroup.tempId)}
-                                                    disabled={!optionInputs[swapGroup.tempId]?.name?.trim()}
-                                                    className="w-10 h-10 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center disabled:opacity-30 transition-all hover:scale-105"
-                                                >
-                                                    <Plus size={18} />
-                                                </button>
+                                                )}
                                             </div>
-                                            <p className="text-[10px] font-bold text-slate-400 pt-1 leading-relaxed">
-                                                Use negative numbers for cheaper swaps e.g. -200
+
+                                            {/* Add Form */}
+                                            <div className="bg-slate-50 dark:bg-slate-950/50 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Add Alternative Option</p>
+                                                <div className="flex flex-col sm:flex-row items-center gap-3">
+                                                    <div className="flex-1 w-full relative">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Alternative name (e.g. Beef Steak)"
+                                                            value={optionInputs[activeGroup.tempId]?.name || ""}
+                                                            onChange={(e) => setOptionInputs(prev => ({
+                                                                ...prev,
+                                                                [activeGroup.tempId]: { ...prev[activeGroup.tempId], name: e.target.value }
+                                                            }))}
+                                                            className="w-full h-12 px-4 text-xs font-bold text-slate-900 bg-white dark:bg-slate-900 dark:text-white rounded-xl border border-slate-200 dark:border-slate-800 outline-none focus:border-orange-500 transition-all"
+                                                        />
+                                                    </div>
+                                                    <div className="w-full sm:w-32 relative">
+                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 pointer-events-none">₦</span>
+                                                        <input
+                                                            type="number"
+                                                            placeholder="0"
+                                                            value={optionInputs[activeGroup.tempId]?.price || ""}
+                                                            onChange={(e) => setOptionInputs(prev => ({
+                                                                ...prev,
+                                                                [activeGroup.tempId]: { ...prev[activeGroup.tempId], price: e.target.value }
+                                                            }))}
+                                                            className="w-full h-12 pl-7 pr-3 text-xs font-black text-slate-900 bg-white dark:bg-slate-900 dark:text-white rounded-xl border border-slate-200 dark:border-slate-800 outline-none focus:border-orange-500 transition-all"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleAddOption(activeGroup.tempId)}
+                                                        disabled={!optionInputs[activeGroup.tempId]?.name?.trim()}
+                                                        className="w-full sm:w-12 h-12 rounded-xl bg-orange-500 text-white flex items-center justify-center disabled:opacity-30 transition-all hover:scale-105 shadow-lg shadow-orange-500/20 active:scale-95 shrink-0"
+                                                    >
+                                                        <Plus size={20} strokeWidth={3} />
+                                                    </button>
+                                                </div>
+                                                <p className="mt-3 text-[9px] font-bold text-slate-400 flex items-center gap-2">
+                                                    <Info size={10} />
+                                                    Use negative modifiers (e.g. -200) if the alternative is cheaper than the original.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="py-20 text-center space-y-4">
+                                        <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] flex items-center justify-center mx-auto text-slate-300 dark:text-slate-700 border-2 border-dashed border-slate-200 dark:border-slate-800">
+                                            <RotateCcw size={32} />
+                                        </div>
+                                        <div>
+                                            <p className="text-base font-black text-slate-900 dark:text-white tracking-tight">Fixed Component</p>
+                                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1 max-w-[250px] mx-auto leading-relaxed">
+                                                This item is currently locked. Toggle <strong>"Allow Swaps"</strong> to enable custom alternatives.
                                             </p>
                                         </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    );
-                })}
+                    ) : (
+                        <div className="p-20 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[2.5rem]">
+                            <p className="text-sm font-bold text-slate-400">Select an item on the left to configure swaps.</p>
+                        </div>
+                    )}
+                </div>
             </div>
 
-            {/* Actions */}
-            <div className="pt-8 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
-                <button
-                    disabled={store.isSubmitting}
-                    onClick={onBack}
-                    className="h-14 px-6 flex items-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-900 rounded-2xl transition-all font-black uppercase tracking-widest gap-2 disabled:opacity-30 active:scale-95 text-xs shadow-sm border border-slate-100 dark:border-slate-800"
-                >
-                    <ArrowLeft size={16} /> Back
-                </button>
-                <button
-                    disabled={store.isSubmitting}
-                    onClick={handlePublish}
-                    className="h-14 px-10 bg-emerald-500 hover:bg-emerald-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 disabled:opacity-50"
-                >
-                    {store.isSubmitting ? (
-                        <><Loader2 className="animate-spin" size={18} /> Finalizing...</>
-                    ) : (
-                        <><Rocket size={18} /> Publish Combo</>
-                    )}
-                </button>
-            </div>
         </div>
     );
 }

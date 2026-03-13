@@ -161,84 +161,40 @@ export default function ComboStep2Components({ onNext, onBack }) {
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="space-y-4">
-                {/* Step heading */}
-                <div>
-                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                        Build Your Bundle
-                    </h2>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">
-                        Select at least 2 items from your menu that will be
-                        sold together as one combo deal.
-                    </p>
-                </div>
-
-                {/* Concept explainer — collapses after vendor adds first item */}
-                {store.components.length === 0 && (
-                    <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-100 dark:border-orange-500/20 rounded-2xl p-4 flex gap-4">
-                        <div className="text-2xl shrink-0">🍱</div>
-                        <div className="space-y-1">
-                            <p className="text-xs font-black text-orange-700 dark:text-orange-400 uppercase tracking-widest">
-                                How combos work
-                            </p>
-                            <p className="text-sm text-orange-800 dark:text-orange-300 font-medium leading-relaxed">
-                                A combo bundles multiple menu items into one
-                                purchasable deal — e.g. <strong>Jollof Rice +
-                                    Chicken + Drink</strong> sold together for ₦2,500
-                                instead of ₦3,200 separately. Customers order it
-                                as a single item.
-                            </p>
-                        </div>
-                    </div>
-                )}
-
-                {/* Live progress hint once items are being added */}
-                {store.components.length > 0 && store.components.length < 2 && (
-                    <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-2xl px-4 py-3 flex items-center gap-3">
-                        <span className="text-amber-500 text-lg">⚠️</span>
-                        <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
-                            Add at least one more item to complete this combo.
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 p-2 lg:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                {/* ── LEFT SIDE: PICKER ─────────── */}
+                <div className="lg:col-span-7 space-y-6">
+                    <div>
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-1">
+                            Build Your Bundle
+                        </h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                            Select at least 2 items from your menu that will be sold together as one combo deal.
                         </p>
                     </div>
-                )}
 
-                {store.components.length >= 2 && (
-                    <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-2xl px-4 py-3 flex items-center gap-3">
-                        <span className="text-emerald-500 text-lg">✓</span>
-                        <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                            Good — {store.components.length} items selected.
-                            You can add more or continue to the next step.
-                        </p>
-                    </div>
-                )}
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-
-                {/* Left: Picker */}
-                <div className="space-y-6">
                     <div className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" size={18} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
                         <input
                             type="text"
                             placeholder="Find an item..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full h-14 pl-12 pr-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:border-slate-900 dark:focus:border-slate-500 focus:ring-4 focus:ring-slate-900/10 dark:focus:ring-slate-500/10 transition-all font-bold text-slate-900 dark:text-white outline-none"
+                            className="w-full h-14 pl-12 pr-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 dark:focus:ring-orange-500/10 transition-all font-bold text-slate-900 dark:text-white outline-none"
                         />
                     </div>
 
-                    {/* Section tabs — only render if more than one section exists */}
+                    {/* Section tabs */}
                     {sections.length > 2 && (
-                        <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
                             {sections.map(section => (
                                 <button
                                     key={section._id}
                                     onClick={() => setActiveSectionFilter(section._id)}
-                                    className={`shrink-0 h-8 px-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeSectionFilter === section._id
-                                        ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
-                                        : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                    className={`shrink-0 h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeSectionFilter === section._id
+                                        ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg shadow-slate-900/20 dark:shadow-white/10"
+                                        : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                                         }`}
                                 >
                                     {section.name}
@@ -247,16 +203,16 @@ export default function ComboStep2Components({ onNext, onBack }) {
                         </div>
                     )}
 
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
-                        <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-sm">
+                        <div className="max-h-[500px] overflow-y-auto no-scrollbar">
                             {loading ? (
                                 <div className="p-12 flex flex-col items-center justify-center gap-4 text-slate-400">
-                                    <Loader2 className="animate-spin" size={32} />
-                                    <p className="text-xs font-black uppercase tracking-widest">Loading menu...</p>
+                                    <Loader2 className="animate-spin text-orange-500" size={32} />
+                                    <p className="text-[10px] font-black uppercase tracking-widest">Loading menu...</p>
                                 </div>
                             ) : paginatedItems.length > 0 ? (
                                 <div className="flex flex-col h-full relative">
-                                    <div className="divide-y divide-slate-100 dark:divide-slate-800 flex-1">
+                                    <div className="divide-y divide-slate-100 dark:divide-slate-800/50 flex-1">
                                         {paginatedItems.map(item => {
                                             const isAdded = store.components.some(c => c.menu_item_id === item._id);
                                             const isExpanded = expandedItemId === item._id;
@@ -266,35 +222,42 @@ export default function ComboStep2Components({ onNext, onBack }) {
                                             return (
                                                 <div
                                                     key={item._id}
-                                                    className="border-b border-slate-100 dark:border-slate-800 last:border-0"
+                                                    className="border-b border-slate-100 dark:border-slate-800/50 last:border-0"
                                                 >
                                                     {/* ── ITEM ROW ── */}
                                                     <div
                                                         onClick={() => !isAdded && handleExpandItem(item._id)}
-                                                        className={`p-4 flex items-center gap-3 transition-colors ${isAdded
-                                                            ? "bg-orange-50/50 dark:bg-orange-500/5 cursor-default"
-                                                            : "hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer"
+                                                        className={`p-5 flex items-center gap-4 transition-all ${isAdded
+                                                            ? "bg-orange-50/30 dark:bg-orange-500/5 cursor-default"
+                                                            : "hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer active:scale-[0.99]"
                                                             }`}
                                                     >
+                                                        {/* Avatar/Icon */}
+                                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-all ${isAdded ? "bg-orange-100/50 border-orange-200 text-orange-500" : "bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-400"}`}>
+                                                            {item.image_url ? (
+                                                                <img src={item.image_url} alt="" className="w-full h-full object-cover rounded-xl" />
+                                                            ) : (
+                                                                <UtensilsCrossed size={18} />
+                                                            )}
+                                                        </div>
+
                                                         {/* Name + metadata */}
                                                         <div className="flex-1 min-w-0">
-                                                            <h4 className={`font-bold text-sm truncate ${isAdded
-                                                                ? "text-orange-500 dark:text-orange-400"
+                                                            <h4 className={`font-bold text-sm truncate tracking-tight ${isAdded
+                                                                ? "text-orange-600 dark:text-orange-400"
                                                                 : "text-slate-900 dark:text-white"
                                                                 }`}>
                                                                 {item.name}
                                                             </h4>
 
                                                             <div className="flex items-center gap-2 mt-1 flex-wrap">
-
-                                                                {/* Choice groups count */}
                                                                 {hasChoices ? (
-                                                                    <span className="text-[10px] font-black text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-2 py-0.5 rounded-md uppercase tracking-wide">
-                                                                        {item.choice_groups.count} choice {item.choice_groups.count === 1 ? "group" : "groups"}
+                                                                    <span className="text-[9px] font-black text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider border border-violet-100/50 dark:border-violet-500/20">
+                                                                        {item.choice_groups.count} choice groups
                                                                     </span>
                                                                 ) : (
-                                                                    <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md uppercase tracking-wide">
-                                                                        No choices
+                                                                    <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/50 px-2 py-0.5 rounded-md uppercase tracking-wider border border-slate-100 dark:border-slate-700">
+                                                                        Standard Item
                                                                     </span>
                                                                 )}
                                                             </div>
@@ -302,57 +265,59 @@ export default function ComboStep2Components({ onNext, onBack }) {
 
                                                         {/* Right indicator */}
                                                         {isAdded ? (
-                                                            <span className="shrink-0 text-[10px] font-black text-orange-500 bg-orange-100 dark:bg-orange-500/20 dark:text-orange-400 px-3 py-1.5 rounded-xl uppercase tracking-wide">
-                                                                ✓ Added
-                                                            </span>
+                                                            <div className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/20">
+                                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                                                            </div>
                                                         ) : (
-                                                            <div className={`shrink-0 w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-400 transition-transform duration-200 ${isExpanded ? "rotate-45" : ""
-                                                                }`}>
-                                                                <Plus size={14} />
+                                                            <div className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 transition-all ${isExpanded ? "rotate-45 bg-orange-500 text-white" : "group-hover:bg-orange-50"}`}>
+                                                                <Plus size={16} />
                                                             </div>
                                                         )}
                                                     </div>
 
                                                     {/* ── EXPANDED PANEL ── */}
                                                     {isExpanded && !isAdded && (
-                                                        <div className="mx-4 mb-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 overflow-hidden">
+                                                        <div className="mx-5 mb-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 overflow-hidden animate-in zoom-in-95 duration-200">
 
                                                             {/* Choice groups */}
-                                                            <div className="p-4 space-y-4">
-                                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                                                                    Customer choices included in this combo:
-                                                                </p>
+                                                            <div className="p-5 space-y-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                                                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                                                                        Configuration Options
+                                                                    </p>
+                                                                </div>
 
                                                                 {detail === "loading" && (
-                                                                    <div className="flex items-center gap-2 text-xs text-slate-400 font-bold py-2">
-                                                                        <Loader2 size={13} className="animate-spin" />
-                                                                        Loading choices...
+                                                                    <div className="flex items-center gap-3 text-xs text-slate-400 font-bold py-2">
+                                                                        <Loader2 size={14} className="animate-spin text-orange-500" />
+                                                                        Analyzing item structure...
                                                                     </div>
                                                                 )}
 
                                                                 {detail === "error" && (
-                                                                    <p className="text-xs text-rose-500 font-bold">
-                                                                        Failed to load choice details.
-                                                                    </p>
+                                                                    <div className="flex items-center gap-2 p-3 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl border border-rose-100 dark:border-rose-500/20">
+                                                                        <Info size={14} />
+                                                                        <p className="text-xs font-bold">Failed to load choice details.</p>
+                                                                    </div>
                                                                 )}
 
                                                                 {detail && detail !== "loading" && detail !== "error" && (
                                                                     <>
                                                                         {detail.choice_groups?.length > 0 ? (
-                                                                            <div className="space-y-3">
+                                                                            <div className="space-y-4">
                                                                                 {detail.choice_groups.map(group => (
-                                                                                    <div key={group._id} className="space-y-1.5">
-                                                                                        {/* Group header */}
+                                                                                    <div key={group._id} className="space-y-2">
                                                                                         <div className="flex items-center gap-2">
                                                                                             <span className="text-xs font-black text-slate-700 dark:text-slate-300">
                                                                                                 {group.name}
                                                                                             </span>
                                                                                             {group.is_required && (
-                                                                                                <span className="text-[9px] font-black uppercase tracking-widest text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-1.5 py-0.5 rounded">
-                                                                                                    Required
+                                                                                                <span className="text-[8px] font-black uppercase tracking-widest text-white bg-rose-500 px-1.5 py-0.5 rounded shadow-sm shadow-rose-500/10">
+                                                                                                    Mandatory
                                                                                                 </span>
                                                                                             )}
-                                                                                            <span className="text-[9px] text-slate-400 font-bold ml-auto">
+                                                                                            <span className="text-[9px] text-slate-400 font-bold ml-auto bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 px-2 py-0.5 rounded-md">
                                                                                                 Pick {group.min_selections}
                                                                                                 {group.max_selections > group.min_selections
                                                                                                     ? `–${group.max_selections}`
@@ -360,16 +325,15 @@ export default function ComboStep2Components({ onNext, onBack }) {
                                                                                             </span>
                                                                                         </div>
 
-                                                                                        {/* Options */}
                                                                                         <div className="flex flex-wrap gap-1.5">
                                                                                             {group.options?.map(opt => (
                                                                                                 <span
                                                                                                     key={opt._id}
-                                                                                                    className="text-[10px] font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2.5 py-1 rounded-lg"
+                                                                                                    className="text-[10px] font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2.5 py-1.5 rounded-xl shadow-sm"
                                                                                                 >
                                                                                                     {opt.label}
                                                                                                     {opt.price_modifier > 0 && (
-                                                                                                        <span className="text-orange-500 ml-1">
+                                                                                                        <span className="text-orange-500 ml-1.5 font-black">
                                                                                                             +₦{(opt.price_modifier / 100).toLocaleString()}
                                                                                                         </span>
                                                                                                     )}
@@ -380,22 +344,24 @@ export default function ComboStep2Components({ onNext, onBack }) {
                                                                                 ))}
                                                                             </div>
                                                                         ) : (
-                                                                            <p className="text-xs text-slate-400 font-medium italic">
-                                                                                No choices configured — customer orders this item as-is.
-                                                                            </p>
+                                                                            <div className="p-4 bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700 text-center">
+                                                                                <p className="text-xs text-slate-400 font-bold italic">
+                                                                                    Standard item — no customizable choices.
+                                                                                </p>
+                                                                            </div>
                                                                         )}
                                                                     </>
                                                                 )}
                                                             </div>
 
                                                             {/* Add button */}
-                                                            <div className="p-4 pt-0">
+                                                            <div className="p-5 pt-0">
                                                                 <button
                                                                     onClick={() => handleAddItem(item)}
                                                                     disabled={detail === "loading"}
-                                                                    className="w-full h-11 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black uppercase tracking-widest rounded-xl disabled:opacity-40 hover:opacity-90 transition-opacity"
+                                                                    className="w-full h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-slate-900/10 dark:shadow-white/5 disabled:opacity-40 transition-all active:scale-[0.98]"
                                                                 >
-                                                                    Add to Combo
+                                                                    Add to Combo Deal
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -406,24 +372,21 @@ export default function ComboStep2Components({ onNext, onBack }) {
                                     </div>
 
                                     {totalPickerPages > 1 && (
-                                        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 sticky bottom-0">
+                                        <div className="flex items-center justify-between px-5 py-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 sticky bottom-0">
                                             <button
                                                 onClick={() => setPickerPage(p => Math.max(1, p - 1))}
                                                 disabled={pickerPage === 1}
-                                                className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 transition-colors"
+                                                className="h-8 px-3 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 border border-slate-100 dark:border-slate-800 rounded-lg transition-all"
                                             >
                                                 ← Prev
                                             </button>
-                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                                {pickerPage} / {totalPickerPages}
-                                                <span className="ml-2 text-slate-300 dark:text-slate-600">
-                                                    ({filteredItems.length} items)
-                                                </span>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                                Page {pickerPage} / {totalPickerPages}
                                             </span>
                                             <button
                                                 onClick={() => setPickerPage(p => Math.min(totalPickerPages, p + 1))}
                                                 disabled={pickerPage === totalPickerPages}
-                                                className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 transition-colors"
+                                                className="h-8 px-3 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 border border-slate-100 dark:border-slate-800 rounded-lg transition-all"
                                             >
                                                 Next →
                                             </button>
@@ -431,125 +394,110 @@ export default function ComboStep2Components({ onNext, onBack }) {
                                     )}
                                 </div>
                             ) : (
-                                <div className="p-12 text-center space-y-3">
-                                    <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto text-slate-400">
-                                        <UtensilsCrossed size={20} />
+                                <div className="p-20 text-center space-y-4">
+                                    <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] flex items-center justify-center mx-auto text-slate-300 dark:text-slate-700 border-2 border-dashed border-slate-200 dark:border-slate-800 transition-all duration-300">
+                                        <Search size={32} />
                                     </div>
-                                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400">No items found.</p>
+                                    <div>
+                                        <p className="text-sm font-black text-slate-900 dark:text-white tracking-tight">No items found</p>
+                                        <p className="text-xs font-medium text-slate-400 dark:text-slate-500 mt-1">Try a different search term or section.</p>
+                                    </div>
                                 </div>
                             )}
                         </div>
                     </div>
                 </div>
 
-                {/* Right: Selected components */}
-                <div className="space-y-6">
-                    <div className="flex items-center justify-between px-1">
-                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest flex items-center gap-2">
-                            Included Items
-                            <span className="w-5 h-5 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-[10px]">{store.components.length}</span>
-                        </label>
-                    </div>
+                {/* ── RIGHT SIDE: COMPOSITION ─────────── */}
+                <div className="lg:col-span-5 flex flex-col pt-4 lg:pt-0">
+                    <div className="bg-slate-50 dark:bg-slate-800/30 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-6 lg:p-8 space-y-6 sticky top-6">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                Combo Composition
+                            </h2>
+                            <span className="px-3 py-1 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-black shadow-lg shadow-orange-500/20">{store.components.length}</span>
+                        </div>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                            These items form the core of your bundle.
+                        </p>
 
-                    <div className="space-y-3">
-                        {store.components.map(comp => (
-                            <div key={comp.tempId} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center gap-4 group/card shadow-sm">
-                                <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 shrink-0">
-                                    {comp.menu_item_image ? (
-                                        <img src={comp.menu_item_image} alt="" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center font-black text-slate-400 text-xs">
-                                            {comp.menu_item_name.charAt(0).toUpperCase()}
+                        <div className="space-y-4">
+                            {store.components.map(comp => (
+                                <div key={comp.tempId} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[1.5rem] p-5 flex items-center gap-5 group/card shadow-sm hover:shadow-md transition-all animate-in slide-in-from-right-4">
+                                    <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 shrink-0 shadow-inner">
+                                        {comp.menu_item_image ? (
+                                            <img src={comp.menu_item_image} alt="" className="w-full h-full object-cover transition-transform group-hover/card:scale-110 duration-500" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center font-black text-slate-400 text-sm">
+                                                {comp.menu_item_name.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-bold text-slate-900 dark:text-white truncate text-base tracking-tight mb-1">
+                                            {comp.menu_item_name}
+                                        </h4>
+                                        <div className="flex items-center gap-3">
+                                            {comp.choice_group_count > 0 && (
+                                                <p className="text-[9px] font-black text-violet-500 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-2 py-0.5 rounded-lg border border-violet-100 dark:border-violet-500/20 uppercase tracking-widest">
+                                                    {comp.choice_group_count} choices
+                                                </p>
+                                            )}
+                                            {comp.menu_item_section && (
+                                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                                                    {comp.menu_item_section}
+                                                </p>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="font-bold text-slate-900 dark:text-white truncate text-sm">
-                                        {comp.menu_item_name}
-                                    </h4>
-                                    {comp.choice_group_count > 0 && (
-                                        <p className="text-[10px] font-bold text-violet-500 dark:text-violet-400 mt-0.5">
-                                            {comp.choice_group_count} choice {comp.choice_group_count === 1 ? "group" : "groups"}
-                                        </p>
-                                    )}
-                                    {/* Section badge — helps vendor identify items at a glance */}
-                                    {comp.menu_item_section && (
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-300 dark:text-slate-600 mt-0.5">
-                                            {comp.menu_item_section}
-                                        </p>
-                                    )}
-                                    <div className="flex items-center gap-4 mt-2">
-                                        <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 p-1 rounded-lg border border-slate-100 dark:border-slate-700">
-                                            <button
-                                                onClick={() => store.updateComponent(comp.tempId, { quantity: Math.max(1, comp.quantity - 1) })}
-                                                className="w-6 h-6 flex items-center justify-center rounded-md bg-white dark:bg-slate-900 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-                                            ><Minus size={12} /></button>
-                                            <span className="w-6 text-center font-black text-xs text-slate-900 dark:text-white">{comp.quantity}</span>
-                                            <button
-                                                onClick={() => store.updateComponent(comp.tempId, { quantity: Math.min(10, comp.quantity + 1) })}
-                                                className="w-6 h-6 flex items-center justify-center rounded-md bg-white dark:bg-slate-900 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-                                            ><Plus size={12} /></button>
+                                        
+                                        <div className="flex items-center gap-4 mt-3">
+                                            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-inner">
+                                                <button
+                                                    onClick={() => store.updateComponent(comp.tempId, { quantity: Math.max(1, comp.quantity - 1) })}
+                                                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-400 hover:text-orange-500 dark:hover:text-orange-500 border border-slate-100 dark:border-slate-800 transition-all active:scale-90"
+                                                ><Minus size={14} /></button>
+                                                <span className="w-8 text-center font-black text-xs text-slate-900 dark:text-white tracking-tighter">{comp.quantity}</span>
+                                                <button
+                                                    onClick={() => store.updateComponent(comp.tempId, { quantity: Math.min(10, comp.quantity + 1) })}
+                                                    className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-slate-900 text-slate-400 hover:text-orange-500 dark:hover:text-orange-500 border border-slate-100 dark:border-slate-800 transition-all active:scale-90"
+                                                ><Plus size={14} /></button>
+                                            </div>
                                         </div>
                                     </div>
+                                    <button
+                                        onClick={() => store.removeComponent(comp.tempId)}
+                                        className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-300 hover:text-white hover:bg-rose-500 dark:hover:bg-rose-500 transition-all active:scale-90"
+                                    ><X size={18} /></button>
                                 </div>
-                                <button
-                                    onClick={() => store.removeComponent(comp.tempId)}
-                                    className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all opacity-0 group-hover/card:opacity-100"
-                                ><X size={16} /></button>
-                            </div>
-                        ))}
+                            ))}
 
-                        {store.components.length === 0 && (
-                            <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center space-y-3">
-                                <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto text-2xl">
-                                    🍽️
+                            {store.components.length === 0 && (
+                                <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-12 text-center space-y-4 bg-slate-50/30 dark:bg-slate-900/10">
+                                    <div className="w-20 h-20 bg-white dark:bg-slate-800 border-2 border-slate-50 dark:border-slate-700 rounded-full flex items-center justify-center mx-auto text-3xl shadow-xl shadow-slate-200/50 dark:shadow-none animate-bounce duration-slow">
+                                        🍱
+                                    </div>
+                                    <div>
+                                        <p className="text-base font-black text-slate-900 dark:text-white tracking-tight">
+                                            No items added yet
+                                        </p>
+                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1 max-w-[200px] mx-auto leading-relaxed">
+                                            Tap an item on the left to include it in this bundle deal.
+                                        </p>
+                                    </div>
+                                    <div className="pt-2">
+                                         <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border border-slate-200 dark:border-slate-700">
+                                            Min 2 Items Required
+                                         </span>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-sm font-black text-slate-500 dark:text-slate-400">
-                                        No items added yet
-                                    </p>
-                                    <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-1 leading-relaxed">
-                                        Tap an item on the left to see its choices,
-                                        then tap <strong>"Add to Combo"</strong> to include it.
-                                    </p>
-                                </div>
-                                <p className="text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">
-                                    Minimum 2 items required
-                                </p>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
-
-            {/* Actions */}
-            <div className="flex justify-between items-center pt-8 border-t border-slate-100 dark:border-slate-800">
-                <button
-                    onClick={onBack}
-                    className="h-14 px-8 border border-slate-200 dark:border-slate-800 font-black uppercase tracking-widest text-xs rounded-2xl flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-slate-600 dark:text-slate-400"
-                >
-                    <ArrowLeft size={16} />
-                    Back
-                </button>
-
-                <div className="flex flex-col items-end gap-1">
-                    {store.components.length < 2 && (
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            Add {2 - store.components.length} more item{store.components.length === 1 ? "" : "s"} to continue
-                        </p>
-                    )}
-                    <button
-                        onClick={handleNext}
-                        disabled={store.components.length < 2}
-                        className="h-14 px-8 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black uppercase tracking-widest text-xs rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-40"
-                    >
-                        Next: Add Swaps
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
+            
+            {/* Added spacing at the bottom to clear fixed footer */}
+            <div className="h-10 invisible" />
         </div>
     );
 }
