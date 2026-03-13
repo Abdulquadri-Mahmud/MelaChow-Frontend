@@ -180,7 +180,10 @@ export default function StorefrontPage() {
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-24 lg:pb-12">
-            <Header2 />
+            <Header2 
+                title={vendor.address?.city || vendor.storeName} 
+                subtitle="Food Menu" 
+            />
 
             {/* Premium Hero Section */}
             <div className="relative">
@@ -196,11 +199,11 @@ export default function StorefrontPage() {
                 </div>
                 
                 {/* Content Container */}
-                <div className="relative z-10 pt-24 lg:pt-36 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl p-6 lg:p-10 rounded-[2.5rem] lg:rounded-[3rem] shadow-2xl shadow-slate-200/50 dark:shadow-none border border-white/50 dark:border-slate-800 md:flex items-start gap-8">
+                <div className="relative z-10 pt-24 lg:pt-36 px-4 max-w-7xl mx-auto">
+                    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl p-2 rounded-[2.5rem] lg:rounded-[3rem] border-white/50 dark:border-slate-800 md:flex items-start gap-8">
                         
                         {/* Logo */}
-                        <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-3xl overflow-hidden shrink-0 border-4 border-white dark:border-slate-800 shadow-xl bg-white -mt-16 lg:mt-0 mb-6 lg:mb-0 mx-auto lg:mx-0">
+                        <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-3xl overflow-hidden shrink-0 border-4 border-white dark:border-slate-800 bg-white -mt-16 lg:mt-0 mb-3 lg:mb-0 mx-auto lg:mx-0">
                             <img 
                                 src={vendor.logo || "/placeholder-logo.jpg"} 
                                 className="w-full h-full object-cover" 
@@ -227,9 +230,9 @@ export default function StorefrontPage() {
                                 {vendor.storeName}
                             </h1>
                             
-                            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl mx-auto lg:mx-0 leading-relaxed mb-6">
+                            {/* <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl mx-auto lg:mx-0 leading-relaxed mb-6">
                                 {vendor.description || "Discover delicious meals crafted with passion and fresh ingredients."}
-                            </p>
+                            </p> */}
                             
                             {/* Meta Badges */}
                             <div className="flex flex-wrap justify-center lg:justify-start gap-3 sm:gap-6">
@@ -280,7 +283,7 @@ export default function StorefrontPage() {
                             placeholder={`Search ${vendor.storeName}'s menu...`}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-12 pl-12 pr-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all outline-none font-medium text-sm text-slate-900 dark:text-white placeholder:text-slate-400 shadow-sm"
+                            className="w-full h-12 pl-12 pr-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all outline-none font-medium text-sm text-slate-900 dark:text-white placeholder:text-slate-400"
                         />
                         {searchQuery && (
                             <button 
@@ -301,7 +304,7 @@ export default function StorefrontPage() {
                                     onClick={() => scrollToSection(section._id)}
                                     className={`shrink-0 snap-start h-10 px-5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border ${
                                         activeSectionId === section._id 
-                                        ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-md"
+                                        ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent"
                                         : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 hover:text-slate-900"
                                     }`}
                                 >
@@ -343,7 +346,7 @@ export default function StorefrontPage() {
                                         {section.name}
                                     </h2>
                                     <div className="h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent dark:from-slate-800" />
-                                    <span className="hidden sm:inline-flex text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 px-3 py-1 rounded-full shadow-sm">
+                                    <span className="hidden sm:inline-flex text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 px-3 py-1 rounded-full">
                                         {section.items?.length || 0} Options
                                     </span>
                                 </div>
@@ -396,7 +399,7 @@ export default function StorefrontPage() {
 
             {loadingItem && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-2xl flex flex-col items-center gap-4 animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl flex flex-col items-center gap-4 animate-in zoom-in-95 duration-200">
                         <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
                         <span className="text-xs font-black uppercase tracking-widest text-slate-500">Preparing...</span>
                     </div>
