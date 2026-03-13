@@ -6,6 +6,7 @@ import { getVendorStorefront, getMenuItemDetail } from "@/app/lib/menuApi";
 import { useState, useRef, useMemo } from "react";
 import Header2 from "@/app/components/App_Header/Header2";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
+import ComboCustomizationModal from "@/app/components/Cart/ComboCustomizationModal";
 import { MapPin, Clock, Star, ChevronRight, ShoppingCart, Check, Search, Info, Package, Sparkles, Store, X, Plus } from "lucide-react";
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
@@ -38,46 +39,49 @@ const FoodCard = ({ item, vendor, onSelect }) => {
     return (
         <div 
             onClick={() => !isUnavailable && onSelect(item)}
-            className={`bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-orange-200 dark:hover:border-orange-500/30 transition-all duration-300 cursor-pointer group flex flex-col h-full ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
+            className={`bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-orange-200 dark:hover:border-orange-500/30 transition-all duration-300 cursor-pointer group flex h-32 sm:h-44 ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
         >
-            <div className="relative h-32 sm:h-40 w-full overflow-hidden shrink-0 bg-slate-50 dark:bg-slate-800">
+            {/* Horizontal Image Section */}
+            <div className="relative w-32 sm:w-44 h-full shrink-0 bg-slate-50 dark:bg-slate-800 overflow-hidden">
                 <img 
                     src={item.image_url || "/placeholder.jpg"} 
                     alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                     loading="lazy"
                 />
                 <DietaryBadge type={item.dietary_type} />
                 {isUnavailable && (
                     <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center">
-                        <span className="bg-white/95 text-slate-900 px-3 py-1.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest shadow-lg">
-                            {!item.is_available ? "Unavailable" : "Sold Out"}
+                        <span className="bg-white/95 text-slate-900 px-2 py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg">
+                            { !item.is_available ? "Unavailable" : "Sold Out" }
                         </span>
                     </div>
                 )}
             </div>
             
-            <div className="p-3 sm:p-5 flex flex-col flex-1">
-                <div className="flex justify-between items-start mb-1 sm:mb-2 gap-2">
-                    <h4 className="font-bold sm:font-black text-sm sm:text-base text-slate-900 dark:text-white line-clamp-2 leading-tight">
+            {/* Horizontal Body Section */}
+            <div className="p-3 sm:p-5 flex flex-col flex-1 min-w-0">
+                <div className="flex-1">
+                    <h4 className="font-bold sm:font-black text-sm sm:text-lg text-slate-900 dark:text-white line-clamp-1 leading-tight mb-1">
                         {item.name}
                     </h4>
+                    {item.description && (
+                        <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                            {item.description}
+                        </p>
+                    )}
                 </div>
-                {item.description && (
-                    <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-3 sm:mb-4 flex-1">
-                        {item.description}
-                    </p>
-                )}
-                <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-50 dark:border-slate-800/50">
+
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50 dark:border-slate-800/50">
                     <div className="flex flex-col">
-                        {hasMultiplePortions && <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none">From</span>}
-                        <p className="text-sm sm:text-base font-black text-orange-600 dark:text-orange-500">
+                        {hasMultiplePortions && <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-0.5">From</span>}
+                        <p className="text-sm sm:text-xl font-black text-orange-600 dark:text-orange-500">
                             ₦{price.toLocaleString()}
                         </p>
                     </div>
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-orange-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all duration-300">
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-orange-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all duration-300">
                         <Plus size={16} className="sm:hidden" />
-                        <ShoppingCart size={18} className="hidden sm:block" />
+                        <ShoppingCart size={20} className="hidden sm:block" />
                     </div>
                 </div>
             </div>
@@ -85,14 +89,86 @@ const FoodCard = ({ item, vendor, onSelect }) => {
     );
 };
 
+const ComboCard = ({ combo, onSelect }) => {
+    const isUnavailable = !combo.is_available;
+    
+    return (
+        <div
+            onClick={() => !isUnavailable && onSelect(combo)}
+            className={`bg-white dark:bg-slate-900 rounded-[2rem]
+                overflow-hidden border border-slate-100
+                dark:border-slate-800 shadow-sm hover:shadow-xl
+                hover:border-orange-100 transition-all cursor-pointer
+                group relative h-32 sm:h-44 flex
+                ${isUnavailable ? "opacity-70 grayscale-[0.5]" : ""}`}
+        >
+            {/* Horizontal Image Section */}
+            <div className="relative w-32 sm:w-44 h-full shrink-0 overflow-hidden">
+                <img
+                    src={combo.image_url || "/placeholder.jpg"}
+                    alt={combo.name}
+                    className="w-full h-full object-cover
+                               group-hover:scale-110 transition-transform
+                               duration-500"
+                />
+                <span className="absolute top-2 left-2 bg-orange-500
+                    text-white text-[8px] sm:text-[9px] font-black uppercase
+                    tracking-widest px-2 py-0.5 rounded-full z-10">
+                    Deal
+                </span>
+            </div>
+
+            {/* Horizontal Body Section */}
+            <div className="p-3 sm:p-5 flex flex-col flex-1 min-w-0">
+                <div className="flex-1">
+                    <h4 className="font-bold sm:font-black text-sm sm:text-lg text-slate-900 dark:text-white line-clamp-1 leading-tight mb-1">
+                        {combo.name}
+                    </h4>
+                    
+                    {combo.description && (
+                        <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-2">
+                            {combo.description}
+                        </p>
+                    )}
+
+                    {/* Component pills */}
+                    <div className="flex flex-wrap gap-1">
+                        {combo.components?.slice(0, 3).map(c => (
+                            <span key={c._id}
+                                className="text-[8px] sm:text-[10px] bg-slate-100
+                                    dark:bg-slate-800 text-slate-500 dark:text-slate-400
+                                    px-2 py-0.5 rounded-full font-bold">
+                                {c.name}{c.quantity > 1 ? ` ×${c.quantity}` : ""}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-50 dark:border-slate-800/50">
+                    <p className="text-sm sm:text-xl font-black text-orange-600 dark:text-orange-500">
+                        ₦{combo.price_naira?.toLocaleString()}
+                    </p>
+                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-orange-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all duration-300">
+                        <Plus size={16} className="sm:hidden" />
+                        <ShoppingCart size={20} className="hidden sm:block" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 export default function StorefrontPage() {
     const { vendorId } = useParams();
     const router = useRouter();
-    const { addToCart } = useCart();
+    const { addToCart, addComboToCart } = useCart();
     const sectionRefs = useRef({});
 
     const [selectedItemId, setSelectedItemId] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [selectedCombo, setSelectedCombo] = useState(null);
+    const [comboModalOpen, setComboModalOpen] = useState(false);
     const [fullItem, setFullItem] = useState(null);
     const [loadingItem, setLoadingItem] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -108,9 +184,20 @@ export default function StorefrontPage() {
     const vendor      = data?.vendor;
     const sections    = data?.sections || [];
     const unsectioned = data?.unsectioned || [];
+    const combos      = data?.combos || [];
 
     const allSections = useMemo(() => {
+        const comboSection = combos.length > 0
+            ? [{
+                _id:   "combos",
+                name:  "Deals & Combos",
+                items: combos,       // combo objects, not menu items
+                type:  "combo",      // flag so the grid knows render mode
+              }]
+            : [];
+
         const combined = [
+            ...comboSection,
             ...sections,
             ...(unsectioned.length > 0
                 ? [{ _id: "other", name: "Other Options", items: unsectioned }]
@@ -123,19 +210,25 @@ export default function StorefrontPage() {
         return combined.map(section => ({
             ...section,
             items: section.items.filter(item => 
-                item.name.toLowerCase().includes(lowerQuery) || 
+                (item.name || "").toLowerCase().includes(lowerQuery) || 
                 (item.description && item.description.toLowerCase().includes(lowerQuery)) ||
                 (item.tags && item.tags.some(tag => tag.toLowerCase().includes(lowerQuery)))
             )
         })).filter(section => section.items.length > 0);
         
-    }, [sections, unsectioned, searchQuery]);
+    }, [sections, unsectioned, combos, searchQuery]);
 
     const scrollToSection = (sectionId) => {
         setActiveSectionId(sectionId);
         sectionRefs.current[sectionId]?.scrollIntoView({
             behavior: "smooth", block: "start"
         });
+    };
+
+    const handleComboTap = (combo) => {
+        if (!combo.is_available) return;
+        setSelectedCombo(combo);
+        setComboModalOpen(true);
     };
 
     const handleItemTap = async (item) => {
@@ -351,15 +444,24 @@ export default function StorefrontPage() {
                                     </span>
                                 </div>
                                 
-                                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
-                                    {section.items?.map(item => (
-                                        <FoodCard 
-                                            key={item._id} 
-                                            item={item} 
-                                            vendor={vendor} 
-                                            onSelect={handleItemTap} 
-                                        />
-                                    ))}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                                    {section.type === "combo"
+                                        ? section.items.map(combo => (
+                                            <ComboCard
+                                                key={combo._id}
+                                                combo={combo}
+                                                onSelect={handleComboTap}
+                                            />
+                                          ))
+                                        : section.items?.map(item => (
+                                            <FoodCard
+                                                key={item._id}
+                                                item={item}
+                                                vendor={vendor}
+                                                onSelect={handleItemTap}
+                                            />
+                                          ))
+                                    }
                                 </div>
                             </section>
                         ))}
@@ -395,6 +497,14 @@ export default function StorefrontPage() {
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
                 onAdd={addToCart}
+            />
+
+            <ComboCustomizationModal
+                combo={selectedCombo}
+                vendor={vendor}
+                isOpen={comboModalOpen}
+                onClose={() => setComboModalOpen(false)}
+                onAdd={addComboToCart}
             />
 
             {loadingItem && (

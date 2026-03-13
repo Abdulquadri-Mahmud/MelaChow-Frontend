@@ -37,21 +37,38 @@ export const CartProvider = ({ children }) => {
     showAnimatedToast("success", "Item added to cart", "cart-add");
   };
 
+  // Add Combo
+  const addComboToCart = (comboItem) => {
+    const newItem = {
+        ...comboItem,
+        type:     "combo",
+        quantity: comboItem.quantity || 1,
+    };
+    setCart(prev => [...prev, newItem]);
+    showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo");
+  };
+
   // Increase Quantity
-  const increaseQuantity = (foodId, portionId) => {
+  const increaseQuantity = (foodId, portionId, variantId) => {
     setCart((prev) =>
-      prev.map((item) =>
-        item.foodId === foodId && item.portionId === portionId
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      )
+      prev.map((item) => {
+        const isMatch = item.type === "combo"
+          ? item.variantId === variantId
+          : item.foodId === foodId && item.portionId === portionId;
+
+        return isMatch ? { ...item, quantity: item.quantity + 1 } : item;
+      })
     );
     showAnimatedToast("success", "Quantity increased", "cart-qty-inc");
   };
 
   // Decrease Quantity
-  const decreaseQuantity = (foodId, portionId) => {
-    const item = cart.find(i => i.foodId === foodId && i.portionId === portionId);
+  const decreaseQuantity = (foodId, portionId, variantId) => {
+    const item = cart.find(i => 
+      i.type === "combo"
+        ? i.variantId === variantId
+        : i.foodId === foodId && i.portionId === portionId
+    );
 
     if (!item) return;
 
@@ -63,21 +80,26 @@ export const CartProvider = ({ children }) => {
 
     setCart((prev) =>
       prev
-        .map((item) =>
-          item.foodId === foodId && item.portionId === portionId
-            ? { ...item, quantity: Math.max(0, item.quantity - 1) }
-            : item
-        )
+        .map((item) => {
+          const isMatch = item.type === "combo"
+            ? item.variantId === variantId
+            : item.foodId === foodId && item.portionId === portionId;
+          
+          return isMatch ? { ...item, quantity: Math.max(0, item.quantity - 1) } : item;
+        })
         .filter((item) => item.quantity > 0)
     );
   };
 
   // Remove item
-  const removeFromCart = (foodId, portionId) => {
+  const removeFromCart = (foodId, portionId, variantId) => {
     setCart((prev) =>
-      prev.filter(
-        (c) => !(c.foodId === foodId && c.portionId === portionId)
-      )
+      prev.filter((item) => {
+        const isMatch = item.type === "combo"
+          ? item.variantId === variantId
+          : item.foodId === foodId && item.portionId === portionId;
+        return !isMatch;
+      })
     );
     showAnimatedToast("error", "Item removed from cart", "cart-remove");
   };
@@ -122,6 +144,7 @@ export const CartProvider = ({ children }) => {
         isModalOpen,
         setIsModalOpen,
         addToCart,
+        addComboToCart,
         increaseQuantity,
         decreaseQuantity,
         removeFromCart,
