@@ -22,11 +22,11 @@ export default function BottomBar() {
   if (isModalOpen) return null;
 
   return (
-    <div className="fixed bottom-4 left-0 right-0 px-4 md:px-0 md:max-w-md md:mx-auto z-[9999]">
+    <div className="fixed bottom-0 left-0 right-0 px-0 md:max-w-md md:mx-auto z-[9999]">
       <motion.nav
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-gray-200/50 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[32px] px-2 py-3"
+        className="relative bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border border-gray-200/50 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-t-[32px] px-2 py-3"
       >
         <div className="flex justify-between items-center relative">
           {navItems.map((item) => {

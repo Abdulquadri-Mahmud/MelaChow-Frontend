@@ -42,7 +42,7 @@ export default function HomeHeader() {
       className="sticky top-0 z-50 w-full"
     >
       {/* Premium Glassmorphism Container */}
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-slate-800/50">
+      <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-zinc-800/50">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
           <div className="flex items-center justify-between h-20">
 

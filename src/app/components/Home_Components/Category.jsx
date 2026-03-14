@@ -32,10 +32,10 @@ export default function CategoryList() {
             <div className="mt-6">
                 <div className="flex items-center justify-between mb-4 px-1">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-slate-200 animate-pulse" />
+                        <div className="w-12 h-12 rounded-xl bg-zinc-200 animate-pulse" />
                         <div className="space-y-2">
-                            <div className="h-5 w-40 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-                            <div className="h-3 w-32 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+                            <div className="h-5 w-40 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
+                            <div className="h-3 w-32 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
                         </div>
                     </div>
                 </div>
@@ -44,8 +44,8 @@ export default function CategoryList() {
                     <div className="flex gap-4 scroll overflow-x-auto no-scrollbar pb-6 pt-2 px-4">
                         {[...Array(6)].map((_, i) => (
                             <div key={i} className="flex flex-col items-center gap-3 min-w-[85px]">
-                                <div className="w-20 h-20 rounded-[28px] bg-slate-200 dark:bg-slate-800 animate-pulse" />
-                                <div className="h-3 w-16 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+                                <div className="w-20 h-20 rounded-[28px] bg-zinc-200 dark:bg-zinc-800 animate-pulse" />
+                                <div className="h-3 w-16 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
                             </div>
                         ))}
                     </div>
@@ -64,15 +64,15 @@ export default function CategoryList() {
                 <div className="flex items-center gap-3">
                     <div className="relative">
                         <div className="absolute inset-0 bg-orange-500/20 blur-lg rounded-full" />
-                        <div className="relative bg-orange-500 p-2.5 rounded-2xl shadow-lg shadow-orange-500/20">
+                        <div className="relative bg-orange-500 p-2.5 rounded-2xl">
                             <Flame className="text-white fill-white/20" size={24} />
                         </div>
                     </div>
                     <div>
-                        <h2 className="text-2xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
+                        <h2 className="text-2xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none">
                             Explore <span className="text-orange-600">Categories</span>
                         </h2>
-                        <p className="text-xs font-bold uppercase tracking-[0.15em] text-slate-400 mt-1">
+                        <p className="text-xs font-bold uppercase tracking-[0.15em] text-zinc-400 mt-1">
                             Find your favorite flavors
                         </p>
                     </div>
@@ -81,8 +81,8 @@ export default function CategoryList() {
 
             <div className="relative -mx-2">
                 {/* Subtle Side Fades for scroll indication */}
-                <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-slate-100 dark:from-slate-950 to-transparent z-10 pointer-events-none" />
-                <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-100 dark:from-slate-950 to-transparent z-10 pointer-events-none" />
+                <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-zinc-50 dark:from-zinc-950 to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-zinc-50 dark:from-zinc-950 to-transparent z-10 pointer-events-none" />
 
                 <div className="flex gap-4 scroll overflow-x-auto no-scrollbar pt-2 snap-x px-4">
                     {categories.map((category, idx) => (
@@ -101,19 +101,19 @@ export default function CategoryList() {
                                 {/* Active/Hover Background Glow */}
                                 <div
                                     className={`absolute inset-0 rounded-[30px] blur-xl transition-all duration-500
-                    ${activeCategory === category.name
+                                        ${activeCategory === category.name
                                             ? 'bg-orange-500/30 opacity-100 scale-110'
-                                            : 'bg-slate-200 dark:bg-slate-800 opacity-0 group-hover:opacity-100 group-hover:scale-105'}
-                  `}
+                                            : 'bg-zinc-200 dark:bg-zinc-800 opacity-0 group-hover:opacity-100 group-hover:scale-105'}
+                                    `}
                                 />
 
                                 {/* Main Icon Box */}
                                 <div
                                     className={`relative w-20 h-20 flex items-center justify-center rounded-[28px] transition-all duration-300 border overflow-hidden
-                    ${activeCategory === category.name
-                                            ? 'bg-orange-500 border-orange-400 shadow-xl shadow-orange-500/30 translate-y-[-2px]'
-                                            : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 group-hover:border-orange-200 dark:group-hover:border-orange-900 group-hover:shadow-lg shadow-sm'}
-                  `}
+                                        ${activeCategory === category.name
+                                            ? 'bg-orange-500 border-orange-400 translate-y-[-2px]'
+                                            : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 group-hover:border-orange-200 dark:group-hover:border-orange-900'}
+                                    `}
                                 >
                                     {category.image ? (
                                         <img
@@ -125,10 +125,10 @@ export default function CategoryList() {
                                         <UtensilsCrossed
                                             size={32}
                                             className={`transition-colors duration-300
-                      ${activeCategory === category.name
+                                                ${activeCategory === category.name
                                                     ? 'text-white'
-                                                    : 'text-slate-300 dark:text-slate-600 group-hover:text-orange-500'}
-                    `}
+                                                    : 'text-zinc-300 dark:text-zinc-600 group-hover:text-orange-500'}
+                                            `}
                                             strokeWidth={1.5}
                                         />
                                     )}
@@ -137,7 +137,7 @@ export default function CategoryList() {
                                     {activeCategory === category.name && (
                                         <motion.div
                                             layoutId="activeCategoryDot"
-                                            className="absolute top-2 right-2 w-2.5 h-2.5 bg-white rounded-full shadow-sm z-10"
+                                            className="absolute top-2 right-2 w-2.5 h-2.5 bg-white rounded-full z-10"
                                         />
                                     )}
                                 </div>
@@ -146,10 +146,10 @@ export default function CategoryList() {
                             {/* Text Label */}
                             <span
                                 className={`text-xs font-bold capitalize text-center transition-all duration-300 leading-tight max-w-[90px] line-clamp-2
-                  ${activeCategory === category.name
+                                    ${activeCategory === category.name
                                         ? 'text-orange-600 font-black'
-                                        : 'text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'}
-                `}
+                                        : 'text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white'}
+                                `}
                             >
                                 {category.name}
                             </span>
@@ -159,7 +159,7 @@ export default function CategoryList() {
             </div>
 
             {/* Modern Divider */}
-            <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-800 to-transparent my-4" />
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent my-4" />
         </div>
     );
 }

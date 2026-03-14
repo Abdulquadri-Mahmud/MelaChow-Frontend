@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
     Clock,
     Store,
@@ -9,37 +10,25 @@ import {
     Sparkles,
     TrendingUp,
     Wallet,
-    Flame
+    Flame,
+    Heart,
+    Globe,
+    Bike,
+    Star
 } from "lucide-react";
 import { getRecommendations } from "@/app/lib/api";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
-// --- Sub-Component: Food Card (Styled exactly like TrendingFoods) ---
+// --- Sub-Component: Food Card (Simplified Premium Style) ---
 const RecommendationCard = ({ food, router }) => {
-    // --- 1. Discount Logic ---
-    const hasDiscount = food.discount?.active && new Date(food.discount.expiresAt) > new Date();
-    let finalPrice = Number(food.price);
-    let discountLabel = null;
-
-    if (hasDiscount) {
-        if (food.discount.flatAmount > 0) {
-            finalPrice = Math.max(0, finalPrice - food.discount.flatAmount);
-            discountLabel = `₦${food.discount.flatAmount} OFF`;
-        } else if (food.discount.percentage > 0) {
-            finalPrice = Math.max(0, finalPrice - (finalPrice * (food.discount.percentage / 100)));
-            discountLabel = `-${food.discount.percentage}%`;
-        }
-    }
-
-    // --- 2. Availability Logic ---
-    // Use 'vendor' from API response (not 'restaurant')
+    const [liked, setLiked] = useState(false);
+    
+    // --- 1. Availability Logic ---
     const vendor = food.vendor || food.restaurant;
-
-    // A. Check Vendor/Restaurant Global Status
     const vendorStatusMsg = vendor?.openingHours ? getVendorOpenAndCloseStatus(vendor.openingHours) : null;
     const isVendorOpen = vendorStatusMsg ? vendorStatusMsg.toLowerCase().startsWith("open now") : true;
 
-    // B. Check Food Specific Schedule
+    // Food specific schedule
     let isFoodScheduleOpen = true;
     if (food.availabilitySchedule?.enabled) {
         const now = new Date();
@@ -62,109 +51,86 @@ const RecommendationCard = ({ food, router }) => {
         }
     }
 
-    // Final Combined Status
     const isOpen = isVendorOpen && isFoodScheduleOpen;
-
-    // Helper for friendly status
-    const getFriendlyStatus = () => {
-        if (!isVendorOpen && vendorStatusMsg) {
-            const parts = vendorStatusMsg.split("open by");
-            if (parts.length > 1) {
-                return `Opens ${parts[1].replace('.', '').trim()}`;
-            }
-        }
-        return "Opens Later";
-    };
-    const friendlyStatus = getFriendlyStatus();
-
-    // Get vendor location
-    const vendorLocation = vendor?.address ?
-        `${vendor.address.city}, ${vendor.address.state}` :
-        "Location not available";
 
     return (
         <div
             onClick={() => router.push(`/food-details/${food._id}`)}
-            className={`group relative flex-none w-[250px] bg-white rounded-[24px] transition-all duration-300 cursor-pointer snap-start overflow-hidden ${!isOpen ? 'opacity-80 grayscale-[0.5]' : ''}`}
+            className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 ${!isOpen ? '' : ''}`}
+            style={{ width: "72vw", maxWidth: "280px" }}
         >
-            {/* Image Container */}
-            <div className="relative h-[140px] w-full bg-gray-100 overflow-hidden">
+            {/* Image Block */}
+            <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                 <img
                     src={food.images?.[0]?.url || "/placeholder.jpg"}
                     alt={food.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
 
-                {/* Closed Overlay */}
-                {!isOpen && (
-                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center z-10 backdrop-blur-[1px]">
-                        <span className="text-white font-black uppercase tracking-widest text-[12px] border-2 border-white px-3 py-1 rounded mb-1">
-                            Closed
-                        </span>
-                        <span className="text-white/90 text-[10px] font-medium tracking-wide">
-                            {friendlyStatus}
-                        </span>
-                    </div>
-                )}
-
-                {/* Price Badge */}
-                <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2.5 rounded-xl">
-                    <span className="text-[10px] font-black text-gray-900 tracking-tighter">
-                        ₦{finalPrice.toLocaleString()}
-                    </span>
-                </div>
-
-                {/* Discount Badge */}
-                {hasDiscount && isOpen && (
-                    <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-0.5 rounded-lg">
+                {/* Promo Badge - Top Right */}
+                {isOpen && (
+                    <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-0.5 rounded-lg">
                         <span className="text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
-                            {discountLabel}
+                             <Sparkles size={8} fill="currentColor" /> BEST
                         </span>
                     </div>
                 )}
-
-                {/* Use generic 'Recommended' badge if no discount */}
-                {!hasDiscount && isOpen && (
-                    <div className="absolute top-3 left-3 bg-orange-500 text-white px-2 py-0.5 rounded-lg">
-                        <span className="text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
-                            <Sparkles size={8} fill="currentColor" /> BEST
-                        </span>
-                    </div>
-                )}
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-60 pointer-events-none" />
             </div>
 
-            {/* Content */}
-            <div className="p-3">
-                <div className="mb-2">
-                    <h3 className="font-bold text-gray-900 text-sm truncate leading-tight tracking-tight mb-0.5">{food.name}</h3>
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
-                        <Store size={10} className="text-orange-500" />
-                        <span className="truncate max-w-[180px] font-medium opacity-80">{vendor?.storeName || "GrubDash Vendor"}</span>
-                    </div>
-                    {/* Vendor Location */}
-                    <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
-                        <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                        </svg>
-                        <span className="truncate max-w-[180px] font-medium">{vendorLocation}</span>
-                    </div>
+            {/* Info Block */}
+            <div className="px-3 pt-2.5 pb-3">
+                {/* Row 1: Name + Heart */}
+                <div className="flex justify-between items-center gap-2">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[calc(100%-28px)]">
+                        {food.name}
+                    </h3>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
+                        className="transition-colors"
+                    >
+                        <Heart
+                            size={18}
+                            className={liked ? "fill-red-500 text-red-500" : "text-gray-400"}
+                            strokeWidth={liked ? 0 : 1.5}
+                        />
+                    </button>
                 </div>
 
-                {/* Footer Info */}
-                <div className="flex items-center justify-between pt-2 border-t border-gray-50">
-                    <div className="flex items-center gap-1">
-                        <Truck size={12} className="text-gray-400" />
-                        <span className="text-[10px] font-bold text-gray-400">
-                            ₦{food.deliveryFee || vendor?.flatRateDeliveryFee || 0}
-                        </span>
+                {/* Row 2: Vendor Name • City */}
+                <p className="text-[11px] text-gray-500 dark:text-zinc-400 truncate mt-0.5">
+                    {vendor?.storeName || "GrubDash Vendor"} • {vendor?.address?.city || "Nearby"}
+                </p>
+
+                {/* Row 3: Metadata Line: Delivery Fee | Status | Rating */}
+                <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
+                    <Globe size={14} className="text-gray-400 dark:text-zinc-500" />
+                    
+                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+                    
+                    {/* Delivery */}
+                    <div className="flex items-center gap-1 whitespace-nowrap">
+                        <Bike size={14} className="text-gray-400 dark:text-zinc-500" />
+                        {(!vendor?.flatRateDeliveryFee || vendor?.flatRateDeliveryFee === 0) ? (
+                            <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
+                        ) : (
+                            <span className="text-xs text-gray-500 dark:text-zinc-400">₦{vendor.flatRateDeliveryFee.toLocaleString()}</span>
+                        )}
                     </div>
 
-                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md ${!isOpen ? 'bg-red-50' : 'bg-gray-50'}`}>
-                        <Clock size={10} className={!isOpen ? "text-red-500" : "text-orange-500"} />
-                        <span className={`text-[9px] font-bold ${!isOpen ? 'text-red-500' : 'text-gray-700'}`}>
-                            {isOpen ? `${food?.estimatedDeliveryTime || "25"}m` : friendlyStatus}
+                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+
+                    {/* Status */}
+                    <span className={`text-xs font-bold whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {isOpen ? "Open" : "Closed"}
+                    </span>
+
+                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-0.5 whitespace-nowrap">
+                        <Star size={10} className="fill-orange-500 text-orange-500" />
+                        <span className="text-[11px] font-bold text-gray-900 dark:text-white">
+                            {Number(vendor?.rating || 0).toFixed(1)}
                         </span>
                     </div>
                 </div>
@@ -174,33 +140,24 @@ const RecommendationCard = ({ food, router }) => {
 };
 
 // --- Recommendation Section Layout ---
-const RecommendationSection = ({ title, icon: Icon, items, router, accentColor = "text-orange-600" }) => {
+const RecommendationSection = ({ title, icon: Icon, items, router, accentColor = "text-orange-600", accentBg = "bg-orange-100" }) => {
     if (!items || items.length === 0) return null;
-
-    // Map accent colors to background colors roughly
-    const getBgColor = (textClass) => {
-        if (textClass.includes('orange')) return 'bg-orange-100';
-        if (textClass.includes('rose')) return 'bg-rose-100';
-        if (textClass.includes('purple')) return 'bg-purple-100';
-        if (textClass.includes('emerald')) return 'bg-emerald-100';
-        return 'bg-gray-100';
-    }
 
     return (
         <div className="mt-8 px-0">
             {/* Header */}
             <div className="flex items-center justify-between px-4 mb-4">
                 <div className="flex items-center gap-2">
-                    <div className={`p-1.5 rounded-lg ${getBgColor(accentColor)}`}>
+                    <div className={`p-1.5 rounded-lg ${accentBg}`}>
                         <Icon className={accentColor} size={18} />
                     </div>
-                    <h2 className="text-lg font-bold text-gray-900 tracking-tight capitalize">
+                    <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight capitalize">
                         {title}
                     </h2>
                 </div>
             </div>
 
-            <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+            <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar px-4">
                 {items.map((food) => (
                     <RecommendationCard key={food._id} food={food} router={router} />
                 ))}
@@ -215,8 +172,8 @@ export default function SmartRecommendations() {
 
     const { data: recommendations, isLoading } = useQuery({
         queryKey: ["smartRecommendations"],
-        queryFn: () => getRecommendations(), // No args, let API handle location via cookie
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        queryFn: () => getRecommendations(),
+        staleTime: 1000 * 60 * 5,
         retry: 1,
         refetchOnWindowFocus: false,
     });
@@ -225,12 +182,12 @@ export default function SmartRecommendations() {
         return (
             <div className="mt-8 px-4 space-y-4">
                 <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 animate-pulse" />
-                    <div className="w-48 h-6 bg-gray-100 rounded animate-pulse" />
+                    <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+                    <div className="w-48 h-6 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
                 </div>
                 <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="min-w-[250px] h-[220px] rounded-[24px] bg-gray-100 animate-pulse flex-none" />
+                        <div key={i} className="min-w-[280px] h-[220px] rounded-[24px] bg-zinc-100 dark:bg-zinc-800 animate-pulse flex-none" />
                     ))}
                 </div>
             </div>
@@ -241,10 +198,8 @@ export default function SmartRecommendations() {
 
     const { meta, data: arrays } = recommendations;
 
-    // console.log(recommendations);
-
     return (
-        <div className="flex flex-col gap-2 pb-2 border-b border-gray-100">
+        <div className="flex flex-col gap-2 pb-2">
             {/* 1. Time Based Hero */}
             <RecommendationSection
                 title={meta?.timeOfDayLabel || "Recommended for you"}
@@ -252,6 +207,7 @@ export default function SmartRecommendations() {
                 items={arrays.timeOfDay}
                 router={router}
                 accentColor="text-orange-600"
+                accentBg="bg-orange-100 dark:bg-orange-500/20"
             />
 
             {/* 2. Trending Nearby */}
@@ -261,6 +217,7 @@ export default function SmartRecommendations() {
                 items={arrays.trendingNearby}
                 router={router}
                 accentColor="text-rose-600"
+                accentBg="bg-rose-100 dark:bg-rose-500/20"
             />
 
             {/* 3. Hidden Gems */}
@@ -270,6 +227,7 @@ export default function SmartRecommendations() {
                 items={arrays.underrated}
                 router={router}
                 accentColor="text-purple-600"
+                accentBg="bg-purple-100 dark:bg-purple-500/20"
             />
 
             {/* 4. Budget Friendly */}
@@ -279,6 +237,7 @@ export default function SmartRecommendations() {
                 items={arrays.budgetFriendly}
                 router={router}
                 accentColor="text-emerald-600"
+                accentBg="bg-emerald-100 dark:bg-emerald-500/20"
             />
         </div>
     );
