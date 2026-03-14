@@ -23,6 +23,7 @@ export default function ConditionalBottomNav() {
     "/vendors/auth",
     "/admin/auth",
     "/search",
+    "/restaurants",
   ];
 
   // ✅ First, set mounted state to prevent hydration mismatch

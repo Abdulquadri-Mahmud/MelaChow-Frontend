@@ -302,7 +302,7 @@ export default function FoodSearchMobile() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50 transition-all duration-300 shadow-sm">
+      <div className="sticky top-0 z-50 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50 transition-all duration-300">
         <div className="max-w-xl mx-auto px-2 pt-2 pb-2">
           {/* Top Row */}
           <div className="flex items-center justify-between mb-4 px-2">
@@ -333,8 +333,8 @@ export default function FoodSearchMobile() {
             <form onSubmit={handleSearchSubmit} className="relative group">
               <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/10 to-orange-600/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
 
-              <div className="relative flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-3 rounded-2xl shadow-inner focus-within:bg-white dark:focus-within:bg-zinc-950 focus-within:shadow-[0_8px_30px_rgb(0,0,0,0.04)] focus-within:border-orange-500/50 transition-all duration-300">
-                <Search size={22} className="text-zinc-400 group-focus-within:text-orange-500 transition-colors ml-1" />
+              <div className="relative flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-3 rounded-2xl shadow-inner transition-all duration-300">
+                <Search size={22} className="text-zinc-400 transition-colors ml-1" />
 
                 <input
                   ref={inputRef}
@@ -363,7 +363,7 @@ export default function FoodSearchMobile() {
                     initial={{ opacity: 0, y: 10, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                    className="absolute top-full left-0 w-full bg-white/95 dark:bg-zinc-950/95 backdrop-blur-2xl border border-zinc-200/50 dark:border-zinc-800/50 mt-4 rounded-[28px] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.2)] z-[60] max-h-96 overflow-y-auto p-2"
+                    className="absolute top-full left-0 w-full bg-white/95 dark:bg-zinc-950/95 backdrop-blur-2xl border border-zinc-200/50 dark:border-zinc-800/50 mt-4 rounded-[28px] z-[60] max-h-96 overflow-y-auto p-2"
                   >
                     {autocomplete.length > 0 && (
                       <div className="mb-4">
@@ -423,9 +423,9 @@ export default function FoodSearchMobile() {
                 key={category._id}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => handleCategoryClick(category.name)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl whitespace-nowrap transition-all duration-300 shadow-sm
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl whitespace-nowrap transition-all duration-300
                   ${activeCategory === category.name
-                    ? "bg-orange-600 text-white shadow-orange-200 dark:shadow-none font-bold"
+                    ? "bg-orange-600 text-white font-bold"
                     : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-100 dark:border-zinc-800"
                   }
                 `}
@@ -450,7 +450,7 @@ export default function FoodSearchMobile() {
         ) : foods.length === 0 ? (
           <NoFoodsFound />
         ) : (
-          <div className="space-y-8 pb-10">
+          <div className="space-y-8 pb-10 pl-3">
             {Object.entries(foodsByCategory).map(([category, categoryFoods]) => (
               <div key={category} className="px-0">
                 <div className="flex items-center gap-2 px-4 mb-4">
@@ -474,7 +474,7 @@ export default function FoodSearchMobile() {
       <div className="fixed bottom-6 right-6 z-50">
         <button 
            onClick={() => router.push('/home')}
-           className="bg-orange-500 text-white rounded-full p-4 shadow-xl shadow-orange-500/30 hover:bg-orange-600 transition-all hover:scale-110 active:scale-95"
+           className="bg-orange-500 text-white rounded-full p-4 hover:bg-orange-600 transition-all hover:scale-110 active:scale-95"
         >
           <Store size={24} />
         </button>
