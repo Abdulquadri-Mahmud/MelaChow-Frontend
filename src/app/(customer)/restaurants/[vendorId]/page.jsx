@@ -7,9 +7,10 @@ import { useState, useRef, useMemo } from "react";
 import Header2 from "@/app/components/App_Header/Header2";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
 import ComboCustomizationModal from "@/app/components/Cart/ComboCustomizationModal";
-import { MapPin, Clock, Star, ChevronRight, ShoppingCart, Check, Search, Info, Package, Sparkles, Store, X, Plus } from "lucide-react";
+import { MapPin, Clock, Star, ChevronRight, ShoppingCart, Check, Search, Info, Package, Sparkles, Store, X, Plus, Heart, Globe, Bike } from "lucide-react";
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
+import { isVendorOpen } from "@/app/lib/utils";
 
 const DietaryBadge = ({ type }) => {
     const colors = {
@@ -33,55 +34,79 @@ const DietaryBadge = ({ type }) => {
 
 const FoodCard = ({ item, vendor, onSelect }) => {
     const isUnavailable = !item.is_available || !item.is_in_stock;
-    const hasMultiplePortions = item.portions?.count > 1;
-    const price = item.portions?.default_price_naira || 0;
+    const [liked, setLiked] = useState(false);
+    const isOpen = isVendorOpen(vendor?.openingHours);
 
     return (
-        <div 
+        <div
             onClick={() => !isUnavailable && onSelect(item)}
-            className={`bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-orange-200 dark:hover:border-orange-500/30 transition-all duration-300 cursor-pointer group flex h-32 sm:h-44 ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
+            className={`group bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
         >
-            {/* Horizontal Image Section */}
-            <div className="relative w-32 sm:w-44 h-full shrink-0 bg-slate-50 dark:bg-slate-800 overflow-hidden">
-                <img 
-                    src={item.image_url || "/placeholder.jpg"} 
+            {/* Image Block */}
+            <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                <img
+                    src={item.image_url || "/placeholder.jpg"}
                     alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
-                    loading="lazy"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <DietaryBadge type={item.dietary_type} />
                 {isUnavailable && (
-                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] flex items-center justify-center">
-                        <span className="bg-white/95 text-slate-900 px-2 py-1 rounded-lg text-[8px] sm:text-[10px] font-black uppercase tracking-widest shadow-lg">
+                    <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-[2px] flex items-center justify-center">
+                        <span className="bg-white/95 text-zinc-900 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg">
                             { !item.is_available ? "Unavailable" : "Sold Out" }
                         </span>
                     </div>
                 )}
             </div>
-            
-            {/* Horizontal Body Section */}
-            <div className="p-3 sm:p-5 flex flex-col flex-1 min-w-0">
-                <div className="flex-1">
-                    <h4 className="font-bold sm:font-black text-sm sm:text-lg text-slate-900 dark:text-white line-clamp-1 leading-tight mb-1">
+
+            {/* Info Block */}
+            <div className="px-3 pt-2.5 pb-3">
+                {/* Row 1: Name + Heart */}
+                <div className="flex justify-between items-center gap-2">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[calc(100%-28px)]">
                         {item.name}
-                    </h4>
-                    {item.description && (
-                        <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                            {item.description}
-                        </p>
-                    )}
+                    </h3>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
+                        className="transition-colors"
+                    >
+                        <Heart
+                            size={18}
+                            className={liked ? "fill-red-500 text-red-500" : "text-gray-400"}
+                            strokeWidth={liked ? 0 : 1.5}
+                        />
+                    </button>
                 </div>
 
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50 dark:border-slate-800/50">
-                    <div className="flex flex-col">
-                        {hasMultiplePortions && <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-0.5">From</span>}
-                        <p className="text-sm sm:text-xl font-black text-orange-600 dark:text-orange-500">
-                            ₦{price.toLocaleString()}
-                        </p>
+                {/* Row 2: Metadata Line: Delivery Fee | Status | Rating */}
+                <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
+                    <Globe size={14} className="text-gray-400 dark:text-zinc-500" />
+                    
+                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+
+                    {/* Delivery */}
+                    <div className="flex items-center gap-1 whitespace-nowrap">
+                        <Bike size={14} className="text-gray-400 dark:text-zinc-500" />
+                        {(!vendor?.deliveryFee || vendor?.deliveryFee === 0) ? (
+                            <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
+                        ) : (
+                            <span className="text-xs text-gray-500 dark:text-zinc-400">₦{vendor.deliveryFee.toLocaleString()}</span>
+                        )}
                     </div>
-                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-orange-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all duration-300">
-                        <Plus size={16} className="sm:hidden" />
-                        <ShoppingCart size={20} className="hidden sm:block" />
+
+                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+
+                    {/* Status */}
+                    <span className={`text-xs font-bold whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {isOpen ? "Open" : "Closed"}
+                    </span>
+
+                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-0.5 whitespace-nowrap">
+                        <Star size={10} className="fill-orange-500 text-orange-500" />
+                        <span className="text-[11px] font-bold text-gray-900 dark:text-white">{Number(vendor?.rating || 0).toFixed(1)}</span>
                     </div>
                 </div>
             </div>
@@ -89,68 +114,83 @@ const FoodCard = ({ item, vendor, onSelect }) => {
     );
 };
 
-const ComboCard = ({ combo, onSelect }) => {
+const ComboCard = ({ combo, vendor, onSelect }) => {
     const isUnavailable = !combo.is_available;
+    const [liked, setLiked] = useState(false);
+    const isOpen = isVendorOpen(vendor?.openingHours);
     
     return (
         <div
             onClick={() => !isUnavailable && onSelect(combo)}
-            className={`bg-white dark:bg-slate-900 rounded-[2rem]
-                overflow-hidden border border-slate-100
-                dark:border-slate-800 shadow-sm hover:shadow-xl
-                hover:border-orange-100 transition-all cursor-pointer
-                group relative h-32 sm:h-44 flex
-                ${isUnavailable ? "opacity-70 grayscale-[0.5]" : ""}`}
+            className={`group bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
         >
-            {/* Horizontal Image Section */}
-            <div className="relative w-32 sm:w-44 h-full shrink-0 overflow-hidden">
+            {/* Image Block */}
+            <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                 <img
                     src={combo.image_url || "/placeholder.jpg"}
                     alt={combo.name}
-                    className="w-full h-full object-cover
-                               group-hover:scale-110 transition-transform
-                               duration-500"
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <span className="absolute top-2 left-2 bg-orange-500
-                    text-white text-[8px] sm:text-[9px] font-black uppercase
-                    tracking-widest px-2 py-0.5 rounded-full z-10">
+                <span className="absolute top-2 left-2 bg-orange-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full z-10">
                     Deal
                 </span>
+                {isUnavailable && (
+                    <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-[2px] flex items-center justify-center">
+                        <span className="bg-white/95 text-zinc-900 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg">
+                            Unavailable
+                        </span>
+                    </div>
+                )}
             </div>
 
-            {/* Horizontal Body Section */}
-            <div className="p-3 sm:p-5 flex flex-col flex-1 min-w-0">
-                <div className="flex-1">
-                    <h4 className="font-bold sm:font-black text-sm sm:text-lg text-slate-900 dark:text-white line-clamp-1 leading-tight mb-1">
+            {/* Info Block */}
+            <div className="px-3 pt-2.5 pb-3">
+                {/* Row 1: Name + Heart */}
+                <div className="flex justify-between items-center gap-2">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[calc(100%-28px)]">
                         {combo.name}
-                    </h4>
-                    
-                    {combo.description && (
-                        <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-2">
-                            {combo.description}
-                        </p>
-                    )}
-
-                    {/* Component pills */}
-                    <div className="flex flex-wrap gap-1">
-                        {combo.components?.slice(0, 3).map(c => (
-                            <span key={c._id}
-                                className="text-[8px] sm:text-[10px] bg-slate-100
-                                    dark:bg-slate-800 text-slate-500 dark:text-slate-400
-                                    px-2 py-0.5 rounded-full font-bold">
-                                {c.name}{c.quantity > 1 ? ` ×${c.quantity}` : ""}
-                            </span>
-                        ))}
-                    </div>
+                    </h3>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
+                        className="transition-colors"
+                    >
+                        <Heart
+                            size={18}
+                            className={liked ? "fill-red-500 text-red-500" : "text-gray-400"}
+                            strokeWidth={liked ? 0 : 1.5}
+                        />
+                    </button>
                 </div>
 
-                <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-50 dark:border-slate-800/50">
-                    <p className="text-sm sm:text-xl font-black text-orange-600 dark:text-orange-500">
-                        ₦{combo.price_naira?.toLocaleString()}
-                    </p>
-                    <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-orange-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all duration-300">
-                        <Plus size={16} className="sm:hidden" />
-                        <ShoppingCart size={20} className="hidden sm:block" />
+                {/* Row 2: Metadata Line: Delivery Fee | Status | Rating */}
+                <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
+                    <Globe size={14} className="text-gray-400 dark:text-zinc-500" />
+                    
+                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+
+                    {/* Delivery */}
+                    <div className="flex items-center gap-1 whitespace-nowrap">
+                        <Bike size={14} className="text-gray-400 dark:text-zinc-500" />
+                        {(!vendor?.deliveryFee || vendor?.deliveryFee === 0) ? (
+                            <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
+                        ) : (
+                            <span className="text-xs text-gray-500 dark:text-zinc-400">₦{vendor.deliveryFee.toLocaleString()}</span>
+                        )}
+                    </div>
+
+                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+
+                    {/* Status */}
+                    <span className={`text-xs font-bold whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {isOpen ? "Open" : "Closed"}
+                    </span>
+
+                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-0.5 whitespace-nowrap">
+                        <Star size={10} className="fill-orange-500 text-orange-500" />
+                        <span className="text-[11px] font-bold text-gray-900 dark:text-white">{Number(vendor?.rating || 0).toFixed(1)}</span>
                     </div>
                 </div>
             </div>
@@ -272,7 +312,7 @@ export default function StorefrontPage() {
     const totalItems = allSections.reduce((acc, curr) => acc + (curr.items?.length || 0), 0);
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-24 lg:pb-12">
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
             <Header2 
                 title={vendor.address?.city || vendor.storeName} 
                 subtitle="Food Menu" 
@@ -287,8 +327,8 @@ export default function StorefrontPage() {
                         className="w-full h-full object-cover" 
                         alt={`${vendor.storeName} cover`} 
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#F8FAFC] dark:from-slate-950 via-slate-900/60 to-slate-900/30 dark:via-slate-950/80 dark:to-slate-950/60 mix-blend-multiply" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#F8FAFC] dark:from-slate-950 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-50 dark:from-zinc-950 via-zinc-900/60 to-zinc-900/30 dark:via-zinc-950/80 dark:to-zinc-950/60 mix-blend-multiply" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-50 dark:from-zinc-950 via-transparent to-transparent" />
                 </div>
                 
                 {/* Content Container */}
@@ -366,7 +406,7 @@ export default function StorefrontPage() {
             </div>
 
             {/* Search & Navigation Bar */}
-            <div className="sticky top-[64px] z-30 bg-[#F8FAFC]/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 pt-6 pb-4 transform-gpu transition-all">
+            <div className="sticky top-[64px] z-30 bg-zinc-50/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50 pt-6 pb-4 transform-gpu transition-all">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
                     {/* Search Bar */}
                     <div className="relative group max-w-md mx-auto lg:mx-0">
@@ -444,12 +484,13 @@ export default function StorefrontPage() {
                                     </span>
                                 </div>
                                 
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                     {section.type === "combo"
                                         ? section.items.map(combo => (
                                             <ComboCard
                                                 key={combo._id}
                                                 combo={combo}
+                                                vendor={vendor}
                                                 onSelect={handleComboTap}
                                             />
                                           ))
