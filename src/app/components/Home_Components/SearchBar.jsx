@@ -23,8 +23,8 @@ export default function SearchBar() {
     >
       <div className="absolute inset-0 bg-orange-200 blur-lg opacity-10 rounded-2xl group-hover:opacity-20 transition-opacity duration-300" />
 
-      <div className="relative flex items-center bg-white dark:bg-slate-900 rounded-2xl p-4 border border-transparent group-hover:border-orange-100 dark:group-hover:border-slate-700 transition-all duration-300 cursor-pointer">
-        <div className="p-2 bg-gray-50 dark:bg-slate-800 rounded-xl mr-3 group-hover:bg-orange-50 dark:group-hover:bg-slate-700 transition-colors">
+      <div className="relative flex items-center bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-transparent group-hover:border-orange-100 dark:group-hover:border-zinc-700 transition-all duration-300 cursor-pointer">
+        <div className="p-2 bg-gray-50 dark:bg-zinc-800 rounded-xl mr-3 group-hover:bg-orange-50 dark:group-hover:bg-zinc-700 transition-colors">
           <Search className="text-gray-400 group-hover:text-orange-500 transition-colors" size={22} />
         </div>
 
@@ -37,8 +37,8 @@ export default function SearchBar() {
           </span>
         </div>
 
-        <div className="pl-3 border-l border-gray-100 dark:border-slate-800">
-          <div className="p-2.5 bg-gray-50 dark:bg-slate-800 rounded-xl group-hover:bg-orange-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all duration-300 text-gray-400">
+        <div className="pl-3 border-l border-gray-100 dark:border-zinc-800">
+          <div className="p-2.5 bg-gray-50 dark:bg-zinc-800 rounded-xl group-hover:bg-orange-500 group-hover:text-white group-hover:shadow-lg group-hover:shadow-orange-500/30 transition-all duration-300 text-gray-400">
             <SlidersHorizontal size={20} />
           </div>
         </div>

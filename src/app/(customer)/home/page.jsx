@@ -26,13 +26,13 @@ export default function HomePage() {
   }, [user, isLoading]);
 
   return (
-    <div className="min-h-screen pb-20">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20 transition-colors duration-300">
       <HomeHeader />
       <div className="md:px-4 p-2">
-        <div className="space-y-">
-          <SearchBar />
-          <CategoryList />
-          <VendorList user={user} />
+        <SearchBar />
+        <CategoryList />
+        <VendorList user={user} />
+        <div className="space-y-4">
           <SmartRecommendations />
           <TrendingFoods user={user} />
           <FoodList user={user} />

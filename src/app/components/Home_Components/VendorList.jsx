@@ -1,84 +1,229 @@
-"use client";
+/*
+ * PAYLOAD REFERENCE — do not guess field names
+ *
+ * food.image           → flat string (NOT images[])
+ * food.price           → naira (NOT kobo, do NOT ÷100)
+ * food.portions[].price_naira → naira
+ * food.choiceGroups    → array (same key as before)
+ * food.restaurant._id  → use for navigation
+ * food.dietary_type    → "halal"|"veg"|"mixed" etc.
+ * food.item_type       → "FOOD"|"DRINK"|"SOUP" etc.
+ *
+ * Navigate to vendor storefront:
+ *   /restaurants/${food.restaurant._id}
+ * NOT:
+ *   /foods/${food.slug}  ← slug removed from MenuItem
+ */
 
-import { useMemo, useState } from "react";
-import { Store, MapPin, Star, BadgeCheck } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { Store, MapPin, Star, BadgeCheck, Heart, Globe, Bike, Gift, Utensils } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import { useApi } from "@/app/context/ApiContext";
+import { isVendorOpen } from "@/app/lib/utils";
+import { getFoodsByLocation } from "@/app/lib/userApi";
 
-import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
-
-// Simple skeleton for internal use or import existing if preferred
-const VendorSkeleton = () => (
-    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-        {[1, 2, 3].map((i) => (
-            <div key={i} className="min-w-[250px] h-48 bg-gray-100 dark:bg-slate-800 rounded-[24px] animate-pulse"></div>
-        ))}
+const VendorCardSkeleton = () => (
+    <div
+        className="flex-shrink-0 h- rounded-2xl overflow-hidden bg-white dark:bg-zinc-900"
+        style={{
+            width: "72vw", maxWidth: "280px",
+            boxShadow: ""
+        }}
+    >
+        <div className="w-full bg-zinc-100 dark:bg-zinc-800 animate-pulse"
+            style={{ height: 100 }} />
+        <div className="px-3 pt-3 pb-4 space-y-2">
+            <div className="h-3 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-full w-4/5" />
+            <div className="h-3 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-full w-3/5" />
+        </div>
     </div>
 );
 
+const VendorCard = ({ _id, storeName, image, isOpen, rating, ratingCount, deliveryFee, badge }) => {
+    const router = useRouter();
+    const [liked, setLiked] = useState(false);
+
+    return (
+        <div
+            onClick={() => router.push(`/restaurants/${_id}`)}
+            className={`flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 ${!isOpen ? '' : ''}`}
+            style={{
+                width: "72vw", maxWidth: "280px",
+                boxShadow: ""
+            }}
+        >
+            {/* Image Block */}
+            <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                {image ? (
+                    <img src={image} alt={storeName} className="w-full h-full object-cover" />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-800">
+                        <Utensils className="text-zinc-300 dark:text-zinc-600" size={40} />
+                    </div>
+                )}
+
+                {/* Badge Overlay */}
+                {badge && (
+                    <div className="absolute bottom-[10px] left-[10px] bg-white dark:bg-zinc-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 max-w-[90%]">
+                        <Gift size={12} className="text-orange-500" />
+                        <span className="text-[11px] font-semibold text-gray-900 dark:text-white truncate">{badge}</span>
+                    </div>
+                )}
+            </div>
+
+            {/* Info Block */}
+            <div className="px-3 pt-2.5 pb-3">
+                {/* Row 1 */}
+                <div className="flex justify-between items-center gap-2">
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[calc(100%-28px)]">
+                        {storeName}
+                    </h3>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
+                        className="transition-colors"
+                    >
+                        <Heart
+                            size={18}
+                            className={liked ? "fill-red-500 text-red-500" : "text-gray-400"}
+                            strokeWidth={liked ? 0 : 1.5}
+                        />
+                    </button>
+                </div>
+
+                {/* Row 2: Metadata metadata - Icons style from VendorList */}
+                <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden text-gray-400">
+                    <Globe size={14} className="dark:text-zinc-500" />
+                    
+                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+
+                    {/* Delivery */}
+                    <div className="flex items-center gap-1 whitespace-nowrap">
+                        <Bike size={14} className="dark:text-zinc-500" />
+                        {deliveryFee === null || deliveryFee === 0 ? (
+                            <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
+                        ) : (
+                            <span className="text-xs text-gray-500 dark:text-zinc-400">₦{deliveryFee.toLocaleString()}</span>
+                        )}
+                    </div>
+
+                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+
+                    {/* Status */}
+                    <span className={`text-xs font-bold whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {isOpen ? "Open" : "Closed"}
+                    </span>
+
+                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-0.5 whitespace-nowrap">
+                        <Star size={10} className="fill-orange-500 text-orange-500" />
+                        <span className="text-[11px] font-bold text-gray-900 dark:text-white">{Number(rating || 0).toFixed(1)}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export default function VendorList({ user }) {
     const router = useRouter();
-    const { baseUrl } = useApi();
-    const [imgLoaded, setImgLoaded] = useState({});
 
-    const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
+    // Location state with localStorage fallback
+    const [userLocation, setUserLocation] = useState(() => {
+        if (typeof window === "undefined") return null;
+        try {
+            const saved = localStorage.getItem("grubdash_location");
+            return saved ? JSON.parse(saved) : null;
+        } catch {
+            return null;
+        }
+    });
 
-    const { data: vendors = [], isLoading, isError } = useQuery({
-        queryKey: ["vendors", defaultAddr?.city, defaultAddr?.state],
-        queryFn: async () => {
-            if (!defaultAddr?.city || !defaultAddr?.state) {
-                // Return empty or throw generic error silently handled
-                return [];
+    // Sync with default address
+    useEffect(() => {
+        if (!userLocation && user?.addresses) {
+            const defaultAddr = user.addresses.find((a) => a.isDefault);
+            if (defaultAddr?.city && defaultAddr?.state) {
+                const loc = { city: defaultAddr.city, state: defaultAddr.state };
+                setUserLocation(loc);
+                localStorage.setItem("grubdash_location", JSON.stringify(loc));
             }
+        }
+    }, [user, userLocation]);
 
-            const res = await axios.get(`${baseUrl}/user/vendors/nearby`, {
-                params: {
-                    city: defaultAddr.city,
-                    state: defaultAddr.state,
-                },
-                withCredentials: true, // ✅ Use cookie-based auth
-            });
-            return res.data.vendors || [];
-        },
-        refetchInterval: 60000,
-        retry: 1, // Retry once
+    const { data: responseData, isLoading, isError } = useQuery({
+        queryKey: ["foods-by-location", userLocation?.city, userLocation?.state],
+        queryFn: () => getFoodsByLocation({
+            city: userLocation.city,
+            state: userLocation.state,
+        }),
+        enabled: !!userLocation?.city && !!userLocation?.state,
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
+
+    const foods = responseData?.foods || [];
+
+    const uniqueVendors = useMemo(() => {
+        const seen = new Set();
+        return (foods || [])
+            .filter(food => {
+                const id = food.restaurant?._id?.toString();
+                if (!id || seen.has(id)) return false;
+                seen.add(id);
+                return true;
+            })
+            .map(food => ({
+                _id: food.restaurant._id,
+                storeName: food.restaurant.storeName,
+                // Use logo as the card image — coverImage does not exist on this payload
+                image: food.restaurant.logo || null,
+                isOpen: isVendorOpen(food.restaurant.openingHours),
+                rating: food.restaurant.rating ?? 0,
+                ratingCount: food.restaurant.ratingCount ?? 0,
+                // deliveryFee not in this payload yet — null = Free
+                deliveryFee: null,
+                // badge not in payload yet — null = no badge shown
+                badge: null,
+            }));
+    }, [foods]);
+
+    const featuredVendors = uniqueVendors.slice(0, 6);
+    const handpickedVendors = uniqueVendors.slice(6, 12);
 
     // console.log(vendors);
 
     if (isLoading) return (
-        <div className="mt-8 px-4 space-y-4" >
-            <div className="h-6 w-48 bg-gray-100 dark:bg-slate-800 rounded-lg animate-pulse"></div>
-            <VendorSkeleton />
-        </div >
+        <div className="mb-6">
+            <h2 className="text-lg font-bold text-zinc-900 px-4 mb-3.5">Featured ⭐</h2>
+            <div className="flex overflow-x-auto gap-3 px-4 pb-3 scrollbar-none">
+                {[1, 2, 3].map(n => <VendorCardSkeleton key={n} />)}
+            </div>
+        </div>
     );
 
     if (isError) return null;
 
-    if (!vendors.length) {
-        if (!defaultAddr) return null;
+    if (!uniqueVendors.length) {
+        if (!userLocation) return null;
 
         return (
             <div className="px-0 mb-6">
                 <div className="flex items-center justify-between px-4 mb-4">
                     <div className="flex items-center gap-2">
                         <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
-                        <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Featured Restaurants</h2>
+                        <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">Featured Restaurants</h2>
                     </div>
                 </div>
 
                 <div className="px-4">
                     <div className="bg-orange-50/50 dark:bg-orange-500/5 rounded-[24px] p-8 text-center border border-orange-100/50 dark:border-orange-500/20 flex flex-col items-center">
-                        <div className="bg-white dark:bg-slate-800 p-3 rounded-full mb-3 shadow-sm">
+                        <div className="bg-white dark:bg-zinc-800 p-3 rounded-full mb-3">
                             <MapPin className="text-orange-500" size={24} />
                         </div>
-                        <h3 className="font-bold text-gray-900 dark:text-white text-base mb-1">Coming Soon to {defaultAddr?.city}!</h3>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 max-w-[240px] leading-relaxed">
-                            We're currently onboarding top-tier restaurants in your area.
-                            Get your appetite ready!
+                        <h3 className="font-bold text-zinc-900 dark:text-white text-base mb-1">Coming Soon to {userLocation?.city}!</h3>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-[240px] leading-relaxed">
+                            We're currently onboarding top-tier restaurants in your area. Get your appetite ready!
                         </p>
                     </div>
                 </div>
@@ -88,77 +233,39 @@ export default function VendorList({ user }) {
 
     return (
         <div className="px-0">
-            <div className="flex items-center justify-between px-4 mb-4">
-                <div className="flex items-center gap-2">
-                    <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Featured Restaurants</h2>
-                </div>
-                <button
-                    onClick={() => router.push('/all-restaurants')} // Assuming this route exists based on context
-                    className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors bg-orange-50 dark:bg-orange-500/10 px-3 py-1.5 rounded-full"
+            {/* Featured section */}
+            <div className="">
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white px-4 mb-3.5 flex items-center gap-2">
+                    Featured <Star size={18} className="text-orange-500 fill-orange-500" />
+                </h2>
+                <div
+                    className="flex scroll overflow-x-auto gap-3 px-4 pb-3 scrollbar-hide no-scrollbar"
+                    style={{
+                        scrollSnapType: "x mandatory",
+                        WebkitOverflowScrolling: "touch"
+                    }}
                 >
-                    View All
-                </button>
+                    {featuredVendors.map(v => <VendorCard key={v._id} {...v} />)}
+                </div>
             </div>
 
-            <div className="flex gap-4 scroll overflow-x-auto px-4 pb-4 snap-x snap-mandatory scrollbar-hide">
-                {vendors.map((vendor) => {
-                    const statusMsg = getVendorOpenAndCloseStatus(vendor.openingHours);
-                    const isOpen = statusMsg?.toLowerCase().startsWith("open now");
-
-                    return (
-                        <div
-                            key={vendor._id}
-                            onClick={() => router.push(`/restaurants/${vendor._id}`)}
-                            className="group relative flex-none w-[250px] bg-white dark:bg-slate-900 rounded-[24px] transition-all duration-300 cursor-pointer snap-start border border-gray-100 dark:border-slate-800 overflow-hidden"
-                        >
-                            {/* Image Container */}
-                            <div className="relative h-[140px] w-full bg-gray-100 dark:bg-slate-800 overflow-hidden">
-                                <img
-                                    src={vendor.logo || "/placeholder.jpg"}
-                                    alt={vendor.storeName}
-                                    onLoad={() => setImgLoaded((prev) => ({ ...prev, [vendor._id]: true }))}
-                                    className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${imgLoaded[vendor._id] ? 'opacity-100' : 'opacity-0'}`}
-                                />
-
-                                {/* Rating Badge */}
-                                <div className="absolute top-3 right-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-2 py-1 rounded-xl flex items-center gap-1">
-                                    <Star size={10} className="fill-orange-500 text-orange-500" />
-                                    <span className="text-[10px] font-black text-gray-900 dark:text-white tracking-tighter">
-                                        {vendor.rating || "NEW"}
-                                    </span>
-                                </div>
-
-                                {/* Featured Badge */}
-                                {vendor.metadata?.featured && (
-                                    <div className="absolute top-3 left-3 bg-blue-500 text-white px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-md">
-                                        <BadgeCheck size={10} />
-                                        <span className="text-[9px] font-bold uppercase tracking-wider">Featured</span>
-                                    </div>
-                                )}
-
-                                {/* Open/Closed Badge */}
-                                <div className={`absolute bottom-3 right-3 px-2 py-1 rounded-lg flex items-center gap-1 shadow-md ${isOpen ? "bg-emerald-500" : "bg-rose-500"} text-white`}>
-                                    <span className="text-[9px] font-bold uppercase tracking-wider">{isOpen ? "Open" : "Closed"}</span>
-                                </div>
-
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
-                            </div>
-
-                            {/* Content */}
-                            <div className="p-4">
-                                <div className="mb-2">
-                                    <h3 className="font-bold text-gray-900 dark:text-white text-sm truncate leading-tight tracking-tight mb-1">{vendor.storeName}</h3>
-                                    <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
-                                        <MapPin size={12} className="text-gray-400 dark:text-slate-500" />
-                                        <span className="truncate max-w-[180px] font-medium opacity-80">{vendor.address?.city || "Location info"}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
+            {/* Handpicked section — only if enough vendors */}
+            {handpickedVendors.length > 0 && (
+                <div className="">
+                    <h2 className="text-lg font-bold text-zinc-900 dark:text-white px-4 mb-3.5 flex items-center gap-2">
+                        Handpicked for you <Heart size={18} className="text-green-500 fill-green-500" />
+                    </h2>
+                    <div
+                        className="flex overflow-x-auto gap-3 px-4 pb-3 scrollbar-hide no-scrollbar"
+                        style={{
+                            scrollSnapType: "x mandatory",
+                            WebkitOverflowScrolling: "touch"
+                        }}
+                    >
+                        {handpickedVendors.map(v => <VendorCard key={v._id} {...v} />)}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
