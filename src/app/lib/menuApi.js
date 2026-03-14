@@ -349,10 +349,28 @@ export const addVariantChoiceGroup = async (vendorId, variantId, data) => {
     return res.data;
 };
 
+// Create a swap group for a combo variant
+export const addVariantSwapGroup = async (vendorId, variantId, data) => {
+    const res = await getMenuAxios().post(
+        `/v1/menu/${vendorId}/variants/${variantId}/choice-groups`,
+        data
+    );
+    return res.data;
+};
+
 /**
  * Add a swap option to a choice group
  */
 export const addVariantChoiceOption = async (groupId, data) => {
+    const res = await getMenuAxios().post(
+        `/v1/menu/variant-choice-groups/${groupId}/options`,
+        data
+    );
+    return res.data;
+};
+
+// Add an option to an existing variant swap group
+export const addVariantSwapOption = async (groupId, data) => {
     const res = await getMenuAxios().post(
         `/v1/menu/variant-choice-groups/${groupId}/options`,
         data

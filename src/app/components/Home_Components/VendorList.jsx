@@ -47,7 +47,7 @@ export default function VendorList({ user }) {
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 
-    console.log(vendors);
+    // console.log(vendors);
 
     if (isLoading) return (
         <div className="mt-8 px-4 space-y-4" >
