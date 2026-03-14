@@ -3,48 +3,44 @@
 // Skeleton with shimmer
 const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
   <div
-    className={`relative overflow-hidden scroll bg-gray-200 dark:bg-gray-700 rounded ${className}`}
+    className={`relative overflow-hidden bg-zinc-200 dark:bg-zinc-800 rounded ${className}`}
     style={{ width, height }}
   >
-    <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-shimmer"></div>
+    <div className="absolute inset-0 bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 dark:from-zinc-800 dark:via-zinc-700 dark:to-zinc-800 animate-shimmer"></div>
   </div>
 );
 
 export default function HomeFoodListSkeleton({ categories = 2, itemsPerCategory = 3 }) {
   return (
-    <div className="space-y-3 flex-1 scroll">
+    <div className="space-y-8 flex-1">
       {Array.from({ length: categories }).map((_, catIdx) => (
-        <div key={catIdx}>
-          <div className="flex gap-2 scroll overflow-x-auto snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 scroll-smooth">
+        <div key={catIdx} className="px-0">
+          {/* Header Skeleton */}
+          <div className="flex items-center gap-2 px-4 mb-4">
+             <Skeleton width={4} height={20} className="rounded-full bg-orange-500" />
+             <Skeleton width={120} height={20} className="rounded-md" />
+          </div>
+
+          <div className="flex gap-4 scroll overflow-x-auto px-4 pb-4 no-scrollbar">
             {Array.from({ length: itemsPerCategory }).map((_, itemIdx) => (
               <div
                 key={itemIdx}
-                className="min-w-[220px] rounded-md overflow-hidden bg-white border border-gray-50 flex flex-col h-full snap-start"
+                className="flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden border border-zinc-100 dark:border-zinc-800"
+                style={{ width: "72vw", maxWidth: "280px" }}
               >
                 <div className="relative">
-                  <Skeleton height={120} />
-                  <div className="absolute top-2 right-2">
-                    <Skeleton width={80} height={20} className="rounded" />
-                  </div>
+                  <Skeleton height={130} />
                 </div>
-                <div className="p-2 space-y-2 flex-1">
+                <div className="px-3 pt-2.5 pb-3 space-y-2">
                   <div className="flex justify-between items-start gap-2">
-                    <Skeleton width="70%" height={16} />
-                    <Skeleton width={28} height={28} className="rounded-lg" />
+                    <Skeleton width="70%" height={16} className="rounded-md" />
+                    <Skeleton width={20} height={20} className="rounded-full" />
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Skeleton width={12} height={12} className="rounded-sm" />
-                    <Skeleton width="50%" height={12} />
-                  </div>
-                  <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
-                    <div className="flex items-center gap-1">
-                      <Skeleton width={12} height={12} />
-                      <Skeleton width={40} height={10} />
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Skeleton width={12} height={12} />
-                      <Skeleton width={30} height={10} />
-                    </div>
+                  <Skeleton width="40%" height={12} className="rounded-md" />
+                  <div className="flex items-center gap-2 mt-3 pt-2 border-t border-zinc-50 dark:border-zinc-800">
+                    <Skeleton width={20} height={12} className="rounded-sm" />
+                    <Skeleton width={40} height={12} className="rounded-sm" />
+                    <Skeleton width={40} height={12} className="rounded-sm" />
                   </div>
                 </div>
               </div>
