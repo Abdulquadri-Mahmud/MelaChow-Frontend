@@ -7,7 +7,8 @@ import {
     updateMenuItem, addPortion, updatePortion, deleteMenuItemPortion,
     addChoiceGroup, updateChoiceGroup, deleteChoiceGroup,
     addChoiceOption, updateChoiceOption, deleteChoiceOption,
-    toggleMenuItemAvailability, archiveMenuItem
+    toggleMenuItemAvailability, archiveMenuItem,
+    addVariantSwapGroup, addVariantChoiceOption
 } from "@/app/lib/menuApi";
 import { useVendorProfile } from "@/app/context/VendorProfileContext";
 import { useParams, useRouter } from "next/navigation";
@@ -830,6 +831,15 @@ export default function FoodManagementPage() {
     const [savingCombo, setSavingCombo]         = useState(false);
     const [expandedComboId, setExpandedComboId] = useState(null);
 
+    // Swap Editor State
+    const [swapEditorComboId, setSwapEditorComboId] = useState(null);
+    const [newSwapGroupForm, setNewSwapGroupForm] = useState({});
+    const [showAddSwapGroup, setShowAddSwapGroup] = useState({});
+    const [newSwapOptionForm, setNewSwapOptionForm] = useState({});
+    const [showAddSwapOption, setShowAddSwapOption] = useState({});
+    const [addingSwapGroup, setAddingSwapGroup] = useState(false);
+    const [addingSwapOption, setAddingSwapOption] = useState(null); // groupId
+
     useEffect(() => {
         if (!vendorId) return;
         getVendorSections(vendorId).then(r => setAllSections(r.sections || [])).catch(() => {});
@@ -1105,7 +1115,27 @@ export default function FoodManagementPage() {
                                                     </button>
 
                                                     <button
-                                                        onClick={() => openComboEdit(combo)}
+                                                        onClick={() => {
+                                                            setEditingComboId(null);
+                                                            setExpandedComboId(null);
+                                                            setSwapEditorComboId(prev => prev === combo._id ? null : combo._id);
+                                                        }}
+                                                        title="Manage swap options"
+                                                        className={`w-9 h-9 rounded-xl flex items-center justify-center
+                                                            transition-all text-[10px] font-black
+                                                            ${swapEditorComboId === combo._id
+                                                                ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30"
+                                                                : "bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10"
+                                                            }`}
+                                                    >
+                                                        <RefreshCw size={14} strokeWidth={3} />
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => {
+                                                            setSwapEditorComboId(null);
+                                                            openComboEdit(combo);
+                                                        }}
                                                         className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
                                                             editingComboId === combo._id
                                                             ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
@@ -1192,6 +1222,425 @@ export default function FoodManagementPage() {
                                                                     Apply Update
                                                                 </button>
                                                             </div>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+
+                                            {/* ── SWAP EDITOR PANEL ─────────────────── */}
+                                            <AnimatePresence>
+                                                {swapEditorComboId === combo._id && (
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: "auto", opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        className="overflow-hidden border-t border-orange-100
+                                                            dark:border-orange-500/20 bg-orange-50/30
+                                                            dark:bg-orange-500/5"
+                                                    >
+                                                        <div className="p-5 space-y-6">
+
+                                                            {/* SECTION HEADER */}
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-2">
+                                                                    <RefreshCw size={14} className="text-orange-500" />
+                                                                    <span className="text-[10px] font-black uppercase
+                                                                        tracking-widest text-slate-500">
+                                                                        Swap Configuration
+                                                                    </span>
+                                                                </div>
+                                                                <span className="text-[9px] font-black text-slate-400
+                                                                    uppercase tracking-widest bg-white
+                                                                    dark:bg-slate-800 px-3 py-1 rounded-full
+                                                                    border border-slate-200 dark:border-slate-700">
+                                                                    {combo.swap_groups?.length || 0} groups
+                                                                </span>
+                                                            </div>
+
+                                                            {/* EXISTING SWAP GROUPS */}
+                                                            {combo.swap_groups?.length > 0 ? (
+                                                                <div className="space-y-4">
+                                                                    {combo.swap_groups.map(group => (
+                                                                        <div key={group._id}
+                                                                            className="bg-white dark:bg-slate-900
+                                                                                border border-slate-200
+                                                                                dark:border-slate-800 rounded-[1.5rem]
+                                                                                overflow-hidden">
+
+                                                                            {/* Group header */}
+                                                                            <div className="flex items-center
+                                                                                justify-between px-5 py-4 border-b
+                                                                                border-slate-100 dark:border-slate-800
+                                                                                bg-slate-50/50 dark:bg-slate-800/30">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <div className="w-1 h-4
+                                                                                        bg-orange-500 rounded-full" />
+                                                                                    <span className="text-sm font-black
+                                                                                        text-slate-800 dark:text-white
+                                                                                        uppercase tracking-tight">
+                                                                                        {group.name}
+                                                                                    </span>
+                                                                                    {group.is_required && (
+                                                                                        <span className="text-[9px]
+                                                                                            font-black uppercase
+                                                                                            tracking-widest bg-rose-100
+                                                                                            text-rose-600 px-2 py-0.5
+                                                                                            rounded-full">
+                                                                                            Required
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                                {/* TODO: Add delete group endpoint
+                                                                                    then wire up delete button here */}
+                                                                            </div>
+
+                                                                            {/* Existing options */}
+                                                                            <div className="p-3 space-y-2">
+                                                                                {group.options?.map(opt => (
+                                                                                    <div key={opt._id}
+                                                                                        className="flex items-center
+                                                                                            justify-between px-4 py-2.5
+                                                                                            rounded-xl bg-slate-50
+                                                                                            dark:bg-slate-800/50 border
+                                                                                            border-slate-100
+                                                                                            dark:border-slate-800">
+                                                                                        <span className="text-sm
+                                                                                            font-bold text-slate-700
+                                                                                            dark:text-slate-300">
+                                                                                            {opt.label || opt.name}
+                                                                                        </span>
+                                                                                        <span className={`text-[10px]
+                                                                                            font-black
+                                                                                            ${opt.price_modifier_naira > 0
+                                                                                                ? "text-orange-500"
+                                                                                                : "text-emerald-500"
+                                                                                            }`}>
+                                                                                            {opt.price_modifier_naira > 0
+                                                                                                ? `+₦${opt.price_modifier_naira.toLocaleString()}`
+                                                                                                : "Free"
+                                                                                            }
+                                                                                        </span>
+                                                                                    </div>
+                                                                                ))}
+
+                                                                                {/* Add option inline row */}
+                                                                                {showAddSwapOption[group._id] ? (
+                                                                                    <div className="flex gap-2 items-center
+                                                                                        p-3 bg-orange-50
+                                                                                        dark:bg-orange-500/10 rounded-xl
+                                                                                        border border-orange-200
+                                                                                        dark:border-orange-500/20">
+                                                                                        <input
+                                                                                            type="text"
+                                                                                            placeholder="Option name"
+                                                                                            value={newSwapOptionForm[group._id]?.label || ""}
+                                                                                            onChange={e =>
+                                                                                                setNewSwapOptionForm(prev => ({
+                                                                                                    ...prev,
+                                                                                                    [group._id]: {
+                                                                                                        ...prev[group._id],
+                                                                                                        label: e.target.value
+                                                                                                    }
+                                                                                                }))
+                                                                                            }
+                                                                                            className="flex-1 h-9 px-3
+                                                                                                rounded-xl text-xs
+                                                                                                font-bold border
+                                                                                                border-orange-200
+                                                                                                dark:border-orange-500/30
+                                                                                                bg-white
+                                                                                                dark:bg-slate-900
+                                                                                                focus:border-orange-500
+                                                                                                outline-none"
+                                                                                        />
+                                                                                        <div className="relative w-28">
+                                                                                            <span className="absolute
+                                                                                                left-3 top-1/2
+                                                                                                -translate-y-1/2
+                                                                                                text-[10px] font-black
+                                                                                                text-slate-400">
+                                                                                                ₦
+                                                                                            </span>
+                                                                                            <input
+                                                                                                type="number"
+                                                                                                placeholder="0"
+                                                                                                value={newSwapOptionForm[group._id]?.price_modifier_naira || ""}
+                                                                                                onChange={e =>
+                                                                                                    setNewSwapOptionForm(prev => ({
+                                                                                                        ...prev,
+                                                                                                        [group._id]: {
+                                                                                                            ...prev[group._id],
+                                                                                                            price_modifier_naira: e.target.value
+                                                                                                        }
+                                                                                                    }))
+                                                                                                }
+                                                                                                className="w-full h-9
+                                                                                                    pl-7 pr-3 rounded-xl
+                                                                                                    text-xs font-black
+                                                                                                    text-orange-600
+                                                                                                    border
+                                                                                                    border-orange-200
+                                                                                                    dark:border-orange-500/30
+                                                                                                    bg-white
+                                                                                                    dark:bg-slate-950
+                                                                                                    focus:border-orange-500
+                                                                                                    outline-none"
+                                                                                            />
+                                                                                        </div>
+                                                                                        <button
+                                                                                            disabled={addingSwapOption === group._id}
+                                                                                            onClick={async () => {
+                                                                                                const form = newSwapOptionForm[group._id];
+                                                                                                if (!form?.label?.trim()) {
+                                                                                                    toast.error("Option name required");
+                                                                                                    return;
+                                                                                                }
+                                                                                                setAddingSwapOption(group._id);
+                                                                                                try {
+                                                                                                    await addVariantChoiceOption(group._id, {
+                                                                                                        label: form.label.trim(),
+                                                                                                        price_modifier: Math.round(
+                                                                                                            Number(form.price_modifier_naira || 0) * 100
+                                                                                                        ),
+                                                                                                        is_available: true,
+                                                                                                        sort_order: group.options?.length || 0,
+                                                                                                    });
+                                                                                                    queryClient.invalidateQueries({
+                                                                                                        queryKey: ["food-item", itemId]
+                                                                                                    });
+                                                                                                    setNewSwapOptionForm(prev => ({
+                                                                                                        ...prev,
+                                                                                                        [group._id]: { label: "", price_modifier_naira: "" }
+                                                                                                    }));
+                                                                                                    setShowAddSwapOption(prev => ({
+                                                                                                        ...prev,
+                                                                                                        [group._id]: false
+                                                                                                    }));
+                                                                                                    toast.success("Swap option added");
+                                                                                                } catch (err) {
+                                                                                                    toast.error(
+                                                                                                        err?.response?.data?.message ||
+                                                                                                        "Could not add option"
+                                                                                                    );
+                                                                                                } finally {
+                                                                                                    setAddingSwapOption(null);
+                                                                                                }
+                                                                                            }}
+                                                                                            className="w-9 h-9 rounded-xl
+                                                                                                bg-orange-500 text-white
+                                                                                                flex items-center
+                                                                                                justify-center shrink-0
+                                                                                                disabled:opacity-50
+                                                                                                active:scale-95
+                                                                                                transition-all"
+                                                                                        >
+                                                                                            {addingSwapOption === group._id
+                                                                                                ? <Loader2 size={14} className="animate-spin" />
+                                                                                                : <Plus size={14} strokeWidth={3} />
+                                                                                            }
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={() =>
+                                                                                                setShowAddSwapOption(prev => ({
+                                                                                                    ...prev,
+                                                                                                    [group._id]: false
+                                                                                                }))
+                                                                                            }
+                                                                                            className="w-9 h-9 rounded-xl
+                                                                                                bg-white dark:bg-slate-800
+                                                                                                text-slate-400
+                                                                                                flex items-center
+                                                                                                justify-center shrink-0
+                                                                                                hover:text-rose-500
+                                                                                                transition-all"
+                                                                                        >
+                                                                                            <X size={14} />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <button
+                                                                                        onClick={() =>
+                                                                                            setShowAddSwapOption(prev => ({
+                                                                                                ...prev,
+                                                                                                [group._id]: true
+                                                                                            }))
+                                                                                        }
+                                                                                        className="w-full py-2 text-[10px]
+                                                                                            font-black uppercase
+                                                                                            tracking-widest text-orange-500
+                                                                                            hover:text-orange-600
+                                                                                            border-2 border-dashed
+                                                                                            border-orange-200
+                                                                                            dark:border-orange-500/20
+                                                                                            rounded-xl transition-all
+                                                                                            hover:bg-orange-50
+                                                                                            dark:hover:bg-orange-500/5"
+                                                                                    >
+                                                                                        + Add Option to {group.name}
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="text-center py-8 border-2 border-dashed
+                                                                    border-slate-200 dark:border-slate-800 rounded-[1.5rem]">
+                                                                    <RefreshCw size={24}
+                                                                        className="text-slate-300 mx-auto mb-2" />
+                                                                    <p className="text-xs font-bold text-slate-400">
+                                                                        No swap groups yet.
+                                                                    </p>
+                                                                    <p className="text-[10px] text-slate-400 mt-1">
+                                                                        Add one below to let customers personalise
+                                                                        this combo.
+                                                                    </p>
+                                                                </div>
+                                                            )}
+
+                                                            {/* ADD NEW SWAP GROUP */}
+                                                            {showAddSwapGroup[combo._id] ? (
+                                                                <div className="p-4 bg-white dark:bg-slate-950 border
+                                                                    border-orange-200 dark:border-orange-500/30
+                                                                    rounded-[1.5rem] space-y-3">
+                                                                    <p className="text-[10px] font-black uppercase
+                                                                        tracking-widest text-orange-600
+                                                                        dark:text-orange-400">
+                                                                        New Swap Group
+                                                                    </p>
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder='e.g. "Choose your protein swap"'
+                                                                        value={newSwapGroupForm[combo._id]?.name || ""}
+                                                                        onChange={e =>
+                                                                            setNewSwapGroupForm(prev => ({
+                                                                                ...prev,
+                                                                                [combo._id]: {
+                                                                                    ...prev[combo._id],
+                                                                                    name: e.target.value
+                                                                                }
+                                                                            }))
+                                                                        }
+                                                                        className="w-full h-11 px-4 rounded-xl border
+                                                                            border-slate-200 dark:border-slate-700
+                                                                            bg-slate-50 dark:bg-slate-900 text-sm
+                                                                            font-bold focus:border-orange-500
+                                                                            focus:ring-4 focus:ring-orange-500/10
+                                                                            outline-none"
+                                                                        autoFocus
+                                                                    />
+                                                                    <label className="flex items-center gap-2 text-sm
+                                                                        font-bold text-slate-700 dark:text-slate-300
+                                                                        cursor-pointer">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={newSwapGroupForm[combo._id]?.is_required || false}
+                                                                            onChange={e =>
+                                                                                setNewSwapGroupForm(prev => ({
+                                                                                    ...prev,
+                                                                                    [combo._id]: {
+                                                                                        ...prev[combo._id],
+                                                                                        is_required: e.target.checked
+                                                                                    }
+                                                                                }))
+                                                                            }
+                                                                            className="w-4 h-4 rounded border-slate-300
+                                                                                text-orange-500 focus:ring-orange-500"
+                                                                        />
+                                                                        Customer must choose from this group
+                                                                    </label>
+                                                                    <div className="flex gap-3 pt-1">
+                                                                        <button
+                                                                            disabled={addingSwapGroup}
+                                                                            onClick={async () => {
+                                                                                const form = newSwapGroupForm[combo._id];
+                                                                                if (!form?.name?.trim()) {
+                                                                                    toast.error("Group name required");
+                                                                                    return;
+                                                                                }
+                                                                                setAddingSwapGroup(true);
+                                                                                try {
+                                                                                    await addVariantSwapGroup(
+                                                                                        vendorId,
+                                                                                        combo._id,
+                                                                                        {
+                                                                                            name:           form.name.trim(),
+                                                                                            is_required:    form.is_required || false,
+                                                                                            min_selections: form.is_required ? 1 : 0,
+                                                                                            max_selections: 1,
+                                                                                            sort_order:     combo.swap_groups?.length || 0,
+                                                                                        }
+                                                                                    );
+                                                                                    queryClient.invalidateQueries({
+                                                                                        queryKey: ["food-item", itemId]
+                                                                                    });
+                                                                                    setNewSwapGroupForm(prev => ({
+                                                                                        ...prev,
+                                                                                        [combo._id]: { name: "", is_required: false }
+                                                                                    }));
+                                                                                    setShowAddSwapGroup(prev => ({
+                                                                                        ...prev,
+                                                                                        [combo._id]: false
+                                                                                    }));
+                                                                                    toast.success("Swap group added");
+                                                                                } catch (err) {
+                                                                                    toast.error(
+                                                                                        err?.response?.data?.message ||
+                                                                                        "Could not create group"
+                                                                                    );
+                                                                                } finally {
+                                                                                    setAddingSwapGroup(false);
+                                                                                }
+                                                                            }}
+                                                                            className="flex-1 h-10 rounded-xl
+                                                                                bg-orange-500 text-white text-xs
+                                                                                font-black uppercase tracking-widest
+                                                                                flex items-center justify-center gap-2
+                                                                                disabled:opacity-50 active:scale-95
+                                                                                transition-all shadow-lg
+                                                                                shadow-orange-500/20"
+                                                                        >
+                                                                            {addingSwapGroup
+                                                                                ? <Loader2 size={14} className="animate-spin" />
+                                                                                : <Plus size={14} />
+                                                                            }
+                                                                            Create Group
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() =>
+                                                                                setShowAddSwapGroup(prev => ({
+                                                                                    ...prev,
+                                                                                    [combo._id]: false
+                                                                                }))
+                                                                            }
+                                                                            className="h-10 px-4 text-xs font-bold
+                                                                                text-slate-500 hover:text-slate-800
+                                                                                transition-all"
+                                                                        >
+                                                                            Cancel
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() =>
+                                                                        setShowAddSwapGroup(prev => ({
+                                                                            ...prev,
+                                                                            [combo._id]: true
+                                                                        }))
+                                                                    }
+                                                                    className="w-full h-12 rounded-[1.5rem]
+                                                                        border-2 border-dashed border-orange-200
+                                                                        dark:border-orange-500/20 text-[10px]
+                                                                        font-black uppercase tracking-widest
+                                                                        text-orange-500 hover:bg-orange-50
+                                                                        dark:hover:bg-orange-500/5
+                                                                        hover:border-orange-400 transition-all"
+                                                                >
+                                                                    + New Swap Group for {combo.name}
+                                                                </button>
+                                                            )}
+
                                                         </div>
                                                     </motion.div>
                                                 )}

@@ -40,6 +40,9 @@ export const getVendorDetails = async () => {
     const response = await API.get(`/vendors/get-vendor`, {
       suppressUnauthorized: true,
     });
+
+    console.log(response);
+    
     return response.data;
   } catch (error) {
     if (error.response && error.response.status === 401) return null;
