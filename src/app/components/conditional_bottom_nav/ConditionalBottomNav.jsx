@@ -22,6 +22,7 @@ export default function ConditionalBottomNav() {
     "/auth/reset-password",
     "/vendors/auth",
     "/admin/auth",
+    "/search",
   ];
 
   // ✅ First, set mounted state to prevent hydration mismatch

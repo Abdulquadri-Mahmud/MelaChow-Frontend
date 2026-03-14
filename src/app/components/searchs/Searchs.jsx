@@ -145,6 +145,7 @@ export default function FoodSearchMobile() {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const dropdownRef = useRef(null);
+  const inputRef = useRef(null);
   const selectedCategory = searchParams.get("category");
 
   const { data: categories = [] } = useCategories();
@@ -273,6 +274,8 @@ export default function FoodSearchMobile() {
     setActiveCategory(category);
     setQuery("");
     router.push(`?category=${encodeURIComponent(category)}`);
+    // Keep focus
+    setTimeout(() => inputRef.current?.focus(), 50);
   };
 
   // Search submit
@@ -280,6 +283,7 @@ export default function FoodSearchMobile() {
     e.preventDefault();
     if (!query.trim()) return;
     setShowDropdown(false);
+    inputRef.current?.focus();
   };
 
   // Dropdown selection
@@ -289,8 +293,10 @@ export default function FoodSearchMobile() {
 
     if (type === "category") {
       handleCategoryClick(value);
-      return;
     }
+    
+    // Keep focus
+    setTimeout(() => inputRef.current?.focus(), 50);
   };
 
   return (
@@ -331,6 +337,7 @@ export default function FoodSearchMobile() {
                 <Search size={22} className="text-zinc-400 group-focus-within:text-orange-500 transition-colors ml-1" />
 
                 <input
+                  ref={inputRef}
                   type="text"
                   placeholder="What are you craving?"
                   className="flex-1 outline-none bg-transparent text-base font-semibold text-zinc-800 dark:text-zinc-100 placeholder-zinc-400"
