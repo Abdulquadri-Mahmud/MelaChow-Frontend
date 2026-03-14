@@ -16,7 +16,7 @@
  */
 
 import { useMemo, useState, useEffect } from "react";
-import { Store, MapPin, Star, BadgeCheck, Heart, Globe, Bike, Gift, Utensils } from "lucide-react";
+import { Store, MapPin, Star, BadgeCheck, Heart, Globe, Bike, Gift, Utensils, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { isVendorOpen } from "@/app/lib/utils";
@@ -195,7 +195,12 @@ export default function VendorList({ user }) {
 
     if (isLoading) return (
         <div className="mb-6">
-            <h2 className="text-lg font-bold text-zinc-900 px-4 mb-3.5">Featured ⭐</h2>
+            <div className="flex items-center gap-2 px-4 mb-3.5">
+                <div className="bg-zinc-100 dark:bg-zinc-800 p-1.5 rounded-lg animate-pulse">
+                    <div className="w-4.5 h-4.5" />
+                </div>
+                <div className="h-6 w-48 bg-zinc-100 dark:bg-zinc-800 rounded-md animate-pulse" />
+            </div>
             <div className="flex overflow-x-auto gap-3 px-4 pb-3 scrollbar-none">
                 {[1, 2, 3].map(n => <VendorCardSkeleton key={n} />)}
             </div>
@@ -209,11 +214,11 @@ export default function VendorList({ user }) {
 
         return (
             <div className="px-0 mb-6">
-                <div className="flex items-center justify-between px-4 mb-4">
-                    <div className="flex items-center gap-2">
-                        <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
-                        <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">Featured Restaurants</h2>
+                <div className="flex items-center gap-2 px-4 mb-4">
+                    <div className="bg-orange-100 dark:bg-orange-500/20 p-1.5 rounded-lg">
+                        <Sparkles className="text-orange-600 fill-orange-600" size={18} />
                     </div>
+                    <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">Featured Restaurants</h2>
                 </div>
 
                 <div className="px-4">
@@ -233,11 +238,15 @@ export default function VendorList({ user }) {
 
     return (
         <div className="px-0">
-            {/* Featured section */}
             <div className="">
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-white px-4 mb-3.5 flex items-center gap-2">
-                    Featured <Star size={18} className="text-orange-500 fill-orange-500" />
-                </h2>
+                <div className="flex items-center gap-2 px-4 mb-3.5">
+                    <div className="bg-orange-100 dark:bg-orange-500/20 p-1.5 rounded-lg">
+                        <Sparkles className="text-orange-600 fill-orange-600" size={18} />
+                    </div>
+                    <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">
+                        Featured Restaurants
+                    </h2>
+                </div>
                 <div
                     className="flex scroll overflow-x-auto gap-3 px-4 pb-3 scrollbar-hide no-scrollbar"
                     style={{
