@@ -90,11 +90,14 @@ const FoodCard = ({ food }) => {
                     {/* Delivery */}
                     <div className="flex items-center gap-1 whitespace-nowrap">
                         <Bike size={14} className="text-gray-400 dark:text-zinc-500" />
-                        {(!food.restaurant?.flatRateDeliveryFee || food.restaurant?.flatRateDeliveryFee === 0) ? (
-                            <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
-                        ) : (
-                            <span className="text-xs text-gray-500 dark:text-zinc-400">₦{food.restaurant.flatRateDeliveryFee.toLocaleString()}</span>
-                        )}
+                        {(() => {
+                            const fee = food.restaurant?.deliveryFee ?? food.restaurant?.flatRateDeliveryFee;
+                            return (!fee || fee === 0) ? (
+                                <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
+                            ) : (
+                                <span className="text-xs text-gray-500 dark:text-zinc-400">₦{fee.toLocaleString()}</span>
+                            );
+                        })()}
                     </div>
 
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>

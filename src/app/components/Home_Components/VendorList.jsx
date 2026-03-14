@@ -182,7 +182,7 @@ export default function VendorList({ user }) {
                 rating: food.restaurant.rating ?? 0,
                 ratingCount: food.restaurant.ratingCount ?? 0,
                 // deliveryFee not in this payload yet — null = Free
-                deliveryFee: null,
+                deliveryFee: food.restaurant.deliveryFee ?? food.restaurant.flatRateDeliveryFee ?? null,
                 // badge not in payload yet — null = no badge shown
                 badge: null,
             }));
@@ -191,7 +191,7 @@ export default function VendorList({ user }) {
     const featuredVendors = uniqueVendors.slice(0, 6);
     const handpickedVendors = uniqueVendors.slice(6, 12);
 
-    // console.log(vendors);
+    console.log(featuredVendors);
 
     if (isLoading) return (
         <div className="mb-6">
