@@ -19,6 +19,7 @@ const DIETARY_COLORS = {
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
 import { isVendorOpen } from "@/app/lib/utils";
+import ViewVendorSkeleton from "@/app/skeleton/ViewVendorSkeleton";
 
 const FoodCard = ({ item, vendor, onSelect }) => {
     const isUnavailable = !item.is_available || !item.is_in_stock;
@@ -283,7 +284,9 @@ export default function StorefrontPage() {
             items: section.items.filter(item =>
                 (item.name || "").toLowerCase().includes(lowerQuery) ||
                 (item.description && item.description.toLowerCase().includes(lowerQuery)) ||
-                (item.tags && item.tags.some(tag => tag.toLowerCase().includes(lowerQuery)))
+                (item.tags && item.tags.some(tag => tag.toLowerCase().includes(lowerQuery))) ||
+                (item.platform_category?.name && item.platform_category.name.toLowerCase().includes(lowerQuery)) ||
+                (item.platform_category?.parent?.name && item.platform_category.parent.name.toLowerCase().includes(lowerQuery))
             )
         })).filter(section => section.items.length > 0);
 
@@ -308,7 +311,6 @@ export default function StorefrontPage() {
         try {
             const res = await getMenuItemDetail(vendorId, item._id);
             const rawItem = res.item;
-            // Normalize: API returns choice_groups (snake_case), modal expects choiceGroups (camelCase)
             const normalizedItem = {
                 ...rawItem,
                 choiceGroups: rawItem.choiceGroups || rawItem.choice_groups || [],
@@ -323,15 +325,13 @@ export default function StorefrontPage() {
         }
     };
 
+    const onAddSuccess = () => {
+        toast.success("Added to Order!");
+        router.push('/orders?activeTab=cart');
+    };
+
     if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                    <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Loading Menu...</p>
-                </div>
-            </div>
-        );
+        return <ViewVendorSkeleton />;
     }
 
     if (isError || !vendor) {
@@ -370,8 +370,8 @@ export default function StorefrontPage() {
                 </div>
                 
                 {/* Content Container */}
-                <div className="relative z-10 pt-24 lg:pt-36 px-4 max-w-7xl mx-auto">
-                    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl p-2 rounded-[2.5rem] lg:rounded-[3rem] border-white/50 dark:border-slate-800 md:flex items-start gap-8">
+                <div className="relative z-10 pt-24 lg:pt-36 px-2 max-w-7xl mx-auto">
+                    <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl p-2 md:p-6 rounded-[2.5rem] lg:rounded-[3rem] border-white/50 dark:border-zinc-800 md:flex items-start gap-8 shadow-2xl shadow-black/10">
                         
                         {/* Logo */}
                         <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-3xl overflow-hidden shrink-0 border-4 border-white dark:border-slate-800 bg-white -mt-16 lg:mt-0 mb-3 lg:mb-0 mx-auto lg:mx-0">
@@ -397,7 +397,7 @@ export default function StorefrontPage() {
                                 )}
                             </div>
                             
-                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-950 dark:text-white tracking-tight mb-3">
+                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-zinc-950 dark:text-white tracking-tighter mb-2 italic uppercase">
                                 {vendor.storeName}
                             </h1>
                             
@@ -551,34 +551,16 @@ export default function StorefrontPage() {
                 )}
             </div>
 
-            {/* Floating Quick view cart (Mobile & Desktop) */}
-            <div className="fixed bottom-6 inset-x-0 mx-auto w-fit z-40 transform translate-y-0 transition-transform duration-300">
-                <button 
-                    onClick={() => router.push('/cart')}
-                    className="flex justify-between items-center group bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-14 pl-5 pr-2 rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] hover:scale-105 active:scale-95 transition-all w-[200px] sm:w-[240px]"
-                >
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
-                            <ShoppingCart size={20} />
-                            {/* In a real app, bind this to cart count */}
-                            <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full border-2 border-slate-900 dark:border-white">
-                                3
-                            </span>
-                        </div>
-                        <span className="font-black text-xs uppercase tracking-widest hidden sm:block">View Order</span>
-                        <span className="font-black text-xs uppercase tracking-widest sm:hidden">Cart</span>
-                    </div>
-                    <div className="w-10 h-10 rounded-full bg-slate-800 dark:bg-slate-100 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-colors">
-                        <ChevronRight size={18} strokeWidth={3} />
-                    </div>
-                </button>
-            </div>
+            {/* Removed Floating Cart per Request */}
 
             <FoodCustomizationModal 
                 food={fullItem}
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
-                onAdd={addToCart}
+                onAdd={(payload) => {
+                    addToCart(payload);
+                    onAddSuccess();
+                }}
             />
 
             <ComboCustomizationModal
@@ -586,7 +568,10 @@ export default function StorefrontPage() {
                 vendor={vendor}
                 isOpen={comboModalOpen}
                 onClose={() => setComboModalOpen(false)}
-                onAdd={addComboToCart}
+                onAdd={(payload) => {
+                    addComboToCart(payload);
+                    onAddSuccess();
+                }}
             />
 
             {loadingItem && (

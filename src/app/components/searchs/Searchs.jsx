@@ -205,8 +205,19 @@ export default function FoodSearchMobile() {
           setActiveCategory("");
         }
 
+        // Match selected category name to its ID for more accurate filtering
+        const matchedCategory = categories.find(c => 
+          c.name.toLowerCase() === (selectedCategory || "").toLowerCase()
+        );
+
         const res = await axios.get(`${baseUrl}/search/food/search`, {
-          params,
+          params: {
+            ...params,
+            platform_category: selectedCategory || params.category,
+            platformCategory: selectedCategory || params.category,
+            categoryId: matchedCategory?._id,
+            platformCategoryId: matchedCategory?._id,
+          },
           withCredentials: true,
         });
         setFoods(res.data.data || []);
@@ -219,7 +230,7 @@ export default function FoodSearchMobile() {
     };
 
     fetchFoods();
-  }, [baseUrl, hydrated, selectedCategory, query]);
+  }, [baseUrl, hydrated, selectedCategory, query, categories]);
 
   // Autocomplete
   useEffect(() => {

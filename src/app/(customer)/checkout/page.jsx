@@ -605,27 +605,27 @@ export default function CheckoutPage() {
         {/* Sticky Pay Button */}
         <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 p-2 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] z-40">
           <motion.button
-            whileHover={{ scale: 1.01 }}
+            whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={!defaultAddress ? () => router.push("/profile/address") : handleInitializePayment}
             disabled={loadingInit || cart.length === 0}
-            className={`max-w-xl mx-auto w-full py-4 rounded-2xl font-black text-base flex items-center justify-center gap-2 active:scale-95 transition-all shadow-lg ${!defaultAddress ? "bg-red-500 text-white shadow-red-200" : "bg-gray-900 text-white shadow-gray-200"}`}
+            className={`max-w-xl mx-auto w-full py-5 rounded-[2rem] font-black text-lg flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] ${!defaultAddress ? "bg-red-500 text-white shadow-red-200" : "bg-zinc-950 hover:bg-black text-white"}`}
           >
             {loadingInit ? (
               <>
-                <Loader2 className="animate-spin" size={20} />
-                <span className="uppercase tracking-widest">Processing…</span>
+                <Loader2 className="animate-spin" size={24} />
+                <span className="uppercase tracking-[0.2em]">Processing…</span>
               </>
             ) : !defaultAddress ? (
-              <div className="flex items-center justify-center w-full px-4 italic">
+              <div className="flex items-center justify-center w-full px-6 italic">
                 <span className="uppercase tracking-tight">Set Address to Continue</span>
               </div>
             ) : (
-              <div className="flex items-center justify-between w-full px-4 italic">
-                <span className="uppercase tracking-tight">Complete Order</span>
-                <div className="flex items-center gap-2">
-                  <span className="w-1 h-4 bg-orange-500 rounded-full" />
-                  <span>₦{finalTotal.toLocaleString()}</span>
+              <div className="flex items-center justify-between w-full px-8 italic">
+                <span className="uppercase tracking-tight text-white/90">Complete Order</span>
+                <div className="flex items-center gap-3">
+                  <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
+                  <span className="text-orange-500 tabular-nums">₦{finalTotal.toLocaleString()}</span>
                 </div>
               </div>
             )}

@@ -35,7 +35,7 @@ export default function BottomBar() {
       <motion.nav
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="relative bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border border-gray-200/50 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-t-[32px] px-2 py-3"
+        className="relative bg-white dark:bg-zinc-900/80 backdrop-blur-2xl border border-gray-200/50 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-t-[32px] px-2 py-3"
       >
         <div className="flex justify-between items-center relative">
           {navItems.map((item) => {
@@ -59,7 +59,7 @@ export default function BottomBar() {
                     {isActive && !isOrder && (
                       <motion.div
                         layoutId="activeTab"
-                        className="absolute inset-0 -m-2 bg-orange-500/10 dark:bg-orange-500/20 rounded-2xl"
+                        className="absolute inset-0 -m-2 dark:bg-orange-500/20 rounded-2xl"
                         transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
                       />
                     )}
@@ -76,9 +76,9 @@ export default function BottomBar() {
                           <motion.div
                             animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.2, 0.5] }}
                             transition={{ duration: 2, repeat: Infinity }}
-                            className="absolute -inset-2 bg-orange-500 rounded-full blur-md"
+                            className="absolute rounded-full"
                           />
-                          <div className="bg-gradient-to-tr from-orange-400 to-orange-600 p-3.5 rounded-full shadow-[0_8px_20px_rgba(249,115,22,0.4)] text-white relative z-20 hover:rotate-[10deg] transition-transform">
+                          <div className="bg-gradient-to-tr from-orange-400 to-orange-600 p-3 rounded-full shadow-[0_8px_20px_rgba(249,115,22,0.4)] text-white relative z-20 hover:rotate-[10deg] transition-transform">
                             <Icon size={24} strokeWidth={2.5} />
                           </div>
                         </div>
