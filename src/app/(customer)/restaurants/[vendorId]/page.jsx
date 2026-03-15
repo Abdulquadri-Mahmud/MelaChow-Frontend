@@ -7,55 +7,59 @@ import { useState, useRef, useMemo } from "react";
 import Header2 from "@/app/components/App_Header/Header2";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
 import ComboCustomizationModal from "@/app/components/Cart/ComboCustomizationModal";
-import { MapPin, Clock, Star, ChevronRight, ShoppingCart, Check, Search, Info, Package, Sparkles, Store, X, Plus, Heart, Globe, Bike } from "lucide-react";
+import { MapPin, Clock, Star, ChevronRight, ShoppingCart, Check, Search, Info, Package, Sparkles, Store, X, Plus, Heart, Globe, Bike, Flame } from "lucide-react";
+
+const DIETARY_COLORS = {
+    veg: "bg-green-100 text-green-700",
+    vegan: "bg-emerald-100 text-emerald-700",
+    halal: "bg-teal-100 text-teal-700",
+    kosher: "bg-blue-100 text-blue-700",
+    "non-veg": "bg-red-100 text-red-700",
+};
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
 import { isVendorOpen } from "@/app/lib/utils";
-
-const DietaryBadge = ({ type }) => {
-    const colors = {
-        veg:     "bg-green-500",
-        vegan:   "bg-emerald-500",
-        halal:   "bg-teal-500",
-        kosher:  "bg-blue-500",
-        "non-veg": "bg-red-500",
-        mixed:   null,
-    };
-    const color = colors[type];
-    if (!color) return null;
-    return (
-        <span className={`absolute top-2 right-2 text-[9px] px-2 py-0.5
-                          rounded-full font-black uppercase tracking-widest
-                          text-white ${color} z-10 shadow-sm`}>
-            {type}
-        </span>
-    );
-};
 
 const FoodCard = ({ item, vendor, onSelect }) => {
     const isUnavailable = !item.is_available || !item.is_in_stock;
     const [liked, setLiked] = useState(false);
     const isOpen = isVendorOpen(vendor?.openingHours);
 
-    // console.log(vendor);
-
     return (
         <div
             onClick={() => !isUnavailable && onSelect(item)}
-            className={`group bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
+            className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl snap-start ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
+            style={{ width: "72vw", maxWidth: "280px" }}
         >
-            {/* Image Block */}
+            {/* Image Container */}
             <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                 <img
-                    src={item.image_url || "/placeholder.jpg"}
+                    src={item.image_url || item.image || "/placeholder.jpg"}
                     alt={item.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <DietaryBadge type={item.dietary_type} />
+
+                {/* HOT Badge - Top Right */}
+                <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-0.5 rounded-lg z-10">
+                    <span className="text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
+                        <Flame size={8} fill="currentColor" /> HOT
+                    </span>
+                </div>
+
+                {/* Dietary Badge - Bottom Left */}
+                {item.dietary_type && item.dietary_type !== "mixed" && (
+                    <div className="absolute bottom-2 left-2 z-10">
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${DIETARY_COLORS[item.dietary_type] || "bg-zinc-100 text-zinc-500"}`}>
+                            {item.dietary_type}
+                        </span>
+                    </div>
+                )}
+
+                {/* Unavailability Overlay */}
                 {isUnavailable && (
-                    <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-[2px] flex items-center justify-center">
+                    <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-[2px] flex items-center justify-center z-20">
                         <span className="bg-white/95 text-zinc-900 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg">
-                            { !item.is_available ? "Unavailable" : "Sold Out" }
+                            {!item.is_available ? "Unavailable" : "Sold Out"}
                         </span>
                     </div>
                 )}
@@ -80,10 +84,15 @@ const FoodCard = ({ item, vendor, onSelect }) => {
                     </button>
                 </div>
 
-                {/* Row 2: Metadata Line: Delivery Fee | Status | Rating */}
+                {/* Row 2: Vendor Name • Location */}
+                <p className="text-[11px] text-gray-500 dark:text-zinc-400 truncate mt-0.5">
+                    {vendor?.storeName} • {vendor?.address?.city || vendor?.city || "Nearby"}
+                </p>
+
+                {/* Row 3: Metadata Line: Globe | Delivery | Status | Rating */}
                 <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
                     <Globe size={14} className="text-gray-400 dark:text-zinc-500" />
-                    
+
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
 
                     {/* Delivery */}
@@ -108,7 +117,9 @@ const FoodCard = ({ item, vendor, onSelect }) => {
                     {/* Rating */}
                     <div className="flex items-center gap-0.5 whitespace-nowrap">
                         <Star size={10} className="fill-orange-500 text-orange-500" />
-                        <span className="text-[11px] font-bold text-gray-900 dark:text-white">{Number(vendor?.rating || 0).toFixed(1)}</span>
+                        <span className="text-[11px] font-bold text-gray-900 dark:text-white">
+                            {Number(vendor?.rating || 0).toFixed(1)}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -124,7 +135,8 @@ const ComboCard = ({ combo, vendor, onSelect }) => {
     return (
         <div
             onClick={() => !isUnavailable && onSelect(combo)}
-            className={`group bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
+            className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl snap-start ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
+            style={{ width: "72vw", maxWidth: "280px" }}
         >
             {/* Image Block */}
             <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
@@ -229,35 +241,52 @@ export default function StorefrontPage() {
     const combos      = data?.combos || [];
 
     const allSections = useMemo(() => {
+        // Combo section stays at top as-is
         const comboSection = combos.length > 0
             ? [{
                 _id:   "combos",
                 name:  "Deals & Combos",
-                items: combos,       // combo objects, not menu items
-                type:  "combo",      // flag so the grid knows render mode
+                items: combos,
+                type:  "combo",
               }]
             : [];
 
-        const combined = [
-            ...comboSection,
-            ...sections,
-            ...(unsectioned.length > 0
-                ? [{ _id: "other", name: "Other Options", items: unsectioned }]
-                : []),
+        // Flatten all food items from sections + unsectioned
+        const allItems = [
+            ...sections.flatMap(s => s.items || []),
+            ...unsectioned,
         ];
-        
+
+        // Group by platform parent category
+        const grouped = {};
+        for (const item of allItems) {
+            const categoryName = item.platform_category?.parent?.name
+                || item.platform_category?.name
+                || "Other Options";
+            if (!grouped[categoryName]) grouped[categoryName] = [];
+            grouped[categoryName].push(item);
+        }
+
+        const foodSections = Object.entries(grouped).map(([name, items]) => ({
+            _id: name.toLowerCase().replace(/\s+/g, "-"),
+            name,
+            items,
+        }));
+
+        const combined = [...comboSection, ...foodSections];
+
         if (!searchQuery.trim()) return combined;
-        
+
         const lowerQuery = searchQuery.toLowerCase();
         return combined.map(section => ({
             ...section,
-            items: section.items.filter(item => 
-                (item.name || "").toLowerCase().includes(lowerQuery) || 
+            items: section.items.filter(item =>
+                (item.name || "").toLowerCase().includes(lowerQuery) ||
                 (item.description && item.description.toLowerCase().includes(lowerQuery)) ||
                 (item.tags && item.tags.some(tag => tag.toLowerCase().includes(lowerQuery)))
             )
         })).filter(section => section.items.length > 0);
-        
+
     }, [sections, unsectioned, combos, searchQuery]);
 
     const scrollToSection = (sectionId) => {
@@ -278,7 +307,14 @@ export default function StorefrontPage() {
         setLoadingItem(true);
         try {
             const res = await getMenuItemDetail(vendorId, item._id);
-            setFullItem({ ...res.item, vendor: data.vendor });
+            const rawItem = res.item;
+            // Normalize: API returns choice_groups (snake_case), modal expects choiceGroups (camelCase)
+            const normalizedItem = {
+                ...rawItem,
+                choiceGroups: rawItem.choiceGroups || rawItem.choice_groups || [],
+                vendor: data.vendor,
+            };
+            setFullItem(normalizedItem);
             setModalOpen(true);
         } catch {
             toast.error("Could not load item details");
@@ -469,7 +505,7 @@ export default function StorefrontPage() {
                         </button>
                     </div>
                 ) : (
-                    <div className="space-y-12 lg:space-y-20">
+                    <div className="space-y-8 lg:space-y-20">
                         {allSections.map((section, idx) => (
                             <section 
                                 key={section._id} 
@@ -486,26 +522,29 @@ export default function StorefrontPage() {
                                     </span>
                                 </div>
                                 
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                    {section.type === "combo"
-                                        ? section.items.map(combo => (
+                                {section.type === "combo" ? (
+                                    <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
+                                        {section.items.map(combo => (
                                             <ComboCard
                                                 key={combo._id}
                                                 combo={combo}
                                                 vendor={vendor}
                                                 onSelect={handleComboTap}
                                             />
-                                          ))
-                                        : section.items?.map(item => (
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
+                                        {section.items?.map(item => (
                                             <FoodCard
                                                 key={item._id}
                                                 item={item}
                                                 vendor={vendor}
                                                 onSelect={handleItemTap}
                                             />
-                                          ))
-                                    }
-                                </div>
+                                        ))}
+                                    </div>
+                                )}
                             </section>
                         ))}
                     </div>
