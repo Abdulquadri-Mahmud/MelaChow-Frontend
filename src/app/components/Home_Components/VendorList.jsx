@@ -39,7 +39,7 @@ const VendorCardSkeleton = () => (
     </div>
 );
 
-const VendorCard = ({ _id, storeName, image, isOpen, rating, ratingCount, deliveryFee, badge }) => {
+const VendorCard = ({ _id, storeName, city, image, isOpen, rating, ratingCount, deliveryFee, badge }) => {
     const router = useRouter();
     const [liked, setLiked] = useState(false);
 
@@ -77,6 +77,7 @@ const VendorCard = ({ _id, storeName, image, isOpen, rating, ratingCount, delive
                 <div className="flex justify-between items-center gap-2">
                     <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[calc(100%-28px)]">
                         {storeName}
+                        <span className="text-[11px] font-normal text-gray-500 dark:text-zinc-400 ml-1.5">• {city || "Nearby"}</span>
                     </h3>
                     <button
                         onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
@@ -192,6 +193,7 @@ export default function VendorList({ user }) {
             result.push({
                 _id: food.restaurant._id,
                 storeName: food.restaurant.storeName,
+                city: food.restaurant.city,
                 // Use logo as card image — no coverImage in this payload
                 image: food.restaurant.logo || null,
                 isOpen: isVendorOpen(food.restaurant.openingHours),
