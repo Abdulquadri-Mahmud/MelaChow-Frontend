@@ -11,7 +11,9 @@ import {
   Truck,
   Store,
   Star,
-  Plus
+  Plus,
+  Minus,
+  ShoppingCart
 } from "lucide-react";
 import { BiCartAdd } from "react-icons/bi";
 
@@ -32,12 +34,27 @@ export default function FoodDetails() {
   const [isError, setIsError] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
-  // Modal State
+  // Default customization state for base item
+  const [selectedPortion, setSelectedPortion] = useState(null);
+  const [selections, setSelections] = useState({});
+  const [quantity, setQuantity] = useState(1);
+
+  // Modal State for combos
   const [modalDetails, setModalDetails] = useState({
     isOpen: false,
     variant: null, // this will be a combo
     portion: null
   });
+
+  // Reset base customizer when food fetches
+  useEffect(() => {
+    if (food) {
+        const defaultPortion = food?.portions?.find(p => p.is_default) || food?.portions?.[0] || null;
+        setSelectedPortion(defaultPortion);
+        setSelections({});
+        setQuantity(1);
+    }
+  }, [food]);
 
   // Initialize Client
   useEffect(() => {
@@ -85,6 +102,168 @@ export default function FoodDetails() {
   const handleAddToCart = (payload) => {
     addToCart(payload);
     toast.success("Added to Order!");
+  };
+
+  // Base Item Customizer Logic
+  const basePriceNaira = selectedPortion?.price_naira || (food?.price ? Number(food.price) : 0);
+  
+  const addonsPrice = Object.values(selections).reduce((acc, sel) => {
+      if (Array.isArray(sel)) {
+          return acc + sel.reduce((s, o) => s + ((o.price_modifier_naira || 0) * (o.selectionQuantity || 1)), 0);
+      }
+      return acc + ((sel?.price_modifier_naira || 0) * (sel?.selectionQuantity || 1));
+  }, 0);
+
+  const totalUnit = basePriceNaira + addonsPrice;
+  const total = totalUnit * quantity;
+
+  const isOptionSelected = (groupIndex, label) => {
+      const sel = selections[groupIndex];
+      if (Array.isArray(sel)) return sel.some(i => i.label === label);
+      return sel?.label === label;
+  };
+
+  const toggleChoice = (groupIndex, group, option) => {
+      setSelections(prev => {
+          const current = prev[groupIndex];
+          const isMulti = group.max_selections > 1;
+
+          if (!isMulti) {
+              if (current?.label === option.label) {
+                  const n = { ...prev };
+                  delete n[groupIndex];
+                  return n;
+              }
+              return { ...prev, [groupIndex]: { ...option, selectionQuantity: 1 } };
+          }
+
+          const list = Array.isArray(current) ? current : [];
+          const exists = list.find(i => i.label === option.label);
+          if (exists) {
+              return {
+                  ...prev,
+                  [groupIndex]: list.filter(i => i.label !== option.label)
+              };
+          }
+
+          const totalInGroup = list.reduce((acc, curr) => acc + (curr.selectionQuantity || 1), 0);
+          if (totalInGroup >= group.max_selections) {
+              toast.error(`Max ${group.max_selections} total items for ${group.name}`);
+              return prev;
+          }
+
+          return { ...prev, [groupIndex]: [...list, { ...option, selectionQuantity: 1 }] };
+      });
+  };
+
+  const updateOptionQuantity = (groupIndex, optionLabel, delta, group) => {
+      setSelections(prev => {
+          const current = prev[groupIndex];
+          const isMulti = group.max_selections > 1;
+
+          if (!isMulti) {
+              if (!current || current.label !== optionLabel) return prev;
+              const newQty = (current.selectionQuantity || 1) + delta;
+              if (newQty <= 0) {
+                  const n = { ...prev };
+                  delete n[groupIndex];
+                  return n;
+              }
+              if (delta > 0 && newQty > group.max_selections) {
+                  toast.error(`Max ${group.max_selections} selections for ${group.name}`);
+                  return prev;
+              }
+              return { ...prev, [groupIndex]: { ...current, selectionQuantity: newQty } };
+          }
+
+          const list = Array.isArray(current) ? current : [];
+          const index = list.findIndex(i => i.label === optionLabel);
+          if (index === -1) return prev;
+
+          const item = list[index];
+          const newQty = (item.selectionQuantity || 1) + delta;
+          
+          if (newQty <= 0) {
+              return {
+                  ...prev,
+                  [groupIndex]: list.filter(i => i.label !== optionLabel)
+              };
+          }
+
+          const totalInGroup = list.reduce((acc, curr, i) => acc + (i === index ? newQty : (curr.selectionQuantity || 1)), 0);
+          if (delta > 0 && totalInGroup > group.max_selections) {
+              toast.error(`Max ${group.max_selections} selections for ${group.name}`);
+              return prev;
+          }
+
+          const newList = [...list];
+          newList[index] = { ...item, selectionQuantity: newQty };
+          return { ...prev, [groupIndex]: newList };
+      });
+  };
+
+  const handleAddToCartBaseItem = () => {
+      if (food.portions?.length > 0 && !selectedPortion) {
+          toast.error("Please select a size");
+          return;
+      }
+
+      for (let i = 0; i < (food.choiceGroups || []).length; i++) {
+          const group = food.choiceGroups[i];
+          const sel = selections[i];
+          let count = 0;
+          if (Array.isArray(sel)) {
+              count = sel.reduce((acc, curr) => acc + (curr.selectionQuantity || 1), 0);
+          }
+          else if (sel) {
+              count = (sel.selectionQuantity || 1);
+          }
+
+          if (group.is_required && count < group.min_selections) {
+              toast.error(
+                  `Please select at least ${group.min_selections} option for "${group.name}"`
+              );
+              return;
+          }
+      }
+
+      const selectedOptions = [];
+      Object.keys(selections).forEach(key => {
+          const gIdx = Number(key);
+          const group = food.choiceGroups[gIdx];
+          const sel = selections[key];
+          const items = Array.isArray(sel) ? sel : (sel ? [sel] : []);
+          items.forEach(opt => {
+              selectedOptions.push({
+                  group_id:             group._id,
+                  group_name:           group.name,
+                  option_id:            opt._id,
+                  label:                opt.label,
+                  price_modifier_naira: opt.price_modifier_naira,
+                  quantity:             opt.selectionQuantity || 1
+              });
+          });
+      });
+
+      const payload = {
+          foodId:       food._id,
+          portionId:    selectedPortion?._id || null,
+          vendorId:     food.vendor?._id,
+          storeName:    food.vendor?.storeName || "",
+          name:         food.name,
+          image_url:    food.image_url || "",
+          portion_label: selectedPortion?.label,
+          price_naira:  totalUnit,
+          quantity,
+          selected_options: selectedOptions,
+          dietary_type: food.dietary_type,
+          item_type:    food.item_type,
+      };
+
+      addToCart(payload);
+      toast.success("Added to Order!");
+      
+      router.push('/orders?activeTab=cart');
   };
 
   const checkAvailability = () => {
@@ -161,7 +340,7 @@ export default function FoodDetails() {
         </Link>
       </header>
 
-      <div className="max-w-4xl mx-auto pb-20">
+      <div className="max-w-4xl mx-auto pb-[180px]">
         {isLoading ? (
           <div className="p-2"><FoodDetailsSkeleton /></div>
         ) : isError ? (
@@ -283,38 +462,117 @@ export default function FoodDetails() {
             {/* AVAILABLE OPTIONS SELECTION */}
             <div className="px-4 space-y-4">
 
-              {/* If no combos and no portions, use Base Item */}
-              {(!food.combos?.length && !food.portions?.length) && (
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => openModal(null, null)}
-                  className="bg-white rounded-[24px] p-4 flex items-center justify-between border border-gray-100 cursor-pointer group"
-                >
-                  <div>
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Standard Portion</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-lg font-bold text-gray-900">
-                        {basePrice != null ? `₦${basePrice.toLocaleString()}` : "Select a portion"}
-                      </p>
-                    </div>
+              {/* Portions Selector */}
+              {food.portions?.length > 0 && (
+                <div className="bg-white rounded-[24px] p-4 border border-gray-100 mb-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
+                    <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight">Select Portion</h3>
                   </div>
-                  {(!itemAvailability.available) ? (
-                    <button disabled className="px-4 py-2 rounded-full bg-gray-100 text-gray-400 text-xs font-bold uppercase cursor-not-allowed">
-                      {itemAvailability.reason}
-                    </button>
-                  ) : (
-                    <button className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center group-hover:bg-orange-600 transition-colors">
-                      <Plus size={24} />
-                    </button>
-                  )}
-                </motion.div>
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:overflow-x-auto sm:scrollbar-none sm:snap-x">
+                    {food.portions.map(portion => (
+                      <button
+                        key={portion._id}
+                        onClick={() => itemAvailability.available && setSelectedPortion(portion)}
+                        disabled={!itemAvailability.available}
+                        className={`sm:shrink-0 h-14 px-4 rounded-xl border-2 text-xs font-bold transition-all sm:snap-center ${
+                          selectedPortion?._id === portion._id
+                            ? "bg-orange-500 border-orange-500 text-white"
+                            : "bg-white border-gray-100 text-gray-600 hover:border-orange-200"
+                        } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <div className="flex flex-col items-center justify-center">
+                          <span className="text-[13px]">{portion.label}</span>
+                          <span className={`${selectedPortion?._id === portion._id ? 'text-white/90' : 'text-gray-400'} font-black text-[10px]`}>
+                            {portion.price_naira ? `₦${portion.price_naira.toLocaleString()}` : 'Free'}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
 
-              {/* Combos Grid */}
+              {/* Choice Groups */}
+              {food.choiceGroups?.length > 0 && (
+                <div className="space-y-4 mb-8">
+                  {food.choiceGroups.map((group, gIdx) => (
+                    <div key={group._id} className="bg-white rounded-[24px] p-4 border border-gray-100 flex flex-col">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
+                        <h4 className="text-[15px] font-bold text-gray-900 tracking-tight">
+                          {group.name}
+                        </h4>
+                        {group.is_required && (
+                          <span className="text-[9px] font-bold text-rose-500 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full ml-auto">
+                            REQUIRED
+                          </span>
+                        )}
+                        {!group.is_required && (
+                          <span className="text-[9px] font-bold text-gray-500 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full ml-auto">
+                            OPTIONAL
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-gray-400 font-medium mb-4">
+                        {group.max_selections > 1 ? `Select up to ${group.max_selections}` : "Select one"}
+                      </p>
+
+                      <div className="space-y-3">
+                        {group.options.filter(o => o.is_available).map(option => {
+                          const isSelected = isOptionSelected(gIdx, option.label);
+                          return (
+                            <div key={option._id}
+                                 onClick={() => itemAvailability.available && toggleChoice(gIdx, group, option)}
+                                 className={`flex items-center gap-3 p-3 rounded-[16px] border-2 cursor-pointer transition-all ${
+                                   isSelected ? "border-orange-500 bg-orange-50/50" : "border-gray-100 bg-white hover:border-orange-200"
+                                 } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                              {/* Option Image */}
+                              <div className="w-12 h-12 rounded-[14px] bg-gray-50 overflow-hidden shrink-0">
+                                {option.image_url ? (
+                                  <img src={option.image_url} alt={option.label} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-[20px]">🍽️</div>
+                                )}
+                              </div>
+                              {/* Details */}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-[13px] text-gray-900 truncate tracking-tight">{option.label}</p>
+                                {option.price_modifier_naira > 0 ? (
+                                  <p className="text-[11px] font-black text-orange-500">+₦{option.price_modifier_naira.toLocaleString()}</p>
+                                ) : (
+                                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Free</p>
+                                )}
+                              </div>
+                              {/* Selection Indicator */}
+                              {isSelected ? (
+                                <div className="flex items-center gap-2.5 bg-white rounded-xl p-1 shadow-sm border border-gray-100" onClick={e => e.stopPropagation()}>
+                                  <button onClick={() => updateOptionQuantity(gIdx, option.label, -1, group)} disabled={!itemAvailability.available} className="w-[26px] h-[26px] flex items-center justify-center rounded-[8px] hover:bg-orange-50 text-orange-600 bg-gray-50">
+                                    <Minus size={14} strokeWidth={3} />
+                                  </button>
+                                  <span className="text-[13px] font-black text-gray-900 min-w-[12px] text-center">
+                                    {Array.isArray(selections[gIdx]) ? selections[gIdx].find(i => i.label === option.label)?.selectionQuantity || 1 : selections[gIdx]?.selectionQuantity || 1}
+                                  </span>
+                                  <button onClick={() => updateOptionQuantity(gIdx, option.label, 1, group)} disabled={!itemAvailability.available} className="w-[26px] h-[26px] flex items-center justify-center rounded-[8px] hover:bg-orange-50 text-orange-600 bg-gray-50">
+                                    <Plus size={14} strokeWidth={3} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="w-[22px] h-[22px] rounded-full border-2 border-gray-200 bg-gray-50" />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Combos Grid (unchanged) */}
               {food.combos?.length > 0 && (
-                <>
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="mt-6">
+                  <div className="flex items-center gap-2 mb-4">
                     <div className="w-1 h-5 bg-orange-500 rounded-full" />
                     <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight">
                       Available Deals 🎁
@@ -364,54 +622,62 @@ export default function FoodDetails() {
                       </motion.div>
                     ))}
                   </div>
-                </>
-              )}
-
-              {/* Portions List */}
-              {food.portions?.length > 0 && (
-                <>
-                  <div className="flex items-center gap-2 mb-2 mt-4">
-                    <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
-                    <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight">Select Portion</h3>
-                  </div>
-                  <div className="space-y-2">
-                    {food.portions.map((portion, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        onClick={() => itemAvailability.available && openModal(null, portion)}
-                        className={`bg-white rounded-[20px] p-4 flex items-center justify-between border border-gray-100 cursor-pointer group hover:border-orange-200 transition-colors ${!itemAvailability.available ? 'opacity-60 grayscale-[0.5]' : ''}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 text-xs font-bold">
-                            {portion.label.substring(0, 2).toUpperCase()}
-                          </div>
-                          <div>
-                            <span className="font-bold text-gray-900">{portion.label}</span>
-                            {portion.is_default && (
-                              <div className="text-[10px] text-orange-500 font-bold">Default</div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-bold text-gray-900">
-                            ₦{portion.price_naira?.toLocaleString()}
-                          </span>
-                          <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-gray-900 group-hover:text-white transition-colors flex items-center justify-center">
-                            <Plus size={16} />
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </>
+                </div>
               )}
 
             </div>
           </div>
         ) : null}
       </div>
+
+      {/* Base Item Add to Order Footer - Fixed Bottom Bar */}
+      {food && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-lg border-t border-gray-100 pb-safe z-40" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
+            <div className="max-w-4xl mx-auto flex items-center gap-4">
+                <div className="flex items-center gap-2 bg-gray-100 rounded-[14px] p-1 h-[52px]">
+                    <button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={!itemAvailability.available}
+                        className="w-[42px] h-full flex items-center justify-center rounded-[10px] hover:bg-white transition-colors disabled:opacity-50 text-gray-600"
+                    >
+                        <Minus size={20} strokeWidth={2.5}/>
+                    </button>
+                    <span className="w-6 text-center font-black text-gray-900 text-[15px]">
+                        {quantity}
+                    </span>
+                    <button
+                        onClick={() => {
+                            if (selectedPortion?.max_quantity && quantity >= selectedPortion.max_quantity) {
+                                toast.error(`Maximum quantity allowed is ${selectedPortion.max_quantity}`);
+                            } else {
+                                setQuantity(quantity + 1);
+                            }
+                        }}
+                        disabled={!itemAvailability.available}
+                        className="w-[42px] h-full flex items-center justify-center rounded-[10px] hover:bg-white transition-colors disabled:opacity-50 text-gray-600"
+                    >
+                        <Plus size={20} strokeWidth={2.5}/>
+                    </button>
+                </div>
+
+                <button
+                    onClick={handleAddToCartBaseItem}
+                    disabled={!itemAvailability.available}
+                    className="flex-1 h-[52px] bg-orange-500 hover:bg-orange-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-[16px] font-black text-sm uppercase tracking-widest flex items-center justify-between px-5 transition-all active:scale-[0.98] shadow-lg shadow-orange-500/20"
+                >
+                    <span className="flex items-center gap-2.5">
+                       <ShoppingCart size={18} />
+                       {itemAvailability.available ? "Add to Order" : "Unavailable"}
+                    </span>
+                    {itemAvailability.available && (
+                       <span className="bg-white/20 px-3 py-1.5 rounded-lg text-[13px]">
+                           ₦{total.toLocaleString()}
+                       </span>
+                    )}
+                </button>
+            </div>
+        </div>
+      )}
 
       <FoodCustomizationModal
         food={food}
