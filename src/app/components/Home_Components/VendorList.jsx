@@ -90,20 +90,24 @@ const VendorCard = ({ _id, storeName, image, isOpen, rating, ratingCount, delive
                     </button>
                 </div>
 
-                {/* Row 2: Metadata metadata - Icons style from VendorList */}
-                <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden text-gray-400">
-                    <Globe size={14} className="dark:text-zinc-500" />
+                {/* Row 2: Metadata Line */}
+                <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
+                    <Globe size={14} className="text-gray-400 dark:text-zinc-500" />
                     
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
 
                     {/* Delivery */}
                     <div className="flex items-center gap-1 whitespace-nowrap">
-                        <Bike size={14} className="dark:text-zinc-500" />
-                        {deliveryFee === null || deliveryFee === 0 ? (
-                            <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
-                        ) : (
-                            <span className="text-xs text-gray-500 dark:text-zinc-400">₦{deliveryFee.toLocaleString()}</span>
-                        )}
+                        <span className="text-[13px]">🛵</span>
+                        {(() => {
+                            const isFree = !deliveryFee || deliveryFee === 0;
+                            const deliveryText = isFree ? "Free" : `From ₦${deliveryFee.toLocaleString()}`;
+                            return (
+                                <span className={`text-[12px] ${isFree ? "font-bold text-gray-900 dark:text-white" : "font-normal text-gray-500 dark:text-zinc-400"}`}>
+                                    {deliveryText}
+                                </span>
+                            );
+                        })()}
                     </div>
 
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
@@ -113,13 +117,23 @@ const VendorCard = ({ _id, storeName, image, isOpen, rating, ratingCount, delive
                         {isOpen ? "Open" : "Closed"}
                     </span>
 
-                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
-
-                    {/* Rating */}
-                    <div className="flex items-center gap-0.5 whitespace-nowrap">
-                        <Star size={10} className="fill-orange-500 text-orange-500" />
-                        <span className="text-[11px] font-bold text-gray-900 dark:text-white">{Number(rating || 0).toFixed(1)}</span>
-                    </div>
+                    {/* Rating — only render if rating data exists */}
+                    {rating != null && rating > 0 && (
+                        <>
+                            <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+                            <div className="flex items-center gap-1 whitespace-nowrap">
+                                <span className="text-[13px]">⭐</span>
+                                <span className="text-[12px] font-bold text-gray-900 dark:text-white">
+                                    {rating.toFixed(1)}
+                                </span>
+                                {ratingCount != null && (
+                                    <span className="text-[11px] text-gray-400">
+                                        ({ratingCount.toLocaleString()})
+                                    </span>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>
@@ -162,36 +176,40 @@ export default function VendorList({ user }) {
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 
+    console.log(responseData);
+
     const foods = responseData?.foods || [];
 
     const uniqueVendors = useMemo(() => {
         const seen = new Set();
-        return (foods || [])
-            .filter(food => {
-                const id = food.restaurant?._id?.toString();
-                if (!id || seen.has(id)) return false;
-                seen.add(id);
-                return true;
-            })
-            .map(food => ({
+        const result = [];
+
+        for (const food of (foods || [])) {
+            const id = food.restaurant?._id?.toString();
+            if (!id || seen.has(id)) continue;
+            seen.add(id);
+
+            result.push({
                 _id: food.restaurant._id,
                 storeName: food.restaurant.storeName,
-                // Use logo as the card image — coverImage does not exist on this payload
+                // Use logo as card image — no coverImage in this payload
                 image: food.restaurant.logo || null,
                 isOpen: isVendorOpen(food.restaurant.openingHours),
-                rating: food.restaurant.rating ?? 0,
-                ratingCount: food.restaurant.ratingCount ?? 0,
-                // deliveryFee not in this payload yet — null = Free
-                deliveryFee: null,
-                // badge not in payload yet — null = no badge shown
+                // deliveryFee is on the food item, not the restaurant
+                deliveryFee: food.deliveryFee ?? null,
+                // rating/ratingCount NOT in this payload
+                // render conditionally — show nothing if 0
+                rating: null,
+                ratingCount: null,
                 badge: null,
-            }));
+            });
+        }
+
+        return result;
     }, [foods]);
 
     const featuredVendors = uniqueVendors.slice(0, 6);
     const handpickedVendors = uniqueVendors.slice(6, 12);
-
-    // console.log(vendors);
 
     if (isLoading) return (
         <div className="mb-6">

@@ -9,11 +9,18 @@ export default function ComboCustomizationModal({
 }) {
     const [selectedSwaps, setSelectedSwaps] = useState({});
     const [componentChoices, setComponentChoices] = useState({});
-    const { setIsModalOpen } = useCart();
+    const cartContext = useCart();
+    const setIsModalOpen = cartContext?.setIsModalOpen;
 
     useEffect(() => {
-        setIsModalOpen(isOpen);
-        return () => setIsModalOpen(false);
+        if (typeof setIsModalOpen === 'function') {
+            setIsModalOpen(isOpen);
+        }
+        return () => {
+            if (typeof setIsModalOpen === 'function') {
+                setIsModalOpen(false);
+            }
+        };
     }, [isOpen, setIsModalOpen]);
 
     useEffect(() => {
@@ -35,14 +42,14 @@ export default function ComboCustomizationModal({
         + swapModifierTotal
         + choiceModifierTotal;
 
-    const allRequiredSwapsMet = combo.swap_groups
+    const allRequiredSwapsMet = combo.swapGroups
         ?.filter(g => g.is_required)
         .every(g => selectedSwaps[g._id.toString()])
         ?? true;
 
     const allRequiredChoicesMet = combo.components
         ?.flatMap(c =>
-            (c.choice_groups || [])
+            (c.choiceGroups || [])
                 .filter(g => g.is_required)
                 .map(g => `${c._id}__${g._id}`)
         )
@@ -60,7 +67,7 @@ export default function ComboCustomizationModal({
                 const component = combo.components.find(
                     c => c._id.toString() === component_id
                 );
-                const group = component?.choice_groups?.find(
+                const group = component?.choiceGroups?.find(
                     g => g._id.toString() === group_id
                 );
                 return {
@@ -78,7 +85,7 @@ export default function ComboCustomizationModal({
         const selected_swaps = Object.entries(selectedSwaps).map(
             ([group_id, swap]) => ({
                 group_id,
-                group_name: combo.swap_groups?.find(
+                group_name: combo.swapGroups?.find(
                     g => g._id.toString() === group_id
                 )?.name || "",
                 option_id:             swap.option_id,
@@ -202,7 +209,7 @@ export default function ComboCustomizationModal({
                     </div>
 
                     {/* Section: Component Level Customisation */}
-                    {combo.components?.some(c => c.choice_groups?.length > 0) && (
+                    {combo.components?.some(c => c.choiceGroups?.length > 0) && (
                         <div className="space-y-8">
                              <div className="flex items-center gap-3">
                                 <div className="h-px bg-slate-100 dark:bg-slate-800 flex-1" />
@@ -213,7 +220,7 @@ export default function ComboCustomizationModal({
                             </div>
 
                             {combo.components
-                                .filter(c => c.choice_groups?.length > 0)
+                                .filter(c => c.choiceGroups?.length > 0)
                                 .map(component => (
                                     <div key={component._id} className="space-y-6">
                                         {/* Component Brand Header */}
@@ -234,7 +241,7 @@ export default function ComboCustomizationModal({
 
                                         {/* Nested Choice Groups with Image Support */}
                                         <div className="space-y-6 pl-4 sm:pl-8 border-l-2 border-slate-100 dark:border-slate-800/50">
-                                            {component.choice_groups.map(group => {
+                                            {component.choiceGroups.map(group => {
                                                 const choiceKey = `${component._id}__${group._id}`;
                                                 const selected = componentChoices[choiceKey];
 
@@ -324,7 +331,7 @@ export default function ComboCustomizationModal({
                     )}
 
                     {/* Section: Combo Level Swaps */}
-                    {combo.swap_groups?.length > 0 && (
+                    {combo.swapGroups?.length > 0 && (
                         <div className="space-y-6">
                             <div className="flex items-center gap-3">
                                 <div className="h-px bg-slate-100 dark:bg-slate-800 flex-1" />
@@ -334,7 +341,7 @@ export default function ComboCustomizationModal({
                                 <div className="h-px bg-slate-100 dark:bg-slate-800 flex-1" />
                             </div>
 
-                            {combo.swap_groups.map(group => (
+                            {combo.swapGroups.map(group => (
                                 <div key={group._id} className="space-y-4">
                                     <div className="flex items-center justify-between">
                                         <span className="text-base font-black text-slate-900 dark:text-white">
@@ -400,8 +407,8 @@ export default function ComboCustomizationModal({
                     )}
 
                     {/* Minimal No-Customisation Anchor */}
-                    {combo.swap_groups?.length === 0 &&
-                     combo.components?.every(c => !c.choice_groups?.length) && (
+                    {combo.swapGroups?.length === 0 &&
+                     combo.components?.every(c => !c.choiceGroups?.length) && (
                         <div className="flex flex-col items-center justify-center py-12 text-center space-y-4">
                             <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/5 rounded-[2.5rem] flex items-center justify-center text-4xl animate-bounce">
                                 🍱
