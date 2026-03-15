@@ -177,7 +177,7 @@ export default function VendorList({ user }) {
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 
-    console.log(responseData);
+    // console.log(responseData);
 
     const foods = responseData?.foods || [];
 

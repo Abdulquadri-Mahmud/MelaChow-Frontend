@@ -67,54 +67,126 @@ const groupItemsByRestaurant = (cartItems) => {
  *   { "Restaurant A": "Extra spicy please" }
  * );
  */
-export const transformCartToOrderV2 = (cartItems, deliveryAddress, phone, email, notes = {}) => {
-    // Group items by restaurant to calculate delivery fees
-    const itemsByRestaurant = groupItemsByRestaurant(cartItems);
+/**
+ * Transform a cart line item into the backend V2 contract shape.
+ * Backend contract reference:
+ *   - type:         "item" | "combo"  (required, explicit string)
+ *   - foodId:       MenuItem._id
+ *   - portionId:    MenuItemPortion._id   (camelCase, NOT portion_id)
+ *   - restaurantId: Vendor._id           (NOT vendorId)
+ *   - variantId:    MenuVariant._id      (for combos only)
+ */
+export const transformCartItemToV2 = (cartItem) => {
+  const isCombo =
+    cartItem.type === "combo" ||
+    (cartItem.variantId && !cartItem.foodId);
 
-    // Transform items to V2 format
-    const items = cartItems.map(item => {
-        // Get the note for this item's restaurant
-        const restaurantNote = notes[item.storeName] || "";
+  if (isCombo) {
+    return {
+      type:         "combo",                    // ← explicit literal
+      variantId:    cartItem.variantId,
+      restaurantId: cartItem.vendorId           // ← rename vendorId → restaurantId
+                 || cartItem.restaurantId,
+      quantity:     Number(cartItem.quantity),
+      note:         cartItem.note || "",
 
-        return {
-            foodId: item.foodId,
-            vendorId: item.vendorId || item.restaurantId,
-            portion_id: item.portionId || item.variantId,
-            price_naira: Number(item.price_naira || item.price || 0),
-            quantity: Number(item.quantity),
-            note: restaurantNote,
-            selected_options: item.selected_options || item.selectedChoices || [],
-            metadata: {
-                ...(item.metadata || {}),
-                portion_label: item.portion_label || item.metadata?.portion,
-                storeName: item.storeName,
-                estimatedDeliveryTime: item.estimatedDeliveryTime
-            }
-        };
+      selected_swaps: (cartItem.selected_swaps || []).map(swap => ({
+        group_id:             swap.group_id,
+        option_id:            swap.option_id,
+        label:                swap.label,
+        price_modifier_naira: swap.price_modifier_naira || 0,
+      })),
+
+      component_choices: (cartItem.component_choices || []).map(cc => ({
+        componentId: cc.componentId                // ← camelCase
+                  || cc.component_id,              //   fallback from snake_case
+        groupId:     cc.groupId                    // ← camelCase
+                  || cc.group_id,
+        optionId:    cc.optionId                   // ← camelCase
+                  || cc.option_id,
+        label:       cc.label
+                  || cc.option_label               //   fallback
+                  || "",
+        price_modifier_naira: cc.price_modifier_naira || 0,
+      })),
+    };
+  }
+
+  // Regular food item
+  return {
+    type:         "item",                         // ← explicit literal
+    foodId:       cartItem.foodId,
+    portionId:    cartItem.portionId              // ← camelCase, NOT portion_id
+               || cartItem.portion_id,            //   fallback from old key
+    restaurantId: cartItem.vendorId               // ← rename vendorId → restaurantId
+               || cartItem.restaurantId,
+    quantity:     Number(cartItem.quantity),
+    note:         cartItem.note || "",
+
+    selected_options: (cartItem.selected_options || []).map(opt => ({
+      group_id:             opt.group_id,
+      option_id:            opt.option_id,
+      label:                opt.label,
+      price_modifier_naira: opt.price_modifier_naira || 0,
+    })),
+  };
+};
+
+/**
+ * Helper to build vendor delivery fees from cart items
+ */
+const buildVendorDeliveryFees = (cartItems) => {
+    const restaurantDeliveryMap = {};
+    cartItems.forEach(item => {
+        const vId = item.vendorId || item.restaurantId;
+        if (!restaurantDeliveryMap[vId]) {
+            restaurantDeliveryMap[vId] = Number(item.deliveryFee || 0);
+        }
     });
 
-    // Calculate delivery fees per vendor
-    const vendorDeliveryFees = Object.keys(itemsByRestaurant).map(vendorId => ({
+    return Object.entries(restaurantDeliveryMap).map(([vendorId, fee]) => ({
         vendorId,
-        deliveryFee: Number(itemsByRestaurant[vendorId].deliveryFee || 0)
+        deliveryFee: fee
     }));
+};
 
-    // Format delivery address
-    const formattedAddress = {
-        addressLine: deliveryAddress.addressLine,
-        city: deliveryAddress.city,
-        state: deliveryAddress.state,
-        phone: deliveryAddress.phone || phone,
-        label: deliveryAddress.label || "Home"
-    };
+/**
+ * Transform cart items to V2 order format
+ */
+export const transformCartToOrderV2 = (cart, deliveryInfo, phone, email, userData = {}) => {
+  return {
+    // Items — each transformed to V2 contract
+    items: cart.map(transformCartItemToV2),
 
-    return {
-        email, // ✅ Required for V2 API
-        items,
-        vendorDeliveryFees,
-        deliveryAddress: formattedAddress,
-        phone
-    };
+    // Delivery fees — rename vendorId → restaurantId
+    vendorDeliveryFees: buildVendorDeliveryFees(cart).map(fee => ({
+      restaurantId: fee.vendorId      // ← rename
+                 || fee.restaurantId,
+      deliveryFee:  fee.deliveryFee,  // already in naira
+    })),
+
+    // Address — fix key names to match backend contract
+    deliveryAddress: {
+      addressLine:  deliveryInfo.addressLine
+                 || deliveryInfo.address || "",
+      cityName:     deliveryInfo.city              // ← rename city → cityName
+                 || deliveryInfo.cityName || "",
+      stateName:    deliveryInfo.state             // ← rename state → stateName
+                 || deliveryInfo.stateName || "",
+      name:         deliveryInfo.name              // ← ADD: contact person name
+                 || (userData?.firstname
+                    ? `${userData.firstname} ${userData.lastname || ""}`.trim()
+                    : "Customer"),
+      phone:        deliveryInfo.phone
+                 || phone || userData?.phone || "",
+      coordinates:  deliveryInfo.coordinates       // ← ADD: lat/lng if available
+                 || null,
+    },
+
+    // Top-level fields
+    phone: phone || userData?.phone || deliveryInfo?.phone || "",
+    email: email || userData?.email || "",
+  };
 };
 
 /**

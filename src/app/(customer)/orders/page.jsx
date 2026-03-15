@@ -96,7 +96,7 @@ function OrdersContent() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">
       <Header2 />
 
-      <main className="flex-1 max-w-4xl w-full mx-auto p-2 md:p-4">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-2 md:p-4">
         {/* Custom Tabs */}
         <div className="flex bg-slate-200/50 dark:bg-slate-800/50 p-1 rounded-xl w-full max-w-md mb-6 sticky top-[72px] z-20 backdrop-blur-md">
           <button
@@ -132,7 +132,7 @@ function OrdersContent() {
         </div>
 
         {/* Tab Content */}
-        <div className="pb-24">
+        <div className="pb-28">
           <AnimatePresence mode="wait">
             {activeTab === "orders" ? (
               <motion.div
@@ -366,19 +366,27 @@ function OrdersContent() {
                           </div>
                         </div>
 
-                        <button
+                      {/* Bottom Fixed Checkout Button */}
+                      <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 p-2 z-40">
+                        <motion.button
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
                           onClick={() => router.push("/checkout")}
-                          className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-5 rounded-[24px] font-black text-[13px] uppercase tracking-[0.2em] italic flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-2xl shadow-slate-200 dark:shadow-none group"
+                          className="max-w-xl mx-auto w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] italic flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-xl dark:shadow-none group"
                         >
                           Checkout Now
-                          <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
+                          <div className="flex items-center gap-2 border-l border-white/20 dark:border-slate-200 pl-3 ml-2">
+                             <span className="text-orange-500">₦{subtotal.toLocaleString()}</span>
+                             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        </motion.button>
                       </div>
                     </div>
-                  </>
-                )}
-              </motion.div>
-            )}
+                  </div>
+                </>
+              )}
+            </motion.div>
+          )}
           </AnimatePresence>
         </div>
       </main>

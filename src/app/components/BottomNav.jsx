@@ -19,11 +19,16 @@ export default function BottomBar() {
   const { cart, isModalOpen } = useCart();
 
   // Hide the bottom nav when the customization modal is open, 
-  // or on specific pages (Search, Restaurant Storefront)
+  // or on specific pages (Search, Restaurant Storefront, Food Details)
   const isSearchPage = pathname === "/search";
   const isRestaurantPage = pathname.startsWith("/restaurants/");
+  const isFoodDetailsPage = pathname.startsWith("/food-details/");
+  const isCheckoutPage = pathname === "/checkout";
+  const isOrdersPage = pathname === "/orders";
+  const isProfilePage = pathname.startsWith("/profile");
+  const isSupportPage = pathname.startsWith("/support");
   
-  if (isModalOpen || isSearchPage || isRestaurantPage) return null;
+  if (isModalOpen || isSearchPage || isRestaurantPage || isFoodDetailsPage || isCheckoutPage || isOrdersPage || isProfilePage || isSupportPage) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 px-0 md:max-w-md md:mx-auto z-[9999]">
