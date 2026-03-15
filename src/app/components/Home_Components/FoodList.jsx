@@ -101,7 +101,7 @@ const FoodCard = ({ food }) => {
                     <div className="flex items-center gap-1 whitespace-nowrap">
                         <Bike size={14} className="text-gray-400 dark:text-zinc-500" />
                         {(() => {
-                            const fee = food.deliveryFee;
+                            const fee = food.deliveryFee ?? vendor?.deliveryFee ?? vendor?.flatRateDeliveryFee;
                             return (!fee || fee === 0) ? (
                                 <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
                             ) : (
@@ -149,6 +149,10 @@ export default function FoodList({ user }) {
         setUserLocation(loc);
         localStorage.setItem("grubdash_location", JSON.stringify(loc));
       }
+    } else if (!userLocation && !user) {
+      // Default location for guest visibility
+      // const defaultLoc = { city: "Sagamu", state: "Ogun State" };
+      // setUserLocation(defaultLoc);
     }
   }, [user, userLocation]);
 
