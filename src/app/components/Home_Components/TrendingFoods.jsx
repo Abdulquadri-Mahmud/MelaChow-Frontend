@@ -85,9 +85,9 @@ const TrendingCard = ({ item }) => {
                     </button>
                 </div>
 
-                {/* Row 2: Price • Vendor Name */}
+                {/* Row 2: Vendor Name • Location */}
                 <p className="text-[11px] text-gray-500 dark:text-zinc-400 truncate mt-0.5">
-                    <span className="font-bold text-gray-900 dark:text-white">₦{item.price?.toLocaleString()}</span> • {item.restaurant?.storeName}
+                    {item.restaurant?.storeName} • {item.restaurant?.city || "Nearby"}
                 </p>
 
                 {/* Row 3: Metadata Line: Globe | Delivery | Status | Rating */}
