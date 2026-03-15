@@ -88,6 +88,17 @@ export default function Signin() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Auto-redirect after 1 second on success
+  useEffect(() => {
+    let timeout;
+    if (statusModal.isOpen && statusModal.type === 'success') {
+      timeout = setTimeout(() => {
+        router.push("/home");
+      }, 1000);
+    }
+    return () => clearTimeout(timeout);
+  }, [statusModal.isOpen, statusModal.type, router]);
+
   const closeModal = () => {
     const wasSuccess = statusModal.type === 'success';
     setStatusModal({ ...statusModal, isOpen: false });

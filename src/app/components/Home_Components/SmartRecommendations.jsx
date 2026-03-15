@@ -17,61 +17,48 @@ import {
     Star
 } from "lucide-react";
 import { getRecommendations } from "@/app/lib/api";
-import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+import { isVendorOpen } from "@/app/lib/utils";
+
+const DIETARY_COLORS = {
+  veg: "bg-green-100 text-green-700",
+  vegan: "bg-emerald-100 text-emerald-700",
+  halal: "bg-teal-100 text-teal-700",
+  kosher: "bg-blue-100 text-blue-700",
+  "non-veg": "bg-red-100 text-red-700",
+};
 
 // --- Sub-Component: Food Card (Simplified Premium Style) ---
 const RecommendationCard = ({ food, router }) => {
     const [liked, setLiked] = useState(false);
-    
-    // --- 1. Availability Logic ---
-    const vendor = food.vendor || food.restaurant;
-    const vendorStatusMsg = vendor?.openingHours ? getVendorOpenAndCloseStatus(vendor.openingHours) : null;
-    const isVendorOpen = vendorStatusMsg ? vendorStatusMsg.toLowerCase().startsWith("open now") : true;
-
-    // Food specific schedule
-    let isFoodScheduleOpen = true;
-    if (food.availabilitySchedule?.enabled) {
-        const now = new Date();
-        const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        const currentDay = daysMap[now.getDay()];
-
-        if (!food.availabilitySchedule.days.includes(currentDay)) {
-            isFoodScheduleOpen = false;
-        } else {
-            const currentMinutes = now.getHours() * 60 + now.getMinutes();
-            const [startH, startM] = food.availabilitySchedule.startTime.split(':').map(Number);
-            const [endH, endM] = food.availabilitySchedule.endTime.split(':').map(Number);
-
-            const startTotal = startH * 60 + startM;
-            const endTotal = endH * 60 + endM;
-
-            if (currentMinutes < startTotal || currentMinutes >= endTotal) {
-                isFoodScheduleOpen = false;
-            }
-        }
-    }
-
-    const isOpen = isVendorOpen && isFoodScheduleOpen;
+    const vendor = food.restaurant || food.vendor;
+    const isOpen = isVendorOpen(vendor?.openingHours);
 
     return (
         <div
-            onClick={() => router.push(`/food-details/${food._id}`)}
+            onClick={() => router.push(`/restaurants/${vendor?._id}`)}
             className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 ${!isOpen ? '' : ''}`}
             style={{ width: "72vw", maxWidth: "280px" }}
         >
-            {/* Image Block */}
+            {/* Image Container */}
             <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                 <img
-                    src={food.images?.[0]?.url || "/placeholder.jpg"}
+                    src={food.image || "/placeholder.jpg"}
                     alt={food.name}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
+                
+                {/* Popular Badge */}
+                <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-0.5 rounded-lg">
+                    <span className="text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
+                        <Sparkles size={8} fill="currentColor" /> POPULAR
+                    </span>
+                </div>
 
-                {/* Promo Badge - Top Right */}
-                {isOpen && (
-                    <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-0.5 rounded-lg">
-                        <span className="text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
-                             <Sparkles size={8} fill="currentColor" /> BEST
+                {/* Dietary Badge - Bottom Left */}
+                {food.dietary_type && food.dietary_type !== "mixed" && (
+                    <div className="absolute bottom-2 left-2">
+                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${DIETARY_COLORS[food.dietary_type] || "bg-zinc-100 text-zinc-500"}`}>
+                            {food.dietary_type}
                         </span>
                     </div>
                 )}
@@ -96,22 +83,22 @@ const RecommendationCard = ({ food, router }) => {
                     </button>
                 </div>
 
-                {/* Row 2: Vendor Name • City */}
+                {/* Row 2: Price • Vendor Name */}
                 <p className="text-[11px] text-gray-500 dark:text-zinc-400 truncate mt-0.5">
-                    {vendor?.storeName || "GrubDash Vendor"} • {vendor?.address?.city || "Nearby"}
+                    <span className="font-bold text-gray-900 dark:text-white">₦{food.price?.toLocaleString()}</span> • {vendor?.storeName}
                 </p>
 
-                {/* Row 3: Metadata Line: Delivery Fee | Status | Rating */}
+                {/* Row 3: Metadata Line: Globe | Delivery | Status | Rating */}
                 <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
                     <Globe size={14} className="text-gray-400 dark:text-zinc-500" />
                     
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
-                    
+
                     {/* Delivery */}
                     <div className="flex items-center gap-1 whitespace-nowrap">
                         <Bike size={14} className="text-gray-400 dark:text-zinc-500" />
                         {(() => {
-                            const fee = vendor?.deliveryFee ?? vendor?.flatRateDeliveryFee;
+                            const fee = food.deliveryFee;
                             return (!fee || fee === 0) ? (
                                 <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
                             ) : (
@@ -133,7 +120,7 @@ const RecommendationCard = ({ food, router }) => {
                     <div className="flex items-center gap-0.5 whitespace-nowrap">
                         <Star size={10} className="fill-orange-500 text-orange-500" />
                         <span className="text-[11px] font-bold text-gray-900 dark:text-white">
-                            {Number(vendor?.rating || 0).toFixed(1)}
+                            {Number(food.rating || vendor?.rating || 0).toFixed(1)}
                         </span>
                     </div>
                 </div>

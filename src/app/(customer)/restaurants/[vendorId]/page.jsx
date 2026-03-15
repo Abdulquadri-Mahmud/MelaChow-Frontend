@@ -37,8 +37,8 @@ const FoodCard = ({ item, vendor, onSelect }) => {
     const [liked, setLiked] = useState(false);
     const isOpen = isVendorOpen(vendor?.openingHours);
 
-    console.log(item);
-    
+    // console.log(vendor);
+
     return (
         <div
             onClick={() => !isUnavailable && onSelect(item)}

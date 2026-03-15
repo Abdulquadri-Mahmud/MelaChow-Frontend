@@ -32,11 +32,14 @@ const DIETARY_COLORS = {
 const TrendingCard = ({ item }) => {
     const router = useRouter();
     const [liked, setLiked] = useState(false);
-    const isOpen = isVendorOpen(item.restaurant?.openingHours);
+    const vendor = item.restaurant || item.vendor;
+    const isOpen = isVendorOpen(vendor?.openingHours);
+
+    console.log(item)
 
     return (
         <div
-            onClick={() => router.push(`/restaurants/${item.restaurant?._id}`)}
+            onClick={() => router.push(`/restaurants/${vendor?._id}`)}
             className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 ${!isOpen ? '' : ''}`}
             style={{ width: "72vw", maxWidth: "280px" }}
         >
@@ -84,12 +87,12 @@ const TrendingCard = ({ item }) => {
                     </button>
                 </div>
 
-                {/* Row 2: Vendor Name • City */}
+                {/* Row 2: Price • Vendor Name */}
                 <p className="text-[11px] text-gray-500 dark:text-zinc-400 truncate mt-0.5">
-                    {item.restaurant?.storeName} • {item.restaurant?.city || "Nearby"}
+                    <span className="font-bold text-gray-900 dark:text-white">₦{item.price?.toLocaleString()}</span> • {item.restaurant?.storeName}
                 </p>
 
-                {/* Row 3: Metadata Line: Delivery Fee | Status | Rating */}
+                {/* Row 3: Metadata Line: Globe | Delivery | Status | Rating */}
                 <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
                     <Globe size={14} className="text-gray-400 dark:text-zinc-500" />
                     
@@ -99,7 +102,7 @@ const TrendingCard = ({ item }) => {
                     <div className="flex items-center gap-1 whitespace-nowrap">
                         <Bike size={14} className="text-gray-400 dark:text-zinc-500" />
                         {(() => {
-                            const fee = item.restaurant?.deliveryFee ?? item.restaurant?.flatRateDeliveryFee;
+                            const fee = item.deliveryFee ?? item.restaurant?.deliveryFee ?? item.restaurant?.flatRateDeliveryFee;
                             return (!fee || fee === 0) ? (
                                 <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
                             ) : (

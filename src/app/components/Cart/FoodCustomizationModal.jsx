@@ -19,11 +19,20 @@ export default function FoodCustomizationModal({
     const [selectedPortion, setSelectedPortion] = useState(defaultPortion);
     const [selections, setSelections] = useState({});
     const [quantity, setQuantity] = useState(1);
-    const { setIsModalOpen } = useCart();
+    const cartContext = useCart();
+    const setIsModalOpen = cartContext?.setIsModalOpen;
 
     useEffect(() => {
-        setIsModalOpen(isOpen);
-        return () => setIsModalOpen(false);
+        if (typeof setIsModalOpen === 'function') {
+            setIsModalOpen(isOpen);
+        } else {
+            console.warn('[FoodCustomizationModal] setIsModalOpen is not a function/available. useCart() returned:', cartContext);
+        }
+        return () => {
+            if (typeof setIsModalOpen === 'function') {
+                setIsModalOpen(false);
+            }
+        };
     }, [isOpen, setIsModalOpen]);
 
     useEffect(() => {
@@ -35,7 +44,7 @@ export default function FoodCustomizationModal({
                 
                 // Map initialEditItem.selected_options back to selections state
                 const newSelections = {};
-                (food?.choice_groups || []).forEach((group, gIdx) => {
+                (food?.choiceGroups || []).forEach((group, gIdx) => {
                     const groupOptions = initialEditItem.selected_options?.filter(
                         opt => opt.group_id === group._id
                     );
@@ -174,8 +183,8 @@ export default function FoodCustomizationModal({
             return;
         }
 
-        for (let i = 0; i < (food.choice_groups || []).length; i++) {
-            const group = food.choice_groups[i];
+        for (let i = 0; i < (food.choiceGroups || []).length; i++) {
+            const group = food.choiceGroups[i];
             const sel = selections[i];
             let count = 0;
             if (Array.isArray(sel)) {
@@ -197,7 +206,7 @@ export default function FoodCustomizationModal({
         const selectedOptions = [];
         Object.keys(selections).forEach(key => {
             const gIdx = Number(key);
-            const group = food.choice_groups[gIdx];
+            const group = food.choiceGroups[gIdx];
             const sel = selections[key];
             const items = Array.isArray(sel) ? sel : (sel ? [sel] : []);
             items.forEach(opt => {
@@ -309,7 +318,7 @@ export default function FoodCustomizationModal({
 
                         {/* Choice Groups */}
                         <div className="p-4 space-y-6">
-                            {food.choice_groups?.map((group, gIdx) => (
+                            {food.choiceGroups?.map((group, gIdx) => (
                                 <div key={group._id} className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
                                     <div className="flex items-center gap-2 mb-3">
                                         <h4 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-widest">
