@@ -411,3 +411,16 @@ export const updateVariant = async (vendorId, variantId, payload) => {
     return res.data;
 };
 
+/**
+ * Fetch full public food detail for the food details page.
+ * Uses the /v1/ base — NOT the /api/ base from ApiContext.
+ *
+ * @param {string} foodId — MenuItem _id
+ * @returns {Promise<{ food: Object }>}
+ */
+export const getPublicFoodDetail = async (foodId) => {
+  const res = await getMenuAxios().get(
+    `/v1/vendors/foods/${foodId}`
+  );
+  return res.data;
+};

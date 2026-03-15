@@ -34,7 +34,7 @@ const FoodCard = ({ food }) => {
     const vendor = food.restaurant || food.vendor;
     const isOpen = isVendorOpen(vendor?.openingHours);
 
-    console.log(food);
+    // console.log(food);
     
     return (
         <div

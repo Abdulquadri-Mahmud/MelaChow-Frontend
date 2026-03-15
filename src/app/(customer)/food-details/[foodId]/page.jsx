@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import axios from "axios";
 import Link from "next/link";
 import toast from 'react-hot-toast';
 import {
@@ -16,16 +15,15 @@ import {
 } from "lucide-react";
 import { BiCartAdd } from "react-icons/bi";
 
-import { useApi } from "@/app/context/ApiContext";
 import { useCart } from "@/app/context/CartContext";
 import { isVendorOpen as isVendorOpenFn } from "@/app/lib/utils";
+import { getPublicFoodDetail } from "@/app/lib/menuApi";
 import FoodDetailsSkeleton from "@/app/skeleton/FoodDetailsSkeleton";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
 
 export default function FoodDetails() {
   const router = useRouter();
   const { foodId } = useParams();
-  const { baseUrl } = useApi();
   const { addToCart, cart } = useCart();
 
   // Data State
@@ -51,10 +49,8 @@ export default function FoodDetails() {
     const fetchFood = async () => {
       try {
         setIsLoading(true);
-        const res = await axios.get(
-          `${baseUrl}/vendors/foods/${foodId}`
-        );
-        let foodData = res?.data?.food;
+        const res = await getPublicFoodDetail(foodId);
+        let foodData = res?.food;
 
         if (foodData) {
           foodData.choiceGroups = foodData.choiceGroups || foodData.choice_groups || [];
@@ -71,7 +67,7 @@ export default function FoodDetails() {
     };
 
     if (foodId) fetchFood();
-  }, [foodId, baseUrl]);
+  }, [foodId]);
 
   // Handlers
   const openModal = (variant = null, portion = null) => {
