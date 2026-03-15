@@ -239,35 +239,52 @@ export default function StorefrontPage() {
     const combos      = data?.combos || [];
 
     const allSections = useMemo(() => {
+        // Combo section stays at top as-is
         const comboSection = combos.length > 0
             ? [{
                 _id:   "combos",
                 name:  "Deals & Combos",
-                items: combos,       // combo objects, not menu items
-                type:  "combo",      // flag so the grid knows render mode
+                items: combos,
+                type:  "combo",
               }]
             : [];
 
-        const combined = [
-            ...comboSection,
-            ...sections,
-            ...(unsectioned.length > 0
-                ? [{ _id: "other", name: "Other Options", items: unsectioned }]
-                : []),
+        // Flatten all food items from sections + unsectioned
+        const allItems = [
+            ...sections.flatMap(s => s.items || []),
+            ...unsectioned,
         ];
-        
+
+        // Group by platform parent category
+        const grouped = {};
+        for (const item of allItems) {
+            const categoryName = item.platform_category?.parent?.name
+                || item.platform_category?.name
+                || "Other Options";
+            if (!grouped[categoryName]) grouped[categoryName] = [];
+            grouped[categoryName].push(item);
+        }
+
+        const foodSections = Object.entries(grouped).map(([name, items]) => ({
+            _id: name.toLowerCase().replace(/\s+/g, "-"),
+            name,
+            items,
+        }));
+
+        const combined = [...comboSection, ...foodSections];
+
         if (!searchQuery.trim()) return combined;
-        
+
         const lowerQuery = searchQuery.toLowerCase();
         return combined.map(section => ({
             ...section,
-            items: section.items.filter(item => 
-                (item.name || "").toLowerCase().includes(lowerQuery) || 
+            items: section.items.filter(item =>
+                (item.name || "").toLowerCase().includes(lowerQuery) ||
                 (item.description && item.description.toLowerCase().includes(lowerQuery)) ||
                 (item.tags && item.tags.some(tag => tag.toLowerCase().includes(lowerQuery)))
             )
         })).filter(section => section.items.length > 0);
-        
+
     }, [sections, unsectioned, combos, searchQuery]);
 
     const scrollToSection = (sectionId) => {
