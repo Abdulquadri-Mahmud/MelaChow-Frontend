@@ -48,7 +48,7 @@ function AdminLocationManagement() {
   const [resolveCity, setResolveCity] = useState('');
   const [createLocation, setCreateLocation] = useState(false);
 
-  const baseUrl = "https://grub-dash-api.vercel.app/api";
+  const baseUrl = "https://grubdash-api.onrender.com/api";
 
   useEffect(() => {
     setLoading(true);
