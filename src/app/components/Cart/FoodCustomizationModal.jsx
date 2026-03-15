@@ -424,17 +424,17 @@ export default function FoodCustomizationModal({
                         </div>
                     </div>
 
-                    {/* Footer */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800">
-                        <div className="flex items-center justify-between mb-4 px-2">
-                            <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+                    {/* Footer - Matched to FoodDetails.jsx UI */}
+                    <div className="absolute bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-slate-100 dark:border-zinc-800 z-50">
+                        <div className="max-w-xl mx-auto flex items-center gap-3">
+                            <div className="flex items-center gap-2 bg-slate-100 dark:bg-zinc-900 rounded-[14px] p-1 h-[52px]">
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                                    className="w-[42px] h-full flex items-center justify-center rounded-[10px] hover:bg-white dark:hover:bg-zinc-800 transition-colors text-slate-600 dark:text-zinc-400"
                                 >
-                                    <Minus size={16} />
+                                    <Minus size={20} strokeWidth={2.5} />
                                 </button>
-                                <span className="w-8 text-center font-bold text-slate-900 dark:text-white">
+                                <span className="w-6 text-center font-black text-slate-900 dark:text-white text-[15px]">
                                     {quantity}
                                 </span>
                                 <button
@@ -445,28 +445,25 @@ export default function FoodCustomizationModal({
                                             setQuantity(quantity + 1);
                                         }
                                     }}
-                                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white dark:hover:bg-slate-700 transition-colors"
+                                    className="w-[42px] h-full flex items-center justify-center rounded-[10px] hover:bg-white dark:hover:bg-zinc-800 transition-colors text-slate-600 dark:text-zinc-400"
                                 >
-                                    <Plus size={16} />
+                                    <Plus size={20} strokeWidth={2.5} />
                                 </button>
                             </div>
-                            <div className="text-right">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    Total Price
-                                </p>
-                                <p className="text-xl font-black text-orange-500">
-                                    ₦{total.toLocaleString()}
-                                </p>
-                            </div>
-                        </div>
 
-                        <button
-                            onClick={handleConfirm}
-                            className="w-full h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-lg shadow-orange-500/20"
-                        >
-                            <ShoppingCart size={18} />
-                            {initialEditItem ? "Update Cart" : "Add to Cart"}
-                        </button>
+                            <button
+                                onClick={handleConfirm}
+                                className="flex-1 h-[52px] bg-orange-500 hover:bg-black text-white rounded-[10px] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-between px-5 transition-all active:scale-[0.98] shadow-2xl shadow-black/20"
+                            >
+                                <span className="flex items-center gap-2.5">
+                                    <ShoppingCart size={18} />
+                                    {initialEditItem ? "Update Cart" : "Add to Order"}
+                                </span>
+                                <span className="bg-white/10 px-3 py-1.5 rounded-lg text-[13px] tabular-nums">
+                                    ₦{total.toLocaleString()}
+                                </span>
+                            </button>
+                        </div>
                     </div>
                 </motion.div>
             </div>

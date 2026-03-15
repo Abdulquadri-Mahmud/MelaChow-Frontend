@@ -1,67 +1,75 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
-
 export default function ViewVendorSkeleton() {
   return (
-    <div className="pb-12 bg-gray-50 animate-pulse">
-      {/* ===== Header ===== */}
-      <div className="relative w-full h-56 bg-gradient-to-r from-orange-300 to-orange-200">
-        <div className="absolute inset-0 bg-black/10"></div>
+    <div className="min-h-screen bg-[#F5F4F0] animate-pulse pb-24">
 
-        <button
-          className="absolute top-4 left-4 p-2 rounded-full bg-white/70 hover:bg-white transition"
-          aria-label="Go back"
-        >
-          <ArrowLeft className="w-5 h-5 text-gray-700" />
-        </button>
-
-        <div className="absolute bottom-4 left-5 flex items-center gap-3">
-          <div className="w-20 h-20 rounded-full border-4 border-white shadow-md bg-gray-300"></div>
-
-          <div>
-            <div className="h-5 bg-gray-300 rounded w-40 mb-2"></div>
-            <div className="h-3 bg-gray-300 rounded w-24 mb-2"></div>
-            <div className="h-3 bg-gray-300 rounded w-20 mb-2"></div>
-            <div className="h-3 bg-gray-300 rounded w-28"></div>
+      {/* Hero */}
+      <div className="h-60 bg-zinc-300 relative">
+        <div className="absolute top-12 left-4 w-9 h-9 rounded-full bg-white/30" />
+        <div className="absolute top-12 right-4 w-16 h-6 rounded-full bg-white/20" />
+        <div className="absolute bottom-4 left-4 right-4 flex items-end gap-3">
+          <div className="w-[52px] h-[52px] rounded-2xl bg-white/25 shrink-0" />
+          <div className="flex-1">
+            <div className="h-6 bg-white/30 rounded-lg w-3/5 mb-2" />
+            <div className="flex gap-1.5">
+              <div className="h-4 w-14 bg-white/20 rounded-full" />
+              <div className="h-4 w-16 bg-white/20 rounded-full" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ===== Vendor Info ===== */}
-      <div className="md:p-5 p-2">
-        {/* About */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-          <div className="h-4 bg-gray-300 rounded w-32 mb-3"></div>
-          <div className="space-y-2">
-            <div className="h-3 bg-gray-200 rounded w-full"></div>
-            <div className="h-3 bg-gray-200 rounded w-11/12"></div>
-            <div className="h-3 bg-gray-200 rounded w-10/12"></div>
+      {/* Stats bar */}
+      <div className="mx-4 bg-white rounded-b-2xl grid grid-cols-4 divide-x divide-zinc-100 border border-t-0 border-zinc-100">
+        {[1,2,3,4].map(i => (
+          <div key={i} className="flex flex-col items-center gap-1.5 py-3 px-1">
+            <div className="w-4 h-4 rounded-full bg-zinc-100" />
+            <div className="h-3 w-10 bg-zinc-100 rounded-full" />
+            <div className="h-2 w-8 bg-zinc-100 rounded-full" />
           </div>
-        </div>
+        ))}
+      </div>
 
-        {/* Contact Info */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4 space-y-3">
-          <div className="h-4 bg-gray-300 rounded w-40 mb-2"></div>
-          <div className="flex flex-col gap-2">
-            <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-            <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-            <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-          </div>
+      {/* Nav */}
+      <div className="px-4 mt-4 space-y-2.5">
+        <div className="h-11 bg-white rounded-xl border border-zinc-100" />
+        <div className="flex gap-2">
+          {[80, 68, 88, 72, 64].map((w, i) => (
+            <div
+              key={i}
+              className="h-8 bg-white rounded-full border border-zinc-100 shrink-0"
+              style={{ width: w }}
+            />
+          ))}
         </div>
+      </div>
 
-        {/* Opening Hours */}
-        <div className="bg-white rounded-xl shadow-sm p-4 mb-4">
-          <div className="h-4 bg-gray-300 rounded w-40 mb-3"></div>
-          <div className="grid sm:grid-cols-2 gap-y-2">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="flex justify-between border-b pb-1">
-                <div className="h-3 bg-gray-200 rounded w-16"></div>
-                <div className="h-3 bg-gray-200 rounded w-24"></div>
-              </div>
-            ))}
+      {/* Sections */}
+      <div className="px-4 mt-6 space-y-8">
+        {[1,2].map(s => (
+          <div key={s}>
+            <div className="flex items-center gap-2.5 mb-4">
+              <div className="w-[3px] h-5 bg-zinc-200 rounded-full" />
+              <div className="h-4 w-28 bg-zinc-200 rounded-full" />
+            </div>
+            <div className="flex gap-3 -mx-4 px-4 overflow-hidden">
+              {[1,2].map(i => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 bg-white rounded-2xl overflow-hidden border border-zinc-100"
+                  style={{ width: "72vw", maxWidth: "260px" }}
+                >
+                  <div className="h-[130px] bg-zinc-100" />
+                  <div className="p-3 space-y-2">
+                    <div className="h-3.5 bg-zinc-100 rounded-full w-4/5" />
+                    <div className="h-3 bg-zinc-100 rounded-full w-2/5" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
     </div>
   );

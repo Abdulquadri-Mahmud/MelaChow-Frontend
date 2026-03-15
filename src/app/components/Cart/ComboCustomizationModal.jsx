@@ -424,32 +424,25 @@ export default function ComboCustomizationModal({
                     )}
                 </div>
 
-                {/* Glassmorphic Sticky Footer */}
-                <div className="sticky bottom-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border-t border-slate-100 dark:border-slate-800/50 p-6 sm:px-10 flex items-center gap-6 shrink-0 shadow-[0_-12px_32px_-12px_rgba(0,0,0,0.1)]">
-                    <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-1">Total Bill</span>
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-3xl font-black text-slate-950 dark:text-white tracking-tighter">
-                                ₦{totalPrice.toLocaleString()}
-                            </span>
-                        </div>
+                {/* Glassmorphic Sticky Footer - Matched to Unified UI */}
+                <div className="sticky bottom-0 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-slate-100 dark:border-zinc-800 p-3 sm:px-6 flex items-center gap-3 shrink-0 z-50">
+                    <div className="flex flex-col px-2">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-0.5">Total Bill</span>
+                        <span className="text-2xl font-black text-slate-950 dark:text-white tabular-nums tracking-tighter">
+                            ₦{totalPrice.toLocaleString()}
+                        </span>
                     </div>
                     
                     <button
                         onClick={handleAddToCart}
                         disabled={!canAddToCart}
-                        className={`flex-1 h-16 rounded-[2rem] font-black text-sm uppercase tracking-[0.2em] transition-all duration-500 relative overflow-hidden group ${
+                        className={`flex-1 h-[56px] bg-orange-500 py-4 rounded-[10px] font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 relative overflow-hidden group ${
                             canAddToCart
-                                ? "bg-slate-950 dark:bg-white text-white dark:text-slate-950 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] hover:-translate-y-1 active:scale-95 active:translate-y-0"
+                                ? "bg-zinc-950 text-white shadow-2xl shadow-black/20 hover:-translate-y-1 active:scale-95 active:translate-y-0"
                                 : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50"
                         }`}
                     >
-                        {/* Shimmer Effect */}
-                        {canAddToCart && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
-                        )}
-                        
-                        <span className="relative z-10 flex items-center justify-center gap-2">
+                        <span className="relative z-10 flex items-center justify-center gap-2 px-4 italic">
                             {!allRequiredChoicesMet
                                 ? "Complete Selections"
                                 : !allRequiredSwapsMet
