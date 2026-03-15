@@ -6,7 +6,7 @@
 import axios from "axios";
 import { TokenManager } from "@/app/lib/auth-token";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://grub-dash-api.vercel.app";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://grubdash-api.onrender.com";
 
 const api = axios.create({
     baseURL: API_BASE_URL,

@@ -16,7 +16,7 @@ class SocketService {
             return this.socket;
         }
 
-        const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com';
 
         this.socket = io(SOCKET_URL, {
             auth: {

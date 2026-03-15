@@ -175,7 +175,7 @@ export default function VendorRegisterPage() {
     try {
       setIsLoadingLocations(true);
       setLocationError(null);
-      const response = await axios.get("https://grub-dash-api.vercel.app/api/user/locations", {
+      const response = await axios.get("https://grubdash-api.onrender.com/api/user/locations", {
         withCredentials: true,
       });
 
