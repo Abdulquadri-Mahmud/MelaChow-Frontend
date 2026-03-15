@@ -35,8 +35,6 @@ const TrendingCard = ({ item }) => {
     const vendor = item.restaurant || item.vendor;
     const isOpen = isVendorOpen(vendor?.openingHours);
 
-    console.log(item)
-
     return (
         <div
             onClick={() => router.push(`/restaurants/${vendor?._id}`)}

@@ -266,7 +266,9 @@ export default function FoodSearchMobile() {
   const foodsByCategory = useMemo(() => {
     if (!Array.isArray(foods) || foods.length === 0) return {};
     return foods.reduce((acc, food) => {
-      const primaryCategory = (Array.isArray(food.categories) && food.categories[0])
+      const primaryCategory = food.platform_category?.parent?.name 
+        || food.platform_category?.name
+        || (Array.isArray(food.categories) && food.categories[0])
         || food.category
         || "Others";
       if (!acc[primaryCategory]) acc[primaryCategory] = [];

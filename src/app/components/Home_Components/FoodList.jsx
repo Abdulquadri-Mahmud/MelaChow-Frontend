@@ -34,6 +34,8 @@ const FoodCard = ({ food }) => {
     const vendor = food.restaurant || food.vendor;
     const isOpen = isVendorOpen(vendor?.openingHours);
 
+    console.log(food);
+    
     return (
         <div
             onClick={() => router.push(`/restaurants/${vendor?._id}`)}
@@ -165,7 +167,9 @@ export default function FoodList({ user }) {
   const foodsByCategory = useMemo(() => {
     if (!Array.isArray(foods) || foods.length === 0) return {};
     return foods.reduce((acc, food) => {
-      const primaryCategory = (Array.isArray(food.categories) && food.categories[0])
+      const primaryCategory = food.platform_category?.parent?.name 
+        || food.platform_category?.name
+        || (Array.isArray(food.categories) && food.categories[0])
         || food.category
         || "Recommended";
       if (!acc[primaryCategory]) acc[primaryCategory] = [];
