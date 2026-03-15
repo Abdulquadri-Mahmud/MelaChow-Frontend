@@ -143,6 +143,14 @@ class SocketService {
     }
 
     /**
+     * Listen for missed notifications delivered on reconnect (vendors)
+     */
+    onMissedNotifications(callback) {
+        if (!this.socket) return;
+        this.socket.on('missed_notifications', callback);
+    }
+
+    /**
      * Listen for order assignments (for riders)
      */
     onOrderAssigned(callback) {

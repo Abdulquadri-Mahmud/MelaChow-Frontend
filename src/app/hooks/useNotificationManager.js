@@ -106,7 +106,21 @@ export function useNotificationManager(options = {}) {
     // Listen for custom events to sync across tabs/instances
     useEffect(() => {
         const handleSync = (event) => {
-            if (event.detail && event.detail._id) {
+            // Support both single notification { _id, ... } and 
+            // batch array { notifications: [...] } dispatch shapes
+            const isBatch = event.detail && Array.isArray(event.detail.notifications);
+            const isSingle = event.detail && event.detail._id;
+
+            if (isBatch) {
+                const incoming = event.detail.notifications;
+                setNotifications(prev => {
+                    const existingIds = new Set(prev.map(n => n._id));
+                    const newOnes = incoming.filter(n => !existingIds.has(n._id));
+                    if (newOnes.length === 0) return prev;
+                    return [...newOnes, ...prev];
+                });
+                setTotal(prev => prev + incoming.length);
+            } else if (isSingle) {
                 setNotifications(prev => {
                     const exists = prev.some(n => n._id === event.detail._id);
                     if (exists) return prev;
@@ -114,9 +128,8 @@ export function useNotificationManager(options = {}) {
                 });
                 setTotal(prev => prev + 1);
             } else {
-                // If it's a generic update (like a mark as read), refresh the unread count
+                // Generic update (mark as read, delete, etc.)
                 fetchUnreadCountFromAPI();
-                // Optionally refresh notifications if we're on the history page
                 if (window.location.pathname.includes('/notifications')) {
                     fetchNotificationsFromAPI(true);
                 }
