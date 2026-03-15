@@ -1,8 +1,9 @@
 import axios from "axios";
+import { getApiUrl } from "./apiConfig";
 
 const getUserAxios = () =>
   axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    baseURL: getApiUrl(),
     withCredentials: true,
   });
 
@@ -15,7 +16,7 @@ const getUserAxios = () =>
  * @param {string} params.state - e.g. "Ogun State"
  */
 export const getFoodsByLocation = async ({ city, state }) => {
-  const res = await getUserAxios().get("/api/user/foods", {
+  const res = await getUserAxios().get("/user/foods", {
     params: { city, state },
   });
   return res.data;

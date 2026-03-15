@@ -164,6 +164,10 @@ export default function VendorList({ user }) {
                 setUserLocation(loc);
                 localStorage.setItem("grubdash_location", JSON.stringify(loc));
             }
+        } else if (!userLocation && !user) {
+            // Optional: Default location for guests so they see content
+            // const defaultLoc = { city: "Sagamu", state: "Ogun State" };
+            // setUserLocation(defaultLoc);
         }
     }, [user, userLocation]);
 
@@ -186,23 +190,24 @@ export default function VendorList({ user }) {
         const result = [];
 
         for (const food of (foods || [])) {
-            const id = food.restaurant?._id?.toString();
+            const vendor = food.restaurant || food.vendor;
+            const id = vendor?._id?.toString();
             if (!id || seen.has(id)) continue;
             seen.add(id);
 
             result.push({
-                _id: food.restaurant._id,
-                storeName: food.restaurant.storeName,
-                city: food.restaurant.city,
+                _id: vendor._id,
+                storeName: vendor.storeName,
+                city: vendor.city,
                 // Use logo as card image — no coverImage in this payload
-                image: food.restaurant.logo || null,
-                isOpen: isVendorOpen(food.restaurant.openingHours),
+                image: vendor.logo || null,
+                isOpen: isVendorOpen(vendor.openingHours),
                 // deliveryFee is on the food item, not the restaurant
-                deliveryFee: food.deliveryFee ?? null,
+                deliveryFee: food.deliveryFee ?? vendor.deliveryFee ?? vendor.flatRateDeliveryFee ?? null,
                 // rating/ratingCount NOT in this payload
                 // render conditionally — show nothing if 0
-                rating: null,
-                ratingCount: null,
+                rating: vendor.rating || null,
+                ratingCount: vendor.ratingCount || null,
                 badge: null,
             });
         }

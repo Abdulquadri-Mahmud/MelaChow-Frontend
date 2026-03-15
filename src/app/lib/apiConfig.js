@@ -22,8 +22,8 @@
 export const getApiUrl = () => {
     // Check if we're in browser environment
     if (typeof window === 'undefined') {
-        // Server-side: use environment variable or default
-        return process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com/api';
+        const base = process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com';
+        return base.endsWith('/api') ? base : `${base}/api`;
     }
 
     // Client-side: Use relative URL to leverage Next.js proxy
