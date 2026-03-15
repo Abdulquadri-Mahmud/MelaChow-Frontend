@@ -38,7 +38,7 @@ const FoodCard = ({ food }) => {
     
     return (
         <div
-            onClick={() => router.push(`/restaurants/${vendor?._id}`)}
+            onClick={() => router.push(`/food-details/${food._id}`)}
             className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 ${!isOpen ? '' : ''}`}
             style={{ width: "72vw", maxWidth: "280px" }}
         >
