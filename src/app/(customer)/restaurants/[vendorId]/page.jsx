@@ -468,7 +468,7 @@ export default function StorefrontPage() {
                     
                     {/* Category Nav - Only show if not heavily searching */}
                     {!searchQuery && (
-                        <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-none snap-x mask-fade-edges">
+                        <div className="flex gap-2 sm:gap-3 scroll overflow-x-auto pb-2 scrollbar-none snap-x mask-fade-edges">
                             {allSections.map(section => (
                                 <button
                                     key={section._id}

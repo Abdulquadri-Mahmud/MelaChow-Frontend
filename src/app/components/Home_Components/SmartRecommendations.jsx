@@ -35,9 +35,8 @@ const RecommendationCard = ({ food, router }) => {
 
     return (
         <div
-            onClick={() => router.push(`/restaurants/${vendor?._id}`)}
-            className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 ${!isOpen ? '' : ''}`}
-            style={{ width: "72vw", maxWidth: "280px" }}
+            onClick={() => router.push(`/food-details/${food._id}`)}
+            className={`group shrink-0 w-[72vw] sm:w-[320px] bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-center sm:snap-start transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl ${!isOpen ? '' : ''}`}
         >
             {/* Image Container */}
             <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">

@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import axios from "axios";
 import Link from "next/link";
 import toast from 'react-hot-toast';
 import {
@@ -12,28 +11,21 @@ import {
   Truck,
   Store,
   Star,
-  Leaf,
-  AlertTriangle,
   Plus,
-  ChevronDown,
-  ChevronUp,
-  Info,
-  Calendar
+  Minus,
+  ShoppingCart
 } from "lucide-react";
-import { TbCurrencyNaira } from "react-icons/tb";
 import { BiCartAdd } from "react-icons/bi";
-import { Utensils } from "lucide-react";
 
-import { useApi } from "@/app/context/ApiContext";
 import { useCart } from "@/app/context/CartContext";
-import { getVendorOpenStatus } from "@/app/lib/vendor-time/vendorTime";
+import { isVendorOpen as isVendorOpenFn } from "@/app/lib/utils";
+import { getPublicFoodDetail } from "@/app/lib/menuApi";
 import FoodDetailsSkeleton from "@/app/skeleton/FoodDetailsSkeleton";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
 
 export default function FoodDetails() {
   const router = useRouter();
   const { foodId } = useParams();
-  const { baseUrl } = useApi();
   const { addToCart, cart } = useCart();
 
   // Data State
@@ -42,16 +34,27 @@ export default function FoodDetails() {
   const [isError, setIsError] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
-  // UI State
-  const [currentImage, setCurrentImage] = useState(0);
-  const [nutritionOpen, setNutritionOpen] = useState(false);
+  // Default customization state for base item
+  const [selectedPortion, setSelectedPortion] = useState(null);
+  const [selections, setSelections] = useState({});
+  const [quantity, setQuantity] = useState(1);
 
-  // Modal State
+  // Modal State for combos
   const [modalDetails, setModalDetails] = useState({
     isOpen: false,
-    variant: null,
+    variant: null, // this will be a combo
     portion: null
   });
+
+  // Reset base customizer when food fetches
+  useEffect(() => {
+    if (food) {
+        const defaultPortion = food?.portions?.find(p => p.is_default) || food?.portions?.[0] || null;
+        setSelectedPortion(defaultPortion);
+        setSelections({});
+        setQuantity(1);
+    }
+  }, [food]);
 
   // Initialize Client
   useEffect(() => {
@@ -63,10 +66,13 @@ export default function FoodDetails() {
     const fetchFood = async () => {
       try {
         setIsLoading(true);
-        const res = await axios.get(
-          `${baseUrl}/vendors/foods/get-food?id=${foodId}`
-        );
-        const foodData = res?.data?.data;
+        const res = await getPublicFoodDetail(foodId);
+        let foodData = res?.food;
+
+        if (foodData) {
+          foodData.choiceGroups = foodData.choiceGroups || foodData.choice_groups || [];
+        }
+
         setFood(foodData);
         setIsError(false);
       } catch (err) {
@@ -78,22 +84,7 @@ export default function FoodDetails() {
     };
 
     if (foodId) fetchFood();
-  }, [foodId, baseUrl]);
-
-  console.log(food);
-
-  // Image Navigation
-  const nextImage = () => {
-    if (!food?.images?.length) return;
-    setCurrentImage((prev) => (prev + 1) % food.images.length);
-  };
-
-  const prevImage = () => {
-    if (!food?.images?.length) return;
-    setCurrentImage((prev) =>
-      prev === 0 ? food.images.length - 1 : prev - 1
-    );
-  };
+  }, [foodId]);
 
   // Handlers
   const openModal = (variant = null, portion = null) => {
@@ -113,116 +104,202 @@ export default function FoodDetails() {
     toast.success("Added to Order!");
   };
 
-  const handleViewVendor = () => {
-    if (food?.vendor?._id) {
-      router.push(`/view-vendor/${food.vendor._id}`);
-    }
+  // Base Item Customizer Logic
+  const basePriceNaira = selectedPortion?.price_naira || (food?.price ? Number(food.price) : 0);
+  
+  const addonsPrice = Object.values(selections).reduce((acc, sel) => {
+      if (Array.isArray(sel)) {
+          return acc + sel.reduce((s, o) => s + ((o.price_modifier_naira || 0) * (o.selectionQuantity || 1)), 0);
+      }
+      return acc + ((sel?.price_modifier_naira || 0) * (sel?.selectionQuantity || 1));
+  }, 0);
+
+  const totalUnit = basePriceNaira + addonsPrice;
+  const total = totalUnit * quantity;
+
+  const isOptionSelected = (groupIndex, label) => {
+      const sel = selections[groupIndex];
+      if (Array.isArray(sel)) return sel.some(i => i.label === label);
+      return sel?.label === label;
   };
 
+  const toggleChoice = (groupIndex, group, option) => {
+      setSelections(prev => {
+          const current = prev[groupIndex];
+          const isMulti = group.max_selections > 1;
 
-  // --- RENDER HELPERS ---
-  const renderSpicyLevel = (level) => {
-    if (!level) return null;
-    const config = {
-      mild: { color: "text-emerald-500", label: "Mild", icon: "🌱" },
-      medium: { color: "text-yellow-500", label: "Medium", icon: "🌶️" },
-      hot: { color: "text-orange-500", label: "Hot", icon: "🔥" },
-      "extra-hot": { color: "text-red-500", label: "Extra Hot", icon: "💥" },
-    };
-    const c = config[level] || config.medium;
-    return (
-      <div className={`flex items-center gap-1 text-xs font-bold ${c.color} bg-white px-2 py-1 rounded-md border border-slate-100`}>
-        <span>{c.icon}</span>
-        <span>{c.label} Spiciness</span>
-      </div>
-    );
+          if (!isMulti) {
+              if (current?.label === option.label) {
+                  const n = { ...prev };
+                  delete n[groupIndex];
+                  return n;
+              }
+              return { ...prev, [groupIndex]: { ...option, selectionQuantity: 1 } };
+          }
+
+          const list = Array.isArray(current) ? current : [];
+          const exists = list.find(i => i.label === option.label);
+          if (exists) {
+              return {
+                  ...prev,
+                  [groupIndex]: list.filter(i => i.label !== option.label)
+              };
+          }
+
+          const totalInGroup = list.reduce((acc, curr) => acc + (curr.selectionQuantity || 1), 0);
+          if (totalInGroup >= group.max_selections) {
+              toast.error(`Max ${group.max_selections} total items for ${group.name}`);
+              return prev;
+          }
+
+          return { ...prev, [groupIndex]: [...list, { ...option, selectionQuantity: 1 }] };
+      });
   };
 
-  const renderDietaryInfo = (info) => {
-    if (!info) return null;
-    const config = {
-      vegetarian: { label: "Vegetarian", icon: "🥗" },
-      vegan: { label: "Vegan", icon: "🌱" },
-      "contains-meat": { label: "Contains Meat", icon: "🍖" },
-      halal: { label: "Halal", icon: "☪️" },
-      keto: { label: "Keto", icon: "🥑" },
-      "low-carb": { label: "Low Carb", icon: "🥦" },
-    };
-    const c = config[info] || { label: info, icon: "Leaf" };
-    return (
-      <div className="flex items-center gap-1 text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md border border-green-100">
-        <span>{c.icon === "Leaf" ? <Leaf size={12} /> : c.icon}</span>
-        <span>{c.label}</span>
-      </div>
-    );
+  const updateOptionQuantity = (groupIndex, optionLabel, delta, group) => {
+      setSelections(prev => {
+          const current = prev[groupIndex];
+          const isMulti = group.max_selections > 1;
+
+          if (!isMulti) {
+              if (!current || current.label !== optionLabel) return prev;
+              const newQty = (current.selectionQuantity || 1) + delta;
+              if (newQty <= 0) {
+                  const n = { ...prev };
+                  delete n[groupIndex];
+                  return n;
+              }
+              if (delta > 0 && newQty > group.max_selections) {
+                  toast.error(`Max ${group.max_selections} selections for ${group.name}`);
+                  return prev;
+              }
+              return { ...prev, [groupIndex]: { ...current, selectionQuantity: newQty } };
+          }
+
+          const list = Array.isArray(current) ? current : [];
+          const index = list.findIndex(i => i.label === optionLabel);
+          if (index === -1) return prev;
+
+          const item = list[index];
+          const newQty = (item.selectionQuantity || 1) + delta;
+          
+          if (newQty <= 0) {
+              return {
+                  ...prev,
+                  [groupIndex]: list.filter(i => i.label !== optionLabel)
+              };
+          }
+
+          const totalInGroup = list.reduce((acc, curr, i) => acc + (i === index ? newQty : (curr.selectionQuantity || 1)), 0);
+          if (delta > 0 && totalInGroup > group.max_selections) {
+              toast.error(`Max ${group.max_selections} selections for ${group.name}`);
+              return prev;
+          }
+
+          const newList = [...list];
+          newList[index] = { ...item, selectionQuantity: newQty };
+          return { ...prev, [groupIndex]: newList };
+      });
   };
 
-  const getDiscountedPrice = (price) => {
-    if (!food?.discount?.active) return null;
-    if (food.discount.expiresAt && new Date(food.discount.expiresAt) < new Date()) return null;
+  const handleAddToCartBaseItem = () => {
+      if (food.portions?.length > 0 && !selectedPortion) {
+          toast.error("Please select a size");
+          return;
+      }
 
-    let finalPrice = Number(price);
-    if (food.discount.flatAmount > 0) {
-      finalPrice = Math.max(0, finalPrice - Number(food.discount.flatAmount));
-    } else if (food.discount.percentage > 0) {
-      finalPrice = Math.max(0, finalPrice - (finalPrice * (Number(food.discount.percentage) / 100)));
-    } else {
-      return null;
-    }
+      for (let i = 0; i < (food.choiceGroups || []).length; i++) {
+          const group = food.choiceGroups[i];
+          const sel = selections[i];
+          let count = 0;
+          if (Array.isArray(sel)) {
+              count = sel.reduce((acc, curr) => acc + (curr.selectionQuantity || 1), 0);
+          }
+          else if (sel) {
+              count = (sel.selectionQuantity || 1);
+          }
 
-    return finalPrice;
+          if (group.is_required && count < group.min_selections) {
+              toast.error(
+                  `Please select at least ${group.min_selections} option for "${group.name}"`
+              );
+              return;
+          }
+      }
+
+      const selectedOptions = [];
+      Object.keys(selections).forEach(key => {
+          const gIdx = Number(key);
+          const group = food.choiceGroups[gIdx];
+          const sel = selections[key];
+          const items = Array.isArray(sel) ? sel : (sel ? [sel] : []);
+          items.forEach(opt => {
+              selectedOptions.push({
+                  group_id:             group._id,
+                  group_name:           group.name,
+                  option_id:            opt._id,
+                  label:                opt.label,
+                  price_modifier_naira: opt.price_modifier_naira,
+                  quantity:             opt.selectionQuantity || 1
+              });
+          });
+      });
+
+      const payload = {
+          foodId:       food._id,
+          portionId:    selectedPortion?._id || null,
+          vendorId:     food.vendor?._id,
+          storeName:    food.vendor?.storeName || "",
+          name:         food.name,
+          image_url:    food.image_url || "",
+          portion_label: selectedPortion?.label,
+          price_naira:  totalUnit,
+          quantity,
+          selected_options: selectedOptions,
+          dietary_type: food.dietary_type,
+          item_type:    food.item_type,
+      };
+
+      addToCart(payload);
+      toast.success("Added to Order!");
+      
+      router.push('/orders?activeTab=cart');
   };
 
   const checkAvailability = () => {
     if (!food) return { available: false, reason: "Loading..." };
 
-    // 1. Manual switch
-    if (food.available === false) {
+    if (food.is_available === false) {
       return { available: false, reason: "Currently Unavailable" };
     }
 
-    // 2. Global Stock
-    if (food.stock !== null && food.stock !== undefined && Number(food.stock) <= 0) {
+    if (food.is_in_stock === false) {
       return { available: false, reason: "Sold Out" };
-    }
-
-    // 3. Schedule
-    if (food.availabilitySchedule?.enabled) {
-      const now = new Date();
-      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      const currentDay = days[now.getDay()];
-
-      if (!food.availabilitySchedule.days.includes(currentDay)) {
-        return { available: false, reason: "Not Available Today" };
-      }
-
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
-      const [startH, startM] = food.availabilitySchedule.startTime.split(':').map(Number);
-      const [endH, endM] = food.availabilitySchedule.endTime.split(':').map(Number);
-      const startMinutes = startH * 60 + startM;
-      const endMinutes = endH * 60 + endM;
-
-      if (currentMinutes < startMinutes || currentMinutes >= endMinutes) {
-        return { available: false, reason: `Order between ${food.availabilitySchedule.startTime} - ${food.availabilitySchedule.endTime}` };
-      }
     }
 
     return { available: true };
   };
 
-
   if (!isClient) return <div className="min-h-screen bg-white"></div>;
 
   const totalItems = cart.length;
-  const openingMessage = food?.vendor?.openingHours
-    ? getVendorOpenStatus(food.vendor.openingHours)
-    : "Opening hours not available.";
+
+  const isVendorOpen = food?.vendor?.openingHours
+    ? isVendorOpenFn(food.vendor.openingHours)
+    : null;
+
+  const openingMessage = isVendorOpen === true
+    ? "Open now"
+    : isVendorOpen === false
+    ? "Currently closed"
+    : "Opening hours unavailable";
 
   const itemAvailability = checkAvailability();
 
-  // Calculate display price (base)
-  const basePrice = Number(food?.price) || 0;
-  const discountedBasePrice = getDiscountedPrice(basePrice);
+  // Derive base price from cheapest portion
+  const basePrice = food?.portions?.length > 0
+    ? Math.min(...food.portions.map(p => p.price_naira))
+    : null;
 
   return (
     <>
@@ -237,9 +314,12 @@ export default function FoodDetails() {
             <ArrowLeft className="w-5 h-5" />
           </button>
 
-          <div>
+          <div
+            className="cursor-pointer"
+            onClick={() => food?.vendor?._id && router.push(`/restaurants/${food.vendor._id}`)}
+          >
             <h1 className="text-[10px] font-semibold text-orange-600 uppercase tracking-[0.2em]">Restaurant</h1>
-            <h2 className="text-sm font-bold text-gray-900 line-clamp-1 italic uppercase tracking-tighter">
+            <h2 className="text-sm font-bold text-gray-900 line-clamp-1 italic uppercase tracking-tighter hover:underline">
               {food?.vendor?.storeName || "Food Details"}
             </h2>
             <p className={`text-[10px] font-bold ${openingMessage.includes('Open now') ? 'text-emerald-500' : 'text-rose-500'}`}>
@@ -260,7 +340,7 @@ export default function FoodDetails() {
         </Link>
       </header>
 
-      <div className="max-w-4xl mx-auto pb-20">
+      <div className="max-w-4xl mx-auto pb-[180px]">
         {isLoading ? (
           <div className="p-2"><FoodDetailsSkeleton /></div>
         ) : isError ? (
@@ -279,55 +359,55 @@ export default function FoodDetails() {
                 {/* Image Section */}
                 <div className="relative w-full bg-gray-100 p-2">
                   <div className="w-full h-[250px] md:h-[300px] rounded-[32px] overflow-hidden relative">
-                    {food?.images?.length > 1 ? (
-                      <>
-                        <motion.img
-                          key={currentImage}
-                          src={food.images[currentImage]?.url || food.images[currentImage]}
-                          alt={food?.name}
-                          className="w-full h-full object-cover"
-                          initial={{ opacity: 0, scale: 1.1 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 0.6 }}
-                        />
-                        <div className="absolute inset-0 flex justify-between items-center px-2">
-                          <button onClick={prevImage} className="bg-black/20 backdrop-blur-md text-white w-10 h-10 rounded-2xl flex items-center justify-center hover:bg-black/40 transition-colors">‹</button>
-                          <button onClick={nextImage} className="bg-black/20 backdrop-blur-md text-white w-10 h-10 rounded-2xl flex items-center justify-center hover:bg-black/40 transition-colors">›</button>
+                    <img
+                      src={food?.image_url || "/placeholder.jpg"}
+                      alt={food?.name}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Unavailability badge overlay */}
+                    {!itemAvailability.available && (
+                      <div className="absolute top-3 right-3 z-10">
+                        <div className="bg-black/80 backdrop-blur-md
+                          text-white text-[10px] font-bold px-3 py-1
+                          rounded-full uppercase tracking-widest
+                          border border-white/20">
+                          {itemAvailability.reason}
                         </div>
-                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
-                          {food.images.map((_, i) => (
-                            <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === currentImage ? "w-6 bg-orange-500" : "w-1.5 bg-white/40"}`} />
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <img src={food?.images?.[0]?.url || food?.images?.[0] || "/placeholder.jpg"} alt={food?.name} className="w-full h-full object-cover" />
+                      </div>
                     )}
 
-                    <div className="absolute top-3 left-3 pr-6 flex flex-wrap gap-2">
-                      <div className="bg-orange-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20">{food.category}</div>
-                      {food.foodType && (
-                        <div className={`text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-white/20 backdrop-blur-md ${food.foodType === 'veg' ? 'bg-green-500 text-white' :
-                          food.foodType === 'non-veg' ? 'bg-red-500 text-white' : 'bg-gray-800 text-white'
-                          }`}>
-                          {food.foodType === 'veg' ? 'Veg 🟢' : food.foodType === 'non-veg' ? 'Non-Veg 🔴' : food.foodType}
-                        </div>
-                      )}
-                      {food.metadata?.chefSpecial && (
-                        <div className="bg-white/95 backdrop-blur-md text-gray-900 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-gray-100 shadow-sm">👨‍🍳 Chef Special</div>
-                      )}
-
-                      {/* Availability Schedule Badge */}
-                      {food.availabilitySchedule?.enabled && (
-                        <div className="bg-black/70 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-white/20 flex items-center gap-1.5">
-                          <Clock size={10} className="text-orange-400" />
-                          <span>{food.availabilitySchedule.startTime} - {food.availabilitySchedule.endTime}</span>
+                    <div className="absolute top-3 left-3 pr-6 flex flex-wrap gap-2 z-10">
+                      {/* Item type badge */}
+                      {food.item_type && (
+                        <div className="bg-orange-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20">
+                          {food.item_type}
                         </div>
                       )}
 
-                      {!itemAvailability.available && (
-                        <div className="bg-black/80 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-white/20">
-                          {itemAvailability.reason}
+                      {/* Platform category badge */}
+                      {food.platform_category && (
+                        <div className="bg-white/90 backdrop-blur-md text-gray-800 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-gray-100 shadow-sm">
+                          {food.platform_category.parent?.name && (
+                            <span className="text-gray-400">
+                              {food.platform_category.parent.name} ·{" "}
+                            </span>
+                          )}
+                          {food.platform_category.name}
+                        </div>
+                      )}
+
+                      {/* Dietary type badge */}
+                      {food.dietary_type && food.dietary_type !== "mixed" && (
+                        <div className={`text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-white/20 backdrop-blur-md ${
+                          food.dietary_type === "veg" || food.dietary_type === "vegan"
+                            ? "bg-green-500 text-white"
+                            : food.dietary_type === "halal"
+                            ? "bg-teal-500 text-white"
+                            : food.dietary_type === "non-veg"
+                            ? "bg-red-500 text-white"
+                            : "bg-gray-800 text-white"
+                        }`}>
+                          {food.dietary_type}
                         </div>
                       )}
                     </div>
@@ -344,16 +424,6 @@ export default function FoodDetails() {
                   </p>
 
                   <div className="flex flex-wrap gap-2 mt-4">
-                    {renderSpicyLevel(food.metadata?.spiceLevel)}
-                    {renderDietaryInfo(food.metadata?.dietaryInfo)}
-                    {food.metadata?.allergens?.length > 0 && (
-                      food.metadata.allergens.map((alg, i) => (
-                        <div key={i} className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md border border-rose-100">
-                          <AlertTriangle size={12} />
-                          {typeof alg === 'string' ? alg : alg.label}
-                        </div>
-                      ))
-                    )}
                     {/* Rating Pill */}
                     <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
                       <Star size={12} className="text-orange-500 fill-orange-500" />
@@ -361,250 +431,253 @@ export default function FoodDetails() {
                       <span className="text-gray-300">|</span>
                       <span className="text-gray-500">{food.ratingCount || 0} reviews</span>
                     </div>
-                    {/* Order Count Pill */}
-                    {food.orderCount > 0 && (
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
-                        <Store size={12} />
-                        {food.orderCount}+ Orders
-                      </div>
-                    )}
-                    {/* Stock Pill */}
-                    {typeof food.stock === 'number' && (
-                      <div className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-100">
-                        📦 {food.stock} Left
-                      </div>
-                    )}
                   </div>
 
                   {/* Quick Stats */}
-                  {/* Quick Stats & Discount */}
                   <div className="grid grid-cols-2 gap-3 mt-6">
                     {/* Time Stat */}
                     <div className="flex items-center gap-3 p-3 bg-gray-50/80 rounded-2xl border border-gray-100/80 backdrop-blur-sm">
                       <div className="p-2 bg-white rounded-xl text-orange-500 shadow-sm ring-1 ring-gray-100"><Clock size={18} /></div>
                       <div>
                         <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Est. Time</p>
-                        <p className="text-sm font-black text-gray-900 leading-none">{food?.prepTime ? `${food.prepTime} min` : `${food?.estimatedDeliveryTime || 25} min`}</p>
+                        <p className="text-sm font-black text-gray-900 leading-none">{food?.prep_time_minutes ? `${food.prep_time_minutes} min` : `25 min`}</p>
                       </div>
                     </div>
 
-                    {/* Delivery & Discount Stat */}
-                    <div className="flex items-center gap-3 p-3 bg-gray-50/80 rounded-2xl border border-gray-100/80 backdrop-blur-sm relative overflow-hidden group">
-                      <div className="p-2 bg-white rounded-xl text-orange-500 shadow-sm ring-1 ring-gray-100 z-10"><Truck size={18} /></div>
-                      <div className="z-10 flex-1">
+                    {/* Delivery */}
+                    <div className="flex items-center gap-3 p-3 bg-gray-50/80 rounded-2xl border border-gray-100/80 backdrop-blur-sm">
+                      <div className="p-2 bg-white rounded-xl text-orange-500 shadow-sm ring-1 ring-gray-100"><Truck size={18} /></div>
+                      <div>
                         <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Delivery</p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-black text-gray-900 leading-none">₦{food?.deliveryFee || 0}</p>
-                          {/* Integrated Discount Badge */}
-                          {discountedBasePrice !== null && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-red-100 text-red-600 text-[10px] font-bold leading-none animate-pulse">
-                              {food.discount.percentage > 0 ? `-${food.discount.percentage}%` : `Save ₦${food.discount.flatAmount}`}
-                            </span>
-                          )}
-                        </div>
+                        <p className="text-sm font-black text-gray-900 leading-none">
+                          {food?.deliveryFee ? `₦${food.deliveryFee.toLocaleString()}` : "Free"}
+                        </p>
                       </div>
-                      {/* Decorative Background Icon */}
-                      {discountedBasePrice !== null && (
-                        <div className="absolute -right-2 -bottom-2 text-red-500/5 transform rotate-12 group-hover:scale-110 transition-transform">
-                          <Utensils size={40} />
-                        </div>
-                      )}
                     </div>
                   </div>
-
-                  {/* Nutrition Info (Collapsible) */}
-                  {food.nutrition && Object.values(food.nutrition).some(v => v) && (
-                    <div className="mt-4 border border-gray-100 rounded-2xl overflow-hidden">
-                      <button
-                        onClick={() => setNutritionOpen(!nutritionOpen)}
-                        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Info size={16} className="text-gray-400" />
-                          <span className="text-xs font-bold text-gray-700 uppercase tracking-widest">Nutrition Info</span>
-                        </div>
-                        {nutritionOpen ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
-                      </button>
-                      <AnimatePresence>
-                        {nutritionOpen && (
-                          <motion.div
-                            initial={{ height: 0 }}
-                            animate={{ height: "auto" }}
-                            exit={{ height: 0 }}
-                            className="bg-white"
-                          >
-                            <div className="p-4 grid grid-cols-3 gap-4">
-                              {Object.entries(food.nutrition).map(([key, val]) => val && (
-                                <div key={key} className="text-center">
-                                  <div className="text-[10px] text-gray-400 uppercase font-bold">{key}</div>
-                                  <div className="text-sm font-bold text-gray-900">{val}</div>
-                                </div>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  )}
                 </div>
               </div>
             </motion.div>
 
-
             {/* AVAILABLE OPTIONS SELECTION */}
             <div className="px-4 space-y-4">
 
-              {/* If no variants and no portions, use Base Item */}
-              {(!food.variants?.length && !food.portions?.length) && (
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => openModal(null, null)}
-                  className="bg-white rounded-[24px] p-4 flex items-center justify-between border border-gray-100 cursor-pointer group"
-                >
-                  <div>
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Standard Portion</p>
-                    <div className="flex items-center gap-2">
-                      {discountedBasePrice !== null ? (
-                        <>
-                          <p className="text-lg font-bold text-orange-600">₦{discountedBasePrice.toLocaleString()}</p>
-                          <p className="text-xs font-bold text-gray-400 line-through">₦{Number(food.price).toLocaleString()}</p>
-                        </>
-                      ) : (
-                        <p className="text-lg font-bold text-gray-900">₦{Number(food.price).toLocaleString()}</p>
-                      )}
-                    </div>
-                  </div>
-                  {(!itemAvailability.available) ? (
-                    <button disabled className="px-4 py-2 rounded-full bg-gray-100 text-gray-400 text-xs font-bold uppercase cursor-not-allowed">
-                      {itemAvailability.reason}
-                    </button>
-                  ) : (
-                    <button className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center group-hover:bg-orange-600 transition-colors">
-                      <Plus size={24} />
-                    </button>
-                  )}
-                </motion.div>
-              )}
-
-              {/* Variants Grid */}
-              {food.variants?.length > 0 && (
-                <>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
-                    <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight">Select Variant</h3>
-                  </div>
-                  <div className="grid gap-3">
-                    {food.variants.map((variant, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="bg-white rounded-[24px] p-3 border border-gray-100 flex items-center gap-4 overflow-hidden"
-                      >
-                        {/* Variant Image */}
-                        <div className="w-20 h-20 shrink-0 bg-gray-100 rounded-2xl overflow-hidden">
-                          <img
-                            src={variant.image || variant.images?.[0]?.url || "/placeholder.jpg"}
-                            alt={variant.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-gray-900 truncate">{variant.name}</h4>
-                          <p className="text-xs text-gray-500 line-clamp-1 italic">{variant.description || "Tasty variant"}</p>
-                          {(() => {
-                            const vPrice = Number(variant.price);
-                            const vDiscPrice = getDiscountedPrice(vPrice);
-                            return vDiscPrice !== null ? (
-                              <div className="flex items-center gap-2 mt-1">
-                                <p className="text-sm font-bold text-orange-600">₦{vDiscPrice.toLocaleString()}</p>
-                                <p className="text-[10px] font-bold text-gray-400 line-through decoration-gray-400">₦{vPrice.toLocaleString()}</p>
-                              </div>
-                            ) : (
-                              <p className="text-sm font-bold text-orange-600 mt-1">₦{vPrice.toLocaleString()}</p>
-                            );
-                          })()}
-                        </div>
-
-                        {/* Add Button */}
-                        {(() => {
-                          const isVariantStockOut = !variant.stock || Number(variant.stock) <= 0;
-
-                          return (
-                            <button
-                              onClick={() => !isVariantStockOut && itemAvailability.available && openModal(variant, null)}
-                              disabled={isVariantStockOut || !itemAvailability.available}
-                              className={`w-auto px-4 py-2 shrink-0 rounded-xl flex items-center justify-center transition-all font-bold text-xs ${isVariantStockOut || !itemAvailability.available
-                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                : "bg-gray-900 text-white active:scale-95"
-                                }`}
-                            >
-                              {isVariantStockOut ? "Sold Out" : !itemAvailability.available ? "Unavail" : <Plus size={20} />}
-                            </button>
-                          );
-                        })()}
-                      </motion.div>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              {/* Portions List (If Valid) */}
+              {/* Portions Selector */}
               {food.portions?.length > 0 && (
-                <>
-                  <div className="flex items-center gap-2 mb-2 mt-4">
+                <div className="bg-white rounded-[24px] p-4 border border-gray-100 mb-4">
+                  <div className="flex items-center gap-2 mb-3">
                     <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
                     <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight">Select Portion</h3>
                   </div>
-                  <div className="space-y-2">
-                    {food.portions.map((portion, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        onClick={() => openModal(null, portion)}
-                        className="bg-white rounded-[20px] p-4 flex items-center justify-between border border-gray-100 cursor-pointer group hover:border-orange-200 transition-colors"
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:overflow-x-auto sm:scrollbar-none sm:snap-x">
+                    {food.portions.map(portion => (
+                      <button
+                        key={portion._id}
+                        onClick={() => itemAvailability.available && setSelectedPortion(portion)}
+                        disabled={!itemAvailability.available}
+                        className={`sm:shrink-0 h-14 px-4 rounded-xl border-2 text-xs font-bold transition-all sm:snap-center ${
+                          selectedPortion?._id === portion._id
+                            ? "bg-orange-500 border-orange-500 text-white"
+                            : "bg-white border-gray-100 text-gray-600 hover:border-orange-200"
+                        } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 text-xs font-bold">
-                            {portion.label.substring(0, 2).toUpperCase()}
-                          </div>
-                          <div>
-                            <span className="font-bold text-gray-900">{portion.label}</span>
-                            <div className="text-xs text-gray-400 font-medium">Portion Size</div>
-                          </div>
+                        <div className="flex flex-col items-center justify-center">
+                          <span className="text-[13px]">{portion.label}</span>
+                          <span className={`${selectedPortion?._id === portion._id ? 'text-white/90' : 'text-gray-400'} font-black text-[10px]`}>
+                            {portion.price_naira ? `₦${portion.price_naira.toLocaleString()}` : 'Free'}
+                          </span>
                         </div>
-                        <div className="flex items-center gap-3">
-                          {(() => {
-                            const pPrice = Number(portion.price);
-                            const pDiscPrice = getDiscountedPrice(pPrice);
-                            return pDiscPrice !== null ? (
-                              <div className="flex flex-col items-end leading-tight">
-                                <span className="font-bold text-orange-600">₦{pDiscPrice.toLocaleString()}</span>
-                                <span className="text-[10px] font-bold text-gray-400 line-through">₦{pPrice.toLocaleString()}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Choice Groups */}
+              {food.choiceGroups?.length > 0 && (
+                <div className="space-y-4 mb-8">
+                  {food.choiceGroups.map((group, gIdx) => (
+                    <div key={group._id} className="bg-white rounded-[24px] p-4 border border-gray-100 flex flex-col">
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
+                        <h4 className="text-[15px] font-bold text-gray-900 tracking-tight">
+                          {group.name}
+                        </h4>
+                        {group.is_required && (
+                          <span className="text-[9px] font-bold text-rose-500 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-full ml-auto">
+                            REQUIRED
+                          </span>
+                        )}
+                        {!group.is_required && (
+                          <span className="text-[9px] font-bold text-gray-500 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full ml-auto">
+                            OPTIONAL
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-gray-400 font-medium mb-4">
+                        {group.max_selections > 1 ? `Select up to ${group.max_selections}` : "Select one"}
+                      </p>
+
+                      <div className="space-y-3">
+                        {group.options.filter(o => o.is_available).map(option => {
+                          const isSelected = isOptionSelected(gIdx, option.label);
+                          return (
+                            <div key={option._id}
+                                 onClick={() => itemAvailability.available && toggleChoice(gIdx, group, option)}
+                                 className={`flex items-center gap-3 p-3 rounded-[16px] border-2 cursor-pointer transition-all ${
+                                   isSelected ? "border-orange-500 bg-orange-50/50" : "border-gray-100 bg-white hover:border-orange-200"
+                                 } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                              {/* Option Image */}
+                              <div className="w-12 h-12 rounded-[14px] bg-gray-50 overflow-hidden shrink-0">
+                                {option.image_url ? (
+                                  <img src={option.image_url} alt={option.label} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-[20px]">🍽️</div>
+                                )}
                               </div>
-                            ) : (
-                              <span className="font-bold text-gray-900">₦{pPrice.toLocaleString()}</span>
-                            );
-                          })()}
-                          <div className="w-8 h-8 rounded-lg bg-gray-100 group-hover:bg-gray-900 group-hover:text-white transition-colors flex items-center justify-center">
-                            <Plus size={16} />
-                          </div>
+                              {/* Details */}
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-[13px] text-gray-900 truncate tracking-tight">{option.label}</p>
+                                {option.price_modifier_naira > 0 ? (
+                                  <p className="text-[11px] font-black text-orange-500">+₦{option.price_modifier_naira.toLocaleString()}</p>
+                                ) : (
+                                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Free</p>
+                                )}
+                              </div>
+                              {/* Selection Indicator */}
+                              {isSelected ? (
+                                <div className="flex items-center gap-2.5 bg-white rounded-xl p-1 shadow-sm border border-gray-100" onClick={e => e.stopPropagation()}>
+                                  <button onClick={() => updateOptionQuantity(gIdx, option.label, -1, group)} disabled={!itemAvailability.available} className="w-[26px] h-[26px] flex items-center justify-center rounded-[8px] hover:bg-orange-50 text-orange-600 bg-gray-50">
+                                    <Minus size={14} strokeWidth={3} />
+                                  </button>
+                                  <span className="text-[13px] font-black text-gray-900 min-w-[12px] text-center">
+                                    {Array.isArray(selections[gIdx]) ? selections[gIdx].find(i => i.label === option.label)?.selectionQuantity || 1 : selections[gIdx]?.selectionQuantity || 1}
+                                  </span>
+                                  <button onClick={() => updateOptionQuantity(gIdx, option.label, 1, group)} disabled={!itemAvailability.available} className="w-[26px] h-[26px] flex items-center justify-center rounded-[8px] hover:bg-orange-50 text-orange-600 bg-gray-50">
+                                    <Plus size={14} strokeWidth={3} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="w-[22px] h-[22px] rounded-full border-2 border-gray-200 bg-gray-50" />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Combos Grid (unchanged) */}
+              {food.combos?.length > 0 && (
+                <div className="mt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-1 h-5 bg-orange-500 rounded-full" />
+                    <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight">
+                      Available Deals 🎁
+                    </h3>
+                  </div>
+                  <div className="grid gap-3">
+                    {food.combos.map((combo, i) => (
+                      <motion.div
+                        key={combo._id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="bg-white rounded-[24px] p-3 border border-gray-100 flex items-center gap-4"
+                      >
+                        <div className="w-20 h-20 shrink-0 bg-gray-100 rounded-2xl overflow-hidden">
+                          <img
+                            src={combo.image_url || "/placeholder.jpg"}
+                            alt={combo.name}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-gray-900 truncate">
+                            {combo.name}
+                          </h4>
+                          <p className="text-xs text-gray-500 line-clamp-1 italic">
+                            {combo.description || "Combo deal"}
+                          </p>
+                          <p className="text-sm font-bold text-orange-600 mt-1">
+                            ₦{combo.price_naira?.toLocaleString()}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => openModal(combo, null)}
+                          disabled={!combo.is_available || !itemAvailability.available}
+                          className={`w-auto px-4 py-2 shrink-0 rounded-xl text-xs font-bold transition-all ${
+                            (!combo.is_available || !itemAvailability.available)
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              : "bg-gray-900 text-white active:scale-95"
+                          }`}
+                        >
+                          {(!combo.is_available || !itemAvailability.available)
+                            ? (!combo.is_available ? "Unavailable" : "Unavail")
+                            : <Plus size={20} />
+                          }
+                        </button>
                       </motion.div>
                     ))}
                   </div>
-                </>
+                </div>
               )}
 
             </div>
           </div>
         ) : null}
       </div>
+
+      {/* Base Item Add to Order Footer - Fixed Bottom Bar */}
+      {food && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-lg border-t border-gray-100 pb-safe z-40" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
+            <div className="max-w-4xl mx-auto flex items-center gap-4">
+                <div className="flex items-center gap-2 bg-gray-100 rounded-[14px] p-1 h-[52px]">
+                    <button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={!itemAvailability.available}
+                        className="w-[42px] h-full flex items-center justify-center rounded-[10px] hover:bg-white transition-colors disabled:opacity-50 text-gray-600"
+                    >
+                        <Minus size={20} strokeWidth={2.5}/>
+                    </button>
+                    <span className="w-6 text-center font-black text-gray-900 text-[15px]">
+                        {quantity}
+                    </span>
+                    <button
+                        onClick={() => {
+                            if (selectedPortion?.max_quantity && quantity >= selectedPortion.max_quantity) {
+                                toast.error(`Maximum quantity allowed is ${selectedPortion.max_quantity}`);
+                            } else {
+                                setQuantity(quantity + 1);
+                            }
+                        }}
+                        disabled={!itemAvailability.available}
+                        className="w-[42px] h-full flex items-center justify-center rounded-[10px] hover:bg-white transition-colors disabled:opacity-50 text-gray-600"
+                    >
+                        <Plus size={20} strokeWidth={2.5}/>
+                    </button>
+                </div>
+
+                <button
+                    onClick={handleAddToCartBaseItem}
+                    disabled={!itemAvailability.available}
+                    className="flex-1 h-[52px] bg-orange-500 hover:bg-orange-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-[16px] font-black text-sm uppercase tracking-widest flex items-center justify-between px-5 transition-all active:scale-[0.98] shadow-lg shadow-orange-500/20"
+                >
+                    <span className="flex items-center gap-2.5">
+                       <ShoppingCart size={18} />
+                       {itemAvailability.available ? "Add to Order" : "Unavailable"}
+                    </span>
+                    {itemAvailability.available && (
+                       <span className="bg-white/20 px-3 py-1.5 rounded-lg text-[13px]">
+                           ₦{total.toLocaleString()}
+                       </span>
+                    )}
+                </button>
+            </div>
+        </div>
+      )}
 
       <FoodCustomizationModal
         food={food}
