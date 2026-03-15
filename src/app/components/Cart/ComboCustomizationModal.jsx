@@ -71,12 +71,12 @@ export default function ComboCustomizationModal({
                     g => g._id.toString() === group_id
                 );
                 return {
-                    component_id,
-                    item_name:            component?.name || "",
-                    group_id,
-                    group_name:           group?.name     || "",
-                    option_id:            choice.option_id,
-                    option_label:         choice.label,
+                    componentId: component_id,    // ← camelCase
+                    item_name:   component?.name || "",
+                    groupId:     group_id,        // ← camelCase
+                    group_name:  group?.name     || "",
+                    optionId:    choice.option_id, // ← camelCase
+                    label:       choice.label,
                     price_modifier_naira: choice.price_modifier_naira,
                 };
             }
@@ -103,6 +103,7 @@ export default function ComboCustomizationModal({
             image_url:         combo.image_url,
             price_naira:       totalPrice,
             quantity:          1,
+            deliveryFee:       vendor.deliveryFee || 0,
             selected_swaps,
             component_choices,
         });

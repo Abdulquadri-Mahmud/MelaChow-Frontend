@@ -222,8 +222,9 @@ export default function FoodCustomizationModal({
         });
 
         const payload = {
+            type:         "item",                // ← ADD explicit type
             foodId:       food._id,
-            portionId:    selectedPortion._id,
+            portionId:    selectedPortion._id,    // ← camelCase (transformer has fallback)
             vendorId:     food.vendor?._id,
             storeName:    food.vendor?.storeName || "",
             name:         food.name,
@@ -231,7 +232,13 @@ export default function FoodCustomizationModal({
             portion_label: selectedPortion.label,
             price_naira:  totalUnit,
             quantity,
-            selected_options: selectedOptions,
+            selected_options: selectedOptions.map(opt => ({
+                group_id:             opt.group_id   || opt.groupId,
+                option_id:            opt.option_id  || opt.optionId || opt._id,
+                label:                opt.label,
+                price_modifier_naira: opt.price_modifier_naira || 0,
+            })),
+            deliveryFee:  food.vendor?.deliveryFee || food.deliveryFee || 0,
             dietary_type: food.dietary_type,
             item_type:    food.item_type,
         };

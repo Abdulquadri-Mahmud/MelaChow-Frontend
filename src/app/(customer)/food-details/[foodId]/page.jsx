@@ -246,8 +246,9 @@ export default function FoodDetails() {
       });
 
       const payload = {
+          type:         "item",                // ← ADD explicit type
           foodId:       food._id,
-          portionId:    selectedPortion?._id || null,
+          portionId:    selectedPortion?._id || null, // ← camelCase
           vendorId:     food.vendor?._id,
           storeName:    food.vendor?.storeName || "",
           name:         food.name,
@@ -255,7 +256,13 @@ export default function FoodDetails() {
           portion_label: selectedPortion?.label,
           price_naira:  totalUnit,
           quantity,
-          selected_options: selectedOptions,
+          selected_options: selectedOptions.map(opt => ({
+              group_id:             opt.group_id,
+              option_id:            opt.option_id,
+              label:                opt.label,
+              price_modifier_naira: opt.price_modifier_naira || 0,
+          })),
+          deliveryFee:  food.vendor?.deliveryFee || food.deliveryFee || 0,
           dietary_type: food.dietary_type,
           item_type:    food.item_type,
       };
@@ -340,7 +347,7 @@ export default function FoodDetails() {
         </Link>
       </header>
 
-      <div className="max-w-4xl mx-auto pb-[180px]">
+      <div className="max-w-4xl mx-auto pb-20">
         {isLoading ? (
           <div className="p-2"><FoodDetailsSkeleton /></div>
         ) : isError ? (
@@ -462,9 +469,65 @@ export default function FoodDetails() {
             {/* AVAILABLE OPTIONS SELECTION */}
             <div className="px-4 space-y-4">
 
+              {/* Combos Grid (unchanged) */}
+              {food.combos?.length > 0 && (
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-1 h-5 bg-orange-500 rounded-full" />
+                    <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight">
+                      Available Deals 🎁
+                    </h3>
+                  </div>
+                  <div className="grid gap-3">
+                    {food.combos.map((combo, i) => (
+                      <motion.div
+                        key={combo._id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="bg-white rounded-[24px] p-3 border border-gray-100 flex items-center gap-3"
+                      >
+                        <div className="w-20 h-20 shrink-0 bg-gray-100 rounded-2xl overflow-hidden">
+                          <img
+                            src={combo.image_url || "/placeholder.jpg"}
+                            alt={combo.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-gray-900 truncate">
+                            {combo.name}
+                          </h4>
+                          <p className="text-xs text-gray-500 line-clamp-1 italic">
+                            {combo.description || "Combo deal"}
+                          </p>
+                          <p className="text-sm font-bold text-orange-600 mt-1">
+                            ₦{combo.price_naira?.toLocaleString()}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => openModal(combo, null)}
+                          disabled={!combo.is_available || !itemAvailability.available}
+                          className={`w-auto px-4 py-2 shrink-0 rounded-xl text-xs font-bold transition-all ${
+                            (!combo.is_available || !itemAvailability.available)
+                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                              : "bg-gray-900 text-white active:scale-95"
+                          }`}
+                        >
+                          {(!combo.is_available || !itemAvailability.available)
+                            ? (!combo.is_available ? "Unavailable" : "Unavail")
+                            : <Plus size={20} />
+                          }
+                        </button>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Portions Selector */}
               {food.portions?.length > 0 && (
-                <div className="bg-white rounded-[24px] p-4 border border-gray-100 mb-4">
+                <div className="bg-white rounded-[24px] p-3 border border-gray-100 mb-4">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
                     <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight">Select Portion</h3>
@@ -497,7 +560,7 @@ export default function FoodDetails() {
               {food.choiceGroups?.length > 0 && (
                 <div className="space-y-4 mb-8">
                   {food.choiceGroups.map((group, gIdx) => (
-                    <div key={group._id} className="bg-white rounded-[24px] p-4 border border-gray-100 flex flex-col">
+                    <div key={group._id} className="bg-white rounded-[24px] p-3 border border-gray-100 flex flex-col">
                       <div className="flex items-center gap-2 mb-1">
                         <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
                         <h4 className="text-[15px] font-bold text-gray-900 tracking-tight">
@@ -569,62 +632,6 @@ export default function FoodDetails() {
                 </div>
               )}
 
-              {/* Combos Grid (unchanged) */}
-              {food.combos?.length > 0 && (
-                <div className="mt-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-1 h-5 bg-orange-500 rounded-full" />
-                    <h3 className="text-lg font-bold text-gray-900 uppercase tracking-tight">
-                      Available Deals 🎁
-                    </h3>
-                  </div>
-                  <div className="grid gap-3">
-                    {food.combos.map((combo, i) => (
-                      <motion.div
-                        key={combo._id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="bg-white rounded-[24px] p-3 border border-gray-100 flex items-center gap-4"
-                      >
-                        <div className="w-20 h-20 shrink-0 bg-gray-100 rounded-2xl overflow-hidden">
-                          <img
-                            src={combo.image_url || "/placeholder.jpg"}
-                            alt={combo.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold text-gray-900 truncate">
-                            {combo.name}
-                          </h4>
-                          <p className="text-xs text-gray-500 line-clamp-1 italic">
-                            {combo.description || "Combo deal"}
-                          </p>
-                          <p className="text-sm font-bold text-orange-600 mt-1">
-                            ₦{combo.price_naira?.toLocaleString()}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => openModal(combo, null)}
-                          disabled={!combo.is_available || !itemAvailability.available}
-                          className={`w-auto px-4 py-2 shrink-0 rounded-xl text-xs font-bold transition-all ${
-                            (!combo.is_available || !itemAvailability.available)
-                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                              : "bg-gray-900 text-white active:scale-95"
-                          }`}
-                        >
-                          {(!combo.is_available || !itemAvailability.available)
-                            ? (!combo.is_available ? "Unavailable" : "Unavail")
-                            : <Plus size={20} />
-                          }
-                        </button>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
             </div>
           </div>
         ) : null}
@@ -632,8 +639,8 @@ export default function FoodDetails() {
 
       {/* Base Item Add to Order Footer - Fixed Bottom Bar */}
       {food && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-lg border-t border-gray-100 pb-safe z-40" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
-            <div className="max-w-4xl mx-auto flex items-center gap-4">
+        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 backdrop-blur-lg border-t border-gray-100 pb-safe z-40" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
+            <div className="max-w-4xl mx-auto flex items-center gap-3">
                 <div className="flex items-center gap-2 bg-gray-100 rounded-[14px] p-1 h-[52px]">
                     <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}

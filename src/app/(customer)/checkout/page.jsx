@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/app/context/CartContext";
 import { Loader2, Bike, MapPin, Clock, DollarSign, TicketPercent, Tag, Wallet, CreditCard } from "lucide-react";
@@ -50,6 +50,13 @@ export default function CheckoutPage() {
   // Cart validation hook
   const { validateCart, validationErrors, isValid } = useCartValidation(cart);
 
+  // Generate ONCE per checkout session — does NOT regenerate
+  // on re-renders or retries. Only resets if user navigates
+  // away and returns.
+  const idempotencyKey = useRef(
+    `order_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
+  );
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -71,10 +78,9 @@ export default function CheckoutPage() {
           try {
             const data = await getVendorById(id);
             const v = data.vendor || data;
-            // Delivery fee resolution: vendor-managed vs platform-managed
             const fee = v.deliveryManagedBy === "vendor"
-              ? (v.flatRateDeliveryFee || 0)
-              : (v.cityId?.platformDeliveryFee ?? 0);
+              ? (v.flatRateDeliveryFee || v.deliveryFee || 0)
+              : (v.cityId?.platformDeliveryFee ?? v.deliveryFee ?? 0);
             fees[id] = fee;
           } catch (e) {
             console.error("Fee fetch error:", e);
@@ -91,8 +97,8 @@ export default function CheckoutPage() {
   cart.forEach(item => {
     const vId = item.vendorId || item.restaurantId;
     if (!restaurantDeliveryMap[vId]) {
-      // Use resolved fee if available, else fallback to item.deliveryFee
-      restaurantDeliveryMap[vId] = vendorFeesMap[vId] ?? Number(item.deliveryFee || 0);
+      // Prioritize the fee already stored in the cart item, fallback to resolved map
+      restaurantDeliveryMap[vId] = Number(item.deliveryFee || vendorFeesMap[vId] || 0);
     }
   });
 
@@ -121,7 +127,7 @@ export default function CheckoutPage() {
   const handleVerifyCoupon = async () => {
     if (!couponCode.trim()) return;
     setVerifyingCode(true);
-    setAppliedDiscount(null); // Reset previous
+    setAppliedDiscount(null);
     try {
       const payload = {
         code: couponCode,
@@ -171,7 +177,7 @@ export default function CheckoutPage() {
     setLoadingInit(true);
 
     try {
-      // 4. Check if all restaurants are open (optional - commented out in original)
+      // 4. Check if all restaurants are open
       setProcessingStep("checking");
       const uniqueRestaurantIds = Object.keys(restaurantDeliveryMap);
 
@@ -189,7 +195,6 @@ export default function CheckoutPage() {
       );
 
       const closedRestaurants = [];
-      const notVerifiedRestaurants = []; // Optional: track failures
 
       // Check for failed vendor fetches (404s)
       const failedVendorFetches = vendorStatuses.filter(res => !res.success);
@@ -198,12 +203,11 @@ export default function CheckoutPage() {
       }
 
       vendorStatuses.forEach((res) => {
-        if (!res.success || !res.vendor) return; // Should be caught above, but safety check
+        if (!res.success || !res.vendor) return;
 
         const status = getVendorOpenAndCloseStatus(res.vendor.openingHours);
-        if (!status) return; // No status, assume open
+        if (!status) return;
 
-        // Check explicit closed messages
         const isClosed =
           status.toLowerCase().startsWith("closed") ||
           status.toLowerCase().startsWith("the restaurant has closed");
@@ -226,13 +230,39 @@ export default function CheckoutPage() {
         deliveryFee: vendorFeesMap[item.vendorId || item.restaurantId] ?? item.deliveryFee
       }));
 
-      const orderPayload = transformCartToOrderV2(
-        resolvedCart,
-        defaultAddress,
-        userData.phone,
-        userData.email,
+      const deliveryAddress = {
+        addressLine:  defaultAddress.addressLine
+          || defaultAddress.address || "",
+        cityName:     defaultAddress.city
+          || defaultAddress.cityName || "",
+        stateName:    defaultAddress.state
+          || defaultAddress.stateName || "",
+        name: defaultAddress.name
+          || (userData?.firstname
+            ? `${userData.firstname} ${userData.lastname || ""}`.trim()
+            : "Customer"),
+        phone:  defaultAddress.phone
+                   || userData?.phone || "",
+        // ADD: coordinates if available
+        ...(defaultAddress.coordinates?.lat && {
+          coordinates: {
+            lat: defaultAddress.coordinates.lat,
+            lng: defaultAddress.coordinates.lng,
+          }
+        }),
+      };
+
+      const orderPayload = {
+        ...transformCartToOrderV2(
+          resolvedCart,
+          deliveryAddress,
+          userData?.phone,
+          userData?.email,
+          userData
+        ),
+        idempotencyKey: idempotencyKey.current,
         notes
-      );
+      };
 
       // Add Wallet Payment Flag
       if (useWallet) {
@@ -247,19 +277,15 @@ export default function CheckoutPage() {
         orderPayload.discountCode = couponCode;
       }
 
-      // console.log("V2 Order Payload:", orderPayload);
+      console.log("------------------- ORDER PAYLOAD -------------------");
+      console.log(JSON.stringify(orderPayload, null, 2));
+      console.log("-----------------------------------------------------");
 
       // 6. Create order using V2 API
       setProcessingStep("preparing");
       const response = await createOrderV2(orderPayload);
 
-      // console.log("V2 Order Response:", response);
-
-      // 7. Redirect to Paystack payment page
       // 7. Handle Response (Redirect to Paystack OR Success)
-      // 7. Handle Response (Redirect to Paystack OR Success)
-      // Check for explicit "paid" status OR successful response with no auth URL (Wallet)
-      // Backend might return "success: true" OR "status: true"
       const isSuccess = response?.success || response?.status === true || response?.status === "success";
 
       if (response?.paymentStatus === "paid" || (isSuccess && !response?.authorization_url)) {
@@ -267,7 +293,6 @@ export default function CheckoutPage() {
         clearCart();
         toast.success("Order Placed Successfully! 🎉", { duration: 3000 });
 
-        // Redirect to tracking page if ID exists, else orders list
         const paramOrderId = response.order?.orderId || response.orderId;
         setTimeout(() => {
           if (paramOrderId) {
@@ -277,25 +302,19 @@ export default function CheckoutPage() {
           }
         }, 1500);
       } else if (response?.authorization_url) {
-        // ... (Existing Paystack logic) ...
-        // Store pending order ID if provided (New Flow)
         if (response.orderId) {
           sessionStorage.setItem("pendingOrderId", response.orderId);
         }
 
-        // Clear cart before redirecting
         clearCart();
 
-        // Show success message with Order ID
         const msg = response.orderId
           ? `Processing Order #${response.orderId}... Redirecting!`
           : "Redirecting to payment...";
         toast.success(msg, { duration: 2000 });
 
-        // Redirect to Paystack
         window.location.href = response.authorization_url;
       } else {
-        console.log("Unknown Response:", response); // Debug log
         throw new Error("Payment initialization failed - unknown response status");
       }
     } catch (err) {
@@ -584,7 +603,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Sticky Pay Button */}
-        <div className="fixed bottom-16 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 p-4 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] z-40">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 p-2 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] z-40">
           <motion.button
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
