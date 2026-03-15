@@ -307,7 +307,14 @@ export default function StorefrontPage() {
         setLoadingItem(true);
         try {
             const res = await getMenuItemDetail(vendorId, item._id);
-            setFullItem({ ...res.item, vendor: data.vendor });
+            const rawItem = res.item;
+            // Normalize: API returns choice_groups (snake_case), modal expects choiceGroups (camelCase)
+            const normalizedItem = {
+                ...rawItem,
+                choiceGroups: rawItem.choiceGroups || rawItem.choice_groups || [],
+                vendor: data.vendor,
+            };
+            setFullItem(normalizedItem);
             setModalOpen(true);
         } catch {
             toast.error("Could not load item details");
@@ -498,7 +505,7 @@ export default function StorefrontPage() {
                         </button>
                     </div>
                 ) : (
-                    <div className="space-y-12 lg:space-y-20">
+                    <div className="space-y-8 lg:space-y-20">
                         {allSections.map((section, idx) => (
                             <section 
                                 key={section._id} 
@@ -516,7 +523,7 @@ export default function StorefrontPage() {
                                 </div>
                                 
                                 {section.type === "combo" ? (
-                                    <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
+                                    <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
                                         {section.items.map(combo => (
                                             <ComboCard
                                                 key={combo._id}
@@ -527,7 +534,7 @@ export default function StorefrontPage() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
+                                    <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
                                         {section.items?.map(item => (
                                             <FoodCard
                                                 key={item._id}
