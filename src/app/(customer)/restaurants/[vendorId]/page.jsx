@@ -28,7 +28,8 @@ const FoodCard = ({ item, vendor, onSelect }) => {
     return (
         <div
             onClick={() => !isUnavailable && onSelect(item)}
-            className={`group bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
+            className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl snap-start ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
+            style={{ width: "72vw", maxWidth: "280px" }}
         >
             {/* Image Container */}
             <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
@@ -513,26 +514,29 @@ export default function StorefrontPage() {
                                     </span>
                                 </div>
                                 
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                                    {section.type === "combo"
-                                        ? section.items.map(combo => (
+                                {section.type === "combo" ? (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                        {section.items.map(combo => (
                                             <ComboCard
                                                 key={combo._id}
                                                 combo={combo}
                                                 vendor={vendor}
                                                 onSelect={handleComboTap}
                                             />
-                                          ))
-                                        : section.items?.map(item => (
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
+                                        {section.items?.map(item => (
                                             <FoodCard
                                                 key={item._id}
                                                 item={item}
                                                 vendor={vendor}
                                                 onSelect={handleItemTap}
                                             />
-                                          ))
-                                    }
-                                </div>
+                                        ))}
+                                    </div>
+                                )}
                             </section>
                         ))}
                     </div>
