@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRealtimeNotifications } from '@/app/hooks/useRealtimeNotifications';
-import { Package, Tag, Truck, Bell } from 'lucide-react';
+
 
 /**
  * Component that listens for real-time notifications and displays toast alerts
@@ -13,6 +13,10 @@ export default function RealtimeNotificationListener() {
 
     useEffect(() => {
         if (!latestNotification) return;
+
+        // vendor_new_order toasts are handled in SocketContext with richer UI
+        // Skip them here to avoid duplicate toasts
+        if (latestNotification.type === 'vendor_new_order') return;
 
         // Get appropriate icon based on notification type
         const getIcon = (type) => {

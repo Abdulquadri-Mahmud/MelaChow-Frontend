@@ -1,8 +1,9 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import socketService from '@/app/lib/socketService';
 import { TokenManager } from '@/app/lib/auth-token';
+import toast from 'react-hot-toast';
 
 const SocketContext = createContext({
     isConnected: false,
@@ -20,6 +21,10 @@ export const SocketProvider = ({ children }) => {
     const [isConnected, setIsConnected] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const [latestNotification, setLatestNotification] = useState(null);
+
+    // Guard: ensures socket event listeners are registered only once per
+    // socket instance, not on every reconnection attempt from the interval
+    const listenersRegistered = useRef(false);
 
     // Determine role based on path
     const getRoleFromPath = (path) => {
@@ -75,6 +80,13 @@ export const SocketProvider = ({ children }) => {
                 // Fetch initial unread count
                 await fetchUnreadCount();
 
+                // Only register listeners once — prevent stacking on reconnect attempts
+                if (listenersRegistered.current) {
+                    setIsConnected(true);
+                    return;
+                }
+                listenersRegistered.current = true;
+
                 // Set up basic listeners
                 socketService.onNewNotification((notification) => {
                     setLatestNotification(notification);
@@ -92,20 +104,119 @@ export const SocketProvider = ({ children }) => {
                 socketService.onNewOrder((order) => {
                     if (role === 'vendor') {
                         console.log('🆕 New order received via socket:', order);
-                        const tempNotification = {
-                            _id: `temp-${Date.now()}`,
-                            title: 'New Order Received!',
-                            body: `Order #${order.orderNumber || order._id?.slice(-6)} from ${order.customerName || 'Customer'}`,
-                            type: 'new_order',
+
+                        const newOrderNotification = {
+                            _id: `order-${order._id || Date.now()}`,
+                            title: '🔔 New Order Received!',
+                            body: `Order #${order.orderNumber || order._id?.slice(-6)} · ${order.customerName || 'Customer'} · ${order.deliveryAddress?.address || ''}`,
+                            type: 'vendor_new_order',
                             orderId: order._id,
+                            url: `/vendors/orders/${order._id}`,
                             createdAt: new Date().toISOString(),
                             read: false,
                             customerName: order.customerName,
                             location: order.deliveryAddress?.address
                         };
-                        setLatestNotification(tempNotification);
+
+                        setLatestNotification(newOrderNotification);
                         setUnreadCount(prev => prev + 1);
-                        window.dispatchEvent(new CustomEvent('notifications:updated', { detail: tempNotification }));
+                        window.dispatchEvent(new CustomEvent('notifications:updated', { detail: newOrderNotification }));
+
+                        // Premium vendor new order toast — distinct from standard notification toasts
+                        toast.custom((t) => (
+                            <div
+                                className={`bg-white dark:bg-slate-900 shadow-2xl rounded-2xl p-4 flex items-start gap-4 w-full max-w-sm border-l-4 border-orange-500 cursor-pointer ${t.visible ? 'animate-in slide-in-from-right-full' : 'animate-out fade-out'}`}
+                                onClick={() => {
+                                    window.location.href = `/vendors/orders/${order._id}`;
+                                    toast.dismiss(t.id);
+                                }}
+                            >
+                                <div className="flex-shrink-0 w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md shadow-orange-200">
+                                    🔔
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-black text-sm text-slate-900 dark:text-white uppercase italic tracking-tight">
+                                        New Order!
+                                    </p>
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 truncate">
+                                        #{order.orderNumber || order._id?.slice(-6)} · {order.customerName || 'Customer'}
+                                    </p>
+                                    <button className="mt-2 text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors">
+                                        View Order →
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); toast.dismiss(t.id); }}
+                                    className="text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0 text-xs"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        ), {
+                            duration: 15000,
+                            position: 'top-right',
+                            id: `new-order-${order._id}`
+                        });
+
+                        // Play alert sound for new orders
+                        try {
+                            const audio = new Audio('/sounds/notification.mp3');
+                            audio.volume = 0.6;
+                            audio.play().catch(() => { });
+                        } catch (e) { }
+                    }
+                });
+
+                // Handle missed notifications delivered on reconnect
+                socketService.onMissedNotifications(({ notifications: missed, count }) => {
+                    if (role === 'vendor' && missed?.length > 0) {
+                        console.log(`📬 ${count} missed notification(s) received on reconnect`);
+
+                        // Batch dispatch all missed notifications to the notification state
+                        missed.forEach(notification => {
+                            window.dispatchEvent(new CustomEvent('notifications:updated', {
+                                detail: notification
+                            }));
+                        });
+
+                        // Update unread count by the number of missed notifications
+                        setUnreadCount(prev => prev + count);
+
+                        // Show a single summary toast — not one per notification (avoid toast spam)
+                        toast.custom((t) => (
+                            <div
+                                className={`bg-white dark:bg-slate-900 shadow-2xl rounded-2xl p-4 flex items-start gap-4 w-full max-w-sm border-l-4 border-amber-500 cursor-pointer ${t.visible ? 'animate-in slide-in-from-right-full' : 'animate-out fade-out'}`}
+                                onClick={() => {
+                                    window.location.href = '/vendors/notifications';
+                                    toast.dismiss(t.id);
+                                }}
+                            >
+                                <div className="flex-shrink-0 w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-xl">
+                                    📬
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-black text-sm text-slate-900 dark:text-white uppercase italic tracking-tight">
+                                        {count} Missed {count === 1 ? 'Notification' : 'Notifications'}
+                                    </p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                        Updates arrived while you were away
+                                    </p>
+                                    <button className="mt-2 text-xs font-bold text-amber-500 hover:text-amber-600 transition-colors">
+                                        Review All →
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); toast.dismiss(t.id); }}
+                                    className="text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0 text-xs"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        ), {
+                            duration: 10000,
+                            position: 'top-right',
+                            id: 'missed-notifications-summary'
+                        });
                     }
                 });
 
@@ -167,6 +278,7 @@ export const SocketProvider = ({ children }) => {
 
         return () => {
             clearInterval(interval);
+            listenersRegistered.current = false;
             socketService.removeAllListeners();
             socketService.disconnect();
         };
