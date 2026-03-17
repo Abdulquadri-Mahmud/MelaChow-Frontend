@@ -379,33 +379,127 @@ export default function OrderTracking() {
 
               <div className="space-y-6">
                 {items.map((item, idx) => (
-                  <div key={idx} className="flex gap-5 items-center bg-zinc-50/50 dark:bg-zinc-800/50 p-3 rounded-[28px] border border-zinc-100/50 dark:border-zinc-700/50">
-                    <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-inner">
-                      <img
-                        src={item.variant.image || "/placeholder.jpg"}
-                        alt={item.variant.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-sm font-black text-zinc-900 dark:text-white italic uppercase">{item.variant.name}</h4>
-                      <p className="text-[10px] font-black text-zinc-400 mt-0.5 opacity-60">QTY: {item.quantity} • ₦{item.price.toLocaleString()}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="font-black text-sm text-zinc-900 dark:text-white">
-                        ₦{(item.price * item.quantity).toLocaleString()}
+                  <div
+                    key={idx}
+                    className="bg-zinc-50/50 dark:bg-zinc-800/50 p-3 rounded-[28px] border border-zinc-100/50 dark:border-zinc-700/50 space-y-3"
+                  >
+                    {/* TOP ROW — image, name, price, review */}
+                    <div className="flex gap-4 items-start">
+                      
+                      {/* Item Image — prefer variant image, fall back to item image_url */}
+                      <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-inner flex-shrink-0">
+                        <img
+                          src={item.variant?.image || item.image_url || "/placeholder.jpg"}
+                          alt={item.name || item.variant?.name}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                       </div>
-                      <button
-                        onClick={() => {
-                          setSelectedFoodForReview(item);
-                          setIsReviewModalOpen(true);
-                        }}
-                        className="text-[9px] font-black uppercase text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded-lg hover:bg-orange-100 transition-colors"
-                      >
-                        Review
-                      </button>
+
+                      <div className="flex-1 min-w-0">
+                        {/* Food name — the actual dish name e.g. "Jollof Rice" */}
+                        <h4 className="text-sm font-black text-zinc-900 dark:text-white italic uppercase leading-tight">
+                          {item.name || item.variant?.name}
+                        </h4>
+
+                        {/* Portion label — e.g. "Large" */}
+                        {item.variant?.name && item.name && 
+                          item.variant.name !== item.name && (
+                          <p className="text-[10px] font-bold text-zinc-400 mt-0.5 uppercase">
+                            Portion: {item.variant.name}
+                          </p>
+                        )}
+
+                        {/* Quantity */}
+                        <p className="text-[10px] font-black text-zinc-400 mt-1 opacity-60 uppercase tracking-widest">
+                          QTY: {item.quantity}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                        <div className="font-black text-sm text-zinc-900 dark:text-white">
+                          ₦{(item.price * item.quantity).toLocaleString()}
+                        </div>
+                        <button
+                          onClick={() => {
+                            setSelectedFoodForReview(item);
+                            setIsReviewModalOpen(true);
+                          }}
+                          className="text-[9px] font-black uppercase text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-colors"
+                        >
+                          Review
+                        </button>
+                      </div>
                     </div>
+
+                    {/* SELECTED OPTIONS — only render when options exist */}
+                    {item.metadata?.selected_options?.length > 0 && (
+                      <div className="space-y-2 pt-1">
+                        {Object.entries(
+                          item.metadata.selected_options.reduce((groups, opt) => {
+                            const key = opt.group_name || 'Add-ons';
+                            if (!groups[key]) groups[key] = [];
+                            groups[key].push(opt);
+                            return groups;
+                          }, {})
+                        ).map(([groupName, options]) => (
+                          <div
+                            key={groupName}
+                            className="bg-white dark:bg-zinc-900/60 border border-zinc-100 dark:border-zinc-700 rounded-2xl px-3 py-2"
+                          >
+                            <p className="text-[9px] font-black uppercase tracking-wider text-zinc-400 mb-1.5">
+                              {groupName}
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {options.map((opt, optIdx) => (
+                                <div
+                                  key={optIdx}
+                                  className="inline-flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-2.5 py-1"
+                                >
+                                  <span className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200">
+                                    {opt.label}
+                                  </span>
+                                  {opt.price_modifier_naira > 0 && (
+                                    <span className="text-[10px] font-black text-orange-500">
+                                      +₦{opt.price_modifier_naira.toLocaleString()}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* PRICING BREAKDOWN — only when options were added */}
+                    {item.metadata?.pricing && 
+                     item.metadata.pricing.options_total > 0 && (
+                      <div className="flex items-center justify-between px-3 py-2 bg-white dark:bg-zinc-900/60 rounded-2xl border border-zinc-100 dark:border-zinc-700">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-zinc-400">
+                            Base ₦{item.metadata.pricing.base_naira?.toLocaleString()}
+                          </span>
+                          <span className="text-zinc-300 dark:text-zinc-600">+</span>
+                          <span className="text-[10px] font-bold text-orange-500">
+                            Add-ons ₦{item.metadata.pricing.options_total?.toLocaleString()}
+                          </span>
+                        </div>
+                        <span className="text-[11px] font-black text-zinc-700 dark:text-zinc-300">
+                          = ₦{item.metadata.pricing.final_unit_naira?.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* CUSTOMER NOTE — only when note is non-empty */}
+                    {item.note && item.note.trim() !== '' && (
+                      <div className="flex items-start gap-2 px-3 py-2 bg-amber-50 dark:bg-amber-500/10 rounded-2xl border border-amber-100 dark:border-amber-500/20">
+                        <span className="text-amber-500 text-[11px] mt-0.5 flex-shrink-0">📝</span>
+                        <p className="text-[11px] font-bold text-amber-700 dark:text-amber-400 italic">
+                          "{item.note}"
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
