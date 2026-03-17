@@ -729,7 +729,7 @@ export default function FoodDetails() {
                        <div className="p-1.5 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/20 group-hover:rotate-12 transition-transform shrink-0">
                           <ShoppingCart size={18} />
                        </div>
-                       <span className="truncate text-zinc-900 dark:text-white">
+                       <span className="truncate text-zinc-900 dark:text-white hover:text-orange-500 dark:hover:text-orange-500">
                           {itemAvailability.available ? "Add to Order" : "Sold Out"}
                        </span>
                     </div>
