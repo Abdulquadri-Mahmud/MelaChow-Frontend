@@ -192,32 +192,11 @@ export default function FoodSearchMobile() {
         setLoading(true);
         setError(null);
 
-        // Build search params
-        let params = {};
-        if (query.trim()) {
-          params = { q: query };
-          setActiveCategory(""); 
-        } else if (selectedCategory) {
-          params = { category: selectedCategory };
-          setActiveCategory(selectedCategory);
-        } else {
-          params = { q: "" };
-          setActiveCategory("");
-        }
-
-        // Match selected category name to its ID for more accurate filtering
-        const matchedCategory = categories.find(c => 
-          c.name.toLowerCase() === (selectedCategory || "").toLowerCase()
-        );
+        // Simple params — category filtering is done on the frontend
+        const params = query.trim() ? { q: query } : { q: '' };
 
         const res = await axios.get(`${baseUrl}/search/food/search`, {
-          params: {
-            ...params,
-            platform_category: selectedCategory || params.category,
-            platformCategory: selectedCategory || params.category,
-            categoryId: matchedCategory?._id,
-            platformCategoryId: matchedCategory?._id,
-          },
+          params,
           withCredentials: true,
         });
         setFoods(res.data.data || []);
@@ -230,7 +209,7 @@ export default function FoodSearchMobile() {
     };
 
     fetchFoods();
-  }, [baseUrl, hydrated, selectedCategory, query, categories]);
+  }, [baseUrl, hydrated, query]);
 
   // Autocomplete
   useEffect(() => {
@@ -273,10 +252,20 @@ export default function FoodSearchMobile() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Category grouping
+  // Category grouping — always use all foods, filtered client-side by selectedCategory
+  const displayedFoods = useMemo(() => {
+    if (!selectedCategory || !foods.length) return foods;
+    const lower = selectedCategory.toLowerCase();
+    return foods.filter(food => {
+      const childName = food.platform_category?.name?.toLowerCase() || '';
+      const parentName = food.platform_category?.parent?.name?.toLowerCase() || '';
+      return childName === lower || parentName === lower;
+    });
+  }, [foods, selectedCategory]);
+
   const foodsByCategory = useMemo(() => {
-    if (!Array.isArray(foods) || foods.length === 0) return {};
-    return foods.reduce((acc, food) => {
+    if (!Array.isArray(displayedFoods) || displayedFoods.length === 0) return {};
+    return displayedFoods.reduce((acc, food) => {
       const primaryCategory = food.platform_category?.parent?.name 
         || food.platform_category?.name
         || (Array.isArray(food.categories) && food.categories[0])
@@ -286,20 +275,18 @@ export default function FoodSearchMobile() {
       acc[primaryCategory].push(food);
       return acc;
     }, {});
-  }, [foods]);
+  }, [displayedFoods]);
 
-  // Category click
+  // Category click — just updates the URL; filtering is handled by displayedFoods memo
   const handleCategoryClick = async (category) => {
     if (activeCategory === category) {
       setActiveCategory("");
       router.push("?");
       return;
     }
-
     setActiveCategory(category);
     setQuery("");
     router.push(`?category=${encodeURIComponent(category)}`);
-    // Keep focus
     setTimeout(() => inputRef.current?.focus(), 50);
   };
 
@@ -472,7 +459,7 @@ export default function FoodSearchMobile() {
           <div className="px-4">
             <SearchFoodSkeleton items={6} />
           </div>
-        ) : foods.length === 0 ? (
+        ) : displayedFoods.length === 0 ? (
           <NoFoodsFound />
         ) : (
           <div className="space-y-8 pb-10 pl-3">

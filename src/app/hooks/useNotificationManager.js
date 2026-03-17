@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRealtimeNotifications } from './useRealtimeNotifications';
 import { usePushNotifications } from './usePushNotifications';
 import axios from 'axios';
@@ -16,6 +16,9 @@ export function useNotificationManager(options = {}) {
 
     // Detect role
     const role = providedRole || (restaurantId ? 'vendor' : 'user');
+
+    // Guard against simultaneous duplicate fetches from multiple instances
+    const isFetchingRef = useRef(false);
 
     // URL Generators based on role
     const getEndpoint = (action, id = null) => {
@@ -61,12 +64,6 @@ export function useNotificationManager(options = {}) {
         refreshUnreadCount
     } = useRealtimeNotifications();
 
-    // Subscribe to restaurant events if vendor
-    useEffect(() => {
-        if (role === 'vendor' && restaurantId && wsConnected) {
-            socketService.subscribeToRestaurant(restaurantId);
-        }
-    }, [role, restaurantId, wsConnected]);
 
     // Push Notifications
     const {
@@ -141,6 +138,8 @@ export function useNotificationManager(options = {}) {
     }, [restaurantId, role]);
 
     const fetchNotificationsFromAPI = async (reset = false) => {
+        if (isFetchingRef.current && reset) return;
+        isFetchingRef.current = true;
         setLoading(true);
         const targetPage = reset ? 1 : page + 1;
         try {
@@ -189,6 +188,7 @@ export function useNotificationManager(options = {}) {
             console.error(`Failed to fetch ${role} notifications:`, error);
         } finally {
             setLoading(false);
+            isFetchingRef.current = false;
         }
     };
 

@@ -300,21 +300,21 @@ function OrdersContent() {
                                         </button>
                                         <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-1 border border-slate-100 dark:border-slate-800 shadow-inner">
                                           <button
-                                            onClick={() => decreaseQuantity(item.foodId, item.portionId)}
+                                            onClick={() => decreaseQuantity(item.foodId, item.portionId, item.variantId)}
                                             className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 shadow-sm hover:text-orange-600 transition-all border border-zinc-100 dark:border-zinc-700"
                                           >
                                             <Minus size={12} strokeWidth={3} />
                                           </button>
                                           <span className="w-6 text-center text-[11px] font-black text-zinc-900 dark:text-white tabular-nums">{item.quantity}</span>
                                           <button
-                                            onClick={() => increaseQuantity(item.foodId, item.portionId)}
+                                            onClick={() => increaseQuantity(item.foodId, item.portionId, item.variantId)}
                                             className="w-7 h-7 flex items-center justify-center rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all"
                                           >
                                             <Plus size={12} strokeWidth={3} />
                                           </button>
                                         </div>
                                         <button
-                                          onClick={() => removeFromCart(item.foodId, item.portionId)}
+                                          onClick={() => removeFromCart(item.foodId, item.portionId, item.variantId)}
                                           className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all active:scale-90 bg-white border border-gray-100 shadow-sm"
                                         >
                                           <Trash2 size={14} />
