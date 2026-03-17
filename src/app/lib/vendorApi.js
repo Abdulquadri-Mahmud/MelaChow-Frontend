@@ -79,7 +79,10 @@ export const updateOrderStatus = async (vendorOrderId, status) => {
   });
 
   try {
-    const response = await API.patch(`/vendors/orders/${vendorOrderId}/update`, { status });
+    const response = await API.patch(`/vendors/orders/${vendorOrderId}/update`, { 
+      status,
+      notify: false // 🔕 Suppress push notification to user
+    });
     console.log(`✅ API: Status update successful`, response.data);
     return response.data;
   } catch (error) {
@@ -105,7 +108,9 @@ export const completeOrder = async (vendorOrderId) => {
   });
 
   try {
-    const response = await API.patch(`/vendors/orders/${vendorOrderId}/complete`);
+    const response = await API.patch(`/vendors/orders/${vendorOrderId}/complete`, {
+      notify: false // 🔕 Suppress push notification to user
+    });
     console.log(`✅ API: Order completion successful`, response.data);
     return response.data;
   } catch (error) {
@@ -142,7 +147,10 @@ export const getAvailableRiders = async (vendorId) => {
 };
 
 export const assignRiderToOrder = async (vendorId, orderId, riderId) => {
-  const response = await API.post(`/vendors/${vendorId}/orders/${orderId}/assign-rider`, { riderId });
+  const response = await API.post(`/vendors/${vendorId}/orders/${orderId}/assign-rider`, { 
+    riderId,
+    notify: false // 🔕 Suppress push notification to user
+  });
   console.log(response.data);
   
   return response.data;

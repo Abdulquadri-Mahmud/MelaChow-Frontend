@@ -39,6 +39,7 @@ import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
 import AdminDashboardLayout from "@/app/components/admin/AdminDashboardLayout";
 import adminApi from "@/app/lib/adminApi";
 import toast from "react-hot-toast";
+import AdminRiderAssignmentModal from '@/app/components/admin/AdminRiderAssignmentModal';
 
 const statusConfig = {
     pending: { color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-100", label: "Pending Activation" },
@@ -85,6 +86,11 @@ export default function OrderDetailsPage() {
         isLoading: false
     });
 
+    const [riderAssignModal, setRiderAssignModal] = useState({
+        show: false,
+        orderData: null
+    });
+
     const fetchOrderDetails = useCallback(async () => {
         setLoading(true);
         try {
@@ -101,6 +107,26 @@ export default function OrderDetailsPage() {
     useEffect(() => {
         fetchOrderDetails();
     }, [fetchOrderDetails]);
+
+    // Handle global rider assignment events (e.g. from toast clicks)
+    useEffect(() => {
+        const handleRiderAssignmentEvent = (e) => {
+            const data = e.detail;
+            if (!data) return;
+            setRiderAssignModal({
+                show: true,
+                orderData: {
+                    vendorOrderId: data.vendorOrderId,
+                    restaurantName: data.restaurantName,
+                    readyAt: data.readyAt,
+                    url: data.url
+                }
+            });
+        };
+
+        window.addEventListener('admin:open_rider_assignment', handleRiderAssignmentEvent);
+        return () => window.removeEventListener('admin:open_rider_assignment', handleRiderAssignmentEvent);
+    }, []);
 
     const handleOverrideStatus = () => {
         setConfirmModal({
@@ -263,9 +289,9 @@ export default function OrderDetailsPage() {
                                     </div>
                                     <div>
                                         <h4 className="text-lg font-black text-slate-900 tracking-tight mb-1">{order.userId?.firstname} {order.userId?.lastname}</h4>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active Platform Buyer
-                                        </p>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="space-y-4">
@@ -334,7 +360,29 @@ export default function OrderDetailsPage() {
                                         <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-4 text-slate-300">
                                             <User size={24} />
                                         </div>
-                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Awaiting Rider Dispatch</p>
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Awaiting Rider Dispatch</p>
+                                        
+                                        {/* Assign Button for Platform Managed Orders */}
+                                        {order.deliveryType === 'platform_managed' && (
+                                            <button
+                                              onClick={() => setRiderAssignModal({
+                                                show: true,
+                                                orderData: {
+                                                  vendorOrderId: order.vendorOrders?.[0]?._id || order._id,
+                                                  restaurantName: order.items?.[0]?.restaurantId?.storeName || 'Restaurant',
+                                                  readyAt: order.updatedAt,
+                                                  url: `/admin/orders/${order.orderId}`
+                                                }
+                                              })}
+                                              className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white 
+                                                rounded-2xl text-[10px] font-black uppercase tracking-widest 
+                                                transition-all shadow-lg shadow-red-100 flex items-center 
+                                                gap-2 mx-auto active:scale-95"
+                                            >
+                                              <Truck size={14} />
+                                              Assign Rider Now
+                                            </button>
+                                        )}
                                     </div>
                                 )}
                             </ContentCard>
@@ -506,6 +554,15 @@ export default function OrderDetailsPage() {
                             </motion.div>
                         </div>
                     )}
+                    <AdminRiderAssignmentModal
+                        isOpen={riderAssignModal.show}
+                        onClose={() => setRiderAssignModal({ show: false, orderData: null })}
+                        orderData={riderAssignModal.orderData}
+                        onAssigned={() => {
+                            fetchOrderDetails();
+                            setRiderAssignModal({ show: false, orderData: null });
+                        }}
+                    />
                 </AnimatePresence>
             </AdminDashboardLayout>
         </AdminProtectedRoute>

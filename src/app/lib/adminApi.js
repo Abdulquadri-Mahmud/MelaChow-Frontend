@@ -315,6 +315,18 @@ class AdminAPI {
         );
     }
 
+    /**
+     * Fetch riders available for assignment
+     * Used by admin rider assignment modal
+     */
+    async getAvailableRiders(params = {}) {
+        return this.handleResponse(
+            api.get('/api/admin/riders', { 
+                params: { available: true, ...params } 
+            })
+        );
+    }
+
     // ==================== ACTIVITY & AUDIT LOGS ====================
 
     async getActivities(filters = {}) {
@@ -368,6 +380,16 @@ class AdminAPI {
         const data = await this.handleResponse(api.get(`/api/admin/orders/platform-managed?${params}`));
         console.log("Platform Managed Orders Response:", data);
         return data;
+    }
+
+    /**
+     * Assign a rider to a platform-managed order
+     * PATCH /api/admin/orders/:vendorOrderId/assign-rider
+     */
+    async assignRiderToOrder(vendorOrderId, riderId) {
+        return this.handleResponse(
+            api.patch(`/api/admin/orders/${vendorOrderId}/assign-rider`, { riderId })
+        );
     }
 
     async getCommissionLedger(filters = {}) {

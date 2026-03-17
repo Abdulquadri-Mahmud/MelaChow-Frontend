@@ -22,6 +22,9 @@ export const SocketProvider = ({ children }) => {
     const [unreadCount, setUnreadCount] = useState(0);
     const [latestNotification, setLatestNotification] = useState(null);
 
+    // Rider assignment alert for admin — platform-managed order ready
+    const [riderAssignmentAlert, setRiderAssignmentAlert] = useState(null);
+
     // Guard: ensures socket event listeners are registered only once per
     // socket instance, not on every reconnection attempt from the interval
     const listenersRegistered = useRef(false);
@@ -220,6 +223,79 @@ export const SocketProvider = ({ children }) => {
                     }
                 });
 
+                // Admin rider assignment alert
+                // Fired when a platform-managed vendor marks order ready_for_pickup
+                if (role === 'admin') {
+                  socketService.socket?.on('rider_assignment_needed', (data) => {
+                    console.log('🚨 Rider assignment needed:', data);
+                    
+                    setRiderAssignmentAlert(data);
+                    setUnreadCount(prev => prev + 1);
+
+                    // Dispatch to notification manager
+                    window.dispatchEvent(new CustomEvent('notifications:updated', {
+                      detail: {
+                        _id: `rider-alert-${data.vendorOrderId || Date.now()}`,
+                        title: '🚨 Rider Assignment Required',
+                        body: `${data.restaurantName || 'A restaurant'} has an order ready for pickup. Assign a rider now.`,
+                        type: 'rider_assignment_needed',
+                        url: `/admin/orders/${data.vendorOrderId}`,
+                        createdAt: new Date().toISOString(),
+                        read: false,
+                        ...data
+                      }
+                    }));
+
+                    // High-urgency toast with assign action
+                    toast.custom((t) => (
+                      <div
+                        className={`bg-white shadow-2xl rounded-2xl p-4 flex items-start gap-4 
+                          w-full max-w-sm border-l-4 border-red-500 cursor-pointer
+                          ${t.visible ? 'animate-in slide-in-from-right-full' : 'animate-out fade-out'}`}
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent(
+                            'admin:open_rider_assignment', 
+                            { detail: data }
+                          ));
+                          toast.dismiss(t.id);
+                        }}
+                      >
+                        <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-xl 
+                          flex items-center justify-center text-xl border border-red-100">
+                          🚨
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-black text-sm text-slate-900 uppercase 
+                            italic tracking-tight">
+                            Rider Assignment Required!
+                          </p>
+                          <p className="text-xs text-slate-600 mt-0.5 truncate">
+                            {data.restaurantName || 'Restaurant'} — order ready for pickup
+                          </p>
+                          <button className="mt-2 text-xs font-bold text-red-500 
+                            hover:text-red-600 transition-colors">
+                            Assign Rider Now →
+                          </button>
+                        </div>
+                        <button
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            toast.dismiss(t.id); 
+                          }}
+                          className="text-slate-300 hover:text-slate-500 
+                            transition-colors flex-shrink-0 text-xs"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ), {
+                      duration: 30000, // 30s — high urgency, stays longer
+                      position: 'top-right',
+                      id: `rider-assignment-${data.vendorOrderId}`
+                    });
+                  });
+                }
+
                 // Rider specific event
                 const handleAssignment = (data) => {
                     if (role === 'rider') {
@@ -290,7 +366,9 @@ export const SocketProvider = ({ children }) => {
         unreadCount,
         latestNotification,
         setUnreadCount,
-        refreshUnreadCount: fetchUnreadCount
+        refreshUnreadCount: fetchUnreadCount,
+        riderAssignmentAlert,
+        clearRiderAssignmentAlert: () => setRiderAssignmentAlert(null)
     };
 
     return (

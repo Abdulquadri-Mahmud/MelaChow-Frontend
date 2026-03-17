@@ -609,7 +609,7 @@ export default function CheckoutPage() {
             whileTap={{ scale: 0.98 }}
             onClick={!defaultAddress ? () => router.push("/profile/address") : handleInitializePayment}
             disabled={loadingInit || cart.length === 0}
-            className={`max-w-xl mx-auto w-full py-5 rounded-[2rem] font-black text-lg flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] ${!defaultAddress ? "bg-red-500 text-white shadow-red-200" : "bg-zinc-950 hover:bg-black text-white"}`}
+            className={`max-w-xl mx-auto w-full py-4 rounded-[2rem] font-black text-lg flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] ${!defaultAddress ? "bg-red-500 text-white shadow-red-200" : "bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white text-white dark:text-zinc-900"}`}
           >
             {loadingInit ? (
               <>
@@ -622,7 +622,7 @@ export default function CheckoutPage() {
               </div>
             ) : (
               <div className="flex items-center justify-between w-full px-8 italic">
-                <span className="uppercase tracking-tight text-white/90">Complete Order</span>
+                <span className="uppercase tracking-tight text-white/90 dark:text-zinc-900/90">Complete Order</span>
                 <div className="flex items-center gap-3">
                   <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
                   <span className="text-orange-500 tabular-nums">₦{finalTotal.toLocaleString()}</span>

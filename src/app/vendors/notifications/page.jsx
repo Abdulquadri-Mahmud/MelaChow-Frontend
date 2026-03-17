@@ -20,12 +20,14 @@ import { format, isToday, isYesterday, parseISO } from 'date-fns';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import ClearNotificationsModal from '@/app/components/notifications/ClearNotificationsModal';
 
 export default function VendorNotificationsPage() {
     const { vendorProfile } = useVendorProfile();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
     const {
         notifications,
@@ -36,6 +38,7 @@ export default function VendorNotificationsPage() {
         markAsRead,
         markAllAsRead,
         deleteNotification,
+        clearAll,
         unreadCount,
         total,
         isPushEnabled,
@@ -170,12 +173,20 @@ export default function VendorNotificationsPage() {
                         </button>
 
                         {notifications.length > 0 && (
-                            <button
-                                onClick={markAllAsRead}
-                                className="px-6 py-3 bg-white dark:bg-orange-500 text-slate-900 dark:text-white rounded-2xl text-sm font-bold hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-slate-900/10 dark:shadow-white/5 flex items-center gap-2"
-                            >
-                                <CheckCircle2 size={18} /> Mark All Read
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setIsClearModalOpen(true)}
+                                    className="px-6 py-3 bg-red-500/10 text-red-500 rounded-2xl text-sm font-bold hover:bg-red-500 hover:text-white transition-all active:scale-95 flex items-center gap-2"
+                                >
+                                    <Trash2 size={18} /> Clear All
+                                </button>
+                                <button
+                                    onClick={markAllAsRead}
+                                    className="px-6 py-3 bg-white dark:bg-orange-500 text-slate-900 dark:text-white rounded-2xl text-sm font-bold hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-slate-900/10 dark:shadow-white/5 flex items-center gap-2"
+                                >
+                                    <CheckCircle2 size={18} /> Mark All Read
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -356,7 +367,7 @@ export default function VendorNotificationsPage() {
                                                 <div className="flex flex-col items-end gap-4 ml-2">
                                                     <button
                                                         onClick={(e) => handleDelete(e, notification._id)}
-                                                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
                                                         title="Archive Log"
                                                     >
                                                         <Trash2 size={18} />
@@ -389,6 +400,14 @@ export default function VendorNotificationsPage() {
                         </div>
                     )}
                 </div>
+
+                <ClearNotificationsModal 
+                    isOpen={isClearModalOpen}
+                    onClose={() => setIsClearModalOpen(false)}
+                    onConfirm={clearAll}
+                    title="Empty Inbox?"
+                    message="Are you sure you want to clear all notification logs? This action is permanent."
+                />
             </div>
         </div>
     );

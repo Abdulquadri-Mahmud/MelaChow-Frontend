@@ -436,9 +436,9 @@ export default function ComboCustomizationModal({
                     <button
                         onClick={handleAddToCart}
                         disabled={!canAddToCart}
-                        className={`flex-1 h-[56px] bg-orange-500 py-4 rounded-[10px] font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 relative overflow-hidden group ${
+                        className={`flex-1 h-[56px] py-4 rounded-[10px] font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 relative overflow-hidden group ${
                             canAddToCart
-                                ? "bg-zinc-950 text-white shadow-2xl shadow-black/20 hover:-translate-y-1 active:scale-95 active:translate-y-0"
+                                ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 shadow-2xl shadow-black/20 hover:-translate-y-1 active:scale-95 active:translate-y-0"
                                 : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50"
                         }`}
                     >

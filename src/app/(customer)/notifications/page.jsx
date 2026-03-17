@@ -8,6 +8,7 @@ import Header2 from '@/app/components/App_Header/Header2';
 import { useUserStorage } from '@/app/hooks/useUserStorage';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import ClearNotificationsModal from '@/app/components/notifications/ClearNotificationsModal';
 
 export default function NotificationsPage() {
     const router = useRouter();
@@ -15,6 +16,7 @@ export default function NotificationsPage() {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); // 'all', 'orders', 'promos', 'updates'
+    const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
     useEffect(() => {
         fetchNotifications();
@@ -73,8 +75,6 @@ export default function NotificationsPage() {
     };
 
     const clearAllNotifications = async () => {
-        if (!window.confirm('Are you sure you want to delete all notifications? This cannot be undone.')) return;
-
         try {
             await axios.delete('/api/notifications/clear-all', {
                 withCredentials: true
@@ -140,7 +140,7 @@ export default function NotificationsPage() {
                                 </button>
                             )}
                             <button
-                                onClick={clearAllNotifications}
+                                onClick={() => setIsClearModalOpen(true)}
                                 className="text-xs font-bold text-red-500 hover:text-red-600 uppercase tracking-wider"
                             >
                                 Clear All
@@ -150,7 +150,7 @@ export default function NotificationsPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="flex gap-2 scroll overflow-x-auto pb-2 scrollbar-hide">
                     {['all', 'orders', 'promos', 'updates'].map(f => (
                         <button
                             key={f}
@@ -245,7 +245,7 @@ export default function NotificationsPage() {
                                                     e.stopPropagation();
                                                     deleteNotification(notification._id);
                                                 }}
-                                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg"
+                                                className="p-1 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all"
                                             >
                                                 <Trash2 size={14} className="text-red-500" />
                                             </button>
@@ -256,6 +256,14 @@ export default function NotificationsPage() {
                         ))}
                     </AnimatePresence>
                 )}
+
+                <ClearNotificationsModal 
+                    isOpen={isClearModalOpen}
+                    onClose={() => setIsClearModalOpen(false)}
+                    onConfirm={clearAllNotifications}
+                    title="Clear Notifications?"
+                    message="Are you sure you want to delete all notifications? This action cannot be reversed."
+                />
             </div>
         </div>
     );

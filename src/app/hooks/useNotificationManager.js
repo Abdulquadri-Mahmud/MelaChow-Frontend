@@ -29,6 +29,7 @@ export function useNotificationManager(options = {}) {
             if (action === 'mark-read') return `${base}/${id}/read`;
             if (action === 'mark-all-read') return `${base}/read-all`;
             if (action === 'delete') return `${base}/${id}`;
+            if (action === 'clear-all') return `${base}/clear-all`;
             if (action === 'subscribe') return `${base}/subscribe`;
             if (action === 'unsubscribe') return `${base}/unsubscribe`;
             return base;
@@ -278,8 +279,9 @@ export function useNotificationManager(options = {}) {
     };
 
     const clearAll = async () => {
-        if (role !== 'user') return;
         try {
+            const endpoint = getEndpoint('clear-all');
+            if (endpoint.endsWith('/notifications')) return; // Fallback safety
             await axios.delete(getEndpoint('clear-all'), {
                 withCredentials: true
             });

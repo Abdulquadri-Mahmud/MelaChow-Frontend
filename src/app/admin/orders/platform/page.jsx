@@ -19,6 +19,7 @@ import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
 import AdminDashboardLayout from "@/app/components/admin/AdminDashboardLayout";
 import adminApi from "@/app/lib/adminApi";
 import toast from "react-hot-toast";
+import AdminRiderAssignmentModal from '@/app/components/admin/AdminRiderAssignmentModal';
 
 const statusConfig = {
     pending: { color: "bg-yellow-50 text-yellow-600", label: "Pending" },
@@ -39,6 +40,10 @@ export default function PlatformDeliveriesPage() {
 
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [riderAssignModal, setRiderAssignModal] = useState({
+        show: false,
+        orderData: null
+    });
     const [filters, setFilters] = useState({
         status: "",
         search: ""
@@ -60,6 +65,26 @@ export default function PlatformDeliveriesPage() {
     useEffect(() => {
         fetchPlatformOrders();
     }, [fetchPlatformOrders]);
+
+    // Handle global rider assignment events (e.g. from toast clicks)
+    useEffect(() => {
+        const handleRiderAssignmentEvent = (e) => {
+            const data = e.detail;
+            if (!data) return;
+            setRiderAssignModal({
+                show: true,
+                orderData: {
+                    vendorOrderId: data.vendorOrderId,
+                    restaurantName: data.restaurantName,
+                    readyAt: data.readyAt,
+                    url: data.url
+                }
+            });
+        };
+
+        window.addEventListener('admin:open_rider_assignment', handleRiderAssignmentEvent);
+        return () => window.removeEventListener('admin:open_rider_assignment', handleRiderAssignmentEvent);
+    }, []);
 
     return (
         <AdminProtectedRoute>
@@ -156,9 +181,28 @@ export default function PlatformDeliveriesPage() {
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <span className="inline-flex items-center px-3 py-1 bg-red-50 text-red-600 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                                            Unassigned
-                                                        </span>
+                                                        <button
+                                                            onClick={() => setRiderAssignModal({
+                                                                show: true,
+                                                                orderData: {
+                                                                    vendorOrderId: order.vendorOrders?.[0]?._id || order._id,
+                                                                    restaurantName: order.items?.[0]?.restaurantId?.storeName 
+                                                                        || 'Restaurant',
+                                                                    readyAt: order.updatedAt,
+                                                                    url: `/admin/orders/${order.orderId}`
+                                                                }
+                                                            })}
+                                                            className="inline-flex items-center gap-2 px-4 py-2 
+                                                                bg-red-50 hover:bg-orange-500 text-red-600 
+                                                                hover:text-white rounded-xl text-[10px] font-black 
+                                                                uppercase tracking-widest transition-all border 
+                                                                border-red-100 hover:border-orange-500 
+                                                                hover:shadow-lg hover:shadow-orange-500/20 
+                                                                active:scale-95 group"
+                                                        >
+                                                            <Truck size={12} className="group-hover:animate-bounce" />
+                                                            Assign Rider
+                                                        </button>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -189,6 +233,15 @@ export default function PlatformDeliveriesPage() {
                             </table>
                         </div>
                     </div>
+                    <AdminRiderAssignmentModal
+                        isOpen={riderAssignModal.show}
+                        onClose={() => setRiderAssignModal({ show: false, orderData: null })}
+                        orderData={riderAssignModal.orderData}
+                        onAssigned={() => {
+                            fetchPlatformOrders();
+                            setRiderAssignModal({ show: false, orderData: null });
+                        }}
+                    />
                 </div>
             </AdminDashboardLayout>
         </AdminProtectedRoute>
