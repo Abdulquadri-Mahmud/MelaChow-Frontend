@@ -66,7 +66,7 @@ function OrdersContent() {
 
   const fetchUserOrders = async () => {
     if (!user) return { orders: [] };
-    const res = await axios.get(`${baseUrl}/v1/orders/my-orders`, {
+    const res = await axios.get(`${baseUrl}/orders/my-orders`, {
       withCredentials: true,
     });
     return res.data;
