@@ -38,6 +38,7 @@ export default function FoodDetails() {
   const [selectedPortion, setSelectedPortion] = useState(null);
   const [selections, setSelections] = useState({});
   const [quantity, setQuantity] = useState(1);
+  const [portionQuantity, setPortionQuantity] = useState(1);
 
   // Modal State for combos
   const [modalDetails, setModalDetails] = useState({
@@ -53,6 +54,7 @@ export default function FoodDetails() {
         setSelectedPortion(defaultPortion);
         setSelections({});
         setQuantity(1);
+        setPortionQuantity(1);
     }
   }, [food]);
 
@@ -105,7 +107,7 @@ export default function FoodDetails() {
   };
 
   // Base Item Customizer Logic
-  const basePriceNaira = selectedPortion?.price_naira || (food?.price ? Number(food.price) : 0);
+  const basePriceNaira = (selectedPortion?.price_naira || 0) * portionQuantity;
   
   const addonsPrice = Object.values(selections).reduce((acc, sel) => {
       if (Array.isArray(sel)) {
@@ -114,7 +116,7 @@ export default function FoodDetails() {
       return acc + ((sel?.price_modifier_naira || 0) * (sel?.selectionQuantity || 1));
   }, 0);
 
-  const totalUnit = basePriceNaira + addonsPrice;
+  const totalUnit = (basePriceNaira + addonsPrice);
   const total = totalUnit * quantity;
 
   const isOptionSelected = (groupIndex, label) => {
@@ -244,7 +246,6 @@ export default function FoodDetails() {
               });
           });
       });
-
       const payload = {
           type:         "item",                // ← ADD explicit type
           foodId:       food._id,
@@ -254,6 +255,7 @@ export default function FoodDetails() {
           name:         food.name,
           image_url:    food.image_url || "",
           portion_label: selectedPortion?.label,
+          portion_quantity: portionQuantity,
           price_naira:  totalUnit,
           quantity,
           selected_options: selectedOptions.map(opt => ({
@@ -261,6 +263,7 @@ export default function FoodDetails() {
               option_id:            opt.option_id,
               label:                opt.label,
               price_modifier_naira: opt.price_modifier_naira || 0,
+              quantity:             opt.quantity,
           })),
           deliveryFee:  food.vendor?.deliveryFee || food.deliveryFee || 0,
           dietary_type: food.dietary_type,
@@ -533,26 +536,70 @@ export default function FoodDetails() {
                     <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
                     <h3 className="text-lg font-black italic text-zinc-900 dark:text-white uppercase tracking-tight">Select Portion</h3>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 sm:flex sm:overflow-x-auto sm:scrollbar-none sm:snap-x">
-                    {food.portions.map(portion => (
-                      <button
-                        key={portion._id}
-                        onClick={() => itemAvailability.available && setSelectedPortion(portion)}
-                        disabled={!itemAvailability.available}
-                        className={`sm:shrink-0 h-14 px-5 rounded-2xl border-2 text-xs font-black uppercase tracking-wider transition-all sm:snap-center ${
-                          selectedPortion?._id === portion._id
-                            ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-zinc-900 shadow-xl shadow-zinc-200 dark:shadow-none"
-                            : "bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-200 dark:hover:border-orange-500/30"
-                        } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      >
-                        <div className="flex flex-col items-center justify-center">
-                          <span className="text-[12px]">{portion.label}</span>
-                          <span className={`${selectedPortion?._id === portion._id ? (selectedPortion?._id === portion._id ? 'text-white/80 dark:text-zinc-900/80' : 'text-zinc-400 dark:text-zinc-500') : 'text-orange-500'} font-black text-[10px] mt-0.5`}>
-                            {portion.price_naira ? `₦${portion.price_naira.toLocaleString()}` : 'Free'}
-                          </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {food.portions.map(portion => {
+                      const isSelected = selectedPortion?._id === portion._id;
+                      return (
+                        <div
+                          key={portion._id}
+                          onClick={() => {
+                            if (!itemAvailability.available) return;
+                            if (!isSelected) {
+                              setSelectedPortion(portion);
+                            }
+                          }}
+                          className={`relative flex items-center justify-between p-4 rounded-[28px] border-2 transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-orange-50/50 dark:bg-orange-500/10 border-orange-500 shadow-[0_0_20px_rgba(255,102,0,0.1)] dark:shadow-[0_0_30px_rgba(255,102,0,0.15)] scale-[1.01]"
+                              : "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-200 dark:hover:border-orange-500/30"
+                          } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          <div className="flex flex-col">
+                            <span className={`text-xs font-black uppercase tracking-wider ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                              {portion.label}
+                            </span>
+                            <span className="text-[11px] font-black text-orange-500 mt-0.5">
+                              {portion.price_naira ? `₦${portion.price_naira.toLocaleString()}` : 'Free'}
+                            </span>
+                          </div>
+
+                          {isSelected && (
+                            <div 
+                              className="flex items-center gap-2.5 bg-white dark:bg-zinc-800 rounded-xl p-1 shadow-sm border border-zinc-100 dark:border-zinc-700"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <button 
+                                onClick={() => setPortionQuantity(Math.max(1, portionQuantity - 1))}
+                                disabled={!itemAvailability.available}
+                                className="w-[26px] h-[26px] flex items-center justify-center rounded-[8px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900"
+                              >
+                                <Minus size={14} strokeWidth={3} />
+                              </button>
+                              <span className="text-[13px] font-black text-zinc-900 dark:text-white min-w-[12px] text-center tabular-nums">
+                                {portionQuantity}
+                              </span>
+                              <button 
+                                onClick={() => {
+                                  if (portion.max_quantity && portionQuantity >= portion.max_quantity) {
+                                    toast.error(`Max ${portion.max_quantity} reached`);
+                                  } else {
+                                    setPortionQuantity(portionQuantity + 1);
+                                  }
+                                }}
+                                disabled={!itemAvailability.available}
+                                className="w-[26px] h-[26px] flex items-center justify-center rounded-[8px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900"
+                              >
+                                <Plus size={14} strokeWidth={3} />
+                              </button>
+                            </div>
+                          )}
+
+                          {!isSelected && (
+                             <div className="w-[20px] h-[20px] rounded-full border-2 border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 shadow-inner" />
+                          )}
                         </div>
-                      </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -640,29 +687,34 @@ export default function FoodDetails() {
 
       {/* Base Item Add to Order Footer - Fixed Bottom Bar */}
       {food && (
-        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-lg border-t border-zinc-100 dark:border-zinc-800 pb-safe z-40" style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}>
-            <div className="max-w-4xl mx-auto flex items-center gap-3">
-                <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-[20px] p-1.5 h-[56px] shadow-inner">
+        <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 pb-safe z-40">
+            <div className="max-w-2xl mx-auto flex items-center gap-4">
+                
+                {/* Quantity Control Container */}
+                <div className="flex items-center gap-1 bg-zinc-100/80 dark:bg-zinc-900/80 rounded-[24px] p-1.5 h-[64px] border border-zinc-200/50 dark:border-zinc-800/50 shadow-inner group transition-colors">
                     <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
                         disabled={!itemAvailability.available}
-                        className="w-[42px] h-full flex items-center justify-center rounded-[14px] bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all disabled:opacity-50 text-zinc-600 dark:text-zinc-400 shadow-sm"
+                        className="w-[48px] h-full flex items-center justify-center rounded-[18px] bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all disabled:opacity-50 text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
                     >
                         <Minus size={20} strokeWidth={3}/>
                     </button>
-                    <span className="w-8 text-center font-black text-zinc-900 dark:text-white text-[16px] tabular-nums">
-                        {quantity}
-                    </span>
+                    <div className="w-12 flex flex-col items-center">
+                         <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tighter leading-none mb-0.5">Qty</span>
+                         <span className="text-[18px] font-black text-zinc-900 dark:text-white tabular-nums leading-none">
+                            {quantity}
+                        </span>
+                    </div>
                     <button
                         onClick={() => {
                             if (selectedPortion?.max_quantity && quantity >= selectedPortion.max_quantity) {
-                                toast.error(`Maximum quantity allowed is ${selectedPortion.max_quantity}`);
+                                toast.error(`Max ${selectedPortion.max_quantity} reached`);
                             } else {
                                 setQuantity(quantity + 1);
                             }
                         }}
                         disabled={!itemAvailability.available}
-                        className="w-[42px] h-full flex items-center justify-center rounded-[14px] bg-orange-500 text-white shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
+                        className="w-[48px] h-full flex items-center justify-center rounded-[18px] bg-orange-500 text-white shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
                     >
                         <Plus size={20} strokeWidth={3}/>
                     </button>
@@ -671,18 +723,21 @@ export default function FoodDetails() {
                 <button
                     onClick={handleAddToCartBaseItem}
                     disabled={!itemAvailability.available}
-                    className="flex-1 h-[56px] bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:text-zinc-400 dark:disabled:text-zinc-600 disabled:cursor-not-allowed text-white dark:text-zinc-900 rounded-[20px] font-black text-sm uppercase tracking-[0.2em] italic flex items-center justify-between px-6 transition-all active:scale-[0.98] shadow-xl shadow-zinc-200 dark:shadow-none group"
+                    className="flex-1 h-[64px] py-2 bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[28px] font-black text-[15px] uppercase tracking-[0.05em] italic flex items-center justify-between px-5 transition-all active:scale-[0.98] shadow-2xl shadow-zinc-200/50 dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50 overflow-hidden"
                 >
-                    <span className="flex items-center gap-3">
-                       <div className="bg-orange-500 p-1.5 rounded-lg text-white group-hover:rotate-12 transition-transform">
+                    <div className="flex items-center gap-3 min-w-0">
+                       <div className="p-1.5 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/20 group-hover:rotate-12 transition-transform shrink-0">
                           <ShoppingCart size={18} />
                        </div>
-                       {itemAvailability.available ? "Add to Order" : "Unavailable"}
-                    </span>
+                       <span className="truncate text-zinc-900 dark:text-white">
+                          {itemAvailability.available ? "Add to Order" : "Sold Out"}
+                       </span>
+                    </div>
+                    
                     {itemAvailability.available && (
-                       <div className="flex items-center gap-3">
-                          <div className="w-1 h-5 bg-white/20 dark:bg-zinc-300 rounded-full" />
-                          <span className="text-orange-500 tabular-nums font-black text-[15px]">
+                       <div className="flex items-center gap-3 shrink-0 ml-2">
+                          <div className="w-[1.5px] h-6 bg-white/20 dark:bg-zinc-950/20 rounded-full" />
+                          <span className="text-orange-500 tabular-nums font-black text-[18px]">
                               ₦{total.toLocaleString()}
                           </span>
                        </div>

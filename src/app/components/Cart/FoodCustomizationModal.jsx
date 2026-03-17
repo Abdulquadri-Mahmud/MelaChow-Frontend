@@ -19,6 +19,7 @@ export default function FoodCustomizationModal({
     const [selectedPortion, setSelectedPortion] = useState(defaultPortion);
     const [selections, setSelections] = useState({});
     const [quantity, setQuantity] = useState(1);
+    const [portionQuantity, setPortionQuantity] = useState(1);
     const cartContext = useCart();
     const setIsModalOpen = cartContext?.setIsModalOpen;
 
@@ -37,6 +38,7 @@ export default function FoodCustomizationModal({
         if (isOpen) {
             if (initialEditItem) {
                 setQuantity(initialEditItem.quantity || 1);
+                setPortionQuantity(initialEditItem.portion_quantity || 1);
                 const foundPortion = food?.portions?.find(p => p._id === initialEditItem.portionId);
                 setSelectedPortion(foundPortion || defaultPortion);
                 
@@ -69,13 +71,14 @@ export default function FoodCustomizationModal({
                 setSelectedPortion(defaultPortion);
                 setSelections({});
                 setQuantity(1);
+                setPortionQuantity(1);
             }
         }
     }, [isOpen, food, initialEditItem, defaultPortion]);
 
     if (!food || !isOpen) return null;
 
-    const basePriceNaira = selectedPortion?.price_naira || 0;
+    const basePriceNaira = (selectedPortion?.price_naira || 0) * portionQuantity;
     
     const addonsPrice = Object.values(selections).reduce((acc, sel) => {
         if (Array.isArray(sel)) {
@@ -218,6 +221,7 @@ export default function FoodCustomizationModal({
             type:         "item",
             foodId:       food._id,
             portionId:    selectedPortion._id,
+            portion_quantity: portionQuantity,
             vendorId:     food.vendor?._id,
             storeName:    food.vendor?.storeName || "",
             name:         food.name,
@@ -306,23 +310,67 @@ export default function FoodCustomizationModal({
                                        Select Size
                                    </p>
                                 </div>
-                                <div className="flex gap-2 scroll overflow-x-auto scrollbar-none">
-                                    {food.portions.map(portion => (
-                                        <button
-                                            key={portion._id}
-                                            onClick={() => setSelectedPortion(portion)}
-                                            className={`shrink-0 h-14 px-5 rounded-2xl border-2 transition-all flex flex-col items-center justify-center min-w-[100px] ${
-                                                selectedPortion?._id === portion._id
-                                                    ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-zinc-900 shadow-xl shadow-zinc-200 dark:shadow-none"
-                                                    : "bg-white dark:bg-zinc-800/40 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400"
-                                            }`}
-                                        >
-                                            <span className="text-xs font-black uppercase tracking-wider">{portion.label}</span>
-                                            <span className={`text-[10px] font-black mt-0.5 ${selectedPortion?._id === portion._id ? 'opacity-80' : 'text-orange-500'}`}>
-                                                ₦{portion.price_naira?.toLocaleString()}
-                                            </span>
-                                        </button>
-                                    ))}
+                                <div className="grid grid-cols-1 gap-2">
+                                    {food.portions.map(portion => {
+                                        const isSelected = selectedPortion?._id === portion._id;
+                                        return (
+                                            <div
+                                                key={portion._id}
+                                                onClick={() => {
+                                                    if (!isSelected) {
+                                                        setSelectedPortion(portion);
+                                                    }
+                                                }}
+                                                className={`flex items-center justify-between p-3.5 rounded-[24px] border-2 transition-all cursor-pointer ${
+                                                    isSelected
+                                                        ? "bg-orange-50/50 dark:bg-orange-500/10 border-orange-500 shadow-[0_0_20px_rgba(255,102,0,0.1)] dark:shadow-[0_0_30px_rgba(255,102,0,0.15)]"
+                                                        : "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-200 dark:hover:border-orange-500/30"
+                                                }`}
+                                            >
+                                                <div className="flex flex-col">
+                                                    <span className={`text-xs font-black uppercase tracking-wider ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                                                        {portion.label}
+                                                    </span>
+                                                    <span className="text-[10px] font-black text-orange-500 mt-0.5">
+                                                        ₦{portion.price_naira?.toLocaleString()}
+                                                    </span>
+                                                </div>
+
+                                                {isSelected && (
+                                                    <div 
+                                                      className="flex items-center gap-2 bg-white dark:bg-zinc-800 rounded-xl p-1 shadow-sm border border-zinc-100 dark:border-zinc-700"
+                                                      onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                      <button 
+                                                        onClick={() => setPortionQuantity(Math.max(1, portionQuantity - 1))}
+                                                        className="w-[30px] h-[30px] flex items-center justify-center rounded-[8px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900 transition-colors shadow-sm"
+                                                      >
+                                                        <Minus size={12} strokeWidth={3} />
+                                                      </button>
+                                                      <span className="text-[13px] font-black text-zinc-900 dark:text-white min-w-[14px] text-center tabular-nums">
+                                                        {portionQuantity}
+                                                      </span>
+                                                      <button 
+                                                        onClick={() => {
+                                                          if (portion.max_quantity && portionQuantity >= portion.max_quantity) {
+                                                            toast.error(`Max ${portion.max_quantity} reached`);
+                                                          } else {
+                                                            setPortionQuantity(portionQuantity + 1);
+                                                          }
+                                                        }}
+                                                        className="w-[30px] h-[30px] flex items-center justify-center rounded-[10px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900 transition-colors shadow-sm"
+                                                      >
+                                                        <Plus size={12} strokeWidth={3} />
+                                                      </button>
+                                                    </div>
+                                                )}
+
+                                                {!isSelected && (
+                                                    <div className="w-[18px] h-[18px] rounded-full border-2 border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900 shadow-inner" />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
