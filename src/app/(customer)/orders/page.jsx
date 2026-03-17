@@ -12,8 +12,9 @@ import { useApi } from "@/app/context/ApiContext";
 import axios from "axios";
 import { OrderCardSkeleton } from "@/app/components/skeleton/OrderCardSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
-import { Pencil, Loader2 } from "lucide-react";
+import { Pencil, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
+import Link from "next/link";
 
 function OrdersContent() {
   const router = useRouter();
@@ -71,7 +72,7 @@ function OrdersContent() {
     return res.data;
   };
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ["userOrders", user?._id],
     queryFn: fetchUserOrders,
     enabled: !!user && activeTab === "orders",
@@ -153,10 +154,31 @@ function OrdersContent() {
                 ) : isLoading ? (
                   Array.from({ length: 4 }).map((_, idx) => <OrderCardSkeleton key={idx} />)
                 ) : isError ? (
-                  <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-800">
-                    <p className="text-red-500">Failed to load orders</p>
-                    <button onClick={() => window.location.reload()} className="mt-4 text-orange-500 font-semibold underline">Retry</button>
-                  </div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex flex-col items-center justify-center py-16 text-center"
+                  >
+                    <div className="w-24 h-24 bg-orange-50 dark:bg-orange-500/10 rounded-full flex items-center justify-center mb-6">
+                      <AlertCircle className="text-orange-500" size={48} />
+                    </div>
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Couldn't Load Your Orders</h3>
+                    <p className="text-slate-500 dark:text-zinc-400 mb-8 max-w-sm">
+                      Something went wrong on our end. Your orders are safe — please try again.
+                    </p>
+                    <button
+                      onClick={() => refetch()}
+                      disabled={isRefetching}
+                      className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl px-6 py-3 mb-4 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                      <RefreshCw size={20} className={isRefetching ? "animate-spin" : ""} />
+                      Retry
+                    </button>
+                    <Link href="/support" className="text-slate-400 dark:text-zinc-500 hover:text-slate-600 dark:hover:text-zinc-400 transition-colors font-medium">
+                      Contact support
+                    </Link>
+                  </motion.div>
                 ) : orders.length === 0 ? (
                   <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
                     <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
