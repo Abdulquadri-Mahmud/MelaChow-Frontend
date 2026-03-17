@@ -514,7 +514,7 @@ export default function VendorOrderDetailsPage() {
                                             <div>
                                                 <div className="flex justify-between items-start gap-4 mb-2">
                                                     <h4 className="font-bold text-slate-900 dark:text-white text-lg leading-snug">{item.variant?.name}</h4>
-                                                    <p className="font-bold text-lg text-slate-900 dark:text-white whitespace-nowrap">₦{item.price?.toLocaleString()}</p>
+                                                    <p className="font-bold text-lg text-slate-900 dark:text-white whitespace-nowrap">₦{(item.variant?.price || item.originalPrice)?.toLocaleString()}</p>
                                                 </div>
                                                 {item.note && (
                                                     <div className="mt-2 inline-flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-3 py-2 rounded-lg border border-amber-100 dark:border-amber-800/30 max-w-md">
@@ -522,15 +522,77 @@ export default function VendorOrderDetailsPage() {
                                                         <p className="italic">"{item.note}"</p>
                                                     </div>
                                                 )}
+                                                {item.metadata?.selected_options?.length > 0 && (
+                                                    <div className="mt-3 space-y-2">
+                                                        {/* Group selected options by group_name */}
+                                                        {Object.entries(
+                                                            (item.metadata.selected_options || []).reduce((groups, opt) => {
+                                                                const key = opt.group_name || 'Add-ons';
+                                                                if (!groups[key]) groups[key] = [];
+                                                                groups[key].push(opt);
+                                                                return groups;
+                                                            }, {})
+                                                        ).map(([groupName, options]) => (
+                                                            <div 
+                                                                key={groupName}
+                                                                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3"
+                                                            >
+                                                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                                                                    {groupName}
+                                                                </p>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {options.map((opt, optIdx) => (
+                                                                        <div
+                                                                            key={optIdx}
+                                                                            className="inline-flex items-center gap-1.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-1.5"
+                                                                        >
+                                                                            <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                                                                {opt.label}
+                                                                            </span>
+                                                                            {opt.price_modifier_naira > 0 && (
+                                                                                <span className="text-xs font-bold text-orange-500">
+                                                                                    +₦{opt.price_modifier_naira.toLocaleString()}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
 
-                                            <div className="mt-4 flex items-center justify-between">
+                                            <div className="mt-4 flex items-center justify-between flex-wrap gap-3">
+                                                {/* Quantity badge */}
                                                 <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">
                                                     <span className="text-sm">Qty:</span>
-                                                    <span className="font-bold text-slate-900 dark:text-white">{item.quantity}</span>
+                                                    <span className="font-bold text-slate-900 dark:text-white">
+                                                        {item.quantity}
+                                                    </span>
                                                 </div>
-                                                <div className="text-slate-400 text-xs">
-                                                    Unit Price: ₦{(item.price / item.quantity).toLocaleString()}
+
+                                                {/* Pricing breakdown — show base + options if options exist */}
+                                                <div className="flex flex-col items-end gap-1">
+                                                    {item.metadata?.pricing && item.metadata.pricing.options_total > 0 ? (
+                                                        <>
+                                                            <div className="text-xs text-slate-400">
+                                                                Base: ₦{item.metadata.pricing.base_naira?.toLocaleString()}
+                                                                <span className="text-orange-500 ml-1">
+                                                                    + ₦{item.metadata.pricing.options_total?.toLocaleString()} add-ons
+                                                                </span>
+                                                            </div>
+                                                            <div className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                                                Unit: ₦{item.metadata.pricing.final_unit_naira?.toLocaleString()}
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <div className="text-slate-400 text-xs">
+                                                            Unit Price: ₦{(
+                                                                (item.variant?.price || item.originalPrice || 0) / item.quantity
+                                                            ).toLocaleString()}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
