@@ -16,7 +16,7 @@ import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
 const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
     <div
-        className={`relative overflow-hidden scroll bg-gray-200 dark:bg-zinc-800 rounded ${className}`}
+        className={`relative overflow-hidden bg-zinc-200 dark:bg-zinc-800 rounded-xl ${className}`}
         style={{ width, height }}
     >
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
@@ -73,7 +73,7 @@ export default function AllRestaurants() {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-display pb-24 transition-colors duration-300">
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-display pb-24 transition-colors duration-300">
             {/* Header Section */}
             <header className="sticky top-0 z-50 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 transition-all duration-300">
                 <div className="max-w-md mx-auto px-4 py-3">
@@ -200,7 +200,7 @@ export default function AllRestaurants() {
                         </div>
                         <button
                             onClick={() => refetch()}
-                            className="bg-orange-600 text-white text-[10px] font-black uppercase tracking-[0.2em] px-6 py-2.5 rounded-full shadow-lg shadow-orange-600/20 active:scale-95 transition-all"
+                            className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-[10px] font-black uppercase tracking-[0.2em] px-8 py-3 rounded-2xl shadow-xl shadow-zinc-200/50 dark:shadow-none active:scale-95 transition-all"
                         >
                             Try Again
                         </button>
@@ -218,7 +218,7 @@ export default function AllRestaurants() {
                         </p>
                         <button
                             onClick={() => router.push('/profile/address')}
-                            className="mt-6 px-8 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold uppercase tracking-widest text-[10px] rounded-2xl active:scale-95 transition-all shadow-lg"
+                            className="mt-6 px-10 py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl active:scale-95 transition-all shadow-xl shadow-zinc-200 dark:shadow-none italic"
                         >
                             Change Location
                         </button>
@@ -259,7 +259,7 @@ export default function AllRestaurants() {
                             return (
                                 <div
                                     key={vendor._id}
-                                    className="bg-white dark:bg-zinc-900 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl border border-zinc-100 dark:border-zinc-800 transition-all duration-300 cursor-pointer group"
+                                    className="bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-zinc-200/40 dark:hover:shadow-none border border-zinc-100 dark:border-zinc-800 transition-all duration-500 cursor-pointer group"
                                     onClick={() => router.push(`/restaurants/${String(vendor._id)}`)}
                                 >
                                     <div className="relative h-48">

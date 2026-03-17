@@ -60,26 +60,26 @@ export default function ReviewModal({ isOpen, onClose, food, vendorId, baseUrl }
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative bg-white dark:bg-slate-900 w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl border border-slate-100 dark:border-slate-800"
+                    className="relative bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl border border-zinc-100 dark:border-zinc-800"
                 >
                     <div className="p-6">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-black italic uppercase tracking-tight text-slate-900 dark:text-white">Write a Review</h3>
+                            <h3 className="text-lg font-black italic uppercase tracking-tight text-zinc-900 dark:text-white">Write a Review</h3>
                             <button
                                 onClick={onClose}
-                                className="p-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-600 transition-colors"
+                                className="p-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl text-zinc-400 hover:text-zinc-600 transition-colors"
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
                         <div className="flex items-center gap-4 mb-8">
-                            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-800">
+                            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-50 dark:bg-zinc-800">
                                 <img src={food.variant?.image || food.image} alt={food.name} className="w-full h-full object-cover" />
                             </div>
                             <div>
-                                <h4 className="font-bold text-slate-900 dark:text-white line-clamp-1">{food.variant?.name || food.name}</h4>
-                                <p className="text-xs text-slate-500 uppercase font-black">Rate your experience</p>
+                                <h4 className="font-bold text-zinc-900 dark:text-white line-clamp-1">{food.variant?.name || food.name}</h4>
+                                <p className="text-xs text-zinc-500 uppercase font-black">Rate your experience</p>
                             </div>
                         </div>
 
@@ -101,7 +101,7 @@ export default function ReviewModal({ isOpen, onClose, food, vendorId, baseUrl }
                                             size={32}
                                             className={`transition-colors ${star <= (hoveredRating || rating)
                                                 ? "fill-orange-500 text-orange-500"
-                                                : "text-slate-200 dark:text-slate-700"
+                                                : "text-zinc-200 dark:text-zinc-700"
                                                 }`}
                                         />
                                     </motion.button>
@@ -110,12 +110,12 @@ export default function ReviewModal({ isOpen, onClose, food, vendorId, baseUrl }
 
                             {/* Comment */}
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest pl-1">Share your thoughts</label>
+                                <label className="text-[10px] font-black uppercase text-zinc-400 tracking-widest pl-1">Share your thoughts</label>
                                 <textarea
                                     value={comment}
                                     onChange={(e) => setComment(e.target.value)}
                                     placeholder="The food was amazing! Fast delivery too..."
-                                    className="w-full h-32 p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl outline-none focus:border-orange-500/50 transition-all text-sm resize-none"
+                                    className="w-full h-32 p-4 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl outline-none focus:border-orange-500/50 transition-all text-sm resize-none"
                                 />
                             </div>
 

@@ -30,11 +30,11 @@ import { useCategories } from "@/app/hooks/useCategories";
 export const dynamic = "force-dynamic";
 
 const DIETARY_COLORS = {
-  veg: "bg-green-100 text-green-700",
-  vegan: "bg-emerald-100 text-emerald-700",
-  halal: "bg-teal-100 text-teal-700",
-  kosher: "bg-blue-100 text-blue-700",
-  "non-veg": "bg-red-100 text-red-700",
+  veg: "bg-green-500 text-white shadow-lg shadow-green-500/20",
+  vegan: "bg-emerald-500 text-white shadow-lg shadow-emerald-500/20",
+  halal: "bg-teal-500 text-white shadow-lg shadow-teal-500/20",
+  kosher: "bg-blue-500 text-white shadow-lg shadow-blue-500/20",
+  "non-veg": "bg-red-500 text-white shadow-lg shadow-red-500/20",
 };
 
 const FoodCard = ({ food }) => {
@@ -48,7 +48,7 @@ const FoodCard = ({ food }) => {
     return (
         <div
             onClick={() => router.push(`/restaurants/${vendor?._id}`)}
-            className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 ${!isOpen ? '' : ''}`}
+            className="group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[24px] overflow-hidden cursor-pointer snap-start transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-200/50 dark:hover:shadow-none border border-zinc-100 dark:border-zinc-800"
             style={{ width: "72vw", maxWidth: "280px" }}
         >
             {/* Image Container */}
@@ -80,7 +80,7 @@ const FoodCard = ({ food }) => {
             <div className="px-3 pt-2.5 pb-3">
                 {/* Row 1: Name + Heart */}
                 <div className="flex justify-between items-center gap-2">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[calc(100%-28px)]">
+                    <h3 className="text-sm font-black text-zinc-900 dark:text-white truncate max-w-[calc(100%-28px)] uppercase italic tracking-tight">
                         {food.name}
                     </h3>
                     <button
@@ -89,49 +89,49 @@ const FoodCard = ({ food }) => {
                     >
                         <Heart
                             size={18}
-                            className={liked ? "fill-red-500 text-red-500" : "text-gray-400"}
-                            strokeWidth={liked ? 0 : 1.5}
+                            className={liked ? "fill-red-500 text-red-500" : "text-zinc-300 dark:text-zinc-700"}
+                            strokeWidth={liked ? 0 : 2}
                         />
                     </button>
                 </div>
 
                 {/* Row 2: Vendor Name • Location */}
-                <p className="text-[11px] text-gray-500 dark:text-zinc-400 truncate mt-0.5">
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate mt-1 font-bold uppercase tracking-widest">
                     {vendor?.storeName} • {vendor?.city || "Nearby"}
                 </p>
 
                 {/* Row 3: Metadata Line: Globe | Delivery | Status | Rating */}
-                <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
-                    <Globe size={14} className="text-gray-400 dark:text-zinc-500" />
+                <div className="mt-3 flex items-center gap-1.5 overflow-hidden border-t border-zinc-50 dark:border-zinc-800 pt-3">
+                    <Globe size={14} className="text-zinc-400 dark:text-zinc-600" />
                     
-                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+                    <span className="text-zinc-100 dark:text-zinc-800 text-xs">|</span>
 
                     {/* Delivery */}
                     <div className="flex items-center gap-1 whitespace-nowrap">
-                        <Bike size={14} className="text-gray-400 dark:text-zinc-500" />
+                        <Bike size={14} className="text-orange-500" />
                         {(() => {
                             const fee = food.deliveryFee;
                             return (!fee || fee === 0) ? (
-                                <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
+                                <span className="text-[10px] font-black text-zinc-900 dark:text-white uppercase">Free</span>
                             ) : (
-                                <span className="text-xs text-gray-500 dark:text-zinc-400">₦{fee.toLocaleString()}</span>
+                                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tighter">₦{fee.toLocaleString()}</span>
                             );
                         })()}
                     </div>
 
-                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+                    <span className="text-zinc-100 dark:text-zinc-800 text-xs">|</span>
 
                     {/* Status */}
-                    <span className={`text-xs font-bold whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+                    <span className={`text-[10px] font-black uppercase tracking-tighter whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
                         {isOpen ? "Open" : "Closed"}
                     </span>
 
-                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
+                    <span className="text-zinc-100 dark:text-zinc-800 text-xs">|</span>
 
                     {/* Rating */}
                     <div className="flex items-center gap-0.5 whitespace-nowrap">
                         <Star size={10} className="fill-orange-500 text-orange-500" />
-                        <span className="text-[11px] font-bold text-gray-900 dark:text-white">
+                        <span className="text-[10px] font-black text-zinc-900 dark:text-white tabular-nums">
                             {Number(food.rating || vendor?.rating || 0).toFixed(1)}
                         </span>
                     </div>
@@ -462,7 +462,7 @@ export default function FoodSearchMobile() {
         ) : displayedFoods.length === 0 ? (
           <NoFoodsFound />
         ) : (
-          <div className="space-y-8 pb-10 pl-3">
+          <div className="space-y-8 pb-10 pl-2">
             {Object.entries(foodsByCategory).map(([category, categoryFoods]) => (
               <div key={category} className="px-0">
                 <div className="flex items-center gap-2 px-4 mb-4">

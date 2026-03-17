@@ -359,7 +359,7 @@ export default function CheckoutPage() {
 
   /* ---------------- JSX ---------------- */
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-32">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-32 transition-colors duration-300">
       <Header2 />
 
       {/* Order Error Display */}
@@ -389,7 +389,7 @@ export default function CheckoutPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-orange-50/40 backdrop-blur-sm border border-orange-100 text-orange-700 text-[10px] p-2 rounded-xl flex items-center gap-2"
+            className="bg-orange-50/40 dark:bg-orange-500/10 backdrop-blur-sm border border-orange-100 dark:border-orange-500/20 text-orange-700 dark:text-orange-400 text-[10px] p-2 rounded-xl flex items-center gap-2"
           >
             <div className="w-1 h-full bg-orange-500 rounded-full" />
             <p>
@@ -400,22 +400,22 @@ export default function CheckoutPage() {
         )}
 
         {/* Address */}
-        <div className={`bg-white rounded-2xl md:p-4 p-2 flex gap-3 border transition-all duration-300 ${!defaultAddress ? "border-red-200 shadow-red-100" : "border-orange-50 hover:border-orange-200"}`}>
-          <div className={`${!defaultAddress ? "bg-red-50" : "bg-orange-50"} p-2 rounded-xl h-fit`}>
+        <div className={`bg-white dark:bg-zinc-900 rounded-2xl md:p-4 p-2 flex gap-3 border transition-all duration-300 ${!defaultAddress ? "border-red-200 dark:border-red-500/50 shadow-red-100 dark:shadow-red-900/10" : "border-zinc-50 dark:border-zinc-800 hover:border-orange-200 dark:hover:border-orange-500/30"}`}>
+          <div className={`${!defaultAddress ? "bg-red-50 dark:bg-red-500/10" : "bg-orange-50 dark:bg-orange-500/10"} p-2 rounded-xl h-fit`}>
             <MapPin className={`${!defaultAddress ? "text-red-500" : "text-orange-500"}`} size={20} />
           </div>
           {defaultAddress ? (
             <div className="flex-1">
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="font-medium text-gray-800">Delivery Address</p>
-                  <p className="text-xs text-gray-600 mt-0.5">
+                  <p className="font-medium text-zinc-900 dark:text-white">Delivery Address</p>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-0.5">
                     {defaultAddress.addressLine}, {defaultAddress.city}, {defaultAddress.state}
                   </p>
                 </div>
                 <button
                   onClick={() => router.push("/profile/address")}
-                  className="text-[10px] font-bold text-orange-600 uppercase tracking-wider bg-orange-50 px-2 py-1 rounded-lg"
+                  className="text-[10px] font-bold text-orange-600 uppercase tracking-wider bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded-lg"
                 >
                   Change
                 </button>
@@ -424,10 +424,10 @@ export default function CheckoutPage() {
           ) : (
             <div className="flex-1 flex flex-col gap-2">
               <p className="text-sm font-bold text-red-600">Delivery Address Required</p>
-              <p className="text-xs text-gray-500">You need to set a default delivery address to place an order.</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">You need to set a default delivery address to place an order.</p>
               <button
                 onClick={() => router.push("/profile/address")}
-                className="mt-1 w-full bg-red-50 text-red-600 py-2 rounded-xl font-bold text-xs uppercase tracking-wider border border-red-100 hover:bg-red-100 transition-colors"
+                className="mt-1 w-full bg-red-50 dark:bg-red-500/10 text-red-600 py-2 rounded-xl font-bold text-xs uppercase tracking-wider border border-red-100 dark:border-red-500/20 hover:bg-red-100 transition-colors"
               >
                 + Add Address
               </button>
@@ -436,36 +436,36 @@ export default function CheckoutPage() {
         </div>
 
         {/* Delivery Info */}
-        <div className="bg-white rounded-2xl md:p-4 p-2 flex gap-3 items-center border border-orange-50 hover:border-orange-200 transition-all duration-300">
-          <div className="bg-orange-50 p-2 rounded-xl">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl md:p-4 p-2 flex gap-3 items-center border border-zinc-50 dark:border-zinc-800 hover:border-orange-200 dark:hover:border-orange-500/30 transition-all duration-300">
+          <div className="bg-orange-50 dark:bg-orange-500/10 p-2 rounded-xl">
             <Bike className="text-orange-500" size={20} />
           </div>
           <div>
-            <p className="font-medium text-gray-800">Delivery Fee</p>
-            <p className="text-xs text-gray-600">Charged once per restaurant in your cart</p>
+            <p className="font-medium text-zinc-900 dark:text-white">Delivery Fee</p>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400">Charged once per restaurant in your cart</p>
           </div>
         </div>
 
         {/* Payment Method Selection */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100 space-y-3">
-          <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-zinc-100 dark:border-zinc-800 space-y-3">
+          <h3 className="font-bold text-zinc-900 dark:text-white text-sm flex items-center gap-2">
             <CreditCard size={18} className="text-orange-500" /> Payment Method
           </h3>
 
           {/* Paystack Option */}
           <div
             onClick={() => setUseWallet(false)}
-            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${!useWallet ? "border-orange-500 bg-orange-50" : "border-gray-100 hover:bg-gray-50"
+            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${!useWallet ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10" : "border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
               }`}
           >
             <div className="flex items-center gap-3">
-              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${!useWallet ? "border-orange-600" : "border-gray-300"
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${!useWallet ? "border-orange-600" : "border-zinc-300 dark:border-zinc-600"
                 }`}>
                 {!useWallet && <div className="w-2 h-2 bg-orange-600 rounded-full" />}
               </div>
               <div>
-                <p className="font-bold text-sm text-gray-800">Pay with Card / Transfer</p>
-                <p className="text-[10px] text-gray-500">Secured by Paystack</p>
+                <p className="font-bold text-sm text-zinc-900 dark:text-white">Pay with Card / Transfer</p>
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Secured by Paystack</p>
               </div>
             </div>
           </div>
@@ -476,16 +476,16 @@ export default function CheckoutPage() {
               if (walletBalance >= finalTotal) setUseWallet(true);
               else toast.error("Insufficient balance for this order");
             }}
-            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${useWallet ? "border-orange-500 bg-orange-50" : "border-gray-100 hover:bg-gray-50"
+            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${useWallet ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10" : "border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
               } ${walletBalance < finalTotal ? "opacity-60 cursor-not-allowed" : ""}`}
           >
             <div className="flex items-center gap-3">
-              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${useWallet ? "border-orange-600" : "border-gray-300"
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${useWallet ? "border-orange-600" : "border-zinc-300 dark:border-zinc-600"
                 }`}>
                 {useWallet && <div className="w-2 h-2 bg-orange-600 rounded-full" />}
               </div>
               <div>
-                <p className="font-bold text-sm text-gray-800 flex items-center gap-2">
+                <p className="font-bold text-sm text-zinc-900 dark:text-white flex items-center gap-2">
                   Pay with Wallet <span className="text-orange-600">({walletData ? `₦${walletBalance.toLocaleString()}` : "Loading..."})</span>
                 </p>
                 {walletBalance < finalTotal && (
@@ -493,7 +493,7 @@ export default function CheckoutPage() {
                 )}
               </div>
             </div>
-            <Wallet size={18} className={useWallet ? "text-orange-600" : "text-gray-400"} />
+            <Wallet size={18} className={useWallet ? "text-orange-600" : "text-zinc-400 dark:text-zinc-500"} />
           </div>
         </div>
 
@@ -501,15 +501,15 @@ export default function CheckoutPage() {
         {Object.entries(groupedCart).map(([storeName, items]) => {
           const estTime = getEstimatedTime(items);
           return (
-            <div key={storeName} className="bg-white p-4 rounded-2xl space-y-3 border border-gray-100 hover:shadow-md transition-all duration-300">
-              <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-50/50">
-                <h3 className="text-sm font-semibold text-gray-800 uppercase tracking-tight italic">{storeName}</h3>
-                <div className="text-xs text-gray-500 flex flex-col items-end">
+            <div key={storeName} className="bg-white dark:bg-zinc-900 p-4 rounded-2xl space-y-3 border border-zinc-100 dark:border-zinc-800 hover:shadow-md transition-all duration-300">
+              <div className="flex justify-between items-center mb-2 pb-2 border-b border-zinc-50 dark:border-zinc-800/50">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-white uppercase tracking-tight italic">{storeName}</h3>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400 flex flex-col items-end">
                   <span className="flex items-center gap-1 font-bold text-orange-600">
                     ₦{restaurantDeliveryMap[items[0].vendorId || items[0].restaurantId]?.toLocaleString()}
                   </span>
                   {estTime && (
-                    <span className="flex items-center gap-1 mt-1 font-medium bg-gray-50 px-2 py-0.5 rounded-full text-[10px]">
+                    <span className="flex items-center gap-1 mt-1 font-medium bg-zinc-50 dark:bg-zinc-800 px-2 py-0.5 rounded-full text-[10px]">
                       <Clock size={10} className="text-orange-500" /> {estTime.min}-{estTime.max} mins
                     </span>
                   )}
@@ -518,19 +518,19 @@ export default function CheckoutPage() {
 
               {/* Items */}
               {items.map(item => (
-                <div key={(item.foodId || '') + (item.portionId || item.variantId || '')} className="flex gap-3 border-b border-b-gray-50/50 last:border-0 pb-3 items-center group">
-                  <div className="relative overflow-hidden rounded-xl">
+                <div key={(item.foodId || '') + (item.portionId || item.variantId || '')} className="flex gap-3 border-b border-b-zinc-50 dark:border-b-zinc-800/50 last:border-0 pb-3 items-center group">
+                  <div className="relative overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
                     <img src={item.image_url || item.image || "/placeholder.jpg"} alt={item.name} className="w-12 h-12 object-cover transition-transform group-hover:scale-110" />
                   </div>
                   <div className="flex-1 flex flex-col gap-0.5 min-w-0">
-                    <p className="text-sm text-gray-800 font-semibold uppercase italic leading-tight break-words">{item.name}</p>
+                    <p className="text-sm text-zinc-900 dark:text-white font-semibold uppercase italic leading-tight break-words">{item.name}</p>
                     {item.portion_label && (
                       <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">{item.portion_label}</p>
                     )}
-                    <p className="text-[10px] text-gray-400 truncate font-bold uppercase tracking-tighter">{item.storeName}</p>
-                    <p className="text-xs text-gray-500 font-medium">₦{((item.price_naira || item.price || 0) * item.quantity).toLocaleString()}</p>
+                    <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate font-bold uppercase tracking-tighter">{item.storeName}</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">₦{((item.price_naira || item.price || 0) * item.quantity).toLocaleString()}</p>
                   </div>
-                  <div className="bg-orange-50 px-2 py-1 rounded-lg">
+                  <div className="bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded-lg">
                     <span className="text-sm font-black text-orange-600 italic">x{item.quantity}</span>
                   </div>
                 </div>
@@ -542,7 +542,7 @@ export default function CheckoutPage() {
                   placeholder="Add a note for this restaurant (optional)"
                   value={notes[storeName] || ""}
                   onChange={(e) => setNotes({ ...notes, [storeName]: e.target.value })}
-                  className="mt-2 w-full p-3 bg-gray-50/50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-orange-400 focus:bg-white transition-all placeholder:text-[10px] placeholder:font-black placeholder:uppercase placeholder:tracking-widest"
+                  className="mt-2 w-full p-3 bg-zinc-50/50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-orange-400 focus:bg-white dark:focus:bg-zinc-800 transition-all placeholder:text-[10px] placeholder:font-black placeholder:uppercase placeholder:tracking-widest"
                 />
               </div>
             </div>
@@ -550,10 +550,10 @@ export default function CheckoutPage() {
         })}
 
         {/* Promo Code Section */}
-        <div className="bg-white rounded-2xl p-4 border border-gray-100">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2 mb-3">
             <TicketPercent className="text-orange-500" size={18} />
-            <h3 className="text-sm font-bold text-gray-800">Promo Code</h3>
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Promo Code</h3>
           </div>
           <div className="flex gap-2">
             <input
@@ -561,18 +561,18 @@ export default function CheckoutPage() {
               placeholder="Enter code"
               value={couponCode}
               onChange={(e) => setCouponCode(e.target.value)}
-              className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm uppercase tracking-wider font-semibold placeholder:normal-case placeholder:font-normal focus:outline-none focus:border-orange-500 transition-colors"
+              className="flex-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-2.5 text-sm uppercase tracking-wider font-semibold placeholder:normal-case placeholder:font-normal focus:outline-none focus:border-orange-500 transition-colors text-zinc-900 dark:text-zinc-100"
             />
             <button
               onClick={handleVerifyCoupon}
               disabled={verifyingCode || !couponCode}
-              className="bg-gray-900 text-white px-5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-gray-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-zinc-800 dark:hover:bg-white active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {verifyingCode ? <Loader2 className="animate-spin" size={16} /> : "Apply"}
             </button>
           </div>
           {appliedDiscount && (
-            <div className="mt-3 bg-green-50 text-green-700 text-xs p-2.5 rounded-xl flex items-center gap-2 border border-green-100">
+            <div className="mt-3 bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 text-xs p-2.5 rounded-xl flex items-center gap-2 border border-green-100 dark:border-green-500/20">
               <Tag size={14} />
               <span className="font-bold">{appliedDiscount.appliedDiscount?.label} applied!</span>
               <span className="ml-auto font-black">-₦{appliedDiscount.discountAmount.toLocaleString()}</span>
@@ -581,13 +581,13 @@ export default function CheckoutPage() {
         </div>
 
         {/* Summary */}
-        <div className="bg-gray-900 rounded-2xl p-4 space-y-3 shadow-xl">
+        <div className="bg-zinc-900 dark:bg-zinc-800 rounded-2xl p-4 space-y-3 shadow-xl">
           <div className="flex justify-between items-center text-sm">
-            <span className="flex items-center gap-1 font-semibold text-gray-400 uppercase tracking-widest text-[10px]">Subtotal</span>
+            <span className="flex items-center gap-1 font-semibold text-zinc-400 uppercase tracking-widest text-[10px]">Subtotal</span>
             <span className="text-white font-medium">₦{subtotal.toLocaleString()}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
-            <span className="flex items-center gap-1 font-semibold text-gray-400 uppercase tracking-widest text-[10px]">Delivery Fee</span>
+            <span className="flex items-center gap-1 font-semibold text-zinc-400 uppercase tracking-widest text-[10px]">Delivery Fee</span>
             <span className="text-white font-medium">₦{deliveryFee.toLocaleString()}</span>
           </div>
           {appliedDiscount && (
@@ -603,7 +603,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Sticky Pay Button */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 p-2 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] z-40">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 p-2 shadow-[0_-8px_30px_rgb(0,0,0,0.04)] z-40">
           <motion.button
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}

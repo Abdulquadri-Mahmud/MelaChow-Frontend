@@ -141,11 +141,11 @@ export default function UserWalletPage() {
 
     if (isProfileLoading || isLoading) {
         return (
-            <div className="bg-zinc-50 min-h-screen">
+            <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen transition-colors duration-300">
                 <Header2 />
                 <div className="flex flex-col items-center justify-center h-[80vh]">
                     <div className="relative">
-                        <div className="w-16 h-16 border-4 border-orange-100 rounded-full animate-spin"></div>
+                        <div className="w-16 h-16 border-4 border-orange-100 dark:border-orange-500/10 rounded-full animate-spin"></div>
                         <div className="absolute top-0 left-0 w-16 h-16 border-4 border-orange-500 rounded-full animate-spin border-t-transparent"></div>
                         <Wallet className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-orange-500" size={20} />
                     </div>
@@ -155,7 +155,7 @@ export default function UserWalletPage() {
     }
 
     return (
-        <div className="bg-zinc-50 min-h-screen font-sans pb-20">
+        <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen font-sans pb-20 transition-colors duration-300">
             <Header2 />
 
             <div className="max-w-4xl mx-auto md:px-6 px-2 py-4 space-y-8">
@@ -163,8 +163,8 @@ export default function UserWalletPage() {
                 {/* Header Section */}
                 <div className="flex justify-between items-end">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">My Wallet</h1>
-                        <p className="text-gray-500 text-sm mt-1 font-medium">Manage your balance & transactions</p>
+                        <h1 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">My Wallet</h1>
+                        <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1 font-medium">Manage your balance & transactions</p>
                     </div>
                 </div>
 
@@ -228,8 +228,8 @@ export default function UserWalletPage() {
                 {/* TRANSACTIONS SECTION */}
                 <div className="space-y-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                        <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-orange-600">
                                 <CreditCard size={16} />
                             </div>
                             Transactions
@@ -237,22 +237,22 @@ export default function UserWalletPage() {
 
                         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
                             {/* Filter Tabs */}
-                            <div className="flex p-1 bg-gray-200/50 rounded-xl">
+                            <div className="flex p-1 bg-zinc-200/50 dark:bg-zinc-800/50 rounded-xl">
                                 <button
                                     onClick={() => setFilterType("ALL")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "ALL" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "ALL" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-100" : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"}`}
                                 >
                                     All
                                 </button>
                                 <button
                                     onClick={() => setFilterType("CREDIT")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "CREDIT" ? "bg-white shadow-sm text-emerald-600" : "text-gray-500 hover:text-emerald-600"}`}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "CREDIT" ? "bg-white dark:bg-zinc-700 shadow-sm text-emerald-600" : "text-zinc-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-500"}`}
                                 >
                                     Money In
                                 </button>
                                 <button
                                     onClick={() => setFilterType("DEBIT")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "DEBIT" ? "bg-white shadow-sm text-red-600" : "text-gray-500 hover:text-red-600"}`}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "DEBIT" ? "bg-white dark:bg-zinc-700 shadow-sm text-red-600" : "text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-500"}`}
                                 >
                                     Money Out
                                 </button>
@@ -260,13 +260,13 @@ export default function UserWalletPage() {
 
                             {/* Search */}
                             <div className="relative">
-                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
                                 <input
                                     type="text"
                                     placeholder="Search..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none w-32 focus:w-48 transition-all"
+                                    className="pl-9 pr-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 dark:text-zinc-100 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none w-32 focus:w-48 transition-all"
                                 />
                             </div>
                         </div>
@@ -274,23 +274,23 @@ export default function UserWalletPage() {
 
                     <div className="space-y-4">
                         {Object.keys(groupedTransactions).length === 0 ? (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 bg-white rounded-[32px] border border-dashed border-gray-200">
-                                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4 relative">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-900 rounded-[32px] border border-dashed border-zinc-200 dark:border-zinc-800">
+                                <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4 relative">
                                     <div className="absolute inset-0 bg-orange-500/5 rounded-full animate-ping"></div>
-                                    <Search size={32} className="text-gray-300 relative z-10" />
+                                    <Search size={32} className="text-zinc-300 dark:text-zinc-700 relative z-10" />
                                 </div>
-                                <h4 className="text-gray-900 font-bold text-lg">No transactions found</h4>
-                                <p className="text-gray-500 text-sm mt-1">Try adjusting your filters or search.</p>
+                                <h4 className="text-zinc-900 dark:text-zinc-100 font-bold text-lg">No transactions found</h4>
+                                <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Try adjusting your filters or search.</p>
                             </motion.div>
                         ) : (
                             Object.entries(groupedTransactions).map(([dateLabel, txs]) => (
                                 <div key={dateLabel}>
-                                    <div className="sticky top-0 bg-zinc-50 z-[1] py-2 mb-2 flex items-center gap-4">
-                                        <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{dateLabel}</h4>
-                                        <div className="h-[1px] bg-gray-100 flex-1"></div>
+                                    <div className="sticky top-0 bg-zinc-50 dark:bg-zinc-950 z-[1] py-2 mb-2 flex items-center gap-4 transition-colors">
+                                        <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-widest">{dateLabel}</h4>
+                                        <div className="h-[1px] bg-zinc-100 dark:bg-zinc-800 flex-1"></div>
                                     </div>
 
-                                    <div className="bg-white rounded-[24px] border border-gray-100 overflow-hidden">
+                                    <div className="bg-white dark:bg-zinc-900 rounded-[24px] border border-zinc-100 dark:border-zinc-800 overflow-hidden">
                                         {txs.map((tx, idx) => (
                                             <motion.div
                                                 initial={{ opacity: 0, x: -10 }}

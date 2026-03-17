@@ -140,7 +140,7 @@ export default function OrderTracking() {
   if (error)
     return <div className="md:p-6 p-2 text-center text-red-500 font-medium">{error}</div>;
   if (!orderData)
-    return <div className="md:p-6 p-2 text-center text-gray-600 font-medium">No order found</div>;
+    return <div className="md:p-6 p-2 text-center text-zinc-600 dark:text-zinc-400 font-medium">No order found</div>;
 
   const { items, deliveryAddress, subtotal, deliveryFee, total, orderStatus, userId } = orderData;
   const currentStepIndex = statusSteps.findIndex((s) => s.key === orderStatus);
@@ -148,7 +148,7 @@ export default function OrderTracking() {
   // console.log(orderData);
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-950 min-h-screen font-display pb-32">
+    <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen font-display pb-32">
       <Header2 />
 
       {/* Dynamic Map Header Section */}
@@ -184,7 +184,7 @@ export default function OrderTracking() {
             <div className="absolute inset-0 animate-ping bg-orange-500/20 rounded-full scale-110" />
             <div className="absolute inset-0 animate-pulse bg-orange-500/10 rounded-full scale-150" />
 
-            <div className="relative w-40 h-40 bg-white dark:bg-slate-900 rounded-[48px] shadow-[0_30px_70px_-15px_rgba(255,102,0,0.3)] border-4 border-white dark:border-slate-800 flex items-center justify-center overflow-hidden">
+            <div className="relative w-40 h-40 bg-white dark:bg-zinc-900 rounded-[48px] shadow-[0_30px_70px_-15px_rgba(255,102,0,0.3)] border-4 border-white dark:border-zinc-800 flex items-center justify-center overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-600 opacity-90" />
               <motion.div
                 animate={{
@@ -212,19 +212,19 @@ export default function OrderTracking() {
             transition={{ delay: 0.3 }}
             className="mt-8 text-center"
           >
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white italic uppercase tracking-tighter">
+            <h2 className="text-3xl font-black text-zinc-900 dark:text-white italic uppercase tracking-tighter">
               {statusSteps[currentStepIndex]?.label}
             </h2>
             <div className="flex items-center gap-2 justify-center mt-2">
               <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Live Updates Enabled</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Live Updates Enabled</p>
             </div>
           </motion.div>
         </div>
 
         {/* Top Actions */}
         <div className="absolute top-6 left-4 right-4 flex justify-between items-center z-10">
-          <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-slate-800/50 shadow-lg">
+          <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-zinc-800/50 shadow-lg">
             <span className="text-[10px] font-black text-orange-600 uppercase italic">Arrival ~ 22:45</span>
           </div>
           <button
@@ -234,7 +234,7 @@ export default function OrderTracking() {
                 setIsReviewModalOpen(true);
               }
             }}
-            className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-slate-800/50 shadow-lg text-[10px] font-black text-slate-500 uppercase hover:text-orange-600 transition-colors"
+            className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-zinc-800/50 shadow-lg text-[10px] font-black text-zinc-500 uppercase hover:text-orange-600 transition-colors"
           >
             Review Order
           </button>
@@ -249,24 +249,24 @@ export default function OrderTracking() {
           <motion.div
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="bg-white dark:bg-slate-900 rounded-[48px] p-4 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.12)] border border-slate-100 dark:border-slate-800"
+            className="bg-white dark:bg-zinc-900 rounded-[48px] p-4 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.12)] border border-zinc-100 dark:border-zinc-800"
           >
             <div className="flex justify-between items-start mb-10">
               <div>
-                <h3 className="text-slate-900 dark:text-white font-black text-xl italic uppercase tracking-tight">Track Progress</h3>
+                <h3 className="text-zinc-900 dark:text-white font-black text-xl italic uppercase tracking-tight">Track Progress</h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs font-bold text-slate-400 px-2 py-0.5 bg-slate-50 dark:bg-slate-800 rounded-lg">#{orderData.orderId.substring(0, 8)}</span>
+                  <span className="text-xs font-bold text-zinc-400 px-2 py-0.5 bg-zinc-50 dark:bg-zinc-800 rounded-lg">#{orderData.orderId.substring(0, 8)}</span>
                   <span className="text-[10px] font-black text-orange-500 uppercase">{currentStepIndex + 1} of {statusSteps.length} Steps Done</span>
                 </div>
               </div>
-              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-3xl">
-                <Package size={24} className="text-slate-400" />
+              <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-3xl">
+                <Package size={24} className="text-zinc-400" />
               </div>
             </div>
 
             <div className="relative space-y-12">
               {/* Refined Vertical Timeline */}
-              <div className="absolute left-[23px] top-6 bottom-6 w-[2px] bg-slate-50 dark:bg-slate-800" />
+              <div className="absolute left-[23px] top-6 bottom-6 w-[2px] bg-zinc-50 dark:bg-zinc-800" />
               <motion.div
                 initial={{ height: 0 }}
                 animate={{ height: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%` }}
@@ -289,7 +289,7 @@ export default function OrderTracking() {
                         transition={{ repeat: isActive ? Infinity : 0, duration: 2 }}
                         className={`w-12 h-12 rounded-[22px] flex items-center justify-center shadow-2xl transition-all duration-500 border-2 ${isActive || isPast
                           ? "text-white border-transparent shadow-orange-500/40"
-                          : "text-slate-300 border-slate-50 dark:border-slate-800 dark:bg-slate-900"
+                          : "text-zinc-300 border-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
                           }`}
                       >
                         {isPast ? <CheckCircle size={20} /> : <Icon size={20} />}
@@ -299,7 +299,7 @@ export default function OrderTracking() {
                     <div className={`flex-1 transition-all duration-700 ${idx > currentStepIndex ? "opacity-30 blur-[0.5px]" : "opacity-100"}`}>
                       <div className="flex flex-col">
                         <div className="flex items-center gap-3">
-                          <h4 className={`text-[13px] font-black uppercase tracking-tight ${isActive ? "text-orange-600" : "text-slate-900 dark:text-white"}`}>
+                          <h4 className={`text-[13px] font-black uppercase tracking-tight ${isActive ? "text-orange-600" : "text-zinc-900 dark:text-white"}`}>
                             {step.label}
                           </h4>
                           {isActive && (
@@ -312,10 +312,10 @@ export default function OrderTracking() {
                             </motion.span>
                           )}
                         </div>
-                        <p className="text-slate-500 dark:text-slate-400 text-[11px] mt-1 font-bold italic uppercase tracking-wider opacity-60">
+                        <p className="text-zinc-500 dark:text-zinc-400 text-[11px] mt-1 font-bold italic uppercase tracking-wider opacity-60">
                           {step.subtitle}
                         </p>
-                        <p className="text-slate-400 text-xs mt-2 font-medium leading-relaxed max-w-[200px]">
+                        <p className="text-zinc-400 text-xs mt-2 font-medium leading-relaxed max-w-[200px]">
                           {step.description}
                         </p>
                       </div>
@@ -367,19 +367,19 @@ export default function OrderTracking() {
 
             {/* Bag/Items Section */}
             <motion.div
-              className="bg-white dark:bg-slate-900 rounded-[40px] p-4 border border-slate-100 dark:border-slate-800"
+              className="bg-white dark:bg-zinc-900 rounded-[40px] p-4 border border-zinc-100 dark:border-zinc-800"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
               <div className="flex justify-between items-center mb-8">
-                <h3 className="text-slate-900 dark:text-white font-black text-sm uppercase italic tracking-[0.2em]">Order Summary</h3>
-                <span className="text-slate-300 text-xs font-bold uppercase">{items.length} Items</span>
+                <h3 className="text-zinc-900 dark:text-white font-black text-sm uppercase italic tracking-[0.2em]">Order Summary</h3>
+                <span className="text-zinc-300 text-xs font-bold uppercase">{items.length} Items</span>
               </div>
 
               <div className="space-y-6">
                 {items.map((item, idx) => (
-                  <div key={idx} className="flex gap-5 items-center bg-slate-50/50 dark:bg-slate-800/50 p-3 rounded-[28px] border border-slate-100/50 dark:border-slate-700/50">
+                  <div key={idx} className="flex gap-5 items-center bg-zinc-50/50 dark:bg-zinc-800/50 p-3 rounded-[28px] border border-zinc-100/50 dark:border-zinc-700/50">
                     <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-inner">
                       <img
                         src={item.variant.image || "/placeholder.jpg"}
@@ -389,11 +389,11 @@ export default function OrderTracking() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="text-sm font-black text-slate-900 dark:text-white italic uppercase">{item.variant.name}</h4>
-                      <p className="text-[10px] font-black text-slate-400 mt-0.5 opacity-60">QTY: {item.quantity} • ₦{item.price.toLocaleString()}</p>
+                      <h4 className="text-sm font-black text-zinc-900 dark:text-white italic uppercase">{item.variant.name}</h4>
+                      <p className="text-[10px] font-black text-zinc-400 mt-0.5 opacity-60">QTY: {item.quantity} • ₦{item.price.toLocaleString()}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <div className="font-black text-sm text-slate-900 dark:text-white">
+                      <div className="font-black text-sm text-zinc-900 dark:text-white">
                         ₦{(item.price * item.quantity).toLocaleString()}
                       </div>
                       <button
@@ -411,19 +411,19 @@ export default function OrderTracking() {
               </div>
 
               {/* Enhanced Pricing Breakdown */}
-              <div className="mt-10 pt-8 border-t-2 border-slate-50 dark:border-slate-800 space-y-4">
-                <div className="flex justify-between items-center text-slate-400 text-[11px] font-black uppercase tracking-widest">
+              <div className="mt-10 pt-8 border-t-2 border-zinc-50 dark:border-zinc-800 space-y-4">
+                <div className="flex justify-between items-center text-zinc-400 text-[11px] font-black uppercase tracking-widest">
                   <span>Subtotal</span>
-                  <span className="text-slate-900 dark:text-white">₦{subtotal.toLocaleString()}</span>
+                  <span className="text-zinc-900 dark:text-white">₦{subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between items-center text-slate-400 text-[11px] font-black uppercase tracking-widest">
+                <div className="flex justify-between items-center text-zinc-400 text-[11px] font-black uppercase tracking-widest">
                   <span>Delivery Service</span>
                   <span className="text-orange-600">+ ₦{deliveryFee.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-end pt-4">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-1 leading-none">Total Payment</p>
-                    <h4 className="text-4xl font-black text-slate-900 dark:text-white italic tracking-tighter leading-none">₦{total.toLocaleString()}</h4>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300 mb-1 leading-none">Total Payment</p>
+                    <h4 className="text-4xl font-black text-zinc-900 dark:text-white italic tracking-tighter leading-none">₦{total.toLocaleString()}</h4>
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] font-black text-green-500 bg-green-500/10 px-3 py-1.5 rounded-xl uppercase tracking-widest">
@@ -437,22 +437,22 @@ export default function OrderTracking() {
 
           {/* Location & Details Mini Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-[32px] border border-slate-100 dark:border-slate-800 flex items-center gap-4">
-              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                <Home size={20} className="text-slate-400" />
+            <div className="bg-white dark:bg-zinc-900 p-6 rounded-[32px] border border-zinc-100 dark:border-zinc-800 flex items-center gap-4">
+              <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-2xl">
+                <Home size={20} className="text-zinc-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest opacity-60">Home Address</h3>
-                <p className="text-xs font-black text-slate-900 dark:text-white truncate uppercase italic mt-0.5">{deliveryAddress.addressLine}</p>
+                <h3 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest opacity-60">Home Address</h3>
+                <p className="text-xs font-black text-zinc-900 dark:text-white truncate uppercase italic mt-0.5">{deliveryAddress.addressLine}</p>
               </div>
             </div>
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-[32px] border border-slate-100 dark:border-slate-800 flex items-center gap-4">
-              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl">
-                <Clock size={20} className="text-slate-400" />
+            <div className="bg-white dark:bg-zinc-900 p-6 rounded-[32px] border border-zinc-100 dark:border-zinc-800 flex items-center gap-4">
+              <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-2xl">
+                <Clock size={20} className="text-zinc-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-widest opacity-60">Placed On</h3>
-                <p className="text-xs font-black text-slate-900 dark:text-white truncate uppercase italic mt-0.5">
+                <h3 className="text-[10px] font-black uppercase text-zinc-400 tracking-widest opacity-60">Placed On</h3>
+                <p className="text-xs font-black text-zinc-900 dark:text-white truncate uppercase italic mt-0.5">
                   {orderData.createdAt ? (
                     <>
                       {new Date(orderData.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} • {new Date(orderData.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
@@ -475,9 +475,9 @@ export default function OrderTracking() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 2 }}
-          className="bg-white dark:bg-slate-900 px-4 py-2 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 hidden md:block"
+          className="bg-white dark:bg-zinc-900 px-4 py-2 rounded-2xl shadow-xl border border-zinc-100 dark:border-zinc-800 hidden md:block"
         >
-          <p className="text-[10px] font-black uppercase text-slate-500">Need help?</p>
+          <p className="text-[10px] font-black uppercase text-zinc-500">Need help?</p>
         </motion.div>
 
         <motion.button

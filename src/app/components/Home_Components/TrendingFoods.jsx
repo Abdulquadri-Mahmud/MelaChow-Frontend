@@ -174,7 +174,7 @@ export default function TrendingFoods({ user }) {
                 </div>
             </div>
 
-            <div className="flex gap-4 scroll overflow-x-auto px-4 pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
+            <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
                 {trendingFoods.map((item) => (
                     <TrendingCard key={item._id} item={item} />
                 ))}

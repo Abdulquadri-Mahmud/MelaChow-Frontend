@@ -10,7 +10,7 @@ const OrderTracking = dynamic(
 
 export default function page() {
   return (
-    <div className='bg-zinc-50 font-display text-[#181410]'>
+    <div className='bg-zinc-50 dark:bg-zinc-950 font-display text-[#181410] dark:text-zinc-100 transition-colors duration-300'>
       <Suspense fallback={<OrderTrackingSkeleton/>}>
         <OrderTracking/>
       </Suspense>

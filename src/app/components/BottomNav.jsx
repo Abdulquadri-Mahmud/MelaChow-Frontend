@@ -59,7 +59,7 @@ export default function BottomBar() {
                     {isActive && !isOrder && (
                       <motion.div
                         layoutId="activeTab"
-                        className="absolute inset-0 -m-2 dark:bg-orange-500/20 rounded-2xl"
+                        className="absolute inset-0 -m-2 rounded-2xl"
                         transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
                       />
                     )}

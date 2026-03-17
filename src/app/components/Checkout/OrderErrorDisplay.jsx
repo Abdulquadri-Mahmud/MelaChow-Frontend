@@ -93,15 +93,19 @@ export default function OrderErrorDisplay({ error, onRetry, onClose }) {
                 transition={{ duration: 0.3 }}
                 className="fixed top-4 left-4 right-4 z-50 max-w-md mx-auto"
             >
-                <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 shadow-xl">
+                    <div className="bg-white dark:bg-zinc-900 border-2 border-red-100 dark:border-red-900/30 rounded-[32px] p-6 shadow-2xl overflow-hidden relative">
+                        {/* Decorative Background for error */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full -translate-y-12 translate-x-12 blur-3xl pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-red-500/5 rounded-full translate-y-8 -translate-x-8 blur-2xl pointer-events-none" />
+
                     {/* Close Button */}
                     {onClose && (
                         <button
                             onClick={onClose}
-                            className="absolute top-4 right-4 text-red-400 hover:text-red-600 transition-colors"
+                            className="absolute top-5 right-5 p-2 bg-zinc-50 dark:bg-zinc-800 rounded-full text-zinc-400 hover:text-red-500 transition-colors z-10"
                             aria-label="Close error message"
                         >
-                            <XCircle size={20} />
+                            <XCircle size={18} />
                         </button>
                     )}
 
@@ -113,21 +117,21 @@ export default function OrderErrorDisplay({ error, onRetry, onClose }) {
                     </div>
 
                     {/* Error Content */}
-                    <div className="text-center space-y-3">
-                        <h3 className="text-lg font-bold text-red-800">
-                            Unable to Process Order
+                    <div className="text-center space-y-4 relative z-0">
+                        <h3 className="text-xl font-black italic uppercase tracking-tight text-red-600 dark:text-red-500">
+                            Order Blocked
                         </h3>
 
-                        <div className="bg-white rounded-xl p-3 border border-red-200 shadow-sm">
+                        <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-4 border border-zinc-100 dark:border-zinc-800 shadow-inner">
                             {(() => {
                                 // Split multiple errors if they exist (separated by ". ")
                                 const errors = error.split(". ").filter(e => e.trim());
 
                                 if (errors.length > 1) {
                                     return (
-                                        <ul className="text-left text-sm text-red-700 font-medium space-y-2">
+                                        <ul className="text-left text-xs text-zinc-600 dark:text-zinc-400 font-bold uppercase tracking-tight space-y-2">
                                             {errors.map((err, idx) => (
-                                                <li key={idx} className="flex items-start gap-2">
+                                                <li key={idx} className="flex items-start gap-2 bg-white/50 dark:bg-zinc-900/50 p-2 rounded-lg border border-zinc-50 dark:border-zinc-800/50">
                                                     <span className="text-red-500 mt-0.5">•</span>
                                                     <span>{err.trim()}</span>
                                                 </li>
@@ -136,7 +140,7 @@ export default function OrderErrorDisplay({ error, onRetry, onClose }) {
                                     );
                                 } else {
                                     return (
-                                        <p className="text-sm text-red-700 font-medium">
+                                        <p className="text-sm text-zinc-700 dark:text-zinc-300 font-bold italic">
                                             {error}
                                         </p>
                                     );
@@ -144,7 +148,7 @@ export default function OrderErrorDisplay({ error, onRetry, onClose }) {
                             })()}
                         </div>
 
-                        <p className="text-xs text-red-600 italic">
+                        <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-black uppercase tracking-widest leading-relaxed max-w-[240px] mx-auto">
                             {getErrorHint()}
                         </p>
                     </div>
@@ -167,7 +171,7 @@ export default function OrderErrorDisplay({ error, onRetry, onClose }) {
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => router.push("/orders?activeTab=cart")}
-                            className="flex-1 px-4 py-3 bg-white text-red-600 border-2 border-red-200 rounded-xl font-semibold hover:bg-red-50 transition-colors"
+                            className="flex-1 px-4 py-4 bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors border border-zinc-100 dark:border-zinc-800"
                         >
                             View Cart
                         </motion.button>
@@ -193,9 +197,9 @@ export function InlineError({ message }) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="flex items-center gap-2 text-red-600 text-sm mt-2 bg-red-50 px-3 py-2 rounded-lg border border-red-100"
+            className="flex items-center gap-2 text-red-600 dark:text-red-500 text-xs mt-2 bg-red-50 dark:bg-red-500/10 px-3 py-2.5 rounded-xl border border-red-100 dark:border-red-500/20 font-bold italic"
         >
-            <AlertCircle size={16} />
+            <AlertCircle size={14} />
             <span>{message}</span>
         </motion.div>
     );
