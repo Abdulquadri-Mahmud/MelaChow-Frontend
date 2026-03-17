@@ -18,6 +18,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Store, MapPin, Star, BadgeCheck, Heart, Globe, Bike, Gift, Utensils, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { isVendorOpen } from "@/app/lib/utils";
 import { getFoodsByLocation } from "@/app/lib/userApi";
@@ -226,7 +227,7 @@ export default function VendorList({ user }) {
                 </div>
                 <div className="h-6 w-48 bg-zinc-100 dark:bg-zinc-800 rounded-md animate-pulse" />
             </div>
-            <div className="flex overflow-x-auto gap-3 px-4 pb-3 scrollbar-none">
+            <div className="flex scroll overflow-x-auto gap-3 px-4 pb-3 scrollbar-none">
                 {[1, 2, 3].map(n => <VendorCardSkeleton key={n} />)}
             </div>
         </div>
@@ -264,16 +265,24 @@ export default function VendorList({ user }) {
     return (
         <div className="px-0">
             <div className="">
-                <div className="flex items-center gap-2 px-4 mb-3.5">
-                    <div className="bg-orange-100 dark:bg-orange-500/20 p-1.5 rounded-lg">
-                        <Sparkles className="text-orange-600 fill-orange-600" size={18} />
+                <div className="flex items-center justify-between px-4 mb-3.5">
+                    <div className="flex items-center gap-2">
+                        <div className="bg-orange-100 dark:bg-orange-500/20 p-1.5 rounded-lg">
+                            <Sparkles className="text-orange-600 fill-orange-600" size={18} />
+                        </div>
+                        <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">
+                            Featured Restaurants
+                        </h2>
                     </div>
-                    <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">
-                        Featured Restaurants
-                    </h2>
+                    <Link
+                        href="/all-restaurants"
+                        className="text-xs font-bold text-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-colors"
+                    >
+                        View all
+                    </Link>
                 </div>
                 <div
-                    className="flex scroll overflow-x-auto gap-3 px-4 pb-3 scrollbar-hide no-scrollbar"
+                    className="flex scroll overflow-x-auto gap-3 pb-3 scrollbar-hide no-scrollbar"
                     style={{
                         scrollSnapType: "x mandatory",
                         WebkitOverflowScrolling: "touch"

@@ -147,7 +147,7 @@ const RecommendationSection = ({ title, icon: Icon, items, router, accentColor =
                 </div>
             </div>
 
-            <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar px-4">
+            <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
                 {items.map((food) => (
                     <RecommendationCard key={food._id} food={food} router={router} />
                 ))}
