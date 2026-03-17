@@ -12,13 +12,13 @@ const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
 
 export default function HomeFoodListSkeleton({ categories = 2, itemsPerCategory = 3 }) {
   return (
-    <div className="space-y-8 flex-1">
+    <div className="space-y-8 flex-1 bg-zinc-50 dark:bg-zinc-950">
       {Array.from({ length: categories }).map((_, catIdx) => (
         <div key={catIdx} className="px-0">
           {/* Header Skeleton */}
           <div className="flex items-center gap-2 px-4 mb-4">
              <Skeleton width={4} height={20} className="rounded-full bg-orange-500" />
-             <Skeleton width={120} height={20} className="rounded-md" />
+             <Skeleton width={catIdx % 2 === 0 ? 120 : 80} height={20} className="rounded-md" />
           </div>
 
           <div className="flex gap-4 scroll overflow-x-auto px-4 pb-4 no-scrollbar">
@@ -36,11 +36,11 @@ export default function HomeFoodListSkeleton({ categories = 2, itemsPerCategory 
                     <Skeleton width="70%" height={16} className="rounded-md" />
                     <Skeleton width={20} height={20} className="rounded-full" />
                   </div>
-                  <Skeleton width="40%" height={12} className="rounded-md" />
+                  <Skeleton width={itemIdx % 3 === 0 ? "40%" : itemIdx % 3 === 1 ? "55%" : "30%"} height={12} className="rounded-md" />
                   <div className="flex items-center gap-2 mt-3 pt-2 border-t border-zinc-50 dark:border-zinc-800">
                     <Skeleton width={20} height={12} className="rounded-sm" />
                     <Skeleton width={40} height={12} className="rounded-sm" />
-                    <Skeleton width={40} height={12} className="rounded-sm" />
+                    <Skeleton width={30} height={12} className="rounded-sm" />
                   </div>
                 </div>
               </div>

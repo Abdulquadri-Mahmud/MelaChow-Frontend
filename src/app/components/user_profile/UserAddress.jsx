@@ -223,7 +223,7 @@ export default function AddressPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 px-4 py-4 flex items-center gap-4">
         <motion.button
@@ -249,22 +249,90 @@ export default function AddressPage() {
               key="no-data"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="bg-white dark:bg-slate-900 border-2 border-dashed border-gray-200 dark:border-slate-800 rounded-[32px] p-12 flex flex-col items-center text-center"
+              className="bg-white dark:bg-zinc-900 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-[32px] p-12 flex flex-col items-center text-center"
             >
               <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/10 rounded-full flex items-center justify-center mb-6 relative">
                 <div className="absolute inset-0 bg-orange-200/50 dark:bg-orange-500/20 rounded-full animate-ping opacity-20"></div>
                 <MapPin className="text-orange-500" size={32} />
               </div>
               <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">No addresses found</h3>
-              <p className="text-gray-400 dark:text-slate-500 text-sm max-w-[250px]">Add your home or office address to get started with seamless deliveries.</p>
+              <p className="text-gray-400 dark:text-zinc-500 text-sm max-w-[250px]">Add your home or office address to get started with seamless deliveries.</p>
             </motion.div>
           )}
 
-          {/* ADD / EDIT FORM */}
+          {/* List Section — renders FIRST */}
+          <div key="address-list" className="space-y-4">
+            {addresses.length > 0 && (
+              <div className="flex items-center gap-2 px-2">
+                <Home size={16} className="text-orange-500" />
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Saved Locations</h3>
+              </div>
+            )}
+
+            {addresses.map((addr, index) => (
+              <motion.div
+                key={addr._id || index}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className={`group relative bg-white dark:bg-zinc-900 border transition-all duration-300 rounded-[24px] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 ${addr.isDefault
+                  ? "border-orange-500/30 shadow-lg shadow-orange-500/10 ring-4 ring-orange-500/5 dark:border-orange-500/50"
+                  : "border-gray-100 dark:border-zinc-800 hover:border-orange-200 dark:hover:border-zinc-700 hover:shadow-xl hover:shadow-gray-200/50"
+                  }`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${addr.isDefault ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30" : "bg-gray-100 dark:bg-zinc-800 text-gray-400 group-hover:bg-orange-50 dark:group-hover:bg-orange-500/10 group-hover:text-orange-500 transition-colors"}`}>
+                    <Building2 size={24} />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-black text-gray-900 dark:text-white text-base">{addr.addressLine}</h3>
+                      {addr.isDefault && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 rounded-full text-[10px] font-bold uppercase tracking-wide">
+                          Default
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm font-medium text-gray-400 dark:text-zinc-500 mt-0.5">{addr.city}, {addr.state}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 md:pt-0 border-t md:border-none border-gray-50 dark:border-zinc-800 mt-2 md:mt-0">
+                  {!addr.isDefault && (
+                    <button
+                      onClick={() => setDefault(addr._id)}
+                      disabled={settingDefaultId === addr._id}
+                      className={`text-xs font-bold px-3 py-2 rounded-xl transition-all ${settingDefaultId === addr._id ? "text-gray-400 dark:text-zinc-600" : "text-gray-500 dark:text-zinc-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600"}`}
+                    >
+                      {settingDefaultId === addr._id ? "Saving..." : "Set Default"}
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => handleEditAddress(addr)}
+                    className="p-2.5 rounded-xl text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all"
+                  >
+                    <Edit3 size={18} />
+                  </button>
+
+                  <button
+                    onClick={() => confirmDelete(addr._id)}
+                    disabled={deletingId === addr._id}
+                    className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all disabled:opacity-50"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* ADD / EDIT FORM — renders AFTER the list */}
           <motion.div
             key="address-form"
             layout
-            className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-[24px] p-6 md:p-8 shadow-sm relative overflow-hidden group"
+            className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-[24px] p-6 md:p-8 shadow-sm relative overflow-hidden group"
           >
             <div className="relative z-10">
               <div className="flex items-center gap-4 mb-8">
@@ -273,7 +341,7 @@ export default function AddressPage() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">{editingId ? "Update Location" : "Add New Address"}</h2>
-                  <p className="text-xs font-medium text-gray-500 dark:text-slate-400">
+                  <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">
                     {editingId ? "Modify your delivery details" : "Where should we deliver your food?"}
                   </p>
                 </div>
@@ -297,9 +365,9 @@ export default function AddressPage() {
 
               {/* Loading Locations */}
               {isLoadingLocations && (
-                <div className="mb-6 p-6 bg-gray-50 dark:bg-slate-800 rounded-xl flex items-center justify-center gap-3">
+                <div className="mb-6 p-6 bg-gray-50 dark:bg-zinc-800 rounded-xl flex items-center justify-center gap-3">
                   <Loader2 className="animate-spin text-orange-500" size={20} />
-                  <p className="text-sm font-medium text-gray-500 dark:text-slate-400">Loading available locations...</p>
+                  <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Loading available locations...</p>
                 </div>
               )}
 
@@ -361,14 +429,14 @@ export default function AddressPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider pl-1">Street Address *</label>
+                    <label className="text-[11px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-wider pl-1">Street Address *</label>
                     <textarea
                       placeholder="e.g. 12B, Admiralty Way, Lekki Phase 1"
                       value={form.addressLine}
                       onChange={e => setForm({ addressLine: e.target.value })}
                       rows={2}
                       required
-                      className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 focus:border-orange-500 rounded-xl p-3.5 text-sm font-semibold text-gray-900 dark:text-white outline-none transition-all resize-none focus:ring-4 focus:ring-orange-500/10 placeholder:text-gray-400"
+                      className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-800 focus:border-orange-500 rounded-xl p-3.5 text-sm font-semibold text-gray-900 dark:text-white outline-none transition-all resize-none focus:ring-4 focus:ring-orange-500/10 placeholder:text-gray-400 dark:placeholder:text-zinc-600"
                     />
                   </div>
 
@@ -382,7 +450,7 @@ export default function AddressPage() {
                           setSelectedCityId("");
                           setCities([]);
                         }}
-                        className="flex-1 py-4 rounded-2xl font-bold text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                        className="flex-1 py-4 rounded-2xl font-bold text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
                       >
                         Cancel
                       </button>
@@ -406,74 +474,6 @@ export default function AddressPage() {
               )}
             </div>
           </motion.div>
-
-          {/* List Section */}
-          <div key="address-list" className="space-y-4">
-            {addresses.length > 0 && (
-              <div className="flex items-center gap-2 px-2">
-                <Home size={16} className="text-orange-500" />
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Saved Locations</h3>
-              </div>
-            )}
-
-            {addresses.map((addr, index) => (
-              <motion.div
-                key={addr._id || index}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={`group relative bg-white dark:bg-slate-900 border transition-all duration-300 rounded-[24px] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 ${addr.isDefault
-                  ? "border-orange-500/30 shadow-lg shadow-orange-500/10 ring-4 ring-orange-500/5 dark:border-orange-500/50"
-                  : "border-gray-100 dark:border-slate-800 hover:border-orange-200 dark:hover:border-slate-700 hover:shadow-xl hover:shadow-gray-200/50"
-                  }`}
-              >
-                <div className="flex items-start gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${addr.isDefault ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30" : "bg-gray-100 dark:bg-slate-800 text-gray-400 group-hover:bg-orange-50 dark:group-hover:bg-orange-500/10 group-hover:text-orange-500 transition-colors"}`}>
-                    <Building2 size={24} />
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-black text-gray-900 dark:text-white text-base">{addr.addressLine}</h3>
-                      {addr.isDefault && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 rounded-full text-[10px] font-bold uppercase tracking-wide">
-                          Default
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm font-medium text-gray-400 dark:text-slate-500 mt-0.5">{addr.city}, {addr.state}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2 md:pt-0 border-t md:border-none border-gray-50 mt-2 md:mt-0">
-                  {!addr.isDefault && (
-                    <button
-                      onClick={() => setDefault(addr._id)}
-                      disabled={settingDefaultId === addr._id}
-                      className={`text-xs font-bold px-3 py-2 rounded-xl transition-all ${settingDefaultId === addr._id ? "text-gray-400" : "text-gray-500 hover:bg-orange-50 hover:text-orange-600"}`}
-                    >
-                      {settingDefaultId === addr._id ? "Saving..." : "Set Default"}
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => handleEditAddress(addr)}
-                    className="p-2.5 rounded-xl text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-all"
-                  >
-                    <Edit3 size={18} />
-                  </button>
-
-                  <button
-                    onClick={() => confirmDelete(addr._id)}
-                    disabled={deletingId === addr._id}
-                    className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all disabled:opacity-50"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
         </AnimatePresence>
       </div>
 

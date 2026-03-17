@@ -163,10 +163,10 @@ export default function EditProfilePage() {
 
     if (isUserLoading || !user) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50/50">
+            <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 size={40} className="text-orange-500 animate-spin" />
-                    <p className="text-gray-400 font-medium text-sm animate-pulse">Loading profile...</p>
+                    <p className="text-gray-400 dark:text-zinc-500 font-medium text-sm animate-pulse">Loading profile...</p>
                 </div>
             </div>
         );
@@ -174,16 +174,16 @@ export default function EditProfilePage() {
 
     return (
         <ProtectedRoute>
-            <div className="min-h-screen bg-gray-50 font-sans pb-20">
+            <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 font-sans pb-20">
                 {/* Custom Header for Edit Page */}
-                <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100 flex items-center justify-between px-4 py-4">
+                <div className="sticky top-0 z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-gray-100 dark:border-zinc-800 flex items-center justify-between px-4 py-4">
                     <button
                         onClick={() => router.back()}
-                        className="p-2.5 rounded-xl bg-gray-100/50 text-gray-600 hover:bg-gray-100 transition-colors"
+                        className="p-2.5 rounded-xl bg-gray-100/50 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
                     >
                         <ArrowLeft size={20} />
                     </button>
-                    <span className="text-sm font-bold text-gray-500 uppercase tracking-widest">Edit Profile</span>
+                    <span className="text-sm font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-widest">Edit Profile</span>
                     <div className="w-10"></div> {/* Spacer for balance */}
                 </div>
 
@@ -192,8 +192,8 @@ export default function EditProfilePage() {
                     {/* AVATAR UPLOAD SECTION */}
                     <div className="flex flex-col items-center mb-10">
                         <div className="relative group">
-                            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full p-1.5 bg-white border-2 border-dashed border-gray-300 shadow-xl overflow-hidden cursor-pointer" onClick={handleAvatarClick}>
-                                <div className="w-full h-full rounded-full overflow-hidden relative bg-gray-100">
+                            <div className="w-32 h-32 md:w-40 md:h-40 rounded-full p-1.5 bg-white dark:bg-zinc-900 border-2 border-dashed border-gray-300 dark:border-zinc-700 shadow-xl overflow-hidden cursor-pointer" onClick={handleAvatarClick}>
+                                <div className="w-full h-full rounded-full overflow-hidden relative bg-gray-100 dark:bg-zinc-800">
                                     {userState.avatar ? (
                                         <img
                                             src={userState.avatar}
@@ -201,7 +201,7 @@ export default function EditProfilePage() {
                                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                        <div className="w-full h-full flex items-center justify-center text-gray-300 dark:text-zinc-600">
                                             <User size={48} />
                                         </div>
                                     )}
@@ -227,7 +227,7 @@ export default function EditProfilePage() {
                             </button>
                             <input type="file" ref={fileInputRef} className="hidden" onChange={handleAvatarChange} accept="image/*" />
                         </div>
-                        <p className="mt-4 text-sm font-bold text-gray-400">Tap to update your photo</p>
+                        <p className="mt-4 text-sm font-bold text-gray-400 dark:text-zinc-500">Tap to update your photo</p>
                     </div>
 
                     {/* FORM SECTION */}
@@ -235,59 +235,59 @@ export default function EditProfilePage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="bg-white rounded-[32px] p-6 md:p-8 shadow-xl shadow-gray-200/50 space-y-6 border border-gray-100"
+                        className="bg-white dark:bg-zinc-900 rounded-[32px] p-6 md:p-8 shadow-xl shadow-gray-200/50 dark:shadow-none space-y-6 border border-gray-100 dark:border-zinc-800"
                         onSubmit={handleSaveProfile}
                     >
                         <div className="grid grid-cols-2 gap-5">
                             <div className="space-y-2">
-                                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">First Name</label>
+                                <label className="text-[11px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider pl-1">First Name</label>
                                 <input
                                     type="text"
                                     value={userState.firstname}
                                     onChange={(e) => setUserState((prev) => ({ ...prev, firstname: e.target.value }))}
-                                    className="w-full bg-gray-50 rounded-2xl px-4 py-3.5 font-bold text-gray-900 outline-none focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all border border-transparent"
+                                    className="w-full bg-gray-50 dark:bg-zinc-800 rounded-2xl px-4 py-3.5 font-bold text-gray-900 dark:text-white outline-none focus:bg-white dark:focus:bg-zinc-700 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all border border-transparent dark:border-zinc-700 dark:placeholder-zinc-500"
                                     placeholder="First Name"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">Last Name</label>
+                                <label className="text-[11px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider pl-1">Last Name</label>
                                 <input
                                     type="text"
                                     value={userState.lastname}
                                     onChange={(e) => setUserState((prev) => ({ ...prev, lastname: e.target.value }))}
-                                    className="w-full bg-gray-50 rounded-2xl px-4 py-3.5 font-bold text-gray-900 outline-none focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all border border-transparent"
+                                    className="w-full bg-gray-50 dark:bg-zinc-800 rounded-2xl px-4 py-3.5 font-bold text-gray-900 dark:text-white outline-none focus:bg-white dark:focus:bg-zinc-700 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all border border-transparent dark:border-zinc-700 dark:placeholder-zinc-500"
                                     placeholder="Last Name"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">Phone Number</label>
+                            <label className="text-[11px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider pl-1">Phone Number</label>
                             <div className="relative">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500">
                                     <Phone size={18} />
                                 </div>
                                 <input
                                     type="text"
                                     value={userState.phone}
                                     onChange={(e) => setUserState((prev) => ({ ...prev, phone: e.target.value }))}
-                                    className="w-full bg-gray-50 rounded-2xl pl-12 pr-4 py-3.5 font-bold text-gray-900 outline-none focus:bg-white focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all border border-transparent"
+                                    className="w-full bg-gray-50 dark:bg-zinc-800 rounded-2xl pl-12 pr-4 py-3.5 font-bold text-gray-900 dark:text-white outline-none focus:bg-white dark:focus:bg-zinc-700 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all border border-transparent dark:border-zinc-700 dark:placeholder-zinc-500"
                                     placeholder="Enter phone number"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2 opacity-60">
-                            <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-1">Email <span className="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded text-gray-500">Read-only</span></label>
+                            <label className="text-[11px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wider pl-1">Email <span className="text-[10px] bg-gray-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-gray-500 dark:text-zinc-400">Read-only</span></label>
                             <div className="relative">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500">
                                     <Mail size={18} />
                                 </div>
                                 <input
                                     type="email"
                                     value={userState.email}
                                     disabled
-                                    className="w-full bg-gray-100/50 rounded-2xl pl-12 pr-4 py-3.5 font-bold text-gray-500 outline-none cursor-not-allowed border border-gray-100"
+                                    className="w-full bg-gray-100/50 dark:bg-zinc-800/50 rounded-2xl pl-12 pr-4 py-3.5 font-bold text-gray-500 dark:text-zinc-500 outline-none cursor-not-allowed border border-gray-100 dark:border-zinc-800"
                                 />
                             </div>
                         </div>
@@ -296,7 +296,7 @@ export default function EditProfilePage() {
                             <button
                                 type="button"
                                 onClick={() => router.back()}
-                                className="flex-1 py-4 rounded-[20px] font-bold text-gray-600 bg-gray-50 border border-transparent hover:bg-gray-100 transition-colors"
+                                className="flex-1 py-4 rounded-[20px] font-bold text-gray-600 dark:text-zinc-400 bg-gray-50 dark:bg-zinc-800 border border-transparent dark:border-zinc-700 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors"
                             >
                                 Cancel
                             </button>

@@ -159,7 +159,7 @@ function UserWalletContent() {
 
     if (isProfileLoading) {
         return (
-            <div className="bg-zinc-50 min-h-screen">
+            <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen">
                 <Header2 />
                 <div className="flex flex-col items-center justify-center h-[80vh]">
                     <Loader2 className="animate-spin text-orange-500" size={48} />
@@ -169,7 +169,7 @@ function UserWalletContent() {
     }
 
     return (
-        <div className="bg-zinc-50 min-h-screen font-sans pb-20">
+        <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen font-sans pb-20">
             <Header2 />
 
             <div className="max-w-4xl mx-auto md:px-6 px-4 py-8 space-y-8">
@@ -189,8 +189,8 @@ function UserWalletContent() {
                 {/* Header Section */}
                 <div className="flex justify-between items-end">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">My Wallet</h1>
-                        <p className="text-gray-500 text-sm mt-1 font-medium">Manage your balance & transactions</p>
+                        <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">My Wallet</h1>
+                        <p className="text-gray-500 dark:text-zinc-400 text-sm mt-1 font-medium">Manage your balance & transactions</p>
                     </div>
                 </div>
 
@@ -256,8 +256,8 @@ function UserWalletContent() {
                 {/* TRANSACTIONS SECTION */}
                 <div className="space-y-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-orange-600">
                                 <CreditCard size={16} />
                             </div>
                             Transactions
@@ -265,22 +265,22 @@ function UserWalletContent() {
 
                         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
                             {/* Filter Tabs */}
-                            <div className="flex p-1 bg-gray-200/50 rounded-xl">
+                            <div className="flex p-1 bg-gray-200/50 dark:bg-zinc-800 rounded-xl">
                                 <button
                                     onClick={() => setFilterType("ALL")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "ALL" ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"}`}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "ALL" ? "bg-white dark:bg-zinc-900 shadow-sm text-gray-900 dark:text-white" : "text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-white"}`}
                                 >
                                     All
                                 </button>
                                 <button
                                     onClick={() => setFilterType("CREDIT")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "CREDIT" ? "bg-white shadow-sm text-emerald-600" : "text-gray-500 hover:text-emerald-600"}`}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "CREDIT" ? "bg-white dark:bg-zinc-900 shadow-sm text-emerald-600" : "text-gray-500 dark:text-zinc-400 hover:text-emerald-600"}`}
                                 >
                                     Money In
                                 </button>
                                 <button
                                     onClick={() => setFilterType("DEBIT")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "DEBIT" ? "bg-white shadow-sm text-red-600" : "text-gray-500 hover:text-red-600"}`}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "DEBIT" ? "bg-white dark:bg-zinc-900 shadow-sm text-red-600" : "text-gray-500 dark:text-zinc-400 hover:text-red-600"}`}
                                 >
                                     Money Out
                                 </button>
@@ -294,7 +294,7 @@ function UserWalletContent() {
                                     placeholder="Search..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none w-32 focus:w-48 transition-all"
+                                    className="pl-9 pr-4 py-2 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none w-32 focus:w-48 transition-all dark:text-white dark:placeholder-zinc-500"
                                 />
                             </div>
                         </div>
@@ -303,26 +303,26 @@ function UserWalletContent() {
                     <div className="space-y-8">
                         {isLoading && !walletData ? (
                             <div className="space-y-4">
-                                {[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-100 rounded-2xl animate-pulse"></div>)}
+                                {[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-100 dark:bg-zinc-800 rounded-2xl animate-pulse"></div>)}
                             </div>
                         ) : Object.keys(groupedTransactions).length === 0 ? (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 bg-white rounded-[32px] border border-dashed border-gray-200">
-                                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4 relative">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-900 rounded-[32px] border border-dashed border-gray-200 dark:border-zinc-800">
+                                <div className="w-20 h-20 bg-gray-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4 relative">
                                     <div className="absolute inset-0 bg-orange-500/5 rounded-full animate-ping"></div>
-                                    <Search size={32} className="text-gray-300 relative z-10" />
+                                    <Search size={32} className="text-gray-300 dark:text-zinc-600 relative z-10" />
                                 </div>
-                                <h4 className="text-gray-900 font-bold text-lg">No transactions found</h4>
-                                <p className="text-gray-500 text-sm mt-1">Try adjusting your filters or search.</p>
+                                <h4 className="text-gray-900 dark:text-white font-bold text-lg">No transactions found</h4>
+                                <p className="text-gray-500 dark:text-zinc-400 text-sm mt-1">Try adjusting your filters or search.</p>
                             </motion.div>
                         ) : (
                             Object.entries(groupedTransactions).map(([dateLabel, txs]) => (
                                 <div key={dateLabel}>
-                                    <div className="sticky top-0 bg-zinc-50 z-[1] py-2 mb-2 flex items-center gap-4">
-                                        <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{dateLabel}</h4>
-                                        <div className="h-[1px] bg-gray-100 flex-1"></div>
+                                    <div className="sticky top-0 bg-zinc-50 dark:bg-zinc-950 z-[1] py-2 mb-2 flex items-center gap-4">
+                                        <h4 className="text-sm font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">{dateLabel}</h4>
+                                        <div className="h-[1px] bg-gray-100 dark:bg-zinc-800 flex-1"></div>
                                     </div>
 
-                                    <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden">
+                                    <div className="bg-white dark:bg-zinc-900 rounded-[24px] border border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden">
                                         {txs.map((tx, idx) => (
                                             <motion.div
                                                 initial={{ opacity: 0, x: -10 }}
@@ -330,7 +330,7 @@ function UserWalletContent() {
                                                 viewport={{ once: true }}
                                                 transition={{ delay: idx * 0.05 }}
                                                 key={tx._id}
-                                                className={`group p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:bg-gray-50 ${(idx !== txs.length - 1) ? "border-b border-gray-50" : ""}`}
+                                                className={`group p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800 ${(idx !== txs.length - 1) ? "border-b border-gray-50 dark:border-zinc-800" : ""}`}
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${tx.type === 'credit' || tx.type === 'deposit'
@@ -340,13 +340,13 @@ function UserWalletContent() {
                                                         {tx.type === 'credit' || tx.type === 'deposit' ? <TrendingUp size={20} strokeWidth={2.5} /> : <TrendingDown size={20} strokeWidth={2.5} />}
                                                     </div>
                                                     <div>
-                                                        <h5 className="font-bold text-gray-900 capitalize text-sm sm:text-base">
+                                                        <h5 className="font-bold text-gray-900 dark:text-white capitalize text-sm sm:text-base">
                                                             {tx.description || (tx.type === 'credit' ? 'Wallet Deposit' : 'Payment')}
                                                         </h5>
-                                                        <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
+                                                        <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
                                                             <span>{new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                            <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                                                            <span className="uppercase font-semibold tracking-wider text-[10px] bg-gray-100 px-1.5 py-0.5 rounded">{tx.type}</span>
+                                                            <span className="w-1 h-1 bg-gray-300 dark:bg-zinc-600 rounded-full"></span>
+                                                            <span className="uppercase font-semibold tracking-wider text-[10px] bg-gray-100 dark:bg-zinc-800 dark:text-zinc-400 px-1.5 py-0.5 rounded">{tx.type}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -457,9 +457,9 @@ function UserWalletContent() {
 export default function UserWalletPage() {
     return (
         <Suspense fallback={
-            <div className="bg-zinc-50 min-h-screen flex flex-col items-center justify-center">
+            <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen flex flex-col items-center justify-center">
                 <Loader2 className="animate-spin text-orange-500" size={48} />
-                <p className="mt-4 text-gray-500 font-medium">Loading wallet...</p>
+                <p className="mt-4 text-gray-500 dark:text-zinc-400 font-medium">Loading wallet...</p>
             </div>
         }>
             <UserWalletContent />
