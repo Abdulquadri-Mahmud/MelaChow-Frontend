@@ -34,7 +34,7 @@ export default function CustomerLayout({ children }) {
         return (
             <ProfileProvider>
                 <CartProvider>
-                    <div className="h-screen w-full bg-white dark:bg-slate-900" />
+                    <div className="h-screen w-full bg-white dark:bg-zinc-950" />
                 </CartProvider>
             </ProfileProvider>
         );

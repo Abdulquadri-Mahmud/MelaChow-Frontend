@@ -179,7 +179,7 @@ function UserWalletContent() {
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-2xl flex items-center gap-3 shadow-sm mb-6"
+                        className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400 p-4 rounded-2xl flex items-center gap-3 shadow-sm mb-6"
                     >
                         <Loader2 className="animate-spin" size={20} />
                         <span className="font-bold">Verifying transaction... Please wait.</span>
@@ -189,8 +189,8 @@ function UserWalletContent() {
                 {/* Header Section */}
                 <div className="flex justify-between items-end">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight">My Wallet</h1>
-                        <p className="text-gray-500 dark:text-zinc-400 text-sm mt-1 font-medium">Manage your balance & transactions</p>
+                        <h1 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">My Wallet</h1>
+                        <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1 font-medium">Manage your balance & transactions</p>
                     </div>
                 </div>
 
@@ -198,10 +198,10 @@ function UserWalletContent() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="relative overflow-hidden rounded-[40px] shadow-2xl transition-all hover:shadow-orange-500/10 group"
+                    className="relative overflow-hidden rounded-[40px] shadow-2xl transition-all hover:shadow-orange-500/10 group bg-zinc-900"
                 >
                     {/* Artistic Background Layer */}
-                    <div className="absolute inset-0 bg-gray-900">
+                    <div className="absolute inset-0">
                         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-600/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3"></div>
                         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-600/10 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/4"></div>
                         {/* Mesh grid pattern overlay */}
@@ -243,12 +243,12 @@ function UserWalletContent() {
 
                         <button
                             onClick={() => setShowFundModal(true)}
-                            className="group relative bg-white text-gray-900 px-8 py-4 rounded-3xl font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/10 flex items-center gap-3 overflow-hidden"
+                            className="group relative bg-white dark:bg-zinc-100 text-zinc-900 px-8 py-4 rounded-3xl font-bold text-lg hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/10 border border-transparent flex items-center gap-3 overflow-hidden"
                         >
                             <span className="relative z-10 flex items-center gap-2">
                                 <Plus size={20} className="stroke-[3px]" /> Fund Wallet
                             </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-white dark:from-white dark:to-zinc-200 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         </button>
                     </div>
                 </motion.div>
@@ -256,7 +256,7 @@ function UserWalletContent() {
                 {/* TRANSACTIONS SECTION */}
                 <div className="space-y-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <h3 className="text-xl font-bold text-zinc-900 dark:text-white flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-orange-600">
                                 <CreditCard size={16} />
                             </div>
@@ -265,22 +265,22 @@ function UserWalletContent() {
 
                         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
                             {/* Filter Tabs */}
-                            <div className="flex p-1 bg-gray-200/50 dark:bg-zinc-800 rounded-xl">
+                            <div className="flex p-1 bg-zinc-200/50 dark:bg-zinc-800/50 rounded-xl">
                                 <button
                                     onClick={() => setFilterType("ALL")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "ALL" ? "bg-white dark:bg-zinc-900 shadow-sm text-gray-900 dark:text-white" : "text-gray-500 dark:text-zinc-400 hover:text-gray-700 dark:hover:text-white"}`}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "ALL" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-white" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-white"}`}
                                 >
                                     All
                                 </button>
                                 <button
                                     onClick={() => setFilterType("CREDIT")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "CREDIT" ? "bg-white dark:bg-zinc-900 shadow-sm text-emerald-600" : "text-gray-500 dark:text-zinc-400 hover:text-emerald-600"}`}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "CREDIT" ? "bg-white dark:bg-zinc-700 shadow-sm text-emerald-600" : "text-zinc-500 dark:text-zinc-400 hover:text-emerald-600"}`}
                                 >
                                     Money In
                                 </button>
                                 <button
                                     onClick={() => setFilterType("DEBIT")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "DEBIT" ? "bg-white dark:bg-zinc-900 shadow-sm text-red-600" : "text-gray-500 dark:text-zinc-400 hover:text-red-600"}`}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "DEBIT" ? "bg-white dark:bg-zinc-700 shadow-sm text-red-600" : "text-zinc-500 dark:text-zinc-400 hover:text-red-600"}`}
                                 >
                                     Money Out
                                 </button>
@@ -288,13 +288,13 @@ function UserWalletContent() {
 
                             {/* Search */}
                             <div className="relative">
-                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
                                 <input
                                     type="text"
                                     placeholder="Search..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-4 py-2 bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none w-32 focus:w-48 transition-all dark:text-white dark:placeholder-zinc-500"
+                                    className="pl-9 pr-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none w-32 focus:w-48 transition-all dark:text-white dark:placeholder-zinc-500"
                                 />
                             </div>
                         </div>
@@ -303,26 +303,26 @@ function UserWalletContent() {
                     <div className="space-y-8">
                         {isLoading && !walletData ? (
                             <div className="space-y-4">
-                                {[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-100 dark:bg-zinc-800 rounded-2xl animate-pulse"></div>)}
+                                {[1, 2, 3].map(i => <div key={i} className="h-20 bg-zinc-100 dark:bg-zinc-800 rounded-2xl animate-pulse"></div>)}
                             </div>
                         ) : Object.keys(groupedTransactions).length === 0 ? (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-900 rounded-[32px] border border-dashed border-gray-200 dark:border-zinc-800">
-                                <div className="w-20 h-20 bg-gray-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4 relative">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-900 rounded-[32px] border border-dashed border-zinc-200 dark:border-zinc-800">
+                                <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4 relative">
                                     <div className="absolute inset-0 bg-orange-500/5 rounded-full animate-ping"></div>
-                                    <Search size={32} className="text-gray-300 dark:text-zinc-600 relative z-10" />
+                                    <Search size={32} className="text-zinc-300 dark:text-zinc-600 relative z-10" />
                                 </div>
-                                <h4 className="text-gray-900 dark:text-white font-bold text-lg">No transactions found</h4>
-                                <p className="text-gray-500 dark:text-zinc-400 text-sm mt-1">Try adjusting your filters or search.</p>
+                                <h4 className="text-zinc-900 dark:text-white font-bold text-lg">No transactions found</h4>
+                                <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Try adjusting your filters or search.</p>
                             </motion.div>
                         ) : (
                             Object.entries(groupedTransactions).map(([dateLabel, txs]) => (
                                 <div key={dateLabel}>
                                     <div className="sticky top-0 bg-zinc-50 dark:bg-zinc-950 z-[1] py-2 mb-2 flex items-center gap-4">
-                                        <h4 className="text-sm font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest">{dateLabel}</h4>
-                                        <div className="h-[1px] bg-gray-100 dark:bg-zinc-800 flex-1"></div>
+                                        <h4 className="text-sm font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">{dateLabel}</h4>
+                                        <div className="h-[1px] bg-zinc-100 dark:bg-zinc-800 flex-1"></div>
                                     </div>
 
-                                    <div className="bg-white dark:bg-zinc-900 rounded-[24px] border border-gray-100 dark:border-zinc-800 shadow-sm overflow-hidden">
+                                    <div className="bg-white dark:bg-zinc-900 rounded-[24px] border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden">
                                         {txs.map((tx, idx) => (
                                             <motion.div
                                                 initial={{ opacity: 0, x: -10 }}
@@ -330,40 +330,40 @@ function UserWalletContent() {
                                                 viewport={{ once: true }}
                                                 transition={{ delay: idx * 0.05 }}
                                                 key={tx._id}
-                                                className={`group p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-800 ${(idx !== txs.length - 1) ? "border-b border-gray-50 dark:border-zinc-800" : ""}`}
+                                                className={`group p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${(idx !== txs.length - 1) ? "border-b border-zinc-50 dark:border-zinc-800" : ""}`}
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${tx.type === 'credit' || tx.type === 'deposit'
-                                                        ? 'bg-emerald-50 text-emerald-500'
-                                                        : 'bg-red-50 text-red-500'
+                                                        ? 'bg-emerald-50 text-emerald-500 dark:bg-emerald-500/10'
+                                                        : 'bg-red-50 text-red-500 dark:bg-red-500/10'
                                                         }`}>
                                                         {tx.type === 'credit' || tx.type === 'deposit' ? <TrendingUp size={20} strokeWidth={2.5} /> : <TrendingDown size={20} strokeWidth={2.5} />}
                                                     </div>
                                                     <div>
-                                                        <h5 className="font-bold text-gray-900 dark:text-white capitalize text-sm sm:text-base">
+                                                        <h5 className="font-bold text-zinc-900 dark:text-white capitalize text-sm sm:text-base">
                                                             {tx.description || (tx.type === 'credit' ? 'Wallet Deposit' : 'Payment')}
                                                         </h5>
-                                                        <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-zinc-500 mt-0.5">
+                                                        <div className="flex items-center gap-2 text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
                                                             <span>{new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                            <span className="w-1 h-1 bg-gray-300 dark:bg-zinc-600 rounded-full"></span>
-                                                            <span className="uppercase font-semibold tracking-wider text-[10px] bg-gray-100 dark:bg-zinc-800 dark:text-zinc-400 px-1.5 py-0.5 rounded">{tx.type}</span>
+                                                            <span className="w-1 h-1 bg-zinc-300 dark:bg-zinc-600 rounded-full"></span>
+                                                            <span className="uppercase font-semibold tracking-wider text-[10px] bg-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 px-1.5 py-0.5 rounded">{tx.type}</span>
                                                         </div>
                                                     </div>
                                                 </div>
 
                                                 <div className="text-right pl-16 sm:pl-0 flex items-center justify-between sm:block">
-                                                    <span className="sm:hidden text-xs font-bold text-gray-400">Amount</span>
+                                                    <span className="sm:hidden text-xs font-bold text-zinc-400">Amount</span>
                                                     <div>
                                                         <p className={`text-base sm:text-lg font-black tabular-nums ${tx.status === 'success'
-                                                            ? (tx.type === 'credit' || tx.type === 'deposit' ? 'text-emerald-500' : 'text-gray-900')
+                                                            ? (tx.type === 'credit' || tx.type === 'deposit' ? 'text-emerald-500' : 'text-zinc-900 dark:text-white')
                                                             : 'text-amber-500'
                                                             }`}>
                                                             {tx.type === 'credit' || tx.type === 'deposit' ? '+' : '-'}
                                                             {formatCurrency(tx.amount)}
                                                         </p>
                                                         <div className="flex justify-end mt-1">
-                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1 ${tx.status === 'success' ? 'bg-emerald-100/50 text-emerald-700' :
-                                                                tx.status === 'failed' ? 'bg-red-100/50 text-red-700' : 'bg-amber-100/50 text-amber-700'
+                                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1 ${tx.status === 'success' ? 'bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                                                                tx.status === 'failed' ? 'bg-red-100/50 text-red-700 dark:bg-red-500/20 dark:text-red-400' : 'bg-amber-100/50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
                                                                 }`}>
                                                                 {tx.status === 'success' && <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>}
                                                                 {tx.status}
@@ -393,39 +393,39 @@ function UserWalletContent() {
                                 initial={{ opacity: 0, scale: 0.9, x: "-50%", y: "-45%" }}
                                 animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
                                 exit={{ opacity: 0, scale: 0.9, x: "-50%", y: "-45%" }}
-                                className="fixed top-1/2  w-full max-w-md h-fit bg-white rounded-[32px] overflow-hidden shadow-2xl z-50 border border-gray-100"
+                                className="fixed top-1/2  w-full max-w-md h-fit bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-2xl z-50 border border-zinc-100 dark:border-zinc-800"
                                 style={{ margin: 0, width: "95%" }} // Ensure width constraint on mobile
                             >
-                                <div className="relative bg-black p-6">
+                                <div className="relative bg-zinc-950 p-6">
                                     <div className="absolute top-0 right-0 p-24 bg-orange-600/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
                                     <button onClick={() => setShowFundModal(false)} className="absolute top-5 right-5 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition"><X size={18} /></button>
                                     <h3 className="text-2xl font-black text-white relative z-10">Fund Wallet</h3>
-                                    <p className="text-gray-400 text-sm mt-1 relative z-10">Add funds securely via Paystack</p>
+                                    <p className="text-zinc-400 text-sm mt-1 relative z-10">Add funds securely via Paystack</p>
                                 </div>
 
                                 <div className="p-6">
                                     <div className="mb-6">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Enter Amount</label>
+                                        <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Enter Amount</label>
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl font-bold">₦</span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-xl font-bold">₦</span>
                                             <input
                                                 type="number"
                                                 value={amount}
                                                 onChange={(e) => setAmount(e.target.value)}
                                                 placeholder="0.00"
-                                                className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-10 pr-4 py-4 font-black text-3xl text-gray-900 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all appearance-none"
+                                                className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl pl-10 pr-4 py-4 font-black text-3xl text-zinc-900 dark:text-white outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all appearance-none"
                                             />
                                         </div>
                                     </div>
 
                                     <div className="mb-8">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Quick Select</label>
+                                        <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-3">Quick Select</label>
                                         <div className="flex flex-wrap gap-2">
                                             {PRESET_AMOUNTS.map(amt => (
                                                 <button
                                                     key={amt}
                                                     onClick={() => setAmount(amt)}
-                                                    className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-600 hover:border-orange-500 hover:text-orange-600 hover:bg-orange-50 active:scale-95 transition-all shadow-sm"
+                                                    className="px-4 py-2 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:border-orange-500 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 active:scale-95 transition-all shadow-sm"
                                                 >
                                                     ₦{amt.toLocaleString()}
                                                 </button>
@@ -436,7 +436,7 @@ function UserWalletContent() {
                                     <button
                                         onClick={handleFundWallet}
                                         disabled={isFunding}
-                                        className="w-full py-4 bg-black text-white font-bold text-lg rounded-2xl hover:bg-gray-900 hover:shadow-xl hover:shadow-black/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                        className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-lg rounded-2xl hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-xl hover:shadow-black/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
                                         {isFunding ? (
                                             <Loader2 className="animate-spin" size={24} />
@@ -459,7 +459,7 @@ export default function UserWalletPage() {
         <Suspense fallback={
             <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen flex flex-col items-center justify-center">
                 <Loader2 className="animate-spin text-orange-500" size={48} />
-                <p className="mt-4 text-gray-500 dark:text-zinc-400 font-medium">Loading wallet...</p>
+                <p className="mt-4 text-zinc-500 dark:text-zinc-400 font-medium">Loading wallet...</p>
             </div>
         }>
             <UserWalletContent />

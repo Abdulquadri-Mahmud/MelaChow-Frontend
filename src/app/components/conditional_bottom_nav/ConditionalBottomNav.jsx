@@ -23,6 +23,7 @@ export default function ConditionalBottomNav() {
     "/vendors/auth",
     "/admin/auth",
     "/search",
+    "/all-restaurants",
     "/restaurants",
   ];
 

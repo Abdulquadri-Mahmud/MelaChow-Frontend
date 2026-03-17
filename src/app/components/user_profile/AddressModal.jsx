@@ -36,7 +36,7 @@ export default function AddressModal({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white dark:bg-slate-900 shadow-2xl border border-transparent dark:border-slate-800"
+          className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 shadow-2xl border border-transparent dark:border-zinc-800"
         >
           {/* Header */}
           <div className="bg-orange-500 p-6 text-white text-center">
@@ -60,9 +60,9 @@ export default function AddressModal({
           <div className="p-6 space-y-4">
             <div className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 dark:text-slate-500 uppercase tracking-wider ml-1">Address Line</label>
+                <label className="text-xs font-semibold text-gray-500 dark:text-zinc-500 uppercase tracking-wider ml-1">Address Line</label>
                 <div className="relative">
-                  <HomeIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
+                  <HomeIcon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
                   <input
                     type="text"
                     placeholder="House No, Street, Area"
@@ -70,39 +70,39 @@ export default function AddressModal({
                     onChange={(e) =>
                       setAddress({ ...address, addressLine: e.target.value })
                     }
-                    className="w-full bg-gray-50 dark:bg-slate-800 border-gray-100 dark:border-slate-700 border focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-gray-900 dark:text-slate-100 outline-none transition-all focus:ring-4 focus:ring-orange-500/10"
+                    className="w-full bg-gray-50 dark:bg-zinc-800 border-gray-100 dark:border-zinc-700 border focus:border-orange-500 focus:bg-white dark:focus:bg-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm text-gray-900 dark:text-zinc-100 outline-none transition-all focus:ring-4 focus:ring-orange-500/10"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-500 dark:text-slate-500 uppercase tracking-wider ml-1">City</label>
+                  <label className="text-xs font-semibold text-gray-500 dark:text-zinc-500 uppercase tracking-wider ml-1">City</label>
                   <div className="relative">
-                    <BuildingOffice2Icon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500" />
+                    <BuildingOffice2Icon className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
                     <input
                       type="text"
                       placeholder="City"
                       value={address.city}
                       onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                      className="w-full bg-gray-50 dark:bg-slate-800 border-gray-100 dark:border-slate-700 border focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 rounded-xl py-3 pl-10 pr-4 text-sm text-gray-900 dark:text-slate-100 outline-none transition-all focus:ring-4 focus:ring-orange-500/10"
+                      className="w-full bg-gray-50 dark:bg-zinc-800 border-gray-100 dark:border-zinc-700 border focus:border-orange-500 focus:bg-white dark:focus:bg-zinc-800 rounded-xl py-3 pl-10 pr-4 text-sm text-gray-900 dark:text-zinc-100 outline-none transition-all focus:ring-4 focus:ring-orange-500/10"
                     />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-500 dark:text-slate-500 uppercase tracking-wider ml-1">State</label>
+                  <label className="text-xs font-semibold text-gray-500 dark:text-zinc-500 uppercase tracking-wider ml-1">State</label>
                   <input
                     type="text"
                     placeholder="State"
                     value={address.state}
                     onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                    className="w-full bg-gray-50 dark:bg-slate-800 border-gray-100 dark:border-slate-700 border focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 rounded-xl py-3 px-4 text-sm text-gray-900 dark:text-slate-100 outline-none transition-all focus:ring-4 focus:ring-orange-500/10"
+                    className="w-full bg-gray-50 dark:bg-zinc-800 border-gray-100 dark:border-zinc-700 border focus:border-orange-500 focus:bg-white dark:focus:bg-zinc-800 rounded-xl py-3 px-4 text-sm text-gray-900 dark:text-zinc-100 outline-none transition-all focus:ring-4 focus:ring-orange-500/10"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-500 dark:text-slate-500 uppercase tracking-wider ml-1">Postal Code</label>
+               <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-500 dark:text-zinc-500 uppercase tracking-wider ml-1">Postal Code</label>
                 <input
                   type="text"
                   placeholder="Postal Code"
@@ -110,15 +110,15 @@ export default function AddressModal({
                   onChange={(e) =>
                     setAddress({ ...address, postalCode: e.target.value })
                   }
-                  className="w-full bg-gray-50 dark:bg-slate-800 border-gray-100 dark:border-slate-700 border focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 rounded-xl py-3 px-4 text-sm text-gray-900 dark:text-slate-100 outline-none transition-all focus:ring-4 focus:ring-orange-500/10"
+                  className="w-full bg-gray-50 dark:bg-zinc-800 border-gray-100 dark:border-zinc-700 border focus:border-orange-500 focus:bg-white dark:focus:bg-zinc-800 rounded-xl py-3 px-4 text-sm text-gray-900 dark:text-zinc-100 outline-none transition-all focus:ring-4 focus:ring-orange-500/10"
                 />
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
-              <button
+               <button
                 onClick={() => setIsModalOpen(false)}
-                className="flex-1 py-3 px-4 rounded-xl text-gray-500 dark:text-slate-400 font-semibold hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                className="flex-1 py-3 px-4 rounded-xl text-gray-500 dark:text-zinc-400 font-semibold hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
               >
                 Cancel
               </button>

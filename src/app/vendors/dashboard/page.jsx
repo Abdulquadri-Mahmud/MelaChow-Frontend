@@ -32,7 +32,9 @@ export default function VendorDashboard() {
 
   const vendorId = vendorDetails?.vendor?.id || vendorDetails?._id || vendorDetails?.id;
   const { data: menuData, isLoading: isMenuLoading } = useVendorMenu(vendorId);
-  const foods = menuData?.data || menuData || [];
+  
+  const rawFoods = menuData?.data || menuData?.items || menuData || [];
+  const foods = Array.isArray(rawFoods) ? rawFoods : [];
 
   useEffect(() => {
     const fetchData = async () => {

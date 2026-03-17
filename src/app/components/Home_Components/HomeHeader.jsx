@@ -60,7 +60,7 @@ export default function HomeHeader() {
                 onClick={handleLocationClick}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex flex-col cursor-pointer group px-3 py-1.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                className="flex flex-col cursor-pointer group px-3 py-1.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
               >
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <span className="text-[10px] font-black uppercase text-orange-500 tracking-widest italic opacity-80">
@@ -92,7 +92,7 @@ export default function HomeHeader() {
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="relative p-2.5 bg-gray-100 dark:bg-slate-800 rounded-2xl hover:bg-orange-50 dark:hover:bg-slate-700 transition-all border border-transparent hover:border-orange-200 dark:hover:border-slate-700"
+                  className="relative p-2.5 bg-gray-100 dark:bg-zinc-800 rounded-2xl hover:bg-orange-50 dark:hover:bg-zinc-700 transition-all border border-transparent hover:border-orange-200 dark:hover:border-zinc-700"
                 >
                   <ShoppingBag className="text-gray-700 dark:text-gray-200" size={20} />
                   <AnimatePresence>
@@ -101,7 +101,7 @@ export default function HomeHeader() {
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         exit={{ scale: 0 }}
-                        className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-black ring-2 ring-white dark:ring-slate-900"
+                        className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-black ring-2 ring-white dark:ring-zinc-900"
                       >
                         {totalItems}
                       </motion.span>

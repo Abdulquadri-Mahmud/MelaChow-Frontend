@@ -39,10 +39,10 @@ export default function ProfilePage() {
   // Show login prompt if fetch fails (401 etc) or no data
   if (isError) {
     return (
-      <div className="bg-zinc-50 dark:bg-slate-950 min-h-screen font-display text-[#181410]">
+      <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen font-display text-[#181410]">
         <Header2 />
         <div className="p-4 max-w-md mx-auto">
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-[2.5rem] mt-10 border border-gray-100 dark:border-slate-800 shadow-xl">
+          <div className="bg-white dark:bg-zinc-900 p-6 rounded-[2.5rem] mt-10 border border-zinc-100 dark:border-zinc-800 shadow-xl">
             <div className="w-full flex justify-center items-center mb-5">
               <img
                 src="/logo.png"
@@ -53,7 +53,7 @@ export default function ProfilePage() {
             <h2 className="text-2xl font-semibold text-orange-500 mb-2 text-center">
               Welcome to GrubDash!
             </h2>
-            <p className="text-center text-gray-600 dark:text-slate-400 mb-6">
+            <p className="text-center text-zinc-600 dark:text-zinc-400 mb-6">
               Please log in to view and manage your profile.
             </p>
             <Link href="/get-help">
@@ -65,8 +65,8 @@ export default function ProfilePage() {
                     </div>
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 dark:text-white">FAQs & Support</h3>
-                    <p className="text-xs text-gray-500 dark:text-slate-500 font-medium">
+                    <h3 className="font-bold text-zinc-900 dark:text-white">FAQs & Support</h3>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
                       Get support or send feedback
                     </p>
                   </div>
@@ -88,15 +88,15 @@ export default function ProfilePage() {
   // Show loading if query is in progress or userData is not yet available
   if (isLoading || !userData) {
     return (
-      <div className="bg-zinc-50 dark:bg-slate-950 min-h-screen">
+      <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen">
         <Header2 />
         <div className="flex flex-col items-center justify-center py-20">
           <div className="animate-pulse flex flex-col gap-3 items-center">
-            <div className="w-24 h-24 bg-gray-300 dark:bg-slate-800 rounded-full" />
-            <div className="w-40 h-5 bg-gray-300 dark:bg-slate-800 rounded-md" />
-            <div className="w-52 h-4 bg-gray-200 dark:bg-slate-800 rounded-md" />
+            <div className="w-24 h-24 bg-zinc-300 dark:bg-zinc-800 rounded-full" />
+            <div className="w-40 h-5 bg-zinc-300 dark:bg-zinc-800 rounded-md" />
+            <div className="w-52 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-md" />
           </div>
-          <p className="text-gray-500 dark:text-slate-400 mt-6">Loading your profile...</p>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-6">Loading your profile...</p>
         </div>
       </div>
     );
@@ -105,7 +105,7 @@ export default function ProfilePage() {
   // Show user profile once data is ready
   return (
     <ProtectedRoute>
-      <div className="bg-zinc-50 dark:bg-slate-950 min-h-screen font-display text-[#181410] dark:text-white">
+      <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen font-display text-[#181410] dark:text-white">
         {/* <Header2 /> */}
         <div className="">
           <User_Profile

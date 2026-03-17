@@ -225,18 +225,18 @@ export default function AddressPage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-100 dark:border-slate-800 px-4 py-4 flex items-center gap-4">
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-gray-100 dark:border-zinc-800 px-4 py-4 flex items-center gap-4">
         <motion.button
           whileHover={{ x: -2 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => router.back()}
-          className="p-3 rounded-2xl bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+          className="p-3 rounded-2xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
         >
           <ArrowLeft size={18} />
         </motion.button>
         <div>
           <h1 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">Delivery Locations</h1>
-          <p className="text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide">Manage your addresses</p>
+          <p className="text-[11px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wide">Manage your addresses</p>
         </div>
       </header>
 
@@ -391,7 +391,7 @@ export default function AddressPage() {
                           value={selectedStateId}
                           onChange={handleStateChange}
                           required
-                          className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 focus:border-orange-500 rounded-xl p-3.5 text-sm font-semibold text-gray-900 dark:text-white outline-none transition-all appearance-none cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
+                          className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 focus:border-orange-500 rounded-xl p-3.5 text-sm font-semibold text-gray-900 dark:text-white outline-none transition-all appearance-none cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
                         >
                           <option value="">Select State</option>
                           {locations.map(loc => (
@@ -412,7 +412,7 @@ export default function AddressPage() {
                           disabled={!selectedStateId}
                           onChange={e => setSelectedCityId(e.target.value)}
                           required
-                          className="w-full bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 focus:border-orange-500 rounded-xl p-3.5 text-sm font-semibold text-gray-900 dark:text-white outline-none transition-all appearance-none disabled:bg-gray-50 dark:disabled:bg-slate-800/50 disabled:text-gray-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
+                          className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 focus:border-orange-500 rounded-xl p-3.5 text-sm font-semibold text-gray-900 dark:text-white outline-none transition-all appearance-none disabled:bg-gray-50 dark:disabled:bg-zinc-800/50 disabled:text-gray-400 dark:disabled:text-zinc-600 disabled:cursor-not-allowed cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
                         >
                           <option value="">
                             {!selectedStateId ? "Select state first" : "Select City"}
@@ -493,14 +493,14 @@ export default function AddressPage() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white dark:bg-slate-900 rounded-[32px] p-8 w-full max-w-sm text-center relative z-10 shadow-2xl"
+              className="bg-white dark:bg-zinc-900 rounded-[32px] p-8 w-full max-w-sm text-center relative z-10 shadow-2xl"
             >
               <div className="mx-auto w-20 h-20 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center mb-6 relative">
                 <div className="absolute inset-0 bg-red-200/50 dark:bg-red-500/20 rounded-full animate-ping opacity-20"></div>
                 <Trash2 className="text-red-500" size={32} />
               </div>
               <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Delete Address?</h3>
-              <p className="text-sm font-medium text-gray-400 dark:text-slate-500 mb-8 px-2">
+              <p className="text-sm font-medium text-gray-400 dark:text-zinc-500 mb-8 px-2">
                 Are you sure you want to remove this delivery location? This action cannot be undone.
               </p>
 
@@ -513,7 +513,7 @@ export default function AddressPage() {
                 </button>
                 <button
                   onClick={() => setShowDeleteModal(false)}
-                  className="bg-white dark:bg-slate-800 text-gray-900 dark:text-white py-4 rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-slate-700 transition-all border border-gray-100 dark:border-slate-700"
+                  className="bg-white dark:bg-zinc-800 text-gray-900 dark:text-white py-4 rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all border border-gray-100 dark:border-zinc-700"
                 >
                   Cancel
                 </button>

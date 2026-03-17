@@ -13,14 +13,16 @@ import axios from "axios";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
 const Skeleton = () => (
-    <div className="flex flex-col gap-3 rounded-[32px] bg-white dark:bg-zinc-900 p-2 shadow-sm border border-zinc-50 dark:border-zinc-800">
-        <div className="relative h-44 w-full overflow-hidden rounded-[28px] bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+    <div className="flex flex-col gap-3 rounded-[32px] bg-white dark:bg-zinc-900 p-2 shadow-sm border border-zinc-100 dark:border-zinc-800">
+        <div className="relative h-44 w-full overflow-hidden rounded-[28px] bg-zinc-200 dark:bg-zinc-800 animate-pulse">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
+        </div>
         <div className="p-3 space-y-3">
             <div className="flex justify-between">
-                <div className="h-5 w-40 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
-                <div className="h-8 w-8 bg-zinc-50 dark:bg-zinc-800 rounded-xl animate-pulse" />
+                <div className="h-5 w-40 bg-zinc-200 dark:bg-zinc-800 rounded-lg animate-pulse" />
+                <div className="h-8 w-8 bg-zinc-100 dark:bg-zinc-800 rounded-xl animate-pulse" />
             </div>
-            <div className="h-4 w-24 bg-zinc-50 dark:bg-zinc-800 rounded animate-pulse" />
+            <div className="h-4 w-24 bg-zinc-100 dark:bg-zinc-800 rounded-lg animate-pulse" />
         </div>
     </div>
 );
@@ -204,7 +206,7 @@ export default function AllFoods() {
                                 <div
                                     key={food._id}
                                     onClick={() => router.push(`/food-details/${food._id}`)}
-                                    className="bg-white dark:bg-zinc-900 rounded-xl border border-transparent shadow-sm hover:shadow-xl hover:shadow-zinc-200/40 dark:hover:shadow-none hover:border-orange-600/10 transition-all cursor-pointer group hover:-translate-y-1 active:scale-[0.98]"
+                                    className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100/50 dark:border-zinc-800 shadow-sm hover:shadow-2xl hover:shadow-zinc-200/40 dark:hover:shadow-none hover:border-orange-600/10 transition-all duration-500 cursor-pointer group hover:-translate-y-1 active:scale-[0.98]"
                                 >
                                     {/* Image Section */}
                                     <div className="relative w-full h-32 rounded-xl overflow-hidden flex-shrink-0">
