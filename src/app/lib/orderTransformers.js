@@ -114,20 +114,26 @@ export const transformCartItemToV2 = (cartItem) => {
 
   // Regular food item
   return {
-    type:         "item",                         // ← explicit literal
-    foodId:       cartItem.foodId,
-    portionId:    cartItem.portionId              // ← camelCase, NOT portion_id
-               || cartItem.portion_id,            //   fallback from old key
-    restaurantId: cartItem.vendorId               // ← rename vendorId → restaurantId
-               || cartItem.restaurantId,
-    quantity:     Number(cartItem.quantity),
-    note:         cartItem.note || "",
+    type:             "item",                         // ← explicit literal
+    foodId:           cartItem.foodId,
+    portionId:        cartItem.portionId              // ← camelCase, NOT portion_id
+                   || cartItem.portion_id,            //   fallback from old key
+    restaurantId:     cartItem.vendorId               // ← rename vendorId → restaurantId
+                   || cartItem.restaurantId,
+    quantity:         Number(cartItem.quantity),
+    portion_quantity: Number(cartItem.portion_quantity) || 1,
+    portion_label:    cartItem.portion_label || "",
+    storeName:        cartItem.storeName     || "",
+    name:             cartItem.name          || "",
+    image_url:        cartItem.image_url     || "",
+    note:             cartItem.note          || "",
 
     selected_options: (cartItem.selected_options || []).map(opt => ({
       group_id:             opt.group_id,
       option_id:            opt.option_id,
       label:                opt.label,
       price_modifier_naira: opt.price_modifier_naira || 0,
+      quantity:             opt.quantity || 1,
     })),
   };
 };

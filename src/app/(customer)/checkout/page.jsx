@@ -277,10 +277,6 @@ export default function CheckoutPage() {
         orderPayload.discountCode = couponCode;
       }
 
-      console.log("------------------- ORDER PAYLOAD -------------------");
-      console.log(JSON.stringify(orderPayload, null, 2));
-      console.log("-----------------------------------------------------");
-
       // 6. Create order using V2 API
       setProcessingStep("preparing");
       const response = await createOrderV2(orderPayload);
