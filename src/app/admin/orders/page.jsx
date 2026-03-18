@@ -280,7 +280,7 @@ export default function AdminOrdersPage() {
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="space-y-8">
+                <div className="space-y-3">
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div>
@@ -290,7 +290,7 @@ export default function AdminOrdersPage() {
                         <button
                             onClick={handleRefresh}
                             disabled={loading || statsLoading}
-                            className="h-14 px-8 bg-white border border-gray-200 rounded-[20px] font-black text-xs uppercase tracking-widest text-slate-900 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 flex items-center gap-3 shadow-sm disabled:opacity-50"
+                            className="h-14 px-8 bg-white border border-gray-200 rounded-[20px] font-black text-xs uppercase tracking-widest text-slate-900 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50"
                         >
                             <RotateCcw size={18} className={(loading || statsLoading) ? "animate-spin" : ""} />
                             {loading || statsLoading ? "Syncing..." : "Refresh Data"}
@@ -298,7 +298,7 @@ export default function AdminOrdersPage() {
                     </div>
 
                     {/* Stats Row */}
-                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
                         <StatCard
                             icon={ShoppingBag}
                             label="Total Orders"
@@ -330,8 +330,8 @@ export default function AdminOrdersPage() {
                     </div>
 
                     {/* Operational & Payment Breakdowns */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="bg-white p-8 rounded-[40px] border border-gray-100">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                        <div className="bg-white p-4 rounded-[10px] border border-gray-100">
                             <h3 className="text-[11px] font-black uppercase text-gray-400 tracking-[0.2em] mb-6 flex items-center gap-2">
                                 <Clock size={14} className="text-orange-500" /> Operational Status
                             </h3>
@@ -345,12 +345,12 @@ export default function AdminOrdersPage() {
                             </div>
                         </div>
 
-                        <div className="bg-white p-8 rounded-[40px] border border-gray-100">
+                        <div className="bg-white p-4 rounded-[10px] border border-gray-100">
                             <h3 className="text-[11px] font-black uppercase text-gray-400 tracking-[0.2em] mb-6 flex items-center gap-2">
                                 <CreditCard size={14} className="text-emerald-500" /> Payment Summary
                             </h3>
                             <div className="flex gap-4">
-                                <div className="flex-1 bg-emerald-50/50 p-5 rounded-3xl border border-emerald-100 flex justify-between items-center">
+                                <div className="flex-1 bg-emerald-50/50 p-2 rounded-md border border-emerald-100 flex justify-between items-center">
                                     <div>
                                         <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Paid</p>
                                         <h4 className="text-2xl font-black text-emerald-700">{stats?.ordersByPaymentStatus?.paid || 0}</h4>
@@ -359,7 +359,7 @@ export default function AdminOrdersPage() {
                                         <CheckCircle2 size={24} />
                                     </div>
                                 </div>
-                                <div className="flex-1 bg-amber-50/50 p-5 rounded-3xl border border-amber-100 flex justify-between items-center">
+                                <div className="flex-1 bg-amber-50/50 p-2 rounded-md border border-amber-100 flex justify-between items-center">
                                     <div>
                                         <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Pending</p>
                                         <h4 className="text-2xl font-black text-amber-700">{stats?.ordersByPaymentStatus?.pending || 0}</h4>
@@ -373,7 +373,7 @@ export default function AdminOrdersPage() {
                     </div>
 
                     {/* Delivery Management Tabs */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-[32px] border border-gray-100">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-[10px] border border-gray-100">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 border border-blue-100">
                                 <Truck size={20} />
@@ -383,7 +383,7 @@ export default function AdminOrdersPage() {
                             </div>
                         </div>
 
-                        <div className="flex p-1.5 bg-slate-50 rounded-[20px] border border-slate-100 w-fit">
+                        <div className="flex p-1.5 bg-slate-50 rounded-[10px] border border-slate-100 w-fit">
                             {[
                                 { id: "", label: "All Logistics", icon: ShoppingBag },
                                 { id: "platform_managed", label: "Platform Managed", icon: Shield },
@@ -395,7 +395,7 @@ export default function AdminOrdersPage() {
                                         setFilters(f => ({ ...f, deliveryType: tab.id }));
                                         setPagination(p => ({ ...p, page: 1 }));
                                     }}
-                                    className={`h-11 px-6 rounded-2xl flex items-center gap-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${filters.deliveryType === tab.id
+                                    className={`h-11 px-4 rounded-2xl flex items-center gap-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${filters.deliveryType === tab.id
                                         ? "bg-white text-slate-900 border border-slate-100"
                                         : "text-slate-400 hover:text-slate-600 hover:bg-white/50"
                                         }`}
@@ -409,7 +409,7 @@ export default function AdminOrdersPage() {
 
                     {/* Filters Row */}
                     <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-2">
                             <div className="relative xl:col-span-2">
                                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                                 <input
@@ -681,14 +681,14 @@ export default function AdminOrdersPage() {
                                         key={order._id}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="bg-white rounded-[32px] border border-gray-200 overflow-hidden transition-all duration-500 group relative"
+                                        className="bg-white rounded-[10px] border border-gray-200 overflow-hidden transition-all duration-500 group relative"
                                     >
                                         {/* Status Ribbon */}
                                         <div className={`absolute top-0 right-0 px-6 py-2 rounded-bl-3xl ${status?.color || 'bg-slate-100 text-slate-600'} text-[10px] font-black uppercase tracking-widest z-10 border-b border-l border-white/20`}>
                                             {status?.label || order.status}
                                         </div>
 
-                                        <div className="p-8">
+                                        <div className="p-4">
                                             {/* Header: Order ID & Date */}
                                             <div className="flex items-start justify-between mb-8">
                                                 <div>
