@@ -28,6 +28,7 @@ export const SocketProvider = ({ children }) => {
     // Guard: ensures socket event listeners are registered only once per
     // socket instance, not on every reconnection attempt from the interval
     const listenersRegistered = useRef(false);
+    const authFailed = useRef(false);
 
     // Determine role based on path
     const getRoleFromPath = (path) => {
@@ -77,280 +78,191 @@ export const SocketProvider = ({ children }) => {
         // Function to handle connection
         const connect = async () => {
             const token = TokenManager.getToken(role);
-            if (token) {
-                socketService.connect(token);
+            
+            // If we already know auth failed for this specific token, don't keep hammering the server
+            if (authFailed.current || !token) return;
 
-                // Fetch initial unread count
-                await fetchUnreadCount();
+            socketService.connect(token);
 
-                // Only register listeners once — prevent stacking on reconnect attempts
-                if (listenersRegistered.current) {
-                    setIsConnected(true);
-                    return;
-                }
-                listenersRegistered.current = true;
+            // Fetch initial unread count
+            await fetchUnreadCount();
 
-                // Set up basic listeners
-                socketService.onNewNotification((notification) => {
-                    setLatestNotification(notification);
-                    if (!notification.read) {
-                        setUnreadCount(prev => prev + 1);
-                    }
-                    // Dispatch custom event for notifications list update
-                    window.dispatchEvent(new CustomEvent('notifications:updated', { detail: notification }));
-                });
+            // Only register listeners once — prevent stacking on reconnect attempts
+            if (listenersRegistered.current) {
+                return;
+            }
+            listenersRegistered.current = true;
 
-                socketService.onNotificationCountUpdate((data) => {
-                    setUnreadCount(data.count);
-                });
-
-                socketService.onNewOrder((order) => {
-                    if (role === 'vendor') {
-                        console.log('🆕 New order received via socket:', order);
-
-                        const newOrderNotification = {
-                            _id: `order-${order._id || Date.now()}`,
-                            title: '🔔 New Order Received!',
-                            body: `Order #${order.orderNumber || order._id?.slice(-6)} · ${order.customerName || 'Customer'} · ${order.deliveryAddress?.address || ''}`,
-                            type: 'vendor_new_order',
-                            orderId: order._id,
-                            url: `/vendors/orders/${order._id}`,
-                            createdAt: new Date().toISOString(),
-                            read: false,
-                            customerName: order.customerName,
-                            location: order.deliveryAddress?.address
-                        };
-
-                        setLatestNotification(newOrderNotification);
-                        setUnreadCount(prev => prev + 1);
-                        window.dispatchEvent(new CustomEvent('notifications:updated', { detail: newOrderNotification }));
-
-                        // Premium vendor new order toast — distinct from standard notification toasts
-                        toast.custom((t) => (
-                            <div
-                                className={`bg-white dark:bg-slate-900 shadow-2xl rounded-2xl p-4 flex items-start gap-4 w-full max-w-sm border-l-4 border-orange-500 cursor-pointer ${t.visible ? 'animate-in slide-in-from-right-full' : 'animate-out fade-out'}`}
-                                onClick={() => {
-                                    window.location.href = `/vendors/orders/${order._id}`;
-                                    toast.dismiss(t.id);
-                                }}
-                            >
-                                <div className="flex-shrink-0 w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md shadow-orange-200">
-                                    🔔
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-black text-sm text-slate-900 dark:text-white uppercase italic tracking-tight">
-                                        New Order!
-                                    </p>
-                                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 truncate">
-                                        #{order.orderNumber || order._id?.slice(-6)} · {order.customerName || 'Customer'}
-                                    </p>
-                                    <button className="mt-2 text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors">
-                                        View Order →
-                                    </button>
-                                </div>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); toast.dismiss(t.id); }}
-                                    className="text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0 text-xs"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        ), {
-                            duration: 15000,
-                            position: 'top-right',
-                            id: `new-order-${order._id}`
-                        });
-
-                        // Play alert sound for new orders
-                        try {
-                            const audio = new Audio('/sounds/notification.mp3');
-                            audio.volume = 0.6;
-                            audio.play().catch(() => { });
-                        } catch (e) { }
-                    }
-                });
-
-                // Handle missed notifications delivered on reconnect
-                socketService.onMissedNotifications(({ notifications: missed, count }) => {
-                    if (role === 'vendor' && missed?.length > 0) {
-                        console.log(`📬 ${count} missed notification(s) received on reconnect`);
-
-                        // Batch dispatch all missed notifications to the notification state
-                        missed.forEach(notification => {
-                            window.dispatchEvent(new CustomEvent('notifications:updated', {
-                                detail: notification
-                            }));
-                        });
-
-                        // Update unread count by the number of missed notifications
-                        setUnreadCount(prev => prev + count);
-
-                        // Show a single summary toast — not one per notification (avoid toast spam)
-                        toast.custom((t) => (
-                            <div
-                                className={`bg-white dark:bg-slate-900 shadow-2xl rounded-2xl p-4 flex items-start gap-4 w-full max-w-sm border-l-4 border-amber-500 cursor-pointer ${t.visible ? 'animate-in slide-in-from-right-full' : 'animate-out fade-out'}`}
-                                onClick={() => {
-                                    window.location.href = '/vendors/notifications';
-                                    toast.dismiss(t.id);
-                                }}
-                            >
-                                <div className="flex-shrink-0 w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-xl">
-                                    📬
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-black text-sm text-slate-900 dark:text-white uppercase italic tracking-tight">
-                                        {count} Missed {count === 1 ? 'Notification' : 'Notifications'}
-                                    </p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                        Updates arrived while you were away
-                                    </p>
-                                    <button className="mt-2 text-xs font-bold text-amber-500 hover:text-amber-600 transition-colors">
-                                        Review All →
-                                    </button>
-                                </div>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); toast.dismiss(t.id); }}
-                                    className="text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0 text-xs"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        ), {
-                            duration: 10000,
-                            position: 'top-right',
-                            id: 'missed-notifications-summary'
-                        });
-                    }
-                });
-
-                // Admin rider assignment alert
-                // Fired when a platform-managed vendor marks order ready_for_pickup
-                if (role === 'admin') {
-                  socketService.socket?.on('rider_assignment_needed', (data) => {
-                    console.log('🚨 Rider assignment needed:', data);
-                    
-                    setRiderAssignmentAlert(data);
+            // Set up basic listeners
+            socketService.onNewNotification((notification) => {
+                setLatestNotification(notification);
+                if (!notification.read) {
                     setUnreadCount(prev => prev + 1);
+                }
+                // Dispatch custom event for notifications list update
+                window.dispatchEvent(new CustomEvent('notifications:updated', { detail: notification }));
+            });
 
-                    // Dispatch to notification manager
-                    window.dispatchEvent(new CustomEvent('notifications:updated', {
-                      detail: {
-                        _id: `rider-alert-${data.vendorOrderId || Date.now()}`,
-                        title: '🚨 Rider Assignment Required',
-                        body: `${data.restaurantName || 'A restaurant'} has an order ready for pickup. Assign a rider now.`,
-                        type: 'rider_assignment_needed',
-                        url: `/admin/orders/${data.vendorOrderId}`,
+            socketService.onNotificationCountUpdate((data) => {
+                setUnreadCount(data.count);
+            });
+
+            // Handle connection state changes
+            socketService.socket?.on('connect', () => {
+                console.log('✅ Socket.IO status: Connected');
+                setIsConnected(true);
+                authFailed.current = false; // Reset on success
+            });
+            
+            socketService.socket?.on('disconnect', (reason) => {
+                console.log('🔴 Socket.IO status: Disconnected', reason);
+                setIsConnected(false);
+            });
+            
+            socketService.socket?.on('connect_error', (error) => {
+                setIsConnected(false);
+                if (error.message === 'Authentication failed') {
+                    console.error('🛑 Socket.IO Error: Persistent authentication failure. Stopping retries until refresh.');
+                    authFailed.current = true;
+                }
+            });
+
+            socketService.onNewOrder((order) => {
+                if (role === 'vendor') {
+                    console.log('🆕 New order received via socket:', order);
+
+                    const newOrderNotification = {
+                        _id: `order-${order._id || Date.now()}`,
+                        title: '🔔 New Order Received!',
+                        body: `Order #${order.orderNumber || order._id?.slice(-6)} · ${order.customerName || 'Customer'} · ${order.deliveryAddress?.address || ''}`,
+                        type: 'vendor_new_order',
+                        orderId: order._id,
+                        url: `/vendors/orders/${order._id}`,
                         createdAt: new Date().toISOString(),
                         read: false,
-                        ...data
-                      }
-                    }));
+                        customerName: order.customerName,
+                        location: order.deliveryAddress?.address
+                    };
 
-                    // High-urgency toast with assign action
+                    setLatestNotification(newOrderNotification);
+                    setUnreadCount(prev => prev + 1);
+                    window.dispatchEvent(new CustomEvent('notifications:updated', { detail: newOrderNotification }));
+
+                    // Premium vendor new order toast
                     toast.custom((t) => (
-                      <div
-                        className={`bg-white shadow-2xl rounded-2xl p-4 flex items-start gap-4 
-                          w-full max-w-sm border-l-4 border-red-500 cursor-pointer
-                          ${t.visible ? 'animate-in slide-in-from-right-full' : 'animate-out fade-out'}`}
-                        onClick={() => {
-                          window.dispatchEvent(new CustomEvent(
-                            'admin:open_rider_assignment', 
-                            { detail: data }
-                          ));
-                          toast.dismiss(t.id);
-                        }}
-                      >
-                        <div className="flex-shrink-0 w-10 h-10 bg-red-50 rounded-xl 
-                          flex items-center justify-center text-xl border border-red-100">
-                          🚨
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-black text-sm text-slate-900 uppercase 
-                            italic tracking-tight">
-                            Rider Assignment Required!
-                          </p>
-                          <p className="text-xs text-slate-600 mt-0.5 truncate">
-                            {data.restaurantName || 'Restaurant'} — order ready for pickup
-                          </p>
-                          <button className="mt-2 text-xs font-bold text-red-500 
-                            hover:text-red-600 transition-colors">
-                            Assign Rider Now →
-                          </button>
-                        </div>
-                        <button
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            toast.dismiss(t.id); 
-                          }}
-                          className="text-slate-300 hover:text-slate-500 
-                            transition-colors flex-shrink-0 text-xs"
+                        <div
+                            className={`bg-white dark:bg-slate-900 shadow-2xl rounded-2xl p-4 flex items-start gap-4 w-full max-w-sm border-l-4 border-orange-500 cursor-pointer ${t.visible ? 'animate-in slide-in-from-right-full' : 'animate-out fade-out'}`}
+                            onClick={() => {
+                                window.location.href = `/vendors/orders/${order._id}`;
+                                toast.dismiss(t.id);
+                            }}
                         >
-                          ✕
-                        </button>
-                      </div>
+                            <div className="flex-shrink-0 w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md shadow-orange-200">
+                                🔔
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-black text-sm text-slate-900 dark:text-white uppercase italic tracking-tight">
+                                    New Order!
+                                </p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 truncate">
+                                    #{order.orderNumber || order._id?.slice(-6)} · {order.customerName || 'Customer'}
+                                </p>
+                                <button className="mt-2 text-xs font-bold text-orange-500 hover:text-orange-600 transition-colors">
+                                    View Order →
+                                </button>
+                            </div>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); toast.dismiss(t.id); }}
+                                className="text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0 text-xs"
+                            >
+                                ✕
+                            </button>
+                        </div>
                     ), {
-                      duration: 30000, // 30s — high urgency, stays longer
-                      position: 'top-right',
-                      id: `rider-assignment-${data.vendorOrderId}`
+                        duration: 15000,
+                        position: 'top-right',
+                        id: `new-order-${order._id}`
                     });
-                  });
+
+                    // Play alert sound
+                    try {
+                        const audio = new Audio('/sounds/notification.mp3');
+                        audio.volume = 0.6;
+                        audio.play().catch(() => { });
+                    } catch (e) { }
                 }
+            });
 
-                // Rider specific event
-                const handleAssignment = (data) => {
-                    if (role === 'rider') {
-                        console.log('🛵 Order assigned to rider:', data);
-                        const assignmentNotification = {
-                            _id: `assign-${Date.now()}`,
-                            title: 'New Job Assigned!',
-                            body: `You have a new pickup at ${data.vendorName || data.restaurantName || 'the restaurant'}`,
-                            type: 'order_assigned',
-                            orderId: data.orderId,
-                            data: data,
+            // Missed notifications handler
+            socketService.onMissedNotifications(({ notifications: missed, count }) => {
+                if (role === 'vendor' && missed?.length > 0) {
+                    missed.forEach(notification => {
+                        window.dispatchEvent(new CustomEvent('notifications:updated', { detail: notification }));
+                    });
+                    setUnreadCount(prev => prev + count);
+                    toast.success(`${count} missed updates received while away.`, { id: 'missed-notifications-summary' });
+                }
+            });
+
+            // Admin rider assignment alert
+            if (role === 'admin') {
+                socketService.socket?.on('rider_assignment_needed', (data) => {
+                    console.log('🚨 Rider assignment needed:', data);
+                    setRiderAssignmentAlert(data);
+                    setUnreadCount(prev => prev + 1);
+                    window.dispatchEvent(new CustomEvent('notifications:updated', {
+                        detail: {
+                            _id: `rider-alert-${data.vendorOrderId || Date.now()}`,
+                            title: '🚨 Rider Assignment Required',
+                            body: `${data.restaurantName || 'A restaurant'} has an order ready for pickup.`,
+                            type: 'rider_assignment_needed',
+                            url: `/admin/orders/${data.vendorOrderId}`,
                             createdAt: new Date().toISOString(),
-                            read: false
-                        };
-                        setLatestNotification(assignmentNotification);
-                        setUnreadCount(prev => prev + 1);
-                        window.dispatchEvent(new CustomEvent('notifications:updated', { detail: assignmentNotification }));
-
-                        // Play native notification sound
-                        try {
-                            const audio = new Audio('/sounds/notification.mp3');
-                            audio.play().catch(e => console.log('Audio play prevented by browser', e));
-                        } catch (e) { }
-
-                        // Toast from Socket Context
-                        import('react-hot-toast').then(({ default: toast }) => {
-                            toast.success('New Order Assigned! 🛵', { duration: 8000 });
-                        });
-
-                        // Also trigger a global event for the rider dashboard to react
-                        window.dispatchEvent(new CustomEvent('rider:new_assignment', { detail: data }));
-                    }
-                };
-
-                socketService.onOrderAssigned(handleAssignment);
-                socketService.socket?.on('ORDER_ASSIGNED_TO_RIDER', handleAssignment);
-
-                setIsConnected(true);
-
-                // Listen for connection state changes to update context state immediately
-                socketService.socket?.on('connect', () => setIsConnected(true));
-                socketService.socket?.on('disconnect', () => setIsConnected(false));
+                            read: false,
+                            ...data
+                        }
+                    }));
+                });
             }
+
+            // Rider assignment event
+            const handleAssignment = (data) => {
+                if (role === 'rider') {
+                    console.log('🛵 Order assigned to rider:', data);
+                    const assignmentNotification = {
+                        _id: `assign-${Date.now()}`,
+                        title: 'New Job Assigned!',
+                        body: `You have a new pickup at ${data.vendorName || data.restaurantName || 'the restaurant'}`,
+                        type: 'order_assigned',
+                        orderId: data.orderId,
+                        data: data,
+                        createdAt: new Date().toISOString(),
+                        read: false
+                    };
+                    setLatestNotification(assignmentNotification);
+                    setUnreadCount(prev => prev + 1);
+                    toast.success('New Order Assigned! 🛵', { duration: 8000 });
+                    window.dispatchEvent(new CustomEvent('notifications:updated', { detail: assignmentNotification }));
+                    window.dispatchEvent(new CustomEvent('rider:new_assignment', { detail: data }));
+                }
+            };
+
+            socketService.onOrderAssigned(handleAssignment);
+            socketService.socket?.on('ORDER_ASSIGNED_TO_RIDER', handleAssignment);
         };
 
+        // Reset and connect
+        authFailed.current = false;
         connect();
 
         const interval = setInterval(() => {
             const status = socketService.getConnectionStatus();
             setIsConnected(status.isConnected);
 
-            if (!status.isConnected && TokenManager.getToken(role)) {
+            if (!status.isConnected && !authFailed.current && TokenManager.getToken(role)) {
                 connect();
             }
-        }, 5000);
+        }, 10000);
 
         return () => {
             clearInterval(interval);

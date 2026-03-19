@@ -11,21 +11,39 @@ class SocketService {
      * @param {string} token - JWT authentication token
      */
     connect(token) {
-        if (this.socket?.connected) {
-            console.log('[Socket.IO] Already connected');
-            return this.socket;
+        if (this.socket) {
+            if (this.socket.connected) {
+                console.log('[Socket.IO] Already connected');
+                return this.socket;
+            }
+            // If we have a socket but token changed, we should disconnect and reconnect
+            const currentToken = this.socket.auth?.token;
+            if (currentToken === token) {
+                console.log('[Socket.IO] Connection already in progress or exists');
+                return this.socket;
+            }
+            
+            console.log('[Socket.IO] Token changed, reconnecting...');
+            this.socket.disconnect();
+            this.socket = null;
         }
 
         const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com';
 
+        console.log('[Socket.IO] Initializing new connection to:', SOCKET_URL);
+        
         this.socket = io(SOCKET_URL, {
             auth: {
                 token: token
             },
-            transports: ['polling', 'websocket'],
+            // Force websocket-first for better performance and to avoid 
+            // instance-stickiness issues (400 Bad Request) on Render/Vercel
+            transports: ['websocket'],
             reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionAttempts: 10
+            reconnectionDelay: 2000,
+            reconnectionDelayMax: 10000,
+            reconnectionAttempts: 20, // Increase attempts for mobile/flaky connections
+            timeout: 20000
         });
 
         this.setupEventListeners();
