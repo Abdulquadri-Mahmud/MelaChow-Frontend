@@ -29,7 +29,7 @@ export default function RiderDashboard() {
         try {
             const data = await getActiveRiderOrder(riderId);
 
-            console.log(data);
+            // console.log(data);
 
             const order = data?.data?.order || data?.order || (data?._id ? data : null);
             setActiveOrder(order);
@@ -43,7 +43,7 @@ export default function RiderDashboard() {
         }
     };
 
-    console.log(activeOrder);
+    // console.log(activeOrder);
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
@@ -226,16 +226,16 @@ export default function RiderDashboard() {
                         className="relative overflow-hidden group"
                     >
                         {/* Premium Background with Glow */}
-                        <div className="absolute inset-0 bg-green-50/50 dark:bg-gradient-to-br dark:from-emerald-800 dark:to-green-950 rounded-[20px] border border-green-100 dark:border-white/5 shadow-sm dark:shadow-none transition-all" />
-                        <div className="absolute -right-20 -top-20 w-64 h-64 bg-green-200/20 dark:bg-white/10 rounded-full blur-3xl opacity-50 transition-all" />
-                        <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-emerald-100/20 dark:bg-green-300/10 rounded-full blur-3xl opacity-30 transition-all" />
+                        <div className="absolute inset-0 bg-orange-50/50 dark:bg-gradient-to-br dark:from-orange-800 dark:to-orange-950 rounded-[20px] border border-orange-100 dark:border-white/5 shadow-sm dark:shadow-none transition-all" />
+                        <div className="absolute -right-20 -top-20 w-64 h-64 bg-orange-200/20 dark:bg-white/10 rounded-full blur-3xl opacity-50 transition-all" />
+                        <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-orange-100/20 dark:bg-orange-300/10 rounded-full blur-3xl opacity-30 transition-all" />
 
                         <div className="relative z-10 md:p-6 p-3 md:p-8">
                             {/* Header Section */}
                             <div className="flex justify-between items-start mb-8">
                                 <div className="space-y-1">
-                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-white/20 backdrop-blur-md rounded-full border border-green-200 dark:border-white/20 text-[10px] font-black uppercase tracking-widest text-green-700 dark:text-white">
-                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping" />
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-100 dark:bg-white/20 backdrop-blur-md rounded-full border border-orange-200 dark:border-white/20 text-[10px] font-black uppercase tracking-widest text-orange-700 dark:text-white">
+                                        <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-ping" />
                                         Live Job
                                     </div>
                                     <h2 className="text-3xl font-black text-gray-900 dark:text-white leading-tight">
@@ -246,7 +246,7 @@ export default function RiderDashboard() {
                                         Order #{String(activeOrder.orderId || activeOrder._id || "").toUpperCase().slice(-8)}
                                     </p>
                                 </div>
-                                <div className="w-14 h-14 rounded-2xl bg-green-600 dark:bg-white/10 backdrop-blur-md border border-green-500 dark:border-white/10 flex items-center justify-center shadow-lg shadow-green-500/20">
+                                <div className="w-14 h-14 rounded-2xl bg-orange-600 dark:bg-white/10 backdrop-blur-md border border-orange-500 dark:border-white/10 flex items-center justify-center shadow-lg shadow-orange-500/20">
                                     <Bike size={32} className="text-white animate-pulse" />
                                 </div>
                             </div>
@@ -254,15 +254,15 @@ export default function RiderDashboard() {
                             {/* Route Visualization */}
                             <div className="relative space-y-8 mb-8">
                                 {/* Vertical Path Line */}
-                                <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-green-200 dark:bg-white/20 border-dashed border-l" />
+                                <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-orange-200 dark:bg-white/20 border-dashed border-l" />
 
                                 {/* Pickup */}
                                 <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 z-10 border border-green-100 dark:border-white/20 shadow-sm">
-                                        <Package size={20} className="text-green-600 dark:text-white" />
+                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 z-10 border border-orange-100 dark:border-white/20 shadow-sm">
+                                        <Package size={20} className="text-orange-600 dark:text-white" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <div className="text-[10px] font-black text-green-600/60 dark:text-white/50 uppercase tracking-widest mb-0.5">Pickup Point</div>
+                                        <div className="text-[10px] font-black text-orange-600/60 dark:text-white/50 uppercase tracking-widest mb-0.5">Pickup Point</div>
                                         <h4 className="text-gray-900 dark:text-white font-black text-base truncate">
                                             {activeOrder.restaurantName || activeOrder.restaurantId?.storeName || activeOrder.restaurantId?.name || "Restaurant"}
                                         </h4>
@@ -276,11 +276,11 @@ export default function RiderDashboard() {
 
                                 {/* Drop-off */}
                                 <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-green-600 dark:bg-white flex items-center justify-center shrink-0 z-10 shadow-lg shadow-green-600/20">
-                                        <MapPin size={20} className="text-white dark:text-emerald-600" />
+                                    <div className="w-10 h-10 rounded-xl bg-orange-600 dark:bg-white flex items-center justify-center shrink-0 z-10 shadow-lg shadow-orange-600/20">
+                                        <MapPin size={20} className="text-white dark:text-orange-600" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <div className="text-[10px] font-black text-green-600/60 dark:text-white/50 uppercase tracking-widest mb-0.5">Delivery Point</div>
+                                        <div className="text-[10px] font-black text-orange-600/60 dark:text-white/50 uppercase tracking-widest mb-0.5">Delivery Point</div>
                                         <h4 className="text-gray-900 dark:text-white font-black text-base truncate">
                                             {activeOrder.userName || (activeOrder.userId?.firstname ? `${activeOrder.userId.firstname} ${activeOrder.userId.lastname || ''}` : "Customer")}
                                         </h4>
@@ -297,10 +297,10 @@ export default function RiderDashboard() {
                             </div>
 
                             {/* Customer & Call Section */}
-                            <div className="bg-white dark:bg-white/10 backdrop-blur-sm rounded-3xl p-4 mb-8 flex items-center justify-between border border-green-100 dark:border-white/5 shadow-sm">
+                            <div className="bg-white dark:bg-white/10 backdrop-blur-sm rounded-3xl p-4 mb-8 flex items-center justify-between border border-orange-100 dark:border-white/5 shadow-sm">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-emerald-500/20 flex items-center justify-center">
-                                        <Star size={18} className="text-green-600 dark:text-emerald-300" />
+                                    <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center">
+                                        <Star size={18} className="text-orange-600 dark:text-orange-300" />
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-black text-gray-400 dark:text-white/40 uppercase tracking-widest leading-none mb-1">Customer</p>
@@ -312,7 +312,7 @@ export default function RiderDashboard() {
 
                                 <a
                                     href={`tel:${activeOrder.userPhone || activeOrder.userId?.phone || activeOrder.userOrderId?.phone || ''}`}
-                                    className="h-10 px-4 rounded-xl bg-green-600 dark:bg-white text-white dark:text-emerald-700 flex items-center gap-2 font-black text-xs hover:bg-green-700 dark:hover:bg-emerald-50 transition-colors shadow-lg active:scale-95"
+                                    className="h-10 px-4 rounded-xl bg-orange-600 dark:bg-white text-white dark:text-orange-700 flex items-center gap-2 font-black text-xs hover:bg-orange-700 dark:hover:bg-orange-50 transition-colors shadow-lg active:scale-95"
                                 >
                                     <Phone size={14} />
                                     CALL
@@ -331,7 +331,7 @@ export default function RiderDashboard() {
                                         </button>
                                         <button
                                             onClick={() => handleAction("accept")}
-                                            className="h-16 rounded-2xl bg-green-600 dark:bg-white text-white dark:text-emerald-700 flex items-center justify-center font-black text-sm shadow-xl shadow-green-500/20 transition-all active:scale-95"
+                                            className="h-16 rounded-2xl bg-orange-600 dark:bg-white text-white dark:text-orange-700 flex items-center justify-center font-black text-sm shadow-xl shadow-orange-500/20 transition-all active:scale-95"
                                         >
                                             <CheckCircle2 size={20} className="mr-2" />
                                             ACCEPT
@@ -343,13 +343,13 @@ export default function RiderDashboard() {
                                             onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(activeOrder.deliveryAddress?.address || activeOrder.userOrderId?.deliveryAddress?.addressLine)}`)}
                                             className="h-16 rounded-2xl bg-white dark:bg-white/10 hover:bg-gray-50 dark:hover:bg-white/20 text-gray-900 dark:text-white font-black text-sm flex items-center justify-center transition-all border border-gray-200 dark:border-white/10 shadow-sm"
                                         >
-                                            <Navigation size={20} className="mr-2 text-green-600 dark:text-emerald-300" />
+                                            <Navigation size={20} className="mr-2 text-orange-600 dark:text-orange-300" />
                                             OPEN MAPS
                                         </button>
                                         {activeOrder.orderStatus === "rider_assigned" || activeOrder.status === "assigned" ? (
                                             <button
                                                 onClick={() => handleAction("pickup")}
-                                                className="h-16 rounded-2xl bg-green-600 dark:bg-white text-white dark:text-emerald-700 flex items-center justify-center font-black text-sm shadow-xl shadow-green-500/20 transition-all active:scale-95"
+                                                className="h-16 rounded-2xl bg-orange-600 dark:bg-white text-white dark:text-orange-700 flex items-center justify-center font-black text-sm shadow-xl shadow-orange-500/20 transition-all active:scale-95"
                                             >
                                                 <Package size={20} className="mr-2" />
                                                 PICKED UP
@@ -357,7 +357,7 @@ export default function RiderDashboard() {
                                         ) : (
                                             <button
                                                 onClick={() => handleAction("deliver")}
-                                                className="h-16 rounded-2xl bg-green-600 dark:bg-green-400 text-white dark:text-emerald-900 flex items-center justify-center font-black text-sm shadow-xl shadow-green-500/20 transition-all active:scale-95"
+                                                className="h-16 rounded-2xl bg-orange-600 dark:bg-orange-400 text-white dark:text-orange-900 flex items-center justify-center font-black text-sm shadow-xl shadow-orange-500/20 transition-all active:scale-95"
                                             >
                                                 <CheckCircle2 size={20} className="mr-2" />
                                                 DELIVERED
