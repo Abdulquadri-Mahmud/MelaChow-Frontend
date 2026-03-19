@@ -90,7 +90,11 @@ export default function OrderTracking() {
     // Listen for real-time status updates
     onStatusUpdate((data) => {
       console.log('🔄 Real-time status update:', data.status);
-      setOrderData(prev => prev ? { ...prev, orderStatus: data.status } : null);
+      setOrderData(prev => prev ? { 
+        ...prev, 
+        orderStatus: data.status,
+        riderId: data.rider || prev.riderId // Update rider if provided
+      } : null);
 
       // Optionally show a toast
       const statusLabel = statusSteps.find(s => s.key === data.status)?.label || data.status;
@@ -329,37 +333,50 @@ export default function OrderTracking() {
           {/* Rider & Bag Detailed Card */}
           <div className="grid grid-cols-1 md:grid-cols-1 gap-3">
 
-            {/* Rider Information Section */}
-            {currentStepIndex >= 2 && (
+            {/* Rider Information Section - Real data from backend */}
+            {(orderData.riderId || currentStepIndex >= 4) && (
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-orange-600 rounded-[40px] p-3 text-white relative overflow-hidden"
+                className="bg-orange-600 rounded-[40px] p-4 text-white relative overflow-hidden"
               >
                 {/* Decorative Pattern */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-12 translate-x-12 blur-2xl" />
 
                 <div className="flex items-center gap-5 relative z-10">
                   <div className="w-16 h-16 rounded-[24px] overflow-hidden border-2 border-white/30 p-1 bg-white/10 backdrop-blur-md">
-                    <img src="/rider-placeholder.jpg" alt="Rider" className="w-full h-full object-cover rounded-[20px]" />
+                    <img 
+                      src={orderData.riderId?.avatar || "/rider-placeholder.jpg"} 
+                      alt="Rider" 
+                      className="w-full h-full object-cover rounded-[20px]" 
+                    />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-black italic tracking-tight leading-tight">Abdulsalam Mahmud</h3>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mt-1">Professional Rider • Yamaha R1</p>
+                    <h3 className="text-lg font-black italic tracking-tight leading-tight">
+                      {orderData.riderId?.name || "Assigning Rider..."}
+                    </h3>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mt-1">
+                      Professional Rider {orderData.riderId?.phone && `• ${orderData.riderId.phone}`}
+                    </p>
                     <div className="flex items-center gap-3 mt-3">
                       <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg">
                         <Star size={10} className="fill-white" />
-                        <span className="text-[10px] font-black">4.98</span>
+                        <span className="text-[10px] font-black">{orderData.riderId?.rating || "5.0"}</span>
                       </div>
                       <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg">
-                        <span className="text-[10px] font-black uppercase">500+ Trips</span>
+                        <span className="text-[10px] font-black uppercase">
+                          {orderData.riderId?.totalDeliveries || 0}+ Trips
+                        </span>
                       </div>
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <button className="p-4 bg-white text-orange-600 rounded-2xl shadow-xl hover:scale-105 transition-transform">
-                      <Clock size={24} strokeWidth={2.5} />
-                    </button>
+                    <a 
+                      href={`tel:${orderData.riderId?.phone}`}
+                      className="p-4 bg-white text-orange-600 rounded-2xl shadow-xl hover:scale-105 transition-transform"
+                    >
+                      <Phone size={24} strokeWidth={2.5} />
+                    </a>
                   </div>
                 </div>
               </motion.div>

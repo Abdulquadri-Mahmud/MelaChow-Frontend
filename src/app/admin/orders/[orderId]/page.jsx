@@ -190,10 +190,20 @@ export default function OrderDetailsPage() {
 
     const currentStatus = statusConfig[order.orderStatus || order.status] || { color: "text-slate-500", bg: "bg-slate-50", label: order.orderStatus };
 
-    // Calculate Vendor Earnings & Platform Commission
-    const platformCommission = order.financialSummary?.totalCommission || 0;
+    // Calculate Financials
     const subtotal = order.financialSummary?.subtotal || order.subtotal || 0;
-    const vendorEarnings = subtotal - platformCommission;
+    const deliveryFee = order.financialSummary?.totalDeliveryFee || order.deliveryFee || 0;
+    
+    // Platform Revenue = Sale Commission + 20% Delivery Fee (if platform managed)
+    const saleCommission = order.financialSummary?.totalCommission || 0;
+    const deliveryCommission = order.deliveryType === "platform_managed" ? (deliveryFee * 0.2) : 0;
+    const totalPlatformRevenue = saleCommission + deliveryCommission;
+    
+    // Vendor Gross Earnings = Subtotal - Sale Commission
+    const vendorEarnings = subtotal - saleCommission;
+    
+    // Rider Share = 80% of Delivery Fee (if platform managed)
+    const riderShare = order.deliveryType === "platform_managed" ? (deliveryFee * 0.8) : deliveryFee;
 
     return (
         <AdminProtectedRoute>
@@ -250,33 +260,64 @@ export default function OrderDetailsPage() {
                             <ContentCard title="Order Basket" icon={ShoppingBag}>
                                 <div className="space-y-5">
                                     {order.items.map((item, idx) => (
-                                        <div key={idx} className="flex gap-4 group">
-                                            <div className="w-16 h-16 rounded-2xl bg-slate-50 overflow-hidden relative border border-slate-100 flex-shrink-0 shadow-sm">
-                                                <img
-                                                    src={item.variant?.image || item.foodId?.image || order.items[0]?.restaurantId?.logo}
-                                                    alt=""
-                                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                                />
-                                                <div className="absolute -top-1 -right-1 bg-slate-900 text-white w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black border-2 border-white shadow-md">
-                                                    {item.quantity}
+                                        <div key={idx} className="bg-slate-50/50 rounded-3xl p-4 border border-slate-100 group transition-all hover:bg-white hover:shadow-sm">
+                                            <div className="flex gap-4">
+                                                <div className="w-16 h-16 rounded-2xl bg-white overflow-hidden relative border border-slate-100 flex-shrink-0 shadow-sm">
+                                                    <img
+                                                        src={item.image_url || item.foodId?.image || order.items[0]?.restaurantId?.logo}
+                                                        alt=""
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                    />
+                                                    <div className="absolute -top-1 -right-1 bg-slate-900 text-white w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black border-2 border-white shadow-md">
+                                                        {item.quantity}
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-black text-slate-900 text-sm tracking-tight truncate">
+                                                        {item.name || item.foodId?.name}
+                                                    </h4>
+                                                    <div className="flex flex-wrap gap-2 mt-1.5">
+                                                        {item.portion_label && (
+                                                            <span className="text-[9px] font-black uppercase text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-100">
+                                                                {item.portion_label} {item.portion_quantity > 1 ? `(x${item.portion_quantity})` : ''}
+                                                            </span>
+                                                        )}
+                                                        {item.item_type && (
+                                                            <span className="text-[8px] font-bold uppercase text-slate-400 tracking-widest border border-slate-200 px-1.5 py-0.5 rounded bg-white">
+                                                                {item.item_type}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    {/* Selected Options */}
+                                                    {item.selected_options?.length > 0 && (
+                                                        <div className="mt-3 space-y-1.5">
+                                                            {item.selected_options.map((opt, oIdx) => (
+                                                                <div key={oIdx} className="flex items-center justify-between text-[10px]">
+                                                                    <span className="font-bold text-slate-500 flex items-center gap-1.5 capitalize">
+                                                                        <div className="w-1 h-1 rounded-full bg-slate-300" />
+                                                                        {opt.label} {opt.quantity > 1 ? `(x${opt.quantity})` : ''}
+                                                                    </span>
+                                                                    {opt.price_modifier_naira > 0 && (
+                                                                        <span className="text-slate-400 font-medium">+₦{opt.price_modifier_naira}</span>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-sm font-black text-slate-900 tracking-tighter">₦{(item.price * item.quantity).toLocaleString()}</p>
+                                                    <p className="text-[9px] font-bold text-slate-300 uppercase mt-1">
+                                                        ₦{item.price.toLocaleString()} unit
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <div className="flex-1 min-w-0 pt-1">
-                                                <h4 className="font-black text-slate-900 text-sm tracking-tight truncate mb-1">
-                                                    {item.foodId?.name}
-                                                </h4>
-                                                <p className="text-[10px] font-bold text-orange-600 uppercase tracking-widest mb-1 italic">
-                                                    {item.restaurantId?.storeName}
-                                                </p>
-                                                {item.variantName && (
-                                                    <span className="text-[9px] font-black uppercase text-slate-400 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-100">
-                                                        {item.variantName}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div className="pt-1 text-right">
-                                                <p className="text-sm font-black text-slate-900 tracking-tighter">₦{(item.price * item.quantity).toLocaleString()}</p>
-                                            </div>
+                                            {item.note && (
+                                                <div className="mt-3 pl-4 border-l-2 border-orange-200">
+                                                    <p className="text-[10px] font-medium text-slate-500 italic">Note: {item.note}</p>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -416,7 +457,7 @@ export default function OrderDetailsPage() {
 
                         {/* COLUMN 3: FINANCIAL SETTLEMENT */}
                         <div className="space-y-8">
-                            <ContentCard title="Financial Settlement" icon={Wallet} className="border-slate-900 shadow-2xl shadow-slate-200">
+                            <ContentCard title="Financial Settlement" icon={Wallet} className="border-slate-200 shadow-2xl shadow-slate-200">
                                 <div className="space-y-5">
                                     <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
                                         <div className="flex items-center gap-3">
@@ -459,18 +500,28 @@ export default function OrderDetailsPage() {
                                     <div className="grid grid-cols-1 gap-4 mt-4">
                                         <div className="p-5 bg-orange-50 rounded-[32px] border border-orange-100 group relative overflow-hidden">
                                             <div className="absolute top-0 right-0 w-16 h-16 bg-orange-500/5 rounded-full translate-x-4 -translate-y-4" />
-                                            <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1.5 leading-none">Platform Commission</p>
+                                            <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1.5 leading-none">Total Platform Revenue</p>
                                             <div className="flex items-center justify-between">
-                                                <h4 className="text-2xl font-black text-orange-700 tracking-tighter">₦{platformCommission?.toLocaleString()}</h4>
+                                                <h4 className="text-2xl font-black text-orange-700 tracking-tighter">₦{totalPlatformRevenue?.toLocaleString()}</h4>
                                                 <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-orange-100 flex items-center justify-center text-orange-500"><Percent size={18} /></div>
                                             </div>
+                                            <div className="mt-2 flex items-center gap-4 text-[9px] font-bold uppercase tracking-widest text-orange-600/60">
+                                                <span>Sale: ₦{saleCommission.toLocaleString()}</span>
+                                                {deliveryCommission > 0 && <span>Logistics: ₦{deliveryCommission.toLocaleString()}</span>}
+                                            </div>
                                         </div>
-                                        <div className="p-5 bg-slate-50 rounded-[32px] border border-slate-100 group relative overflow-hidden">
-                                            <div className="absolute top-0 right-0 w-16 h-16 bg-slate-500/5 rounded-full translate-x-4 -translate-y-4" />
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 leading-none">Vendor Gross Earnings</p>
-                                            <div className="flex items-center justify-between">
-                                                <h4 className="text-2xl font-black text-slate-900 tracking-tighter">₦{vendorEarnings?.toLocaleString()}</h4>
-                                                <div className="w-10 h-10 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-emerald-500 transition-colors"><Store size={18} /></div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="p-5 bg-slate-50 rounded-[32px] border border-slate-100 group relative overflow-hidden">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 leading-none">Vendor Payout</p>
+                                                <h4 className="text-xl font-black text-slate-900 tracking-tighter">₦{vendorEarnings?.toLocaleString()}</h4>
+                                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">Sale Profit</p>
+                                            </div>
+                                            <div className="p-5 bg-blue-50/50 rounded-[32px] border border-blue-100/50 group relative overflow-hidden">
+                                                <p className="text-[10px] font-black text-blue-600/70 uppercase tracking-widest mb-1.5 leading-none">Rider Share</p>
+                                                <h4 className="text-xl font-black text-blue-900 tracking-tighter">₦{riderShare?.toLocaleString()}</h4>
+                                                <p className="text-[8px] font-bold text-blue-400 uppercase tracking-[0.2em] mt-1">
+                                                    {order.deliveryType === 'platform_managed' ? '80% Delivery' : '100% Delivery'}
+                                                </p>
                                             </div>
                                         </div>
                                     </div>

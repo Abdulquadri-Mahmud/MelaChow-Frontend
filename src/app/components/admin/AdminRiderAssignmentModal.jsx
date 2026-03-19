@@ -2,10 +2,27 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Search, Truck, X } from 'lucide-react';
+import { 
+  Loader2, 
+  Search, 
+  Truck, 
+  X, 
+  Star, 
+  Navigation, 
+  Phone, 
+  ChevronRight,
+  ShieldCheck,
+  AlertCircle,
+  MapPin,
+  Clock
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import adminApi from '@/app/lib/adminApi';
 
+/**
+ * Enhanced Rider Assignment Modal
+ * High-performance UI for logistics dispatching
+ */
 export default function AdminRiderAssignmentModal({
   isOpen,
   onClose,
@@ -30,12 +47,10 @@ export default function AdminRiderAssignmentModal({
     try {
       setLoading(true);
       const response = await adminApi.getAvailableRiders();
-      // Assuming response is the direct data array or has a data property
-      // Based on adminApi pattern, handleResponse returns response.data
       setRiders(Array.isArray(response) ? response : (response.data || []));
     } catch (err) {
       console.error('Failed to fetch available riders:', err);
-      toast.error('Could not load available riders');
+      toast.error('Logistics sync failed - Could not load riders');
     } finally {
       setLoading(false);
     }
@@ -49,17 +64,20 @@ export default function AdminRiderAssignmentModal({
         orderData.vendorOrderId, 
         selectedRiderId
       );
-      toast.success('Rider assigned successfully');
+      toast.success('Rider dispatched successfully');
       onAssigned?.();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.message || err.message || 'Failed to assign rider');
+      toast.error(err.response?.data?.message || err.message || 'Dispatch failed');
     } finally {
       setAssigning(false);
     }
   };
 
   const filteredRiders = riders.filter(rider => {
+    // Strict status check for assignment safety
+    if (rider.status !== 'available') return false;
+
     const name = (rider.name || `${rider.firstname || ''} ${rider.lastname || ''}`).toLowerCase();
     const phone = (rider.phone || '').toLowerCase();
     const s = search.toLowerCase();
@@ -81,170 +99,209 @@ export default function AdminRiderAssignmentModal({
       {isOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           
-          {/* Backdrop */}
+          {/* High-fidelity Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => !assigning && onClose()}
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-md"
           />
           
-          {/* Modal */}
+          {/* Dynamic Modal Container */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            initial={{ opacity: 0, scale: 0.9, y: 30 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="relative w-full max-w-lg bg-white rounded-[40px] shadow-2xl overflow-hidden"
+            exit={{ opacity: 0, scale: 0.9, y: 30 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="relative w-full max-w-[500px] bg-white rounded-[48px] shadow-[0_32px_80px_-16px_rgba(15,23,42,0.3)] overflow-hidden flex flex-col max-h-[90vh]"
           >
-            {/* Header section */}
-            <div className="p-8 pb-0">
-              <div className="flex items-center justify-between">
-                <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 shadow-sm border border-orange-100">
-                  <Truck size={28} />
+            {/* STICKY HEADER: Order Intelligence */}
+            <div className="p-4 pb-6 border-b border-slate-50 flex-shrink-0">
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-orange-600 rounded-[20px] flex items-center justify-center text-white shadow-xl shadow-orange-100 ring-8 ring-orange-50/50">
+                    <Truck size={28} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight leading-none mb-1">Dispatch Center</h3>
+                    <div className="flex items-center gap-2">
+                       <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none pt-0.5">Logistics Protocol Active</p>
+                    </div>
+                  </div>
                 </div>
                 {!assigning && (
                   <button 
                     onClick={onClose}
-                    className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
+                    className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all hover:bg-slate-100 hover:rotate-90"
                   >
                     <X size={20} />
                   </button>
                 )}
               </div>
               
-              <div className="mt-6">
-                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">
-                  Assign Delivery Rider
-                </h3>
-                <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-                  ORDER FOR: {orderData?.restaurantName || 'Restaurant'}
-                </p>
-              </div>
-            </div>
-
-            {/* Order info banner */}
-            <div className="mx-8 mt-6">
-              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">🍽️</span>
-                  <p className="text-xs font-black text-slate-600 uppercase tracking-tighter truncate max-w-[160px]">
-                    {orderData?.restaurantName || 'Restaurant'}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 text-slate-400 bg-white px-3 py-1.5 rounded-xl border border-slate-100">
-                  <span className="text-lg">⏱️</span>
-                  <p className="text-[10px] font-bold uppercase tracking-widest">
-                    Ready since {formatTime(orderData?.readyAt)}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Search input */}
-            <div className="px-8 mt-6">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search by name or phone..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl h-12 pl-12 pr-4 text-sm font-medium focus:bg-white focus:border-orange-200 focus:ring-4 focus:ring-orange-50 outline-none transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Rider list section */}
-            <div className="px-8 mt-4 mb-4">
-              <div className="max-h-[280px] overflow-y-auto pr-2 custom-scrollbar">
-                {loading ? (
-                  <div className="py-20 flex flex-col items-center justify-center gap-3">
-                    <Loader2 className="animate-spin text-orange-500" size={32} />
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Loading Riders...</p>
+              <div className="bg-slate-950 rounded-3xl p-5 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-[40px] translate-x-10 -translate-y-10 group-hover:bg-orange-500/20 transition-all" />
+                  
+                  <div className="flex items-center justify-between relative z-10">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1.5 leading-none">
+                            <MapPin size={10} className="text-orange-500" />
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] leading-none">Pickup Node</p>
+                        </div>
+                        <h4 className="text-white font-black text-base tracking-tight leading-none">{orderData?.restaurantName || 'Restaurant Source'}</h4>
+                    </div>
+                    <div className="text-right">
+                        <div className="flex items-center justify-end gap-2 mb-1.5 leading-none">
+                            <Clock size={10} className="text-orange-500" />
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] leading-none">Wait Time</p>
+                        </div>
+                        <div className="px-3 py-1 bg-white/5 rounded-xl border border-white/10 text-white text-[10px] font-black uppercase tracking-widest inline-block">
+                           {formatTime(orderData?.readyAt)}
+                        </div>
+                    </div>
                   </div>
-                ) : filteredRiders.length === 0 ? (
-                  <div className="py-10 text-center bg-gray-50 rounded-3xl border border-dashed border-gray-200">
-                    <p className="text-xs font-black text-gray-400 uppercase tracking-widest">
-                      {search ? "No Matches Found" : "No Available Riders"}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-1 font-medium">
-                      {search ? "Try a different search term" : "All riders are currently on assignment"}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {filteredRiders.map(rider => (
-                      <div
-                        key={rider._id}
-                        onClick={() => setSelectedRiderId(rider._id)}
-                        className={`flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
-                          selectedRiderId === rider._id
-                            ? 'border-orange-500 bg-orange-50'
-                            : 'border-gray-50 bg-white hover:border-gray-200 hover:bg-gray-50/50'
+              </div>
+            </div>
+
+            {/* SCROLLABLE SECTION: Rider Selection */}
+            <div className="flex-1 overflow-hidden flex flex-col">
+                <div className="px-8 py-6 flex-shrink-0">
+                    <div className="relative group">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-600 transition-colors" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Find available riders by name..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full bg-slate-50 border-2 border-slate-50 rounded-3xl h-16 pl-14 pr-6 text-sm font-bold placeholder:text-slate-400 focus:bg-white focus:border-orange-100 focus:shadow-xl focus:shadow-orange-50/50 outline-none transition-all"
+                        />
+                    </div>
+                </div>
+
+                <div className="px-8 pb-4 overflow-y-auto custom-scrollbar flex-1">
+                    {loading ? (
+                        <div className="py-20 flex flex-col items-center justify-center gap-4">
+                            <div className="relative">
+                                <Loader2 className="animate-spin text-orange-600" size={48} />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-2 h-2 bg-orange-600 rounded-full" />
+                                </div>
+                            </div>
+                            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">Scanning Terminal...</p>
+                        </div>
+                    ) : filteredRiders.length === 0 ? (
+                        <div className="py-16 text-center bg-slate-50/50 rounded-[40px] border-2 border-dashed border-slate-100 group">
+                            <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6 text-slate-300 group-hover:scale-110 transition-transform">
+                                <AlertCircle size={32} />
+                            </div>
+                            <h5 className="text-sm font-black text-slate-900 uppercase tracking-tighter mb-1">
+                                {search ? "Zero Matches Found" : "No Available Units"}
+                            </h5>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">
+                                {search ? "Try adjusting your search criteria" : "All delivery units are currently deployed"}
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {filteredRiders.map((rider, idx) => (
+                                <motion.div
+                                    key={rider._id}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                    onClick={() => setSelectedRiderId(rider._id)}
+                                    className={`relative flex items-center gap-5 p-5 rounded-[32px] border-2 cursor-pointer transition-all duration-300 group ${
+                                    selectedRiderId === rider._id
+                                        ? 'border-orange-600 bg-orange-50/30'
+                                        : 'border-slate-50 bg-white hover:border-slate-100 hover:bg-slate-50/50'
+                                    }`}
+                                >
+                                    {/* Selected Highlight Bar */}
+                                    {selectedRiderId === rider._id && (
+                                        <motion.div 
+                                            layoutId="rider-active"
+                                            className="absolute left-[-2px] inset-y-6 w-1 rounded-full bg-orange-600" 
+                                        />
+                                    )}
+
+                                    <div className={`w-14 h-14 rounded-[18px] flex items-center justify-center font-black text-lg flex-shrink-0 transition-transform duration-500 group-hover:scale-105 ${
+                                    selectedRiderId === rider._id
+                                        ? 'bg-orange-600 text-white shadow-lg shadow-orange-100'
+                                        : 'bg-slate-100 text-slate-900 border border-white'
+                                    }`}>
+                                    {(rider.name || rider.firstname || '?')[0].toUpperCase()}
+                                    </div>
+                                    
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <p className="font-black text-base text-slate-900 tracking-tight leading-none group-hover:text-orange-600 transition-colors">
+                                                {rider.name || `${rider.firstname || ''} ${rider.lastname || ''}`}
+                                            </p>
+                                            <div className="flex items-center gap-0.5 text-orange-500">
+                                                <Star size={10} fill="currentColor" />
+                                                <span className="text-[9px] font-black">{rider.rating || '5.0'}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-1.5">
+                                                <Navigation size={10} className="text-slate-400" />
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                                    {rider.vehicleType || 'Motorbike'}
+                                                </p>
+                                            </div>
+                                            <span className="w-1 h-1 rounded-full bg-slate-200" />
+                                            <div className="flex items-center gap-1.5">
+                                                <Phone size={10} className="text-slate-400" />
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                                    {rider.phone}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                                        selectedRiderId === rider._id 
+                                        ? 'bg-orange-600 text-white rotate-0' 
+                                        : 'bg-slate-50 text-slate-300 -rotate-45 group-hover:rotate-0 group-hover:bg-orange-100 group-hover:text-orange-600'
+                                    }`}>
+                                        <ChevronRight size={18} />
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* STICKY FOOTER: Action Commitment */}
+            <div className="p-4 bg-slate-50/50 border-t border-slate-100 flex-shrink-0">
+                <div className="grid grid-cols-2 gap-4">
+                    <button
+                        disabled={assigning}
+                        onClick={onClose}
+                        className="h-16 rounded-[24px] bg-white border border-slate-200 text-slate-400 font-black text-[11px] uppercase tracking-widest hover:text-slate-900 hover:bg-white hover:shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                    >
+                        Abort Dispatch
+                    </button>
+                    <button
+                        disabled={!selectedRiderId || assigning}
+                        onClick={handleAssign}
+                        className={`h-16 rounded-[24px] font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl ${
+                            selectedRiderId 
+                            ? 'bg-slate-900 text-white shadow-slate-200 hover:bg-slate-800' 
+                            : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                         }`}
-                      >
-                        {/* Rider avatar initials */}
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 transition-colors ${
-                          selectedRiderId === rider._id
-                            ? 'bg-orange-500 text-white'
-                            : 'bg-slate-100 text-slate-600'
-                        }`}>
-                          {(rider.name || rider.firstname || '?')[0].toUpperCase()}
-                        </div>
-                        
-                        {/* Rider info */}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-black text-sm text-slate-900 tracking-tight">
-                            {rider.name || `${rider.firstname || ''} ${rider.lastname || ''}`}
-                          </p>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                            {rider.phone} · {rider.vehicleType || 'Rider'}
-                          </p>
-                        </div>
-                        
-                        {/* Selected indicator */}
-                        {selectedRiderId === rider._id && (
-                          <motion.div 
-                            initial={{ scale: 0.5, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-orange-200"
-                          >
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                              <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          </motion.div>
+                    >
+                        {assigning ? (
+                            <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                            <ShieldCheck size={18} />
                         )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Footer action buttons */}
-            <div className="p-8 pt-6 border-t border-gray-50">
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  disabled={assigning}
-                  onClick={onClose}
-                  className="h-14 rounded-2xl bg-gray-100 text-gray-500 font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={!selectedRiderId || assigning}
-                  onClick={handleAssign}
-                  className="h-14 rounded-2xl bg-orange-600 text-white font-black text-xs uppercase tracking-widest hover:bg-orange-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-xl shadow-orange-100 active:scale-95"
-                >
-                  {assigning ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <Truck size={16} />
-                  )}
-                  {assigning ? 'Assigning...' : 'Assign Rider'}
-                </button>
-              </div>
+                        {assigning ? 'Syncing...' : 'Confirm Dispatch'}
+                    </button>
+                </div>
             </div>
           </motion.div>
         </div>

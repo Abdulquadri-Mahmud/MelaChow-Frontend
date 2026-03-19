@@ -14,7 +14,8 @@ import {
     TrendingUp,
     Store,
     DollarSign,
-    CheckCircle2
+    CheckCircle2,
+    RefreshCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
@@ -54,6 +55,7 @@ export default function CommissionLedgerPage() {
         startDate: "",
         endDate: ""
     });
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const fetchLedger = useCallback(async () => {
         setLoading(true);
@@ -69,6 +71,18 @@ export default function CommissionLedgerPage() {
         }
     }, [filters]);
 
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            await fetchLedger();
+            toast.success("Ledger synchronized", { id: 'refresh' });
+        } catch (error) {
+            toast.error("Sync failed");
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
     useEffect(() => {
         fetchLedger();
     }, [fetchLedger]);
@@ -78,9 +92,19 @@ export default function CommissionLedgerPage() {
             <AdminDashboardLayout>
                 <div className="space-y-10">
                     {/* Header */}
-                    <div>
-                        <h1 className="text-4xl font-black text-gray-900 mb-2">Commission Ledger</h1>
-                        <p className="text-gray-500 font-medium tracking-tight">Financial breakdown of platform revenue and delivery earnings</p>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h1 className="text-4xl font-black text-gray-900 mb-2">Commission Ledger</h1>
+                            <p className="text-gray-500 font-medium tracking-tight">Financial breakdown of platform revenue and delivery earnings</p>
+                        </div>
+                        <button
+                            onClick={handleRefresh}
+                            disabled={isRefreshing}
+                            className="w-12 h-12 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-gray-500 hover:text-purple-600 hover:border-purple-200 transition-all active:scale-90 disabled:opacity-50 shadow-sm"
+                            title="Refresh data"
+                        >
+                            <RefreshCw size={20} className={isRefreshing ? "animate-spin" : ""} />
+                        </button>
                     </div>
 
                     {/* Summary Cards */}

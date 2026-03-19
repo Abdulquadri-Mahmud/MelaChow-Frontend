@@ -400,7 +400,7 @@ export default function RiderDashboard() {
             {!isOnline && (
                 <div className="bg-red-500/10 border border-red-500/20 rounded-3xl p-5 flex items-start gap-4">
                     <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={20} />
-                    <div className="text-sm text-red-100/80 leading-relaxed">
+                    <div className="text-sm text-red-500 leading-relaxed">
                         <span className="font-bold text-red-400">Notice:</span> You won't
                         receive any delivery requests while offline. Switch online whenever
                         you're ready to earn.

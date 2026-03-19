@@ -23,6 +23,7 @@ const getApiPath = (role, endpoint) => {
     let base = '/api/notifications';
     if (role === 'vendor') base = '/api/vendors/notifications';
     if (role === 'admin') base = '/api/admin/notifications';
+    if (role === 'rider') base = '/api/riders/notifications';
     return `${base}/${endpoint}`;
 };
 
