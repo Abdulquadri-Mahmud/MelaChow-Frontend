@@ -16,7 +16,8 @@ import {
     Loader2,
     ShieldCheck,
     Eye,
-    EyeOff
+    EyeOff,
+    RefreshCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
@@ -34,6 +35,7 @@ export default function AdminRidersPage() {
     const [selectedRider, setSelectedRider] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -63,6 +65,18 @@ export default function AdminRidersPage() {
             setVendors(data.vendors || []);
         } catch (error) {
             console.error("Failed to fetch vendors:", error);
+        }
+    };
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            await Promise.all([fetchRiders(), fetchVendors()]);
+            toast.success("Rider fleet synchronized", { id: 'refresh' });
+        } catch (error) {
+            toast.error("Sync failed");
+        } finally {
+            setIsRefreshing(false);
         }
     };
 
@@ -140,13 +154,23 @@ export default function AdminRidersPage() {
                             <h1 className="text-4xl font-black text-gray-900 mb-2">Fleet Management</h1>
                             <p className="text-gray-500 font-medium">Global directory and controls for all GrubDash riders</p>
                         </div>
-                        <button
-                            onClick={() => handleOpenModal("create")}
-                            className="bg-orange-600 hover:bg-orange-700 text-white font-black px-8 py-3 rounded-2xl flex items-center gap-2 transition-all active:scale-95"
-                        >
-                            <Plus size={20} />
-                            Add Global Rider
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleRefresh}
+                                disabled={isRefreshing}
+                                className="w-12 h-12 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-gray-500 hover:text-orange-600 hover:border-orange-200 transition-all active:scale-90 disabled:opacity-50"
+                                title="Refresh data"
+                            >
+                                <RefreshCw size={20} className={isRefreshing ? "animate-spin" : ""} />
+                            </button>
+                            <button
+                                onClick={() => handleOpenModal("create")}
+                                className="bg-orange-600 hover:bg-orange-700 text-white font-black px-8 py-3 rounded-2xl flex items-center gap-2 transition-all active:scale-95"
+                            >
+                                <Plus size={20} />
+                                Add Global Rider
+                            </button>
+                        </div>
                     </div>
 
                     {/* Stats & Search */}

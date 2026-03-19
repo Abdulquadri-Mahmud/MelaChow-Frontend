@@ -61,14 +61,14 @@ export default function PartnerPortalPage() {
                     </Link>
 
                     {/* Rider Card */}
-                    {/* <Link href="/auth/rider/login" className="block outline-none select-none group">
+                    <Link href="/auth/rider/login" className="block outline-none select-none group">
                         <motion.div
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             className="bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-[32px] p-6 shadow-xl flex items-center justify-between transition-all duration-300 hover:border-blue-500/30 dark:hover:border-blue-500/30 hover:shadow-blue-500/10"
                         >
                             <div className="flex items-center gap-5">
-                                <div className="w-16 h-16 rounded-[20px] bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-500 shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                <div className="w-16 h-16 rounded-[20px] bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-inner group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                     <Bike size={28} />
                                 </div>
                                 <div>
@@ -76,11 +76,11 @@ export default function PartnerPortalPage() {
                                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Delivery Fleet</p>
                                 </div>
                             </div>
-                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-blue-500/10 group-hover:text-blue-600 dark:group-hover:text-blue-500 transition-colors">
+                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-blue-500/10 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                             </div>
                         </motion.div>
-                    </Link> */}
+                    </Link>
                 </div>
 
                 <div className="mt-12 text-center pb-4 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600">
