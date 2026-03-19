@@ -156,7 +156,7 @@ export default function RiderDashboard() {
             <div className="grid grid-cols-2 gap-4">
                 <Link
                     href="/rider/wallet"
-                    className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none cursor-pointer hover:border-orange-500/30 transition-all group block"
+                    className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3 cursor-pointer hover:border-orange-500/30 transition-all group block"
                 >
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-orange-500/10 text-orange-500 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition-colors">
@@ -171,7 +171,7 @@ export default function RiderDashboard() {
                     <div className="text-[10px] text-gray-600 font-bold mt-1">lifetime total</div>
                 </Link>
 
-                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none">
+                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 rounded-lg">
                             <Star size={16} />
@@ -186,7 +186,7 @@ export default function RiderDashboard() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none">
+                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-blue-500/10 text-blue-600 dark:text-blue-500 rounded-lg">
                             <Activity size={16} />
@@ -199,7 +199,7 @@ export default function RiderDashboard() {
                     <div className="text-[10px] text-gray-600 font-bold mt-1">lifetime</div>
                 </div>
 
-                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none">
+                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3">
                     <div className="flex items-center gap-3 mb-2">
                         <div className={`p-2 rounded-lg ${isOnline ? "bg-green-500/10 text-green-600 dark:text-green-500" : "bg-red-500/10 text-red-600 dark:text-red-500"}`}>
                             <Bike size={16} />
@@ -226,7 +226,7 @@ export default function RiderDashboard() {
                         className="relative overflow-hidden group"
                     >
                         {/* Premium Background with Glow */}
-                        <div className="absolute inset-0 bg-orange-50/50 dark:bg-gradient-to-br dark:from-orange-800 dark:to-orange-950 rounded-[20px] border border-orange-100 dark:border-white/5 shadow-sm dark:shadow-none transition-all" />
+                        <div className="absolute inset-0 bg-orange-50/50 dark:bg-gradient-to-br dark:from-orange-800 dark:to-orange-950 rounded-[20px] border border-orange-100 dark:border-white/5 transition-all" />
                         <div className="absolute -right-20 -top-20 w-64 h-64 bg-orange-200/20 dark:bg-white/10 rounded-full blur-3xl opacity-50 transition-all" />
                         <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-orange-100/20 dark:bg-orange-300/10 rounded-full blur-3xl opacity-30 transition-all" />
 
@@ -246,7 +246,7 @@ export default function RiderDashboard() {
                                         Order #{String(activeOrder.orderId || activeOrder._id || "").toUpperCase().slice(-8)}
                                     </p>
                                 </div>
-                                <div className="w-14 h-14 rounded-2xl bg-orange-600 dark:bg-white/10 backdrop-blur-md border border-orange-500 dark:border-white/10 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                                <div className="w-14 h-14 rounded-2xl bg-orange-600 dark:bg-white/10 backdrop-blur-md border border-orange-500 dark:border-white/10 flex items-center justify-center">
                                     <Bike size={32} className="text-white animate-pulse" />
                                 </div>
                             </div>
@@ -258,7 +258,7 @@ export default function RiderDashboard() {
 
                                 {/* Pickup */}
                                 <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 z-10 border border-orange-100 dark:border-white/20 shadow-sm">
+                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 z-10 border border-orange-100 dark:border-white/20">
                                         <Package size={20} className="text-orange-600 dark:text-white" />
                                     </div>
                                     <div className="min-w-0 flex-1">
@@ -276,7 +276,7 @@ export default function RiderDashboard() {
 
                                 {/* Drop-off */}
                                 <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-orange-600 dark:bg-white flex items-center justify-center shrink-0 z-10 shadow-lg shadow-orange-600/20">
+                                    <div className="w-10 h-10 rounded-xl bg-orange-600 dark:bg-white flex items-center justify-center shrink-0 z-10">
                                         <MapPin size={20} className="text-white dark:text-orange-600" />
                                     </div>
                                     <div className="min-w-0 flex-1">
@@ -297,7 +297,7 @@ export default function RiderDashboard() {
                             </div>
 
                             {/* Customer & Call Section */}
-                            <div className="bg-white dark:bg-white/10 backdrop-blur-sm rounded-3xl p-4 mb-8 flex items-center justify-between border border-orange-100 dark:border-white/5 shadow-sm">
+                            <div className="bg-white dark:bg-white/10 backdrop-blur-sm rounded-3xl p-4 mb-8 flex items-center justify-between border border-orange-100 dark:border-white/5">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center">
                                         <Star size={18} className="text-orange-600 dark:text-orange-300" />
@@ -312,7 +312,7 @@ export default function RiderDashboard() {
 
                                 <a
                                     href={`tel:${activeOrder.userPhone || activeOrder.userId?.phone || activeOrder.userOrderId?.phone || ''}`}
-                                    className="h-10 px-4 rounded-xl bg-orange-600 dark:bg-white text-white dark:text-orange-700 flex items-center gap-2 font-black text-xs hover:bg-orange-700 dark:hover:bg-orange-50 transition-colors shadow-lg active:scale-95"
+                                    className="h-10 px-4 rounded-xl bg-orange-600 dark:bg-white text-white dark:text-orange-700 flex items-center gap-2 font-black text-xs hover:bg-orange-700 dark:hover:bg-orange-50 transition-colors active:scale-95"
                                 >
                                     <Phone size={14} />
                                     CALL
@@ -331,7 +331,7 @@ export default function RiderDashboard() {
                                         </button>
                                         <button
                                             onClick={() => handleAction("accept")}
-                                            className="h-16 rounded-2xl bg-orange-600 dark:bg-white text-white dark:text-orange-700 flex items-center justify-center font-black text-sm shadow-xl shadow-orange-500/20 transition-all active:scale-95"
+                                            className="h-16 rounded-2xl bg-orange-600 dark:bg-white text-white dark:text-orange-700 flex items-center justify-center font-black text-sm transition-all active:scale-95"
                                         >
                                             <CheckCircle2 size={20} className="mr-2" />
                                             ACCEPT
@@ -341,7 +341,7 @@ export default function RiderDashboard() {
                                     <>
                                         <button
                                             onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(activeOrder.deliveryAddress?.address || activeOrder.userOrderId?.deliveryAddress?.addressLine)}`)}
-                                            className="h-16 rounded-2xl bg-white dark:bg-white/10 hover:bg-gray-50 dark:hover:bg-white/20 text-gray-900 dark:text-white font-black text-sm flex items-center justify-center transition-all border border-gray-200 dark:border-white/10 shadow-sm"
+                                            className="h-16 rounded-2xl bg-white dark:bg-white/10 hover:bg-gray-50 dark:hover:bg-white/20 text-gray-900 dark:text-white font-black text-sm flex items-center justify-center transition-all border border-gray-200 dark:border-white/10"
                                         >
                                             <Navigation size={20} className="mr-2 text-orange-600 dark:text-orange-300" />
                                             OPEN MAPS
@@ -349,7 +349,7 @@ export default function RiderDashboard() {
                                         {activeOrder.orderStatus === "rider_assigned" || activeOrder.status === "assigned" ? (
                                             <button
                                                 onClick={() => handleAction("pickup")}
-                                                className="h-16 rounded-2xl bg-orange-600 dark:bg-white text-white dark:text-orange-700 flex items-center justify-center font-black text-sm shadow-xl shadow-orange-500/20 transition-all active:scale-95"
+                                                className="h-16 rounded-2xl bg-orange-600 dark:bg-white text-white dark:text-orange-700 flex items-center justify-center font-black text-sm transition-all active:scale-95"
                                             >
                                                 <Package size={20} className="mr-2" />
                                                 PICKED UP
@@ -357,7 +357,7 @@ export default function RiderDashboard() {
                                         ) : (
                                             <button
                                                 onClick={() => handleAction("deliver")}
-                                                className="h-16 rounded-2xl bg-orange-600 dark:bg-orange-400 text-white dark:text-orange-900 flex items-center justify-center font-black text-sm shadow-xl shadow-orange-500/20 transition-all active:scale-95"
+                                                className="h-16 rounded-2xl bg-orange-600 dark:bg-orange-400 text-white dark:text-orange-900 flex items-center justify-center font-black text-sm transition-all active:scale-95"
                                             >
                                                 <CheckCircle2 size={20} className="mr-2" />
                                                 DELIVERED

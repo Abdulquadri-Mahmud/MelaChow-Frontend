@@ -31,16 +31,19 @@ const PushNotificationPrompt = () => {
             const isOrderRelated = pathname.includes('track-orders') || pathname.includes('verify-payment');
             const isVendorDashboard = pathname.startsWith('/vendors') && !pathname.includes('/auth');
             const isRiderDashboard = pathname.startsWith('/rider') && !pathname.includes('/auth');
+            const isAdminDashboard = pathname.startsWith('/admin') && !pathname.includes('/login');
+            
             const hasOrdered = localStorage.getItem('has_placed_order') === 'true';
-            const isVendor = localStorage.getItem('grubdash_vendor_cache') !== null;
-            const isRider = localStorage.getItem('grubdash_rider_cache') !== null;
+            const isVendor = localStorage.getItem('grubdash_vendor_token_v1') !== null || localStorage.getItem('grubdash_vendor_cache') !== null;
+            const isRider = localStorage.getItem('grubdash_rider_token_v1') !== null || localStorage.getItem('grubdash_rider_cache') !== null;
+            const isAdmin = localStorage.getItem('grubdash_admin_token_v1') !== null;
 
             if (shouldShowPrompt()) {
                 // Show immediately (shorter delay) on critical pages
-                const delay = (isOrderRelated || isVendorDashboard) ? 1000 : 5000;
+                const delay = (isOrderRelated || isVendorDashboard || isAdminDashboard) ? 1000 : 5000;
 
                 // Show for customers who ordered, any vendor or rider on their dashboard
-                if (isOrderRelated || hasOrdered || (isVendorDashboard && isVendor) || (isRiderDashboard && isRider)) {
+                if (isOrderRelated || hasOrdered || (isVendorDashboard && isVendor) || (isRiderDashboard && isRider) || (isAdminDashboard && isAdmin)) {
                     const timer = setTimeout(() => setVisible(true), delay);
                     return () => clearTimeout(timer);
                 }
@@ -88,17 +91,20 @@ const PushNotificationPrompt = () => {
                     </div>
 
                     <div className="flex-1">
-                        <h3 className="font-bold text-gray-900 dark:text-white text-lg">
-                            {window.location.pathname.startsWith('/vendors') ? 'Never miss an order!' :
-                                window.location.pathname.startsWith('/rider') ? 'Get new delivery jobs!' : 'Stay Updated!'}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 leading-relaxed">
-                            {window.location.pathname.startsWith('/vendors')
-                                ? 'Get instant alerts for new orders and customer updates directly on your device.'
-                                : window.location.pathname.startsWith('/rider')
-                                    ? 'Get real-time push notifications the moment a new delivery job is assigned to you.'
+                    <h3 className="font-bold text-gray-900 dark:text-white text-lg">
+                        {window.location.pathname.startsWith('/vendors') ? 'Never miss an order!' :
+                            window.location.pathname.startsWith('/rider') ? 'Get new delivery jobs!' :
+                            window.location.pathname.startsWith('/admin') ? 'System & Logistics Alerts' : 'Stay Updated!'}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 leading-relaxed">
+                        {window.location.pathname.startsWith('/vendors')
+                            ? 'Get instant alerts for new orders and customer updates directly on your device.'
+                            : window.location.pathname.startsWith('/rider')
+                                ? 'Get real-time push notifications the moment a new delivery job is assigned to you.'
+                                : window.location.pathname.startsWith('/admin')
+                                    ? 'Monitor deliveries and platform status with real-time mission control alerts.'
                                     : 'Get real-time updates on your order status, delivery, and exclusive offers.'}
-                        </p>
+                    </p>
                     </div>
                 </div>
 
