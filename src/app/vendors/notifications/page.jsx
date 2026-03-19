@@ -12,7 +12,7 @@ import {
     ChevronRight,
     Trash2,
     Calendar,
-    ArrowLeft,
+    ChevronLeft,
     RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -54,6 +54,10 @@ export default function VendorNotificationsPage() {
             filtered = notifications.filter(n => n.type?.includes('order') || n.type === 'new_order');
         } else if (activeTab === 'system') {
             filtered = notifications.filter(n => !n.type?.includes('order') && n.type !== 'new_order');
+        } else if (activeTab === 'unread') {
+            filtered = notifications.filter(n => !n.read);
+        } else if (activeTab === 'read') {
+            filtered = notifications.filter(n => n.read);
         }
 
         if (searchQuery) {
@@ -64,7 +68,11 @@ export default function VendorNotificationsPage() {
             );
         }
 
-        return filtered;
+        // Always show unread notifications at the top of their respective groups
+        return filtered.sort((a, b) => {
+            if (a.read === b.read) return 0;
+            return a.read ? 1 : -1;
+        });
     }, [notifications, activeTab, searchQuery]);
 
     // Grouping Logic
@@ -136,22 +144,20 @@ export default function VendorNotificationsPage() {
             <div className="max-w-6xl mx-auto">
 
                 {/* 1. Header & Navigation */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-                    <div className="space-y-4">
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+                    <div className="flex items-center gap-4">
                         <button
                             onClick={() => router.back()}
-                            className="group flex items-center gap-2 text-slate-400 hover:text-orange-500 transition-all font-medium text-sm"
+                            className="p-3 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-orange-500/30 hover:text-orange-500 transition-all active:scale-95 group"
+                            title="Go Back"
                         >
-                            <div className="p-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 group-hover:border-orange-500/30">
-                                <ArrowLeft size={16} />
-                            </div>
-                            Go Back
+                            <ChevronLeft size={24} className="transition-transform group-hover:-translate-x-1" />
                         </button>
-                        <div className="space-y-2">
-                            <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+                        <div className="space-y-1">
+                            <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight flex items-center">
                                 Inbox
                                 {unreadCount > 0 && (
-                                    <span className="ml-4 inline-flex items-center px-4 py-1.5 rounded-full bg-orange-500 text-white text-sm font-bold shadow-lg shadow-orange-500/20">
+                                    <span className="ml-4 inline-flex items-center px-4 py-1.5 rounded-full bg-orange-500 text-white text-sm font-bold">
                                         {unreadCount} New
                                     </span>
                                 )}
@@ -166,7 +172,7 @@ export default function VendorNotificationsPage() {
 
                         <button
                             onClick={refreshNotifications}
-                            className="p-3 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-orange-500/30 hover:text-orange-500 transition-all active:scale-95 group shadow-sm"
+                            className="p-3 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-orange-500/30 hover:text-orange-500 transition-all active:scale-95 group"
                             title="Refresh Inbox"
                         >
                             <RefreshCw size={20} className={loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-700'} />
@@ -182,7 +188,7 @@ export default function VendorNotificationsPage() {
                                 </button>
                                 <button
                                     onClick={markAllAsRead}
-                                    className="px-6 py-3 bg-white dark:bg-orange-500 text-slate-900 dark:text-white rounded-2xl text-sm font-bold hover:opacity-90 transition-all active:scale-95 shadow-xl shadow-slate-900/10 dark:shadow-white/5 flex items-center gap-2"
+                                    className="px-6 py-3 bg-white dark:bg-orange-500 text-slate-900 dark:text-white rounded-2xl text-sm font-bold hover:opacity-90 transition-all active:scale-95 dark:shadow-white/5 flex items-center gap-2"
                                 >
                                     <CheckCircle2 size={18} /> Mark All Read
                                 </button>
@@ -204,7 +210,7 @@ export default function VendorNotificationsPage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.1 }}
-                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl shadow-sm hover:border-orange-500/20 transition-all"
+                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-3xl hover:border-orange-500/20 transition-all"
                         >
                             <div className={`w-10 h-10 rounded-2xl mb-4 flex items-center justify-center ${stat.color === 'indigo' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500' :
                                 stat.color === 'orange' ? 'bg-orange-50 dark:bg-orange-500/10 text-orange-500' :
@@ -224,7 +230,7 @@ export default function VendorNotificationsPage() {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="mb-10 p-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-[2.5rem] shadow-xl shadow-orange-500/10"
+                        className="mb-10 p-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-[2.5rem] shadow-orange-500/10"
                     >
                         <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-3xl rounded-[2.4rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
                             <div className="flex items-center gap-6 text-center md:text-left">
@@ -247,14 +253,14 @@ export default function VendorNotificationsPage() {
                 )}
 
                 {/* 4. Filter & Search Tabs */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
-                    <div className="flex p-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl w-full md:w-auto shadow-sm">
-                        {['all', 'orders', 'system'].map((tab) => (
+                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-4">
+                    <div className="flex p-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl w-full md:w-auto overflow-x-auto scrollbar-hide">
+                        {['all', 'unread', 'read', 'orders', 'system'].map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-sm font-bold capitalize transition-all ${activeTab === tab
-                                    ? 'bg-slate-900 dark:bg-orange-500 text-slate-900 dark:text-white shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)]'
+                                    ? 'bg-orange-500 dark:bg-orange-500 text-white dark:text-white shadow-[0_10px_25px_-5px_rgba(0,0,0,0.1)]'
                                     : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
                                     }`}
                             >
@@ -276,7 +282,7 @@ export default function VendorNotificationsPage() {
                 </div>
 
                 {/* 5. Notification List Implementation */}
-                <div className="space-y-10">
+                <div className="space-y-5">
                     {loading && notifications.length === 0 ? (
                         <div className="grid gap-4">
                             {[1, 2, 3, 4].map(i => <SkeletonItem key={i} />)}
@@ -313,7 +319,7 @@ export default function VendorNotificationsPage() {
                                                 className={`group relative flex items-center gap-4 bg-white dark:bg-slate-800 border ${!notification.read
                                                     ? 'border-orange-500/20 ring-1 ring-orange-500/10'
                                                     : 'border-slate-100 dark:border-slate-700'
-                                                    } p-4 md:p-6 rounded-[2rem] transition-all cursor-pointer shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)] hover:shadow-xl hover:shadow-slate-900/5 dark:hover:shadow-white/5 active:scale-[0.99] overflow-hidden`}
+                                                    } p-4 md:p-6 rounded-[2rem] transition-all cursor-pointer shadow-[0_4px_20px_-4px_rgba(0,0,0,0.02)] hover hover:shadow-slate-900/5 dark:hover:shadow-white/5 active:scale-[0.99] overflow-hidden`}
                                                 onClick={() => handleNotificationClick(notification)}
                                             >
                                                 {/* Status Indicator Bar */}
@@ -401,7 +407,7 @@ export default function VendorNotificationsPage() {
                     )}
                 </div>
 
-                <ClearNotificationsModal 
+                <ClearNotificationsModal
                     isOpen={isClearModalOpen}
                     onClose={() => setIsClearModalOpen(false)}
                     onConfirm={clearAll}

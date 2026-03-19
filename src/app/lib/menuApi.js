@@ -6,7 +6,7 @@ export const getMenuAxios = () => {
     const token = TokenManager.getToken('vendor');
 
     return axios.create({
-        baseURL: process.env.NEXT_PUBLIC_API_URL, // ← was NEXT_PUBLIC_API_BASE_URL
+        baseURL: "", // Hit the Next.js API proxy instead of absolute URL to fix 401s and CORS issues
         withCredentials: true,
         headers: {
             'Content-Type': 'application/json',

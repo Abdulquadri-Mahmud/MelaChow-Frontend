@@ -1,15 +1,16 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { getVendorOrders } from "@/app/lib/vendorApi";
 import VendorOrderCard from "@/app/components/order/VendorOrderCard";
 import { ChevronLeft, ChevronRight, Package, Search, Filter, TrendingUp, Clock, CheckCircle2 } from "lucide-react";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
-import BackButton from "@/app/components/BackButton";
 import RiderAssignmentModal from "../riders/RiderAssignmentModal";
 
 export default function VendorOrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -116,7 +117,7 @@ export default function VendorOrdersPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 min-h-screen bg-slate-50 dark:bg-[#0F172A]">
+    <div className="max-w-7xl mx-auto space-y-4 min-h-screen bg-slate-50 dark:bg-[#0F172A]">
 
       {/* Header with Stats */}
       <motion.div
@@ -124,11 +125,18 @@ export default function VendorOrdersPage() {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6"
       >
-        <BackButton label="Back" className="mb-2" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Orders</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage and track your customer orders</p>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => router.back()}
+              className="p-2 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Orders</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage and track your customer orders</p>
+            </div>
           </div>
 
           {/* Search Bar */}
@@ -139,7 +147,7 @@ export default function VendorOrdersPage() {
               placeholder="Search by Order ID or Customer..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#FF6B00] outline-none transition-all shadow-sm text-slate-900 dark:text-white"
+              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#FF6B00] outline-none transition-all text-slate-900 dark:text-white"
             />
           </div>
         </div>

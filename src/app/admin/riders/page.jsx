@@ -79,7 +79,7 @@ export default function AdminRidersPage() {
                 name: rider.name,
                 phone: rider.phone,
                 password: "", // Don't show password for edit
-                vendorId: rider.vendorId?._id || rider.vendorId
+                vendorId: rider.vendorId?._id || rider.vendorId || ""
             });
         } else {
             setSelectedRider(null);
@@ -98,12 +98,8 @@ export default function AdminRidersPage() {
         setIsSubmitting(true);
         try {
             if (modalMode === "create") {
-                if (!formData.vendorId) {
-                    toast.error("Please select a vendor");
-                    setIsSubmitting(false);
-                    return;
-                }
-                await adminApi.createRider(formData.vendorId, formData);
+                // Note: vendorId is now optional for platform-managed riders
+                await adminApi.createRider(formData.vendorId || null, formData);
                 toast.success("Rider created successfully");
             } else {
                 await adminApi.updateRider(selectedRider._id, formData);
@@ -137,7 +133,7 @@ export default function AdminRidersPage() {
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="space-y-8">
+                <div className="space-y-4">
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
@@ -146,7 +142,7 @@ export default function AdminRidersPage() {
                         </div>
                         <button
                             onClick={() => handleOpenModal("create")}
-                            className="bg-orange-600 hover:bg-orange-700 text-white font-black px-8 py-3 rounded-2xl flex items-center gap-2 shadow-xl shadow-orange-600/20 transition-all active:scale-95"
+                            className="bg-orange-600 hover:bg-orange-700 text-white font-black px-8 py-3 rounded-2xl flex items-center gap-2 transition-all active:scale-95"
                         >
                             <Plus size={20} />
                             Add Global Rider
@@ -162,10 +158,10 @@ export default function AdminRidersPage() {
                                 placeholder="Search by name or phone..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full h-14 pl-14 pr-6 bg-white border border-gray-200 rounded-2xl focus:border-orange-500 outline-none font-medium transition-all shadow-sm"
+                                className="w-full h-14 pl-14 pr-6 bg-white border border-gray-200 rounded-2xl focus:border-orange-500 outline-none font-medium transition-all"
                             />
                         </div>
-                        <div className="bg-white border border-gray-200 rounded-2xl px-6 py-4 flex items-center gap-6 shadow-sm">
+                        <div className="bg-white border border-gray-200 rounded-2xl px-3 py-4 flex items-center gap-4">
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Total Fleet</span>
                                 <span className="text-xl font-black text-gray-900">{riders.length}</span>
@@ -179,7 +175,7 @@ export default function AdminRidersPage() {
                     </div>
 
                     {/* Rider Directory Table */}
-                    <div className="bg-white border border-gray-200 rounded-[32px] overflow-hidden shadow-xl shadow-gray-200/50">
+                    <div className="bg-white border border-gray-200 rounded-[10px] overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
@@ -278,7 +274,7 @@ export default function AdminRidersPage() {
                                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-lg bg-white rounded-[40px] shadow-2xl overflow-hidden"
+                                className="relative w-full max-w-lg bg-white rounded-[10px] overflow-hidden"
                             >
                                 <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                                     <div>
@@ -289,12 +285,12 @@ export default function AdminRidersPage() {
                                             {modalMode === "create" ? "Assign new pilot to any vendor" : "Update credentials and affiliation"}
                                         </p>
                                     </div>
-                                    <button onClick={() => setShowModal(false)} className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors shadow-sm">
+                                    <button onClick={() => setShowModal(false)} className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors">
                                         <X size={20} />
                                     </button>
                                 </div>
 
-                                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                                <form onSubmit={handleSubmit} className="p-8 space-y-4">
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
@@ -323,12 +319,11 @@ export default function AdminRidersPage() {
                                         <div>
                                             <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-4 mb-2 block">Restaurant / Vendor</label>
                                             <select
-                                                required
                                                 value={formData.vendorId}
                                                 onChange={(e) => setFormData({ ...formData, vendorId: e.target.value })}
-                                                className="w-full h-14 px-6 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-2xl outline-none transition-all font-semibold appearance-none"
+                                                className="w-full h-14 px-6 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-2xl outline-none transition-all font-semibold appearance-none cursor-pointer"
                                             >
-                                                <option value="">Select Vendor</option>
+                                                <option value="">Independent / Platform Managed</option>
                                                 {vendors.map(v => (
                                                     <option key={v._id} value={v._id}>{v.storeName || v.name}</option>
                                                 ))}
@@ -359,7 +354,7 @@ export default function AdminRidersPage() {
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="w-full h-16 bg-orange-600 text-white rounded-2xl font-black text-lg shadow-xl shadow-orange-600/20 flex items-center justify-center gap-2 hover:bg-orange-700 transition-all active:scale-[0.98] disabled:opacity-50"
+                                        className="w-full h-16 bg-orange-600 text-white rounded-2xl font-black text-lg flex items-center justify-center gap-2 hover:bg-orange-700 transition-all active:scale-[0.98] disabled:opacity-50"
                                     >
                                         {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : <ShieldCheck size={24} />}
                                         {modalMode === "create" ? "Create Global Rider" : "Update Rider Affiliation"}
