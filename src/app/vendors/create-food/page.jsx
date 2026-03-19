@@ -107,7 +107,7 @@ export default function CreateFoodWizardPage() {
 
       <div className="lg:max-w-7xl mx-auto">
         {/* Header Strip */}
-        <div className="flex items-center justify-end pt-3 pr-3">
+        <div className="flex items-center justify-end dark:pt-3 pr-3">
           {/* <BackButton label="" className="py-2" /> */}
           {store.isDirty && (
             <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm">

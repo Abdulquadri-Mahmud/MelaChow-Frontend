@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { User, MapPin, Calendar, Clock, Phone, ChevronRight, ShoppingBag, Bike } from "lucide-react";
+import { useVendorStorage } from "@/app/hooks/vendorStorage";
 
 export default function VendorOrderCard({ order, onAssign }) {
+  const { vendorDetails } = useVendorStorage();
   const { userOrderId, restaurantId } = order;
   const user = userOrderId?.userId;
   const address = userOrderId?.deliveryAddress;
@@ -129,7 +131,7 @@ export default function VendorOrderCard({ order, onAssign }) {
           <p className="text-lg font-bold text-slate-900 dark:text-white">₦{order.vendorTotal?.toLocaleString() || "0"}</p>
         </div>
 
-        {(order.orderStatus === 'ready' || order.orderStatus === 'ready_for_pickup') && (
+        {(order.orderStatus === 'ready' || order.orderStatus === 'ready_for_pickup') && (vendorDetails?.vendor?.deliveryManagedBy !== 'admin' && vendorDetails?.deliveryManagedBy !== 'admin') && (
           <button
             onClick={() => onAssign?.(order.userOrderId?._id || order.userOrderId)}
             className="flex items-center gap-1.5 px-4 py-2 bg-orange-600 text-white font-bold text-sm rounded-xl hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/20"

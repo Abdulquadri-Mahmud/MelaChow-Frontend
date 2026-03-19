@@ -6,7 +6,7 @@
 import axios from "axios";
 import { TokenManager } from "@/app/lib/auth-token";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://grubdash-api.onrender.com";
+const API_BASE_URL = ""; // Hit the Next.js local proxy instead of absolute Render URL to fix 401s
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -298,8 +298,10 @@ class AdminAPI {
     }
 
     async createRider(vendorId, riderData) {
+        // Use global endpoint if no specific vendor selected
+        const url = vendorId ? `/api/admin/vendors/${vendorId}/riders` : `/api/admin/riders`;
         return this.handleResponse(
-            api.post(`/api/admin/vendors/${vendorId}/riders`, riderData)
+            api.post(url, riderData)
         );
     }
 
