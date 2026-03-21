@@ -38,12 +38,12 @@ export const RiderProvider = ({ children }) => {
     const [unreadCount, setUnreadCount] = useState(0);
 
     const refreshProfile = async () => {
-        const token = TokenManager.getToken('rider');
-        if (!token) {
-            setLoading(false);
-            return;
-        }
-
+        // Do NOT gate on localStorage token.
+        // Real auth is the riderToken httpOnly cookie sent automatically
+        // by the browser. localStorage is an unreliable secondary signal
+        // that gets wiped by browser storage clears, iOS Safari, and private mode.
+        // Let the API call happen — if the cookie is invalid, it returns 401
+        // and we logout then. If it succeeds, rider loads correctly.
         try {
             const raw = await getRiderProfile();
             const riderData = extractRider(raw);
@@ -70,9 +70,14 @@ export const RiderProvider = ({ children }) => {
         } catch (error) {
             console.error('Failed to fetch rider profile:', error);
             if (error?.response?.status === 401) {
+                // Cookie is genuinely invalid or expired — real logout
                 TokenManager.clearToken('rider');
                 setRider(null);
+                setIsOnline(false);
+                window.location.href = '/auth/rider/login';
             }
+            // Any other error (network, 500) — don't logout, just fail silently
+            // The rider might just have a flaky connection
         } finally {
             setLoading(false);
         }
@@ -87,6 +92,15 @@ export const RiderProvider = ({ children }) => {
         };
         window.addEventListener('notifications:updated', updateNotifs);
         return () => window.removeEventListener('notifications:updated', updateNotifs);
+    }, []);
+
+    useEffect(() => {
+        const handleUnauthorized = () => {
+            console.log('🛑 Rider unauthorized — triggering logout');
+            logout();
+        };
+        window.addEventListener('rider:unauthorized', handleUnauthorized);
+        return () => window.removeEventListener('rider:unauthorized', handleUnauthorized);
     }, []);
 
     const { isConnected: wsConnected, socket } = useSocket();

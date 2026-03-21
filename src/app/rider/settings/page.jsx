@@ -7,6 +7,7 @@ import {
     Bell, Moon, HelpCircle, MessageCircle, Star, Edit3, Mail
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
+import { useRider } from "@/app/context/RiderContext";
 import toast from "react-hot-toast";
 
 const SettingRow = ({ icon: Icon, label, value, onClick, danger = false, badge }) => (
