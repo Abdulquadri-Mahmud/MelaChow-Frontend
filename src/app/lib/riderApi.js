@@ -20,6 +20,20 @@ API.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+// Response interceptor to handle 401 Unauthorized
+API.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            TokenManager.clearToken('rider');
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(new Event("rider:unauthorized"));
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 // Auth
 export const riderLogin = async (phone, password) => {
     const response = await API.post("/auth/rider/login", { phone, password });
