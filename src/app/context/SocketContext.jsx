@@ -75,12 +75,12 @@ export const SocketProvider = ({ children }) => {
     };
 
     useEffect(() => {
-        // Function to handle connection
         const connect = async () => {
+            // Token is optional — socket auth now prioritises httpOnly cookie.
+            // We still pass localStorage token as fallback for environments
+            // where cookies aren't available (e.g. native mobile webview).
             const token = TokenManager.getToken(role);
-            
-            // If we already know auth failed for this specific token, don't keep hammering the server
-            if (authFailed.current || !token) return;
+            if (authFailed.current) return;
 
             socketService.connect(token);
 

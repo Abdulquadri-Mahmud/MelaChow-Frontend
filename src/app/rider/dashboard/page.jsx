@@ -340,7 +340,31 @@ export default function RiderDashboard() {
                                 ) : activeOrder.status === "out_for_delivery" || rider?.status === "on_delivery" ? (
                                     <>
                                         <button
-                                            onClick={() => window.open(`https://maps.google.com/?q=${encodeURIComponent(activeOrder.deliveryAddress?.address || activeOrder.userOrderId?.deliveryAddress?.addressLine)}`)}
+                                            onClick={() => {
+                                                const isHeadingToStore = activeOrder.orderStatus === "rider_assigned" || activeOrder.status === "assigned";
+                                                let targetAddr = "";
+
+                                                if (isHeadingToStore) {
+                                                    // Resolve restaurant address
+                                                    const restAddr = activeOrder.restaurantId?.address;
+                                                    targetAddr = activeOrder.restaurantId?.fullAddress ||
+                                                        (restAddr ? `${restAddr.street || ''}, ${restAddr.city || ''}, ${restAddr.state || ''}`.replace(/^[ ,]+|[ ,]+$/g, '').replace(/, ,/g, ',') : '') ||
+                                                        activeOrder.restaurantName || "";
+                                                } else {
+                                                    // Resolve customer address
+                                                    targetAddr = activeOrder.deliveryFullAddress ||
+                                                        (activeOrder.deliveryAddress?.addressLine
+                                                            ? `${activeOrder.deliveryAddress.addressLine}, ${activeOrder.deliveryAddress.city || ''}, ${activeOrder.deliveryAddress.state || ''}`.replace(/,,/g, ',').trim()
+                                                            : activeOrder.deliveryAddress?.address || activeOrder.userOrderId?.deliveryAddress?.addressLine || "");
+                                                }
+
+                                                if (!targetAddr || targetAddr.trim() === "") {
+                                                    toast.error("Location address not found");
+                                                    return;
+                                                }
+
+                                                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(targetAddr)}`);
+                                            }}
                                             className="h-16 rounded-2xl bg-white dark:bg-white/10 hover:bg-gray-50 dark:hover:bg-white/20 text-gray-900 dark:text-white font-black text-sm flex items-center justify-center transition-all border border-gray-200 dark:border-white/10"
                                         >
                                             <Navigation size={20} className="mr-2 text-orange-600 dark:text-orange-300" />

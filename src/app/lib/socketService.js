@@ -34,15 +34,14 @@ class SocketService {
         
         this.socket = io(SOCKET_URL, {
             auth: {
-                token: token
+                token: token || undefined  // Don't send null/empty string
             },
-            // Force websocket-first for better performance and to avoid 
-            // instance-stickiness issues (400 Bad Request) on Render/Vercel
+            withCredentials: true,         // ← This sends httpOnly cookies automatically
             transports: ['websocket'],
             reconnection: true,
             reconnectionDelay: 2000,
             reconnectionDelayMax: 10000,
-            reconnectionAttempts: 20, // Increase attempts for mobile/flaky connections
+            reconnectionAttempts: 20,
             timeout: 20000
         });
 

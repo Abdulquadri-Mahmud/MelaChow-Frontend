@@ -139,11 +139,22 @@ export default function NotificationOrderDetails() {
     }
 
     // Resolve details safely regardless of population levels
+    // Resolve restaurant address robustly
     const restaurant = order.restaurantId;
-    const vendorAddress = restaurant?.vendorLocation?.address || "Vendor Address";
-    const customerName = order.userId?.firstname ? `${order.userId.firstname} ${order.userId.lastname}` : "Customer";
+    const restAddr = restaurant?.address;
+    const vendorAddress = restaurant?.fullAddress ||
+        (restAddr ? `${restAddr.street || ''}, ${restAddr.city || ''}, ${restAddr.state || ''}`.replace(/^[ ,]+|[ ,]+$/g, '').replace(/, ,/g, ',') : '') ||
+        restaurant?.storeName ||
+        "Vendor Address";
+
+    const customerName = order.userId?.firstname ? `${order.userId.firstname} ${order.userId.lastname || ''}` : "Customer";
     const customerPhone = order.deliveryAddress?.phone || order.userId?.phone;
-    const customerAddress = order.deliveryAddress?.addressLine || "Customer Address";
+
+    // Resolve customer address robustly
+    const customerAddress = order.deliveryFullAddress ||
+        (order.deliveryAddress?.addressLine
+            ? `${order.deliveryAddress.addressLine}, ${order.deliveryAddress.city || ''}, ${order.deliveryAddress.state || ''}`.replace(/,,/g, ',').trim()
+            : order.deliveryAddress?.address || "Customer Address");
     const isPending = rider?.status === "pending_assignment" || order.orderStatus === "rider_assigned";
     const isOnDelivery = rider?.status === "on_delivery" || (order.orderStatus === "out_for_delivery");
 
@@ -193,7 +204,7 @@ export default function NotificationOrderDetails() {
                             <h3 className="font-black text-lg mb-1 text-gray-900 dark:text-white">{restaurant?.name || "GrubDash Vendor"}</h3>
                             <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 leading-relaxed">{vendorAddress}</p>
                             <a
-                                href={`https://maps.google.com/?q=${encodeURIComponent(vendorAddress)}`}
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(vendorAddress)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 font-bold text-xs text-gray-800 dark:text-white transition-colors"
@@ -216,7 +227,7 @@ export default function NotificationOrderDetails() {
 
                             <div className="flex gap-2">
                                 <a
-                                    href={`https://maps.google.com/?q=${encodeURIComponent(customerAddress)}`}
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(customerAddress)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex-1 inline-flex justify-center items-center gap-2 px-4 py-2 rounded-xl bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 font-bold text-xs text-gray-800 dark:text-white transition-colors"
