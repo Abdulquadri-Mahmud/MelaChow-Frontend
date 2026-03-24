@@ -49,6 +49,7 @@ function AdminLocationManagement() {
   const [createLocation, setCreateLocation] = useState(false);
 
   const baseUrl = "https://grubdash-api.onrender.com/api";
+  // const baseUrl = "http://localhost:3001/api";
 
   useEffect(() => {
     setLoading(true);
