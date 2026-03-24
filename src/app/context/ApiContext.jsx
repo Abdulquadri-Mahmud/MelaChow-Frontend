@@ -6,7 +6,9 @@ const ApiContext = createContext({ baseUrl: "" });
 export const ApiProvider = ({ children }) => {
   // Use relative path to leverage Next.js rewrites (Proxy)
   // This ensures cookies are treated as First-Party (fixes iOS Safari issues)
-  const baseUrl = "/api";
+  // const baseUrl = "/api";
+  const baseUrl = "https://grubdash-api.onrender.com/api";
+  // const baseUrl = "http://localhost:3001/api";
 
   // ✅ Debug logging for development
   if (process.env.NODE_ENV === 'development') {

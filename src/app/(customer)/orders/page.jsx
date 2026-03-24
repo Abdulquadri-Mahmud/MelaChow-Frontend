@@ -352,7 +352,7 @@ function OrdersContent() {
                       ))}
 
                       {/* Summary Section */}
-                      <div className="mt-12 space-y-4">
+                      <div className="mt-6 space-y-4">
                         <div className="bg-white dark:bg-zinc-900 rounded-[32px] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm">
                           <div className="flex justify-between items-center mb-6">
                             <div className="flex items-center gap-2">
@@ -374,7 +374,7 @@ function OrdersContent() {
                             </div>
                           </div>
 
-                          <div className="pt-6 flex justify-between items-end">
+                          <div className="pt-4 flex justify-between items-end">
                             <div>
                               <p className="text-[9px] font-black uppercase text-zinc-300 tracking-[0.2em] mb-1">Estimated Total</p>
                               <h4 className="text-3xl font-black text-zinc-900 dark:text-white italic tracking-tighter">₦{subtotal.toLocaleString()}</h4>
@@ -389,7 +389,7 @@ function OrdersContent() {
                         </div>
 
                       {/* Bottom Fixed Checkout Button */}
-                      <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 p-2 z-40">
+                      <div className="fixed bottom-20 left-0 right-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 p-2 z-[100]">
                         <motion.button
                           initial={{ y: 20, opacity: 0 }}
                           animate={{ y: 0, opacity: 1 }}
