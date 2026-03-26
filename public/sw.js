@@ -8,7 +8,7 @@
  * - Skip waiting on update (controlled by update manager)
  */
 
-const CACHE_VERSION = 'grubdash-v1.0.0';
+const CACHE_VERSION = 'grubdash-v1.1.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
@@ -29,7 +29,7 @@ const OFFLINE_PAGES = [
 // API endpoints (use network-first)
 const API_ROUTES = [
     '/api/',
-    'https://grub-dash-api.vercel.app/api/',
+    'https://grubdash-api.onrender.com/api/',
 ];
 
 // Static asset patterns (cache-first)

@@ -8,7 +8,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'grub-dash-api.vercel.app',
+        hostname: 'grubdash-api.onrender.com',
       }
     ],
   },
@@ -17,7 +17,7 @@ const nextConfig = {
    * API Proxy Configuration for iOS Safari Cookie Fix
    * 
    * Problem: iOS Safari blocks third-party cookies, causing auth cookies
-   * from https://grub-dash-api.vercel.app to be dropped when accessed
+   * from https://grubdash-api.onrender.com to be dropped when accessed
    * from https://grub-dash-frontend-xi.vercel.app
    * 
    * Solution: Proxy all API requests through the frontend domain using
@@ -25,7 +25,7 @@ const nextConfig = {
    * 
    * How it works:
    * 1. Frontend makes request to: /api/user/auth/profile
-   * 2. Next.js rewrites to: https://grub-dash-api.vercel.app/api/user/auth/profile
+   * 2. Next.js rewrites to: https://grubdash-api.onrender.com/api/user/auth/profile
    * 3. Backend sets cookie with domain: grub-dash-frontend-xi.vercel.app
    * 4. iOS Safari accepts cookie (same domain = first-party)
    * 
