@@ -31,8 +31,8 @@ export const getApiUrl = () => {
     // Example: https://grub-dash-frontend-xi.vercel.app/api/user/auth/profile
     //          ↓ (proxied to)
     //          https://grub-dash-api.vercel.app/api/user/auth/profile
-    // return '/api';
-    return 'http://localhost:3001/api';
+    return '/api';
+    // return 'http://localhost:3001/api';
 };
 
 /**

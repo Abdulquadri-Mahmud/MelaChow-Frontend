@@ -27,7 +27,8 @@ API.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       // Dispatch event for client-side handling (logout, redirect)
-      if (!error.config.suppressUnauthorized && typeof window !== "undefined") {
+      // Check metadata for intentional suppression of unauthorized events
+      if (!error.config?.metadata?.suppressUnauthorized && typeof window !== "undefined") {
         window.dispatchEvent(new Event("vendor:unauthorized"));
       }
     }
@@ -38,7 +39,7 @@ API.interceptors.response.use(
 export const getVendorDetails = async () => {
   try {
     const response = await API.get(`/vendors/get-vendor`, {
-      suppressUnauthorized: true,
+      metadata: { suppressUnauthorized: true },
     });
 
     console.log(response);
