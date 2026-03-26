@@ -15,7 +15,7 @@ const api = axios.create({
 // Add request interceptor to attach token
 api.interceptors.request.use(
   (config) => {
-    const token = TokenManager.getToken();
+    const token = TokenManager.getToken('vendor');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -28,7 +28,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      if (!error.config.suppressUnauthorized && typeof window !== "undefined") {
+      // Use metadata for reliable suppression of unauthorized events across axios versions
+      if (!error.config?.metadata?.suppressUnauthorized && typeof window !== "undefined") {
         window.dispatchEvent(new Event("vendor:unauthorized"));
       }
     }
@@ -56,7 +57,7 @@ api.interceptors.response.use(
 // ✅ CRUD Functions
 export const getVendors = async () => {
   // ✅ Force Token Initialization if missing (Fix for refresh race condition)
-  if (!TokenManager.getToken()) {
+  if (!TokenManager.getToken('vendor')) {
     TokenManager.initialize();
   }
 
@@ -65,7 +66,7 @@ export const getVendors = async () => {
       headers: {
         "Content-Type": "application/json",
       },
-      suppressUnauthorized: true, // ✅ Prevent loop for auto-fetches
+      metadata: { suppressUnauthorized: true }, // ✅ Prevent loop for auto-fetches
     });
     return res.data.data || res.data;
   } catch (error) {
@@ -81,7 +82,7 @@ export const getVendorById = async (id) => {
       headers: {
         "Content-Type": "application/json",
       },
-      suppressUnauthorized: true,
+      metadata: { suppressUnauthorized: true },
     });
     return res.data;
   } catch (error) {
