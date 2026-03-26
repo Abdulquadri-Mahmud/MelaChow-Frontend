@@ -28,7 +28,12 @@ class SocketService {
             this.socket = null;
         }
 
-        const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com';
+        // Socket.IO MUST connect directly to the backend (NOT through the Next.js proxy)
+        // Prioritise dedicated socket URL var, then the API URL, then hardcoded Render fallback
+        const SOCKET_URL =
+            process.env.NEXT_PUBLIC_SOCKET_URL ||
+            process.env.NEXT_PUBLIC_API_URL ||
+            'https://grubdash-api.onrender.com';
 
         console.log('[Socket.IO] Initializing new connection to:', SOCKET_URL);
         
