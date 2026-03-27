@@ -429,6 +429,18 @@ class AdminAPI {
         // console.log("Vendor Revenue Breakdown Response:", data);
         return data;
     }
+
+    async getUnreleasedEscrow(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        const data = await this.handleResponse(api.get(`/api/admin/finance/escrow?${query}`));
+        return data;
+    }
+
+    async getRefundsList(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        const data = await this.handleResponse(api.get(`/api/admin/finance/refunds?${query}`));
+        return data;
+    }
 }
 
 export default new AdminAPI();

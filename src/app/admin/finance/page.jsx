@@ -68,6 +68,8 @@ export default function FinancePage() {
     const [chartData, setChartData] = useState([]);
     const [transactions, setTransactions] = useState([]);
     const [vendorBreakdown, setVendorBreakdown] = useState([]);
+    const [escrowList, setEscrowList] = useState([]);
+    const [refundList, setRefundList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [chartPeriod, setChartPeriod] = useState("7days");
     const [searchQuery, setSearchQuery] = useState("");
@@ -135,6 +137,32 @@ export default function FinancePage() {
         }
     }, [currentPage, typeFilter, searchQuery]);
 
+    const fetchEscrowList = useCallback(async () => {
+        try {
+            const res = await adminApi.getUnreleasedEscrow({
+                page: currentPage,
+                search: searchQuery
+            });
+            setEscrowList(res.data.escrowOrders || []);
+            setTotalPages(res.data.pagination?.totalPages || 1);
+        } catch (err) {
+            console.error(err);
+        }
+    }, [currentPage, searchQuery]);
+
+    const fetchRefundList = useCallback(async () => {
+        try {
+            const res = await adminApi.getRefundsList({
+                page: currentPage,
+                search: searchQuery
+            });
+            setRefundList(res.data.refunds || []);
+            setTotalPages(res.data.pagination?.totalPages || 1);
+        } catch (err) {
+            console.error(err);
+        }
+    }, [currentPage, searchQuery]);
+
     useEffect(() => {
         fetchData();
     }, [fetchData]);
@@ -144,8 +172,11 @@ export default function FinancePage() {
     }, [fetchChartData]);
 
     useEffect(() => {
-        fetchTransactions();
-    }, [fetchTransactions]);
+        // Reset page when switching tabs handled by setActiveTab side effects if needed
+        if (activeTab === "transactions") fetchTransactions();
+        if (activeTab === "escrow") fetchEscrowList();
+        if (activeTab === "refunds") fetchRefundList();
+    }, [activeTab, fetchTransactions, fetchEscrowList, fetchRefundList]);
 
     return (
         <AdminProtectedRoute>
@@ -186,11 +217,13 @@ export default function FinancePage() {
                     </div>
 
                     {/* Navigation Tabs */}
-                    <div className="flex flex-wrap gap-2 p-2 bg-slate-100/50 rounded-[28px] w-fit">
+                    <div className="flex flex-wrap flex-col sm:flex-row gap-2 p-2 bg-slate-100/50 rounded-[28px] w-full sm:w-fit overflow-x-auto">
                         {[
                             { id: "overview", label: "Overview", icon: BarChart3 },
                             { id: "transactions", label: "Transactions", icon: Activity },
                             { id: "vendors", label: "Vendor Breakdown", icon: Store },
+                            { id: "escrow", label: "Escrow Holdings", icon: Lock },
+                            { id: "refunds", label: "Refund Audits", icon: FileText },
                         ].map((tab) => (
                             <button
                                 key={tab.id}
@@ -601,6 +634,173 @@ export default function FinancePage() {
                                             </tbody>
                                         </table>
                                     </div>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {activeTab === "escrow" && (
+                            <motion.div
+                                key="escrow"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                className="space-y-6"
+                            >
+                                <div className="bg-white border border-slate-100 rounded-[20px] shadow-xl shadow-slate-100/50 overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="bg-slate-50/50">
+                                                    <th className="px-8 py-6 text-[11px] font-black uppercase text-slate-400 tracking-widest">Order ID</th>
+                                                    <th className="px-8 py-6 text-[11px] font-black uppercase text-slate-400 tracking-widest">Vendor</th>
+                                                    <th className="px-8 py-6 text-[11px] font-black uppercase text-slate-400 tracking-widest">Date</th>
+                                                    <th className="px-8 py-6 text-[11px] font-black uppercase text-slate-400 tracking-widest">Status</th>
+                                                    <th className="px-8 py-6 text-[11px] font-black uppercase text-slate-400 tracking-widest text-right">Pending Escrow</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-50">
+                                                {escrowList.length > 0 ? (
+                                                    escrowList.map((escrow, idx) => (
+                                                        <tr key={idx} className="hover:bg-slate-50 transition-colors group">
+                                                            <td className="px-8 py-6">
+                                                                <div className="flex items-center gap-3 font-mono text-sm font-bold text-slate-900 bg-slate-100 px-3 py-1.5 w-fit rounded-lg">
+                                                                    <Hash size={14} className="text-slate-400" />
+                                                                    {escrow.parentOrder?.orderId || "Unknown"}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-8 py-6 font-bold text-slate-700 text-sm">
+                                                                {escrow.vendorInfo?.storeName || "Unknown Vendor"}
+                                                            </td>
+                                                            <td className="px-8 py-6 text-sm font-semibold text-slate-500">
+                                                                {new Date(escrow.createdAt).toLocaleDateString()}
+                                                            </td>
+                                                            <td className="px-8 py-6">
+                                                                <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-yellow-100 text-yellow-700">
+                                                                    {escrow.orderStatus.replace(/_/g, " ")}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-8 py-6 text-right font-black text-slate-900">
+                                                                ₦{escrow.escrowAmount?.toLocaleString()}
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="5" className="px-8 py-20 text-center text-slate-400">
+                                                            <Lock size={40} className="mx-auto mb-4 text-slate-200" />
+                                                            <h4 className="text-lg font-black text-slate-900 uppercase">No Escrow Holdings</h4>
+                                                            <p className="text-xs font-bold leading-relaxed mt-1">All vendor food revenue has been released.</p>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {/* Escrow Pagination */}
+                                    {totalPages > 1 && (
+                                        <div className="px-8 py-6 border-t border-slate-100 flex items-center justify-between">
+                                            <p className="text-sm font-bold text-slate-400">Page {currentPage} of {totalPages}</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    disabled={currentPage === 1}
+                                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                                                >
+                                                    <ChevronLeft size={16} />
+                                                </button>
+                                                <button
+                                                    disabled={currentPage === totalPages}
+                                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                                                >
+                                                    <ChevronRight size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {activeTab === "refunds" && (
+                            <motion.div
+                                key="refunds"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                className="space-y-6"
+                            >
+                                <div className="bg-white border border-slate-100 rounded-[20px] shadow-xl shadow-slate-100/50 overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="bg-slate-50/50">
+                                                    <th className="px-8 py-6 text-[11px] font-black uppercase text-slate-400 tracking-widest">Order ID</th>
+                                                    <th className="px-8 py-6 text-[11px] font-black uppercase text-slate-400 tracking-widest">Refund Reason</th>
+                                                    <th className="px-8 py-6 text-[11px] font-black uppercase text-slate-400 tracking-widest">Date</th>
+                                                    <th className="px-8 py-6 text-[11px] font-black uppercase text-slate-400 tracking-widest">Commission Retained</th>
+                                                    <th className="px-8 py-6 text-[11px] font-black uppercase text-slate-400 tracking-widest text-right">Amount Refunded</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-50">
+                                                {refundList.length > 0 ? (
+                                                    refundList.map((refund, idx) => (
+                                                        <tr key={idx} className="hover:bg-slate-50 transition-colors group">
+                                                            <td className="px-8 py-6 flex items-center gap-3 font-mono text-sm font-bold text-slate-900">
+                                                                <span className="bg-slate-200 w-8 h-8 rounded-full flex items-center justify-center">
+                                                                    <FileText size={12} className="text-slate-500" />
+                                                                </span>
+                                                                {refund.orderId?.orderId || "Missing"}
+                                                            </td>
+                                                            <td className="px-8 py-6">
+                                                                <p className="font-bold text-slate-800 text-sm">{refund.reason}</p>
+                                                                <p className="text-[10px] font-bold text-slate-400 mt-1 max-w-[200px] truncate">{refund.notes}</p>
+                                                            </td>
+                                                            <td className="px-8 py-6 text-sm font-semibold text-slate-500">
+                                                                {new Date(refund.createdAt).toLocaleDateString()}
+                                                            </td>
+                                                            <td className="px-8 py-6 font-bold text-emerald-600 text-sm">
+                                                                ₦{refund.commissionRetained?.toLocaleString()}
+                                                            </td>
+                                                            <td className="px-8 py-6 text-right font-black text-red-600">
+                                                                ₦{refund.amount?.toLocaleString()}
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                ) : (
+                                                    <tr>
+                                                        <td colSpan="5" className="px-8 py-20 text-center text-slate-400">
+                                                            <FileText size={40} className="mx-auto mb-4 text-slate-200" />
+                                                            <h4 className="text-lg font-black text-slate-900 uppercase">No Refunds Issued</h4>
+                                                            <p className="text-xs font-bold leading-relaxed mt-1">There are no refund audit records.</p>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {/* Refunds Pagination */}
+                                    {totalPages > 1 && (
+                                        <div className="px-8 py-6 border-t border-slate-100 flex items-center justify-between">
+                                            <p className="text-sm font-bold text-slate-400">Page {currentPage} of {totalPages}</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    disabled={currentPage === 1}
+                                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                                                >
+                                                    <ChevronLeft size={16} />
+                                                </button>
+                                                <button
+                                                    disabled={currentPage === totalPages}
+                                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors disabled:opacity-50"
+                                                >
+                                                    <ChevronRight size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </motion.div>
                         )}
