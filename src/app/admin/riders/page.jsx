@@ -17,7 +17,9 @@ import {
     ShieldCheck,
     Eye,
     EyeOff,
-    RefreshCw
+    RefreshCw,
+    User,
+    ChevronDown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
@@ -31,7 +33,7 @@ export default function AdminRidersPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
-    const [modalMode, setModalMode] = useState("create"); // "create" or "edit"
+    const [modalMode, setModalMode] = useState("create"); 
     const [selectedRider, setSelectedRider] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
@@ -52,7 +54,6 @@ export default function AdminRidersPage() {
             setRiders(ridersArray);
         } catch (error) {
             console.error("Failed to fetch riders:", error);
-            // toast.error("Could not load riders");
         } finally {
             setLoading(false);
         }
@@ -61,7 +62,6 @@ export default function AdminRidersPage() {
     const fetchVendors = async () => {
         try {
             const data = await adminApi.getAllVendors();
-            // Expected data format { success: true, vendors: [...] }
             setVendors(data.vendors || []);
         } catch (error) {
             console.error("Failed to fetch vendors:", error);
@@ -72,7 +72,7 @@ export default function AdminRidersPage() {
         setIsRefreshing(true);
         try {
             await Promise.all([fetchRiders(), fetchVendors()]);
-            toast.success("Rider fleet synchronized", { id: 'refresh' });
+            toast.success("Rider fleet updated");
         } catch (error) {
             toast.error("Sync failed");
         } finally {
@@ -92,7 +92,7 @@ export default function AdminRidersPage() {
             setFormData({
                 name: rider.name,
                 phone: rider.phone,
-                password: "", // Don't show password for edit
+                password: "", 
                 vendorId: rider.vendorId?._id || rider.vendorId || ""
             });
         } else {
@@ -112,12 +112,11 @@ export default function AdminRidersPage() {
         setIsSubmitting(true);
         try {
             if (modalMode === "create") {
-                // Note: vendorId is now optional for platform-managed riders
                 await adminApi.createRider(formData.vendorId || null, formData);
-                toast.success("Rider created successfully");
+                toast.success("Rider added successfully");
             } else {
                 await adminApi.updateRider(selectedRider._id, formData);
-                toast.success("Rider updated successfully");
+                toast.success("Rider details updated");
             }
             fetchRiders();
             setShowModal(false);
@@ -129,13 +128,13 @@ export default function AdminRidersPage() {
     };
 
     const handleDelete = async (riderId) => {
-        if (!window.confirm("Are you sure you want to remove this rider?")) return;
+        if (!window.confirm("Remove this rider from the platform?")) return;
         try {
             await adminApi.deleteRider(riderId);
             toast.success("Rider removed");
             fetchRiders();
         } catch (error) {
-            toast.error(error.message || "Failed to remove rider. They may have active orders.");
+            toast.error(error.message || "Failed to remove rider");
         }
     };
 
@@ -149,133 +148,151 @@ export default function AdminRidersPage() {
             <AdminDashboardLayout>
                 <div className="space-y-4">
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                         <div>
-                            <h1 className="text-4xl font-black text-gray-900 mb-2">Fleet Management</h1>
-                            <p className="text-gray-500 font-medium">Global directory and controls for all GrubDash riders</p>
+                            <h1 className="text-2xl font-bold text-slate-900">Rider Management</h1>
+                            <p className="text-sm text-slate-500 mt-0.5">Manage delivery personnel, affiliations, and availability status.</p>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                             <button
                                 onClick={handleRefresh}
                                 disabled={isRefreshing}
-                                className="w-12 h-12 bg-white border border-gray-200 rounded-2xl flex items-center justify-center text-gray-500 hover:text-orange-600 hover:border-orange-200 transition-all active:scale-90 disabled:opacity-50"
-                                title="Refresh data"
+                                className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium disabled:opacity-50"
                             >
-                                <RefreshCw size={20} className={isRefreshing ? "animate-spin" : ""} />
+                                <RefreshCw size={15} className={isRefreshing ? "animate-spin" : ""} />
+                                Sync Fleet
                             </button>
                             <button
                                 onClick={() => handleOpenModal("create")}
-                                className="bg-orange-600 hover:bg-orange-700 text-white font-black px-8 py-3 rounded-2xl flex items-center gap-2 transition-all active:scale-95"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition-colors"
                             >
-                                <Plus size={20} />
-                                Add Global Rider
+                                <Plus size={16} />
+                                Add Rider
                             </button>
                         </div>
                     </div>
 
-                    {/* Stats & Search */}
-                    <div className="flex flex-col md:flex-row gap-4">
+                    {/* Stats & Search Toolbar */}
+                    <div className="bg-white border border-slate-200 rounded-lg p-3 flex flex-col md:flex-row gap-3">
                         <div className="flex-1 relative">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                             <input
                                 type="text"
                                 placeholder="Search by name or phone..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full h-14 pl-14 pr-6 bg-white border border-gray-200 rounded-2xl focus:border-orange-500 outline-none font-medium transition-all"
+                                className="w-full h-9 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm focus:ring-1 focus:ring-slate-900 transition-all font-medium"
                             />
                         </div>
-                        <div className="bg-white border border-gray-200 rounded-2xl px-3 py-4 flex items-center gap-4">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Total Fleet</span>
-                                <span className="text-xl font-black text-gray-900">{riders.length}</span>
+                        <div className="flex items-center gap-4 px-3 border-l border-slate-100">
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Fleet</p>
+                                <p className="text-sm font-bold text-slate-900 leading-none mt-1">{riders.length}</p>
                             </div>
-                            <div className="w-[1px] h-8 bg-gray-100" />
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">Available</span>
-                                <span className="text-xl font-black text-green-500">{riders.filter(r => r.status === 'available').length}</span>
+                            <div className="w-[1px] h-6 bg-slate-100" />
+                            <div>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Available</p>
+                                <p className="text-sm font-bold text-emerald-600 leading-none mt-1">{riders.filter(r => r.status === 'available').length}</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Rider Directory Table */}
-                    <div className="bg-white border border-gray-200 rounded-[10px] overflow-hidden">
+                    {/* Directory Table */}
+                    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
-                                    <tr className="bg-gray-50/50 border-b border-gray-100">
-                                        <th className="px-8 py-5 text-[11px] font-black uppercase text-gray-400 tracking-widest">Rider Information</th>
-                                        <th className="px-8 py-5 text-[11px] font-black uppercase text-gray-400 tracking-widest">Affiliation</th>
-                                        <th className="px-8 py-5 text-[11px] font-black uppercase text-gray-400 tracking-widest">Status</th>
-                                        <th className="px-8 py-5 text-[11px] font-black uppercase text-gray-400 tracking-widest text-right">Actions</th>
+                                    <tr className="bg-slate-50 border-b border-slate-200">
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Rider Details</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Affiliation</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Status</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-50">
+                                <tbody className="divide-y divide-slate-100">
                                     {loading ? (
-                                        <tr><td colSpan="4" className="p-20 text-center"><Loader2 className="animate-spin mx-auto text-orange-500" size={32} /></td></tr>
+                                        <tr>
+                                            <td colSpan="4" className="py-12 text-center">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <Loader2 className="animate-spin text-slate-400" size={24} />
+                                                    <p className="text-xs text-slate-400 font-medium">Loading fleet data...</p>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     ) : filteredRiders.length > 0 ? (
                                         filteredRiders.map((rider) => (
-                                            <tr key={rider._id} className="hover:bg-gray-50 transition-colors group">
-                                                <td className="px-8 py-6">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-orange-50 group-hover:text-orange-600 transition-colors">
-                                                            <Bike size={24} />
+                                            <tr key={rider._id} className="hover:bg-slate-50/50 transition-colors group">
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-9 h-9 bg-slate-100 rounded-md flex items-center justify-center text-slate-400 group-hover:bg-slate-200 transition-colors border border-slate-200">
+                                                            <Bike size={18} />
                                                         </div>
                                                         <div>
-                                                            <div className="font-bold text-gray-900">{rider.name}</div>
-                                                            <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-                                                                <Phone size={10} /> {rider.phone}
+                                                            <p className="font-bold text-sm text-slate-900 leading-tight">{rider.name}</p>
+                                                            <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                                                <Phone size={10} className="text-slate-400" /> {rider.phone}
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-6">
+                                                <td className="px-4 py-3">
                                                     <div className="flex items-center gap-2">
-                                                        <Store size={14} className="text-gray-400" />
-                                                        <span className="font-semibold text-sm text-gray-700">
+                                                        <div className="w-5 h-5 rounded bg-slate-50 flex items-center justify-center border border-slate-200">
+                                                            <Store size={10} className="text-slate-500" />
+                                                        </div>
+                                                        <span className="text-xs font-semibold text-slate-600">
                                                             {rider.vendorId?.storeName || rider.vendorId?.name || "Independent"}
                                                         </span>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-6">
+                                                <td className="px-4 py-3">
                                                     {rider.status === 'available' ? (
-                                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-600 rounded-full text-[10px] font-black uppercase tracking-wider">
-                                                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded text-[10px] font-bold uppercase tracking-wide">
+                                                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
                                                             Available
-                                                        </div>
+                                                        </span>
                                                     ) : rider.status === 'on_delivery' ? (
-                                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-wider">
-                                                            <span className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-100 rounded text-[10px] font-bold uppercase tracking-wide">
+                                                            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
                                                             On Delivery
-                                                        </div>
+                                                        </span>
                                                     ) : (
-                                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 text-gray-500 rounded-full text-[10px] font-black uppercase tracking-wider">
-                                                            <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
+                                                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded text-[10px] font-bold uppercase tracking-wide">
+                                                            <span className="w-1.5 h-1.5 bg-slate-400 rounded-full" />
                                                             Offline
-                                                        </div>
+                                                        </span>
                                                     )}
                                                 </td>
-                                                <td className="px-8 py-6 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
+                                                <td className="px-4 py-3 text-right">
+                                                    <div className="flex items-center justify-end gap-1">
                                                         <button
                                                             onClick={() => handleOpenModal("edit", rider)}
-                                                            className="p-2.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
+                                                            className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
+                                                            title="Edit Rider"
                                                         >
-                                                            <Edit2 size={18} />
+                                                            <Edit2 size={15} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(rider._id)}
-                                                            className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
                                                             disabled={rider.status === 'on_delivery'}
+                                                            title="Delete Rider"
                                                         >
-                                                            <Trash2 size={18} />
+                                                            <Trash2 size={15} />
                                                         </button>
                                                     </div>
                                                 </td>
                                             </tr>
                                         ))
                                     ) : (
-                                        <tr><td colSpan="4" className="p-20 text-center text-gray-500 font-medium whitespace-nowrap">No riders found matching your search.</td></tr>
+                                        <tr>
+                                            <td colSpan="4" className="py-20 text-center">
+                                                <div className="flex flex-col items-center opacity-30">
+                                                    <Bike size={40} className="text-slate-400 mb-2" />
+                                                    <p className="text-sm font-bold text-slate-500">No riders matched your query</p>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     )}
                                 </tbody>
                             </table>
@@ -283,106 +300,104 @@ export default function AdminRidersPage() {
                     </div>
                 </div>
 
-                {/* Create/Edit Modal */}
+                {/* Form Modal */}
                 <AnimatePresence>
                     {showModal && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setShowModal(false)}
-                                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                            />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-lg bg-white rounded-[10px] overflow-hidden"
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                onClick={() => setShowModal(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
+                            <motion.div initial={{ opacity: 0, scale: 0.98, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                                className="relative w-full max-w-md bg-white rounded-xl overflow-hidden border border-slate-200"
                             >
-                                <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                                <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                                     <div>
-                                        <h2 className="text-2xl font-black text-gray-900">
-                                            {modalMode === "create" ? "Add Global Rider" : "Edit Rider Profile"}
+                                        <h2 className="text-base font-bold text-slate-900">
+                                            {modalMode === "create" ? "Add Platform Rider" : "Edit Rider Profile"}
                                         </h2>
-                                        <p className="text-xs font-bold text-gray-500 uppercase mt-1">
-                                            {modalMode === "create" ? "Assign new pilot to any vendor" : "Update credentials and affiliation"}
+                                        <p className="text-[10px] font-semibold text-slate-500 uppercase mt-0.5 tracking-wide">
+                                            {modalMode === "create" ? "Register new personnel" : "Update credentials & affiliation"}
                                         </p>
                                     </div>
-                                    <button onClick={() => setShowModal(false)} className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors">
-                                        <X size={20} />
+                                    <button onClick={() => setShowModal(false)} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors">
+                                        <X size={18} />
                                     </button>
                                 </div>
 
-                                <form onSubmit={handleSubmit} className="p-8 space-y-4">
+                                <form onSubmit={handleSubmit} className="p-5 space-y-4">
                                     <div className="space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-4 mb-2 block">Full Name</label>
+                                            <div className="space-y-1">
+                                                <label className="text-[11px] font-bold text-slate-500 ml-1">Full Name</label>
                                                 <input
                                                     type="text"
                                                     required
                                                     value={formData.name}
                                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                    className="w-full h-14 px-6 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-2xl outline-none transition-all font-semibold"
-                                                    placeholder="e.g. Samuel Eze"
+                                                    className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm font-medium focus:ring-1 focus:ring-slate-900 transition-all"
+                                                    placeholder="Samuel Eze"
                                                 />
                                             </div>
-                                            <div>
-                                                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-4 mb-2 block">Phone Number</label>
+                                            <div className="space-y-1">
+                                                <label className="text-[11px] font-bold text-slate-500 ml-1">Phone Number</label>
                                                 <input
                                                     type="tel"
                                                     required
                                                     value={formData.phone}
                                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                                    className="w-full h-14 px-6 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-2xl outline-none transition-all font-semibold"
+                                                    className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm font-medium focus:ring-1 focus:ring-slate-900 transition-all"
                                                     placeholder="080XXXXXXXX"
                                                 />
                                             </div>
                                         </div>
-                                        <div>
-                                            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-4 mb-2 block">Restaurant / Vendor</label>
-                                            <select
-                                                value={formData.vendorId}
-                                                onChange={(e) => setFormData({ ...formData, vendorId: e.target.value })}
-                                                className="w-full h-14 px-6 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-2xl outline-none transition-all font-semibold appearance-none cursor-pointer"
-                                            >
-                                                <option value="">Independent / Platform Managed</option>
-                                                {vendors.map(v => (
-                                                    <option key={v._id} value={v._id}>{v.storeName || v.name}</option>
-                                                ))}
-                                            </select>
+                                        
+                                        <div className="space-y-1">
+                                            <label className="text-[11px] font-bold text-slate-500 ml-1">Assign Vendor</label>
+                                            <div className="relative">
+                                                <select
+                                                    value={formData.vendorId}
+                                                    onChange={(e) => setFormData({ ...formData, vendorId: e.target.value })}
+                                                    className="w-full h-9 px-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm font-medium focus:ring-1 focus:ring-slate-900 transition-all appearance-none cursor-pointer pr-9"
+                                                >
+                                                    <option value="">Independent / Platform Managed</option>
+                                                    {vendors.map(v => (
+                                                        <option key={v._id} value={v._id}>{v.storeName || v.name}</option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-4 mb-2 block">Password {modalMode === 'edit' && '(Leave blank to keep current)'}</label>
+
+                                        <div className="space-y-1">
+                                            <label className="text-[11px] font-bold text-slate-500 ml-1">Account Password {modalMode === 'edit' && '(Optional)'}</label>
                                             <div className="relative">
                                                 <input
                                                     type={showPassword ? "text" : "password"}
                                                     required={modalMode === 'create'}
                                                     value={formData.password}
                                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                                    className="w-full h-14 pl-6 pr-14 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-2xl outline-none transition-all font-semibold"
+                                                    className="w-full h-9 pl-3 pr-9 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm font-medium focus:ring-1 focus:ring-slate-900 transition-all"
                                                     placeholder="••••••••"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPassword(!showPassword)}
-                                                    className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                                                 >
-                                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="w-full h-16 bg-orange-600 text-white rounded-2xl font-black text-lg flex items-center justify-center gap-2 hover:bg-orange-700 transition-all active:scale-[0.98] disabled:opacity-50"
-                                    >
-                                        {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : <ShieldCheck size={24} />}
-                                        {modalMode === "create" ? "Create Global Rider" : "Update Rider Affiliation"}
-                                    </button>
+                                    <div className="flex gap-2 pt-2">
+                                        <button type="button" onClick={() => setShowModal(false)}
+                                            className="flex-1 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
+                                        <button type="submit" disabled={isSubmitting}
+                                            className="flex-1 py-2 bg-slate-900 text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
+                                            {isSubmitting ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle2 size={16} />}
+                                            {modalMode === "create" ? "Add Rider" : "Save Changes"}
+                                        </button>
+                                    </div>
                                 </form>
                             </motion.div>
                         </div>

@@ -23,7 +23,11 @@ import {
     Shield,
     RotateCcw,
     Hash,
-    User
+    User,
+    Bike,
+    ChevronDown,
+    MapPin,
+    ArrowUpRight
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
@@ -31,44 +35,35 @@ import AdminDashboardLayout from "@/app/components/admin/AdminDashboardLayout";
 import adminApi from "@/app/lib/adminApi";
 import toast from "react-hot-toast";
 import AdminRiderAssignmentModal from '@/app/components/admin/AdminRiderAssignmentModal';
-import { Bike } from "lucide-react";
 
 const statusConfig = {
-    pending: { color: "bg-yellow-50 text-yellow-600", label: "Pending" },
-    accepted: { color: "bg-blue-50 text-blue-600", label: "Accepted" },
-    preparing: { color: "bg-orange-50 text-orange-600", label: "Preparing" },
-    ready_for_pickup: { color: "bg-purple-50 text-purple-600", label: "Ready" },
-    rider_assigned: { color: "bg-indigo-50 text-indigo-600", label: "Rider Assigned" },
-    out_for_delivery: { color: "bg-cyan-50 text-cyan-600", label: "Out for Delivery" },
-    delivered: { color: "bg-teal-50 text-teal-600", label: "Delivered" },
-    completed: { color: "bg-green-50 text-green-600", label: "Completed" },
-    cancelled: { color: "bg-red-50 text-red-600", label: "Cancelled" },
-    failed: { color: "bg-rose-50 text-rose-600", label: "Failed" },
-    refunded: { color: "bg-slate-50 text-slate-600", label: "Refunded" },
+    pending: { color: "bg-amber-50 text-amber-700 border-amber-200", label: "Pending" },
+    accepted: { color: "bg-blue-50 text-blue-700 border-blue-200", label: "Accepted" },
+    preparing: { color: "bg-orange-50 text-orange-700 border-orange-200", label: "Preparing" },
+    ready_for_pickup: { color: "bg-purple-50 text-purple-700 border-purple-200", label: "Ready" },
+    rider_assigned: { color: "bg-indigo-50 text-indigo-700 border-indigo-200", label: "Rider Assigned" },
+    out_for_delivery: { color: "bg-cyan-50 text-cyan-700 border-cyan-200", label: "Out for Delivery" },
+    delivered: { color: "bg-emerald-50 text-emerald-700 border-emerald-200", label: "Delivered" },
+    completed: { color: "bg-emerald-50 text-emerald-700 border-emerald-200", label: "Completed" },
+    cancelled: { color: "bg-rose-50 text-rose-700 border-rose-200", label: "Cancelled" },
+    failed: { color: "bg-rose-50 text-rose-700 border-rose-200", label: "Failed" },
+    refunded: { color: "bg-slate-50 text-slate-600 border-slate-200", label: "Refunded" },
 };
 
-const StatCard = ({ icon: Icon, label, value, color, loading }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-shadow"
-    >
-        <div className="flex items-start justify-between">
-            <div>
-                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                    {label}
-                </p>
-                {loading ? (
-                    <Loader2 size={24} className="animate-spin text-gray-400" />
-                ) : (
-                    <h3 className="text-3xl font-black text-gray-900">{value}</h3>
-                )}
-            </div>
-            <div className={`p-3 rounded-xl ${color}`}>
-                <Icon size={24} className="text-white" strokeWidth={2.5} />
-            </div>
+const CompactStat = ({ icon: Icon, label, value, colorClass, loading }) => (
+    <div className="bg-white border border-slate-200 rounded-lg p-3 flex items-center gap-3">
+        <div className={`w-10 h-10 rounded flex items-center justify-center ${colorClass} bg-opacity-10 shrink-0`}>
+            <Icon size={20} className={colorClass.split(' ')[1]} />
         </div>
-    </motion.div>
+        <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">{label}</p>
+            {loading ? (
+                <div className="h-5 w-16 bg-slate-100 animate-pulse rounded" />
+            ) : (
+                <p className="text-base font-bold text-slate-900 leading-none">{value}</p>
+            )}
+        </div>
+    </div>
 );
 
 export default function AdminOrdersPage() {
@@ -119,7 +114,6 @@ export default function AdminOrdersPage() {
         statusToOverride: ""
     });
 
-    // Debounce search
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(search);
@@ -155,13 +149,11 @@ export default function AdminOrdersPage() {
 
             let response;
             if (filters.deliveryType === "platform_managed") {
-                // Specialized Logistics Endpoint (returns rider & sub-order status)
                 response = await adminApi.getPlatformManagedOrders(baseParams);
             } else {
-                // General List Endpoint
                 response = await adminApi.getAllOrders({
                     ...baseParams,
-                    deliveryType: filters.deliveryType // "" (All) or "vendor_managed"
+                    deliveryType: filters.deliveryType
                 });
             }
 
@@ -188,8 +180,6 @@ export default function AdminOrdersPage() {
         fetchOrders();
     }, [fetchOrders]);
 
-    // Listen for rider assignment events from socket toast clicks
-    // and from the platform deliveries page
     useEffect(() => {
         const handleRiderAssignmentEvent = (e) => {
             const data = e.detail;
@@ -205,14 +195,8 @@ export default function AdminOrdersPage() {
             });
         };
 
-        window.addEventListener(
-            'admin:open_rider_assignment', 
-            handleRiderAssignmentEvent
-        );
-        return () => window.removeEventListener(
-            'admin:open_rider_assignment', 
-            handleRiderAssignmentEvent
-        );
+        window.addEventListener('admin:open_rider_assignment', handleRiderAssignmentEvent);
+        return () => window.removeEventListener('admin:open_rider_assignment', handleRiderAssignmentEvent);
     }, []);
 
     const handleClearFilters = () => {
@@ -228,7 +212,7 @@ export default function AdminOrdersPage() {
     };
 
     const handleRefresh = async () => {
-        const refreshToast = toast.loading("Syncing latest order data...");
+        const refreshToast = toast.loading("Syncing latest data...");
         try {
             await Promise.all([fetchOrders(), fetchStats()]);
             toast.success("Orders synchronized", { id: refreshToast });
@@ -241,21 +225,21 @@ export default function AdminOrdersPage() {
         setConfirmModal({
             show: true,
             title: "Override Order Status",
-            message: "Reason for status override is required.",
+            message: "Reason required for manual status adjustment.",
             type: "prompt",
-            confirmText: "Update Status",
-            placeholder: "Enter reason for override...",
+            confirmText: "Apply Change",
+            placeholder: "Internal note (e.g. Manual payment verified)",
             inputValue: "",
             statusToOverride: order.orderStatus,
             onConfirm: async (reason) => {
                 if (!reason?.trim()) {
-                    toast.error("Please provide a reason");
+                    toast.error("Reason is required");
                     return;
                 }
                 try {
                     setConfirmModal(prev => ({ ...prev, isLoading: true }));
                     await adminApi.adminOverrideOrderStatus(order._id, confirmModal.statusToOverride, reason);
-                    toast.success("Order status updated");
+                    toast.success("Order updated");
                     fetchOrders();
                     fetchStats();
                     setConfirmModal(prev => ({ ...prev, show: false }));
@@ -268,643 +252,392 @@ export default function AdminOrdersPage() {
         });
     };
 
-    // Derive orders needing rider assignment from existing orders state
-    // No new API call — uses data already fetched
     const ordersNeedingRider = orders.filter(order =>
         order.deliveryType === 'platform_managed' &&
         !order.riderId &&
-        ['ready_for_pickup', 'ready', 'preparing', 'accepted']
-            .includes(order.orderStatus || order.status)
+        ['ready_for_pickup', 'ready', 'preparing', 'accepted'].includes(order.orderStatus || order.status)
     );
 
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                         <div>
-                            <h1 className="text-4xl font-black text-gray-900 mb-2">Order Management</h1>
-                            <p className="text-gray-500 font-medium tracking-tight">Monitor and manage platform transactions</p>
+                            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                                Order Dashboard
+                                <span className="text-xs font-medium px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">{pagination.total} Records</span>
+                            </h1>
+                            <p className="text-sm text-slate-500 mt-0.5">Real-time platform activity and transaction management.</p>
                         </div>
                         <button
                             onClick={handleRefresh}
                             disabled={loading || statsLoading}
-                            className="h-14 px-8 bg-white border border-gray-200 rounded-[20px] font-black text-xs uppercase tracking-widest text-slate-900 hover:bg-slate-50 hover:border-slate-300 transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 px-3 py-2 bg-slate-900 text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
                         >
-                            <RotateCcw size={18} className={(loading || statsLoading) ? "animate-spin" : ""} />
-                            {loading || statsLoading ? "Syncing..." : "Refresh Data"}
+                            <RotateCcw size={15} className={(loading || statsLoading) ? "animate-spin" : ""} />
+                            {loading || statsLoading ? "Syncing..." : "Update Dashboard"}
                         </button>
                     </div>
 
-                    {/* Stats Row */}
-                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                        <StatCard
-                            icon={ShoppingBag}
-                            label="Total Orders"
-                            value={stats?.totalOrders || 0}
-                            loading={statsLoading}
-                            color="bg-orange-500"
-                        />
-                        <StatCard
-                            icon={DollarSign}
-                            label="Total Revenue"
-                            value={`₦${(stats?.totalRevenue || 0).toLocaleString()}`}
-                            loading={statsLoading}
-                            color="bg-emerald-500"
-                        />
-                        <StatCard
-                            icon={Percent}
-                            label="Commission"
-                            value={`₦${(stats?.totalCommission || 0).toLocaleString()}`}
-                            loading={statsLoading}
-                            color="bg-purple-500"
-                        />
-                        <StatCard
-                            icon={Truck}
-                            label="Platform Fee Revenue"
-                            value={`₦${(stats?.platformDeliveryRevenue || 0).toLocaleString()}`}
-                            loading={statsLoading}
-                            color="bg-blue-500"
-                        />
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <CompactStat icon={ShoppingBag} label="Volume" value={stats?.totalOrders || 0} loading={statsLoading} colorClass="bg-blue-100 text-blue-600" />
+                        <CompactStat icon={DollarSign} label="Gross Value" value={`₦${(stats?.totalRevenue || 0).toLocaleString()}`} loading={statsLoading} colorClass="bg-emerald-100 text-emerald-600" />
+                        <CompactStat icon={Percent} label="Platform Slice" value={`₦${(stats?.totalCommission || 0).toLocaleString()}`} loading={statsLoading} colorClass="bg-orange-100 text-orange-600" />
+                        <CompactStat icon={Truck} label="Logistics Revenue" value={`₦${(stats?.platformDeliveryRevenue || 0).toLocaleString()}`} loading={statsLoading} colorClass="bg-indigo-100 text-indigo-600" />
                     </div>
 
-                    {/* Operational & Payment Breakdowns */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                        <div className="bg-white p-4 rounded-[10px] border border-gray-100">
-                            <h3 className="text-[11px] font-black uppercase text-gray-400 tracking-[0.2em] mb-6 flex items-center gap-2">
-                                <Clock size={14} className="text-orange-500" /> Operational Status
+                    {/* Operational Summary */}
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+                        <div className="lg:col-span-3 bg-white border border-slate-200 rounded-lg p-3">
+                            <h3 className="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-3 flex items-center gap-2">
+                                <Clock size={12} className="text-orange-500" /> Operational Funnel
                             </h3>
-                            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
                                 {Object.entries(stats?.ordersByStatus || {}).map(([status, count]) => (
-                                    <div key={status} className="bg-gray-50/50 p-4 rounded-2xl border border-gray-50 flex flex-col items-center">
-                                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{status.replace('_', ' ')}</p>
-                                        <h4 className="text-xl font-black text-gray-900">{count}</h4>
+                                    <div key={status} className="bg-slate-50 border border-slate-100 p-2 rounded flex flex-col items-center">
+                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter mb-0.5">{status.replace('_', ' ')}</p>
+                                        <p className="text-sm font-bold text-slate-900 leading-none">{count}</p>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="bg-white p-4 rounded-[10px] border border-gray-100">
-                            <h3 className="text-[11px] font-black uppercase text-gray-400 tracking-[0.2em] mb-6 flex items-center gap-2">
-                                <CreditCard size={14} className="text-emerald-500" /> Payment Summary
+                        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-lg p-3">
+                            <h3 className="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-3 flex items-center gap-2">
+                                <CreditCard size={12} className="text-emerald-500" /> Settlement
                             </h3>
-                            <div className="flex gap-4">
-                                <div className="flex-1 bg-emerald-50/50 p-2 rounded-md border border-emerald-100 flex justify-between items-center">
+                            <div className="flex gap-2">
+                                <div className="flex-1 bg-emerald-50 border border-emerald-100 p-2 rounded flex justify-between items-center">
                                     <div>
-                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Paid</p>
-                                        <h4 className="text-2xl font-black text-emerald-700">{stats?.ordersByPaymentStatus?.paid || 0}</h4>
+                                        <p className="text-[8px] font-bold text-emerald-600 uppercase mb-0.5">Paid</p>
+                                        <p className="text-lg font-bold text-emerald-700 leading-none">{stats?.ordersByPaymentStatus?.paid || 0}</p>
                                     </div>
-                                    <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-emerald-500">
-                                        <CheckCircle2 size={24} />
-                                    </div>
+                                    <CheckCircle2 size={16} className="text-emerald-400" />
                                 </div>
-                                <div className="flex-1 bg-amber-50/50 p-2 rounded-md border border-amber-100 flex justify-between items-center">
+                                <div className="flex-1 bg-amber-50 border border-amber-100 p-2 rounded flex justify-between items-center">
                                     <div>
-                                        <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Pending</p>
-                                        <h4 className="text-2xl font-black text-amber-700">{stats?.ordersByPaymentStatus?.pending || 0}</h4>
+                                        <p className="text-[8px] font-bold text-amber-600 uppercase mb-0.5">Unsettled</p>
+                                        <p className="text-lg font-bold text-amber-700 leading-none">{stats?.ordersByPaymentStatus?.pending || 0}</p>
                                     </div>
-                                    <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-amber-500">
-                                        <AlertCircle size={24} />
-                                    </div>
+                                    <AlertCircle size={16} className="text-amber-400" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Delivery Management Tabs */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-[10px] border border-gray-100">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 border border-blue-100">
-                                <Truck size={20} />
-                            </div>
-                            <div>
-                                <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest leading-none pt-0.5">Manage Delivery By</h3>
-                            </div>
-                        </div>
-
-                        <div className="flex p-1.5 bg-slate-50 rounded-[10px] border border-slate-100 w-fit">
-                            {[
-                                { id: "", label: "All Logistics", icon: ShoppingBag },
-                                { id: "platform_managed", label: "Platform Managed", icon: Shield },
-                                { id: "vendor_managed", label: "Vendor Managed", icon: Store },
-                            ].map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => {
-                                        setFilters(f => ({ ...f, deliveryType: tab.id }));
-                                        setPagination(p => ({ ...p, page: 1 }));
-                                    }}
-                                    className={`h-11 px-4 rounded-2xl flex items-center gap-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${filters.deliveryType === tab.id
-                                        ? "bg-white text-slate-900 border border-slate-100"
-                                        : "text-slate-400 hover:text-slate-600 hover:bg-white/50"
-                                        }`}
-                                >
-                                    <tab.icon size={14} className={filters.deliveryType === tab.id ? "text-orange-500" : "text-slate-400"} />
-                                    {tab.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Filters Row */}
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-2">
-                            <div className="relative xl:col-span-2">
-                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                    {/* Filter Context Toolbar */}
+                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-3">
+                        <div className="flex flex-col md:flex-row gap-2">
+                            <div className="flex-1 relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                                 <input
                                     type="text"
-                                    placeholder="Search by Order ID..."
+                                    placeholder="Search order ID, Customer..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full h-14 pl-14 pr-6 bg-white border border-gray-200 rounded-2xl focus:border-orange-500 outline-none font-semibold transition-all"
+                                    className="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900 transition-all font-medium"
                                 />
                             </div>
-
-                            <select
-                                value={filters.status}
-                                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                                className="h-14 px-6 bg-white border border-gray-200 rounded-2xl focus:border-orange-500 outline-none font-semibold cursor-pointer transition-all"
-                            >
-                                <option value="">All Statuses</option>
-                                {Object.entries(statusConfig).map(([key, { label }]) => (
-                                    <option key={key} value={key}>{label}</option>
+                            <div className="flex bg-white border border-slate-200 p-1 rounded-md shrink-0">
+                                {[
+                                    { id: "", label: "All Logistics", icon: ShoppingBag },
+                                    { id: "platform_managed", label: "Managed", icon: Shield },
+                                    { id: "vendor_managed", label: "Self-Fulfilling", icon: Store },
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => {
+                                            setFilters(f => ({ ...f, deliveryType: tab.id }));
+                                            setPagination(p => ({ ...p, page: 1 }));
+                                        }}
+                                        className={`h-7 px-3 rounded-sm flex items-center gap-2 text-[10px] font-bold uppercase transition-all ${filters.deliveryType === tab.id
+                                            ? "bg-slate-900 text-white"
+                                            : "text-slate-500 hover:bg-slate-50"
+                                            }`}
+                                    >
+                                        <tab.icon size={12} />
+                                        <span>{tab.label}</span>
+                                    </button>
                                 ))}
-                            </select>
+                            </div>
+                        </div>
 
-                            <select
-                                value={filters.paymentStatus}
-                                onChange={(e) => setFilters({ ...filters, paymentStatus: e.target.value })}
-                                className="h-14 px-6 bg-white border border-gray-200 rounded-2xl focus:border-orange-500 outline-none font-semibold cursor-pointer transition-all"
-                            >
-                                <option value="">All Payments</option>
-                                <option value="paid">Paid</option>
-                                <option value="pending">Pending</option>
-                                <option value="failed">Failed</option>
-                            </select>
+                        <div className="flex flex-wrap gap-2">
+                            <div className="relative min-w-[140px]">
+                                <select
+                                    value={filters.status}
+                                    onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                                    className="w-full h-9 pl-3 pr-8 bg-white border border-slate-200 rounded-md text-xs font-bold uppercase tracking-tight outline-none focus:ring-1 focus:ring-slate-900 appearance-none cursor-pointer"
+                                >
+                                    <option value="">Status: All</option>
+                                    {Object.entries(statusConfig).map(([key, { label }]) => (
+                                        <option key={key} value={key}>{label}</option>
+                                    ))}
+                                </select>
+                                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                            </div>
 
+                            <div className="relative min-w-[140px]">
+                                <select
+                                    value={filters.paymentStatus}
+                                    onChange={(e) => setFilters({ ...filters, paymentStatus: e.target.value })}
+                                    className="w-full h-9 pl-3 pr-8 bg-white border border-slate-200 rounded-md text-xs font-bold uppercase tracking-tight outline-none focus:ring-1 focus:ring-slate-900 appearance-none cursor-pointer"
+                                >
+                                    <option value="">Payment: All</option>
+                                    <option value="paid">Settled (Paid)</option>
+                                    <option value="pending">Awaiting (Pending)</option>
+                                    <option value="failed">Failed Transaction</option>
+                                </select>
+                                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                            </div>
 
-                            <div className="flex gap-2 xl:col-span-2">
-                                <div className="relative flex-1">
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            <div className="flex gap-1">
+                                <div className="relative min-w-[130px]">
                                     <input
                                         type="date"
                                         value={filters.startDate}
                                         onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-                                        className="w-full h-14 pl-11 pr-4 bg-white border border-gray-200 rounded-2xl focus:border-orange-500 outline-none font-semibold transition-all text-xs"
+                                        className="w-full h-9 pl-3 pr-3 bg-white border border-slate-200 rounded-md text-[10px] font-bold outline-none uppercase"
                                     />
                                 </div>
-                                <div className="relative flex-1">
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                                <div className="w-4 h-9 flex items-center justify-center text-slate-300 font-bold">−</div>
+                                <div className="relative min-w-[130px]">
                                     <input
                                         type="date"
                                         value={filters.endDate}
                                         onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-                                        className="w-full h-14 pl-11 pr-4 bg-white border border-gray-200 rounded-2xl focus:border-orange-500 outline-none font-semibold transition-all text-xs"
+                                        className="w-full h-9 pl-3 pr-3 bg-white border border-slate-200 rounded-md text-[10px] font-bold outline-none uppercase"
                                     />
                                 </div>
                             </div>
-                        </div>
 
-                        {(search || filters.status || filters.paymentStatus || filters.deliveryType || filters.startDate || filters.endDate) && (
-                            <button
-                                onClick={handleClearFilters}
-                                className="h-14 px-8 bg-gray-50 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border border-gray-100 flex items-center gap-2"
-                            >
-                                <X size={14} /> Clear All Filters
-                            </button>
-                        )}
+                            {(search || filters.status || filters.paymentStatus || filters.deliveryType || filters.startDate || filters.endDate) && (
+                                <button
+                                    onClick={handleClearFilters}
+                                    className="h-9 px-3 bg-rose-50 text-rose-600 border border-rose-100 rounded-md text-xs font-bold hover:bg-rose-100 transition-colors flex items-center gap-1.5"
+                                >
+                                    <X size={14} /> Reset
+                                </button>
+                            )}
+                        </div>
                     </div>
 
-                    {/* ── Priority Rider Queue ────────────────────────────────── */}
-                    {/* Only renders when there are unassigned platform-managed    */}
-                    {/* orders. Derives from existing orders state — no new fetch. */}
+                    {/* Dispatch Queue (Priority) */}
                     <AnimatePresence>
-                        {!loading && ordersNeedingRider.length > 0 && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -16 }}
-                                transition={{ duration: 0.3 }}
-                                className="space-y-4"
-                            >
-                                {/* Section Header */}
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative">
-                                            <div className="w-10 h-10 bg-red-500 rounded-2xl flex 
-                                                items-center justify-center text-white shadow-lg 
-                                                shadow-red-200">
-                                                <Truck size={20} strokeWidth={2.5} />
-                                            </div>
-                                            {/* Pulse ring */}
-                                            <div className="absolute inset-0 rounded-2xl bg-red-500 
-                                                animate-ping opacity-20" />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-sm font-black text-slate-900 
-                                                uppercase tracking-widest leading-none">
-                                                Rider Assignment Queue
-                                            </h2>
-                                            <p className="text-[10px] font-bold text-red-500 
-                                                uppercase tracking-widest mt-0.5">
-                                                {ordersNeedingRider.length} order
-                                                {ordersNeedingRider.length !== 1 ? 's' : ''} awaiting 
-                                                dispatch
-                                            </p>
-                                        </div>
+                        {ordersNeedingRider.length > 0 && (
+                            <div className="space-y-3 pt-2">
+                                <div className="flex items-center justify-between px-1">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                                        <h2 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest">Dispatch Assignment Required</h2>
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded">{ordersNeedingRider.length} Orders</span>
                                     </div>
-                                    {/* Urgency badge */}
-                                    <div className="flex items-center gap-2 px-4 py-2 
-                                        bg-red-50 border border-red-100 rounded-2xl">
-                                        <div className="w-2 h-2 rounded-full bg-red-500 
-                                            animate-pulse" />
-                                        <span className="text-[10px] font-black text-red-600 
-                                            uppercase tracking-widest">Action Required</span>
-                                    </div>
+                                    <button className="text-[10px] font-bold text-blue-600 uppercase hover:underline">View Logistics Map</button>
                                 </div>
-
-                                {/* Horizontal scrollable queue of priority cards */}
-                                <div className="flex gap-4 overflow-x-auto pb-3 
-                                    scrollbar-none snap-x snap-mandatory">
-                                    {ordersNeedingRider.map((order, idx) => {
-                                        // Time since order was last updated
-                                        const minutesWaiting = Math.floor(
-                                            (Date.now() - new Date(order.updatedAt || order.createdAt)) 
-                                            / 60000
-                                        );
-                                        const isUrgent = minutesWaiting >= 15;
-
+                                <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                                    {ordersNeedingRider.map((order) => {
+                                        const waitTime = Math.floor((Date.now() - new Date(order.updatedAt || order.createdAt)) / 60000);
+                                        const isUrgent = waitTime >= 15;
                                         return (
-                                            <motion.div
+                                            <div
                                                 key={order._id}
-                                                initial={{ opacity: 0, x: 20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: idx * 0.05 }}
-                                                className={`flex-shrink-0 w-[280px] snap-start 
-                                                    bg-white rounded-[28px] border-2 overflow-hidden
-                                                    transition-all duration-300 hover:shadow-lg
-                                                    hover:shadow-red-100 ${
-                                                        isUrgent 
-                                                            ? 'border-red-300 shadow-md shadow-red-100' 
-                                                            : 'border-gray-100 hover:border-red-200'
-                                                    }`}
+                                                className={`min-w-[280px] bg-white border ${isUrgent ? 'border-rose-200 bg-rose-50/10' : 'border-slate-200'} rounded-lg overflow-hidden shrink-0`}
                                             >
-                                                {/* Card top stripe */}
-                                                <div className={`h-1.5 w-full ${
-                                                    isUrgent ? 'bg-red-500' : 'bg-orange-400'
-                                                }`} />
-
-                                                <div className="p-5 space-y-4">
-                                                    {/* Order ID + Urgency */}
-                                                    <div className="flex items-start justify-between">
+                                                <div className="p-3">
+                                                    <div className="flex justify-between items-start mb-2">
                                                         <div>
-                                                            <p className="text-orange-600 text-[10px] 
-                                                                font-black tracking-widest uppercase">
-                                                                #{order.orderId}
-                                                            </p>
-                                                            <p className="text-[10px] font-bold text-slate-400 
-                                                                uppercase tracking-widest mt-0.5">
-                                                                {new Date(order.createdAt).toLocaleTimeString([], {
-                                                                    hour: '2-digit', minute: '2-digit'
-                                                                })}
-                                                            </p>
+                                                            <p className="text-[10px] font-bold text-slate-400 uppercase leading-none mb-1">#{order.orderId}</p>
+                                                            <p className="text-xs font-bold text-slate-900 leading-none">{order.userId?.firstname} {order.userId?.lastname}</p>
                                                         </div>
-                                                        <div className={`px-3 py-1.5 rounded-xl text-[9px] 
-                                                            font-black uppercase tracking-widest border ${
-                                                                isUrgent
-                                                                    ? 'bg-red-50 text-red-600 border-red-200'
-                                                                    : 'bg-amber-50 text-amber-600 border-amber-100'
-                                                            }`}>
-                                                            {isUrgent 
-                                                                ? `${minutesWaiting}m — URGENT` 
-                                                                : `${minutesWaiting}m waiting`
-                                                            }
+                                                        <div className={`px-2 py-0.5 rounded text-[9px] font-bold border uppercase ${isUrgent ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                                            {waitTime}m Idle
                                                         </div>
                                                     </div>
-
-                                                    {/* Customer + Restaurant */}
-                                                    <div className="space-y-2">
-                                                        <div className="flex items-center gap-2.5">
-                                                            <div className="w-7 h-7 rounded-lg bg-slate-100 
-                                                                flex items-center justify-center text-slate-400 
-                                                                flex-shrink-0">
-                                                                <User size={14} />
-                                                            </div>
-                                                            <p className="text-xs font-bold text-slate-900 
-                                                                truncate">
-                                                                {order.userId?.firstname} {order.userId?.lastname}
-                                                            </p>
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center border border-slate-200">
+                                                            <Store size={12} className="text-slate-400" />
                                                         </div>
-                                                        <div className="flex items-center gap-2.5">
-                                                            <div className="w-7 h-7 rounded-lg bg-orange-50 
-                                                                flex items-center justify-center text-orange-500 
-                                                                flex-shrink-0">
-                                                                <Store size={14} />
-                                                            </div>
-                                                            <p className="text-[10px] font-bold text-slate-500 
-                                                                uppercase tracking-wider truncate italic">
-                                                                {order.items?.[0]?.restaurantId?.storeName 
-                                                                    || 'Restaurant'}
-                                                            </p>
-                                                        </div>
+                                                        <p className="text-[11px] font-bold text-slate-500 truncate">{order.items?.[0]?.restaurantId?.storeName || 'Partner Store'}</p>
                                                     </div>
-
-                                                    {/* Current status pill */}
-                                                    <div className={`inline-flex items-center px-3 py-1.5 
-                                                        rounded-xl text-[9px] font-black uppercase 
-                                                        tracking-widest border ${
-                                                            statusConfig[order.orderStatus || order.status]?.color
-                                                        }`}>
-                                                        {statusConfig[order.orderStatus || order.status]?.label 
-                                                            || order.orderStatus}
-                                                    </div>
-
-                                                    {/* Assign Rider button — single primary action */}
                                                     <button
                                                         onClick={() => {
-                                                            const vendorOrder = order.vendorOrders?.[0];
-                                                            const vendorOrderId = vendorOrder?._id || order._id;
+                                                            const vendorOrderId = order.vendorOrders?.[0]?._id || order._id;
                                                             setRiderAssignModal({
                                                                 show: true,
                                                                 orderData: {
                                                                     vendorOrderId,
-                                                                    restaurantName: order.items?.[0]
-                                                                        ?.restaurantId?.storeName || 'Restaurant',
+                                                                    restaurantName: order.items?.[0]?.restaurantId?.storeName || 'Store',
                                                                     readyAt: order.updatedAt,
                                                                     url: `/admin/orders/${order.orderId}`
                                                                 }
                                                             });
                                                         }}
-                                                        className={`w-full h-11 rounded-[18px] font-black 
-                                                            text-[10px] uppercase tracking-widest transition-all 
-                                                            active:scale-95 flex items-center justify-center 
-                                                            gap-2 shadow-lg ${
-                                                                isUrgent
-                                                                    ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-200'
-                                                                    : 'bg-orange-600 hover:bg-orange-700 text-white shadow-orange-100'
-                                                            }`}
+                                                        className={`w-full py-2 rounded-md font-bold text-xs uppercase transition-colors flex items-center justify-center gap-2 ${isUrgent ? 'bg-rose-600 text-white hover:bg-rose-700' : 'bg-slate-900 text-white hover:bg-slate-800'}`}
                                                     >
-                                                        <Truck size={14} />
-                                                        Assign Rider
+                                                        <Bike size={14} /> Dispatch Rider
                                                     </button>
                                                 </div>
-                                            </motion.div>
+                                            </div>
                                         );
                                     })}
                                 </div>
-
-                                {/* Divider before main grid */}
-                                <div className="flex items-center gap-4 pt-2">
-                                    <div className="flex-1 h-px bg-gray-100" />
-                                    <span className="text-[10px] font-black text-gray-300 
-                                        uppercase tracking-widest">All Orders</span>
-                                    <div className="flex-1 h-px bg-gray-100" />
-                                </div>
-                            </motion.div>
+                            </div>
                         )}
                     </AnimatePresence>
 
                     {/* Orders Grid */}
-                    {loading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {[...Array(6)].map((_, i) => (
-                                <div key={i} className="bg-white rounded-[32px] p-6 border border-gray-100 animate-pulse h-[320px]" />
-                            ))}
-                        </div>
-                    ) : orders.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {orders.map((order) => {
-                                const status = statusConfig[order.orderStatus || order.status];
-                                return (
-                                    <motion.div
-                                        key={order._id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="bg-white rounded-[10px] border border-gray-200 overflow-hidden transition-all duration-500 group relative"
-                                    >
-                                        {/* Status Ribbon */}
-                                        <div className={`absolute top-0 right-0 px-6 py-2 rounded-bl-3xl ${status?.color || 'bg-slate-100 text-slate-600'} text-[10px] font-black uppercase tracking-widest z-10 border-b border-l border-white/20`}>
-                                            {status?.label || order.status}
-                                        </div>
-
-                                        <div className="p-4">
-                                            {/* Header: Order ID & Date */}
-                                            <div className="flex items-start justify-between mb-8">
-                                                <div>
-                                                    <p className="text-orange-600 text-xs font-black tracking-widest uppercase mb-1 flex items-center gap-2">
-                                                        <Hash size={12} /> {order.orderId}
-                                                    </p>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                                                        <Calendar size={10} /> {new Date(order.createdAt).toLocaleDateString()} · {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => setActionMenu({ show: true, order })}
-                                                    className="w-10 h-10 flex items-center justify-center bg-gray-50 text-gray-400 hover:bg-gray-900 hover:text-white rounded-xl transition-all"
-                                                >
-                                                    <MoreVertical size={18} />
-                                                </button>
-                                            </div>
-
-                                            {/* Customer & Main Item */}
-                                            <div className="flex items-center gap-5 mb-8">
-                                                <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0 relative group-hover:scale-105 transition-transform duration-500">
-                                                    {order.items?.[0]?.variant?.image || order.items?.[0]?.foodId?.image ? (
-                                                        <img
-                                                            src={order.items[0].variant?.image || order.items[0].foodId?.image}
-                                                            className="w-full h-full object-cover"
-                                                            alt=""
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                                            <ShoppingBag size={24} />
+                    <div className="pt-2">
+                        {loading ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {[...Array(6)].map((_, i) => (
+                                    <div key={i} className="h-48 bg-slate-100 border border-slate-200 rounded-lg animate-pulse" />
+                                ))}
+                            </div>
+                        ) : orders.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {orders.map((order) => {
+                                    const status = statusConfig[order.orderStatus || order.status] || { color: "bg-slate-100 text-slate-600 border-slate-200", label: order.status };
+                                    return (
+                                        <div key={order._id} className="bg-white border border-slate-200 rounded-lg overflow-hidden group hover:border-slate-400 transition-colors">
+                                            <div className="p-3">
+                                                <div className="flex justify-between items-start mb-3">
+                                                    <div>
+                                                        <div className="flex items-center gap-2 mb-0.5">
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">#{order.orderId}</span>
+                                                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase tracking-wide ${status.color}`}>
+                                                                {status.label}
+                                                            </span>
                                                         </div>
-                                                    )}
-                                                    {order.items?.length > 1 && (
-                                                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
-                                                            <span className="text-white text-xs font-black">+{order.items.length - 1}</span>
-                                                        </div>
-                                                    )}
+                                                        <h4 className="text-sm font-bold text-slate-900 truncate max-w-[150px]">{order.userId?.firstname} {order.userId?.lastname}</h4>
+                                                    </div>
+                                                    <button onClick={() => setActionMenu({ show: true, order })} className="p-1 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors">
+                                                        <MoreVertical size={16} />
+                                                    </button>
                                                 </div>
-                                                <div className="min-w-0">
-                                                    <h4 className="text-sm font-black text-slate-900 tracking-tight mb-1 truncate">
-                                                        {order.userId?.firstname} {order.userId?.lastname}
-                                                    </h4>
-                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1 truncate italic">
-                                                        {order.items?.[0]?.foodId?.name || "Order"}
-                                                    </p>
-                                                    <div className={`inline-flex items-center px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
-                                                        order.paymentStatus === "paid" ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-                                                        "bg-amber-50 text-amber-600 border-amber-100"
-                                                    }`}>
-                                                        {order.paymentStatus}
+
+                                                <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-100">
+                                                    <div className="w-10 h-10 rounded bg-slate-50 border border-slate-200 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                                        {order.items?.[0]?.foodId?.image ? <img src={order.items[0].foodId.image} className="w-full h-full object-cover" alt="" /> : <ShoppingBag size={18} className="text-slate-300" />}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-[11px] font-bold text-slate-500 uppercase truncate leading-none mb-1">{order.items?.[0]?.foodId?.name || "Order"}</p>
+                                                        <p className="text-xs font-bold text-slate-900">₦{order.total?.toLocaleString()}</p>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            {/* Split Info Section: Logistics & Financials */}
-                                            <div className="grid grid-cols-2 gap-4 pb-8 border-b border-gray-100">
-                                                <div>
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 leading-none">Logistics Profile</p>
-                                                    {order.deliveryType === "platform_managed" ? (
-                                                        <div className="space-y-1">
-                                                            {order.riderId ? (
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
-                                                                        <Bike size={12} />
-                                                                    </div>
-                                                                    <p className="text-[10px] font-bold text-slate-700 truncate">{order.riderId.firstname || order.riderId.name}</p>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        {order.deliveryType === "platform_managed" ? (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <div className="w-5 h-5 rounded bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                                                                    <Truck size={10} />
                                                                 </div>
-                                                            ) : (
-                                                                <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-xl text-[9px] font-black uppercase tracking-widest animate-pulse border border-red-100">
-                                                                    🚨 Unassigned
+                                                                <span className="text-[10px] font-bold text-slate-500 uppercase">Platform</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center gap-1.5">
+                                                                <div className="w-5 h-5 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                                                                    <Store size={10} />
                                                                 </div>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-xl text-[9px] font-black uppercase tracking-widest border border-emerald-100">
-                                                            <Store size={10} /> Vendor
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 leading-none">Total Value</p>
-                                                    <p className="text-xl font-black text-slate-900 tracking-tighter">₦{order.total?.toLocaleString()}</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Action Bar */}
-                                            <div className="pt-6 flex gap-3">
-                                                <button
-                                                    onClick={() => router.push(`/admin/orders/${order.orderId}`)}
-                                                    className="flex-1 h-12 bg-gray-900 text-white rounded-[18px] font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg shadow-gray-200 active:scale-95"
-                                                >
-                                                    <Eye size={14} /> View Registry
-                                                </button>
-                                                {/* Hidden Vendor Dots for platform managed */}
-                                                {filters.deliveryType === "platform_managed" && order.vendorOrders?.length > 0 && (
-                                                    <div className="flex items-center gap-1.5 px-3 bg-gray-50 rounded-2xl border border-gray-100">
-                                                        {order.vendorOrders.map((vo, idx) => (
-                                                            <div
-                                                                key={idx}
-                                                                title={`${vo.restaurantId?.storeName}: ${vo.status}`}
-                                                                className={`w-2.5 h-2.5 rounded-full border border-white shadow-sm ${vo.status === 'ready_for_pickup' ? 'bg-emerald-500' :
-                                                                        vo.status === 'preparing' ? 'bg-orange-400' : 'bg-slate-300'
-                                                                    }`}
-                                                            />
-                                                        ))}
+                                                                <span className="text-[10px] font-bold text-slate-500 uppercase">Vendor</span>
+                                                            </div>
+                                                        )}
+                                                        {order.riderId && (
+                                                            <div className="flex items-center gap-1 px-1.5 py-0.5 bg-slate-50 border border-slate-200 rounded text-[9px] font-bold text-slate-600">
+                                                                <Bike size={10} /> {order.riderId.firstname || "Rider"}
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
+                                                    <button onClick={() => router.push(`/admin/orders/${order.orderId}`)} className="text-[10px] font-bold text-slate-500 uppercase hover:text-slate-900 flex items-center gap-1 group/btn">
+                                                        Details <ArrowUpRight size={12} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="py-40 text-center bg-white border border-dashed border-gray-200 rounded-[40px]">
-                            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
-                                <ShoppingBag size={40} />
+                                    );
+                                })}
                             </div>
-                            <h3 className="text-2xl font-black text-slate-900 uppercase mb-2">Registry Empty</h3>
-                            <p className="text-gray-400 font-medium">No orders found matching your criteria</p>
-                        </div>
-                    )}
-
-                    {/* Pagination Area */}
-                    <div className="bg-white p-8 border border-gray-200 rounded-[32px] flex items-center justify-between flex-wrap gap-6">
-                            <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
-                                {pagination.total} orders found
-                            </span>
-                            <div className="flex items-center gap-4">
-                                <span className="text-xs font-bold text-gray-500 uppercase">Page {pagination.page} of {pagination.pages}</span>
-                                <div className="flex gap-2">
-                                    <button
-                                        disabled={pagination.page <= 1 || loading}
-                                        onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-                                        className="w-10 h-10 bg-gray-50 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-all disabled:opacity-50"
-                                    >
-                                        <ChevronLeft size={20} />
-                                    </button>
-                                    <button
-                                        disabled={pagination.page >= pagination.pages || loading}
-                                        onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-                                        className="w-10 h-10 bg-gray-50 flex items-center justify-center rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-all disabled:opacity-50"
-                                    >
-                                        <ChevronRight size={20} />
-                                    </button>
-                                </div>
+                        ) : (
+                            <div className="py-20 text-center bg-slate-50 border border-dashed border-slate-200 rounded-lg">
+                                <ShoppingBag size={32} className="mx-auto text-slate-300 mb-2 opacity-30" />
+                                <p className="text-sm font-bold text-slate-500 uppercase tracking-tight">No records found matching your filters</p>
                             </div>
-                        </div>
+                        )}
                     </div>
 
-                {/* Confirm/Prompt Modal */}
+                    {/* Pagination */}
+                    {pagination.pages > 1 && (
+                        <div className="bg-white border border-slate-200 rounded-lg p-3 flex items-center justify-between">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">{pagination.total} Orders tracked</p>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    disabled={pagination.page <= 1 || loading}
+                                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                                    className="h-8 w-8 flex items-center justify-center bg-white border border-slate-200 rounded text-slate-400 hover:text-slate-900 transition-colors disabled:opacity-50"
+                                >
+                                    <ChevronLeft size={16} />
+                                </button>
+                                <div className="px-3 h-8 flex items-center justify-center bg-white border border-slate-200 rounded text-xs font-bold text-slate-700">
+                                    {pagination.page} / {pagination.pages}
+                                </div>
+                                <button
+                                    disabled={pagination.page >= pagination.pages || loading}
+                                    onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                                    className="h-8 w-8 flex items-center justify-center bg-white border border-slate-200 rounded text-slate-400 hover:text-slate-900 transition-colors disabled:opacity-50"
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Modals Refactored to Standard */}
                 <AnimatePresence>
                     {confirmModal.show && (
                         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => !confirmModal.isLoading && setConfirmModal(prev => ({ ...prev, show: false }))}
-                                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
-                            />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-md bg-white rounded-[40px] overflow-hidden"
-                            >
-                                <div className="p-10 text-center">
-                                    <div className="w-20 h-20 bg-orange-50 rounded-[32px] flex items-center justify-center mx-auto mb-8">
-                                        <AlertCircle className="text-orange-500" size={40} />
-                                    </div>
-                                    <h3 className="text-2xl font-black text-slate-900 uppercase mb-4 tracking-tight">{confirmModal.title}</h3>
-                                    <p className="text-gray-500 font-medium leading-relaxed mb-8">{confirmModal.message}</p>
-
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !confirmModal.isLoading && setConfirmModal(prev => ({ ...prev, show: false }))} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
+                            <motion.div initial={{ opacity: 0, scale: 0.98, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 10 }} className="relative w-full max-w-sm bg-white rounded-xl overflow-hidden border border-slate-200">
+                                <div className="p-6 text-center">
+                                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100"><AlertCircle className="text-slate-400" size={24} /></div>
+                                    <h3 className="text-base font-bold text-slate-900 uppercase mb-2 tracking-tight">{confirmModal.title}</h3>
+                                    <p className="text-sm text-slate-500 font-medium mb-6 leading-normal">{confirmModal.message}</p>
                                     {confirmModal.type === "prompt" && (
-                                        <div className="space-y-4 mb-8">
+                                        <div className="space-y-3 mb-6">
                                             <div className="text-left">
-                                                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-4 mb-2 block">New Status</label>
-                                                <select
-                                                    value={confirmModal.statusToOverride}
-                                                    onChange={(e) => setConfirmModal(prev => ({ ...prev, statusToOverride: e.target.value }))}
-                                                    className="w-full h-14 px-6 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-2xl outline-none transition-all font-semibold appearance-none"
-                                                >
-                                                    {Object.entries(statusConfig).map(([key, { label }]) => (
-                                                        <option key={key} value={key}>{label}</option>
-                                                    ))}
-                                                </select>
+                                                <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 ml-1">Target Status</label>
+                                                <div className="relative">
+                                                    <select
+                                                        value={confirmModal.statusToOverride}
+                                                        onChange={(e) => setConfirmModal(prev => ({ ...prev, statusToOverride: e.target.value }))}
+                                                        className="w-full h-9 pl-3 pr-8 bg-slate-50 border border-slate-200 rounded-md outline-none text-xs font-bold uppercase appearance-none"
+                                                    >
+                                                        {Object.entries(statusConfig).map(([key, { label }]) => (
+                                                            <option key={key} value={key}>{label}</option>
+                                                        ))}
+                                                    </select>
+                                                    <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                                </div>
                                             </div>
                                             <div className="text-left">
-                                                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-4 mb-2 block">Reason for Override</label>
+                                                <label className="text-[10px] font-bold uppercase text-slate-400 mb-1 ml-1">Adjustment Reason</label>
                                                 <textarea
                                                     autoFocus
                                                     value={confirmModal.inputValue}
                                                     onChange={(e) => setConfirmModal(prev => ({ ...prev, inputValue: e.target.value }))}
                                                     placeholder={confirmModal.placeholder}
-                                                    className="w-full min-h-[120px] p-6 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-3xl outline-none font-semibold transition-all resize-none text-sm"
+                                                    className="w-full min-h-[80px] p-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-xs font-semibold resize-none"
                                                 />
                                             </div>
                                         </div>
                                     )}
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <button
-                                            disabled={confirmModal.isLoading}
-                                            onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
-                                            className="h-16 rounded-3xl bg-gray-100 text-gray-500 font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95 disabled:opacity-50"
-                                        >
-                                            {confirmModal.cancelText || "Cancel"}
-                                        </button>
-                                        <button
-                                            disabled={confirmModal.isLoading}
-                                            onClick={() => confirmModal.onConfirm(confirmModal.inputValue)}
-                                            className="h-16 rounded-3xl bg-orange-600 text-white font-black text-sm uppercase tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
-                                        >
-                                            {confirmModal.isLoading && <Loader2 size={16} className="animate-spin" />}
-                                            {confirmModal.confirmText || "Confirm"}
+                                    <div className="flex gap-2">
+                                        <button disabled={confirmModal.isLoading} onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))} className="flex-1 py-2 bg-white border border-slate-200 rounded-md font-bold text-xs uppercase text-slate-600 hover:bg-slate-50">Cancel</button>
+                                        <button disabled={confirmModal.isLoading} onClick={() => confirmModal.onConfirm(confirmModal.inputValue)} className="flex-1 py-2 bg-slate-900 text-white rounded-md font-bold text-xs uppercase hover:bg-slate-800 flex items-center justify-center gap-2">
+                                            {confirmModal.isLoading && <Loader2 size={14} className="animate-spin" />} {confirmModal.confirmText}
                                         </button>
                                     </div>
                                 </div>
@@ -913,103 +646,47 @@ export default function AdminOrdersPage() {
                     )}
                 </AnimatePresence>
 
-                {/* Action Menu Modal */}
                 <AnimatePresence>
                     {actionMenu.show && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setActionMenu({ show: false, order: null })}
-                                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-                            />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                className="relative w-full max-w-sm bg-white rounded-[32px] overflow-hidden p-6"
-                            >
-                                <div className="flex items-center justify-between mb-6">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setActionMenu({ show: false, order: null })} className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" />
+                            <motion.div initial={{ opacity: 0, scale: 0.98, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 10 }} className="relative w-full max-w-sm bg-white rounded-xl overflow-hidden border border-slate-200 shadow-2xl">
+                                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                                     <div>
-                                        <h3 className="text-lg font-black text-slate-900 uppercase">Order Options</h3>
-                                        <p className="text-xs font-bold text-gray-400">{actionMenu.order?.orderId}</p>
+                                        <h3 className="text-sm font-bold text-slate-900">Order Action Hub</h3>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5 tracking-widest">{actionMenu.order?.orderId}</p>
                                     </div>
-                                    <button
-                                        onClick={() => setActionMenu({ show: false, order: null })}
-                                        className="w-10 h-10 flex items-center justify-center bg-gray-50 text-gray-400 rounded-xl hover:bg-gray-100 hover:text-gray-900 transition-all"
-                                    >
-                                        <X size={20} />
-                                    </button>
+                                    <button onClick={() => setActionMenu({ show: false, order: null })} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors"><X size={18} /></button>
                                 </div>
-
-                                <div className="grid grid-cols-1 gap-2">
-                                    <button
-                                        onClick={() => {
-                                            router.push(`/admin/orders/${actionMenu.order.orderId}`);
-                                            setActionMenu({ show: false, order: null });
-                                        }}
-                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-emerald-50 text-gray-600 hover:text-emerald-600 transition-all group"
-                                    >
-                                        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-white transition-all text-gray-400 group-hover:text-emerald-500">
-                                            <Eye size={20} />
-                                        </div>
-                                        <span className="font-bold text-sm tracking-tight">View Full Details</span>
+                                <div className="p-2 grid grid-cols-1 gap-1">
+                                    <button onClick={() => { router.push(`/admin/orders/${actionMenu.order.orderId}`); setActionMenu({ show: false, order: null }); }} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-50 text-slate-700 transition-all group">
+                                        <div className="w-8 h-8 rounded bg-slate-100 text-slate-400 flex items-center justify-center group-hover:text-slate-900"><Eye size={16} /></div>
+                                        <span className="text-sm font-semibold">View Case File</span>
                                     </button>
-
-                                    <button
-                                        onClick={() => {
-                                            handleOverrideStatus(actionMenu.order);
-                                            setActionMenu({ show: false, order: null });
-                                        }}
-                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-orange-50 text-gray-600 hover:text-orange-600 transition-all group"
-                                    >
-                                        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-white transition-all text-gray-400 group-hover:text-orange-500">
-                                            <CheckCircle2 size={20} />
-                                        </div>
-                                        <span className="font-bold text-sm tracking-tight">Override Status</span>
+                                    <button onClick={() => { handleOverrideStatus(actionMenu.order); setActionMenu({ show: false, order: null }); }} className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-50 text-slate-700 transition-all group">
+                                        <div className="w-8 h-8 rounded bg-orange-50 text-orange-400 flex items-center justify-center group-hover:text-orange-600"><Settings size={16} /></div>
+                                        <span className="text-sm font-semibold">Override Status</span>
                                     </button>
-
-                                    {/* Assign Rider — only for unassigned platform-managed orders */}
-                                    {actionMenu.order?.deliveryType === 'platform_managed' && 
-                                    !actionMenu.order?.riderId &&
-                                    ['ready_for_pickup', 'ready', 'accepted', 
-                                    'preparing'].includes(actionMenu.order?.orderStatus || actionMenu.order?.status) && (
-                                    <button
-                                        onClick={() => {
-                                        // Find the vendorOrderId from the order's vendorOrders array
-                                        const vendorOrder = actionMenu.order?.vendorOrders?.[0];
-                                        const vendorOrderId = vendorOrder?._id || 
-                                                                actionMenu.order?._id;
-                                        setRiderAssignModal({
-                                            show: true,
-                                            orderData: {
-                                            vendorOrderId,
-                                            restaurantName: actionMenu.order?.items?.[0]
-                                                ?.restaurantId?.storeName || 'Restaurant',
-                                            readyAt: actionMenu.order?.updatedAt,
-                                            url: `/admin/orders/${actionMenu.order?.orderId}`
-                                            }
-                                        });
-                                        setActionMenu({ show: false, order: null });
-                                        }}
-                                        className="w-full flex items-center gap-4 p-4 rounded-2xl 
-                                        hover:bg-red-50 text-gray-600 hover:text-red-600 
-                                        transition-all group"
-                                    >
-                                        <div className="w-10 h-10 rounded-xl bg-gray-50 flex 
-                                        items-center justify-center group-hover:bg-white 
-                                        transition-all text-gray-400 group-hover:text-red-500">
-                                        <Truck size={20} />
-                                        </div>
-                                        <div className="text-left">
-                                        <span className="font-bold text-sm tracking-tight block">
-                                            Assign Rider
-                                        </span>
-                                        <span className="text-[10px] font-bold text-gray-400 
-                                            uppercase tracking-widest">Dispatch Platform Rider</span>
-                                        </div>
-                                    </button>
+                                    {actionMenu.order?.deliveryType === 'platform_managed' && !actionMenu.order?.riderId && (
+                                        <button 
+                                            onClick={() => {
+                                                const vendorOrderId = actionMenu.order?.vendorOrders?.[0]?._id || actionMenu.order?._id;
+                                                setRiderAssignModal({
+                                                    show: true,
+                                                    orderData: {
+                                                        vendorOrderId,
+                                                        restaurantName: actionMenu.order?.items?.[0]?.restaurantId?.storeName || 'Store',
+                                                        readyAt: actionMenu.order?.updatedAt,
+                                                        url: `/admin/orders/${actionMenu.order?.orderId}`
+                                                    }
+                                                });
+                                                setActionMenu({ show: false, order: null });
+                                            }}
+                                            className="flex items-center gap-3 p-2.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all group border border-blue-100"
+                                        >
+                                            <div className="w-8 h-8 rounded bg-white text-blue-600 flex items-center justify-center"><Bike size={16} /></div>
+                                            <span className="text-sm font-bold uppercase tracking-widest">Assign Dispatch</span>
+                                        </button>
                                     )}
                                 </div>
                             </motion.div>
@@ -1017,16 +694,12 @@ export default function AdminOrdersPage() {
                     )}
                 </AnimatePresence>
 
-                    <AdminRiderAssignmentModal
-                        isOpen={riderAssignModal.show}
-                        onClose={() => setRiderAssignModal({ show: false, orderData: null })}
-                        orderData={riderAssignModal.orderData}
-                        onAssigned={() => {
-                            fetchOrders();
-                            fetchStats();
-                            setRiderAssignModal({ show: false, orderData: null });
-                        }}
-                    />
+                <AdminRiderAssignmentModal
+                    isOpen={riderAssignModal.show}
+                    onClose={() => setRiderAssignModal({ show: false, orderData: null })}
+                    orderData={riderAssignModal.orderData}
+                    onAssigned={() => { fetchOrders(); fetchStats(); setRiderAssignModal({ show: false, orderData: null }); }}
+                />
             </AdminDashboardLayout>
         </AdminProtectedRoute>
     );

@@ -19,7 +19,12 @@ import {
     Activity,
     UserMinus,
     ChevronRight,
-    Filter
+    Filter,
+    MapPin,
+    ExternalLink,
+    Lock,
+    Unlock,
+    Trash2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
@@ -27,39 +32,34 @@ import AdminDashboardLayout from "@/app/components/admin/AdminDashboardLayout";
 import adminApi from "@/app/lib/adminApi";
 import toast from "react-hot-toast";
 
-const StatCard = ({ icon: Icon, label, value, color, delay }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay }}
-        className="bg-white p-3 rounded-[32px] border border-gray-100 flex flex-col gap-4 group hover:border-orange-200 transition-all duration-300"
-    >
-        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${color} bg-opacity-10 transition-transform group-hover:scale-110 duration-300`}>
-            <Icon size={24} className={`${color.replace('bg-', 'text-')}`} />
+const StatTile = ({ icon: Icon, label, value, colorClass, loading }) => (
+    <div className="bg-white border border-slate-200 rounded-lg p-3 flex items-center gap-3">
+        <div className={`w-9 h-9 rounded flex items-center justify-center ${colorClass} bg-opacity-10 text-${colorClass.replace('bg-', '')}`}>
+            <Icon size={18} />
         </div>
         <div>
-            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 group-hover:text-gray-500">
-                {label}
-            </div>
-            <div className="text-3xl font-black text-gray-900 tracking-tight">
-                {value?.toLocaleString() || 0}
-            </div>
+            <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">{label}</p>
+            {loading ? (
+                <div className="h-5 w-16 bg-slate-100 animate-pulse rounded" />
+            ) : (
+                <p className="text-lg font-bold text-slate-900 leading-none">{value?.toLocaleString() || 0}</p>
+            )}
         </div>
-    </motion.div>
+    </div>
 );
 
 const Badge = ({ children, variant = "default" }) => {
     const variants = {
-        default: "bg-gray-100 text-gray-600 border-gray-200",
-        success: "bg-emerald-50 text-emerald-600 border-emerald-100",
-        warning: "bg-orange-50 text-orange-600 border-orange-100",
-        danger: "bg-rose-50 text-rose-600 border-rose-100",
-        info: "bg-blue-50 text-blue-600 border-blue-100",
-        dark: "bg-gray-900 text-white border-gray-800"
+        default: "bg-slate-100 text-slate-600 border-slate-200",
+        success: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        warning: "bg-amber-50 text-amber-700 border-amber-200",
+        danger: "bg-rose-50 text-rose-700 border-rose-200",
+        info: "bg-blue-50 text-blue-700 border-blue-200",
+        dark: "bg-slate-900 text-white border-slate-800"
     };
 
     return (
-        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${variants[variant]}`}>
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide border ${variants[variant]}`}>
             {children}
         </span>
     );
@@ -81,16 +81,14 @@ export default function AdminUsersPage() {
     const [userDetails, setUserDetails] = useState(null);
     const [detailsLoading, setDetailsLoading] = useState(false);
 
-    // Action Modal State
     const [actionModal, setActionModal] = useState({
         show: false,
-        type: "", // 'suspend', 'ban', 'reactivate'
+        type: "",
         user: null,
         reason: "",
         loading: false
     });
 
-    // Actions List Modal State
     const [actionsModal, setActionsModal] = useState({
         show: false,
         user: null
@@ -99,7 +97,6 @@ export default function AdminUsersPage() {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
-            // Clean up filter - remove empty strings to ensure 'All' option works correctly
             const cleanFilter = Object.entries(filter).reduce((acc, [key, value]) => {
                 if (value !== "") acc[key] = value;
                 return acc;
@@ -110,7 +107,6 @@ export default function AdminUsersPage() {
                 adminApi.getUserStats()
             ]);
 
-            // Sort users alphabetically by fullName
             const sortedUsers = (usersData.users || []).sort((a, b) =>
                 (a.fullName || "").localeCompare(b.fullName || "")
             );
@@ -118,15 +114,15 @@ export default function AdminUsersPage() {
             setUsers(sortedUsers);
             setStats(statsData.stats);
         } catch (error) {
-            console.error("Failed to fetch user data:", error);
-            toast.error("Could not load user data");
+            console.error("Failed to fetch data:", error);
+            toast.error("Sync failed");
         } finally {
             setLoading(false);
         }
     }, [filter, search]);
 
     useEffect(() => {
-        const timeout = setTimeout(fetchData, 500);
+        const timeout = setTimeout(fetchData, 400);
         return () => clearTimeout(timeout);
     }, [fetchData]);
 
@@ -157,7 +153,7 @@ export default function AdminUsersPage() {
     const handleConfirmAction = async () => {
         const { type, user, reason } = actionModal;
         if ((type === 'suspend' || type === 'ban') && !reason.trim()) {
-            toast.error("Please provide a reason");
+            toast.error("Reason required");
             return;
         }
 
@@ -167,11 +163,11 @@ export default function AdminUsersPage() {
             else if (type === "ban") await adminApi.banUser(user._id, reason);
             else if (type === "reactivate") await adminApi.reactivateUser(user._id);
 
-            toast.success(`User ${type === 'reactivate' ? 'reactivated' : type + 'ed'} successfully`);
+            toast.success(`User ${type === 'reactivate' ? 'restored' : type + 'ed'}`);
             setActionModal({ show: false, type: "", user: null, reason: "", loading: false });
             fetchData();
         } catch (error) {
-            toast.error(error.message || `Failed to ${type} user`);
+            toast.error(error.message || `Action failed`);
             setActionModal(prev => ({ ...prev, loading: false }));
         }
     };
@@ -179,216 +175,158 @@ export default function AdminUsersPage() {
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="space-y-10 pb-20">
-                    {/* Hero Header */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex flex-col md:flex-row md:items-end justify-between gap-3"
-                    >
+                <div className="space-y-4">
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                         <div>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 border border-orange-100">
-                                <Activity size={12} /> Platform Oversight
-                            </div>
-                            <h1 className="text-5xl font-black text-gray-900 tracking-tighter mb-2">
-                                User <span className="text-orange-500">Directory</span>
-                            </h1>
-                            <p className="text-gray-500 font-medium text-lg max-w-xl">
-                                Comprehensive management of your platform's user base. Oversee account health, balances, and community status.
-                            </p>
+                            <h1 className="text-2xl font-bold text-slate-900">User Directory</h1>
+                            <p className="text-sm text-slate-500 mt-0.5">Manage platform accounts, check balances, and adjust access status.</p>
                         </div>
-                    </motion.div>
-
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-4">
-                        <StatCard
-                            icon={Users}
-                            label="Total Users"
-                            value={stats?.totalUsers}
-                            color="bg-blue-500"
-                            delay={0.1}
-                        />
-                        <StatCard
-                            icon={UserCheck}
-                            label="Verified"
-                            value={stats?.verifiedUsers}
-                            color="bg-emerald-500"
-                            delay={0.2}
-                        />
-                        <StatCard
-                            icon={UserMinus}
-                            label="Unverified"
-                            value={(stats?.totalUsers || 0) - (stats?.verifiedUsers || 0)}
-                            color="bg-orange-500"
-                            delay={0.3}
-                        />
-                        <StatCard
-                            icon={AlertCircle}
-                            label="Suspended"
-                            value={stats?.suspendedUsers}
-                            color="bg-amber-500"
-                            delay={0.4}
-                        />
-                        <StatCard
-                            icon={Ban}
-                            label="Banned"
-                            value={stats?.bannedUsers}
-                            color="bg-rose-500"
-                            delay={0.5}
-                        />
+                        <button
+                            onClick={fetchData}
+                            className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
+                        >
+                            <RefreshCcw size={15} className={loading ? "animate-spin" : ""} />
+                            Sync Data
+                        </button>
                     </div>
 
-                    {/* Controls & Listing */}
-                    <div className="space-y-6 mt-6">
-                        <div className="flex flex-col lg:flex-row gap-4">
-                            <div className="flex-1 relative group">
-                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={20} />
-                                <input
-                                    type="text"
-                                    placeholder="Search users by name, email or ID..."
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full h-16 pl-16 pr-6 bg-white border border-gray-100 rounded-[24px] focus:border-orange-500 outline-none font-bold text-gray-900 transition-all placeholder:text-gray-400 placeholder:font-medium"
-                                />
-                            </div>
-                            <div className="flex gap-2">
-                                <div className="h-16 flex items-center bg-white border border-gray-100 rounded-[24px] px-2 gap-1 overflow-hidden">
-                                    <div className="px-4 text-[10px] font-black uppercase text-gray-400 border-r border-gray-50 flex items-center gap-2">
-                                        <Filter size={12} /> Filters
-                                    </div>
-                                    <select
-                                        value={filter.suspended}
-                                        onChange={(e) => setFilter({ ...filter, suspended: e.target.value })}
-                                        className="h-full px-4 bg-transparent outline-none font-bold text-sm text-gray-700 cursor-pointer hover:text-orange-500 transition-colors"
-                                    >
-                                        <option value="">Status: All</option>
-                                        <option value="false">Active Only</option>
-                                        <option value="true">Suspended</option>
-                                    </select>
-                                    <select
-                                        value={filter.verified}
-                                        onChange={(e) => setFilter({ ...filter, verified: e.target.value })}
-                                        className="h-full px-4 bg-transparent outline-none font-bold text-sm text-gray-700 cursor-pointer hover:text-orange-500 transition-colors"
-                                    >
-                                        <option value="">Verify: All</option>
-                                        <option value="true">Verified Only</option>
-                                        <option value="false">Unverified Only</option>
-                                    </select>
-                                </div>
-                                {(search || filter.verified || filter.suspended) && (
-                                    <button
-                                        onClick={() => {
-                                            setSearch("");
-                                            setFilter({ verified: "", suspended: "", banned: "" });
-                                        }}
-                                        className="h-16 px-8 bg-gray-50 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-[24px] font-black text-[10px] uppercase tracking-widest transition-all border border-gray-100 flex items-center gap-2"
-                                    >
-                                        <X size={14} /> Clear
-                                    </button>
-                                )}
-                            </div>
-                        </div>
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <StatTile icon={Users} label="Total Users" value={stats?.totalUsers} colorClass="bg-blue-500" loading={loading} />
+                        <StatTile icon={UserCheck} label="Verified" value={stats?.verifiedUsers} colorClass="bg-emerald-500" loading={loading} />
+                        <StatTile icon={UserMinus} label="Pending" value={(stats?.totalUsers || 0) - (stats?.verifiedUsers || 0)} colorClass="bg-orange-500" loading={loading} />
+                        <StatTile icon={AlertCircle} label="Suspended" value={stats?.suspendedUsers} colorClass="bg-amber-500" loading={loading} />
+                        <StatTile icon={Ban} label="Banned" value={stats?.bannedUsers} colorClass="bg-rose-500" loading={loading} />
+                    </div>
 
-                        {/* User Table Card */}
-                        <div className="bg-white border border-gray-100 rounded-[40px] overflow-hidden flex flex-col">
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse">
-                                    <thead className="sticky top-0 z-10">
-                                        <tr className="bg-gray-50/50 border-b border-gray-50">
-                                            <th className="px-5 py-3 text-[11px] font-black uppercase text-gray-400 tracking-widest">User Profile</th>
-                                            <th className="px-8 py-3 text-[11px] font-black uppercase text-gray-400 tracking-widest">Wallet Assets</th>
-                                            <th className="px-8 py-3 text-[11px] font-black uppercase text-gray-400 tracking-widest text-center">Identity</th>
-                                            <th className="px-8 py-3 text-[11px] font-black uppercase text-gray-400 tracking-widest text-center">Platform Status</th>
-                                            <th className="px-5 py-3 text-[11px] font-black uppercase text-gray-400 tracking-widest text-right">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-50">
-                                        {loading ? (
-                                            <tr>
-                                                <td colSpan="5" className="py-12">
-                                                    <div className="flex flex-col items-center gap-4 text-gray-400">
-                                                        <Loader2 className="animate-spin text-orange-500" size={40} />
-                                                        <span className="font-black text-[10px] uppercase tracking-widest">Syncing User Data...</span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ) : users.length > 0 ? (
-                                            users.map((user, idx) => (
-                                                <motion.tr
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: idx * 0.03 }}
-                                                    key={user._id}
-                                                    className="hover:bg-gray-50/80 transition-all duration-300 group"
-                                                >
-                                                    <td className="px-5 py-3">
-                                                        <div className="flex items-center gap-5">
-                                                            <div className="relative">
-                                                                <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 overflow-hidden ring-2 ring-transparent group-hover:ring-orange-100 transition-all duration-300">
-                                                                    {user.avatar ? <img src={user.avatar} alt="" className="w-full h-full object-cover" /> : <Users size={24} />}
-                                                                </div>
-                                                                <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${user.isOnline ? 'bg-emerald-500' : 'bg-gray-300'}`} />
-                                                            </div>
-                                                            <div>
-                                                                <div className="font-black text-gray-900 text-lg tracking-tight group-hover:text-orange-600 transition-colors">{user.fullName}</div>
-                                                                <div className="text-sm text-gray-500 font-medium flex items-center gap-1.5 mt-0.5">
-                                                                    <Mail size={12} className="text-gray-300" /> {user.email}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-8 py-7">
-                                                        <div className="space-y-2">
-                                                            <div className={`flex items-center gap-2 font-black transition-transform origin-left group-hover:scale-105 ${(user.wallet?.balance > 0) ? 'text-emerald-600' : 'text-gray-900'
-                                                                }`}>
-                                                                <Wallet size={16} className={user.wallet?.balance > 0 ? 'text-emerald-500' : 'text-gray-400'} />
-                                                                ₦{(user.wallet?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                            </div>
-                                                            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-wide">
-                                                                <ShoppingBag size={12} /> {user.totalOrderCount || 0} Successful Orders
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-8 py-7 text-center">
-                                                        {user.isVerified ? (
-                                                            <Badge variant="success">Verified</Badge>
-                                                        ) : (
-                                                            <Badge variant="warning">Unverified</Badge>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-8 py-7 text-center">
-                                                        {user.banned ? (
-                                                            <Badge variant="dark">Banned</Badge>
-                                                        ) : user.suspended ? (
-                                                            <Badge variant="danger">Suspended</Badge>
-                                                        ) : (
-                                                            <Badge variant="info">Active</Badge>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-10 py-7 text-right">
-                                                        <button
-                                                            onClick={() => setActionsModal({ show: true, user })}
-                                                            className="w-10 h-10 flex items-center justify-center bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-gray-900 rounded-xl transition-all duration-200 ml-auto"
-                                                        >
-                                                            <MoreVertical size={20} />
-                                                        </button>
-                                                    </td>
-                                                </motion.tr>
-                                            ))
-                                        ) : (
-                                            <tr>
-                                                <td colSpan="5" className="py-40 text-center">
-                                                    <div className="flex flex-col items-center gap-4 text-gray-300">
-                                                        <UserMinus size={64} strokeWidth={1} />
-                                                        <div className="text-xl font-black text-gray-400">Zero Profiles Detected</div>
-                                                        <button onClick={() => { setSearch(""); setFilter({ verified: "", suspended: "", banned: "" }) }} className="text-orange-500 font-bold hover:underline">Reset all filters</button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
+                    {/* Toolbar */}
+                    <div className="bg-white border border-slate-200 rounded-lg p-3 flex flex-col lg:flex-row gap-3">
+                        <div className="flex-1 relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
+                            <input
+                                type="text"
+                                placeholder="Search by name, email or ID..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full h-9 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm focus:ring-1 focus:ring-slate-900 transition-all"
+                            />
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            <div className="flex items-center bg-slate-50 border border-slate-200 rounded-md h-9 px-1">
+                                <span className="px-2 text-[10px] font-bold text-slate-400 uppercase border-r border-slate-200">
+                                    <Filter size={10} className="inline mr-1" /> Filters
+                                </span>
+                                <select
+                                    value={filter.suspended}
+                                    onChange={(e) => setFilter({ ...filter, suspended: e.target.value })}
+                                    className="bg-transparent text-xs font-semibold px-2 outline-none h-full cursor-pointer text-slate-700 hover:text-slate-900"
+                                >
+                                    <option value="">Status: All</option>
+                                    <option value="false">Active Only</option>
+                                    <option value="true">Suspended</option>
+                                </select>
+                                <select
+                                    value={filter.verified}
+                                    onChange={(e) => setFilter({ ...filter, verified: e.target.value })}
+                                    className="bg-transparent text-xs font-semibold px-2 outline-none h-full cursor-pointer text-slate-700 hover:text-slate-900 border-l border-slate-200"
+                                >
+                                    <option value="">Verify: All</option>
+                                    <option value="true">Verified Only</option>
+                                    <option value="false">Unverified</option>
+                                </select>
                             </div>
+                            {(search || filter.verified || filter.suspended) && (
+                                <button
+                                    onClick={() => { setSearch(""); setFilter({ verified: "", suspended: "", banned: "" }); }}
+                                    className="h-9 px-3 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-md text-xs font-bold transition-all border border-transparent hover:border-rose-100 flex items-center gap-1.5"
+                                >
+                                    <X size={14} /> Clear
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* User Table */}
+                    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-200">
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider">User</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Financials</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider text-center">Verified</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider text-center">Status</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan="5" className="py-16 text-center">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <Loader2 className="animate-spin text-slate-400" size={24} />
+                                                    <p className="text-xs text-slate-400 font-medium">Syncing directory...</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : users.length > 0 ? (
+                                        users.map((user) => (
+                                            <tr key={user._id} className="hover:bg-slate-50/50 transition-colors group">
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-9 h-9 bg-slate-100 rounded-md flex items-center justify-center text-slate-400 overflow-hidden border border-slate-200 relative">
+                                                            {user.avatar ? <img src={user.avatar} alt="" className="w-full h-full object-cover" /> : <Users size={16} />}
+                                                            <div className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-white ${user.isOnline ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="font-bold text-sm text-slate-900 leading-tight truncate px-0">{user.fullName}</p>
+                                                            <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex flex-col">
+                                                        <span className={`text-xs font-bold ${user.wallet?.balance > 0 ? 'text-emerald-700' : 'text-slate-900'}`}>
+                                                            ₦{(user.wallet?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                        </span>
+                                                        <span className="text-[10px] text-slate-400 font-medium">
+                                                            {user.totalOrderCount || 0} Successful Order(s)
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <Badge variant={user.isVerified ? "success" : "warning"}>
+                                                        {user.isVerified ? "Verified" : "Unverified"}
+                                                    </Badge>
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    {user.banned ? <Badge variant="dark">Banned</Badge> :
+                                                        user.suspended ? <Badge variant="danger">Suspended</Badge> :
+                                                            <Badge variant="info">Active</Badge>}
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <button
+                                                        onClick={() => setActionsModal({ show: true, user })}
+                                                        className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-900 rounded-md transition-colors"
+                                                    >
+                                                        <MoreVertical size={16} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="5" className="py-20 text-center">
+                                                <div className="flex flex-col items-center opacity-30">
+                                                    <UserMinus size={40} className="text-slate-400 mb-2" />
+                                                    <p className="text-sm font-bold text-slate-500">No users found</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -397,288 +335,209 @@ export default function AdminUsersPage() {
                 <AnimatePresence>
                     {showModal && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setShowModal(false)}
-                                className="absolute inset-0 bg-gray-950/80 backdrop-blur-md"
-                            />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95, y: 40 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95, y: 40 }}
-                                className="relative w-full max-w-2xl bg-white rounded-[48px] overflow-hidden"
-                            >
-                                {/* Modal Header */}
-                                <div className="p-10 border-b border-gray-50 flex items-center justify-between bg-gray-50/30">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-                                            <Activity size={24} />
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                onClick={() => setShowModal(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
+                            <motion.div initial={{ opacity: 0, scale: 0.98, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                                className="relative w-full max-w-2xl bg-white rounded-xl overflow-hidden border border-slate-200">
+                                
+                                <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded bg-slate-900 flex items-center justify-center text-white">
+                                            <Activity size={16} />
                                         </div>
                                         <div>
-                                            <h2 className="text-2xl font-black text-gray-900 tracking-tight leading-none mb-1">Consumer Intel</h2>
-                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest font-mono">
-                                                UID: {selectedUser?._id?.slice(-8)}
-                                            </p>
+                                            <h2 className="text-sm font-bold text-slate-900 leading-none">User Intelligence</h2>
+                                            <p className="text-[10px] text-slate-500 mt-1 uppercase font-semibold">ID: {selectedUser?._id}</p>
                                         </div>
                                     </div>
-                                    <button onClick={() => setShowModal(false)} className="w-12 h-12 bg-white border border-gray-100 rounded-2xl flex items-center justify-center text-gray-400 hover:text-gray-950 hover:border-gray-900 transition-all duration-300">
-                                        <X size={24} />
+                                    <button onClick={() => setShowModal(false)} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors">
+                                        <X size={18} />
                                     </button>
                                 </div>
 
-                                <div className="p-10 max-h-[75vh] overflow-y-auto custom-scrollbar">
+                                <div className="p-5 max-h-[70vh] overflow-y-auto custom-scrollbar space-y-6">
                                     {detailsLoading ? (
-                                        <div className="py-20 text-center flex flex-col items-center gap-4">
-                                            <Loader2 className="animate-spin text-orange-500" size={48} />
-                                            <span className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-400">Aggregating Intel...</span>
+                                        <div className="py-16 text-center flex flex-col items-center gap-3">
+                                            <Loader2 className="animate-spin text-slate-400" size={32} />
+                                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Fetching details...</span>
                                         </div>
                                     ) : userDetails ? (
-                                        <div className="space-y-10">
-                                            {/* Top Banner Info */}
-                                            <div className="flex flex-col md:flex-row gap-4 items-center bg-gray-50 p-4 rounded-[32px] border border-gray-100">
-                                                <div className="w-32 h-32 bg-white rounded-[40px] overflow-hidden flex-shrink-0 border-4 border-white ring-1 ring-gray-100 shadow-sm">
-                                                    {userDetails.avatar ? <img src={userDetails.avatar} alt="" className="w-full h-full object-cover" /> : <Users size={48} className="m-auto mt-10 text-gray-200" />}
+                                        <div className="space-y-6">
+                                            {/* Profile Header Block */}
+                                            <div className="flex flex-col md:flex-row gap-5 items-start bg-slate-50 p-4 rounded-lg border border-slate-200">
+                                                <div className="w-24 h-24 bg-white rounded-lg overflow-hidden shrink-0 border border-slate-200 p-1">
+                                                    {userDetails.avatar ? <img src={userDetails.avatar} alt="" className="w-full h-full object-cover rounded" /> : <Users size={32} className="m-auto mt-6 text-slate-200" />}
                                                 </div>
-                                                <div className="flex-1 text-center md:text-left space-y-3">
-                                                    <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                                                        {userDetails.isVerified && <Badge variant="info">Verified Identity</Badge>}
+                                                <div className="flex-1 space-y-1">
+                                                    <div className="flex flex-wrap gap-2 mb-1">
+                                                        <Badge variant={userDetails.isVerified ? "info" : "warning"}>{userDetails.isVerified ? "ID Verified" : "Unverified"}</Badge>
                                                         <Badge>{userDetails.role}</Badge>
                                                     </div>
-                                                    <div className="text-4xl font-black text-gray-900 tracking-tighter">{userDetails.fullName}</div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-6 text-gray-500 font-bold text-sm">
-                                                        <div className="flex items-center gap-2 overflow-hidden">
-                                                            <Mail size={16} className="text-orange-500 shrink-0" />
-                                                            <span className="truncate">{userDetails.email}</span>
+                                                    <h3 className="text-xl font-bold text-slate-900">{userDetails.fullName}</h3>
+                                                    <div className="space-y-1 mt-2">
+                                                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                                                            <Mail size={14} className="text-slate-400" /> {userDetails.email}
                                                         </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Phone size={16} className="text-orange-500 shrink-0" />
-                                                            {userDetails.phone || "---"}
+                                                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                                                            <Phone size={14} className="text-slate-400" /> {userDetails.phone || "No phone added"}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            {/* Wallet Section */}
-                                            <div className="space-y-6">
-                                                <div className="flex items-center gap-4 px-4">
-                                                    <h3 className="text-xs font-black uppercase text-gray-400 tracking-[0.2em]">Wallet & Billing</h3>
-                                                    <div className="flex-1 h-[1px] bg-gray-50" />
+                                            {/* Financial Overview */}
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-3">
+                                                    <h4 className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Financial Snapshot</h4>
+                                                    <div className="flex-1 h-[1px] bg-slate-100" />
                                                 </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                    <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-4 rounded-[32px] shadow-lg shadow-emerald-500/20 col-span-full md:col-span-1 border border-emerald-400/20 flex flex-col justify-between min-h-[160px]">
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center text-white">
-                                                                <Wallet size={20} />
-                                                            </div>
-                                                            <Badge variant="dark" className="border-white/20 bg-emerald-900/20">Active Wallet</Badge>
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                    <div className="bg-slate-900 p-4 rounded-lg text-white md:col-span-1">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <Wallet size={16} className="text-slate-400" />
+                                                            <span className="text-[10px] font-bold bg-white/10 px-2 py-0.5 rounded">Wallet</span>
                                                         </div>
-                                                        <div>
-                                                            <div className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">Current Balance</div>
-                                                            <div className="text-3xl font-black text-white tracking-tight">
-                                                                ₦{(userDetails.wallet?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                                            </div>
-                                                        </div>
+                                                        <p className="text-[10px] text-slate-400 uppercase font-semibold">Available Balance</p>
+                                                        <p className="text-xl font-bold mt-0.5">₦{(userDetails.wallet?.balance || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                                                     </div>
-
-                                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-100 flex flex-col justify-center">
-                                                        <ShoppingBag size={20} className="text-blue-500 mb-2" />
-                                                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Orders</div>
-                                                        <div className="text-xl font-black text-gray-900">{userDetails.totalOrderCount || 0}</div>
+                                                    <div className="bg-white border border-slate-200 p-4 rounded-lg flex flex-col justify-center">
+                                                        <ShoppingBag size={16} className="text-blue-500 mb-2" />
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Total Orders</p>
+                                                        <p className="text-lg font-bold text-slate-900">{userDetails.totalOrderCount || 0}</p>
                                                     </div>
-
-                                                    <div className="bg-gray-50 p-3 rounded-3xl border border-gray-100 flex flex-col justify-center">
-                                                        <Activity size={20} className="text-emerald-500 mb-2" />
-                                                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Experience</div>
-                                                        <div className="text-xl font-black text-gray-900 truncate">Silver Tier</div>
+                                                    <div className="bg-white border border-slate-200 p-4 rounded-lg flex flex-col justify-center">
+                                                        <Activity size={16} className="text-emerald-500 mb-2" />
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Platform Status</p>
+                                                        <p className="text-lg font-bold text-slate-900">{userDetails.banned ? 'Banned' : userDetails.suspended ? 'Suspended' : 'Active'}</p>
                                                     </div>
                                                 </div>
+                                            </div>
 
-                                                {/* Transaction History */}
-                                                <div className="bg-white border border-gray-100 rounded-[32px] overflow-hidden shadow-sm">
-                                                    <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-50 flex items-center justify-between">
-                                                        <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Transaction History</span>
-                                                        <Badge variant="info">Recent Operations</Badge>
-                                                    </div>
-                                                    <div className="overflow-x-auto">
-                                                        <table className="w-full text-left border-collapse">
-                                                            <thead>
-                                                                <tr className="border-b border-gray-50">
-                                                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest">Date</th>
-                                                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-center">Type</th>
-                                                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest">Description</th>
-                                                                    <th className="px-6 py-4 text-[10px] font-black uppercase text-gray-400 tracking-widest text-right">Amount</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody className="divide-y divide-gray-50">
-                                                                {userDetails.wallet?.transactions?.length > 0 ? (
-                                                                    [...userDetails.wallet.transactions]
-                                                                        .sort((a, b) => new Date(b.date) - new Date(a.date))
-                                                                        .map((tx, idx) => (
-                                                                            <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                                                                                <td className="px-6 py-4 text-xs font-bold text-gray-600">
-                                                                                    {new Date(tx.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                                                </td>
-                                                                                <td className="px-6 py-4 text-center">
-                                                                                    <div className={`inline-flex px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${tx.type === 'credit' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                                                                                        }`}>
-                                                                                        {tx.type}
-                                                                                    </div>
-                                                                                </td>
-                                                                                <td className="px-6 py-4 text-xs font-medium text-gray-500">
-                                                                                    {tx.description}
-                                                                                </td>
-                                                                                <td className={`px-6 py-4 text-xs font-black text-right ${tx.type === 'credit' ? 'text-emerald-600' : 'text-rose-600'
-                                                                                    }`}>
-                                                                                    {tx.type === 'credit' ? '+' : '-'}₦{tx.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                                                                </td>
-                                                                            </tr>
-                                                                        ))
-                                                                ) : (
-                                                                    <tr>
-                                                                        <td colSpan="4" className="py-12 text-center">
-                                                                            <div className="flex flex-col items-center gap-2 text-gray-300">
-                                                                                <Wallet size={24} strokeWidth={1} />
-                                                                                <span className="text-[10px] font-black uppercase tracking-widest">No wallet activity found</span>
-                                                                            </div>
+                                            {/* Transaction History Table */}
+                                            <div className="border border-slate-200 rounded-lg overflow-hidden">
+                                                <div className="px-4 py-2 bg-slate-50 border-b border-slate-200">
+                                                    <p className="text-[10px] font-bold uppercase text-slate-500">Recent Transactions</p>
+                                                </div>
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full text-left">
+                                                        <thead>
+                                                            <tr className="border-b border-slate-100 bg-white">
+                                                                <th className="px-4 py-2 text-[10px] font-bold uppercase text-slate-400">Date/Type</th>
+                                                                <th className="px-4 py-2 text-[10px] font-bold uppercase text-slate-400">Desc</th>
+                                                                <th className="px-4 py-2 text-[10px] font-bold uppercase text-slate-400 text-right">Amount</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-slate-50">
+                                                            {userDetails.wallet?.transactions?.length > 0 ? (
+                                                                [...userDetails.wallet.transactions].sort((a,b)=>new Date(b.date)-new Date(a.date)).map((tx, idx) => (
+                                                                    <tr key={idx} className="text-xs">
+                                                                        <td className="px-4 py-2">
+                                                                            <p className="font-semibold text-slate-700">{new Date(tx.date).toLocaleDateString(undefined, {month:'short', day:'numeric'})}</p>
+                                                                            <span className={`text-[9px] font-bold uppercase ${tx.type === 'credit' ? 'text-emerald-600' : 'text-rose-600'}`}>{tx.type}</span>
+                                                                        </td>
+                                                                        <td className="px-4 py-2 text-slate-500 font-medium truncate max-w-[150px]">{tx.description}</td>
+                                                                        <td className={`px-4 py-2 text-right font-bold ${tx.type === 'credit' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                                            {tx.type === 'credit' ? '+' : '-'}₦{tx.amount.toLocaleString()}
                                                                         </td>
                                                                     </tr>
-                                                                )}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
+                                                                ))
+                                                            ) : (
+                                                                <tr><td colSpan="3" className="py-8 text-center text-[10px] text-slate-400 font-bold uppercase">No records found</td></tr>
+                                                            )}
+                                                        </tbody>
+                                                    </table>
                                                 </div>
                                             </div>
 
-                                            {/* Addresses Section */}
-                                            <div className="space-y-6">
-                                                <div className="flex items-center gap-4 px-4">
-                                                    <h3 className="text-xs font-black uppercase text-gray-400 tracking-[0.2em]">Geo-Locations</h3>
-                                                    <div className="flex-1 h-[1px] bg-gray-50" />
+                                            {/* Address Blocks */}
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-3">
+                                                    <h4 className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Saved Locations</h4>
+                                                    <div className="flex-1 h-[1px] bg-slate-100" />
                                                 </div>
-                                                <div className="grid grid-cols-1 gap-3">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                                     {userDetails.addresses?.length > 0 ? userDetails.addresses.map((addr, idx) => (
-                                                        <div key={idx} className="p-3 bg-white rounded-3xl border border-gray-100 flex items-center gap-3 hover:border-orange-200 transition-colors shadow-sm">
-                                                            <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-orange-500 shrink-0">
-                                                                {addr.isDefault ? <UserCheck size={20} /> : <MapPin size={20} />}
+                                                        <div key={idx} className="p-3 bg-white rounded-lg border border-slate-200 flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 border border-slate-100">
+                                                                <MapPin size={14} />
                                                             </div>
-                                                            <div className="flex-1">
-                                                                <div className="font-black text-gray-900 flex items-center gap-2 leading-none mb-1">
-                                                                    {addr.label}
-                                                                    {addr.isDefault && <span className="text-[8px] bg-orange-500 text-white px-1.5 py-0.5 rounded-full font-black uppercase tracking-widest">Main</span>}
-                                                                </div>
-                                                                <div className="text-sm text-gray-500 font-bold">{addr.addressLine}, {addr.cityName}</div>
+                                                            <div className="min-w-0">
+                                                                <p className="text-xs font-bold text-slate-900 truncate">{addr.label} {addr.isDefault && <span className="ml-1 text-[8px] bg-slate-900 text-white px-1.5 py-0.5 rounded uppercase">Main</span>}</p>
+                                                                <p className="text-[11px] text-slate-500 truncate">{addr.addressLine}</p>
                                                             </div>
                                                         </div>
-                                                    )) : (
-                                                        <div className="p-10 border-2 border-dashed border-gray-100 rounded-[32px] text-center flex flex-col items-center gap-2">
-                                                            <div className="text-gray-200"><Users size={32} /></div>
-                                                            <span className="text-sm font-black text-gray-300 uppercase tracking-widest">No Logged Locations</span>
-                                                        </div>
-                                                    )}
+                                                    )) : <p className="text-xs text-slate-400 italic">No addresses registered.</p>}
                                                 </div>
                                             </div>
 
-                                            {/* Violation Status */}
+                                            {/* Ban/Suspension Reason Alerts */}
                                             {(userDetails.suspended || userDetails.banned) && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, scale: 0.9 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    className="p-4 bg-rose-50 rounded-[40px] border border-rose-100 flex gap-3"
-                                                >
-                                                    <div className="w-14 h-14 bg-rose-500 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-rose-500/20">
-                                                        <Ban size={24} />
-                                                    </div>
+                                                <div className="p-4 bg-rose-50 rounded-lg border border-rose-100 flex gap-3">
+                                                    <Ban size={18} className="text-rose-500 shrink-0 mt-0.5" />
                                                     <div>
-                                                        <div className="text-lg font-black text-rose-900 leading-none mb-2">
-                                                            {userDetails.banned ? 'Permanent Access Revocation' : 'Temporal Account Suspension'}
-                                                        </div>
-                                                        <p className="text-sm text-rose-600 font-bold leading-relaxed">
-                                                            Protocol violation reason: {userDetails.banReason || userDetails.suspensionReason || 'Data unavailable.'}
-                                                        </p>
+                                                        <p className="text-xs font-bold text-rose-900">Restriction Active: {userDetails.banned ? 'Permanent Ban' : 'Account Suspension'}</p>
+                                                        <p className="text-xs text-rose-600 mt-1 font-medium">{userDetails.banReason || userDetails.suspensionReason || 'No reason provided.'}</p>
                                                     </div>
-                                                </motion.div>
+                                                </div>
                                             )}
                                         </div>
-                                    ) : (
-                                        <div className="py-20 text-center font-black text-gray-300">Intelligence Fetch Failure</div>
-                                    )}
+                                    ) : null}
                                 </div>
                             </motion.div>
                         </div>
                     )}
                 </AnimatePresence>
 
-                {/* Custom Action Modal */}
+                {/* Final Confirmation Modal (Ban/Suspend) */}
                 <AnimatePresence>
                     {actionModal.show && (
                         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                 onClick={() => !actionModal.loading && setActionModal({ ...actionModal, show: false })}
-                                className="absolute inset-0 bg-gray-950/40 backdrop-blur-sm"
-                            />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden p-4"
+                                className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
+                            <motion.div initial={{ opacity: 0, scale: 0.98, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                                className="relative w-full max-w-sm bg-white rounded-xl overflow-hidden border border-slate-200 p-6"
                             >
                                 <div className="text-center space-y-4">
-                                    <div className={`w-20 h-20 mx-auto rounded-3xl flex items-center justify-center ${actionModal.type === 'ban' ? 'bg-rose-50 text-rose-500' :
-                                        actionModal.type === 'suspend' ? 'bg-amber-50 text-amber-500' :
-                                            'bg-emerald-50 text-emerald-500'
+                                    <div className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center border ${actionModal.type === 'ban' ? 'bg-rose-50 border-rose-100 text-rose-500' :
+                                        actionModal.type === 'suspend' ? 'bg-amber-50 border-amber-100 text-amber-500' :
+                                            'bg-emerald-50 border-emerald-100 text-emerald-500'
                                         }`}>
-                                        {actionModal.type === 'ban' ? <Ban size={40} /> :
-                                            actionModal.type === 'suspend' ? <AlertCircle size={40} /> :
-                                                <RefreshCcw size={40} />}
+                                        {actionModal.type === 'ban' ? <Ban size={22} /> :
+                                            actionModal.type === 'suspend' ? <AlertCircle size={22} /> :
+                                                <RefreshCcw size={22} />}
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight">
-                                            {actionModal.type === 'ban' ? 'Confirm Permanent Ban' :
-                                                actionModal.type === 'suspend' ? 'Suspend User Access' :
-                                                    'Reactivate Account'}
+                                        <h3 className="text-base font-bold text-slate-900">
+                                            {actionModal.type === 'ban' ? 'Permanent Ban' :
+                                                actionModal.type === 'suspend' ? 'Suspend Access' :
+                                                    'Reactivate User'}
                                         </h3>
-                                        <p className="text-gray-500 font-medium text-sm mt-2">
-                                            {actionModal.type === 'reactivate'
-                                                ? `Are you sure you want to restore access for ${actionModal.user.fullName}?`
-                                                : `This action will restrict ${actionModal.user.fullName} from core platform features.`}
+                                        <p className="text-slate-500 text-sm mt-1">
+                                            {actionModal.type === 'reactivate' 
+                                                ? `Restore platform access for ${actionModal.user?.fullName}?` 
+                                                : `Strict action against ${actionModal.user?.fullName}.`}
                                         </p>
                                     </div>
 
                                     {(actionModal.type === 'ban' || actionModal.type === 'suspend') && (
-                                        <div className="text-left space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-1">Reason for Action</label>
+                                        <div className="text-left space-y-1.5">
+                                            <label className="text-[10px] font-bold uppercase text-slate-400 ml-1">Reason required</label>
                                             <textarea
                                                 value={actionModal.reason}
                                                 onChange={(e) => setActionModal({ ...actionModal, reason: e.target.value })}
-                                                placeholder="e.g. Terms of Service violation, suspicious activity..."
-                                                className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:border-orange-500 outline-none font-bold text-sm text-gray-900 transition-all resize-none h-24"
+                                                placeholder="Enter reason for restriction..."
+                                                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg outline-none text-sm font-medium focus:ring-1 focus:ring-slate-900 transition-all resize-none h-20"
                                             />
                                         </div>
                                     )}
 
-                                    <div className="flex flex-col gap-2 pt-4">
-                                        <button
-                                            disabled={actionModal.loading}
-                                            onClick={handleConfirmAction}
-                                            className={`w-full h-14 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] flex items-center justify-center transition-all ${actionModal.type === 'ban' ? 'bg-rose-500 text-white hover:bg-rose-600' :
-                                                actionModal.type === 'suspend' ? 'bg-amber-500 text-white hover:bg-amber-600' :
-                                                    'bg-emerald-500 text-white hover:bg-emerald-600'
-                                                }`}
-                                        >
-                                            {actionModal.loading ? <Loader2 className="animate-spin" /> : 'Confirm Action'}
-                                        </button>
-                                        <button
-                                            disabled={actionModal.loading}
-                                            onClick={() => setActionModal({ ...actionModal, show: false })}
-                                            className="w-full h-14 bg-gray-50 text-gray-400 hover:text-gray-900 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] transition-all"
-                                        >
-                                            Cancel
+                                    <div className="flex gap-2 pt-2">
+                                        <button disabled={actionModal.loading} onClick={() => setActionModal({ ...actionModal, show: false })}
+                                            className="flex-1 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
+                                        <button disabled={actionModal.loading} onClick={handleConfirmAction}
+                                            className={`flex-1 py-2 text-white text-sm font-medium rounded-lg flex items-center justify-center gap-2 ${actionModal.type === 'ban' ? 'bg-rose-600 hover:bg-rose-700' : actionModal.type === 'suspend' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}>
+                                            {actionModal.loading ? <Loader2 className="animate-spin" size={14} /> : 'Proceed'}
                                         </button>
                                     </div>
                                 </div>
@@ -687,70 +546,27 @@ export default function AdminUsersPage() {
                     )}
                 </AnimatePresence>
 
-                {/* Actions Selector Modal */}
+                {/* Quick Action Item Selector */}
                 <AnimatePresence>
                     {actionsModal.show && (
                         <div className="fixed inset-0 z-[105] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setActionsModal({ show: false, user: null })}
-                                className="absolute inset-0 bg-gray-950/20 backdrop-blur-[2px]"
-                            />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                className="relative w-full max-w-[280px] bg-white rounded-[32px] shadow-2xl overflow-hidden p-3 border border-gray-100"
-                            >
-                                <div className="space-y-1">
-                                    <div className="px-3 pb-3 border-b border-gray-50 mb-3 text-center">
-                                        <div className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Quick Actions</div>
-                                        <div className="text-sm font-black text-gray-800 truncate">{actionsModal.user?.fullName}</div>
-                                    </div>
-
-                                    <ActionItem
-                                        icon={Activity}
-                                        label="View Intelligence"
-                                        onClick={() => {
-                                            handleViewDetails(actionsModal.user);
-                                            setActionsModal({ show: false, user: null });
-                                        }}
-                                    />
-
-                                    <div className="h-[1px] bg-gray-50 my-2" />
-
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                onClick={() => setActionsModal({ show: false, user: null })} className="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px]" />
+                            <motion.div initial={{ opacity: 0, scale: 0.98, y: 5 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 5 }}
+                                className="relative w-full max-w-[240px] bg-white rounded-lg shadow-xl overflow-hidden p-1 border border-slate-200">
+                                <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Selected User</p>
+                                    <p className="text-xs font-bold text-slate-800 truncate">{actionsModal.user?.fullName}</p>
+                                </div>
+                                <div className="space-y-0.5">
+                                    <ActionLink icon={Activity} label="View Intel" onClick={() => { handleViewDetails(actionsModal.user); setActionsModal({ show: false, user: null }); }} />
+                                    <div className="h-[1px] bg-slate-50 my-1" />
                                     {actionsModal.user?.suspended || actionsModal.user?.banned ? (
-                                        <ActionItem
-                                            icon={RefreshCcw}
-                                            label="Reactivate"
-                                            variant="success"
-                                            onClick={() => {
-                                                handleActionClick(actionsModal.user, 'reactivate');
-                                                setActionsModal({ show: false, user: null });
-                                            }}
-                                        />
+                                        <ActionLink icon={Unlock} variant="success" label="Reactivate" onClick={() => { handleActionClick(actionsModal.user, 'reactivate'); setActionsModal({ show: false, user: null }); }} />
                                     ) : (
                                         <>
-                                            <ActionItem
-                                                icon={AlertCircle}
-                                                label="Suspend Access"
-                                                variant="warning"
-                                                onClick={() => {
-                                                    handleActionClick(actionsModal.user, 'suspend');
-                                                    setActionsModal({ show: false, user: null });
-                                                }}
-                                            />
-                                            <ActionItem
-                                                icon={Ban}
-                                                label="Permanent Ban"
-                                                variant="danger"
-                                                onClick={() => {
-                                                    handleActionClick(actionsModal.user, 'ban');
-                                                    setActionsModal({ show: false, user: null });
-                                                }}
-                                            />
+                                            <ActionLink icon={Lock} variant="warning" label="Suspend" onClick={() => { handleActionClick(actionsModal.user, 'suspend'); setActionsModal({ show: false, user: null }); }} />
+                                            <ActionLink icon={Ban} variant="danger" label="Ban Permanent" onClick={() => { handleActionClick(actionsModal.user, 'ban'); setActionsModal({ show: false, user: null }); }} />
                                         </>
                                     )}
                                 </div>
@@ -763,21 +579,17 @@ export default function AdminUsersPage() {
     );
 }
 
-const ActionItem = ({ icon: Icon, label, onClick, variant = "default" }) => {
+const ActionLink = ({ icon: Icon, label, onClick, variant = "default" }) => {
     const variants = {
-        default: "text-gray-600 hover:bg-gray-50",
+        default: "text-slate-600 hover:bg-slate-50",
         success: "text-emerald-600 hover:bg-emerald-50",
         warning: "text-amber-600 hover:bg-amber-50",
         danger: "text-rose-600 hover:bg-rose-50"
     };
 
     return (
-        <button
-            onClick={onClick}
-            className={`w-full h-11 px-4 flex items-center gap-3 rounded-2xl transition-all group ${variants[variant]}`}
-        >
-            <Icon size={18} className="transition-transform group-hover:scale-110" />
-            <span className="text-[11px] font-black uppercase tracking-wider">{label}</span>
+        <button onClick={onClick} className={`w-full px-3 py-2 flex items-center gap-2.5 rounded text-[11px] font-semibold tracking-tight transition-colors ${variants[variant]}`}>
+            <Icon size={14} /> <span>{label}</span>
         </button>
     );
 };
