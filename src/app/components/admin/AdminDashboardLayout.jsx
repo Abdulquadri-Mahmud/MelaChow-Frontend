@@ -36,6 +36,7 @@ const navigation = [
         title: "Overview",
         items: [
             { icon: LayoutDashboard, label: "Dashboard", href: "/admin/dashboard" },
+            { icon: Bell, label: "Notifications", href: "/admin/notifications" },
             { icon: Activity, label: "Audit Logs", href: "/admin/audit-logs" },
         ]
     },
