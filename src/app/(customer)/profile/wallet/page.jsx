@@ -119,7 +119,7 @@ export default function UserWalletPage() {
 
     // 1. Filter
     const filteredTransactions = useMemo(() => {
-        return transactions.filter(tx => {
+        const result = transactions.filter(tx => {
             // Filter by Type
             if (filterType === "CREDIT" && !(tx.type === 'credit' || tx.type === 'deposit')) return false;
             if (filterType === "DEBIT" && (tx.type === 'credit' || tx.type === 'deposit')) return false;
@@ -134,6 +134,9 @@ export default function UserWalletPage() {
 
             return true;
         });
+
+        // Sort by newest first
+        return result.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
     }, [transactions, filterType, searchQuery]);
 
     // 2. Group
