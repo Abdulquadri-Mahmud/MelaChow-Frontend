@@ -69,6 +69,11 @@ const FAQ_DATA = [
   },
   {
     category: "payment",
+    question: "Are my funds safe if the food doesn't arrive?",
+    answer: "Absolutely. We use a secure Escrow system. When you pay for an order, we hold the money securely and do not release it to the restaurant until you have successfully received your food. If the order gets cancelled before delivery, your funds are automatically refunded to your Wallet."
+  },
+  {
+    category: "payment",
     question: "How do refunds work?",
     answer: "Refunds are processed to your GrubDash Wallet instantly or to your original payment method within 3-5 business days, depending on your bank."
   },

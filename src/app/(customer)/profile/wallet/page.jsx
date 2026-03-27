@@ -313,7 +313,7 @@ export default function UserWalletPage() {
                                                     </div>
                                                     <div className="min-w-0 flex-1">
                                                         <h5 className="font-bold text-gray-900 text-sm sm:text-base truncate">
-                                                            {tx.type === 'credit' ? 'Wallet Funding' : tx.description || 'Payment'}
+                                                            {tx.description || (tx.type === 'credit' ? 'Wallet Funding' : 'Payment')}
                                                         </h5>
                                                         <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
                                                             <span>{new Date(tx.date || tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -451,7 +451,7 @@ export default function UserWalletPage() {
                                         </div>
 
                                         <h3 className="text-2xl font-black text-white mb-1">
-                                            {selectedTransaction.type === 'credit' ? 'Wallet Funding' : selectedTransaction.description || 'Payment'}
+                                            {selectedTransaction.description || (selectedTransaction.type === 'credit' ? 'Wallet Funding' : 'Payment')}
                                         </h3>
                                         <p className="text-gray-400 text-sm">Transaction Details</p>
                                     </div>

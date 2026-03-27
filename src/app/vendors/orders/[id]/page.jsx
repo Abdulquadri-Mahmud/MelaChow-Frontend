@@ -20,7 +20,8 @@ import {
     Package,
     Maximize2,
     Layers,
-    Printer
+    Printer,
+    Wallet
 } from "lucide-react";
 import { getVendorOrderById, updateOrderStatus, completeOrder } from "@/app/lib/vendorApi";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
@@ -813,9 +814,9 @@ export default function VendorOrderDetailsPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-green-50 dark:bg-green-500/5 px-6 py-4 border-t border-green-100 dark:border-green-900/20 flex items-center gap-3 text-sm text-green-800 dark:text-green-400">
-                                <CheckCircle2 size={18} />
-                                <p className="font-medium">Payout scheduled for next processing cycle (within 24-48 hours)</p>
+                            <div className="bg-indigo-50 dark:bg-indigo-500/5 px-6 py-4 border-t border-indigo-100 dark:border-indigo-900/20 flex flex-col sm:flex-row items-center gap-3 text-sm text-indigo-800 dark:text-indigo-400">
+                                <Wallet size={18} className="flex-shrink-0" />
+                                <p className="font-medium">Funds are securely held in Escrow by GrubDash and instantly released to your Wallet upon Delivery.</p>
                             </div>
                         </motion.div>
 
@@ -950,9 +951,22 @@ export default function VendorOrderDetailsPage() {
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-bold text-slate-900 dark:text-white">Cancel Order?</h3>
-                                    <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-                                        Are you sure you want to cancel this order? This action cannot be undone.
-                                    </p>
+                                    
+                                    {['accepted', 'preparing', 'ready_for_pickup'].includes(order?.orderStatus) ? (
+                                        <div className="text-slate-600 dark:text-slate-300 mt-3 text-sm flex flex-col gap-2 text-left bg-red-50 dark:bg-red-900/10 p-4 rounded-xl border border-red-100 dark:border-red-900/30">
+                                            <p className="font-bold text-red-600 dark:text-red-400">Warning: Cancelling an already {order.orderStatus.replace(/_/g, ' ')} order.</p>
+                                            <ul className="list-disc pl-4 space-y-1.5 mt-1 text-[13px] text-red-800/80 dark:text-red-300">
+                                                <li><strong className="text-red-800 dark:text-red-200">Instant Refund:</strong> The customer gets fully refunded automatically.</li>
+                                                <li><strong className="text-red-800 dark:text-red-200">Forfeited Payout:</strong> Your Escrow hold is reversed. You will not receive any payout for food already prepared.</li>
+                                                <li><strong className="text-red-800 dark:text-red-200">Platform Record:</strong> Routine cancellations post-acceptance negatively impact store reliability scores.</li>
+                                            </ul>
+                                        </div>
+                                    ) : (
+                                        <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
+                                            Are you sure you want to decline and cancel this pending order? The customer will be immediately refunded.
+                                        </p>
+                                    )}
+                                    <p className="text-slate-500 dark:text-slate-500 text-xs font-bold mt-4 uppercase tracking-wider">This action cannot be undone.</p>
                                 </div>
                                 <div className="flex gap-3 w-full mt-2">
                                     <button

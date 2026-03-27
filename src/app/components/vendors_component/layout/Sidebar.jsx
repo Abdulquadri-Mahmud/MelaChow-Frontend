@@ -16,7 +16,8 @@ import {
   Wallet,
   TicketPercent,
   Bell,
-  Bike
+  Bike,
+  HelpCircle
 } from "lucide-react";
 import Logo from "../../logo/Logo";
 import { useApi } from "@/app/context/ApiContext";
@@ -71,6 +72,11 @@ const navItems = [
     name: "Profile",
     icon: User,
     href: "/vendors/profile",
+  },
+  {
+    name: "Help & FAQs",
+    icon: HelpCircle,
+    href: "/vendors/faqs",
   },
 ];
 
