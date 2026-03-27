@@ -211,6 +211,24 @@ Need help? Contact support with your reference ID
 
                 {/* Balance Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                    {/* Escrow Informational Banner (Spans Full Width on Small, 3 Cols on Large) */}
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.05 }}
+                        className="md:col-span-3 bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800/50 rounded-2xl p-4 flex items-start gap-4 shadow-sm"
+                    >
+                        <div className="p-2 bg-indigo-100 dark:bg-indigo-800/50 text-indigo-600 dark:text-indigo-400 rounded-xl flex-shrink-0">
+                            <Wallet size={20} />
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300">Escrow Protected Payouts Active</h4>
+                            <p className="text-sm text-indigo-700 dark:text-indigo-400/80 mt-1 leading-relaxed">
+                                Active orders are safely held in Escrow by GrubDash. Your food revenue (and delivery fees if applicable) will be automatically credited to your Available Balance the moment the order is marked as <strong>Delivered</strong>.
+                            </p>
+                        </div>
+                    </motion.div>
                     {/* Main Balance Card */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}

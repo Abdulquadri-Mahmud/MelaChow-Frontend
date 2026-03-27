@@ -380,7 +380,7 @@ class AdminAPI {
     async getPlatformManagedOrders(filters = {}) {
         const params = new URLSearchParams(filters);
         const data = await this.handleResponse(api.get(`/api/admin/orders/platform-managed?${params}`));
-        console.log("Platform Managed Orders Response:", data);
+        // console.log("Platform Managed Orders Response:", data);
         return data;
     }
 
@@ -397,7 +397,7 @@ class AdminAPI {
     async getCommissionLedger(filters = {}) {
         const params = new URLSearchParams(filters);
         const data = await this.handleResponse(api.get(`/api/admin/orders/commission-ledger?${params}`));
-        console.log("Commission Ledger Response:", data);
+        // console.log("Commission Ledger Response:", data);
         return data;
     }
 
@@ -406,27 +406,27 @@ class AdminAPI {
     async getFinanceSummary(params = {}) {
         const query = new URLSearchParams(params).toString();
         const data = await this.handleResponse(api.get(`/api/admin/finance/summary?${query}`));
-        console.log("Finance Summary Response:", data);
+        // console.log("Finance Summary Response:", data);
         return data;
     }
 
     async getFinanceChart(period = "7days") {
         const data = await this.handleResponse(api.get(`/api/admin/finance/chart?period=${period}`));
-        console.log("Finance Chart Response:", data);
+        // console.log("Finance Chart Response:", data);
         return data;
     }
 
     async getTransactions(params = {}) {
         const query = new URLSearchParams(params).toString();
         const data = await this.handleResponse(api.get(`/api/admin/finance/transactions?${query}`));
-        console.log("Transactions Response:", data);
+        // console.log("Transactions Response:", data);
         return data;
     }
 
     async getVendorBreakdown(params = {}) {
         const query = new URLSearchParams(params).toString();
         const data = await this.handleResponse(api.get(`/api/admin/finance/vendor-breakdown?${query}`));
-        console.log("Vendor Revenue Breakdown Response:", data);
+        // console.log("Vendor Revenue Breakdown Response:", data);
         return data;
     }
 }

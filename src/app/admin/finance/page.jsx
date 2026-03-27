@@ -21,7 +21,8 @@ import {
     ArrowLeft,
     ShoppingBag,
     Truck,
-    Hash
+    Hash,
+    Lock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -149,9 +150,9 @@ export default function FinancePage() {
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="max-w-[1400px] mx-auto space-y-8 pb-20">
+                <div className="max-w-[1400px] mx-auto space-y-4 pb-20">
                     {/* Header */}
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div>
                             <h1 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tighter uppercase mb-2">Finance Hub</h1>
                             <p className="text-slate-500 font-bold">Platform revenue, commission tracking, and audit-level transparency</p>
@@ -215,13 +216,27 @@ export default function FinancePage() {
                                 className="space-y-8"
                             >
                                 {/* Primary Stats */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                                     <StatCard
-                                        title="Platform Balance"
+                                        title="Gross Platform Balance"
                                         value={summary?.currentPlatformBalance || 0}
                                         icon={Wallet}
                                         color="bg-blue-500"
-                                        subtitle="Available for settlement"
+                                        subtitle="Total wallet balance (Incl. Escrow)"
+                                    />
+                                    <StatCard
+                                        title="Active Escrow Hold"
+                                        value={summary?.totalEscrowHeld || 0}
+                                        icon={Lock}
+                                        color="bg-indigo-500"
+                                        subtitle="Reserved for vendors"
+                                    />
+                                    <StatCard
+                                        title="Available Balance"
+                                        value={summary?.availableBalance || 0}
+                                        icon={DollarSign}
+                                        color="bg-emerald-500"
+                                        subtitle="Net cleared platform funds"
                                     />
                                     <StatCard
                                         title="Platform Revenue"
@@ -229,13 +244,6 @@ export default function FinancePage() {
                                         icon={TrendingUp}
                                         color="bg-orange-500"
                                         subtitle="Total income incl. fees"
-                                    />
-                                    <StatCard
-                                        title="Commission Earned"
-                                        value={summary?.totalCommissionEarned || 0}
-                                        icon={DollarSign}
-                                        color="bg-emerald-500"
-                                        subtitle="Gross commission from orders"
                                     />
                                 </div>
 
@@ -261,20 +269,27 @@ export default function FinancePage() {
                                     </div>
                                 </div>
 
-                                {/* Chart Section */}
-                                <div className="bg-white border border-slate-100 rounded-[28px] p-3 lg:p-6 shadow-xl shadow-slate-100/50">
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-200">
-                                                <TrendingUp size={24} />
+                                {/* Chart Section (Premium Dark UI) */}
+                                <div className="bg-[#0b1121] border border-slate-800 rounded-[32px] p-4 lg:p-8 shadow-2xl relative overflow-hidden group mt-8">
+                                    {/* Ambient Glow Effects */}
+                                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] -mr-40 -mt-40 pointer-events-none transition-transform duration-1000 group-hover:scale-110"></div>
+                                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] -ml-40 -mb-40 pointer-events-none transition-transform duration-1000 group-hover:scale-110"></div>
+                                    
+                                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 relative z-10 border-b border-slate-800/50 pb-8">
+                                        <div className="flex items-center gap-5">
+                                            <div className="w-16 h-16 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl flex items-center justify-center text-indigo-400 shadow-[0_0_30px_rgba(99,102,241,0.15)] relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent"></div>
+                                                <Activity size={32} className="relative z-10" />
                                             </div>
                                             <div>
-                                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight leading-none mb-1">Revenue Flow</h3>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Platform performance over time</p>
+                                                <h3 className="text-3xl lg:text-4xl font-black text-white uppercase tracking-tighter leading-none mb-2 flex items-center gap-3">
+                                                    Revenue Flow <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]"></span>
+                                                </h3>
+                                                <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Live Platform Trajectory</p>
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-2 p-1.5 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <div className="flex gap-2 p-1.5 bg-slate-900/60 rounded-2xl border border-slate-800 backdrop-blur-md shadow-inner">
                                             {[
                                                 { id: "7days", label: "7D" },
                                                 { id: "30days", label: "30D" },
@@ -284,9 +299,9 @@ export default function FinancePage() {
                                                 <button
                                                     key={p.id}
                                                     onClick={() => setChartPeriod(p.id)}
-                                                    className={`h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${chartPeriod === p.id
-                                                        ? "bg-white text-slate-900 shadow-md border border-slate-100"
-                                                        : "text-slate-400 hover:text-slate-600"
+                                                    className={`h-11 px-6 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${chartPeriod === p.id
+                                                        ? "bg-indigo-500 text-white shadow-[0_4px_20px_rgba(99,102,241,0.4)] border border-indigo-400/50 scale-105"
+                                                        : "text-slate-400 hover:text-white hover:bg-slate-800 border border-transparent"
                                                         }`}
                                                 >
                                                     {p.label}
@@ -295,72 +310,82 @@ export default function FinancePage() {
                                         </div>
                                     </div>
 
-                                    <div className="h-[400px] w-full flex items-center justify-center relative">
+                                    <div className="h-[450px] w-full flex items-center justify-center relative z-10">
                                         {chartData && chartData.length > 0 ? (
                                             <ResponsiveContainer width="100%" height="100%">
-                                                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                                                <AreaChart data={chartData} margin={{ top: 20, right: 20, left: 10, bottom: 0 }}>
                                                     <defs>
                                                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor="#f97316" stopOpacity={0.1} />
-                                                            <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
+                                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                                         </linearGradient>
                                                         <linearGradient id="colorCommission" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.1} />
+                                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
                                                             <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                                                         </linearGradient>
                                                     </defs>
-                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#1e293b" opacity={0.6} />
                                                     <XAxis
                                                         dataKey="date"
                                                         axisLine={false}
                                                         tickLine={false}
-                                                        tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }}
-                                                        dy={10}
+                                                        tick={{ fontSize: 11, fontWeight: 900, fill: '#64748b' }}
+                                                        dy={20}
                                                     />
                                                     <YAxis
                                                         axisLine={false}
                                                         tickLine={false}
-                                                        tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }}
+                                                        tick={{ fontSize: 11, fontWeight: 900, fill: '#64748b' }}
                                                         tickFormatter={(val) => `₦${val >= 1000 ? (val / 1000).toFixed(1) + 'k' : val}`}
+                                                        dx={-15}
                                                     />
                                                     <Tooltip
                                                         contentStyle={{
-                                                            backgroundColor: '#0f172a',
-                                                            border: 'none',
+                                                            backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                                                            backdropFilter: 'blur(16px)',
+                                                            border: '1px solid rgba(255,255,255,0.08)',
                                                             borderRadius: '24px',
-                                                            padding: '20px',
-                                                            boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+                                                            padding: '24px',
+                                                            boxShadow: '0 30px 60px -15px rgba(0, 0, 0, 0.6)'
                                                         }}
-                                                        itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.1em' }}
-                                                        labelStyle={{ color: '#64748b', fontSize: '10px', marginBottom: '8px', fontWeight: '900', textTransform: 'uppercase' }}
-                                                        formatter={(val) => [`₦${val.toLocaleString()}`, '']}
+                                                        itemStyle={{ color: '#fff', fontSize: '14px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.1em', paddingTop: '8px' }}
+                                                        labelStyle={{ color: '#94a3b8', fontSize: '11px', marginBottom: '12px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.15em' }}
+                                                        formatter={(val, name) => [`₦${val.toLocaleString()}`, name === 'revenue' ? 'GROSS REVENUE' : 'PLATFORM COMMISSION']}
+                                                    />
+                                                    <Legend 
+                                                        verticalAlign="top" 
+                                                        height={40}
+                                                        iconType="circle"
+                                                        wrapperStyle={{ fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.1em' }}
                                                     />
                                                     <Area
                                                         type="monotone"
                                                         dataKey="revenue"
-                                                        stroke="#f97316"
-                                                        strokeWidth={4}
+                                                        stroke="#6366f1"
+                                                        strokeWidth={5}
                                                         fillOpacity={1}
                                                         fill="url(#colorRevenue)"
-                                                        name="Total Revenue"
+                                                        name="Gross Revenue"
+                                                        activeDot={{ r: 8, fill: '#6366f1', stroke: '#0f172a', strokeWidth: 4 }}
                                                     />
                                                     <Area
                                                         type="monotone"
                                                         dataKey="commission"
                                                         stroke="#10b981"
-                                                        strokeWidth={4}
+                                                        strokeWidth={5}
                                                         fillOpacity={1}
                                                         fill="url(#colorCommission)"
-                                                        name="Commission"
+                                                        name="Platform Commission"
+                                                        activeDot={{ r: 8, fill: '#10b981', stroke: '#0f172a', strokeWidth: 4 }}
                                                     />
                                                 </AreaChart>
                                             </ResponsiveContainer>
                                         ) : (
-                                            <div className="flex flex-col items-center gap-4 text-slate-300">
-                                                <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center">
-                                                    <BarChart3 size={32} />
+                                            <div className="flex flex-col items-center gap-6 text-slate-500">
+                                                <div className="w-20 h-20 rounded-full bg-slate-900/50 border border-slate-800 flex items-center justify-center shadow-inner">
+                                                    <BarChart3 size={36} className="text-slate-600" />
                                                 </div>
-                                                <p className="text-xs font-black uppercase tracking-widest">No chart data available for this period</p>
+                                                <p className="text-xs font-black uppercase tracking-[0.2em]">No chart data available for this period</p>
                                             </div>
                                         )}
                                     </div>
