@@ -22,6 +22,8 @@ export const AdminProvider = ({ children }) => {
             // Try to fetch admin data - if this succeeds, we're authenticated
             const response = await adminAPI.getAllAdmins();
 
+            console.log(response)
+
             if (response.success) {
                 // We're authenticated - set a placeholder admin object
                 // The actual admin data will be set during login

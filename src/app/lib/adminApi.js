@@ -288,6 +288,14 @@ class AdminAPI {
         return this.handleResponse(api.patch(`/api/admin/locations/cities/${cityId}/activate`, { isActive }));
     }
 
+    async getLocationRequests() {
+        return this.handleResponse(api.get("/api/admin/locations/location-requests"));
+    }
+
+    async approveVendorLocation(vendorId, payload) {
+        return this.handleResponse(api.patch(`/api/admin/vendors/approve?vendorId=${vendorId}`, payload));
+    }
+
     // ==================== RIDER MANAGEMENT ====================
 
     async getAllRiders(filters = {}) {

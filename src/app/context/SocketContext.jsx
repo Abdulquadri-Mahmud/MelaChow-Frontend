@@ -195,12 +195,18 @@ export const SocketProvider = ({ children }) => {
 
             // Missed notifications handler
             socketService.onMissedNotifications(({ notifications: missed, count }) => {
-                if (role === 'vendor' && missed?.length > 0) {
+                const isRelevant = role === 'vendor' || role === 'admin' || role === 'user';
+                
+                if (isRelevant && missed?.length > 0) {
                     missed.forEach(notification => {
                         window.dispatchEvent(new CustomEvent('notifications:updated', { detail: notification }));
                     });
                     setUnreadCount(prev => prev + count);
-                    toast.success(`${count} missed updates received while away.`, { id: 'missed-notifications-summary' });
+                    
+                    const label = role === 'admin' ? 'logistics alerts' : 
+                                  role === 'vendor' ? 'vendor updates' : 'order updates';
+                                  
+                    toast.success(`${count} missed ${label} received while away.`, { id: 'missed-notifications-summary' });
                 }
             });
 

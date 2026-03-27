@@ -39,21 +39,22 @@ const getTimeAgo = (d) => {
     return "just now";
 };
 
-function StatusBadge({ type, label, icon: Icon }) {
+const Badge = ({ children, variant = "default" }) => {
     const variants = {
-        warning: "bg-amber-50 text-amber-700 border-amber-200/50",
-        success: "bg-emerald-50 text-emerald-700 border-emerald-200/50",
-        info: "bg-blue-50 text-blue-700 border-blue-200/50",
-        neutral: "bg-slate-50 text-slate-600 border-slate-200/50",
+        default: "bg-slate-100 text-slate-600 border-slate-200",
+        success: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        warning: "bg-amber-50 text-amber-700 border-amber-200",
+        danger: "bg-rose-50 text-rose-700 border-rose-200",
+        info: "bg-blue-50 text-blue-700 border-blue-200",
+        dark: "bg-slate-900 text-white border-slate-800"
     };
 
     return (
-        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider ${variants[type] || variants.neutral}`}>
-            {Icon && <Icon size={12} />}
-            {label}
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide border ${variants[variant]}`}>
+            {children}
         </span>
     );
-}
+};
 
 export default function PendingVendorsPage() {
     const router = useRouter();
@@ -73,7 +74,7 @@ export default function PendingVendorsPage() {
             setVendors(sorted);
             if (isRefresh) toast.success("Queue updated");
         } catch (err) {
-            toast.error("Failed to load queue: " + err.message);
+            toast.error("Failed to load queue");
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -87,189 +88,136 @@ export default function PendingVendorsPage() {
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="max-w-[1600px] mx-auto p-4 space-y-6">
-                    {/* Breadcrumbs & Actions */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-4">
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                         <div>
-                            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">
-                                <Store size={12} />
-                                <span>Vendor Management</span>
-                                <ChevronRight size={10} />
-                                <span className="text-orange-600">Approval Queue</span>
-                            </div>
-                            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Pending Applications</h1>
+                            <h1 className="text-xl font-bold text-slate-900">Vendor Onboarding Queue</h1>
+                            <p className="text-sm text-slate-500 mt-0.5">Review and approve new store applications awaiting activation.</p>
                         </div>
-
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                             <button
                                 onClick={() => fetchPending(true)}
                                 disabled={refreshing || loading}
-                                className="h-10 px-4 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-all flex items-center gap-2 text-xs font-bold active:scale-95 disabled:opacity-50 shadow-sm"
+                                className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium disabled:opacity-50"
                             >
-                                <RefreshCw size={14} className={refreshing ? "animate-spin text-orange-500" : ""} />
-                                {refreshing ? "Syncing..." : "Refresh Queue"}
+                                <RefreshCw size={14} className={refreshing ? "animate-spin text-slate-400" : ""} />
+                                {refreshing ? "Updating..." : "Refresh Queue"}
                             </button>
-                            <div className="h-10 px-4 bg-slate-900 text-white rounded-xl flex items-center gap-3 text-xs font-bold shadow-lg shadow-slate-900/20">
-                                <Clock size={14} className="text-orange-400" />
+                            <div className="inline-flex items-center gap-2 px-3 py-2 bg-slate-900 text-white text-sm font-bold rounded-lg pr-4">
+                                <Clock size={14} className="text-slate-400" />
                                 <span>{vendors.length} Pending Review</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Quick Stats Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* Stats Tiles */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {[
-                            { label: "Total Pending", val: vendors.length, icon: FileText, color: "blue" },
-                            { label: "Oldest Submission", val: vendors.length ? getTimeAgo(vendors[0].createdAt) : "None", icon: Clock, color: "orange" },
-                            { label: "Location Checks", val: vendors.filter(v => v.locationStatus === 'pending_review').length, icon: MapPin, color: "rose" },
-                            { label: "Processing Level", val: "High Priority", icon: AlertCircle, color: "emerald" },
+                            { label: "New Applications", val: vendors.length, icon: FileText, color: "blue" },
+                            { label: "Oldest Request", val: vendors.length ? getTimeAgo(vendors[0].createdAt) : "None", icon: Clock, color: "orange" },
+                            { label: "Geographical Review", val: vendors.filter(v => v.locationStatus === 'pending_review').length, icon: MapPin, color: "rose" },
+                            { label: "Status Level", val: "Critical", icon: AlertCircle, color: "emerald" },
                         ].map((stat, i) => (
-                            <div key={i} className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-600`}>
-                                    <stat.icon size={20} />
+                            <div key={i} className="bg-white border border-slate-200 rounded-lg p-3 flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded flex items-center justify-center bg-${stat.color}-50 text-${stat.color}-600 border border-${stat.color}-100`}>
+                                    <stat.icon size={18} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
-                                    <p className="text-lg font-black text-slate-900">{stat.val}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{stat.label}</p>
+                                    <p className="text-base font-bold text-slate-900 leading-none">{stat.val}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    {/* Main Content Table Area */}
-                    <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-                        {loading ? (
-                            <div className="py-24 flex flex-col items-center justify-center space-y-4">
-                                <div className="relative">
-                                    <div className="w-16 h-16 border-4 border-slate-100 rounded-full" />
-                                    <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin absolute inset-0" />
-                                </div>
-                                <p className="font-bold text-xs uppercase tracking-[0.2em] text-slate-400">Fetching Applications...</p>
-                            </div>
-                        ) : vendors.length === 0 ? (
-                            <div className="py-24 flex flex-col items-center justify-center text-center px-6">
-                                <div className="w-20 h-20 bg-emerald-50 rounded-[2rem] flex items-center justify-center mb-6">
-                                    <CheckCircle2 size={40} className="text-emerald-500" />
-                                </div>
-                                <h3 className="text-xl font-black text-slate-900 mb-2">Queue Clear</h3>
-                                <p className="text-slate-500 text-sm font-medium max-w-xs">No vendor applications are currently awaiting administrative review.</p>
-                            </div>
-                        ) : (
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr className="bg-slate-50/50 border-b border-slate-100">
-                                            <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Store / Brand</th>
-                                            <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Applicant Profile</th>
-                                            <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Operations</th>
-                                            <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Verification</th>
+                    {/* Table Area */}
+                    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead>
+                                    <tr className="bg-slate-50 border-b border-slate-100">
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Store / Brand</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Vendor Profile</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider text-center">Submitted</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider text-right">Verification Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan="4" className="py-20 text-center">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <Loader2 className="animate-spin text-slate-400" size={24} />
+                                                    <p className="text-xs text-slate-400 font-medium">Syncing applications...</p>
+                                                </div>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-50">
-                                        <AnimatePresence>
-                                            {vendors.map((vendor, idx) => (
-                                                <motion.tr
-                                                    key={vendor._id}
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: idx * 0.03 }}
-                                                    onClick={() => router.push(`/admin/vendors/pending/${vendor._id}`)}
-                                                    className="group hover:bg-slate-50/50 cursor-pointer transition-colors"
-                                                >
-                                                    <td className="px-6 py-5">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="w-12 h-12 bg-slate-100 rounded-xl overflow-hidden shrink-0 border border-slate-200">
-                                                                {vendor.logo ? (
-                                                                    <img src={vendor.logo} alt="" className="w-full h-full object-cover" />
-                                                                ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                                                        <Store size={20} />
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <div>
-                                                                <div className="flex items-center gap-2">
-                                                                    <span className="font-bold text-slate-900 group-hover:text-orange-600 transition-colors">
-                                                                        {vendor.storeName || "Unnamed Store"}
-                                                                    </span>
-                                                                </div>
-                                                                <div className="flex items-center gap-1.5 mt-1">
-                                                                    <MapPin size={12} className="text-slate-400" />
-                                                                    <span className="text-[11px] font-medium text-slate-500 truncate max-w-[150px]">
-                                                                        {vendor.address?.city || vendor.requestedCity || "No Location"}
-                                                                    </span>
-                                                                </div>
+                                    ) : vendors.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="4" className="py-24 text-center">
+                                                <div className="flex flex-col items-center opacity-30 grayscale mb-4">
+                                                    <CheckCircle2 size={48} className="text-slate-300" />
+                                                </div>
+                                                <h3 className="text-sm font-bold text-slate-900 leading-none mb-1">Queue Clear</h3>
+                                                <p className="text-xs text-slate-500 font-medium tracking-tight">No store applications are currently awaiting review.</p>
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        vendors.map((vendor) => (
+                                            <tr 
+                                                key={vendor._id} 
+                                                onClick={() => router.push(`/admin/vendors/pending/${vendor._id}`)}
+                                                className="group hover:bg-slate-50/50 cursor-pointer transition-colors"
+                                            >
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 bg-slate-100 rounded border border-slate-200 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                                                            {vendor.logo ? <img src={vendor.logo} alt="" className="w-full h-full object-cover" /> : <Store size={18} className="text-slate-300" />}
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="font-bold text-sm text-slate-900 leading-tight group-hover:text-blue-600 transition-colors truncate">{vendor.storeName || "Unnamed Store"}</p>
+                                                            <div className="flex items-center gap-1.5 mt-0.5 text-slate-400 truncate">
+                                                                <MapPin size={10} />
+                                                                <span className="text-[11px] font-medium">{vendor.address?.city || vendor.requestedCity || "Location TBD"}</span>
                                                             </div>
                                                         </div>
-                                                    </td>
-
-                                                    <td className="px-6 py-5">
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center gap-2">
-                                                                <User size={12} className="text-slate-400" />
-                                                                <span className="text-xs font-bold text-slate-700">{vendor.name || "—"}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <Mail size={12} className="text-slate-400" />
-                                                                <span className="text-[11px] font-medium text-slate-500">{vendor.email || "—"}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <Smartphone size={12} className="text-slate-400" />
-                                                                <span className="text-[11px] font-medium text-slate-500">{vendor.phone || "—"}</span>
-                                                            </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-7 h-7 rounded bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-400 group-hover:bg-slate-200 transition-colors">
+                                                            <User size={14} />
                                                         </div>
-                                                    </td>
-
-                                                    <td className="px-6 py-5">
-                                                        <div className="flex flex-col gap-2">
-                                                            <div className="flex items-center gap-2">
-                                                                <Calendar size={12} className="text-slate-400" />
-                                                                <span className="text-[11px] font-bold text-slate-600">{formatDate(vendor.createdAt)}</span>
-                                                                <span className="text-[10px] font-black px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded uppercase tracking-wider">
-                                                                    {getTimeAgo(vendor.createdAt)}
-                                                                </span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <Hash size={12} className="text-slate-400" />
-                                                                <code className="text-[10px] font-mono text-slate-400 truncate max-w-[80px]">
-                                                                    {vendor._id}
-                                                                </code>
-                                                            </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-xs font-bold text-slate-700 leading-none truncate">{vendor.name}</p>
+                                                            <p className="text-[10px] text-slate-400 font-medium mt-1 truncate">{vendor.email}</p>
                                                         </div>
-                                                    </td>
-
-                                                    <td className="px-6 py-5 text-right">
-                                                        <div className="flex flex-col items-end gap-2">
-                                                            <div className="flex items-center gap-2">
-                                                                {vendor.locationStatus === "pending_review" ? (
-                                                                    <StatusBadge type="warning" label="Review Location" icon={AlertCircle} />
-                                                                ) : (
-                                                                    <StatusBadge type="success" label="Location OK" icon={CheckCircle2} />
-                                                                )}
-                                                                <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
-                                                                    <ArrowRight size={14} />
-                                                                </div>
-                                                            </div>
-                                                            <span className="text-[9px] font-black uppercase text-slate-300 tracking-[0.2em] group-hover:text-orange-500 transition-colors">
-                                                                Click to Open Case
-                                                            </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <div className="inline-flex flex-col items-center">
+                                                        <span className="text-xs font-bold text-slate-700 leading-none">{formatDate(vendor.createdAt)}</span>
+                                                        <span className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">({getTimeAgo(vendor.createdAt)})</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        {vendor.locationStatus === "pending_review" ? (
+                                                            <Badge variant="warning">Review Geo-Location</Badge>
+                                                        ) : (
+                                                            <Badge variant="success">Geo Verified</Badge>
+                                                        )}
+                                                        <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                                                            <ChevronRight size={14} />
                                                         </div>
-                                                    </td>
-                                                </motion.tr>
-                                            ))}
-                                        </AnimatePresence>
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                        {/* Footer Info */}
-                        <div className="px-6 py-3 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                Processing sorting: <span className="text-slate-900 font-black">FIFO (First-In-First-Out)</span>
-                            </p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                Total Items: <span className="text-slate-900 font-black">{vendors.length}</span>
-                            </p>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

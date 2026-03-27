@@ -1,12 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { Edit2, Trash2, ChevronRight, ImageIcon } from "lucide-react";
+import { Edit2, Trash2, ChevronRight, ImageIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
-export default function CategoryTable({ categories, onEdit, onDelete, currentPage, setCurrentPage }) {
+export default function CategoryTable({ categories, onEdit, onDelete, onToggleActive, currentPage, setCurrentPage }) {
     // const [currentPage, setCurrentPage] = useState(1); // Lifted to parent
     const itemsPerPage = 10;
+
+    const [togglingIds, setTogglingIds] = useState(new Set());
+
+    const handleToggle = async (category) => {
+        if (togglingIds.has(category._id)) return;
+        setTogglingIds(prev => new Set(prev).add(category._id));
+        try {
+            await onToggleActive(category._id, !category.isActive);
+        } finally {
+            setTogglingIds(prev => {
+                const next = new Set(prev);
+                next.delete(category._id);
+                return next;
+            });
+        }
+    };
 
     // Reset page when categories change (e.g. search filter)
     // You might want to do this in a useEffect or useMemo if props change frequently
@@ -26,35 +42,35 @@ export default function CategoryTable({ categories, onEdit, onDelete, currentPag
 
     if (!categories || categories.length === 0) {
         return (
-            <div className="text-center py-12 bg-white rounded-2xl border border-gray-200">
-                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <ImageIcon className="text-gray-400" size={24} />
+            <div className="text-center py-12 bg-white rounded-xl border border-slate-200 shadow-sm">
+                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-slate-100">
+                    <ImageIcon className="text-slate-400" size={20} />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">No Categories Found</h3>
-                <p className="text-gray-500">Get started by creating your first category.</p>
+                <h3 className="text-base font-bold text-slate-900">No Categories Found</h3>
+                <p className="text-sm text-slate-500 mt-1">Get started by creating your first category.</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
-                        <tr className="bg-gray-50 border-b border-gray-100">
-                            <th className="text-left py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Category</th>
-                            <th className="text-left py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Parent</th>
-                            <th className="text-left py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                            <th className="text-left py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Created</th>
-                            <th className="text-right py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Actions</th>
+                        <tr className="bg-slate-50 border-b border-slate-200">
+                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Category</th>
+                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Parent</th>
+                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Created</th>
+                            <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-slate-100">
                         {displayedCategories.map((category) => (
-                            <tr key={category._id} className="hover:bg-gray-50/50 transition-colors">
-                                <td className="py-4 px-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-gray-100 flex-shrink-0 overflow-hidden border border-gray-200">
+                            <tr key={category._id} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="py-3 px-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex-shrink-0 overflow-hidden border border-slate-200">
                                             {category.image ? (
                                                 <img
                                                     src={category.image}
@@ -62,42 +78,55 @@ export default function CategoryTable({ categories, onEdit, onDelete, currentPag
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                                    <ImageIcon size={20} />
+                                                <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                                    <ImageIcon size={18} />
                                                 </div>
                                             )}
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-gray-900">{category.name}</h4>
+                                            <h4 className="font-semibold text-sm text-slate-900">{category.name}</h4>
                                             {category.description && (
-                                                <p className="text-xs text-gray-500 line-clamp-1 max-w-[200px]">
+                                                <p className="text-xs text-slate-500 line-clamp-1 max-w-[200px]">
                                                     {category.description}
                                                 </p>
                                             )}
                                         </div>
                                     </div>
                                 </td>
-                                <td className="py-4 px-6">
+                                <td className="py-3 px-4">
                                     {category.parent ? (
-                                        <div className="flex items-center gap-1.5 text-sm text-gray-600 bg-gray-100/80 px-3 py-1 rounded-full w-fit">
-                                            <span className="font-medium text-xs">{category.parent.name}</span>
-                                            <ChevronRight size={14} className="text-gray-400" />
-                                            <span className="font-bold text-xs">{category.name}</span>
+                                        <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md w-fit">
+                                            <span className="font-medium">{category.parent.name}</span>
+                                            <ChevronRight size={12} className="text-slate-400" />
+                                            <span className="font-semibold">{category.name}</span>
                                         </div>
                                     ) : (
-                                        <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded">Root</span>
+                                        <span className="text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md">Root</span>
                                     )}
                                 </td>
-                                <td className="py-4 px-6">
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${category.isActive
-                                        ? "bg-green-100 text-green-700"
-                                        : "bg-gray-100 text-gray-600"
-                                        }`}>
+                                <td className="py-3 px-4">
+                                    <button
+                                        onClick={() => handleToggle(category)}
+                                        disabled={togglingIds.has(category._id)}
+                                        title={category.isActive ? "Click to deactivate" : "Click to activate"}
+                                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium border transition-colors cursor-pointer disabled:cursor-wait ${
+                                            category.isActive
+                                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200"
+                                                : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"
+                                        }`}
+                                    >
+                                        {togglingIds.has(category._id) ? (
+                                            <Loader2 size={10} className="animate-spin" />
+                                        ) : (
+                                            <span className={`w-1.5 h-1.5 rounded-full ${
+                                                category.isActive ? "bg-emerald-500" : "bg-slate-400"
+                                            }`} />
+                                        )}
                                         {category.isActive ? "Active" : "Inactive"}
-                                    </span>
+                                    </button>
                                 </td>
-                                <td className="py-4 px-6">
-                                    <span className="text-sm text-gray-500 font-medium">
+                                <td className="py-3 px-4">
+                                    <span className="text-sm text-slate-500 font-medium">
                                         {new Date(category.createdAt).toLocaleDateString(undefined, {
                                             year: "numeric",
                                             month: "short",
@@ -105,21 +134,21 @@ export default function CategoryTable({ categories, onEdit, onDelete, currentPag
                                         })}
                                     </span>
                                 </td>
-                                <td className="py-4 px-6">
-                                    <div className="flex items-center justify-end gap-2">
+                                <td className="py-3 px-4">
+                                    <div className="flex items-center justify-end gap-1">
                                         <button
                                             onClick={() => onEdit(category)}
-                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                                             title="Edit Category"
                                         >
-                                            <Edit2 size={18} />
+                                            <Edit2 size={16} />
                                         </button>
                                         <button
                                             onClick={() => onDelete(category)}
-                                            className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                            className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
                                             title="Delete Category"
                                         >
-                                            <Trash2 size={18} />
+                                            <Trash2 size={16} />
                                         </button>
                                     </div>
                                 </td>
@@ -131,22 +160,22 @@ export default function CategoryTable({ categories, onEdit, onDelete, currentPag
 
             {/* Pagination */}
             {totalPages > 1 && (
-                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
-                    <span className="text-sm text-gray-500 font-medium">
-                        Page <span className="font-bold text-gray-900">{currentPage}</span> of <span className="font-bold text-gray-900">{totalPages}</span>
+                <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 bg-slate-50">
+                    <span className="text-xs text-slate-500 font-medium">
+                        Page <span className="font-semibold text-slate-900">{currentPage}</span> of <span className="font-semibold text-slate-900">{totalPages}</span>
                     </span>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={handlePrevious}
                             disabled={currentPage === 1}
-                            className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                            className="px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             Previous
                         </button>
                         <button
                             onClick={handleNext}
                             disabled={currentPage === totalPages}
-                            className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                            className="px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             Next
                         </button>

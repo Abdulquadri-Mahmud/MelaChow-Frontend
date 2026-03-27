@@ -26,13 +26,32 @@ import {
     ExternalLink,
     MapPin,
     ChevronRight,
-    Clock
+    Clock,
+    XCircle,
+    ChevronDown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
 import AdminDashboardLayout from "@/app/components/admin/AdminDashboardLayout";
 import adminApi from "@/app/lib/adminApi";
 import toast from "react-hot-toast";
+
+const Badge = ({ children, variant = "default" }) => {
+    const variants = {
+        default: "bg-slate-100 text-slate-600 border-slate-200",
+        success: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        warning: "bg-amber-50 text-amber-700 border-amber-200",
+        danger: "bg-rose-50 text-rose-700 border-rose-200",
+        info: "bg-blue-50 text-blue-700 border-blue-200",
+        inactive: "bg-slate-50 text-slate-400 border-slate-100"
+    };
+
+    return (
+        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wide ${variants[variant] || variants.default}`}>
+            {children}
+        </span>
+    );
+};
 
 export default function AdminVendorsPage() {
     const router = useRouter();
@@ -47,7 +66,7 @@ export default function AdminVendorsPage() {
     });
 
     const [showModal, setShowModal] = useState(false);
-    const [modalMode, setModalMode] = useState("create"); // "create", "edit", "performance", "foods", "commission"
+    const [modalMode, setModalMode] = useState("create"); // "create", "edit", "performance", "commission"
     const [selectedVendor, setSelectedVendor] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -91,7 +110,6 @@ export default function AdminVendorsPage() {
     const fetchVendors = useCallback(async () => {
         setLoading(true);
         try {
-            // Clean up filter - remove empty strings to ensure 'All' option works correctly
             const cleanFilter = Object.entries(filter).reduce((acc, [key, value]) => {
                 if (value !== "") acc[key] = value;
                 return acc;
@@ -121,56 +139,22 @@ export default function AdminVendorsPage() {
                 phone: vendor.phone || "",
                 deliveryManagedBy: vendor.deliveryManagedBy || "vendor"
             });
-        } else if (mode === "create") {
-            setFormData({
-                storeName: "",
-                email: "",
-                phone: "",
-                deliveryManagedBy: "vendor"
-            });
         }
         setShowModal(true);
-    };
-
-    const handleToggleDeliveryMode = async (vendorId, currentMode) => {
-        const newMode = currentMode === "admin" ? "vendor" : "admin";
-        const label = newMode === "admin" ? "GrubDash Riders" : "Vendor Riders";
-
-        setConfirmModal({
-            show: true,
-            title: "Switch Delivery Mode",
-            message: `Are you sure you want to switch this vendor to ${label}?`,
-            type: "confirm",
-            confirmText: "Switch Mode",
-            onConfirm: async () => {
-                try {
-                    setConfirmModal(prev => ({ ...prev, isLoading: true }));
-                    const data = await adminApi.updateVendorDeliveryMode(vendorId, newMode);
-                    if (!data.success) throw new Error(data.message);
-                    fetchVendors();
-                    toast.success(`Delivery mode updated to ${label}`);
-                    setConfirmModal({ show: false });
-                } catch (err) {
-                    toast.error(`Failed to update: ${err.message}`);
-                } finally {
-                    setConfirmModal(prev => ({ ...prev, isLoading: false }));
-                }
-            }
-        });
     };
 
     const handleApprove = async (vendorId) => {
         setConfirmModal({
             show: true,
             title: "Approve Vendor",
-            message: "Are you sure you want to approve this vendor and allow them to start selling on the platform?",
+            message: "Verify this partner for active operations on the platform?",
             type: "confirm",
-            confirmText: "Yes, Approve",
+            confirmText: "Approve Vendor",
             onConfirm: async () => {
                 try {
                     setConfirmModal(prev => ({ ...prev, isLoading: true }));
                     await adminApi.approveVendor(vendorId);
-                    toast.success("Vendor approved successfully");
+                    toast.success("Vendor approved");
                     fetchVendors();
                     setConfirmModal({ show: false });
                 } catch (error) {
@@ -185,21 +169,21 @@ export default function AdminVendorsPage() {
     const handleReject = async (vendorId) => {
         setConfirmModal({
             show: true,
-            title: "Reject Vendor",
-            message: "Please state the reason why this vendor's application is being rejected.",
+            title: "Reject Store Application",
+            message: "Provide a reason for rejection. This will be sent to the applicant.",
             type: "prompt",
-            confirmText: "Confirm Reject",
-            placeholder: "Reason (e.g. Invalid documents, poor quality images)",
+            confirmText: "Reject Application",
+            placeholder: "Reason (e.g. Missing documentation)",
             inputValue: "",
             onConfirm: async (reason) => {
                 if (!reason?.trim()) {
-                    toast.error("Please provide a reason");
+                    toast.error("Reason is required");
                     return;
                 }
                 try {
                     setConfirmModal(prev => ({ ...prev, isLoading: true }));
                     await adminApi.rejectVendor(vendorId, reason);
-                    toast.success("Vendor rejected");
+                    toast.success("Application rejected");
                     fetchVendors();
                     setConfirmModal({ show: false });
                 } catch (error) {
@@ -214,15 +198,15 @@ export default function AdminVendorsPage() {
     const handleSuspend = async (vendorId) => {
         setConfirmModal({
             show: true,
-            title: "Suspend Vendor",
-            message: "Explain the reason for suspending this vendor. They will not be able to receive orders while suspended.",
+            title: "Suspend Partner Access",
+            message: "State the violation or reason for suspension. Store will be hidden from users.",
             type: "prompt",
             confirmText: "Suspend Account",
-            placeholder: "Reason (e.g. Multiple customer complaints)",
+            placeholder: "Reason (e.g. Policy violation)",
             inputValue: "",
             onConfirm: async (reason) => {
                 if (!reason?.trim()) {
-                    toast.error("Please provide a reason");
+                    toast.error("Reason is required");
                     return;
                 }
                 try {
@@ -243,10 +227,10 @@ export default function AdminVendorsPage() {
     const handleReactivate = async (vendorId) => {
         setConfirmModal({
             show: true,
-            title: "Reactivate Vendor",
-            message: "Are you sure you want to reactivate this vendor? They will be able to receive orders immediately.",
+            title: "Restore Partner Access",
+            message: "Restore full operational status for this vendor?",
             type: "confirm",
-            confirmText: "Reactivate",
+            confirmText: "Reactivate Store",
             onConfirm: async () => {
                 try {
                     setConfirmModal(prev => ({ ...prev, isLoading: true }));
@@ -268,7 +252,7 @@ export default function AdminVendorsPage() {
         setIsSubmitting(true);
         try {
             await adminApi.updateCommission(commissionRate);
-            toast.success("Global commission rate updated");
+            toast.success("Commission rate updated globally");
             setShowModal(false);
             fetchVendors();
         } catch (error) {
@@ -284,7 +268,7 @@ export default function AdminVendorsPage() {
         try {
             if (modalMode === "edit") {
                 await adminApi.updateVendorDeliveryMode(selectedVendor._id, formData.deliveryManagedBy);
-                toast.success("Vendor updated successfully");
+                toast.success("Settings updated");
             }
             fetchVendors();
             setShowModal(false);
@@ -307,223 +291,201 @@ export default function AdminVendorsPage() {
         }
     };
 
-
-
-    // We now pass search to the API for better server-side filtering
-    const filteredVendors = vendors;
-
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="max-w-[1600px] mx-auto p-4 space-y-6">
-                    {/* Integrated Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-6">
+                <div className="space-y-4">
+                    {/* Header */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                         <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
-                                <Store size={12} />
-                                <span>Core Registry</span>
-                                <ChevronRight size={10} />
-                                <span className="text-orange-600">Partner Directory</span>
-                            </div>
-                            <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                                Vendor Management
-                                <span className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full font-bold uppercase tracking-widest">{vendors.length} Total</span>
+                            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                                Vendor Directory
+                                <span className="text-xs font-medium px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">{vendors.length} Partners</span>
                             </h1>
+                            <p className="text-sm text-slate-500 mt-0.5">Manage partner accounts, commission rates, and logistics modes.</p>
                         </div>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
                             <button
                                 onClick={fetchVendors}
                                 disabled={loading}
-                                className="h-10 px-4 bg-white border border-slate-200 rounded-xl text-slate-600 hover:text-slate-900 hover:border-slate-300 transition-all flex items-center gap-2 text-xs font-bold active:scale-95 disabled:opacity-50 shadow-sm"
+                                className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium disabled:opacity-50"
                             >
-                                <RefreshCcw size={14} className={loading ? "animate-spin text-orange-500" : ""} />
-                                {loading ? "Syncing..." : "Refresh Database"}
+                                <RefreshCcw size={15} className={loading ? "animate-spin text-slate-400" : ""} />
+                                Update Registry
                             </button>
                             <button
                                 onClick={() => {
                                     setModalMode("commission");
                                     setShowModal(true);
                                 }}
-                                className="h-10 px-4 bg-slate-900 text-white rounded-xl flex items-center gap-2 text-xs font-bold shadow-lg shadow-slate-900/20 active:scale-95 transition-all"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition-colors"
                             >
-                                <Percent size={14} />
-                                <span>Global Commission</span>
+                                <Percent size={15} />
+                                Global Commission
                             </button>
                         </div>
                     </div>
 
-                    {/* Quick Stats Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    {/* Stats Tiles */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {[
-                            { label: "Active Partners", val: vendors.filter(v => v.active && !v.suspended).length, icon: CheckCircle2, color: "emerald" },
-                            { label: "Pending Verification", val: vendors.filter(v => !v.verified).length, icon: Clock, color: "amber" },
-                            { label: "Under Suspension", val: vendors.filter(v => v.suspended).length, icon: Ban, color: "rose" },
+                            { label: "Active Stores", val: vendors.filter(v => v.active && !v.suspended).length, icon: CheckCircle2, color: "emerald" },
+                            { label: "Pending Review", val: vendors.filter(v => !v.verified).length, icon: Clock, color: "orange" },
+                            { label: "Suspended", val: vendors.filter(v => v.suspended).length, icon: Ban, color: "rose" },
                             { label: "Avg Commission", val: vendors.length ? `${(vendors.reduce((acc, v) => acc + (v.commissionRate || 0), 0) / vendors.length * 100).toFixed(1)}%` : "0%", icon: Percent, color: "blue" },
                         ].map((stat, i) => (
-                            <div key={i} className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-4 transition-all hover:border-slate-300 shadow-sm">
-                                <div className={`w-10 h-10 rounded-xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-600`}>
-                                    <stat.icon size={20} />
+                            <div key={i} className="bg-white border border-slate-200 rounded-lg p-3 flex items-center gap-3">
+                                <div className={`w-9 h-9 rounded flex items-center justify-center bg-${stat.color}-50 text-${stat.color}-600 border border-${stat.color}-100`}>
+                                    <stat.icon size={18} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{stat.label}</p>
-                                    <p className="text-lg font-black text-slate-900">{stat.val}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{stat.label}</p>
+                                    <p className="text-base font-bold text-slate-900 leading-none">{stat.val}</p>
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    {/* Filters & Search */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center bg-slate-50/50 p-3 rounded-2xl border border-slate-100">
-                        <div className="lg:col-span-6 relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={16} />
+                    {/* Toolbar */}
+                    <div className="bg-white border border-slate-200 rounded-lg p-3 flex flex-col lg:flex-row gap-3">
+                        <div className="flex-1 relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                             <input
                                 type="text"
-                                placeholder="Search by Store Name, UID, or Email..."
+                                placeholder="Search by Store, UID, or Email..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-xl focus:border-orange-500 outline-none font-bold text-xs transition-all shadow-sm"
+                                className="w-full h-9 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm focus:ring-1 focus:ring-slate-900 transition-all font-medium"
                             />
                         </div>
-                        <div className="lg:col-span-6 flex gap-2 overflow-x-auto pb-1 lg:pb-0">
-                            <select
-                                value={filter.active}
-                                onChange={(e) => setFilter({ ...filter, active: e.target.value })}
-                                className="flex-1 min-w-[120px] h-11 px-4 bg-white border border-slate-200 rounded-xl focus:border-orange-500 outline-none font-black text-[10px] uppercase tracking-widest cursor-pointer shadow-sm"
-                            >
-                                <option value="">Live Status: All</option>
-                                <option value="true">NOMINAL (Active)</option>
-                                <option value="false">DORMANT (Inactive)</option>
-                            </select>
-                            <select
-                                value={filter.verified}
-                                onChange={(e) => setFilter({ ...filter, verified: e.target.value })}
-                                className="flex-1 min-w-[120px] h-11 px-4 bg-white border border-slate-200 rounded-xl focus:border-orange-500 outline-none font-black text-[10px] uppercase tracking-widest cursor-pointer shadow-sm"
-                            >
-                                <option value="">Security: All</option>
-                                <option value="true">VERIFIED</option>
-                                <option value="false">GATE-LOCKED</option>
-                            </select>
+                        <div className="flex gap-2">
+                            <div className="relative">
+                                <select
+                                    value={filter.active}
+                                    onChange={(e) => setFilter({ ...filter, active: e.target.value })}
+                                    className="h-9 pl-3 pr-8 bg-white border border-slate-200 rounded-md text-xs font-bold uppercase tracking-tight outline-none focus:ring-1 focus:ring-slate-900 appearance-none min-w-[140px]"
+                                >
+                                    <option value="">Status: All</option>
+                                    <option value="true">Active Only</option>
+                                    <option value="false">Inactive Only</option>
+                                </select>
+                                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                            </div>
+                            <div className="relative">
+                                <select
+                                    value={filter.verified}
+                                    onChange={(e) => setFilter({ ...filter, verified: e.target.value })}
+                                    className="h-9 pl-3 pr-8 bg-white border border-slate-200 rounded-md text-xs font-bold uppercase tracking-tight outline-none focus:ring-1 focus:ring-slate-900 appearance-none min-w-[140px]"
+                                >
+                                    <option value="">Verification: All</option>
+                                    <option value="true">Verified Only</option>
+                                    <option value="false">Unverified Only</option>
+                                </select>
+                                <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                            </div>
                             {(search || filter.verified || filter.active) && (
                                 <button
                                     onClick={() => {
                                         setSearch("");
                                         setFilter({ verified: "", suspended: "", active: "" });
                                     }}
-                                    className="h-11 px-4 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all border border-rose-200/50 flex items-center gap-2 shrink-0"
+                                    className="h-9 px-3 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-md font-bold text-xs transition-colors border border-rose-100 flex items-center gap-1.5"
                                 >
-                                    <X size={14} /> Reset
+                                    <X size={14} /> Clear
                                 </button>
                             )}
                         </div>
                     </div>
 
-                    {/* Vendor Table */}
-                    <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-sm">
+                    {/* Table */}
+                    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse">
+                            <table className="w-full text-left">
                                 <thead>
-                                    <tr className="bg-slate-50/50 border-b border-slate-100">
-                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Brand Identification</th>
-                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Service Logistics</th>
-                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">Financials</th>
-                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest">System Status</th>
-                                        <th className="px-6 py-4 text-[10px] font-black uppercase text-slate-400 tracking-widest text-right">Terminal</th>
+                                    <tr className="bg-slate-50 border-b border-slate-100">
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Store Identifier</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Logistics</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Commission</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider">Operational Status</th>
+                                        <th className="px-4 py-2.5 text-[10px] font-bold uppercase text-slate-500 tracking-wider text-right">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-50">
+                                <tbody className="divide-y divide-slate-100">
                                     {loading ? (
                                         <tr>
-                                            <td colSpan="5" className="py-24 text-center">
-                                                <div className="flex flex-col items-center gap-3">
-                                                    <Loader2 className="animate-spin text-orange-500" size={32} />
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">Accessing Registry...</span>
+                                            <td colSpan="5" className="py-20 text-center">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    <Loader2 className="animate-spin text-slate-400" size={24} />
+                                                    <p className="text-xs text-slate-400 font-medium">Syncing vendor registry...</p>
                                                 </div>
                                             </td>
                                         </tr>
-                                    ) : filteredVendors.length > 0 ? (
-                                        filteredVendors.map((vendor) => (
-                                            <tr key={vendor._id} className="hover:bg-slate-50/50 transition-all group border-l-2 border-transparent hover:border-orange-500">
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-11 h-11 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 flex items-center justify-center shrink-0 shadow-sm">
-                                                            {vendor.logo ? (
-                                                                <img src={vendor.logo} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                                            ) : (
-                                                                <Store size={18} className="text-slate-300" />
-                                                            )}
+                                    ) : vendors.length > 0 ? (
+                                        vendors.map((vendor) => (
+                                            <tr key={vendor._id} className="hover:bg-slate-50/50 transition-colors group">
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 bg-slate-100 rounded border border-slate-200 flex-shrink-0 flex items-center justify-center overflow-hidden transition-all">
+                                                            {vendor.logo ? <img src={vendor.logo} alt="" className="w-full h-full object-cover" /> : <Store size={18} className="text-slate-300" />}
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <div className="flex items-center gap-1.5 mb-0.5">
-                                                                <span className="font-black text-slate-900 tracking-tight truncate uppercase text-xs">
-                                                                    {vendor.storeName}
-                                                                </span>
-                                                                {vendor.verified && <ShieldCheck size={14} className="text-emerald-500" />}
+                                                            <div className="flex items-center gap-1.5">
+                                                                <p className="font-bold text-sm text-slate-900 leading-tight truncate">{vendor.storeName}</p>
+                                                                {vendor.verified && <ShieldCheck size={14} className="text-emerald-500 shrink-0" />}
                                                             </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-bold text-slate-400 truncate">{vendor.email}</span>
-                                                            </div>
+                                                            <p className="text-[11px] text-slate-400 font-medium mt-0.5 truncate">{vendor.email}</p>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4">
-                                                    <div
-                                                        className="inline-flex items-center gap-3 p-1.5 pr-4 rounded-xl border border-slate-100 bg-slate-50/50 transition-all group-hover:bg-white group-hover:border-slate-200 group-hover:shadow-sm"
-                                                    >
-                                                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${vendor.deliveryManagedBy === "admin" ? "bg-orange-500 text-white shadow-orange-500/20 shadow-md" : "bg-emerald-500 text-white shadow-emerald-500/20 shadow-md"}`}>
-                                                            {vendor.deliveryManagedBy === "admin" ? <Truck size={14} /> : <Utensils size={14} strokeWidth={3} />}
-                                                        </div>
-                                                        <div className="text-left">
-                                                            <div className="text-[9px] font-black uppercase tracking-widest text-slate-900 leading-none mb-0.5">
-                                                                {vendor.deliveryManagedBy === "admin" ? "Platform-Riders" : "Self-Fulfillment"}
-                                                            </div>
-                                                            <div className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Logstics Mode</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-black text-slate-900 text-xs">{(vendor.commissionRate * 100).toFixed(1)}%</span>
-                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-0.5">Commission Rate</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="flex flex-col gap-1.5 items-start">
-                                                        {vendor.suspended ? (
-                                                            <span className="px-2 py-0.5 bg-rose-50 text-rose-600 rounded-md text-[9px] font-black uppercase tracking-[0.1em] border border-rose-100">
-                                                                Suspended
-                                                            </span>
-                                                        ) : vendor.active ? (
-                                                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded-md text-[9px] font-black uppercase tracking-[0.1em] border border-emerald-100">
-                                                                Active Terminal
-                                                            </span>
+                                                <td className="px-4 py-3">
+                                                    <div className="inline-flex items-center gap-2 px-2 py-1 rounded bg-slate-50 border border-slate-100">
+                                                        {vendor.deliveryManagedBy === "admin" ? (
+                                                            <>
+                                                                <Truck size={12} className="text-blue-500" />
+                                                                <span className="text-[10px] font-bold text-slate-600 uppercase">Platform Managed</span>
+                                                            </>
                                                         ) : (
-                                                            <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-[9px] font-black uppercase tracking-[0.1em] border border-slate-200">
-                                                                Dormant
-                                                            </span>
+                                                            <>
+                                                                <Utensils size={12} className="text-emerald-500" />
+                                                                <span className="text-[10px] font-bold text-slate-600 uppercase">Self Delivery</span>
+                                                            </>
                                                         )}
-
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <p className="text-xs font-bold text-slate-900">{(vendor.commissionRate * 100).toFixed(1)}%</p>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <div className="flex flex-col gap-1">
+                                                        {vendor.suspended ? (
+                                                            <Badge variant="danger">Suspended</Badge>
+                                                        ) : vendor.active ? (
+                                                            <Badge variant="success">Active Online</Badge>
+                                                        ) : (
+                                                            <Badge variant="inactive">Inactive / Offline</Badge>
+                                                        )}
                                                         {vendor.verified && !vendor.isApproved && (
-                                                            <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-md text-[9px] font-black uppercase tracking-[0.1em] border border-amber-200/50 flex items-center gap-1 animate-pulse">
+                                                            <span className="text-[9px] font-bold text-amber-500 uppercase flex items-center gap-1 px-1">
                                                                 <AlertCircle size={10} /> Pending Approval
                                                             </span>
                                                         )}
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
+                                                <td className="px-4 py-3 text-right">
+                                                    <div className="flex items-center justify-end gap-1">
                                                         <button
                                                             onClick={() => router.push(`/admin/vendors/${vendor._id}`)}
-                                                            className="h-9 px-3 bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-900 rounded-lg transition-all active:scale-95 shadow-sm"
+                                                            className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
                                                             title="Review Case"
                                                         >
                                                             <Eye size={16} />
                                                         </button>
                                                         <button
                                                             onClick={() => setActionMenu({ show: true, vendor })}
-                                                            className="w-9 h-9 flex items-center justify-center bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all active:scale-95 shadow-md shadow-slate-950/10"
+                                                            className="p-1.5 bg-slate-900 text-white rounded-md hover:bg-slate-800 transition-colors"
                                                         >
-                                                            <MoreVertical size={18} />
+                                                            <MoreVertical size={16} />
                                                         </button>
                                                     </div>
                                                 </td>
@@ -531,153 +493,120 @@ export default function AdminVendorsPage() {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="5" className="py-24 text-center">
-                                                <div className="flex flex-col items-center gap-3">
-                                                    <XCircle className="text-slate-200" size={48} />
-                                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">No Vendors Found</h3>
-                                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-wide">Refine your search parameters or registry filters.</p>
+                                            <td colSpan="5" className="py-20 text-center">
+                                                <div className="flex flex-col items-center mb-2">
+                                                    <XCircle size={40} className="text-slate-300" />
                                                 </div>
+                                                <p className="text-sm font-bold text-slate-500 tracking-tight">No vendors found matching your filters</p>
                                             </td>
                                         </tr>
                                     )}
                                 </tbody>
                             </table>
                         </div>
-                        {/* Footer Detail */}
-                        <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Platform Provider Terminal — Secure Access Root</span>
-                            <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                                System Nominal
-                            </span>
-                        </div>
                     </div>
                 </div>
 
-                {/* Modals */}
+                {/* Performance Modal */}
                 <AnimatePresence>
                     {showModal && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setShowModal(false)}
-                                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                            />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-lg bg-white rounded-[40px] overflow-hidden"
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                onClick={() => setShowModal(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
+                            <motion.div initial={{ opacity: 0, scale: 0.98, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                                className="relative w-full max-w-md bg-white rounded-xl overflow-hidden border border-slate-200"
                             >
-                                <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                                <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                                     <div>
-                                        <h2 className="text-2xl font-black text-gray-900 uppercase">
-                                            {modalMode === "performance" && "Business Metrics"}
-
-                                            {modalMode === "commission" && "Global Commission"}
-                                            {modalMode === "edit" && "Edit Vendor"}
+                                        <h2 className="text-base font-bold text-slate-900 tracking-tight">
+                                            {modalMode === "performance" ? "Performance Metrics" : 
+                                             modalMode === "commission" ? "Global Commission Rate" : "Vendor Configuration"}
                                         </h2>
-                                        <p className="text-xs font-bold text-gray-500 uppercase mt-1">
-                                            {selectedVendor?.storeName || "Platform Settings"}
+                                        <p className="text-[10px] font-semibold text-slate-500 uppercase mt-0.5">
+                                            {selectedVendor?.storeName || "Core Platform Settings"}
                                         </p>
                                     </div>
-                                    <button onClick={() => setShowModal(false)} className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors">
-                                        <X size={20} />
+                                    <button onClick={() => setShowModal(false)} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors">
+                                        <X size={18} />
                                     </button>
                                 </div>
 
-                                <div className="p-8 max-h-[70vh] overflow-y-auto">
-                                    {modalMode === "performance" && metrics && (
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="p-6 bg-orange-50 rounded-[32px] border border-orange-100">
-                                                <Wallet className="text-orange-600 mb-2" size={24} />
-                                                <div className="text-[10px] font-black text-orange-400 uppercase tracking-widest">Revenue</div>
-                                                <div className="text-2xl font-black text-orange-950">₦{metrics.totalSales?.toLocaleString()}</div>
-                                            </div>
-                                            <div className="p-6 bg-blue-50 rounded-[32px] border border-blue-100">
-                                                <Truck className="text-blue-600 mb-2" size={24} />
-                                                <div className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Orders</div>
-                                                <div className="text-2xl font-black text-blue-950">{metrics.totalOrders}</div>
-                                            </div>
-                                            <div className="p-6 bg-green-50 rounded-[32px] border border-green-100">
-                                                <CheckCircle2 className="text-green-600 mb-2" size={24} />
-                                                <div className="text-[10px] font-black text-green-400 uppercase tracking-widest">Rating</div>
-                                                <div className="text-2xl font-black text-green-950">{metrics.rating || 0} / 5</div>
-                                            </div>
-                                            <div className="p-6 bg-slate-50 rounded-[32px] border border-slate-100">
-                                                <Utensils className="text-slate-600 mb-2" size={24} />
-                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Food Items</div>
-                                                <div className="text-2xl font-black text-slate-950">{metrics.foodCount}</div>
-                                            </div>
+                                <div className="p-5">
+                                    {modalMode === "performance" && (
+                                        <div className="space-y-4">
+                                            {metrics ? (
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                                                        <Wallet className="text-blue-600 mb-2" size={18} />
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Revenue</p>
+                                                        <p className="text-lg font-bold text-slate-900">₦{metrics.totalSales?.toLocaleString()}</p>
+                                                    </div>
+                                                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                                                        <Truck className="text-amber-600 mb-2" size={18} />
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Orders</p>
+                                                        <p className="text-lg font-bold text-slate-900">{metrics.totalOrders}</p>
+                                                    </div>
+                                                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                                                        <CheckCircle2 className="text-emerald-600 mb-2" size={18} />
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Store Rating</p>
+                                                        <p className="text-lg font-bold text-slate-900">{metrics.rating || 0} / 5</p>
+                                                    </div>
+                                                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                                                        <Utensils className="text-rose-600 mb-2" size={18} />
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Menu Size</p>
+                                                        <p className="text-lg font-bold text-slate-900">{metrics.foodCount} Items</p>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="py-12 flex flex-col items-center gap-2">
+                                                    <Loader2 className="animate-spin text-slate-400" size={24} />
+                                                    <p className="text-xs text-slate-400 font-medium">Updating data...</p>
+                                                </div>
+                                            )}
+                                            <button onClick={() => setShowModal(false)} className="w-full py-2.5 bg-slate-900 text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition-colors mt-2">Close Performance Hub</button>
                                         </div>
                                     )}
 
-
                                     {modalMode === "commission" && (
-                                        <form onSubmit={handleUpdateCommission} className="space-y-6">
-                                            <div>
-                                                <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-4 mb-2 block">Commission Rate (e.g. 0.15 for 15%)</label>
+                                        <form onSubmit={handleUpdateCommission} className="space-y-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[11px] font-bold text-slate-500 ml-1">Platform-Wide Rate (e.g. 0.1 for 10%)</label>
                                                 <input
-                                                    type="number"
-                                                    step="0.01"
-                                                    min="0"
-                                                    max="1"
+                                                    type="number" step="0.01" min="0" max="1"
                                                     required
                                                     value={commissionRate}
                                                     onChange={(e) => setCommissionRate(parseFloat(e.target.value))}
-                                                    className="w-full h-14 px-6 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-2xl outline-none transition-all font-semibold"
+                                                    className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm font-medium focus:ring-1 focus:ring-slate-900"
                                                     placeholder="0.10"
                                                 />
                                             </div>
-                                            <button
-                                                type="submit"
-                                                disabled={isSubmitting}
-                                                className="w-full h-16 bg-orange-600 text-white rounded-2xl font-black text-lg flex items-center justify-center gap-2 hover:bg-orange-700 transition-all active:scale-[0.98] disabled:opacity-50"
-                                            >
-                                                {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : <ShieldCheck size={24} />}
-                                                Apply to All Vendors
+                                            <button type="submit" disabled={isSubmitting} className="w-full py-2.5 bg-slate-900 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-slate-800 transition-colors disabled:opacity-50">
+                                                {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <ShieldCheck size={18} />}
+                                                Synchronize All Vendors
                                             </button>
                                         </form>
                                     )}
 
                                     {modalMode === "edit" && (
-                                        <form onSubmit={handleFormSubmit} className="space-y-6">
-                                            <div className="grid grid-cols-1 gap-4">
-                                                <div>
-                                                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-4 mb-2 block">Store Name</label>
-                                                    <input
-                                                        type="text"
-                                                        name="storeName"
-                                                        value={formData.storeName}
-                                                        onChange={handleChange}
-                                                        className="w-full h-14 px-6 bg-gray-50 border border-transparent focus:border-orange-500 rounded-2xl outline-none font-semibold"
-                                                        placeholder="Store Name"
-                                                        required
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-[10px] font-black uppercase text-gray-400 tracking-widest ml-4 mb-2 block">Delivery Managed By</label>
+                                        <form onSubmit={handleFormSubmit} className="space-y-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[11px] font-bold text-slate-500 ml-1">Delivery Fulfillment Mode</label>
+                                                <div className="relative">
                                                     <select
-                                                        id="deliveryManagedBy"
                                                         name="deliveryManagedBy"
                                                         value={formData.deliveryManagedBy}
                                                         onChange={handleChange}
-                                                        className="w-full h-14 px-6 bg-gray-50 border border-transparent focus:border-orange-500 rounded-2xl outline-none font-semibold appearance-none"
+                                                        className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm font-medium appearance-none focus:ring-1 focus:ring-slate-900 cursor-pointer pr-9"
                                                     >
-                                                        <option value="vendor">Vendor Riders</option>
-                                                        <option value="admin">GrubDash Riders</option>
+                                                        <option value="vendor">Handled by Vendor</option>
+                                                        <option value="admin">Managed by Platform</option>
                                                     </select>
+                                                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                                                 </div>
                                             </div>
-                                            <button
-                                                type="submit"
-                                                disabled={isSubmitting}
-                                                className="w-full h-16 bg-blue-600 text-white rounded-2xl font-black text-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-all active:scale-[0.98] disabled:opacity-50"
-                                            >
-                                                {isSubmitting ? <Loader2 className="animate-spin" size={24} /> : <ShieldCheck size={24} />}
-                                                Save Changes
+                                            <button type="submit" disabled={isSubmitting} className="w-full py-2.5 bg-blue-600 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors disabled:opacity-50">
+                                                {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
+                                                Apply Configuration
                                             </button>
                                         </form>
                                     )}
@@ -687,128 +616,60 @@ export default function AdminVendorsPage() {
                     )}
                 </AnimatePresence>
 
-                {/* Action Menu Modal */}
+                {/* Quick Actions Drawer */}
                 <AnimatePresence>
                     {actionMenu.show && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                 onClick={() => setActionMenu({ show: false, vendor: null })}
-                                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-                            />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                className="relative w-full max-w-sm bg-white rounded-[32px] overflow-hidden p-6"
+                                className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" />
+                            <motion.div initial={{ opacity: 0, scale: 0.98, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                                className="relative w-full max-w-sm bg-white rounded-xl overflow-hidden border border-slate-200"
                             >
-                                <div className="flex items-center justify-between mb-6">
-                                    <div>
-                                        <h3 className="text-lg font-black text-slate-900 uppercase">Vendor Options</h3>
-                                        <p className="text-xs font-bold text-gray-400">{actionMenu.vendor?.storeName}</p>
+                                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                                    <div className="min-w-0">
+                                        <h3 className="text-sm font-bold text-slate-900 truncate">{actionMenu.vendor?.storeName}</h3>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Quick Actions Hub</p>
                                     </div>
-                                    <button
-                                        onClick={() => setActionMenu({ show: false, vendor: null })}
-                                        className="w-10 h-10 flex items-center justify-center bg-gray-50 text-gray-400 rounded-xl hover:bg-gray-100 hover:text-gray-900 transition-all"
-                                    >
-                                        <X size={20} />
+                                    <button onClick={() => setActionMenu({ show: false, vendor: null })} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors">
+                                        <X size={18} />
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-2">
-                                    <button
-                                        onClick={() => {
-                                            router.push(`/admin/vendors/${actionMenu.vendor._id}`);
-                                            setActionMenu({ show: false, vendor: null });
-                                        }}
-                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-emerald-50 text-gray-600 hover:text-emerald-600 transition-all group"
-                                    >
-                                        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-white transition-all text-gray-400 group-hover:text-emerald-500">
-                                            <Eye size={20} />
-                                        </div>
-                                        <span className="font-bold text-sm tracking-tight">View Full Details</span>
+                                <div className="p-3 grid grid-cols-1 gap-1">
+                                    <button onClick={() => { viewPerformance(actionMenu.vendor); setActionMenu({ show: false, vendor: null }); }}
+                                        className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-50 text-slate-700 transition-all group">
+                                        <div className="w-8 h-8 rounded bg-blue-50 text-blue-500 flex items-center justify-center group-hover:bg-blue-100"><TrendingUp size={16} /></div>
+                                        <span className="text-sm font-semibold">Metrics Overview</span>
                                     </button>
-
-                                    <button
-                                        onClick={() => {
-                                            viewPerformance(actionMenu.vendor);
-                                            setActionMenu({ show: false, vendor: null });
-                                        }}
-                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-orange-50 text-gray-600 hover:text-orange-600 transition-all group"
-                                    >
-                                        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-white transition-all text-gray-400 group-hover:text-orange-500">
-                                            <TrendingUp size={20} />
-                                        </div>
-                                        <span className="font-bold text-sm tracking-tight">Business Intelligence</span>
+                                    <button onClick={() => { handleOpenModal("edit", actionMenu.vendor); setActionMenu({ show: false, vendor: null }); }}
+                                        className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-slate-50 text-slate-700 transition-all group">
+                                        <div className="w-8 h-8 rounded bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-slate-100"><Edit2 size={16} /></div>
+                                        <span className="text-sm font-semibold">Config Settings</span>
                                     </button>
-
-
-
-                                    <button
-                                        onClick={() => {
-                                            handleOpenModal("edit", actionMenu.vendor);
-                                            setActionMenu({ show: false, vendor: null });
-                                        }}
-                                        className="w-full flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 text-gray-600 hover:text-slate-900 transition-all group"
-                                    >
-                                        <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-white transition-all text-gray-400 group-hover:text-slate-600">
-                                            <Edit2 size={20} />
-                                        </div>
-                                        <span className="font-bold text-sm tracking-tight">Identity Settings</span>
-                                    </button>
-
-                                    <div className="h-px bg-gray-100 my-2" />
-
+                                    <div className="h-px bg-slate-100 my-1 mx-2" />
                                     {!actionMenu.vendor?.verified ? (
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    handleApprove(actionMenu.vendor._id);
-                                                    setActionMenu({ show: false, vendor: null });
-                                                }}
-                                                className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all group"
-                                            >
-                                                <CheckCircle2 size={24} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">Approve</span>
+                                        <div className="grid grid-cols-2 gap-2 p-1">
+                                            <button onClick={() => { handleApprove(actionMenu.vendor._id); setActionMenu({ show: false, vendor: null }); }}
+                                                className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all border border-emerald-100">
+                                                <CheckCircle2 size={18} /><span className="text-[10px] font-bold uppercase">Approve</span>
                                             </button>
-                                            <button
-                                                onClick={() => {
-                                                    handleReject(actionMenu.vendor._id);
-                                                    setActionMenu({ show: false, vendor: null });
-                                                }}
-                                                className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition-all group"
-                                            >
-                                                <Trash2 size={24} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">Reject</span>
+                                            <button onClick={() => { handleReject(actionMenu.vendor._id); setActionMenu({ show: false, vendor: null }); }}
+                                                className="flex flex-col items-center gap-1.5 p-3 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 transition-all border border-rose-100">
+                                                <XCircle size={18} /><span className="text-[10px] font-bold uppercase">Reject</span>
                                             </button>
                                         </div>
                                     ) : actionMenu.vendor?.suspended ? (
-                                        <button
-                                            onClick={() => {
-                                                handleReactivate(actionMenu.vendor._id);
-                                                setActionMenu({ show: false, vendor: null });
-                                            }}
-                                            className="w-full flex items-center gap-4 p-4 rounded-2xl bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all group"
-                                        >
-                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-emerald-500 group-hover:text-emerald-500">
-                                                <RefreshCcw size={20} />
-                                            </div>
-                                            <span className="font-black text-xs uppercase tracking-widest">Reactivate Account</span>
+                                        <button onClick={() => { handleReactivate(actionMenu.vendor._id); setActionMenu({ show: false, vendor: null }); }}
+                                            className="flex items-center gap-3 p-2.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-all border border-emerald-100">
+                                            <div className="w-8 h-8 rounded bg-white text-emerald-600 flex items-center justify-center"><RefreshCcw size={16} /></div>
+                                            <span className="text-sm font-bold uppercase tracking-wider">Restore Operations</span>
                                         </button>
                                     ) : (
-                                        <button
-                                            onClick={() => {
-                                                handleSuspend(actionMenu.vendor._id);
-                                                setActionMenu({ show: false, vendor: null });
-                                            }}
-                                            className="w-full flex items-center gap-4 p-4 rounded-2xl bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition-all group"
-                                        >
-                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-rose-500 group-hover:text-rose-500">
-                                                <Ban size={20} />
-                                            </div>
-                                            <span className="font-black text-xs uppercase tracking-widest">Suspend Access</span>
+                                        <button onClick={() => { handleSuspend(actionMenu.vendor._id); setActionMenu({ show: false, vendor: null }); }}
+                                            className="flex items-center gap-3 p-2.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 transition-all border border-rose-100">
+                                            <div className="w-8 h-8 rounded bg-white text-rose-600 flex items-center justify-center"><Ban size={16} /></div>
+                                            <span className="text-sm font-bold uppercase tracking-wider">Restrict Access</span>
                                         </button>
                                     )}
                                 </div>
@@ -817,60 +678,43 @@ export default function AdminVendorsPage() {
                     )}
                 </AnimatePresence>
 
-                {/* Confirm/Prompt Modal */}
+                {/* Compact Confirm Modal */}
                 <AnimatePresence>
                     {confirmModal.show && (
                         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                 onClick={() => !confirmModal.isLoading && setConfirmModal({ show: false })}
-                                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
-                            />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-md bg-white rounded-[40px] overflow-hidden"
+                                className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
+                            <motion.div initial={{ opacity: 0, scale: 0.98, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                                className="relative w-full max-w-sm bg-white rounded-xl overflow-hidden border border-slate-200"
                             >
-                                <div className="p-10 text-center">
-                                    <div className="w-20 h-20 bg-orange-50 rounded-[32px] flex items-center justify-center mx-auto mb-8">
-                                        <AlertCircle className="text-orange-500" size={40} />
+                                <div className="p-6 text-center">
+                                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                                        <AlertCircle className="text-slate-400" size={24} />
                                     </div>
-                                    <h3 className="text-2xl font-black text-slate-900 uppercase mb-4 tracking-tight">{confirmModal.title}</h3>
-                                    <p className="text-gray-500 font-medium leading-relaxed mb-8">{confirmModal.message}</p>
+                                    <h3 className="text-base font-bold text-slate-900 uppercase tracking-tight mb-2">{confirmModal.title}</h3>
+                                    <p className="text-sm text-slate-500 font-medium leading-normal mb-6">{confirmModal.message}</p>
 
                                     {confirmModal.type === "prompt" && (
-                                        <div className="mb-8">
+                                        <div className="mb-6">
                                             <textarea
                                                 autoFocus
                                                 value={confirmModal.inputValue}
                                                 onChange={(e) => setConfirmModal(prev => ({ ...prev, inputValue: e.target.value }))}
                                                 placeholder={confirmModal.placeholder}
-                                                className="w-full min-h-[120px] p-6 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-3xl outline-none font-semibold transition-all resize-none text-sm"
+                                                className="w-full min-h-[100px] p-4 bg-slate-50 border border-slate-200 rounded-lg outline-none font-semibold transition-all resize-none text-xs"
                                             />
                                         </div>
                                     )}
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <button
-                                            disabled={confirmModal.isLoading}
-                                            onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
-                                            className="h-16 rounded-3xl bg-gray-100 text-gray-500 font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95 disabled:opacity-50"
-                                        >
+                                    <div className="flex gap-2">
+                                        <button disabled={confirmModal.isLoading} onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+                                            className="flex-1 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider hover:bg-slate-50 transition-colors">
                                             {confirmModal.cancelText || "Cancel"}
                                         </button>
-                                        <button
-                                            disabled={confirmModal.isLoading}
-                                            onClick={() => confirmModal.onConfirm(confirmModal.inputValue)}
-                                            className="h-16 rounded-3xl bg-slate-900 text-white font-black text-sm uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
-                                        >
-                                            {confirmModal.isLoading ? (
-                                                <Loader2 className="animate-spin" size={20} />
-                                            ) : (
-                                                confirmModal.confirmText
-                                            )}
+                                        <button disabled={confirmModal.isLoading} onClick={() => confirmModal.onConfirm(confirmModal.inputValue)}
+                                            className="flex-1 py-2 rounded-lg bg-slate-900 text-white font-bold text-xs uppercase tracking-wider hover:bg-slate-800 transition-colors flex items-center justify-center gap-2">
+                                            {confirmModal.isLoading ? <Loader2 className="animate-spin" size={16} /> : confirmModal.confirmText}
                                         </button>
                                     </div>
                                 </div>
