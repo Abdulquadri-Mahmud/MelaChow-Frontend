@@ -53,17 +53,17 @@ const uploadToCloudinary = async (file) => {
 const Section = ({ title, icon: Icon, children, isOpen, onToggle, loading }) => (
   <motion.div
     initial={false}
-    className="bg-white rounded-[24px] border border-gray-100 overflow-hidden"
+    className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 overflow-hidden rounded-md"
   >
     <button
       onClick={onToggle}
-      className="w-full flex items-center justify-between p-6 bg-white hover:bg-gray-50/50 transition-colors"
+      className="w-full flex items-center justify-between p-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
     >
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
-          <Icon size={20} />
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-md bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 dark:text-orange-400">
+          <Icon size={16} />
         </div>
-        <h3 className="font-bold text-gray-900 text-lg tracking-tight">{title}</h3>
+        <h3 className="font-black text-slate-900 dark:text-white text-base tracking-tight uppercase leading-none">{title}</h3>
       </div>
       <div className={`text-gray-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}>
         <ChevronDown size={20} />
@@ -78,7 +78,7 @@ const Section = ({ title, icon: Icon, children, isOpen, onToggle, loading }) => 
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
         >
-          <div className="p-6 pt-0 border-t border-gray-50">
+          <div className="p-4 pt-0 border-t border-slate-50 dark:border-slate-800/50">
             {children}
           </div>
         </motion.div>
@@ -89,12 +89,12 @@ const Section = ({ title, icon: Icon, children, isOpen, onToggle, loading }) => 
 
 const InputGroup = ({ label, icon: Icon, ...props }) => (
   <div className="space-y-2">
-    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
       {Icon && <Icon size={12} />} {label}
     </label>
     <div className="relative group">
       <input
-        className={`w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block p-3.5 transition-all outline-none ${props.disabled ? 'opacity-60 cursor-not-allowed' : 'group-hover:border-orange-200'}`}
+        className={`w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold uppercase tracking-tight rounded-md focus:ring-1 focus:ring-orange-600 focus:border-orange-600 block p-3 transition-all outline-none ${props.disabled ? 'opacity-60 cursor-not-allowed' : 'hover:border-slate-300 dark:hover:border-slate-700'}`}
         {...props}
       />
     </div>
@@ -243,10 +243,10 @@ export default function VendorProfilePage({ vendor }) {
   if (!vendor) return null;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-5 animate-in fade-in duration-500">
+    <div className="max-w-7xl mx-auto space-y-4">
 
       {/* Hero Banner */}
-      <div className="relative rounded-[32px] overflow-hidden bg-white border border-gray-100 group">
+      <div className="relative rounded-md overflow-hidden bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 group">
         <div className="h-40 w-full relative overflow-hidden">
           {/* Background Image (Blurred Logo/Cover) */}
           <div className="absolute inset-0 bg-gray-900">
@@ -258,13 +258,13 @@ export default function VendorProfilePage({ vendor }) {
           </div>
           <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
         </div>
-        <div className="px-8 pb-8 flex flex-col md:flex-row gap-6 -mt-12 relative z-10">
+        <div className="px-6 pb-6 flex flex-col md:flex-row gap-5 -mt-10 relative z-10">
           <div className="relative group">
-            <div className="w-32 h-32 rounded-3xl border-4 border-white shadow-xl overflow-hidden bg-white">
+            <div className="w-24 h-24 rounded-md border-4 border-white dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-800">
               <img src={logo || "/placeholder.jpg"} alt="Logo" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
             </div>
-            <label className="absolute bottom-2 right-2 bg-gray-900 text-white p-2 rounded-xl cursor-pointer hover:bg-orange-500 transition-colors shadow-lg">
-              <Camera size={16} />
+            <label className="absolute bottom-1 right-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 p-1.5 rounded-md cursor-pointer hover:bg-orange-600 hover:text-white transition-colors">
+              <Camera size={14} />
               <input type="file" className="hidden" onChange={handleLogoChange} accept="image/*" />
             </label>
           </div>
@@ -278,26 +278,26 @@ export default function VendorProfilePage({ vendor }) {
                   {address.city || "City"}, {address.state || "State"}
                 </p>
               </div>
-              <div className={`px-4 py-1.5 rounded-full text-xs font-bold border w-fit ${vendor.active ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200"}`}>
-                {vendor.active ? "● Active Store" : "● Inactive Store"}
+              <div className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border w-fit ${vendor.active ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200"}`}>
+                {vendor.active ? "● Active" : "● Inactive"}
               </div>
             </div>
 
-            <div className="flex items-center gap-6 mt-6 pt-6 border-t border-gray-100">
+            <div className="flex items-center gap-6 mt-5 pt-5 border-t border-slate-100 dark:border-slate-800/50">
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Sales</p>
-                <p className="text-xl font-bold text-gray-900 mt-0.5">₦{vendor.totalSales?.toLocaleString() ?? "0"}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Total Sales</p>
+                <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">₦{vendor.totalSales?.toLocaleString() ?? "0"}</p>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Rating</p>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <span className="text-xl font-bold text-gray-900">{vendor.rating?.toFixed(1) ?? "New"}</span>
-                  <span className="text-yellow-400">★</span>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Rating</p>
+                <div className="flex items-center gap-1">
+                  <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{vendor.rating?.toFixed(1) ?? "New"}</span>
+                  <span className="text-orange-600">★</span>
                 </div>
               </div>
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Date Joined</p>
-                <p className="text-sm font-bold text-gray-900 mt-1">{new Date(vendor.createdAt).toLocaleDateString()}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Joined</p>
+                <p className="text-sm font-black text-slate-900 dark:text-white tracking-tight">{new Date(vendor.createdAt).toLocaleDateString()}</p>
               </div>
             </div>
           </div>
@@ -322,16 +322,16 @@ export default function VendorProfilePage({ vendor }) {
                 <FileText size={12} /> Description
               </label>
               <textarea
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-xl focus:ring-orange-500 focus:border-orange-500 block p-3.5 transition-all outline-none h-32 resize-none hover:border-orange-200"
+                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-[11px] font-bold uppercase tracking-tight rounded-md focus:ring-1 focus:ring-orange-600 focus:border-orange-600 block p-3 transition-all outline-none h-24 resize-none hover:border-slate-300 dark:hover:border-slate-700"
                 value={basicInfo.storeDescription}
                 onChange={(e) => setBasicInfo({ ...basicInfo, storeDescription: e.target.value })}
               />
             </div>
             <InputGroup label="New Password (Optional)" type="password" value={basicInfo.password} onChange={(e) => setBasicInfo({ ...basicInfo, password: e.target.value })} icon={Lock} placeholder="Leave blank to keep current" />
           </div>
-          <div className="flex justify-end mt-6">
-            <button onClick={() => updateSection("basicInfo", basicInfo)} disabled={loadingSection === "basicInfo"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">
-              {loadingSection === "basicInfo" ? "Saving..." : <><Save size={18} /> Save Changes</>}
+          <div className="flex justify-end mt-4">
+            <button onClick={() => updateSection("basicInfo", basicInfo)} disabled={loadingSection === "basicInfo"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
+              {loadingSection === "basicInfo" ? "Saving..." : <><Save size={16} /> Save Changes</>}
             </button>
           </div>
         </Section>
@@ -351,9 +351,9 @@ export default function VendorProfilePage({ vendor }) {
             <InputGroup label="State" value={address.state} onChange={(e) => setAddress({ ...address, state: e.target.value })} />
             <InputGroup label="Postal Code" value={address.postalCode} onChange={(e) => setAddress({ ...address, postalCode: e.target.value })} />
           </div>
-          <div className="flex justify-end mt-6">
-            <button onClick={() => updateSection("address", address)} disabled={loadingSection === "address"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">
-              {loadingSection === "address" ? "Saving..." : <><Save size={18} /> Update Location</>}
+          <div className="flex justify-end mt-4">
+            <button onClick={() => updateSection("address", address)} disabled={loadingSection === "address"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
+              {loadingSection === "address" ? "Saving..." : <><Save size={16} /> Update Location</>}
             </button>
           </div>
         </Section>
@@ -366,18 +366,18 @@ export default function VendorProfilePage({ vendor }) {
           onToggle={() => toggleSection('cuisineTypes')}
         >
           <div className="space-y-4">
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               {cuisineTypes.map((cuisine, idx) => (
-                <div key={idx} className="flex items-center gap-2 bg-white border border-gray-200 pl-3 pr-2 py-2 rounded-xl group hover:border-orange-500 transition-colors">
+                <div key={idx} className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 pl-3 pr-2 py-1.5 rounded-md group hover:border-orange-500 transition-colors">
                   <input
-                    className="bg-transparent outline-none text-sm font-semibold w-24 text-gray-700"
+                    className="bg-transparent outline-none text-xs font-black uppercase tracking-tight w-20 text-slate-700 dark:text-slate-300"
                     value={cuisine}
                     onChange={(e) => handleCuisineChange(idx, e.target.value)}
                   />
-                  <button onClick={() => handleRemoveCuisine(idx)} className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors">×</button>
+                  <button onClick={() => handleRemoveCuisine(idx)} className="w-5 h-5 rounded-md bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-rose-500 hover:text-white transition-colors text-xs font-black">×</button>
                 </div>
               ))}
-              <button onClick={handleAddCuisine} className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-dashed border-gray-300 rounded-xl text-gray-500 hover:text-orange-600 hover:border-orange-300 hover:bg-orange-50 transition-all font-semibold text-sm">
+              <button onClick={handleAddCuisine} className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-300 dark:border-slate-700 rounded-md text-slate-500 hover:text-orange-600 hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all font-black uppercase text-[9px] tracking-widest">
                 + Add Cuisine
               </button>
             </div>
@@ -415,9 +415,9 @@ export default function VendorProfilePage({ vendor }) {
               </div>
             ))}
           </div>
-          <div className="flex justify-end mt-6">
-            <button onClick={() => updateSection("openingHours", openingHours)} disabled={loadingSection === "openingHours"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">
-              {loadingSection === "openingHours" ? "Saving..." : <><Save size={18} /> Update Hours</>}
+          <div className="flex justify-end mt-4">
+            <button onClick={() => updateSection("openingHours", openingHours)} disabled={loadingSection === "openingHours"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
+              {loadingSection === "openingHours" ? "Saving..." : <><Save size={16} /> Update Hours</>}
             </button>
           </div>
         </Section>
@@ -475,9 +475,9 @@ export default function VendorProfilePage({ vendor }) {
               </div>
             )}
           </div>
-          <div className="flex justify-end mt-6">
-            <button onClick={() => updateSection("deliverySettings", deliverySettings)} disabled={loadingSection === "deliverySettings"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">
-              {loadingSection === "deliverySettings" ? "Saving..." : <><Save size={18} /> Update Delivery</>}
+          <div className="flex justify-end mt-4">
+            <button onClick={() => updateSection("deliverySettings", deliverySettings)} disabled={loadingSection === "deliverySettings"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
+              {loadingSection === "deliverySettings" ? "Saving..." : <><Save size={16} /> Update Delivery</>}
             </button>
           </div>
         </Section>
@@ -501,9 +501,9 @@ export default function VendorProfilePage({ vendor }) {
               </div>
             </div>
           </div>
-          <div className="flex justify-end mt-6">
-            <button onClick={() => updateSection("payoutDetails", payoutDetails)} disabled={loadingSection === "payoutDetails"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">
-              {loadingSection === "payoutDetails" ? "Saving..." : <><Save size={18} /> Update Finance</>}
+          <div className="flex justify-end mt-4">
+            <button onClick={() => updateSection("payoutDetails", payoutDetails)} disabled={loadingSection === "payoutDetails"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
+              {loadingSection === "payoutDetails" ? "Saving..." : <><Save size={16} /> Update Finance</>}
             </button>
           </div>
         </Section>

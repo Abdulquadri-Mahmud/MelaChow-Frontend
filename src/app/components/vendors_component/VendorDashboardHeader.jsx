@@ -9,14 +9,14 @@ export default function VendorDashboardHeader({ vendor, onMenuClick }) {
   const [showQuickActions, setShowQuickActions] = useState(false);
   const { theme, toggleTheme } = useTheme();
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 transition-all">
+    <header className="sticky top-0 z-30 flex items-center justify-between px-4 py-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 transition-all">
       <div className="flex items-center gap-3 flex-1">
         {/* Mobile Toggle (Visible on small screens) */}
         <button
           onClick={onMenuClick}
-          className="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+          className="md:hidden p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors"
         >
-          <Menu size={20} />
+          <Menu size={18} />
         </button>
 
         <div className="flex flex-col">
@@ -31,7 +31,7 @@ export default function VendorDashboardHeader({ vendor, onMenuClick }) {
         <div className="relative w-full max-w-sm hidden md:block ml-8">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
-            className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-1 focus:ring-orange-500 placeholder:text-slate-500 text-slate-900 dark:text-white outline-none transition-all"
+            className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-md pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-orange-500 placeholder:text-slate-500 text-slate-900 dark:text-white outline-none transition-all"
             placeholder="Quick search..."
             type="text"
           />
@@ -42,18 +42,18 @@ export default function VendorDashboardHeader({ vendor, onMenuClick }) {
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
-          className="p-3 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-orange-500/30 hover:text-orange-500 transition-all"
+          className="p-2.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 rounded-md hover:border-orange-500/30 hover:text-orange-500 transition-all font-bold"
           title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
         >
-          {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+          {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
         </button>
 
         <div className="relative">
           <button
             onClick={() => setShowQuickActions(!showQuickActions)}
-            className="hidden md:flex items-center gap-2 bg-slate-900 dark:bg-white px-4 py-2 rounded-xl text-xs font-bold border border-transparent text-white dark:text-slate-900 hover:opacity-90 transition-all shadow-lg"
+            className="hidden md:flex items-center gap-2 bg-slate-900 dark:bg-white px-3 py-2 rounded-md text-[10px] font-black uppercase tracking-widest border border-transparent text-white dark:text-slate-900 hover:opacity-90 transition-all"
           >
-            <Zap size={14} className="text-orange-500 fill-orange-500" />
+            <Zap size={12} className="text-orange-500 fill-orange-500" />
             Quick Actions
           </button>
 
@@ -69,46 +69,46 @@ export default function VendorDashboardHeader({ vendor, onMenuClick }) {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-20"
+                  className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden z-20"
                 >
-                  <div className="p-2">
+                  <div className="p-1">
                     <Link
                       href="/vendors/my-foods"
                       onClick={() => setShowQuickActions(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors group"
+                      className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md transition-colors group"
                     >
-                      <div className="bg-emerald-100 dark:bg-emerald-500/10 p-2 rounded-lg text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white transition-all">
-                        <UtensilsCrossed size={14} />
+                      <div className="bg-emerald-100 dark:bg-emerald-500/10 p-1.5 rounded-md text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                        <UtensilsCrossed size={12} />
                       </div>
                       My Menu
                     </Link>
                     <Link
                       href="/vendors/create-food"
                       onClick={() => setShowQuickActions(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors group"
+                      className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md transition-colors group"
                     >
-                      <div className="bg-orange-100 dark:bg-orange-500/10 p-2 rounded-lg text-orange-600 group-hover:bg-orange-500 group-hover:text-white transition-all">
-                        <Utensils size={14} />
+                      <div className="bg-orange-100 dark:bg-orange-500/10 p-1.5 rounded-md text-orange-600 group-hover:bg-orange-500 group-hover:text-white transition-all">
+                        <Utensils size={12} />
                       </div>
                       Add New Item
                     </Link>
                     <Link
                       href="/vendors/order"
                       onClick={() => setShowQuickActions(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors group"
+                      className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md transition-colors group"
                     >
-                      <div className="bg-blue-100 dark:bg-blue-500/10 p-2 rounded-lg text-blue-600 group-hover:bg-blue-500 group-hover:text-white transition-all">
-                        <ShoppingBag size={14} />
+                      <div className="bg-blue-100 dark:bg-blue-500/10 p-1.5 rounded-md text-blue-600 group-hover:bg-blue-500 group-hover:text-white transition-all">
+                        <ShoppingBag size={12} />
                       </div>
                       Manage Orders
                     </Link>
                     <Link
                       href="/vendors/profile"
                       onClick={() => setShowQuickActions(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors group"
+                      className="flex items-center gap-3 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md transition-colors group"
                     >
-                      <div className="bg-slate-100 dark:bg-slate-700 p-2 rounded-lg text-slate-600 dark:text-slate-400 group-hover:bg-slate-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-slate-900 transition-all">
-                        <Monitor size={14} />
+                      <div className="bg-slate-100 dark:bg-slate-700 p-1.5 rounded-md text-slate-600 dark:text-slate-400 group-hover:bg-slate-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-slate-900 transition-all">
+                        <Monitor size={12} />
                       </div>
                       Store Settings
                     </Link>

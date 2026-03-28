@@ -62,16 +62,15 @@ export default function VendorDashboard() {
     const orders = vendorData.vendorOrders || [];
     const transactions = vendorData.wallet?.transactions || [];
 
+    const completedStatuses = ['completed', 'delivered'];
+    const completedOrders = orders.filter(o => completedStatuses.includes(o.orderStatus));
+
     // 1. Basic Stats
     const walletBalance = vendorData.wallet?.balance || 0;
 
-    // Use derived totals if backend summaries are 0 (often the case with fresh/demo data)
-    const storedTotalOrders = vendorData.totalOrders || 0;
-    const realTotalOrders = storedTotalOrders === 0 && orders.length > 0 ? orders.length : storedTotalOrders;
-
-    const storedTotalSales = vendorData.totalSales || 0;
-    const computedTotalSales = orders.reduce((acc, order) => acc + (order.vendorTotal || 0), 0);
-    const realTotalSales = storedTotalSales === 0 && computedTotalSales > 0 ? computedTotalSales : storedTotalSales;
+    // Use DERIVED totals from successful orders for accuracy
+    const realTotalOrders = completedOrders.length;
+    const realTotalSales = completedOrders.reduce((acc, order) => acc + (order.vendorTotal || 0), 0);
 
     const rating = vendorData.rating || 0;
     const ratingCount = vendorData.ratingCount || 0;
@@ -81,6 +80,8 @@ export default function VendorDashboard() {
     const processChartData = () => {
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const today = new Date();
+      
+      // Initialize 7 days with zero values
       const last7Days = Array.from({ length: 7 }, (_, i) => {
         const d = new Date(today);
         d.setDate(d.getDate() - (6 - i));
@@ -91,12 +92,13 @@ export default function VendorDashboard() {
         };
       });
 
-      transactions.forEach(txn => {
-        if (txn.type === 'credit' && txn.date) {
-          const txnDate = txn.date.split('T')[0];
-          const dayEntry = last7Days.find(d => d.date === txnDate);
+      // Use successful orders for "Sales Performance"
+      completedOrders.forEach(order => {
+        if (order.createdAt) {
+          const orderDate = order.createdAt.split('T')[0];
+          const dayEntry = last7Days.find(d => d.date === orderDate);
           if (dayEntry) {
-            dayEntry.value += txn.amount;
+            dayEntry.value += (order.vendorTotal || 0);
           }
         }
       });
@@ -105,32 +107,47 @@ export default function VendorDashboard() {
 
     // 3. Top Items - Aggregate from Orders
     const processTopItems = () => {
-      const itemCounts = {};
-      orders.forEach(order => {
+      const itemStats = {};
+      
+      // Aggregate volume and revenue from successful orders
+      completedOrders.forEach(order => {
         if (order.items && Array.isArray(order.items)) {
           order.items.forEach(item => {
             const foodId = typeof item.foodId === 'object' ? item.foodId._id : item.foodId;
-            if (!itemCounts[foodId]) itemCounts[foodId] = 0;
-            itemCounts[foodId] += (item.quantity || 1);
+            if (!itemStats[foodId]) {
+              itemStats[foodId] = {
+                count: 0,
+                revenue: 0,
+                // Persist the name/image from the order line-item in case it's deleted from menu
+                backupName: item.name,
+                backupImage: item.image_url
+              };
+            }
+            itemStats[foodId].count += (item.quantity || 1);
+            itemStats[foodId].revenue += (item.vendorEarning || 0);
           });
         }
       });
 
-      // Map back to food details
-      const sortedItems = Object.entries(itemCounts)
-        .sort(([, a], [, b]) => b - a)
-        .slice(0, 3)
-        .map(([id, count]) => {
-          const food = foods.find(f => f._id === id);
-          return {
-            name: food?.name || "Unknown Item",
-            sold: count,
-            image: food?.image || "/placeholder-food.png",
-            percent: "w-[70%]" // Dynamic width could be calculated relative to max
-          };
-        });
+      const sortedEntries = Object.entries(itemStats).sort(([, a], [, b]) => b.count - a.count);
+      const maxCount = sortedEntries.length > 0 ? sortedEntries[0][1].count : 1;
 
-      return sortedItems.length > 0 ? sortedItems : [];
+      // Slice top 3 and map to display objects
+      const top3 = sortedEntries.slice(0, 3).map(([id, stats]) => {
+        const food = foods.find(f => f._id === id);
+        const relativePercent = Math.round((stats.count / maxCount) * 100);
+        
+        return {
+          name: food?.name || stats.backupName || "Unknown Item",
+          sold: stats.count,
+          revenue: stats.revenue,
+          image: food?.image || stats.backupImage || "/placeholder-food.png",
+          percent: `w-[${relativePercent}%]`,
+          percentVal: relativePercent
+        };
+      });
+
+      return top3;
     };
 
     // 4. Live Orders Mapping
@@ -259,94 +276,93 @@ export default function VendorDashboard() {
       <div className="space-y-4">
 
         {/* TOP METRICS */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <MetricCard
             title="Total Sales"
             value={`₦${totalSales.toLocaleString()}`}
             trend="+12.4%" // Keep mock trend for now or calculate if history available
             sub="All time revenue"
           />
-          <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2">
+          <div className="bg-white dark:bg-slate-800 p-2.5 rounded-md border border-slate-200 dark:border-slate-700 flex flex-col gap-1">
             <div className="flex justify-between items-start">
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Orders</p>
-              <span className="text-blue-500 text-xs font-bold bg-blue-500/10 px-2 py-1 rounded-lg">High Volume</span>
+              <p className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-wider">Total Orders</p>
+              <span className="text-blue-500 text-[9px] font-black uppercase tracking-widest bg-blue-500/10 px-1.5 py-0.5 rounded">High Volume</span>
             </div>
-            <h3 className="text-3xl font-bold tracking-tight">{totalOrders}</h3>
-            <div className="flex gap-1 mt-2">
-              <div className="h-1 flex-1 bg-orange-500 rounded-full"></div>
-              <div className="h-1 flex-1 bg-orange-500 rounded-full"></div>
-              <div className="h-1 flex-1 bg-orange-500/20 rounded-full"></div>
+            <h3 className="text-xl font-black tracking-tight">{totalOrders}</h3>
+            <div className="flex gap-1 mt-0.5">
+              <div className="h-0.5 flex-1 bg-orange-500 rounded-full"></div>
+              <div className="h-0.5 flex-1 bg-orange-500 rounded-full"></div>
+              <div className="h-0.5 flex-1 bg-orange-500/20 rounded-full"></div>
             </div>
           </div>
-          <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col gap-2">
+          <div className="bg-white dark:bg-slate-800 p-2.5 rounded-md border border-slate-200 dark:border-slate-700 flex flex-col gap-1">
             <div className="flex justify-between items-start">
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Customer Rating</p>
-              <span className="text-orange-500 text-xs font-bold bg-orange-500/10 px-2 py-1 rounded-lg">
-                {isVerified ? "Verified Vendor" : "Unverified"}
+              <p className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-wider">Rating</p>
+              <span className="text-orange-500 text-[9px] font-black uppercase tracking-widest bg-orange-500/10 px-1.5 py-0.5 rounded">
+                {isVerified ? "Verified" : "Unverified"}
               </span>
             </div>
-            <h3 className="text-3xl font-bold tracking-tight">{rating.toFixed(1)}</h3>
-            <div className="flex gap-0.5 mt-2 text-orange-500">
+            <h3 className="text-xl font-black tracking-tight">{rating.toFixed(1)}</h3>
+            <div className="flex gap-0.5 mt-0.5 text-orange-500">
               {[1, 2, 3, 4, 5].map((s) => (
-                <Star key={s} size={16} fill={s <= Math.round(rating) ? "currentColor" : "none"} className={s <= Math.round(rating) ? "text-orange-500" : "text-slate-300 dark:text-slate-700"} />
+                <Star key={s} size={12} fill={s <= Math.round(rating) ? "currentColor" : "none"} className={s <= Math.round(rating) ? "text-orange-500" : "text-slate-300 dark:text-slate-700"} />
               ))}
             </div>
-            <p className="text-xs text-slate-500 mt-1">{ratingCount} reviews</p>
           </div>
         </div>
 
         {/* REVENUE COMMAND */}
-        <div className="relative overflow-hidden bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="relative overflow-hidden bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 p-3 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-500/10 to-transparent opacity-50 pointer-events-none"></div>
           <div className="z-10 w-full md:w-auto">
-            <h2 className="text-2xl font-bold mb-2 text-slate-900 dark:text-white">Revenue Command</h2>
-            <p className="text-slate-500 dark:text-slate-400 max-w-md text-sm">Your payout for the last 24 hours is ready. Withdraw funds to your primary bank account instantly.</p>
+            <h2 className="text-lg font-black mb-0.5 text-slate-900 dark:text-white uppercase tracking-tight">Revenue Hub</h2>
+            <p className="text-slate-500 dark:text-slate-400 max-w-md text-[10px] font-bold uppercase tracking-widest">Automatic Payouts • Instant Withdrawals</p>
 
             {/* Delivery Mode Visibility */}
-            <div className="mt-4 flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-700 w-fit">
-              <div className={`w-2 h-2 rounded-full ${vendorData?.deliveryManagedBy === "vendor" ? "bg-orange-500" : "bg-blue-500"}`} />
+            <div className="mt-3 flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-md border border-slate-100 dark:border-slate-700 w-fit">
+              <div className={`w-1.5 h-1.5 rounded-full ${vendorData?.deliveryManagedBy === "vendor" ? "bg-orange-500" : "bg-blue-500"}`} />
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">
                 {vendorData?.deliveryManagedBy === "vendor"
-                  ? `You manage your own delivery — ₦${vendorData?.flatRateDeliveryFee || 0} flat fee`
-                  : "Platform manages your delivery"}
+                  ? `Vendor Delivery • ₦${vendorData?.flatRateDeliveryFee || 0} Rate`
+                  : "Platform Managed Delivery"}
               </p>
             </div>
-            <div className="flex items-center gap-4 mt-6">
+            <div className="flex items-center gap-3 mt-4">
               <div>
-                <p className="text-xs uppercase text-slate-500 font-bold tracking-widest mb-1">Available Balance</p>
-                <p className="text-3xl font-bold text-orange-500">₦{walletBalance.toLocaleString()}</p>
+                <p className="text-[10px] uppercase text-slate-500 font-black tracking-widest mb-0.5">Available Balance</p>
+                <p className="text-2xl font-black text-orange-500">₦{walletBalance.toLocaleString()}</p>
               </div>
-              <div className="h-10 w-px bg-slate-200 dark:bg-white/10"></div>
+              <div className="h-8 w-px bg-slate-200 dark:bg-white/10"></div>
               <div>
-                <p className="text-xs uppercase text-slate-500 font-bold tracking-widest mb-1">Pending Clearance</p>
-                <p className="text-3xl font-bold text-slate-400">₦0.00</p>
+                <p className="text-[10px] uppercase text-slate-500 font-black tracking-widest mb-0.5">Pending</p>
+                <p className="text-2xl font-black text-slate-400">₦0.00</p>
               </div>
             </div>
           </div>
-          <div className="z-10 flex flex-col gap-3 min-w-[240px] w-full md:w-auto">
-            <button className="w-full bg-orange-500 text-white font-bold py-3 px-6 rounded-xl hover:shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all flex items-center justify-center gap-2">
-              <CreditCard size={20} />
+          <div className="z-10 flex flex-col gap-2 min-w-[220px] w-full md:w-auto">
+            <button className="w-full bg-orange-600 text-white font-black uppercase text-[10px] tracking-widest h-10 px-6 rounded-md transition-all flex items-center justify-center gap-2">
+              <CreditCard size={14} />
               Withdraw Funds
             </button>
-            <Link href="/vendors/transactions" className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-medium py-3 px-6 rounded-xl hover:bg-slate-200 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-              View Transaction History
+            <Link href="/vendors/transactions" className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-black uppercase text-[10px] tracking-widest h-10 px-6 rounded-md hover:bg-slate-200 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+              History
             </Link>
           </div>
         </div>
 
         {/* MAIN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
 
           {/* LEFT: LIVE ORDERS */}
-          <div className="lg:col-span-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-[600px]">
-            <div className="p-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between">
-              <h3 className="font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                <span className="size-2 bg-orange-500 rounded-full animate-pulse"></span>
+          <div className="lg:col-span-4 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-[550px]">
+            <div className="p-4 border-b border-slate-200 dark:border-white/5 flex items-center justify-between">
+              <h3 className="font-black uppercase tracking-tight text-xs text-slate-900 dark:text-white flex items-center gap-2">
+                <span className="size-1.5 bg-orange-500 rounded-full animate-pulse"></span>
                 Live Order Flow
               </h3>
-              <button className="text-xs text-orange-500 font-bold hover:underline">View All</button>
+              <button className="text-[10px] text-orange-500 font-black uppercase tracking-widest hover:underline">View All</button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
               {recentOrders.length > 0 ? (
                 recentOrders.map((order, idx) => (
                   <OrderCard
@@ -375,16 +391,16 @@ export default function VendorDashboard() {
           <div className="lg:col-span-8 flex flex-col gap-8">
 
             {/* CHART */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 md:p-6 p-3 flex flex-col h-[340px]">
-              <div className="flex items-center justify-between mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 md:p-4 p-3 flex flex-col h-[320px]">
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">Sales Performance</h3>
-                  <p className="text-xs text-slate-400">Weekly sales trend (Last 7 Days)</p>
+                  <h3 className="font-black text-xs uppercase tracking-tight text-slate-900 dark:text-white">Sales Performance</h3>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Last 7 Days trend</p>
                 </div>
-                <div className="flex bg-slate-100 dark:bg-white/5 rounded-lg p-1">
-                  <button className="px-3 py-1 text-xs font-bold rounded-md bg-white dark:bg-white/10 text-orange-500">7D</button>
-                  <button className="px-3 py-1 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400">1M</button>
-                  <button className="px-3 py-1 text-xs font-bold rounded-md text-slate-500 dark:text-slate-400">3M</button>
+                <div className="flex bg-slate-100 dark:bg-white/5 rounded-md p-0.5">
+                  <button className="px-3 py-1 text-[10px] font-black uppercase rounded bg-white dark:bg-white/10 text-orange-500">7D</button>
+                  <button className="px-3 py-1 text-[10px] font-black uppercase rounded text-slate-500 dark:text-slate-400">1M</button>
+                  <button className="px-3 py-1 text-[10px] font-black uppercase rounded text-slate-500 dark:text-slate-400">3M</button>
                 </div>
               </div>
               <div className="flex-1 w-full h-full">
@@ -414,12 +430,12 @@ export default function VendorDashboard() {
             </div>
 
             {/* LOWER GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
               {/* TOP ITEMS */}
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 md:p-6 p-3">
-                <h3 className="font-bold text-sm mb-4 text-slate-900 dark:text-white">Top Selling Items</h3>
-                <div className="space-y-4">
+              <div className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 p-3">
+                <h3 className="font-black uppercase tracking-tight text-[10px] text-slate-500 mb-3">Top Performance</h3>
+                <div className="space-y-2.5">
                   {topItems.length > 0 ? topItems.map((item, i) => (
                     <TopItem
                       key={i}
@@ -429,26 +445,26 @@ export default function VendorDashboard() {
                       image={item.image}
                     />
                   )) : (
-                    <p className="text-sm text-slate-400">No sales data yet.</p>
+                    <p className="text-xs text-slate-400">No sales data yet.</p>
                   )}
                 </div>
               </div>
 
               {/* SENTIMENT */}
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 md:p-6 p-3 flex flex-col">
-                <h3 className="font-bold text-sm mb-4 text-slate-900 dark:text-white">Customer Sentiment</h3>
+              <div className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 p-3 flex flex-col">
+                <h3 className="font-black uppercase tracking-tight text-[10px] text-slate-500 mb-3">Sentiment</h3>
                 <div className="flex-1 flex flex-col justify-center items-center text-center">
-                  <div className={`size-20 rounded-full border-4 ${sentimentColor} flex items-center justify-center mb-3`}>
-                    <span className="text-xl font-bold text-slate-900 dark:text-white">{sentimentPercentage}%</span>
+                  <div className={`size-14 rounded-full border-2 ${sentimentColor} flex items-center justify-center mb-2`}>
+                    <span className="text-sm font-black text-slate-900 dark:text-white">{sentimentPercentage}%</span>
                   </div>
-                  <p className="font-bold text-sm text-slate-900 dark:text-white">{sentimentLabel}</p>
-                  <p className="text-xs text-slate-400 mt-1 max-w-[150px]">
+                  <p className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-tight">{sentimentLabel}</p>
+                  <p className="text-[10px] text-slate-500 mt-1 max-w-[150px]">
                     {ratingCount > 0
                       ? `Based on ${ratingCount} review${ratingCount !== 1 ? 's' : ''}.`
                       : "No reviews yet."
                     }
                   </p>
-                  <Link href={'/vendors/reviews'} className="mt-4 text-xs font-bold text-orange-500 hover:bg-orange-500/10 px-4 py-2 rounded-lg transition-all border border-orange-500/20">
+                  <Link href={'/vendors/reviews'} className="mt-4 text-[10px] font-black uppercase tracking-widest text-orange-500 hover:bg-orange-500/10 px-4 py-2 rounded-md transition-all border border-orange-500/20">
                     View Feedback
                   </Link>
                 </div>
@@ -466,48 +482,51 @@ export default function VendorDashboard() {
 // --- SUB COMPONENTS ---
 
 const MetricCard = ({ title, value, trend, sub }) => (
-  <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-white/5 flex flex-col gap-2">
+  <div className="bg-white dark:bg-slate-800 p-2.5 rounded-md border border-slate-200 dark:border-white/5 flex flex-col gap-1 transition-all">
     <div className="flex justify-between items-start">
-      <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{title}</p>
-      <span className="text-orange-500 text-xs font-bold bg-orange-500/10 px-2 py-1 rounded-lg">{trend}</span>
+      <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest leading-none">{title}</p>
+      <span className="text-orange-500 text-[9px] font-black bg-orange-500/10 px-1.5 py-0.5 rounded leading-none">{trend}</span>
     </div>
-    <h3 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">{value}</h3>
-    <p className="text-xs text-slate-500 mt-2 italic">{sub}</p>
+    <h3 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white leading-tight">{value}</h3>
+    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter leading-none opacity-60">{sub}</p>
   </div>
 );
 
 const OrderCard = ({ id, name, items, status, progress, color, bgColor, barColor, note, opacity = "" }) => (
-  <div className={`p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 ${opacity}`}>
-    <div className="flex justify-between items-start mb-3">
+  <div className={`p-2.5 rounded-md bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 transition-all hover:border-orange-500/20 ${opacity}`}>
+    <div className="flex justify-between items-start mb-2">
       <div>
-        <p className="font-bold text-sm text-slate-900 dark:text-white">#{id}</p>
-        <p className="text-xs text-slate-400">{name} • {items}</p>
+        <p className="font-black text-xs text-slate-900 dark:text-white leading-none">#{id}</p>
+        <p className="text-[11px] font-medium text-slate-500 mt-1">{name} • {items}</p>
       </div>
-      <span className={`text-[10px] font-bold ${bgColor} ${color} px-2 py-0.5 rounded uppercase`}>{status}</span>
+      <span className={`text-[9px] font-black ${bgColor} ${color} px-1.5 py-0.5 rounded uppercase tracking-tighter`}>{status}</span>
     </div>
-    <div className="space-y-2">
-      <div className="flex justify-between text-[10px] font-medium text-slate-400">
+    <div className="space-y-1.5">
+      <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-slate-400 leading-none">
         <span>Status</span>
         <span>{progress}%</span>
       </div>
-      <div className="h-1 bg-orange-500/10 rounded-full overflow-hidden">
-        <div className={`h-full ${barColor}`} style={{ width: `${progress}%` }}></div>
+      <div className="h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div className={`h-full ${barColor} transition-all duration-500`} style={{ width: `${progress}%` }}></div>
       </div>
-      <p className="text-[10px] text-slate-500 mt-1">{note}</p>
+      <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-tight">{note}</p>
     </div>
   </div>
 );
 
 const TopItem = ({ name, sold, percent, image }) => (
-  <div className="flex items-center gap-4">
-    <div className="size-10 rounded-lg bg-slate-200 dark:bg-slate-700 bg-cover bg-center" style={{ backgroundImage: `url('${image}')` }}></div>
+  <div className="flex items-center gap-3 group">
+    <div className="size-8 rounded-md bg-slate-200 dark:bg-slate-700 bg-cover bg-center" style={{ backgroundImage: `url('${image}')` }}></div>
     <div className="flex-1">
-      <div className="flex justify-between mb-1">
-        <span className="text-xs font-bold text-slate-900 dark:text-white">{name}</span>
-        <span className="text-xs text-slate-400">{sold} sold</span>
+      <div className="flex justify-between mb-1 items-end">
+        <span className="text-[11px] font-black tracking-tight text-slate-800 dark:text-slate-200 uppercase leading-none">{name}</span>
+        <span className="text-[10px] font-medium text-slate-500 leading-none">{sold} sold</span>
       </div>
       <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-        <div className={`h-full bg-orange-500 ${percent}`}></div>
+        <div 
+          className="h-full bg-orange-500 transition-all duration-1000" 
+          style={{ width: `${percent.replace('w-[', '').replace('%]', '')}%` }}
+        ></div>
       </div>
     </div>
   </div>

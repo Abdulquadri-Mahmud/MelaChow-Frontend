@@ -139,14 +139,14 @@ export default function AdminDashboardLayout({ children }) {
                                             <button
                                                 key={item.href}
                                                 onClick={() => router.push(item.href)}
-                                                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors ${isActive
-                                                    ? "bg-slate-800 text-white"
+                                                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all ${isActive
+                                                    ? "bg-slate-800 text-white shadow-sm shadow-black/20"
                                                     : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
                                                     }`}
                                             >
-                                                <item.icon size={15} className={isActive ? "text-orange-400" : "text-slate-500"} />
+                                                <item.icon size={15} className={isActive ? "text-orange-500" : "text-slate-500"} />
                                                 <span>{item.label}</span>
-                                                {isActive && <span className="ml-auto w-1 h-4 bg-orange-500 rounded-full" />}
+                                                {isActive && <span className="ml-auto w-1 h-4 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.5)]" />}
                                             </button>
                                         );
                                     })}
@@ -210,14 +210,14 @@ export default function AdminDashboardLayout({ children }) {
                                                     <button
                                                         key={item.href}
                                                         onClick={() => { router.push(item.href); setSidebarOpen(false); }}
-                                                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-colors ${isActive
+                                                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all ${isActive
                                                             ? "bg-slate-800 text-white"
                                                             : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
                                                             }`}
                                                     >
-                                                        <item.icon size={15} className={isActive ? "text-orange-400" : "text-slate-500"} />
+                                                        <item.icon size={15} className={isActive ? "text-orange-500" : "text-slate-500"} />
                                                         <span>{item.label}</span>
-                                                        {isActive && <span className="ml-auto w-1 h-4 bg-orange-500 rounded-full" />}
+                                                        {isActive && <span className="ml-auto w-1 h-4 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.5)]" />}
                                                     </button>
                                                 );
                                             })}
@@ -242,7 +242,7 @@ export default function AdminDashboardLayout({ children }) {
             <div className={`transition-all duration-300 ${desktopSidebarOpen ? "lg:pl-60" : "lg:pl-0"}`}>
 
                 {/* Top Header */}
-                <header className="sticky top-0 z-30 bg-white border-b border-slate-200">
+                <header className="sticky top-0 z-30 bg-white border-b border-slate-200 border-t-2 border-t-orange-500">
                     <div className="flex items-center justify-between px-4 h-16">
 
                         {/* Left: toggle + breadcrumb */}
@@ -277,9 +277,9 @@ export default function AdminDashboardLayout({ children }) {
                                     onClick={() => setProfileOpen(!profileOpen)}
                                     className="flex items-center gap-2 px-2 py-1.5 hover:bg-slate-50 border border-transparent hover:border-slate-200 rounded-lg transition-colors ml-1"
                                 >
-                                    <div className="w-7 h-7 bg-slate-900 rounded-md flex items-center justify-center flex-shrink-0">
-                                        <span className="text-white font-bold text-xs">
-                                            {admin?.name?.[0]?.toUpperCase() || "A"}
+                                    <div className="w-7 h-7 bg-slate-900 rounded-md flex items-center justify-center flex-shrink-0 border border-slate-800 group-hover:border-orange-500 transition-colors">
+                                        <span className="text-white font-bold text-xs uppercase">
+                                            {admin?.name?.[0] || "A"}
                                         </span>
                                     </div>
                                     <div className="hidden md:block text-left">

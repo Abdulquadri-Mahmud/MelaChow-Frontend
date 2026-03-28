@@ -87,6 +87,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
   const router = useRouter();
   const { baseUrl } = useApi();
   const [logoutLoading, setLogoutLoading] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Check active path
   const isSegmentActive = (href) => pathname?.includes(href);
@@ -148,7 +149,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         className={`fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-[60] flex flex-col`}
       >
         {/* Header */}
-        <div className="h-20 flex items-center justify-between px-3 border-b border-slate-100 dark:border-slate-800/50">
+        <div className="h-16 flex items-center justify-between px-3 border-b border-slate-100 dark:border-slate-800/50">
           <AnimatePresence mode="wait">
             {(open || isMobile) ? (
               <motion.div
@@ -169,7 +170,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-orange-500/30 mx-auto"
+                className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-md flex items-center justify-center text-white font-bold text-lg mx-auto"
               >
                 G
               </motion.div>
@@ -221,15 +222,15 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
                 onClick={() => isMobile && setMobileOpen(false)}
               >
                 <div
-                  className={`relative flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 ${active
-                    ? "bg-orange-500 text-white shadow-lg shadow-orange-500/25"
-                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white"
+                  className={`relative flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 ${active
+                    ? "bg-orange-500 text-white"
+                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/30 hover:text-slate-900 dark:hover:text-white"
                     }`}
                 >
                   <Icon
-                    size={20}
+                    size={18}
                     strokeWidth={active ? 2.5 : 2}
-                    className={`flex-shrink-0 transition-colors duration-300 ${active ? "text-white" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"}`}
+                    className={`flex-shrink-0 transition-colors duration-200 ${active ? "text-white" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"}`}
                   />
 
                   <AnimatePresence>
@@ -260,9 +261,9 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         {/* Footer / Logout */}
         <div className="p-4 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-900">
           <button
-            onClick={handleLogout}
+            onClick={() => setShowLogoutModal(true)}
             disabled={logoutLoading}
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group ${open || isMobile
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all group ${open || isMobile
               ? "hover:bg-red-50 dark:hover:bg-red-500/10 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400"
               : "justify-center text-slate-500 hover:text-red-500"
               } ${logoutLoading ? "cursor-not-allowed opacity-70" : ""}`}
@@ -270,17 +271,68 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
             {logoutLoading ? (
               <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin flex-shrink-0" />
             ) : (
-              <LogOut size={20} className="flex-shrink-0 transition-transform group-hover:-translate-x-1" />
+              <LogOut size={18} className="flex-shrink-0 transition-transform group-hover:-translate-x-1" />
             )}
 
             {(open || isMobile) && (
               <span className="font-semibold text-sm">
-                {logoutLoading ? "Signing out..." : "Sign Out"}
+                Sign Out
               </span>
             )}
           </button>
         </div>
       </motion.aside>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLogoutModal(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden"
+            >
+              <div className="p-6">
+                <div className="size-12 rounded-md bg-red-100 dark:bg-red-500/10 flex items-center justify-center text-red-600 mb-4">
+                  <LogOut size={24} />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Confirm Logout</h3>
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-widest leading-relaxed">
+                  Are you sure you want to exit the dashboard? You will need to sign in again to manage your store.
+                </p>
+
+                <div className="grid grid-cols-2 gap-3 mt-8">
+                  <button
+                    onClick={() => setShowLogoutModal(false)}
+                    className="h-10 px-4 rounded-md border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-bold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    disabled={logoutLoading}
+                    className="h-10 px-4 rounded-md bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all font-bold disabled:opacity-50"
+                  >
+                    {logoutLoading ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      "Sign Out Forever"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

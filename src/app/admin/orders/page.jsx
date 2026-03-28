@@ -265,11 +265,12 @@ export default function AdminOrdersPage() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                         <div>
-                            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2 uppercase tracking-tight">
                                 Order Dashboard
-                                <span className="text-xs font-medium px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">{pagination.total} Records</span>
+                                <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-50 text-orange-600 rounded-full border border-orange-100 italic tracking-widest uppercase">{pagination.total} Records</span>
                             </h1>
-                            <p className="text-sm text-slate-500 mt-0.5">Real-time platform activity and transaction management.</p>
+                            <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
+                            <p className="text-sm text-slate-500 mt-1.5 font-medium">Real-time platform activity and transaction management.</p>
                         </div>
                         <button
                             onClick={handleRefresh}
@@ -338,7 +339,7 @@ export default function AdminOrdersPage() {
                                     placeholder="Search order ID, Customer..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900 transition-all font-medium"
+                                    className="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-orange-500 transition-all font-medium"
                                 />
                             </div>
                             <div className="flex bg-white border border-slate-200 p-1 rounded-md shrink-0">

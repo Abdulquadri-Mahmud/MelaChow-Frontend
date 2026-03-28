@@ -298,11 +298,12 @@ export default function AdminVendorsPage() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2 uppercase tracking-tight">
                                 Vendor Directory
-                                <span className="text-xs font-medium px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full">{vendors.length} Partners</span>
+                                <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-50 text-orange-600 rounded-full border border-orange-100 italic tracking-widest uppercase">{vendors.length} Partners</span>
                             </h1>
-                            <p className="text-sm text-slate-500 mt-0.5">Manage partner accounts, commission rates, and logistics modes.</p>
+                            <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
+                            <p className="text-sm text-slate-500 mt-1.5 font-medium">Manage partner accounts, commission rates, and logistics modes.</p>
                         </div>
 
                         <div className="flex items-center gap-2">
@@ -319,9 +320,9 @@ export default function AdminVendorsPage() {
                                     setModalMode("commission");
                                     setShowModal(true);
                                 }}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition-colors"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-orange-700 transition-colors shadow-sm shadow-orange-500/20"
                             >
-                                <Percent size={15} />
+                                <Percent size={14} />
                                 Global Commission
                             </button>
                         </div>
@@ -356,7 +357,7 @@ export default function AdminVendorsPage() {
                                 placeholder="Search by Store, UID, or Email..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full h-9 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm focus:ring-1 focus:ring-slate-900 transition-all font-medium"
+                                className="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 rounded-md outline-none text-sm focus:ring-1 focus:ring-orange-500 transition-all font-medium"
                             />
                         </div>
                         <div className="flex gap-2">

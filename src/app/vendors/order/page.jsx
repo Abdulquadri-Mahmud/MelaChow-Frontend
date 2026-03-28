@@ -1,11 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { getVendorOrders } from "@/app/lib/vendorApi";
 import VendorOrderCard from "@/app/components/order/VendorOrderCard";
-import { ChevronLeft, ChevronRight, Package, Search, Filter, TrendingUp, Clock, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Package, Search, Filter, TrendingUp, Clock, CheckCircle2, Hash } from "lucide-react";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import RiderAssignmentModal from "../riders/RiderAssignmentModal";
 
@@ -24,16 +23,13 @@ export default function VendorOrdersPage() {
   const itemsPerPage = 6;
 
   const fetchOrders = async () => {
-    // if (!vendorDetails?.vendor?.id) return; // Removed ID check strictness if cookie is sufficient
     try {
       setIsLoading(true);
       const res = await getVendorOrders();
-      const data = res.vendorOrders || res || [];
+      const data = res.vendorOrders || res.data || res || [];
       const orderData = Array.isArray(data) ? data : [];
       setOrders(orderData);
       setFilteredOrders(orderData);
-
-      // console.log(res.vendorOrders)
     } catch (error) {
       console.error("Failed to fetch orders:", error);
     } finally {
@@ -62,11 +58,12 @@ export default function VendorOrdersPage() {
     // 2. Filter by Search Query
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
-      result = result.filter(order =>
-        order._id.toLowerCase().includes(lowerQuery) ||
-        (order.userOrderId?.orderId || "").toLowerCase().includes(lowerQuery) ||
-        (order.userOrderId?.userId?.firstname + " " + order.userOrderId?.userId?.lastname).toLowerCase().includes(lowerQuery)
-      );
+      result = result.filter(order => {
+        const orderId = (order._id?.$oid || order._id || "").toString().toLowerCase();
+        const userOrderId = (order.userOrderId?.orderId || "").toLowerCase();
+        const customerName = (order.userOrderId?.userId?.firstname + " " + order.userOrderId?.userId?.lastname).toLowerCase();
+        return orderId.includes(lowerQuery) || userOrderId.includes(lowerQuery) || customerName.includes(lowerQuery);
+      });
     }
 
     setFilteredOrders(result);
@@ -87,7 +84,7 @@ export default function VendorOrdersPage() {
   };
 
   const tabs = [
-    { id: "all", label: "All Orders", icon: Package },
+    { id: "all", label: "All Logs", icon: Package },
     { id: "pending", label: "Pending", icon: Clock },
     { id: "accepted", label: "Accepted", icon: CheckCircle2 },
     { id: "preparing", label: "Preparing", icon: TrendingUp },
@@ -97,7 +94,6 @@ export default function VendorOrdersPage() {
     { id: "completed", label: "Completed", icon: CheckCircle2 },
   ];
 
-  // Calculate stats
   const stats = {
     total: orders.length,
     pending: orders.filter(o => o.orderStatus === 'pending').length,
@@ -107,274 +103,204 @@ export default function VendorOrdersPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-[#0F172A]">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-[#FF6B00] border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-500 dark:text-slate-400 font-medium">Loading orders...</p>
+      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-[3px] border-orange-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Syncing Transaction Logs...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-4 min-h-screen bg-slate-50 dark:bg-[#0F172A]">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans">
+      <div className="max-w-7xl mx-auto space-y-4 px-4 sm:px-6 lg:px-8 py-8">
 
-      {/* Header with Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
-      >
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={() => router.back()}
-              className="p-2 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-400"
-            >
-              <ChevronLeft size={24} />
-            </button>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Orders</h1>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage and track your customer orders</p>
+        {/* Header Section */}
+        <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white dark:bg-slate-900 rounded-md p-6 border border-slate-100 dark:border-slate-800 shadow-none"
+        >
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div>
+                    <div className="flex items-center gap-4 mb-2">
+                        <button 
+                            onClick={() => router.back()}
+                            className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md text-slate-400 hover:text-slate-900 transition-all border border-slate-100 dark:border-slate-700 active:scale-95"
+                        >
+                            <ChevronLeft size={16} />
+                        </button>
+                        <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">Order Logs</h1>
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Operational History & Transaction Manifest</p>
+                </div>
+                
+                <div className="relative flex-1 max-w-md">
+                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input 
+                        type="text"
+                        placeholder="SEARCH HASH / CUSTOMER NAME..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md text-[10px] font-black uppercase tracking-widest outline-none focus:border-orange-600 transition-all text-slate-900 dark:text-white"
+                    />
+                </div>
             </div>
-          </div>
 
-          {/* Search Bar */}
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input
-              type="text"
-              placeholder="Search by Order ID or Customer..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#FF6B00] outline-none transition-all text-slate-900 dark:text-white"
-            />
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-            className="bg-white dark:bg-[#1E293B] rounded-2xl p-5 border border-slate-200 dark:border-slate-800"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Total</p>
-              <div className="p-2 bg-blue-100 dark:bg-blue-500/10 rounded-lg">
-                <Package size={16} className="text-blue-600 dark:text-blue-400" />
-              </div>
+            {/* Stats Overview */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
+                {[
+                    { label: "Total Logs", value: stats.total, icon: Package, color: "text-blue-600", bg: "bg-blue-600/10" },
+                    { label: "Pnd. Verify", value: stats.pending, icon: Clock, color: "text-amber-600", bg: "bg-amber-600/10" },
+                    { label: "Active Prep", value: stats.active, icon: TrendingUp, color: "text-orange-600", bg: "bg-orange-600/10" },
+                    { label: "Dispatched", value: stats.completed, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-600/10" },
+                ].map((s, idx) => (
+                    <div key={idx} className="flex flex-col">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">{s.label}</span>
+                            <div className={`p-1.5 ${s.bg} ${s.color} rounded-md border border-current/10`}>
+                                <s.icon size={12} strokeWidth={3} />
+                            </div>
+                        </div>
+                        <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{s.value}</p>
+                    </div>
+                ))}
             </div>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.total}</p>
-          </motion.div>
+        </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.15 }}
-            className="bg-white dark:bg-[#1E293B] rounded-2xl p-5 border border-slate-200 dark:border-slate-800"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Pending</p>
-              <div className="p-2 bg-amber-100 dark:bg-amber-500/10 rounded-lg">
-                <Clock size={16} className="text-amber-600 dark:text-amber-400" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.pending}</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+        {/* Classification Filter Tabs */}
+        <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-[#1E293B] rounded-2xl p-5 border border-slate-200 dark:border-slate-800"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Active</p>
-              <div className="p-2 bg-orange-100 dark:bg-orange-500/10 rounded-lg">
-                <TrendingUp size={16} className="text-[#FF6B00]" />
-              </div>
+            className="bg-white dark:bg-slate-900 rounded-md p-3 border border-slate-100 dark:border-slate-800 shadow-none"
+        >
+            <div className="flex items-center gap-2 mb-3 px-2">
+                <Filter size={12} className="text-slate-400" />
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 leading-none">Operational Classification</p>
             </div>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.active}</p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.25 }}
-            className="bg-white dark:bg-[#1E293B] rounded-2xl p-5 border border-slate-200 dark:border-slate-800"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">Completed</p>
-              <div className="p-2 bg-green-100 dark:bg-green-500/10 rounded-lg">
-                <CheckCircle2 size={16} className="text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white">{stats.completed}</p>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* Filter Tabs */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-white dark:bg-[#1E293B] rounded-2xl p-4 border border-slate-200 dark:border-slate-800"
-      >
-        <div className="flex items-center gap-2 mb-3">
-          <Filter size={18} className="text-slate-400" />
-          <p className="text-sm font-bold text-slate-600 dark:text-slate-400">Filter by Status</p>
-        </div>
-        <div className="flex scroll overflow-x-auto pb-2 gap-2 scrollbar-hide">
-          {tabs.map((tab) => {
-            const count = tab.id === 'all'
-              ? orders.length
-              : orders.filter(order => {
-                if (tab.id === 'ready_for_pickup') {
-                  return order.orderStatus === 'ready_for_pickup' || order.orderStatus === 'ready';
-                }
-                return order.orderStatus === tab.id;
-              }).length;
-            const TabIcon = tab.icon;
-
-            return (
-              <motion.button
-                key={tab.id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setStatusFilter(tab.id)}
-                className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${statusFilter === tab.id
-                  ? "bg-[#FF6B00] text-white shadow-lg shadow-orange-500/20"
-                  : "bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  }`}
-              >
-                <TabIcon size={16} />
-                {tab.label}
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${statusFilter === tab.id
-                  ? "bg-white/20 text-white"
-                  : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                  }`}>
-                  {count}
-                </span>
-              </motion.button>
-            );
-          })}
-        </div>
-      </motion.div>
-
-      {/* Orders Grid */}
-      <AnimatePresence mode="wait">
-        {currentOrders.length > 0 ? (
-          <motion.div
-            key="orders-grid"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="grid md:grid-cols-3 gap-4">
-              {currentOrders.map((order, index) => (
-                <motion.div
-                  key={order._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <VendorOrderCard
-                    order={order}
-                    onAssign={(orderId) => setAssignmentModal({ isOpen: true, orderId })}
-                  />
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-[#1E293B] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mt-6"
-              >
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 sm:mb-0">
-                  Showing <span className="font-bold text-slate-900 dark:text-white">{indexOfFirstItem + 1}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(indexOfLastItem, filteredOrders.length)}</span> of <span className="font-bold text-slate-900 dark:text-white">{filteredOrders.length}</span> orders
-                </p>
-
-                <div className="flex items-center gap-2">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-slate-600 dark:text-slate-400 transition-colors"
-                  >
-                    <ChevronLeft size={18} />
-                  </motion.button>
-
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                      if (totalPages > 7 && (page < currentPage - 1 || page > currentPage + 1) && page !== 1 && page !== totalPages) {
-                        if (page === currentPage - 2 || page === currentPage + 2) return <span key={page} className="text-slate-400 px-1">...</span>;
-                        return null;
-                      }
-
-                      return (
-                        <motion.button
-                          key={page}
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => handlePageChange(page)}
-                          className={`w-10 h-10 rounded-xl text-sm font-bold transition-colors ${currentPage === page
-                            ? "bg-[#FF6B00] text-white shadow-lg shadow-orange-500/20"
-                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            <div className="flex overflow-x-auto pb-1 gap-2 no-scrollbar scroll-smooth">
+                {tabs.map((tab) => {
+                    const count = tab.id === 'all' 
+                        ? orders.length 
+                        : orders.filter(o => tab.id === 'ready_for_pickup' ? (o.orderStatus === 'ready' || o.orderStatus === 'ready_for_pickup') : o.orderStatus === tab.id).length;
+                    
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => setStatusFilter(tab.id)}
+                            className={`flex-shrink-0 px-4 py-2 rounded-md transition-all active:scale-95 flex items-center gap-3 border ${statusFilter === tab.id
+                                ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-none"
+                                : "bg-slate-50 dark:bg-slate-800 border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
                             }`}
                         >
-                          {page}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed text-slate-600 dark:text-slate-400 transition-colors"
-                  >
-                    <ChevronRight size={18} />
-                  </motion.button>
-                </div>
-              </motion.div>
-            )}
-          </motion.div>
-        ) : (
-          <motion.div
-            key="empty-state"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="flex flex-col items-center justify-center py-20 bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800"
-          >
-            <div className="p-6 bg-slate-100 dark:bg-slate-800 rounded-full mb-4">
-              <Package size={48} className="text-slate-400" />
+                            <tab.icon size={12} strokeWidth={3} />
+                            <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">{tab.label}</span>
+                            <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black ${statusFilter === tab.id ? "bg-orange-600 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-500"}`}>
+                                {count}
+                            </span>
+                        </button>
+                    );
+                })}
             </div>
-            <p className="text-xl font-bold text-slate-900 dark:text-white mb-2">No orders found</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {statusFilter !== 'all' ? `No ${statusFilter.replace(/_/g, ' ')} orders found.` : "Try adjusting your search or wait for new orders."}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </motion.div>
 
-      <RiderAssignmentModal
-        isOpen={assignmentModal.isOpen}
-        onClose={() => setAssignmentModal({ isOpen: false, orderId: null })}
-        orderId={assignmentModal.orderId}
-        vendorId={vendorDetails?.vendor?._id || vendorDetails?.vendor?.id}
-        onAssigned={() => fetchOrders()}
-      />
+        {/* Results Manifest */}
+        <AnimatePresence mode="wait">
+            {currentOrders.length > 0 ? (
+                <motion.div
+                    key="orders-grid"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="space-y-6"
+                >
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                        {currentOrders.map((order, index) => (
+                            <motion.div
+                                key={order._id?.$oid || order._id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                            >
+                                <VendorOrderCard 
+                                    order={order}
+                                    onAssign={(orderId) => setAssignmentModal({ isOpen: true, orderId })}
+                                />
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    {/* Industrial Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex flex-col sm:flex-row justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-md border border-slate-100 dark:border-slate-800 shadow-none">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4 sm:mb-0">
+                                Manifest Position: {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredOrders.length)} of {filteredOrders.length} records
+                            </p>
+                            
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="p-2 rounded-md border border-slate-100 dark:border-slate-800 text-slate-400 hover:text-orange-600 disabled:opacity-30 transition-all active:scale-95 bg-white dark:bg-slate-950"
+                                >
+                                    <ChevronLeft size={16} />
+                                </button>
+                                
+                                <div className="flex gap-1">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                                        const isCurrent = currentPage === page;
+                                        if (totalPages > 5 && (page < currentPage - 1 || page > currentPage + 1) && page !== 1 && page !== totalPages) {
+                                            if (page === currentPage - 2 || page === currentPage + 2) return <span key={page} className="px-1 text-slate-300">...</span>;
+                                            return null;
+                                        }
+                                        return (
+                                            <button
+                                                key={page}
+                                                onClick={() => handlePageChange(page)}
+                                                className={`w-8 h-8 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${isCurrent 
+                                                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900" 
+                                                    : "bg-white dark:bg-slate-800 text-slate-400 border border-slate-100 dark:border-slate-700 hover:text-orange-600"
+                                                }`}
+                                            >
+                                                {page}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className="p-2 rounded-md border border-slate-100 dark:border-slate-800 text-slate-400 hover:text-orange-600 disabled:opacity-30 transition-all active:scale-95 bg-white dark:bg-slate-950"
+                                >
+                                    <ChevronRight size={16} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </motion.div>
+            ) : (
+                <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800 border-dashed py-32 flex flex-col items-center justify-center text-center px-6">
+                    <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-md mb-6">
+                        <Package size={48} className="text-slate-200" strokeWidth={1} />
+                    </div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">No Matching Manifests</h3>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-xs leading-relaxed">System scan complete. No transaction records matching current classification or search parameters detected.</p>
+                </div>
+            )}
+        </AnimatePresence>
+
+        <RiderAssignmentModal
+            isOpen={assignmentModal.isOpen}
+            onClose={() => setAssignmentModal({ isOpen: false, orderId: null })}
+            orderId={assignmentModal.orderId}
+            vendorId={vendorDetails?.vendor?._id || vendorDetails?.vendor?.id}
+            onAssigned={() => fetchOrders()}
+        />
+
+      </div>
     </div>
   );
 }

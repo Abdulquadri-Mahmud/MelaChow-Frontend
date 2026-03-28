@@ -86,27 +86,27 @@ export default function Step1BasicInfo({ onNext }) {
     ];
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 p-3 lg:p-6">
+        <div className="space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 p-2 md:p-6 pb-20">
             <div>
-                <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Let's start with the basics</h2>
-                <p className="text-slate-600 dark:text-slate-400 font-medium text-base">What are you cooking? Add a name, description, and an appetizing photo.</p>
+                <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-2 tracking-tight uppercase">Basic Information</h2>
+                <p className="text-slate-500 dark:text-slate-400 font-bold text-[10px] md:text-xs uppercase tracking-[0.15em] leading-relaxed">Start by giving your dish a name, a good photo, and a short description.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-12">
                 {/* LEFT COLUMN: IDENTITY */}
                 <div className="space-y-6">
                     {/* Name */}
                     <div className="space-y-2">
                         <div className="flex justify-between items-baseline mb-1">
-                            <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest">Food Name <span className="text-rose-500">*</span></label>
-                            <span className={`text-[10px] uppercase font-bold tracking-wider ${store.name.length >= 2 ? "text-emerald-500 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"}`}>{store.name.length}/80</span>
+                            <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest">Dish Name <span className="text-orange-600">*</span></label>
+                            <span className={`text-[9px] uppercase font-black tracking-wider ${store.name.length >= 2 ? "text-orange-600" : "text-slate-400"}`}>{store.name.length}/80</span>
                         </div>
                         <input
                             type="text"
                             value={store.name}
                             onChange={(e) => store.setField("name", e.target.value.substring(0, 80))}
-                            placeholder="e.g. Jollof Rice, Chicken Suya"
-                            className="w-full h-14 px-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 dark:focus:ring-orange-500/10 transition-all font-bold text-slate-900 dark:text-white text-lg placeholder:font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
+                            placeholder="e.g. Smoky Jollof Rice with Chicken"
+                            className="w-full h-12 px-4 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:border-orange-600 dark:focus:border-orange-600 focus:ring-4 focus:ring-orange-600/5 transition-all font-black text-slate-900 dark:text-white text-xs uppercase tracking-widest placeholder:font-bold placeholder:text-slate-300 dark:placeholder:text-slate-700 outline-none"
                         />
                     </div>
 
@@ -114,24 +114,24 @@ export default function Step1BasicInfo({ onNext }) {
                     <div className="space-y-2">
                         <div className="flex justify-between items-baseline mb-1">
                             <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest">Description</label>
-                            <span className={`text-[10px] uppercase font-bold tracking-wider ${store.description.length >= 10 ? "text-emerald-500 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"}`}>{store.description.length}/300</span>
+                            <span className={`text-[9px] uppercase font-black tracking-wider ${store.description.length >= 10 ? "text-orange-600" : "text-slate-400"}`}>{store.description.length}/300</span>
                         </div>
                         <textarea
                             value={store.description}
                             onChange={(e) => store.setField("description", e.target.value.substring(0, 300))}
-                            placeholder="Tell customers what makes this special. e.g. Smoky party jollof cooked fresh daily."
-                            className="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-orange-500 dark:focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 dark:focus:ring-orange-500/10 transition-all font-medium text-slate-900 dark:text-white text-base min-h-[160px] resize-y placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
+                            placeholder="Tell your customers what makes this dish special..."
+                            className="w-full p-4 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 focus:border-orange-600 dark:focus:border-orange-600 focus:ring-4 focus:ring-orange-600/5 transition-all font-bold text-slate-900 dark:text-white text-[11px] min-h-[140px] resize-none placeholder:text-slate-300 dark:placeholder:text-slate-700 outline-none uppercase tracking-wider leading-relaxed"
                         />
                     </div>
 
                     {/* Tags */}
                     <div className="space-y-3">
-                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Search Tags</label>
-                        <div className="p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl focus-within:border-orange-500 dark:focus-within:border-orange-500 focus-within:ring-4 focus-within:ring-orange-500/10 dark:focus-within:ring-orange-500/10 transition-all flex flex-wrap gap-2 items-center min-h-[60px]">
+                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Add Search Tags</label>
+                        <div className="p-2 gap-1.5 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md focus-within:border-orange-600 transition-all flex flex-wrap items-center min-h-[50px]">
                             {store.tags.map(tag => (
-                                <span key={tag} className="flex items-center gap-1.5 px-3 h-8 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-lg select-none">
+                                <span key={tag} className="flex items-center gap-1.5 px-2.5 h-7 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[9px] font-black uppercase tracking-widest rounded-md border border-slate-200 dark:border-slate-700">
                                     {tag}
-                                    <button type="button" onClick={() => store.removeTag(tag)} className="text-slate-400 hover:text-rose-500 ml-1 transition-colors"><X size={14} /></button>
+                                    <button type="button" onClick={() => store.removeTag(tag)} className="text-slate-400 hover:text-orange-600 transition-colors"><X size={10} /></button>
                                 </span>
                             ))}
                             <input
@@ -139,26 +139,11 @@ export default function Step1BasicInfo({ onNext }) {
                                 value={tagInput}
                                 onChange={e => setTagInput(e.target.value)}
                                 onKeyDown={handleTagKey}
-                                placeholder={store.tags.length < 6 ? "Type a tag and press Enter..." : "Max 6 tags reached"}
+                                placeholder={store.tags.length < 6 ? "e.g. Spicy, Vegan..." : "Limit reached"}
                                 disabled={store.tags.length >= 6}
-                                className="flex-1 min-w-[150px] bg-transparent outline-none h-8 px-2 text-sm text-slate-900 dark:text-white font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 disabled:opacity-50"
+                                className="flex-1 min-w-[120px] bg-transparent outline-none h-7 px-2 text-[10px] text-slate-900 dark:text-white font-black uppercase tracking-widest placeholder:text-slate-300 dark:placeholder:text-slate-700 disabled:opacity-30"
                             />
                         </div>
-                        {store.tags.length < 6 && (
-                            <div className="flex flex-wrap gap-1.5 mt-2 pt-1">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider py-1.5 mr-1 pt-2">Suggestions:</span>
-                                {PREDEFINED_TAGS.filter(t => !store.tags.includes(t.toLowerCase())).map(tag => (
-                                    <button
-                                        key={tag}
-                                        type="button"
-                                        onClick={() => store.addTag(tag)}
-                                        className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
-                                    >
-                                        + {tag}
-                                    </button>
-                                ))}
-                            </div>
-                        )}
                     </div>
                 </div>
 
@@ -166,50 +151,53 @@ export default function Step1BasicInfo({ onNext }) {
                 <div className="space-y-6">
                     {/* Photo */}
                     <div className="space-y-2">
-                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block mb-1">Food Photo</label>
-                        <div className="relative border border-dashed border-slate-300 dark:border-slate-700 rounded-3xl bg-slate-50/50 dark:bg-slate-800/30 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors overflow-hidden group h-[220px]">
+                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block mb-1">Upload Photo</label>
+                        <div className="relative border border-dashed border-slate-200 dark:border-slate-800 rounded-md bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors overflow-hidden group h-[200px]">
                             <input
                                 type="file"
                                 accept="image/jpeg,image/png,image/webp"
                                 onChange={handleImageUpload}
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                             />
-                            <div className="h-full flex flex-col items-center justify-center text-center gap-3 p-10">
+                            <div className="h-full flex flex-col items-center justify-center text-center gap-3 p-6">
                                 {uploading ? (
-                                    <Loader2 className="animate-spin text-orange-500 mb-2" size={32} />
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Loader2 className="animate-spin text-orange-600" size={24} />
+                                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-orange-600">Uploading Photo...</p>
+                                    </div>
                                 ) : store.image_url ? (
                                     <img src={store.image_url} alt="Food Upload" className="absolute inset-0 w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-16 h-16 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl flex items-center justify-center mb-2 text-slate-400 dark:text-slate-500 group-hover:text-orange-500 dark:group-hover:text-orange-500 group-hover:scale-110 transition-all duration-300">
-                                        <ImageIcon size={28} />
+                                    <div className="w-12 h-12 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-md flex items-center justify-center text-slate-300 dark:text-slate-700 group-hover:text-orange-600 group-hover:border-orange-600/30 transition-all duration-300">
+                                        <ImageIcon size={20} />
                                     </div>
                                 )}
 
                                 {!store.image_url && !uploading && (
-                                    <>
-                                        <p className="text-base font-black text-slate-900 dark:text-white tracking-tight">Add a photo <span className="text-slate-400 dark:text-slate-500 font-medium text-sm">(optional)</span></p>
-                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Tap or drag an image here. JPG, PNG, WEBP.</p>
-                                    </>
+                                    <div className="space-y-1">
+                                        <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Add a Photo</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">JPG or PNG (max 5MB)</p>
+                                    </div>
                                 )}
                             </div>
                             {store.image_url && !uploading && (
                                 <div className="absolute top-3 right-3 z-20">
                                     <button
                                         onClick={(e) => { e.preventDefault(); store.setField("image_url", null) }}
-                                        className="w-10 h-10 flex items-center justify-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-xl text-slate-600 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all border border-slate-200 dark:border-slate-800"
+                                        className="w-8 h-8 flex items-center justify-center bg-white/90 dark:bg-slate-900/90 rounded-md text-slate-600 hover:text-orange-600 border border-slate-200 dark:border-slate-800 shadow-sm"
                                     >
-                                        <X size={18} />
+                                        <X size={14} />
                                     </button>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-6">
                         {/* Item Category */}
                         <div className="space-y-3">
-                            <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Item Category <span className="text-rose-500">*</span></label>
-                            <div className="flex flex-wrap gap-2">
+                            <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">What kind of dish is this? <span className="text-orange-600">*</span></label>
+                            <div className="flex flex-wrap gap-1.5">
                                 {ITEM_TYPE_OPTIONS.map(option => {
                                     const isSelected = store.item_type === option.value;
                                     return (
@@ -217,12 +205,11 @@ export default function Step1BasicInfo({ onNext }) {
                                             key={option.value}
                                             type="button"
                                             onClick={() => store.setField("item_type", option.value)}
-                                            className={`h-9 px-3 rounded-xl text-[10px] uppercase tracking-widest font-black border transition-all flex items-center gap-1.5 ${isSelected
-                                                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white"
-                                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500"
+                                            className={`h-8 px-3 rounded-md text-[9px] uppercase tracking-widest font-black border transition-all flex items-center gap-2 ${isSelected
+                                                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent"
+                                                    : "bg-white dark:bg-slate-950 text-slate-400 dark:text-slate-500 border-slate-100 dark:border-slate-800 hover:border-slate-300"
                                                 }`}
                                         >
-                                            <span>{option.emoji}</span>
                                             {option.label}
                                         </button>
                                     );
@@ -232,8 +219,8 @@ export default function Step1BasicInfo({ onNext }) {
 
                         {/* Dietary Type */}
                         <div className="space-y-3">
-                            <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Dietary Type</label>
-                            <div className="flex flex-wrap gap-2">
+                            <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Dietary Info (Optional)</label>
+                            <div className="flex flex-wrap gap-1.5">
                                 {DIETARY_TYPE_OPTIONS.map(option => {
                                     const isSelected = store.dietary_type === option.value;
                                     return (
@@ -242,12 +229,11 @@ export default function Step1BasicInfo({ onNext }) {
                                             type="button"
                                             onClick={() => store.setField("dietary_type", option.value)}
                                             title={option.hint}
-                                            className={`h-9 px-3 rounded-xl text-[10px] uppercase tracking-widest font-black border transition-all flex items-center gap-1.5 ${isSelected
-                                                    ? "bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-500/20"
-                                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-500/40"
+                                            className={`h-8 px-3 rounded-md text-[9px] uppercase tracking-widest font-black border transition-all flex items-center gap-2 ${isSelected
+                                                    ? "bg-orange-600 text-white border-transparent shadow-none"
+                                                    : "bg-white dark:bg-slate-950 text-slate-400 dark:text-slate-500 border-slate-100 dark:border-slate-800 hover:border-slate-300"
                                                 }`}
                                         >
-                                            <span>{option.emoji}</span>
                                             {option.label}
                                         </button>
                                     );
@@ -258,29 +244,27 @@ export default function Step1BasicInfo({ onNext }) {
 
                     {/* Prep Time */}
                     <div className="space-y-3">
-                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Preparation Time</label>
-                        <div className="flex items-center h-14 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full p-1 shadow-sm transition-colors max-w-[240px]">
+                        <label className="text-[11px] font-black text-slate-900 dark:text-slate-100 uppercase tracking-widest block">Preparation Time (Minutes)</label>
+                        <div className="flex items-center h-12 bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md w-full p-1 max-w-[200px]">
                             <button
                                 type="button"
                                 disabled={store.prep_time_minutes <= 5}
                                 onClick={() => store.setField("prep_time_minutes", Math.max(5, (store.prep_time_minutes || 20) - 5))}
-                                className="w-12 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl disabled:opacity-30 transition-colors font-bold text-xl"
+                                className="w-10 h-full flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-50 dark:bg-slate-900 rounded-md disabled:opacity-20 transition-all font-black"
                             >-</button>
                             <div className="flex-1 flex flex-col items-center justify-center leading-none">
-                                <span className="font-black text-slate-900 dark:text-white text-lg">{store.prep_time_minutes || 20}</span>
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">MINS</span>
+                                <span className="font-black text-slate-900 dark:text-white text-sm">{store.prep_time_minutes || 20}</span>
                             </div>
                             <button
                                 type="button"
                                 disabled={store.prep_time_minutes >= 120}
                                 onClick={() => store.setField("prep_time_minutes", Math.min(120, (store.prep_time_minutes || 20) + 5))}
-                                className="w-12 h-full flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl disabled:opacity-30 transition-colors font-bold text-xl"
+                                className="w-10 h-full flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-50 dark:bg-slate-900 rounded-md disabled:opacity-20 transition-all font-black"
                             >+</button>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
     );
 }

@@ -123,7 +123,7 @@ export default function MyFoodsPage() {
         <div className="flex gap-2">
           <button
             onClick={() => toast.dismiss(t.id)}
-            className="flex-1 h-9 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            className="flex-1 h-8 rounded-md border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
           >
             Cancel
           </button>
@@ -143,7 +143,7 @@ export default function MyFoodsPage() {
                 });
               }
             }}
-            className="flex-1 h-9 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-colors"
+            className="flex-1 h-8 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black uppercase tracking-widest transition-colors"
           >
             Delete Forever
           </button>
@@ -168,53 +168,49 @@ export default function MyFoodsPage() {
       <div className="max-w-6xl mx-auto space-y-4">
 
         {/* Page Header */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between gap-6 flex-wrap">
-            <div className="max-w-3xl">
-              <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-                Menu Management Center
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="max-w-2xl">
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+                Menu Hub
               </h1>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-3 leading-relaxed">
-                Take full control of your culinary offerings. From here, you can launch new dishes, fine-tune pricing, and organize your storefront to provide the best experience for your customers.
+              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed uppercase tracking-widest">
+                Manage your culinary offerings, pricing, and storefront organization.
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               {/* Refresh Button */}
               <button
                 onClick={invalidate}
                 disabled={isFetching}
-                className={`h-12 w-12 flex items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 transition-all ${isFetching ? "opacity-50" : "active:scale-95"}`}
+                className={`h-10 w-10 flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 transition-all ${isFetching ? "opacity-50" : "active:scale-95"}`}
                 title="Refresh list"
               >
-                <RotateCw size={18} className={isFetching ? "animate-spin" : ""} />
+                <RotateCw size={16} className={isFetching ? "animate-spin" : ""} />
               </button>
 
               {/* Create Combo — secondary */}
               <button
                 onClick={() => router.push("/vendors/menu/create-combo")}
                 disabled={stats.total < 2}
-                title={stats.total < 2
-                  ? "Add at least 2 foods before creating a combo"
-                  : "Bundle foods into a combo deal"
-                }
-                className="h-12 px-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 bg-white dark:bg-slate-900 shadow-sm"
+                className="h-10 px-4 rounded-md border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 bg-white dark:bg-slate-900"
               >
-                🍱 Create Combo
+                🍱 Combo
               </button>
 
               {/* Add Food — primary */}
               <button
                 onClick={() => router.push("/vendors/create-food")}
-                className="h-12 px-6 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-widest rounded-2xl transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-orange-500/25"
+                className="h-9 px-4 bg-orange-600 hover:bg-orange-700 text-white text-[10px] font-black uppercase tracking-widest rounded-md transition-all active:scale-95 flex items-center gap-2"
               >
-                <Plus size={16} /> Add Food
+                <Plus size={14} /> Add Food
               </button>
             </div>
           </div>
 
           {/* Marquee Tips Bar */}
-          <div className="relative h-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden flex items-center shadow-sm">
+          <div className="relative h-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden flex items-center">
              <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white dark:from-slate-900 to-transparent z-10 pointer-events-none" />
              <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white dark:from-slate-900 to-transparent z-10 pointer-events-none" />
              
@@ -338,7 +334,7 @@ export default function MyFoodsPage() {
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="h-10 px-5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 dark:text-slate-400 disabled:opacity-40 hover:border-slate-400 transition-all"
+              className="h-10 px-5 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 dark:text-slate-400 disabled:opacity-40 hover:border-slate-400 transition-all"
             >
               Previous
             </button>
@@ -348,7 +344,7 @@ export default function MyFoodsPage() {
             <button
               onClick={() => setPage(p => p + 1)}
               disabled={!pagination.hasMore}
-              className="h-10 px-5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 dark:text-slate-400 disabled:opacity-40 hover:border-slate-400 transition-all"
+              className="h-10 px-5 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 dark:text-slate-400 disabled:opacity-40 hover:border-slate-400 transition-all"
             >
               Next
             </button>

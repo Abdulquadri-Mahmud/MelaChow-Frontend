@@ -424,22 +424,45 @@ export default function OrderTracking() {
 
                       <div className="flex-1 min-w-0">
                         {/* Food name — the actual dish name e.g. "Jollof Rice" */}
-                        <h4 className="text-sm font-black text-zinc-900 dark:text-white italic uppercase leading-tight">
-                          {item.name || item.variant?.name}
-                        </h4>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="text-sm font-black text-zinc-900 dark:text-white italic uppercase leading-tight">
+                            {item.name || item.variant?.name}
+                          </h4>
+                          {item.quantity > 1 && (
+                            <span className="text-[10px] font-black text-white bg-zinc-900 dark:bg-white dark:text-zinc-900 px-1.5 py-0.5 rounded-md italic">
+                              x{item.quantity}
+                            </span>
+                          )}
+                        </div>
 
-                        {/* Portion label — e.g. "Large" */}
-                        {item.variant?.name && item.name && 
-                          item.variant.name !== item.name && (
-                          <p className="text-[10px] font-bold text-zinc-400 mt-0.5 uppercase">
-                            Portion: {item.variant.name}
-                          </p>
-                        )}
+                        {/* Portion / Multiplier Details */}
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                          {/* Portion label — e.g. "Large Bowl" */}
+                          {item.portion_label && (
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                              <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tight">
+                                {item.portion_label}
+                              </p>
+                              {item.portion_quantity > 1 && (
+                                <span className="text-[9px] font-black text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-1 rounded">
+                                  {item.portion_quantity} units
+                                </span>
+                              )}
+                            </div>
+                          )}
 
-                        {/* Quantity */}
-                        <p className="text-[10px] font-black text-zinc-400 mt-1 opacity-60 uppercase tracking-widest">
-                          QTY: {item.quantity}
-                        </p>
+                          {/* Fallback portion from variant */}
+                          {!item.portion_label && item.variant?.name && item.name && 
+                            item.variant.name !== item.name && (
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                              <p className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tight">
+                                {item.variant.name}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex flex-col items-end gap-2 flex-shrink-0">
@@ -458,12 +481,12 @@ export default function OrderTracking() {
                       </div>
                     </div>
 
-                    {/* SELECTED OPTIONS — only render when options exist */}
-                    {item.metadata?.selected_options?.length > 0 && (
-                      <div className="space-y-2 pt-1">
+                    {/* SELECTED OPTIONS — broken down by choice group */}
+                    {((item.selected_options || item.metadata?.selected_options)?.length > 0) && (
+                      <div className="space-y-3 pt-2">
                         {Object.entries(
-                          item.metadata.selected_options.reduce((groups, opt) => {
-                            const key = opt.group_name || 'Add-ons';
+                          (item.selected_options || item.metadata.selected_options).reduce((groups, opt) => {
+                            const key = opt.group_name || 'Additional Extras';
                             if (!groups[key]) groups[key] = [];
                             groups[key].push(opt);
                             return groups;
@@ -471,23 +494,33 @@ export default function OrderTracking() {
                         ).map(([groupName, options]) => (
                           <div
                             key={groupName}
-                            className="bg-white dark:bg-zinc-900/60 border border-zinc-100 dark:border-zinc-700 rounded-2xl px-3 py-2"
+                            className="bg-zinc-50 dark:bg-zinc-900/40 rounded-2xl border border-zinc-100 dark:border-zinc-800/50 p-3"
                           >
-                            <p className="text-[9px] font-black uppercase tracking-wider text-zinc-400 mb-1.5">
-                              {groupName}
-                            </p>
-                            <div className="flex flex-wrap gap-1.5">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="h-0.5 w-3 bg-orange-500 rounded-full" />
+                              <p className="text-[9px] font-black uppercase tracking-[0.15em] text-zinc-400">
+                                {groupName}
+                              </p>
+                            </div>
+                            <div className="space-y-1.5">
                               {options.map((opt, optIdx) => (
                                 <div
                                   key={optIdx}
-                                  className="inline-flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-2.5 py-1"
+                                  className="flex items-center justify-between group"
                                 >
-                                  <span className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200">
-                                    {opt.label}
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-5 h-5 rounded bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 flex items-center justify-center">
+                                      <span className="text-[9px] font-black text-orange-600 italic">
+                                        {opt.quantity || 1}
+                                      </span>
+                                    </div>
+                                    <span className="text-[11px] font-black text-zinc-700 dark:text-zinc-300 uppercase tracking-tight">
+                                      {opt.label}
+                                    </span>
+                                  </div>
                                   {opt.price_modifier_naira > 0 && (
-                                    <span className="text-[10px] font-black text-orange-500">
-                                      +₦{opt.price_modifier_naira.toLocaleString()}
+                                    <span className="text-[10px] font-black text-zinc-400">
+                                      + ₦{(opt.price_modifier_naira * (opt.quantity || 1)).toLocaleString()}
                                     </span>
                                   )}
                                 </div>
