@@ -150,8 +150,9 @@ export default function AdminRidersPage() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-900">Rider Management</h1>
-                            <p className="text-sm text-slate-500 mt-0.5">Manage delivery personnel, affiliations, and availability status.</p>
+                            <h1 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">Rider Management</h1>
+                            <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
+                            <p className="text-sm text-slate-500 mt-1.5 font-medium">Manage delivery personnel, affiliations, and availability status.</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <button
@@ -164,7 +165,7 @@ export default function AdminRidersPage() {
                             </button>
                             <button
                                 onClick={() => handleOpenModal("create")}
-                                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-bold rounded-lg hover:bg-slate-800 transition-colors"
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-orange-700 transition-colors shadow-sm shadow-orange-500/20"
                             >
                                 <Plus size={16} />
                                 Add Rider
@@ -181,7 +182,7 @@ export default function AdminRidersPage() {
                                 placeholder="Search by name or phone..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full h-9 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm focus:ring-1 focus:ring-slate-900 transition-all font-medium"
+                                className="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 rounded-md outline-none text-sm focus:ring-1 focus:ring-orange-500 transition-all font-medium"
                             />
                         </div>
                         <div className="flex items-center gap-4 px-3 border-l border-slate-100">

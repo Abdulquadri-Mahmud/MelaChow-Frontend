@@ -2,8 +2,8 @@ import { Plus } from "lucide-react";
 
 export default function EmptyFoods({ isFiltered, onClearFilters, onAddFood }) {
     return (
-        <div className="col-span-full py-20 flex flex-col items-center gap-5 text-center">
-            <div className="w-20 h-20 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-4xl">
+        <div className="col-span-full py-16 flex flex-col items-center gap-4 text-center">
+            <div className="size-16 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-3xl">
                 🍽️
             </div>
             <div>
@@ -20,16 +20,16 @@ export default function EmptyFoods({ isFiltered, onClearFilters, onAddFood }) {
             {isFiltered ? (
                 <button
                     onClick={onClearFilters}
-                    className="h-11 px-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-sm font-black text-slate-600 dark:text-slate-300 hover:border-slate-400 transition-all"
+                    className="h-10 px-6 rounded-md border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:border-slate-400 transition-all"
                 >
                     Clear Filters
                 </button>
             ) : (
                 <button
                     onClick={onAddFood}
-                    className="h-11 px-6 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-black flex items-center gap-2 transition-all active:scale-95"
+                    className="h-10 px-6 rounded-md bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all active:scale-95 shadow-md shadow-orange-500/20"
                 >
-                    <Plus size={16} /> Add Your First Food
+                    <Plus size={14} /> Add First Food
                 </button>
             )}
         </div>

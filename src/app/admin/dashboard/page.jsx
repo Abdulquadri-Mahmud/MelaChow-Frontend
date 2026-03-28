@@ -133,9 +133,10 @@ export default function AdminDashboardPage() {
                         <div>
                             <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                                 Platform Overview
-                                <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full tracking-widest uppercase">Live Activity</span>
+                                <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-50 text-orange-600 rounded-full tracking-widest uppercase border border-orange-100 italic">Live Activity</span>
                             </h1>
-                            <p className="text-sm text-slate-500 mt-0.5">Key performance indicators and administrative alerts.</p>
+                            <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
+                            <p className="text-sm text-slate-500 mt-1.5">Key performance indicators and administrative alerts.</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <Link href="/admin/audit-logs" className="h-9 px-3 bg-white border border-slate-200 text-slate-600 rounded-md flex items-center gap-2 font-bold text-[10px] uppercase hover:bg-slate-50 transition-colors">
@@ -158,7 +159,7 @@ export default function AdminDashboardPage() {
                         <div className="bg-white border border-slate-200 rounded-lg flex flex-col overflow-hidden">
                             <div className="p-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                                 <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                                    <Clock size={14} className="text-orange-500" /> Pending Approvals
+                                    <Clock size={14} className="text-orange-600" /> Pending Approvals
                                 </h3>
                                 <Link href="/admin/vendors/pending" className="text-[10px] font-bold text-blue-600 uppercase hover:underline">Review All</Link>
                             </div>

@@ -105,15 +105,16 @@ export default function AdminNotificationsPage() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
                         <div>
-                            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2 uppercase tracking-tight">
                                 Notification Center
                                 {unreadCount > 0 && (
-                                    <span className="bg-rose-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                                    <span className="bg-orange-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center border border-orange-700 shadow-sm animate-pulse">
                                         {unreadCount}
                                     </span>
                                 )}
                             </h1>
-                            <p className="text-sm text-slate-500 mt-0.5">Real-time logistics alerts and platform updates.</p>
+                            <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
+                            <p className="text-sm text-slate-500 mt-1.5 font-medium">Real-time logistics alerts and platform updates.</p>
                         </div>
                         <div className="flex items-center gap-2">
                             {/* Push Notification Toggle */}
@@ -153,19 +154,19 @@ export default function AdminNotificationsPage() {
                     <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
                         <button
                             onClick={() => setFilter('all')}
-                            className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${filter === 'all' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
+                            className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${filter === 'all' ? 'bg-orange-600 text-white border-orange-700 shadow-sm shadow-orange-500/20' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
                         >
                             All Activity
                         </button>
                         <button
                             onClick={() => setFilter('unread')}
-                            className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${filter === 'unread' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
+                            className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${filter === 'unread' ? 'bg-orange-600 text-white border-orange-700 shadow-sm shadow-orange-500/20' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
                         >
                             Unread
                         </button>
                         <button
                             onClick={() => setFilter('logistics')}
-                            className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${filter === 'logistics' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
+                            className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${filter === 'logistics' ? 'bg-orange-600 text-white border-orange-700 shadow-sm shadow-orange-500/20' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
                         >
                             Logistics Only
                         </button>
@@ -191,7 +192,7 @@ export default function AdminNotificationsPage() {
                                                 animate={{ opacity: 1 }}
                                                 exit={{ opacity: 0 }}
                                                 key={notification._id}
-                                                className={`group relative flex items-start gap-4 p-4 transition-colors ${!notification.read ? 'bg-slate-50/80 shadow-[inset_3px_0_0_0_#0f172a]' : 'hover:bg-slate-50/50'}`}
+                                                className={`group relative flex items-start gap-4 p-4 transition-colors ${!notification.read ? 'bg-orange-50/50 shadow-[inset_3px_0_0_0_#ea580c]' : 'hover:bg-slate-50/50'}`}
                                             >
                                                 {/* Icon */}
                                                 <div className={`mt-1 w-10 h-10 rounded border flex items-center justify-center shrink-0 ${config.color}`}>

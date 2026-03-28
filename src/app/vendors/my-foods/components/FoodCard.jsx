@@ -29,13 +29,13 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
             : `₦${item.portions.min_price_naira?.toLocaleString()} – ₦${item.portions.max_price_naira?.toLocaleString()}`;
 
     return (
-        <div className={`group relative bg-white dark:bg-slate-900 border rounded-3xl overflow-hidden transition-all hover:shadow-lg hover:shadow-slate-200/60 dark:hover:shadow-none hover:-translate-y-0.5 ${item.is_archived
-            ? "border-slate-100 dark:border-slate-800 opacity-60"
-            : "border-slate-100 dark:border-slate-800"
+        <div className={`group relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-md overflow-hidden transition-all hover:border-orange-500/30 ${item.is_archived
+            ? "opacity-60"
+            : ""
             }`}>
 
             {/* Image */}
-            <div className="relative h-44 bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="relative h-40 bg-slate-100 dark:bg-slate-800 overflow-hidden">
                 {item.image_url ? (
                     <img
                         src={item.image_url}
@@ -49,19 +49,19 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                 )}
 
                 {/* Status badges top-left */}
-                <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+                <div className="absolute top-2 left-2 flex flex-col gap-1">
                     {item.is_archived && (
-                        <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-slate-900/80 text-white backdrop-blur-sm">
+                        <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-slate-900/80 text-white backdrop-blur-sm">
                             Archived
                         </span>
                     )}
                     {!item.is_archived && !item.is_available && (
-                        <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-amber-500/90 text-white backdrop-blur-sm">
+                        <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-amber-500/90 text-white backdrop-blur-sm">
                             Hidden
                         </span>
                     )}
                     {!item.is_archived && !item.is_in_stock && (
-                        <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg bg-rose-500/90 text-white backdrop-blur-sm">
+                        <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-rose-500/90 text-white backdrop-blur-sm">
                             Sold Out
                         </span>
                     )}
@@ -69,33 +69,33 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
 
                 {/* Dietary badge top-right */}
                 {dietary && (
-                    <span className={`absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg backdrop-blur-sm ${dietary.color}`}>
+                    <span className={`absolute top-2 right-2 text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded backdrop-blur-sm ${dietary.color}`}>
                         {dietary.label}
                     </span>
                 )}
 
                 {/* Hover action overlay */}
-                <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <button
                         onClick={() => onEdit(item._id)}
-                        className="w-10 h-10 rounded-2xl bg-white text-slate-900 flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all"
+                        className="w-8 h-8 rounded-md bg-white text-slate-900 flex items-center justify-center hover:bg-orange-600 hover:text-white transition-all"
                         title="Edit food"
                     >
-                        <Edit2 size={15} />
+                        <Edit2 size={12} />
                     </button>
                     <button
                         onClick={() => onToggleAvailability(item._id)}
-                        className="w-10 h-10 rounded-2xl bg-white text-slate-900 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all"
+                        className="w-8 h-8 rounded-md bg-white text-slate-900 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all"
                         title={item.is_available ? "Hide from menu" : "Show on menu"}
                     >
                         {item.is_available
-                            ? <ToggleRight size={15} />
-                            : <ToggleLeft size={15} />
+                            ? <ToggleRight size={12} />
+                            : <ToggleLeft size={12} />
                         }
                     </button>
                     <button
                         onClick={() => onArchive(item._id)}
-                        className={`w-10 h-10 rounded-2xl bg-white text-slate-900 flex items-center justify-center transition-all ${item.combos?.length > 0 && !item.is_archived
+                        className={`w-8 h-8 rounded-md bg-white text-slate-900 flex items-center justify-center transition-all ${item.combos?.length > 0 && !item.is_archived
                             ? "opacity-50 cursor-not-allowed hover:bg-white"
                             : "hover:bg-slate-700 hover:text-white"
                             }`}
@@ -106,8 +106,8 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                         }
                     >
                         {item.is_archived
-                            ? <ArchiveRestore size={15} />
-                            : <Archive size={15} />
+                            ? <ArchiveRestore size={12} />
+                            : <Archive size={12} />
                         }
                     </button>
                     {/* Delete — only shown if item is NOT in active combos */}
@@ -117,17 +117,17 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                                 e.stopPropagation();
                                 onDelete(item._id, item.name);
                             }}
-                            className="w-10 h-10 rounded-2xl bg-white text-slate-900 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all"
+                            className="w-9 h-9 rounded-md bg-white text-slate-900 flex items-center justify-center hover:bg-rose-600 hover:text-white transition-all shadow-md"
                             title="Permanently delete this item"
                         >
-                            <Trash2 size={15} />
+                            <Trash2 size={14} />
                         </button>
                     )}
                 </div>
             </div>
 
             {/* Body */}
-            <div className="p-4 space-y-3">
+            <div className="p-3 space-y-2.5">
 
                 {/* Name + location */}
                 <div>
@@ -160,35 +160,35 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                         {priceDisplay}
                     </span>
                     {item.prep_time_minutes && (
-                        <span className="flex items-center gap-1 text-[11px] font-bold text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded-lg border border-slate-100 dark:border-slate-800">
-                            <Clock size={11} className="text-orange-500" />
+                        <span className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/50 px-1.5 py-0.5 rounded border border-slate-100 dark:border-slate-800 leading-none">
+                            <Clock size={10} className="text-orange-500" />
                             {item.prep_time_minutes}m
                         </span>
                     )}
                 </div>
 
                 {/* Metadata chips */}
-                <div className="flex items-center gap-2 flex-wrap">
-                    <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 shadow-sm px-2.5 py-1.5 rounded-xl">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    <span className="flex items-center gap-1.5 text-[9px] font-black uppercase text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 px-2 py-1 rounded-md">
                         <span className="w-1 h-1 rounded-full bg-slate-400" />
                         {item.portions.count} {item.portions.count === 1 ? "Size" : "Sizes"}
                     </span>
                     {item.choice_groups.count > 0 && (
-                        <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 shadow-sm px-2.5 py-1.5 rounded-xl">
+                        <span className="flex items-center gap-1.5 text-[9px] font-black uppercase text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 px-2 py-1 rounded-md">
                             <span className="w-1 h-1 rounded-full bg-slate-400" />
-                            {item.choice_groups.count} {item.choice_groups.count === 1 ? "Add-on" : "Add-ons"}
+                            {item.choice_groups.count} Add-ons
                         </span>
                     )}
                     {item.tags?.length > 0 && (
-                        <span className="flex items-center gap-1.5 text-[10px] font-black text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 shadow-sm px-2.5 py-1.5 rounded-xl">
-                            <Tag size={10} className="text-slate-400" />
+                        <span className="flex items-center gap-1 text-[9px] font-black uppercase text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 px-2 py-1 rounded-md">
+                            <Tag size={9} className="text-slate-400" />
                             {item.tags.length}
                         </span>
                     )}
                     {item.combos?.length > 0 && (
                         <span
                             title={item.combos.map(c => c.name).join(", ")}
-                            className="flex items-center gap-1 text-[10px] font-black text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 border border-violet-100 dark:border-violet-500/20 px-2.5 py-1 rounded-lg cursor-default"
+                            className="flex items-center gap-1 text-[9px] font-black text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 border border-violet-100 dark:border-violet-500/20 px-2 py-1 rounded-md cursor-default uppercase tracking-widest"
                         >
                             🍱 {item.combos.length === 1
                                 ? `In "${item.combos[0].name}"`

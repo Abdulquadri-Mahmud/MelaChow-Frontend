@@ -109,15 +109,15 @@ export default function AuditLogsPage() {
                 <div className="space-y-4">
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
-                                <div className="flex items-center gap-3">
-                                    <h1 className="text-xl font-bold text-slate-900">Audit Logs</h1>
-                                    <div className="h-4 w-[1px] bg-slate-200 mx-1 hidden md:block" />
-                                    <p className="text-sm text-slate-500 font-medium">Platform-wide administrative activity history.</p>
-                                </div>
-                                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 text-slate-600 border border-slate-200 rounded-lg text-xs font-bold">
-                                    <Shield size={14} className="text-slate-400" />
-                                    <span>{total.toLocaleString()} Events Tracked</span>
-                                </div>
+                        <div>
+                            <h1 className="text-xl font-bold text-slate-900 uppercase tracking-tight">Audit Logs</h1>
+                            <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
+                            <p className="text-sm text-slate-500 mt-1.5 font-medium">Platform-wide administrative activity history.</p>
+                        </div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-50 text-orange-600 border border-orange-100 rounded-lg text-xs font-bold uppercase tracking-widest italic">
+                            <Shield size={14} className="text-orange-500" />
+                            <span>{total.toLocaleString()} Events Tracked</span>
+                        </div>
                     </div>
 
                     {/* Filter Toolbar */}
@@ -129,7 +129,7 @@ export default function AuditLogsPage() {
                                 placeholder="Search by admin name or event details..."
                                 value={filters.search}
                                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                                className="w-full h-9 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm focus:ring-1 focus:ring-slate-900 transition-all font-medium"
+                                className="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 rounded-md outline-none text-sm focus:ring-1 focus:ring-orange-500 transition-all font-medium"
                             />
                         </div>
 

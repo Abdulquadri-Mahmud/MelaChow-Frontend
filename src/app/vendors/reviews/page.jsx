@@ -55,7 +55,7 @@ export default function VendorReviewsPage() {
     }
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6 min-h-screen bg-slate-50 dark:bg-[#0F172A] p-4 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-4 min-h-screen bg-slate-50 dark:bg-slate-950 p-3 rounded-md">
 
             {/* Header Section */}
             <motion.div
@@ -65,31 +65,31 @@ export default function VendorReviewsPage() {
             >
                 <BackButton label="Back to Dashboard" className="mb-2" />
 
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Customer Reviews</h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">See what people are saying about your food</p>
+                        <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Customer Reviews</h1>
+                        <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest">See what people are saying about your food</p>
                     </div>
 
                     {/* Quick Stats */}
-                    <div className="flex gap-4">
-                        <div className="bg-white dark:bg-[#1E293B] px-5 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-                            <div className="p-2 bg-orange-50 dark:bg-orange-500/10 rounded-xl">
-                                <MessageSquare size={20} className="text-[#FF6B00]" />
+                    <div className="flex gap-3">
+                        <div className="bg-white dark:bg-slate-900 px-4 py-2.5 rounded-md border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                            <div className="p-2 bg-orange-50 dark:bg-orange-500/10 rounded-md">
+                                <MessageSquare size={16} className="text-orange-600" />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase">Total Reviews</p>
-                                <p className="text-xl font-bold text-slate-900 dark:text-white">{reviews.length}</p>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">Total Reviews</p>
+                                <p className="text-lg font-black text-slate-900 dark:text-white">{reviews.length}</p>
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-[#1E293B] px-5 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-3">
-                            <div className="p-2 bg-yellow-50 dark:bg-yellow-500/10 rounded-xl">
-                                <Star size={20} className="text-yellow-500 fill-yellow-500" />
+                        <div className="bg-white dark:bg-slate-900 px-4 py-2.5 rounded-md border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                            <div className="p-2 bg-yellow-50 dark:bg-yellow-500/10 rounded-md">
+                                <Star size={16} className="text-yellow-500 fill-yellow-500" />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase">Average Rating</p>
-                                <p className="text-xl font-bold text-slate-900 dark:text-white">{averageRating}</p>
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">Avg Rating</p>
+                                <p className="text-lg font-black text-slate-900 dark:text-white">{averageRating}</p>
                             </div>
                         </div>
                     </div>
@@ -99,21 +99,21 @@ export default function VendorReviewsPage() {
             {/* Content */}
             <div className="space-y-6">
                 {error ? (
-                    <div className="p-6 bg-red-50 text-red-600 rounded-2xl border border-red-100 flex items-center gap-3">
-                        <AlertCircle size={24} />
-                        <p className="font-medium">{error}</p>
+                    <div className="p-4 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-md border border-rose-100 dark:border-rose-500/20 flex items-center gap-3">
+                        <AlertCircle size={20} />
+                        <p className="text-xs font-black uppercase tracking-widest">{error}</p>
                     </div>
                 ) : reviews.length === 0 ? (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="flex flex-col items-center justify-center py-20 bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800 text-center"
+                        className="flex flex-col items-center justify-center py-16 bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800 text-center"
                     >
-                        <div className="p-6 bg-slate-50 dark:bg-slate-800 rounded-full mb-4">
-                            <MessageSquare size={48} className="text-slate-300 dark:text-slate-600" />
+                        <div className="p-5 bg-slate-50 dark:bg-slate-800 rounded-md mb-4">
+                            <MessageSquare size={32} className="text-slate-300 dark:text-slate-600" />
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No reviews yet</h3>
-                        <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                        <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">No reviews yet</h3>
+                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 max-w-[240px] mx-auto uppercase tracking-widest leading-relaxed">
                             Once customers start reviewing your dishes, they will appear here.
                         </p>
                     </motion.div>
@@ -125,25 +125,25 @@ export default function VendorReviewsPage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.05 }}
-                                className="bg-white dark:bg-[#1E293B] p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group"
+                                className="bg-white dark:bg-slate-900 p-4 rounded-md border border-slate-100 dark:border-slate-800 transition-all group"
                             >
                                 {/* Review Header */}
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
-                                            <User size={20} />
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                                            <User size={16} />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                                            <h3 className="font-black text-slate-900 dark:text-white text-xs uppercase tracking-tight">
                                                 {review.userId ? `${review.userId.firstname} ${review.userId.lastname}` : "Anonymous"}
                                             </h3>
-                                            <p className="text-xs text-slate-400 flex items-center gap-1">
+                                            <p className="text-[10px] font-bold text-slate-400 flex items-center gap-1 uppercase tracking-widest">
                                                 <Calendar size={10} /> {formatDate(review.createdAt)}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="px-2.5 py-1 bg-orange-50 dark:bg-orange-500/10 rounded-lg flex items-center gap-1 text-orange-600 dark:text-orange-400 font-bold text-xs">
-                                        <Star size={12} className="fill-orange-500 text-orange-500" />
+                                    <div className="px-1.5 py-0.5 bg-orange-50 dark:bg-orange-500/10 rounded-md flex items-center gap-1 text-orange-600 dark:text-orange-400 font-black text-[10px]">
+                                        <Star size={10} className="fill-orange-600 text-orange-600" />
                                         {review.rating}
                                     </div>
                                 </div>
@@ -158,10 +158,10 @@ export default function VendorReviewsPage() {
 
                                 {/* Food Item Badge */}
                                 {review.foodId && (
-                                    <div className="pt-4 mt-auto border-t border-slate-50 dark:border-slate-800">
-                                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-xl">
-                                            <Utensils size={14} className="text-slate-400" />
-                                            <span className="text-xs font-bold line-clamp-1">{review.foodId.name}</span>
+                                    <div className="pt-3 mt-auto border-t border-slate-50 dark:border-slate-800/50">
+                                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 px-2 py-1.5 rounded-md">
+                                            <Utensils size={12} className="text-slate-400" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest line-clamp-1">{review.foodId.name}</span>
                                         </div>
                                     </div>
                                 )}

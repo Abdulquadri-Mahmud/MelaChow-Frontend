@@ -155,27 +155,27 @@ export default function RiderManagementPage() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-4 max-w-7xl mx-auto">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2">My Rider Fleet</h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium">Manage your delivery personnel and track their availability.</p>
+                    <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">My Rider Fleet</h1>
+                    <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest">Manage your delivery personnel and track their availability.</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <button
                         onClick={fetchRiders}
                         disabled={loading}
-                        className="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-4 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 disabled:opacity-50"
+                        className="bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-100 dark:border-slate-800 px-4 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 shadow-none transition-all active:scale-95 disabled:opacity-50"
                     >
-                        <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
+                        <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
                         <span className="hidden sm:inline">Refresh</span>
                     </button>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-orange-600/20 transition-all active:scale-95"
+                        className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 shadow-none transition-all active:scale-95"
                     >
-                        <UserPlus size={20} />
+                        <UserPlus size={16} />
                         <span className="hidden sm:inline">Add New Rider</span>
                         <span className="sm:hidden">Add</span>
                     </button>
@@ -183,20 +183,20 @@ export default function RiderManagementPage() {
             </div>
 
             {/* Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
-                    <div className="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider mb-2">Total Riders</div>
-                    <div className="text-4xl font-black text-slate-900 dark:text-white">{safeRiders.length}</div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-md border border-slate-100 dark:border-slate-800">
+                    <div className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1.5 leading-none">Total Riders</div>
+                    <div className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{safeRiders.length}</div>
                 </div>
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
-                    <div className="text-green-500 text-sm font-bold uppercase tracking-wider mb-2">Online Now</div>
-                    <div className="text-4xl font-black text-slate-900 dark:text-white">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-md border border-slate-100 dark:border-slate-800">
+                    <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1.5 leading-none">Online Now</div>
+                    <div className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                         {safeRiders.filter(r => r.status === 'available').length}
                     </div>
                 </div>
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700">
-                    <div className="text-orange-500 text-sm font-bold uppercase tracking-wider mb-2">Active Deliveries</div>
-                    <div className="text-4xl font-black text-slate-900 dark:text-white">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-md border border-slate-100 dark:border-slate-800">
+                    <div className="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1.5 leading-none">Active Tasks</div>
+                    <div className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                         {safeRiders.filter(r => r.currentOrderId).length}
                     </div>
                 </div>
@@ -204,29 +204,28 @@ export default function RiderManagementPage() {
 
             {/* Search and Filters placeholder */}
             <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input
                     type="text"
                     placeholder="Search riders by name or phone..."
-                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 pl-12 pr-4 focus:ring-2 focus:ring-orange-500 outline-none transition-all dark:text-white"
+                    className="w-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-md py-3 pl-12 pr-4 text-[11px] font-bold uppercase tracking-widest focus:ring-1 focus:ring-orange-600 outline-none transition-all dark:text-white"
                 />
             </div>
 
-            {/* Riders List */}
             {loading ? (
-                <div className="flex justify-center py-20">
-                    <Loader2 className="animate-spin text-orange-500" size={40} />
+                <div className="flex justify-center py-16">
+                    <Loader2 className="animate-spin text-orange-600" size={32} />
                 </div>
             ) : safeRiders.length === 0 ? (
-                <div className="text-center py-20 bg-slate-100 dark:bg-slate-800/50 rounded-[40px] border-2 border-dashed border-slate-200 dark:border-slate-700">
-                    <div className="w-20 h-20 bg-slate-200 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Bike size={40} className="text-slate-400" />
+                <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800">
+                    <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-md flex items-center justify-center mx-auto mb-4">
+                        <Bike size={32} className="text-slate-300" />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">No Riders Found</h3>
-                    <p className="text-slate-500 dark:text-slate-400 max-w-xs mx-auto mb-8">You haven't added any riders to your fleet yet. Start by adding your first delivery person.</p>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2 uppercase tracking-tight">No Riders Found</h3>
+                    <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 max-w-[240px] mx-auto uppercase tracking-widest leading-relaxed">You haven't added any riders to your fleet yet. Start by adding your first delivery person.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {safeRiders.map((rider) => {
                         const style = getStatusStyles(rider.status);
                         return (
@@ -235,17 +234,17 @@ export default function RiderManagementPage() {
                                 layout
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all relative group"
+                                className="bg-white dark:bg-slate-900 p-4 rounded-md border border-slate-100 dark:border-slate-800 hover:border-orange-500/30 transition-all relative group"
                             >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600 overflow-hidden shrink-0">
-                                            {rider.avatar ? <img src={rider.avatar} alt="" className="w-full h-full object-cover" /> : <Bike size={24} />}
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="flex gap-3">
+                                        <div className="w-12 h-12 rounded-md bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 overflow-hidden shrink-0">
+                                            {rider.avatar ? <img src={rider.avatar} alt="" className="w-full h-full object-cover" /> : <Bike size={20} />}
                                         </div>
                                         <div className="min-w-0">
-                                            <h3 className="font-bold text-slate-900 dark:text-white truncate">{rider.name}</h3>
-                                            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
-                                                <Phone size={12} />
+                                            <h3 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tight truncate">{rider.name}</h3>
+                                            <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest">
+                                                <Phone size={10} />
                                                 {rider.phone}
                                             </div>
                                         </div>
@@ -254,9 +253,9 @@ export default function RiderManagementPage() {
                                     <div className="relative">
                                         <button
                                             onClick={() => setActiveDropdown(activeDropdown === rider._id ? null : rider._id)}
-                                            className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                                            className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-1 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800"
                                         >
-                                            <MoreVertical size={20} />
+                                            <MoreVertical size={16} />
                                         </button>
 
                                         {/* Dropdown Menu */}
@@ -266,24 +265,24 @@ export default function RiderManagementPage() {
                                                     initial={{ opacity: 0, scale: 0.95, y: -10 }}
                                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                                     exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                                    className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50 overflow-hidden z-20 py-1"
+                                                    className="absolute right-0 top-full mt-2 w-44 bg-white dark:bg-slate-900 rounded-md shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden z-20 py-1"
                                                 >
                                                     <a
                                                         href={`tel:${rider.phone}`}
-                                                        className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                                                        className="flex items-center gap-3 w-full px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                                                     >
-                                                        <PhoneCall size={16} className="text-green-500" />
+                                                        <PhoneCall size={14} className="text-emerald-500" />
                                                         Call Rider
                                                     </a>
                                                     <button
-                                                        className="flex items-center gap-3 w-full px-4 py-3 text-sm font-bold text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left"
+                                                        className="flex items-center gap-3 w-full px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-left"
                                                         onClick={() => {
                                                             setSelectedRiderProfile(rider);
                                                             setActiveDropdown(null);
                                                         }}
                                                     >
-                                                        <UserPlus size={16} />
-                                                        View Profile
+                                                        <UserPlus size={14} />
+                                                        Profile
                                                     </button>
                                                 </motion.div>
                                             )}
@@ -291,15 +290,15 @@ export default function RiderManagementPage() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100 dark:border-slate-700/50">
-                                    <div className={`px-3 py-1.5 rounded-full flex items-center gap-2 ${style.bg} ${style.text} text-[10px] font-black uppercase tracking-wider`}>
-                                        <span className={`w-1.5 h-1.5 rounded-full ${style.dot} ${rider.status === 'available' ? 'animate-pulse' : ''}`} />
+                                <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-50 dark:border-slate-800/50">
+                                    <div className={`px-2 py-1 rounded-md flex items-center gap-1.5 ${style.bg} ${style.text} text-[9px] font-black uppercase tracking-widest`}>
+                                        <span className={`w-1 h-1 rounded-full ${style.dot} ${rider.status === 'available' ? 'animate-pulse' : ''}`} />
                                         {rider.status || 'Offline'}
                                     </div>
 
                                     {rider.currentOrderId && (
-                                        <div className="text-[10px] font-bold text-orange-500 flex items-center gap-1">
-                                            <Clock size={12} />
+                                        <div className="text-[9px] font-black uppercase tracking-widest text-orange-600 flex items-center gap-1">
+                                            <Clock size={10} />
                                             ON TASK
                                         </div>
                                     )}
@@ -325,46 +324,46 @@ export default function RiderManagementPage() {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-[32px] overflow-hidden relative shadow-2xl"
+                            className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-md overflow-hidden relative shadow-none border border-slate-100 dark:border-slate-800"
                         >
-                            <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                <h2 className="text-2xl font-black dark:text-white">Add New Rider</h2>
+                            <div className="p-5 border-b border-slate-50 dark:border-slate-800/50 flex items-center justify-between">
+                                <h2 className="text-xl font-black dark:text-white uppercase tracking-tight">Add New Rider</h2>
                                 <button
                                     onClick={() => setIsModalOpen(false)}
-                                    className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
+                                    className="w-8 h-8 rounded-md bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
                                 >
-                                    <X size={20} />
+                                    <X size={16} />
                                 </button>
                             </div>
 
-                            <form onSubmit={handleCreateRider} className="p-8 space-y-6">
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-slate-500 ml-1">Full Name</label>
+                            <form onSubmit={handleCreateRider} className="p-5 space-y-4">
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Full Name</label>
                                             <input
                                                 required
                                                 value={formData.name}
                                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                 type="text"
                                                 placeholder="Enter rider's name"
-                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 outline-none ring-2 ring-transparent focus:ring-orange-500 transition-all dark:text-white"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-md py-3 px-4 text-xs font-black uppercase tracking-widest outline-none focus:border-orange-600 transition-all dark:text-white"
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-slate-500 ml-1">Phone Number</label>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Phone Number</label>
                                             <input
                                                 required
                                                 value={formData.phone}
                                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                                 type="tel"
                                                 placeholder="080 000 0000"
-                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 outline-none ring-2 ring-transparent focus:ring-orange-500 transition-all dark:text-white"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-md py-3 px-4 text-xs font-black uppercase tracking-widest outline-none focus:border-orange-600 transition-all dark:text-white"
                                             />
                                         </div>
                                     </div>
-                                    <div className="space-y-2 relative">
-                                        <label className="text-sm font-bold text-slate-500 ml-1">Initial Password</label>
+                                    <div className="space-y-1.5 relative">
+                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Password</label>
                                         <div className="relative">
                                             <input
                                                 required
@@ -372,25 +371,25 @@ export default function RiderManagementPage() {
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                 type={showPassword ? "text" : "password"}
                                                 placeholder="••••••••"
-                                                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 pl-6 pr-12 outline-none ring-2 ring-transparent focus:ring-orange-500 transition-all dark:text-white"
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-md py-3 pl-4 pr-10 text-xs font-black uppercase tracking-widest outline-none focus:border-orange-600 transition-all dark:text-white"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                                             >
-                                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                             </button>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-500 ml-1">Notes (Optional)</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Notes (Optional)</label>
                                         <textarea
                                             value={formData.notes}
                                             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                                             rows={2}
                                             placeholder="Any special notes?"
-                                            className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-4 px-6 outline-none ring-2 ring-transparent focus:ring-orange-500 transition-all dark:text-white resize-none"
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-md py-3 px-4 text-xs font-black uppercase tracking-widest outline-none focus:border-orange-600 transition-all dark:text-white resize-none"
                                         />
                                     </div>
                                 </div>
@@ -398,9 +397,9 @@ export default function RiderManagementPage() {
                                 <button
                                     type="submit"
                                     disabled={creating}
-                                    className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-2xl py-5 font-black transition-all shadow-lg shadow-orange-600/20 active:scale-95 flex items-center justify-center gap-2"
+                                    className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-md py-3.5 font-black uppercase text-[10px] tracking-widest transition-all shadow-none active:scale-95 flex items-center justify-center gap-2"
                                 >
-                                    {creating ? <Loader2 className="animate-spin" size={20} /> : "Complete Registration"}
+                                    {creating ? <Loader2 className="animate-spin" size={16} /> : "Complete Registration"}
                                 </button>
                             </form>
                         </motion.div>
@@ -424,33 +423,33 @@ export default function RiderManagementPage() {
                             animate={{ x: 0 }}
                             exit={{ x: "100%" }}
                             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="w-full max-w-md bg-white dark:bg-slate-900 h-full relative shadow-2xl flex flex-col overflow-hidden"
+                            className="w-full max-w-sm bg-white dark:bg-slate-950 h-full relative shadow-none border-l border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden"
                         >
-                            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 z-10">
-                                <h2 className="text-2xl font-black dark:text-white">Rider Profile</h2>
+                            <div className="p-5 border-b border-slate-50 dark:border-slate-800/50 flex items-center justify-between bg-white dark:bg-slate-950 z-10">
+                                <h2 className="text-xl font-black dark:text-white uppercase tracking-tight">Rider Profile</h2>
                                 <button
                                     onClick={() => setSelectedRiderProfile(null)}
-                                    className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
+                                    className="w-8 h-8 rounded-md bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors"
                                 >
-                                    <X size={20} />
+                                    <X size={16} />
                                 </button>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                            <div className="flex-1 overflow-y-auto p-5 space-y-6">
                                 {/* Profile Header */}
                                 <div className="flex items-center gap-4">
-                                    <div className="w-20 h-20 rounded-3xl bg-orange-100 flex items-center justify-center text-orange-600 overflow-hidden shrink-0">
-                                        {selectedRiderProfile.avatar ? <img src={selectedRiderProfile.avatar} alt="" className="w-full h-full object-cover" /> : <Bike size={32} />}
+                                    <div className="w-16 h-16 rounded-md bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 overflow-hidden shrink-0">
+                                        {selectedRiderProfile.avatar ? <img src={selectedRiderProfile.avatar} alt="" className="w-full h-full object-cover" /> : <Bike size={24} />}
                                     </div>
-                                    <div>
-                                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{selectedRiderProfile.name}</h3>
+                                    <div className="min-w-0">
+                                        <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">{selectedRiderProfile.name}</h3>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <div className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${getStatusStyles(selectedRiderProfile.status).bg} ${getStatusStyles(selectedRiderProfile.status).text}`}>
+                                            <div className={`px-1.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${getStatusStyles(selectedRiderProfile.status).bg} ${getStatusStyles(selectedRiderProfile.status).text}`}>
                                                 {selectedRiderProfile.status || 'Offline'}
                                             </div>
                                             {selectedRiderProfile.currentOrderId && (
-                                                <div className="px-2 py-1 rounded-lg bg-orange-100 text-orange-600 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
-                                                    <Clock size={12} /> On Task
+                                                <div className="px-1.5 py-0.5 rounded-md bg-orange-50 text-orange-600 text-[9px] font-black uppercase tracking-widest flex items-center gap-1 border border-orange-100">
+                                                    <Clock size={10} /> On Task
                                                 </div>
                                             )}
                                         </div>
@@ -458,52 +457,52 @@ export default function RiderManagementPage() {
                                 </div>
 
                                 {/* Quick Stats */}
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl">
-                                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-1">
-                                            <Activity size={16} />
-                                            <span className="text-xs font-bold uppercase tracking-wider">Deliveries</span>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-md border border-slate-100 dark:border-slate-800">
+                                        <div className="flex items-center gap-2 text-slate-400 mb-1.5 leading-none">
+                                            <Activity size={12} />
+                                            <span className="text-[9px] font-black uppercase tracking-widest">Deliveries</span>
                                         </div>
-                                        <div className="text-xl font-black text-slate-900 dark:text-white">
+                                        <div className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
                                             {selectedRiderProfile.totalDeliveries || 0}
                                         </div>
                                     </div>
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl">
-                                        <div className="flex items-center gap-2 text-yellow-500 mb-1">
-                                            <Star size={16} className="fill-current" />
-                                            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Rating</span>
+                                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-md border border-slate-100 dark:border-slate-800">
+                                        <div className="flex items-center gap-2 text-yellow-500 mb-1.5 leading-none">
+                                            <Star size={12} className="fill-current" />
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Rating</span>
                                         </div>
-                                        <div className="text-xl font-black text-slate-900 dark:text-white">
+                                        <div className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
                                             {selectedRiderProfile.rating ? selectedRiderProfile.rating.toFixed(1) : 'New'}
                                         </div>
                                     </div>
-                                    <div className="col-span-2 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl">
-                                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-1">
-                                            <CreditCard size={16} />
-                                            <span className="text-xs font-bold uppercase tracking-wider">Total Earnings</span>
+                                    <div className="col-span-2 bg-slate-50 dark:bg-slate-900 p-4 rounded-md border border-slate-100 dark:border-slate-800">
+                                        <div className="flex items-center gap-2 text-slate-400 mb-1.5 leading-none">
+                                            <CreditCard size={12} />
+                                            <span className="text-[9px] font-black uppercase tracking-widest">Total Earnings</span>
                                         </div>
-                                        <div className="text-2xl font-black text-slate-900 dark:text-white">
+                                        <div className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
                                             ₦{(selectedRiderProfile.totalEarnings || 0).toLocaleString()}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Contact & Notes */}
-                                <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                <div className="space-y-4 pt-4 border-t border-slate-50 dark:border-slate-800/50">
                                     <div>
-                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-1">Phone Number</label>
-                                        <div className="text-slate-900 dark:text-white font-medium flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl">
+                                        <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-1.5 leading-none">Phone Number</label>
+                                        <div className="text-slate-900 dark:text-white font-black text-xs uppercase tracking-widest flex items-center justify-between bg-slate-50 dark:bg-slate-900 p-3 rounded-md border border-slate-100 dark:border-slate-800">
                                             {selectedRiderProfile.phone}
-                                            <a href={`tel:${selectedRiderProfile.phone}`} className="p-2 bg-white dark:bg-slate-800 rounded-lg shadow-sm text-green-500 hover:scale-105 transition-transform">
-                                                <PhoneCall size={16} />
+                                            <a href={`tel:${selectedRiderProfile.phone}`} className="p-1.5 bg-white dark:bg-slate-800 rounded-md border border-slate-100 dark:border-slate-800 text-emerald-500 hover:scale-105 transition-transform">
+                                                <PhoneCall size={14} />
                                             </a>
                                         </div>
                                     </div>
                                     
                                     {selectedRiderProfile.notes && (
                                         <div>
-                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-1">Notes</label>
-                                            <p className="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl leading-relaxed">
+                                            <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block mb-1.5 leading-none">Notes</label>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900 p-3 rounded-md border border-slate-100 dark:border-slate-800 leading-relaxed">
                                                 {selectedRiderProfile.notes}
                                             </p>
                                         </div>
@@ -512,15 +511,13 @@ export default function RiderManagementPage() {
                             </div>
 
                             {/* Actions Footer */}
-                            <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3 shrink-0">
-                                {/* Normally Edit would toggle an inline form, leaving it simple for UI showcase */}
-                                {/* Deactivate Button */}
+                            <div className="p-5 border-t border-slate-50 dark:border-slate-800/50 bg-white dark:bg-slate-950 space-y-2 shrink-0">
                                 <button
                                     onClick={handleDeactivateRider}
                                     disabled={isDeactivating}
-                                    className="w-full bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                                    className="w-full bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 py-3.5 rounded-md font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                                 >
-                                    {isDeactivating ? <Loader2 className="animate-spin" size={18} /> : <Trash2 size={18} />}
+                                    {isDeactivating ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
                                     Deactivate Rider
                                 </button>
                             </div>

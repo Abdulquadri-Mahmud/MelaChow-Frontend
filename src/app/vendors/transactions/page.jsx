@@ -175,156 +175,131 @@ Need help? Contact support with your reference ID
 
     if (isLoading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-[#0F172A]">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-[#FF6B00] border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium">Loading transactions...</p>
+            <div className="flex h-screen items-center justify-center bg-white dark:bg-slate-950">
+                <div className="flex flex-col items-center gap-2">
+                    <div className="w-8 h-8 border-2 border-orange-600 border-t-transparent rounded-md animate-spin" />
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Loading Ledger...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] font-sans">
-            <div className="max-w-7xl mx-auto space-y-6">
+        <div className="min-h-screen bg-white dark:bg-slate-950 p-4">
+            <div className="max-w-6xl mx-auto space-y-4">
 
                 {/* Header Section */}
                 <motion.div
-                    initial={{ opacity: 0, y: -20 }}
+                    initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex flex-col md:flex-row md:items-center justify-between gap-4"
                 >
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Transactions</h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track your earnings and manage payouts</p>
+                        <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Financial Ledger</h1>
+                        <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 uppercase tracking-widest">Track earnings and manage platform payouts.</p>
                     </div>
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
+                    <button
                         onClick={downloadReport}
-                        className="flex items-center gap-2 px-5 py-3 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-md text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
                     >
-                        <Download size={18} />
-                        Export Report
-                    </motion.button>
+                        <Download size={14} />
+                        Export Ledger
+                    </button>
                 </motion.div>
 
                 {/* Balance Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 
-                    {/* Escrow Informational Banner (Spans Full Width on Small, 3 Cols on Large) */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.05 }}
-                        className="md:col-span-3 bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800/50 rounded-2xl p-4 flex items-start gap-4 shadow-sm"
-                    >
-                        <div className="p-2 bg-indigo-100 dark:bg-indigo-800/50 text-indigo-600 dark:text-indigo-400 rounded-xl flex-shrink-0">
-                            <Wallet size={20} />
+                    {/* Escrow Banner */}
+                    <div className="md:col-span-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-800/50 rounded-md p-3 flex items-start gap-3">
+                        <div className="p-1.5 bg-blue-100 dark:bg-blue-800 text-blue-600 rounded-md flex-shrink-0">
+                            <Wallet size={14} />
                         </div>
                         <div>
-                            <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-300">Escrow Protected Payouts Active</h4>
-                            <p className="text-sm text-indigo-700 dark:text-indigo-400/80 mt-1 leading-relaxed">
-                                Active orders are safely held in Escrow by GrubDash. Your food revenue (and delivery fees if applicable) will be automatically credited to your Available Balance the moment the order is marked as <strong>Delivered</strong>.
+                            <h4 className="text-[10px] font-black uppercase tracking-tight text-blue-900 dark:text-blue-300 leading-none">Escrow Protection Active</h4>
+                            <p className="text-[9px] text-blue-700 dark:text-blue-400/80 mt-1 leading-relaxed font-black uppercase tracking-widest">
+                                Revenue is safely held in Escrow and credited upon Delivery.
                             </p>
                         </div>
-                    </motion.div>
+                    </div>
+
                     {/* Main Balance Card */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.1 }}
-                        className="md:col-span-1 bg-gradient-to-br from-[#FF6B00] to-orange-600 rounded-3xl p-6 text-white relative overflow-hidden shadow-xl shadow-orange-500/20"
-                    >
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                        <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Wallet size={20} className="opacity-80" />
-                                <p className="text-white/80 text-sm font-medium">Available Balance</p>
+                    <div className="md:col-span-1 bg-orange-600 rounded-md p-5 text-white relative flex flex-col justify-between">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1 leading-none">
+                                <Wallet size={12} className="opacity-80" />
+                                <p className="text-white/80 text-[10px] font-black uppercase tracking-widest">Available Balance</p>
                             </div>
-                            <h2 className="text-4xl font-bold tracking-tight mb-6">₦{wallet?.balance?.toLocaleString() || "0.00"}</h2>
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                className="w-full bg-white text-[#FF6B00] px-4 py-3 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
-                            >
-                                <CreditCard size={18} />
-                                Withdraw Funds
-                            </motion.button>
+                            <h2 className="text-3xl font-black tracking-tight leading-none my-2">₦{wallet?.balance?.toLocaleString() || "0.00"}</h2>
                         </div>
-                    </motion.div>
+                        <button className="w-full bg-white text-orange-600 px-4 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 mt-4">
+                            <CreditCard size={14} />
+                            Withdraw Funds
+                        </button>
+                    </div>
 
                     {/* Credits Card */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-white dark:bg-[#1E293B] rounded-3xl p-6 border border-slate-200 dark:border-slate-800"
-                    >
+                    <div className="bg-white dark:bg-slate-900 rounded-md p-4 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-green-100 dark:bg-green-500/10 rounded-xl text-green-600 dark:text-green-400">
-                                <TrendingUp size={24} />
+                            <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-md text-emerald-600">
+                                <TrendingUp size={16} />
                             </div>
-                            <span className="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-500/10 px-3 py-1 rounded-full">
+                            <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded-md uppercase tracking-widest border border-emerald-100 dark:border-emerald-500/20">
                                 +{stats.creditCount}
                             </span>
                         </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Credits</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                            ₦{stats.totalCredits.toLocaleString()}
-                        </p>
-                    </motion.div>
+                        <div>
+                            <p className="text-[10px] text-slate-400 mb-1 font-black uppercase tracking-widest leading-none">Total Credits</p>
+                            <p className="text-xl font-black text-slate-900 dark:text-white leading-none">
+                                ₦{stats.totalCredits.toLocaleString()}
+                            </p>
+                        </div>
+                    </div>
 
                     {/* Debits Card */}
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.3 }}
-                        className="bg-white dark:bg-[#1E293B] rounded-3xl p-6 border border-slate-200 dark:border-slate-800"
-                    >
+                    <div className="bg-white dark:bg-slate-900 rounded-md p-4 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
                         <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-red-100 dark:bg-red-500/10 rounded-xl text-red-600 dark:text-red-400">
-                                <TrendingDown size={24} />
+                            <div className="p-2 bg-rose-50 dark:bg-rose-500/10 rounded-md text-rose-600">
+                                <TrendingDown size={16} />
                             </div>
-                            <span className="text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-500/10 px-3 py-1 rounded-full">
+                            <span className="text-[9px] font-black text-rose-600 bg-rose-50 dark:bg-rose-500/10 px-1.5 py-0.5 rounded-md uppercase tracking-widest border border-rose-100 dark:border-rose-500/20">
                                 -{stats.debitCount}
                             </span>
                         </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Total Debits</p>
-                        <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                            ₦{stats.totalDebits.toLocaleString()}
-                        </p>
-                    </motion.div>
+                        <div>
+                            <p className="text-[10px] text-slate-400 mb-1 font-black uppercase tracking-widest leading-none">Total Debits</p>
+                            <p className="text-xl font-black text-slate-900 dark:text-white leading-none">
+                                ₦{stats.totalDebits.toLocaleString()}
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Transactions List */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+                <div
+                    className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden"
                 >
 
                     {/* Filters Header */}
-                    <div className="p-6 border-b border-slate-200 dark:border-slate-800">
+                    <div className="p-5 border-b border-slate-50 dark:border-slate-800/50">
                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                            <div>
-                                <h3 className="font-bold text-xl text-slate-900 dark:text-white">Transaction History</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                                    {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''} found
+                            <div className="space-y-0.5">
+                                <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-tight">Transaction History</h3>
+                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                                    {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''} recorded
                                 </p>
                             </div>
 
-                            <div className="flex flex-wrap gap-3">
+                            <div className="flex flex-wrap gap-2.5">
                                 {/* Type Filter */}
-                                <div className="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
+                                <div className="flex bg-slate-50 dark:bg-slate-950 p-1 rounded-md border border-slate-100 dark:border-slate-800">
                                     {['all', 'credit', 'debit'].map((type) => (
                                         <button
                                             key={type}
                                             onClick={() => setTypeFilter(type)}
-                                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${typeFilter === type
-                                                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
-                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+                                            className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${typeFilter === type
+                                                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-none border border-slate-100 dark:border-slate-700'
+                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 transition-colors'
                                                 }`}
                                         >
                                             {type === 'all' ? 'All' : type === 'credit' ? 'Credits' : 'Debits'}
@@ -336,11 +311,11 @@ Need help? Contact support with your reference ID
                                 <div className="relative">
                                     <button
                                         onClick={() => setShowMonthDropdown(!showMonthDropdown)}
-                                        className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-900 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-md text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-all active:scale-95"
                                     >
-                                        <Calendar size={16} />
+                                        <Calendar size={14} />
                                         {formatMonthYear(selectedMonth)}
-                                        <ChevronDown size={16} className={`transition-transform ${showMonthDropdown ? 'rotate-180' : ''}`} />
+                                        <ChevronDown size={14} className={`transition-transform ${showMonthDropdown ? 'rotate-180' : ''}`} />
                                     </button>
 
                                     <AnimatePresence>
@@ -349,17 +324,17 @@ Need help? Contact support with your reference ID
                                                 initial={{ opacity: 0, y: -10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: -10 }}
-                                                className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-20"
+                                                className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-md shadow-none border border-slate-100 dark:border-slate-800 overflow-hidden z-20"
                                             >
-                                                <div className="p-2 max-h-64 overflow-y-auto">
+                                                <div className="p-1 max-h-64 overflow-y-auto">
                                                     <button
                                                         onClick={() => {
                                                             setSelectedMonth("all");
                                                             setShowMonthDropdown(false);
                                                         }}
-                                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${selectedMonth === "all"
-                                                            ? 'bg-[#FF6B00] text-white'
-                                                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                                        className={`w-full text-left px-3 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${selectedMonth === "all"
+                                                            ? 'bg-orange-600 text-white'
+                                                            : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800'
                                                             }`}
                                                     >
                                                         All Time
@@ -371,9 +346,9 @@ Need help? Contact support with your reference ID
                                                                 setSelectedMonth(month);
                                                                 setShowMonthDropdown(false);
                                                             }}
-                                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-colors ${selectedMonth === month
-                                                                ? 'bg-[#FF6B00] text-white'
-                                                                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                                            className={`w-full text-left px-3 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${selectedMonth === month
+                                                                ? 'bg-orange-600 text-white'
+                                                                : 'text-slate-400 hover:text-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800'
                                                                 }`}
                                                         >
                                                             {formatMonthYear(month)}
@@ -394,10 +369,10 @@ Need help? Contact support with your reference ID
                                             setTypeFilter('all');
                                             setSelectedMonth('all');
                                         }}
-                                        className="flex items-center gap-1 px-3 py-2 bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 rounded-xl text-xs font-bold hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors"
+                                        className="flex items-center gap-1.5 px-3 py-2.5 bg-rose-50 dark:bg-rose-500/10 text-rose-600 rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-colors"
                                     >
                                         <X size={14} />
-                                        Clear
+                                        Reset
                                     </motion.button>
                                 )}
                             </div>
@@ -407,84 +382,70 @@ Need help? Contact support with your reference ID
                     {/* Table */}
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
-                            <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 text-xs uppercase font-bold">
+                            <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-400 text-[9px] uppercase font-black tracking-widest border-b border-slate-100 dark:border-slate-800">
                                 <tr>
-                                    <th className="px-6 py-4">Transaction</th>
-                                    <th className="px-6 py-4">Reference</th>
-                                    <th className="px-6 py-4">Date & Time</th>
-                                    <th className="px-6 py-4 text-right">Amount</th>
-                                    <th className="px-6 py-4 text-center">Status</th>
+                                    <th className="px-5 py-3">Transaction</th>
+                                    <th className="px-5 py-3">Reference</th>
+                                    <th className="px-5 py-3 text-center">Date & Time</th>
+                                    <th className="px-5 py-3 text-right">Amount</th>
+                                    <th className="px-5 py-3 text-center">Status</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                <AnimatePresence mode="popLayout">
-                                    {filteredTransactions.length > 0 ? (
-                                        filteredTransactions.map((txn, index) => (
-                                            <motion.tr
-                                                key={txn._id}
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, x: -20 }}
-                                                transition={{ delay: index * 0.02 }}
-                                                onClick={() => {
-                                                    setSelectedTransaction(txn);
-                                                    setShowModal(true);
-                                                }}
-                                                className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer"
-                                            >
-                                                <td className="px-6 py-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`p-2.5 rounded-xl ${txn.type === 'credit'
-                                                            ? 'bg-green-100 text-green-600 dark:bg-green-500/10 dark:text-green-400'
-                                                            : 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400'
-                                                            }`}>
-                                                            {txn.type === 'credit' ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-bold text-slate-900 dark:text-white">{txn.description || "Transaction"}</p>
-                                                            <p className="text-xs text-slate-500 capitalize">{txn.type}</p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <span className="text-xs font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-                                                        {txn._id.slice(-8).toUpperCase()}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                                    {formatDate(txn.date)}
-                                                </td>
-                                                <td className={`px-6 py-4 text-right font-bold ${txn.type === 'credit' ? 'text-green-600 dark:text-green-400' : 'text-slate-900 dark:text-white'
-                                                    }`}>
-                                                    {txn.type === 'credit' ? '+' : '-'}₦{txn.amount.toLocaleString()}
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-green-100 text-green-600 dark:bg-green-500/10 dark:text-green-400">
-                                                        Success
-                                                    </span>
-                                                </td>
-                                            </motion.tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="5" className="px-6 py-16 text-center">
-                                                <div className="flex flex-col items-center gap-3">
-                                                    <div className="p-4 bg-slate-100 dark:bg-slate-800 rounded-full">
-                                                        <Wallet size={32} className="text-slate-400" />
+                            <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                                {filteredTransactions.length > 0 ? (
+                                    filteredTransactions.map((txn, index) => (
+                                        <tr
+                                            key={txn._id}
+                                            onClick={() => {
+                                                setSelectedTransaction(txn);
+                                                setShowModal(true);
+                                            }}
+                                            className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-all group cursor-pointer"
+                                        >
+                                            <td className="px-5 py-3">
+                                                <div className="flex items-center gap-2.5">
+                                                    <div className={`p-1.5 rounded-md ${txn.type === 'credit'
+                                                        ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-600/10'
+                                                        : 'bg-rose-50 text-rose-600 dark:bg-rose-600/10'
+                                                        }`}>
+                                                        {txn.type === 'credit' ? <ArrowUpRight size={14} /> : <ArrowDownLeft size={14} />}
                                                     </div>
                                                     <div>
-                                                        <p className="font-bold text-slate-700 dark:text-slate-300">No transactions found</p>
-                                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Try adjusting your filters</p>
+                                                        <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">{txn.description || "Transaction"}</p>
+                                                        <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-1">{txn.type}</p>
                                                     </div>
                                                 </div>
                                             </td>
+                                            <td className="px-5 py-3 text-center">
+                                                <span className="text-[9px] font-black text-slate-400 px-2 py-0.5 border border-slate-100 dark:border-slate-800 rounded-md uppercase tracking-widest">
+                                                    {txn._id.slice(-8).toUpperCase()}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-3 text-[10px] font-black text-slate-400 dark:text-slate-500 text-center uppercase tracking-widest">
+                                                {formatDate(txn.date)}
+                                            </td>
+                                            <td className={`px-5 py-3 text-right font-black text-[11px] ${txn.type === 'credit' ? 'text-emerald-600' : 'text-slate-900 dark:text-white'
+                                                }`}>
+                                                {txn.type === 'credit' ? '+' : '-'}₦{txn.amount.toLocaleString()}
+                                            </td>
+                                            <td className="px-5 py-3 text-center">
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 dark:bg-emerald-600/10 border border-emerald-100 dark:border-emerald-600/20">
+                                                    Success
+                                                </span>
+                                            </td>
                                         </tr>
-                                    )}
-                                </AnimatePresence>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className="px-6 py-12 text-center">
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No ledger entries found.</p>
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
-                </motion.div>
+                </div>
 
                 {/* Transaction Details Modal */}
                 <TransactionDetailsModal
@@ -534,48 +495,32 @@ function TransactionDetailsModal({ transaction, isOpen, onClose, formatDate, dow
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
                             transition={{ type: "spring", duration: 0.5 }}
-                            className="relative w-full max-w-lg bg-white dark:bg-[#1E293B] rounded-3xl shadow-2xl overflow-hidden"
+                            className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden"
                         >
-                            {/* Header with Gradient */}
-                            <div className={`relative p-6 ${transaction.type === 'credit'
-                                ? 'bg-gradient-to-br from-green-500 to-emerald-600'
-                                : 'bg-gradient-to-br from-[#FF6B00] to-orange-600'
+                            {/* Header with Background */}
+                            <div className={`relative p-5 ${transaction.type === 'credit'
+                                ? 'bg-emerald-600'
+                                : 'bg-orange-600'
                                 } text-white`}>
-                                <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
-
-                                <div className="relative z-10">
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
-                                                {transaction.type === 'credit' ? (
-                                                    <ArrowUpRight size={24} className="text-white" />
-                                                ) : (
-                                                    <ArrowDownLeft size={24} className="text-white" />
-                                                )}
-                                            </div>
-                                            <div>
-                                                <p className="text-white/80 text-sm font-medium">
-                                                    {transaction.type === 'credit' ? 'Money Received' : 'Money Sent'}
-                                                </p>
-                                                <h2 className="text-3xl font-bold tracking-tight">
-                                                    {transaction.type === 'credit' ? '+' : '-'}₦{transaction.amount.toLocaleString()}
-                                                </h2>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={onClose}
-                                            className="p-2 hover:bg-white/20 rounded-xl transition-colors"
-                                        >
-                                            <X size={20} />
-                                        </button>
+                                <div className="relative z-10 text-center">
+                                    <p className="text-white/80 text-[10px] font-black uppercase tracking-[0.2em] mb-3">
+                                        Transaction Receipt
+                                    </p>
+                                    <div className="inline-flex p-3 bg-white/20 rounded-md mb-3">
+                                        {transaction.type === 'credit' ? (
+                                            <ArrowUpRight size={24} className="text-white" />
+                                        ) : (
+                                            <ArrowDownLeft size={24} className="text-white" />
+                                        )}
                                     </div>
-
-                                    <div className="flex items-center gap-2">
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-white/20 backdrop-blur-sm">
-                                            <Check size={14} />
-                                            Success
+                                    <h2 className="text-3xl font-black tracking-tighter">
+                                        {transaction.type === 'credit' ? '+' : '-'}₦{transaction.amount.toLocaleString()}
+                                    </h2>
+                                    <div className="mt-4 flex flex-col items-center gap-1.5 px-4 py-2 bg-black/10 rounded-md">
+                                        <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                                            <Check size={12} /> Success
                                         </span>
-                                        <span className="text-white/60 text-xs">
+                                        <span className="text-white/60 text-[9px] font-black uppercase tracking-widest leading-none">
                                             {formatDate(transaction.date)}
                                         </span>
                                     </div>
@@ -583,23 +528,23 @@ function TransactionDetailsModal({ transaction, isOpen, onClose, formatDate, dow
                             </div>
 
                             {/* Body */}
-                            <div className="p-6 space-y-6">
+                            <div className="p-5 space-y-4">
                                 {/* Transaction Details */}
-                                <div className="space-y-4">
-                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wide">
-                                        Transaction Details
+                                <div className="space-y-3">
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
+                                        Data Points
                                     </h3>
 
-                                    <div className="space-y-3">
+                                    <div className="space-y-2">
                                         {/* Description */}
-                                        <div className="flex items-start justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                            <div className="flex items-start gap-3">
-                                                <div className="p-2 bg-white dark:bg-slate-800 rounded-lg">
-                                                    <FileText size={18} className="text-slate-600 dark:text-slate-400" />
+                                        <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800">
+                                                    <FileText size={14} className="text-slate-400" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Description</p>
-                                                    <p className="text-sm font-bold text-slate-900 dark:text-white">
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5 leading-none">Description</p>
+                                                    <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">
                                                         {transaction.description || "Transaction"}
                                                     </p>
                                                 </div>
@@ -607,39 +552,39 @@ function TransactionDetailsModal({ transaction, isOpen, onClose, formatDate, dow
                                         </div>
 
                                         {/* Reference ID */}
-                                        <div className="flex items-start justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                            <div className="flex items-start gap-3 flex-1">
-                                                <div className="p-2 bg-white dark:bg-slate-800 rounded-lg">
-                                                    <FileText size={18} className="text-slate-600 dark:text-slate-400" />
+                                        <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md">
+                                            <div className="flex items-center gap-3 flex-1">
+                                                <div className="p-2 bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800">
+                                                    <FileText size={14} className="text-slate-400" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Reference ID</p>
-                                                    <p className="text-sm font-mono font-bold text-slate-900 dark:text-white truncate">
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5 leading-none">Reference ID</p>
+                                                    <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">
                                                         {transaction._id}
                                                     </p>
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={() => handleCopy(transaction._id)}
-                                                className="ml-2 p-2 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                                className="ml-2 p-1.5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-md transition-all active:scale-90"
                                             >
                                                 {copied ? (
-                                                    <Check size={16} className="text-green-600" />
+                                                    <Check size={12} className="text-emerald-600" />
                                                 ) : (
-                                                    <Copy size={16} className="text-slate-400" />
+                                                    <Copy size={12} className="text-slate-400" />
                                                 )}
                                             </button>
                                         </div>
 
                                         {/* Date & Time */}
-                                        <div className="flex items-start justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                            <div className="flex items-start gap-3">
-                                                <div className="p-2 bg-white dark:bg-slate-800 rounded-lg">
-                                                    <Clock size={18} className="text-slate-600 dark:text-slate-400" />
+                                        <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800">
+                                                    <Clock size={14} className="text-slate-400" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Date & Time</p>
-                                                    <p className="text-sm font-bold text-slate-900 dark:text-white">
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5 leading-none">Timestamp</p>
+                                                    <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">
                                                         {formatDate(transaction.date)}
                                                     </p>
                                                 </div>
@@ -647,14 +592,14 @@ function TransactionDetailsModal({ transaction, isOpen, onClose, formatDate, dow
                                         </div>
 
                                         {/* Transaction Type */}
-                                        <div className="flex items-start justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                                            <div className="flex items-start gap-3">
-                                                <div className="p-2 bg-white dark:bg-slate-800 rounded-lg">
-                                                    <Wallet size={18} className="text-slate-600 dark:text-slate-400" />
+                                        <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800">
+                                                    <Wallet size={14} className="text-slate-400" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Type</p>
-                                                    <p className="text-sm font-bold text-slate-900 dark:text-white capitalize">
+                                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5 leading-none">Classification</p>
+                                                    <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">
                                                         {transaction.type}
                                                     </p>
                                                 </div>
@@ -664,39 +609,35 @@ function TransactionDetailsModal({ transaction, isOpen, onClose, formatDate, dow
                                 </div>
 
                                 {/* Action Buttons */}
-                                <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
+                                <div className="flex gap-2.5 pt-4 border-t border-slate-50 dark:border-slate-800">
+                                    <button
                                         onClick={() => handleCopy(transaction._id)}
-                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 transition-colors"
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 transition-all active:scale-95"
                                     >
                                         {copied ? (
                                             <>
-                                                <Check size={18} />
-                                                Copied!
+                                                <Check size={14} />
+                                                Copied
                                             </>
                                         ) : (
                                             <>
-                                                <Copy size={18} />
-                                                Copy ID
+                                                <Copy size={14} />
+                                                Copy Hash
                                             </>
                                         )}
-                                    </motion.button>
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
+                                    </button>
+                                    <button
                                         onClick={() => downloadReceipt(transaction)}
-                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#FF6B00] hover:bg-orange-600 rounded-xl text-sm font-bold text-white transition-colors"
+                                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-600 text-white rounded-md text-[10px] font-black uppercase tracking-widest transition-all active:scale-95"
                                     >
-                                        <Download size={18} />
-                                        Download Receipt
-                                    </motion.button>
+                                        <Download size={14} />
+                                        Ledger PDF
+                                    </button>
                                 </div>
 
                                 {/* Help Text */}
-                                <p className="text-xs text-center text-slate-500 dark:text-slate-400">
-                                    Need help? Contact support with your reference ID
+                                <p className="text-[9px] font-black text-center text-slate-400 uppercase tracking-widest">
+                                    Support Reference: hash-{transaction._id.slice(-8)}
                                 </p>
                             </div>
                         </motion.div>

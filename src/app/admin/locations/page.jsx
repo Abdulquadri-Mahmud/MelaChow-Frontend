@@ -225,15 +225,16 @@ function AdminLocationManagement() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Location Management</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage active states, cities, and vendor location requests</p>
+          <h1 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">Location Management</h1>
+          <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
+          <p className="text-sm text-slate-500 mt-1.5 font-medium">Manage active states, cities, and vendor location requests</p>
         </div>
         <button
           onClick={() => { fetchStates(); fetchCities(); fetchPendingRequests(); toast.success('Refreshed'); }}
-          className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
+          className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors text-[10px] font-bold uppercase tracking-widest"
         >
           <RefreshCw className="w-4 h-4" />
-          Refresh
+          Sync Data
         </button>
       </div>
 
@@ -267,8 +268,8 @@ function AdminLocationManagement() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition-all ${activeTab === tab.key
-                ? 'border-slate-900 text-slate-900 bg-white'
+              className={`flex items-center gap-2 px-5 py-3 text-[10px] font-bold uppercase tracking-widest border-b-2 transition-all ${activeTab === tab.key
+                ? 'border-orange-500 text-slate-900 bg-white'
                 : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-white/50'
               }`}
             >
@@ -367,7 +368,7 @@ const StatesPanel = ({ states, loading, onToggleStatus, togglingIds, showModal, 
           <input
             type="text" placeholder="Search states..." value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 h-9 bg-slate-50 border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900 transition-colors"
+            className="w-full pl-9 pr-4 h-9 bg-white border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-orange-500 transition-colors font-medium"
           />
         </div>
         <div className="flex bg-slate-100 p-0.5 rounded-md">
@@ -380,7 +381,7 @@ const StatesPanel = ({ states, loading, onToggleStatus, togglingIds, showModal, 
         </div>
       </div>
       <button onClick={() => setShowModal(true)}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors">
+        className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-orange-700 transition-colors shadow-sm shadow-orange-500/20">
         <Plus size={15} /> Add State
       </button>
     </div>
@@ -477,7 +478,7 @@ const CitiesPanel = ({ cities, states, loading, onToggleStatus, togglingIds, sho
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input type="text" placeholder="Search cities..." value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 pr-4 h-9 w-48 bg-slate-50 border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900 transition-colors" />
+            className="pl-9 pr-4 h-9 w-48 bg-white border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-orange-500 transition-colors font-medium" />
         </div>
         <div className="flex bg-slate-100 p-0.5 rounded-md">
           {['all', 'active', 'inactive'].map(f => (
@@ -494,7 +495,7 @@ const CitiesPanel = ({ cities, states, loading, onToggleStatus, togglingIds, sho
         </select>
       </div>
       <button onClick={() => setShowModal(true)}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors">
+        className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-orange-700 transition-colors shadow-sm shadow-orange-500/20">
         <Plus size={15} /> Add City
       </button>
     </div>

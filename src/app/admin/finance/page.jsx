@@ -181,11 +181,12 @@ export default function FinancePage() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                         <div>
-                            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2 uppercase tracking-tight">
                                 Commission Hub
-                                <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full tracking-widest uppercase">Finance Center</span>
+                                <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-50 text-orange-600 rounded-full border border-orange-100 italic tracking-widest uppercase">Finance Center</span>
                             </h1>
-                            <p className="text-sm text-slate-500 mt-0.5">Global commission tracking, settlements, and platform accounting.</p>
+                            <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
+                            <p className="text-sm text-slate-500 mt-1.5 font-medium">Global commission tracking, settlements, and platform accounting.</p>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                             <div className="flex bg-white border border-slate-200 rounded-md p-0.5 overflow-hidden">
@@ -228,7 +229,7 @@ export default function FinancePage() {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`h-8 px-4 flex items-center gap-2 text-[10px] font-bold uppercase transition-all rounded-md whitespace-nowrap ${activeTab === tab.id
-                                    ? "bg-white text-slate-900 border border-slate-200 ring-1 ring-slate-200"
+                                    ? "bg-white text-slate-900 border-b-2 border-b-orange-500 shadow-sm"
                                     : "text-slate-500 hover:text-slate-700 hover:bg-white/50"
                                     }`}
                             >
@@ -333,7 +334,7 @@ export default function FinancePage() {
                                             placeholder="Audit Reference, Order ID, Payout Target..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 rounded-md outline-none text-xs font-medium placeholder:text-slate-400 focus:ring-1 focus:ring-slate-900 transition-all"
+                                            className="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 rounded-md outline-none text-xs font-medium placeholder:text-slate-400 focus:ring-1 focus:ring-orange-500 transition-all"
                                         />
                                     </div>
                                     <div className="flex gap-2">

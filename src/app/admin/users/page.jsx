@@ -179,8 +179,9 @@ export default function AdminUsersPage() {
                     {/* Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-900">User Directory</h1>
-                            <p className="text-sm text-slate-500 mt-0.5">Manage platform accounts, check balances, and adjust access status.</p>
+                            <h1 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">User Directory</h1>
+                            <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
+                            <p className="text-sm text-slate-500 mt-1.5 font-medium">Manage platform accounts, check balances, and adjust access status.</p>
                         </div>
                         <button
                             onClick={fetchData}
@@ -209,7 +210,7 @@ export default function AdminUsersPage() {
                                 placeholder="Search by name, email or ID..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full h-9 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-md outline-none text-sm focus:ring-1 focus:ring-slate-900 transition-all"
+                                className="w-full h-9 pl-9 pr-3 bg-white border border-slate-200 rounded-md outline-none text-sm focus:ring-1 focus:ring-orange-500 transition-all font-medium"
                             />
                         </div>
                         <div className="flex flex-wrap gap-2">
