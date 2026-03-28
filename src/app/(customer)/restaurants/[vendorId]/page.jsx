@@ -305,24 +305,9 @@ export default function StorefrontPage() {
         setComboModalOpen(true);
     };
 
-    const handleItemTap = async (item) => {
+    const handleItemTap = (item) => {
         if (!item.is_available || !item.is_in_stock) return;
-        setLoadingItem(true);
-        try {
-            const res = await getMenuItemDetail(vendorId, item._id);
-            const rawItem = res.item;
-            const normalizedItem = {
-                ...rawItem,
-                choiceGroups: rawItem.choiceGroups || rawItem.choice_groups || [],
-                vendor: data.vendor,
-            };
-            setFullItem(normalizedItem);
-            setModalOpen(true);
-        } catch {
-            toast.error("Could not load item details");
-        } finally {
-            setLoadingItem(false);
-        }
+        router.push(`/food-details/${item._id}`);
     };
 
     const onAddSuccess = () => {
