@@ -583,8 +583,16 @@ const CitiesPanel = ({ cities, states, loading, onToggleStatus, togglingIds, sho
               <label className="block text-sm font-medium text-slate-700 mb-1">Platform Delivery Fee (₦)</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₦</span>
-                <input type="number" value={newPlatformDeliveryFee} onChange={(e) => setNewPlatformDeliveryFee(e.target.value)}
-                  className="w-full pl-7 pr-4 py-2 border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900" placeholder="0" />
+                <input 
+                  type="number" 
+                  min="0"
+                  step="0.01"
+                  onWheel={(e) => e.target.blur()} 
+                  value={newPlatformDeliveryFee || 0} 
+                  onChange={(e) => setNewPlatformDeliveryFee(e.target.value)}
+                  className="w-full pl-7 pr-4 py-2 border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900" 
+                  placeholder="0" 
+                />
               </div>
               <p className="text-xs text-slate-400 mt-1">Applies to all admin-managed deliveries in this city.</p>
             </div>
