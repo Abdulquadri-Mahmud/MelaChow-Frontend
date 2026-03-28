@@ -16,7 +16,8 @@ import {
     RefreshCw,
     Plus,
     Inbox,
-    Bike
+    Bike,
+    AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
@@ -276,15 +277,22 @@ export default function PlatformDeliveriesPage() {
                                                                 </div>
                                                             ) : (
                                                                 <button
-                                                                    onClick={() => setRiderAssignModal({
-                                                                        show: true,
-                                                                        orderData: {
-                                                                            vendorOrderId: order.vendorOrders?.[0]?._id || order._id,
-                                                                            restaurantName: order.vendorOrders?.[0]?.restaurantId?.storeName || 'Vendor',
-                                                                            readyAt: order.updatedAt,
-                                                                            url: `/admin/orders/${order.orderId}`
+                                                                    onClick={() => {
+                                                                        const vendorOrderId = order.vendorOrders?.[0]?._id;
+                                                                        if (!vendorOrderId) {
+                                                                            toast.error('Vendor order not found. Refresh and try again.');
+                                                                            return;
                                                                         }
-                                                                    })}
+                                                                        setRiderAssignModal({
+                                                                            show: true,
+                                                                            orderData: {
+                                                                                vendorOrderId,
+                                                                                restaurantName: order.vendorOrders?.[0]?.restaurantId?.storeName || 'Vendor',
+                                                                                readyAt: order.updatedAt,
+                                                                                url: `/admin/orders/${order.orderId}`
+                                                                            }
+                                                                        });
+                                                                    }}
                                                                     className={`w-full h-10 rounded-lg text-xs font-black uppercase tracking-wider transition-all border flex items-center justify-center gap-2 ${isActionable ? 'bg-rose-600 border-rose-700 text-white hover:bg-rose-700 hover:shadow-rose-200' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}`}
                                                                 >
                                                                     <Bike size={14} className={isActionable ? "animate-bounce" : "text-slate-400"} />

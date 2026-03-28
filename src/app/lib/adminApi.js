@@ -464,3 +464,6 @@ class AdminAPI {
 }
 
 export default new AdminAPI();
+
+
+// Last day for 2x usage outside the hours of 5–11am PT / 12–6pm GMT. Standard limits return tomorrow for these hours.
