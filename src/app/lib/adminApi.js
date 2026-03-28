@@ -357,6 +357,18 @@ class AdminAPI {
         return this.handleResponse(api.get(`/api/admin/notifications?${query}`));
     }
 
+    async markAdminAsRead(id) {
+        return this.handleResponse(api.patch(`/api/admin/notifications/${id}/read`));
+    }
+
+    async markAllAdminAsRead() {
+        return this.handleResponse(api.patch('/api/admin/notifications/read-all'));
+    }
+
+    async deleteAdminNotification(id) {
+        return this.handleResponse(api.delete(`/api/admin/notifications/${id}`));
+    }
+
     // ==================== ORDER MANAGEMENT ====================
 
     async getAllOrders(filters = {}) {

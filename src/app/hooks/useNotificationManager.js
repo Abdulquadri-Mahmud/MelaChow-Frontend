@@ -217,9 +217,13 @@ export function useNotificationManager(options = {}) {
 
     const markAsRead = async (notificationId) => {
         try {
-            await axios.patch(getEndpoint('mark-read', notificationId), {}, {
-                withCredentials: true
-            });
+            if (role === 'admin') {
+                await adminApi.markAdminAsRead(notificationId);
+            } else {
+                await axios.patch(getEndpoint('mark-read', notificationId), {}, {
+                    withCredentials: true
+                });
+            }
 
             setNotifications(prev => prev.map(n =>
                 n._id === notificationId ? { ...n, read: true } : n
@@ -237,9 +241,13 @@ export function useNotificationManager(options = {}) {
 
     const markAllAsRead = async () => {
         try {
-            await axios.patch(getEndpoint('mark-all-read'), {}, {
-                withCredentials: true
-            });
+            if (role === 'admin') {
+                await adminApi.markAllAdminAsRead();
+            } else {
+                await axios.patch(getEndpoint('mark-all-read'), {}, {
+                    withCredentials: true
+                });
+            }
 
             setNotifications(prev => prev.map(n => ({ ...n, read: true })));
             setApiUnreadCount(0);
@@ -254,9 +262,13 @@ export function useNotificationManager(options = {}) {
 
     const deleteNotification = async (notificationId) => {
         try {
-            await axios.delete(getEndpoint('delete', notificationId), {
-                withCredentials: true
-            });
+            if (role === 'admin') {
+                await adminApi.deleteAdminNotification(notificationId);
+            } else {
+                await axios.delete(getEndpoint('delete', notificationId), {
+                    withCredentials: true
+                });
+            }
 
             setNotifications(prev => {
                 const filtered = prev.filter(n => n._id !== notificationId);
