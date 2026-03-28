@@ -17,7 +17,8 @@ import {
     Menu,
     Filter,
     X,
-    Inbox
+    Inbox,
+    BellRing
 } from "lucide-react";
 import { useNotificationManager } from "@/app/hooks/useNotificationManager";
 import { useState, useMemo } from "react";
@@ -61,7 +62,12 @@ export default function AdminNotificationsPage() {
         markAllAsRead,
         deleteNotification,
         clearAll,
-        refreshNotifications
+        refreshNotifications,
+        isPushSupported,
+        isPushEnabled,
+        pushPermission,
+        subscribe,
+        unsubscribe
     } = useNotificationManager({ role: 'admin' });
 
     const [filter, setFilter] = useState('all'); // all, unread, logistics
@@ -110,6 +116,22 @@ export default function AdminNotificationsPage() {
                             <p className="text-sm text-slate-500 mt-0.5">Real-time logistics alerts and platform updates.</p>
                         </div>
                         <div className="flex items-center gap-2">
+                            {/* Push Notification Toggle */}
+                            {isPushSupported && (
+                                <button
+                                    onClick={isPushEnabled ? unsubscribe : subscribe}
+                                    disabled={loading || pushPermission === 'denied'}
+                                    className={`h-9 px-3 rounded-md flex items-center gap-2 font-bold text-[10px] uppercase transition-all shadow-sm border ${isPushEnabled
+                                        ? "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100"
+                                        : "bg-orange-500 border-orange-600 text-white hover:bg-orange-600"
+                                        }`}
+                                    title={pushPermission === 'denied' ? "Permission Denied in Browser" : "Toggle Push Notifications"}
+                                >
+                                    {loading ? <Loader2 size={14} className="animate-spin" /> : <BellRing size={14} />}
+                                    {isPushEnabled ? "Alerts On" : "Enable Alerts"}
+                                </button>
+                            )}
+
                             <button
                                 onClick={handleMarkAllRead}
                                 disabled={unreadCount === 0 || loading}

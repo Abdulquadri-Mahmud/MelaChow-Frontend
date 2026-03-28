@@ -15,7 +15,8 @@ import {
     ArrowRight,
     RefreshCw,
     Plus,
-    Inbox
+    Inbox,
+    Bike
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";

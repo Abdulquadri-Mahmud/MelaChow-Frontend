@@ -98,6 +98,50 @@ export const SocketProvider = ({ children }) => {
                 setLatestNotification(notification);
                 if (!notification.read) {
                     setUnreadCount(prev => prev + 1);
+
+                    // ✅ FIX: "Silent" Notifications — added global toast alert
+                    // Skip if it's a new order (that has its own custom toast below)
+                    if (notification.type !== 'vendor_new_order') {
+                        const isHighUrgency = ['admin_order_ready', 'rider_assignment_needed', 'urgent_system'].includes(notification.type);
+
+                        if (isHighUrgency && role === 'admin') {
+                            // Specialized Logistics Alert Toast for Admins
+                            toast.custom((t) => (
+                                <div
+                                    className={`bg-white dark:bg-slate-900 shadow-2xl rounded-2xl p-4 flex items-start gap-4 w-full max-w-sm border-l-4 border-rose-500 cursor-pointer ${t.visible ? 'animate-in slide-in-from-right-full' : 'animate-out fade-out'}`}
+                                    onClick={() => {
+                                        if (notification.url) window.location.href = notification.url;
+                                        toast.dismiss(t.id);
+                                    }}
+                                >
+                                    <div className="flex-shrink-0 w-10 h-10 bg-rose-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-md shadow-rose-200">
+                                        🚨
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-black text-sm text-rose-600 uppercase italic tracking-tight">Mission Critical</p>
+                                        <p className="text-xs font-bold text-slate-900 dark:text-white mt-0.5">{notification.title}</p>
+                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{notification.body}</p>
+                                    </div>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); toast.dismiss(t.id); }}
+                                        className="text-slate-300 hover:text-slate-500 transition-colors flex-shrink-0 text-xs"
+                                    >✕</button>
+                                </div>
+                            ), { duration: 20000, position: 'top-right', id: `logistics-${notification._id}` });
+
+                            // Urgent sound
+                            try { const audio = new Audio('/sounds/urgency.mp3'); audio.play().catch(() => { }); } catch (e) { }
+
+                        } else {
+                            // Regular Notification Toast
+                            toast.success(notification.body || notification.title, {
+                                icon: '🔔',
+                                duration: 6000,
+                                position: 'top-right',
+                                id: notification._id
+                            });
+                        }
+                    }
                 }
                 // Dispatch custom event for notifications list update
                 window.dispatchEvent(new CustomEvent('notifications:updated', { detail: notification }));
@@ -204,9 +248,9 @@ export const SocketProvider = ({ children }) => {
                     setUnreadCount(prev => prev + count);
                     
                     const label = role === 'admin' ? 'logistics alerts' : 
-                                  role === 'vendor' ? 'vendor updates' : 'order updates';
-                                  
-                    toast.success(`${count} missed ${label} received while away.`, { id: 'missed-notifications-summary' });
+                                   role === 'vendor' ? 'vendor updates' : 'order updates';
+                                   
+                    toast.success(`${count} missed ${label} received while away.`, { id: 'missed-notifications-summary', duration: 8000 });
                 }
             });
 
@@ -215,19 +259,34 @@ export const SocketProvider = ({ children }) => {
                 socketService.socket?.on('rider_assignment_needed', (data) => {
                     console.log('🚨 Rider assignment needed:', data);
                     setRiderAssignmentAlert(data);
-                    setUnreadCount(prev => prev + 1);
-                    window.dispatchEvent(new CustomEvent('notifications:updated', {
-                        detail: {
-                            _id: `rider-alert-${data.vendorOrderId || Date.now()}`,
-                            title: '🚨 Rider Assignment Required',
-                            body: `${data.restaurantName || 'A restaurant'} has an order ready for pickup.`,
-                            type: 'rider_assignment_needed',
-                            url: `/admin/orders/${data.vendorOrderId}`,
-                            createdAt: new Date().toISOString(),
-                            read: false,
-                            ...data
-                        }
-                    }));
+                    
+                    const alertNotification = {
+                        _id: `rider-alert-${data.vendorOrderId || Date.now()}`,
+                        title: '🚨 Rider Assignment Required',
+                        body: `${data.restaurantName || 'A restaurant'} has an order ready for pickup.`,
+                        type: 'rider_assignment_needed',
+                        url: `/admin/orders/${data.vendorOrderId}`,
+                        createdAt: new Date().toISOString(),
+                        read: false,
+                        ...data
+                    };
+
+                    window.dispatchEvent(new CustomEvent('notifications:updated', { detail: alertNotification }));
+                    
+                    // High-priority logistics toast
+                    toast.custom((t) => (
+                        <div
+                            className={`bg-white shadow-2xl rounded-2xl p-4 flex items-start gap-4 border-l-4 border-rose-600 cursor-pointer ${t.visible ? 'animate-in slide-in-from-right-full' : 'animate-out fade-out'}`}
+                            onClick={() => { window.location.href = `/admin/orders/${data.vendorOrderId}`; toast.dismiss(t.id); }}
+                        >
+                            <div className="w-10 h-10 bg-rose-600 rounded-xl flex items-center justify-center text-white scale-110 shadow-lg shadow-rose-200">🚨</div>
+                            <div className="flex-1">
+                                <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest leading-none mb-1">Logistics Emergency</p>
+                                <p className="text-xs font-bold text-slate-900 leading-tight">Rider Assignment Needed Now</p>
+                                <p className="text-[10px] text-slate-500 mt-1 line-clamp-1">{data.restaurantName || 'Merchant'} is ready for pickup.</p>
+                            </div>
+                        </div>
+                    ), { id: `logistics-alert-${data.vendorOrderId}`, duration: 30000, position: 'top-right' });
                 });
             }
 

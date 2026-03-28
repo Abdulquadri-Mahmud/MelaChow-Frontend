@@ -12,7 +12,8 @@ import {
     ShieldCheck, Truck, Utensils, CheckCircle2, Clock,
     Banknote, ChevronDown, ChevronUp, Search, Star,
     Package, Tag, Percent, Zap, Calendar, Users, X,
-    Globe, TriangleAlert, CircleCheck, XCircle, Info, Eye, Image as ImageIcon, TrendingUp, Box, ExternalLink
+    Globe, TriangleAlert, CircleCheck, XCircle, Info, Eye, Image as ImageIcon, TrendingUp, Box, ExternalLink,
+    Mail, Phone, Building2, CreditCard, Activity, Link
 } from "lucide-react";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -22,9 +23,9 @@ const FOOD_TYPES = { veg: "🥦 Veg", "non-veg": "🍗 Non-Veg", vegan: "🌿 Ve
 
 // ─── Badge Helper ─────────────────────────────────────────────────────────────
 const GlassBadge = ({ children, colorClass, size = "md" }) => {
-    const sizeClasses = size === "sm" ? "px-2 py-0.5 text-[9px]" : "px-2.5 py-1 text-[10px]";
+    const sizeClasses = size === "sm" ? "px-1.5 py-0.5 text-[8px]" : "px-2 py-0.5 text-[9px]";
     return (
-        <span className={`inline-flex items-center gap-1 font-black uppercase tracking-widest rounded-lg border backdrop-blur-sm ${sizeClasses} ${colorClass}`}>
+        <span className={`inline-flex items-center gap-1 font-bold uppercase tracking-wider rounded-md border backdrop-blur-sm ${sizeClasses} ${colorClass}`}>
             {children}
         </span>
     );
@@ -39,128 +40,49 @@ function FoodCard({ food, index, onViewDetails }) {
     const hasChoiceGroups = food.choiceGroups?.length > 0;
     const hasDiscount = food.discount?.active;
     const hasPromos = food.activePromotions?.length > 0;
-    const hasSchedule = food.availabilitySchedule?.enabled;
-    const hasExtras = hasVariants || hasPortions || hasChoiceGroups || hasDiscount || hasPromos || hasSchedule;
+    const hasExtras = hasVariants || hasPortions || hasChoiceGroups || hasDiscount || hasPromos;
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05, duration: 0.4 }}
-            className={`bg-white border rounded-[32px] overflow-hidden transition-all duration-300 border-gray-100 hover:border-orange-200`}
+            className="bg-white border rounded-xl overflow-hidden transition-all duration-200 border-slate-200 hover:border-slate-400 group relative"
         >
-            {/* Card Header (Clickable snippet) */}
             <div
-                className={`flex flex-col md:flex-row gap-4 p-4 md:p-5 cursor-pointer hover:bg-gray-50/50`}
+                className="flex items-center gap-4 p-3 cursor-pointer hover:bg-slate-50/50"
                 onClick={() => hasExtras && onViewDetails()}
             >
-                {/* Main Food Image */}
-                <div className="w-full md:w-32 h-40 md:h-32 bg-gray-100 rounded-[24px] overflow-hidden flex items-center justify-center text-gray-300 shrink-0 relative group">
+                {/* Slimmer Image */}
+                <div className="w-16 h-16 bg-slate-100 rounded-lg overflow-hidden shrink-0 border border-slate-200">
                     {imgSrc ? (
                         <img
                             src={imgSrc}
                             alt={food.name}
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                            onError={e => { e.target.style.display = "none"; }}
+                            className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all"
                         />
                     ) : (
-                        <Utensils size={36} className="opacity-50" />
-                    )}
-                    {/* Floating Status Badge inside Image */}
-                    <div className="absolute top-3 left-3">
-                        <span className={`px-2.5 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest backdrop-blur-md border ${food.available || food.isAvailable ? "bg-emerald-500/80 text-white border-emerald-400" : "bg-gray-900/80 text-white border-gray-700"}`}>
-                            {food.available || food.isAvailable ? "Available" : "Stock Out"}
-                        </span>
-                    </div>
-                </div>
-
-                {/* Info Block */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-3 flex-wrap mb-2">
-                        <div>
-                            <h3 className="font-black text-gray-900 text-xl tracking-tight mb-1">{food.name}</h3>
-                            {food.description && <p className="text-sm text-gray-500 line-clamp-2 md:line-clamp-1 max-w-xl">{food.description}</p>}
-                        </div>
-                        <div className="text-right shrink-0">
-                            <span className="block text-2xl font-black text-orange-500">₦{fmt(food.price)}</span>
-                            {hasVariants && <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Base Price</span>}
-                        </div>
-                    </div>
-
-                    {/* Primary Pills */}
-                    <div className="flex flex-wrap gap-2 mt-4">
-                        {food.foodType && (
-                            <GlassBadge colorClass="bg-blue-50/80 border-blue-100 text-blue-700">
-                                {FOOD_TYPES[food.foodType] || food.foodType}
-                            </GlassBadge>
-                        )}
-                        {food.prepTime && (
-                            <GlassBadge colorClass="bg-amber-50/80 border-amber-100 text-amber-700">
-                                <Clock size={12} /> {food.prepTime} Min
-                            </GlassBadge>
-                        )}
-                        {food.rating != null && (
-                            <GlassBadge colorClass="bg-yellow-50 border-yellow-200 text-yellow-700">
-                                <Star size={12} className="fill-yellow-500 text-yellow-500" /> {food.rating?.toFixed(1)} ({food.ratingCount || 0})
-                            </GlassBadge>
-                        )}
-                        {food.orderCount > 0 && (
-                            <GlassBadge colorClass="bg-indigo-50 border-indigo-100 text-indigo-700">
-                                <TrendingUp size={12} /> Ordered {food.orderCount}×
-                            </GlassBadge>
-                        )}
-                        {food.stock != null && (
-                            <GlassBadge colorClass="bg-gray-50 border-gray-200 text-gray-600">
-                                <Package size={12} /> Stock: {food.stock === Infinity || food.stock === "Infinity" ? "∞" : food.stock}
-                            </GlassBadge>
-                        )}
-                        {food.packagingFee > 0 && (
-                            <GlassBadge colorClass="bg-slate-50 border-slate-200 text-slate-600">
-                                <Box size={12} /> Pack: ₦{food.packagingFee}
-                            </GlassBadge>
-                        )}
-                    </div>
-
-                    {/* Discount & Promo Inline Highlight */}
-                    {(hasDiscount || hasPromos) && (
-                        <div className="mt-3 flex gap-2 flex-wrap">
-                            {hasDiscount && (
-                                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl text-[10px] font-black uppercase text-white">
-                                    <Tag size={12} />
-                                    {food.discount.type === "PERCENTAGE" ? `${food.discount.percentage}% OFF` : `₦${food.discount.flatAmount} OFF`}
-                                </div>
-                            )}
-                            {hasPromos && (
-                                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-purple-500 to-fuchsia-500 rounded-xl text-[10px] font-black uppercase text-white">
-                                    <Zap size={12} /> Promos Active
-                                </div>
-                            )}
-                        </div>
+                        <Utensils size={20} className="text-slate-300 m-auto mt-4" />
                     )}
                 </div>
 
-                {/* Expand Chevron Icon (Desktop) */}
-                {hasExtras && (
-                    <div className="hidden md:flex flex-col items-center justify-center pl-4 border-l border-gray-100 shrink-0 hover:text-orange-500 transition-colors group">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all bg-gray-50 text-gray-400 group-hover:bg-orange-50 group-hover:text-orange-500`}>
-                            <ChevronDown size={20} className="group-hover:-rotate-90 transition-transform duration-300" />
-                        </div>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 mt-2 group-hover:text-orange-500 transition-colors">
-                            Details
+                {/* Compact Info */}
+                <div className="flex-1 min-w-0 pr-8">
+                    <div className="flex items-center gap-2 mb-0.5">
+                        <h3 className="font-bold text-slate-900 text-sm truncate">{food.name}</h3>
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-tighter ${food.available || food.isAvailable ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                            {food.available || food.isAvailable ? "Stock" : "Out"}
                         </span>
                     </div>
-                )}
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm font-bold text-slate-900">₦{fmt(food.price)}</span>
+                        {food.orderCount > 0 && <span className="text-[10px] text-slate-400 font-medium">{food.orderCount} orders</span>}
+                    </div>
+                </div>
+
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ChevronDown size={16} className="text-slate-400" />
+                </div>
             </div>
-
-            {/* Expand toggle (Mobile) */}
-            {hasExtras && (
-                <button
-                    onClick={() => onViewDetails()}
-                    className="md:hidden w-full flex items-center justify-center gap-1.5 py-3 border-t border-gray-50 bg-gray-50/50 text-[10px] font-black text-gray-500 uppercase tracking-widest active:bg-gray-100"
-                >
-                    <ChevronDown size={14} /> View Details & Variants
-                </button>
-            )}
         </motion.div>
     );
 }
@@ -185,10 +107,10 @@ function FoodDetailsModal({ food, onClose }) {
                 onClick={onClose}
             >
                 <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="bg-gray-50 rounded-[40px] w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col border border-white/20"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.98 }}
+                    className="bg-white rounded-xl w-full max-w-4xl max-h-[85vh] overflow-hidden shadow-2xl flex flex-col border border-slate-200"
                     onClick={e => e.stopPropagation()}
                 >
                     {/* Header */}
@@ -474,363 +396,293 @@ export default function VendorDetailPage() {
                 <div className="max-w-6xl mx-auto space-y-6 pb-12">
 
                     {/* Navigation Bar */}
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                         <button
                             onClick={() => router.back()}
-                            className="w-12 h-12 flex items-center justify-center bg-white border border-gray-200 rounded-[18px] text-gray-400 hover:text-gray-900 hover:border-gray-300 hover transition-all active:scale-95 shrink-0"
+                            className="h-10 px-4 flex items-center gap-2 bg-white border border-slate-200 rounded-lg text-slate-500 hover:text-slate-900 transition-all font-bold text-xs"
                         >
-                            <ArrowLeft size={20} />
+                            <ArrowLeft size={16} /> Back
                         </button>
-                        <div className="flex-1 bg-white border border-gray-200 rounded-[18px] px-5 py-3.5 flex items-center gap-2 font-black text-xs uppercase tracking-widest text-gray-400">
-                            <Store size={14} className="text-gray-300" />
-                            <span className="cursor-pointer hover:text-gray-900 transition-colors" onClick={() => router.push('/admin/vendors/pending')}>Vendors</span>
-                            <span className="text-gray-300">/</span>
-                            <span className="text-gray-900 truncate">Details</span>
+                        <div className="flex-1 bg-slate-900 rounded-lg px-4 py-2 flex items-center gap-3 font-bold text-[10px] uppercase tracking-wider text-slate-400 border border-slate-800">
+                            <Store size={14} className="text-slate-600" />
+                            <span className="cursor-pointer hover:text-white" onClick={() => router.push('/admin/vendors')}>Vendors</span>
+                            <span className="text-slate-700">/</span>
+                            <span className="text-white">Profile Control</span>
                         </div>
                     </div>
 
-                    {/* Premium Hero Section */}
+                    {/* Highly Refined Banner */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="relative overflow-hidden bg-white border border-gray-200 rounded-[40px] p-6 md:p-8"
+                        className="bg-white border border-slate-200 rounded-xl p-5 md:p-6"
                     >
-                        {/* Abstract Background Elements */}
-                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 opacity-60 pointer-events-none" />
-                        <div className="absolute top-0 right-0 p-6 flex gap-2">
-                            {vendor.verified
-                                ? <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-700 font-black text-[10px] uppercase tracking-widest rounded-xl border border-blue-100 backdrop-blur-sm"><ShieldCheck size={14} /> Verified Partner</span>
-                                : <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-50 text-amber-700 font-black text-[10px] uppercase tracking-widest rounded-xl border border-amber-100 backdrop-blur-sm"><Clock size={14} /> Pending Approval</span>
-                            }
-                            {vendor.suspended && <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-50 text-red-700 font-black text-[10px] uppercase tracking-widest rounded-xl border border-red-100 backdrop-blur-sm"><TriangleAlert size={14} /> Suspended</span>}
-                        </div>
-
-                        <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start md:items-center">
+                        <div className="flex flex-col lg:flex-row gap-6 items-start">
                             {/* Vendor Avatar */}
-                            <div className="w-32 h-32 md:w-40 md:h-40 bg-gray-50 rounded-[32px] overflow-hidden flex items-center justify-center text-gray-300 border-4 border-white shrink-0">
-                                {vendor.logo
-                                    ? <img src={vendor.logo} alt="" className="w-full h-full object-cover transition-transform hover:scale-105 duration-500" />
-                                    : <Store size={48} className="opacity-20" />
-                                }
+                            <div className="w-24 h-24 bg-slate-50 rounded-xl overflow-hidden flex items-center justify-center border border-slate-100 shrink-0">
+                                {vendor.logo ? (
+                                    <img src={vendor.logo} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    <Building2 size={32} className="text-slate-200" />
+                                )}
                             </div>
 
-                            {/* Vendor Title */}
-                            <div className="flex-1 min-w-0 pr-10">
-                                <p className="text-[12px] font-black text-orange-500 uppercase tracking-widest mb-2 inline-flex items-center gap-1.5">
-                                    <Globe size={14} /> Business Identity
+                            <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2 mb-2">
+                                    <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none">{vendor.storeName || "Unnamed Vendor"}</h1>
+                                    <div className="flex gap-1.5 ml-1">
+                                        {vendor.verified ? (
+                                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded text-[9px] font-bold uppercase tracking-widest flex items-center gap-1">
+                                                <ShieldCheck size={10} /> Verified
+                                            </span>
+                                        ) : (
+                                            <span className="px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded text-[9px] font-bold uppercase tracking-widest flex items-center gap-1">
+                                                <Clock size={10} /> Pending
+                                            </span>
+                                        )}
+                                        {vendor.suspended && (
+                                            <span className="px-2 py-0.5 bg-rose-50 text-rose-600 border border-emerald-100 rounded text-[9px] font-bold uppercase tracking-widest">Suspended</span>
+                                        )}
+                                    </div>
+                                </div>
+                                <p className="text-xs font-medium text-slate-500 flex items-center gap-1.5 mb-4">
+                                    <MapPin size={12} /> {vendor.address?.city || vendor.requestedCity || "Unknown City"}
                                 </p>
-                                <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-2 truncate">{vendor.storeName || "Unnamed Vendor"}</h1>
-                                <p className="text-lg font-medium text-gray-500 flex items-center gap-2">
-                                    <MapPin size={16} /> {vendor.address?.city || vendor.requestedCity || "No city registered"}
-                                </p>
-                            </div>
-                        </div>
 
-                        {/* Quick Stats Banner inside Hero */}
-                        <div className="relative z-10 mt-10 p-5 bg-gray-50/80 backdrop-blur-sm border border-gray-100 rounded-[28px] overflow-x-auto select-none no-scrollbar">
-                            <div className="flex w-max min-w-full gap-x-12 gap-y-6">
-                                <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Agreed Commission</p>
-                                    <p className="text-2xl font-black text-gray-900">{vendor.commissionRate ? `${(vendor.commissionRate * 100).toFixed(0)}%` : "0%"}</p>
-                                </div>
-                                <div className="w-px h-12 bg-gray-200" />
-                                <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Menu Size</p>
-                                    <p className="text-2xl font-black text-gray-900">{foods.length}</p>
-                                </div>
-                                <div className="w-px h-12 bg-gray-200" />
-                                <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Total Orders</p>
-                                    <p className="text-2xl font-black text-gray-900">{vendor.totalOrders || 0}</p>
-                                </div>
-                                <div className="w-px h-12 bg-gray-200" />
-                                <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Total Riders</p>
-                                    <p className="text-2xl font-black text-gray-900">{vendor.riders?.length || 0}</p>
-                                </div>
-                                <div className="w-px h-12 bg-gray-200" />
-                                <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Delivery Scope</p>
-                                    <p className="text-2xl font-black text-gray-900">{vendor.deliveryRadiusKm ? `${vendor.deliveryRadiusKm}km` : "—"}</p>
-                                </div>
-                                <div className="w-px h-12 bg-gray-200" />
-                                <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5">Logistics Guard</p>
-                                    <div className="mt-1">
-                                        {vendor.deliveryManagedBy === "admin"
-                                            ? <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-black uppercase"><Zap size={12} /> GrubDash</span>
-                                            : <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg text-xs font-black uppercase"><Store size={12} /> Vendor Self</span>
-                                        }
+                                {/* Mini Stats Line */}
+                                <div className="flex flex-wrap items-center gap-6 pt-5 border-t border-slate-50">
+                                    <div>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Commission</p>
+                                        <p className="text-sm font-black text-slate-900">{vendor.commissionRate ? `${(vendor.commissionRate * 100).toFixed(0)}%` : "0%"}</p>
+                                    </div>
+                                    <div className="w-px h-6 bg-slate-100" />
+                                    <div>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Total Orders</p>
+                                        <p className="text-sm font-black text-slate-900">{fmt(vendor.totalOrders || 0)}</p>
+                                    </div>
+                                    <div className="w-px h-6 bg-slate-100" />
+                                    <div>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Menu Items</p>
+                                        <p className="text-sm font-black text-slate-900">{foods.length}</p>
+                                    </div>
+                                    <div className="w-px h-6 bg-slate-100 flex-1 hidden md:block" />
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Logistics:</span>
+                                        {vendor.deliveryManagedBy === "admin" ? (
+                                            <span className="px-2 py-1 bg-slate-900 text-white rounded text-[9px] font-bold uppercase border border-slate-800">GrubDash Managed</span>
+                                        ) : (
+                                            <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-[9px] font-bold uppercase border border-slate-200 font-mono">Self Managed</span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </motion.div>
 
-                    {/* Vendor Information Grid (4-pillar layout) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Information Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-                        {/* Operator Identity */}
-                        <div className="bg-white border border-gray-200 rounded-[28px] p-6 transition-shadow">
-                            <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
-                                <User className="text-blue-500" size={20} />
+                        {/* Business Details */}
+                        <div className="bg-white border border-slate-200 rounded-xl p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Mail size={14} className="text-slate-400" />
+                                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Business Contact</h3>
                             </div>
-                            <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest mb-6">Operator Identity</h3>
-
-                            <div className="space-y-5">
-                                <div className="flex flex-col border-b border-gray-50 pb-3">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Full Legal Name</span>
-                                    <span className="font-bold text-gray-900 text-sm">{vendor.name || "—"}</span>
+                            <div className="space-y-3">
+                                <div>
+                                    <p className="text-[9px] text-slate-400 font-medium mb-0.5">Operator</p>
+                                    <p className="text-xs font-bold text-slate-900 truncate">{vendor.name || "—"}</p>
                                 </div>
-                                <div className="flex flex-col border-b border-gray-50 pb-3">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Primary Email</span>
-                                    <span className="font-bold text-gray-900 text-sm">{vendor.email || "—"}</span>
+                                <div>
+                                    <p className="text-[9px] text-slate-400 font-medium mb-0.5">Contact Email</p>
+                                    <p className="text-xs font-bold text-slate-900 truncate">{vendor.email || "—"}</p>
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Contact Number</span>
-                                    <span className="font-bold text-gray-900 text-sm">{vendor.phone || "—"}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Location Intelligence */}
-                        <div className="bg-white border border-gray-200 rounded-[28px] p-6 transition-shadow relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                            <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6 relative z-10">
-                                <MapPin className="text-emerald-500" size={20} />
-                            </div>
-                            <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest mb-6 relative z-10 flex items-center gap-3">
-                                Location Intelligence
-                                {vendor.locationStatus === "approved"
-                                    ? <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[9px]">OK</span>
-                                    : vendor.locationStatus === "pending_review"
-                                        ? <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded text-[9px] flex gap-1 items-center"><TriangleAlert size={10} /> REVIEW</span>
-                                        : <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px]">NONE</span>
-                                }
-                            </h3>
-
-                            <div className="space-y-5 relative z-10">
-                                <div className="flex flex-col border-b border-gray-50 pb-3">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Street Address</span>
-                                    <span className="font-bold text-gray-900 text-sm">{vendor.address?.street || "No street registered"}</span>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">City</span>
-                                        <span className="font-bold text-gray-900 text-sm">{vendor.address?.city || vendor.requestedCity || "—"}</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">State</span>
-                                        <span className="font-bold text-gray-900 text-sm">{vendor.address?.state || "—"}</span>
-                                    </div>
+                                <div>
+                                    <p className="text-[9px] text-slate-400 font-medium mb-0.5">Phone Number</p>
+                                    <p className="text-xs font-bold text-slate-900 truncate">{vendor.phone || "—"}</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Logistics Matrix */}
-                        <div className="bg-white border border-gray-200 rounded-[28px] p-6 transition-shadow">
-                            <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center mb-6">
-                                <Truck className="text-purple-500" size={20} />
+                        {/* Location Details */}
+                        <div className="bg-white border border-slate-200 rounded-xl p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                                <MapPin size={14} className="text-slate-400" />
+                                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Global Location</h3>
                             </div>
-                            <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest mb-6">Logistics Configuration</h3>
-
-                            <div className="space-y-5">
-                                <div className="flex items-center justify-between border-b border-gray-50 pb-3">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Accepts Delivery</span>
-                                    {vendor.acceptsDelivery
-                                        ? <CircleCheck size={18} className="text-emerald-500" />
-                                        : <XCircle size={18} className="text-gray-300" />}
+                            <div className="space-y-3">
+                                <div>
+                                    <p className="text-[9px] text-slate-400 font-medium mb-0.5">Street</p>
+                                    <p className="text-xs font-bold text-slate-900 line-clamp-2">{vendor.address?.street || "—"}</p>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Flat Rate Fee</span>
-                                    <span className="font-bold text-gray-900 text-sm px-3 py-1 bg-gray-50 rounded-lg">{vendor.flatRateDeliveryFee ? `₦${fmt(vendor.flatRateDeliveryFee)}` : "None"}</span>
+                                <div>
+                                    <p className="text-[9px] text-slate-400 font-medium mb-0.5">City & State</p>
+                                    <p className="text-xs font-bold text-slate-900">{vendor.address?.city || vendor.requestedCity}, {vendor.address?.state || "N/A"}</p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Financial Conduit */}
-                        <div className="bg-white border border-gray-200 rounded-[28px] p-6 transition-shadow">
-                            <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center mb-6">
-                                <Banknote className="text-green-500" size={20} />
+                        <div className="bg-white border border-slate-200 rounded-xl p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                                <CreditCard size={14} className="text-slate-400" />
+                                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Finance Matrix</h3>
                             </div>
-                            <h3 className="font-black text-gray-900 uppercase text-xs tracking-widest mb-6 flex items-center justify-between">
-                                Financial Conduit
-                                {vendor.payoutDetails?.payoutEnabled && <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded text-[9px]">ACTIVE</span>}
-                            </h3>
-
-                            <div className="space-y-5">
-                                <div className="flex flex-col border-b border-gray-50 pb-3">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Bank Institution</span>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-5 h-5 bg-gray-100 rounded-md flex items-center justify-center"><Banknote size={10} className="text-gray-400" /></div>
-                                        <span className="font-bold text-gray-900 text-sm">{vendor.payoutDetails?.bankName || "No Bank Configured"}</span>
-                                    </div>
+                            <div className="space-y-3">
+                                <div>
+                                    <p className="text-[9px] text-slate-400 font-medium mb-0.5">Bank Institutional</p>
+                                    <p className="text-xs font-bold text-slate-900 truncate">{vendor.payoutDetails?.bankName || "Pending Setup"}</p>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Account Name</span>
-                                        <span className="font-bold text-gray-900 text-sm truncate">{vendor.payoutDetails?.accountName || "—"}</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Account Number</span>
-                                        <span className="font-max font-mono text-gray-900 text-sm tracking-widest bg-gray-50 px-2 py-0.5 rounded-lg w-fit border border-gray-100">
-                                            {vendor.payoutDetails?.accountNumber || "—"}
-                                        </span>
-                                    </div>
+                                <div>
+                                    <p className="text-[9px] text-slate-400 font-medium mb-0.5">Account Label</p>
+                                    <p className="text-xs font-bold text-slate-900 truncate uppercase">{vendor.payoutDetails?.accountName || "—"}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[9px] text-slate-400 font-medium mb-0.5">Account ID</p>
+                                    <p className="text-xs font-mono font-bold text-slate-900 bg-slate-50 px-2 py-0.5 rounded w-fit">{vendor.payoutDetails?.accountNumber || "—"}</p>
                                 </div>
                             </div>
                         </div>
 
+                        {/* Operational Status */}
+                        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-white">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Activity size={14} className="text-slate-600" />
+                                <h3 className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Intel Feed</h3>
+                            </div>
+                            <div className="space-y-3">
+                                <div className="flex justify-between items-center border-b border-slate-800 pb-2 text-xs">
+                                    <span className="text-slate-500">Live Orders</span>
+                                    <span className="font-bold">0 Active</span>
+                                </div>
+                                <div className="flex justify-between items-center border-b border-slate-800 pb-2 text-xs">
+                                    <span className="text-slate-500">Logistics Status</span>
+                                    <span className={`font-bold ${vendor.locationStatus === 'approved' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                        {vendor.locationStatus || 'None'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="text-slate-500">Radius</span>
+                                    <span className="font-bold">{vendor.deliveryRadiusKm || 0} km</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* KYC Documents Panel (Full Width Card) */}
+                    {/* KYC Documents Panel */}
                     {vendor.kyc && (
-                        <div className="bg-white border border-gray-200 rounded-[28px] p-6 shadow-sm">
-                            <div className="flex items-center gap-4 border-b border-gray-100 pb-6 mb-6">
-                                <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center">
-                                    <ShieldCheck className="text-slate-600" size={20} />
-                                </div>
-                                <div>
-                                    <h3 className="font-black text-gray-900 text-lg">KYC Identity Documents</h3>
-                                    <p className="text-gray-500 font-medium text-sm">Official identity & business verification artifacts</p>
-                                </div>
-                                <div className="ml-auto text-right">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">ID Type</p>
-                                    <p className="font-black text-gray-900 bg-gray-50 px-3 py-1 rounded-xl">{vendor.kyc.idType || "—"}</p>
-                                </div>
-                                <div className="text-right pl-4 border-l border-gray-100">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">ID Number</p>
-                                    <p className="font-mono font-black text-slate-700 tracking-wider flex items-center gap-2">
-                                        {vendor.kyc.idNumber || "—"}
-                                    </p>
+                        <div className="bg-white border border-slate-200 rounded-xl p-5">
+                            <div className="flex items-center gap-4 mb-5">
+                                <ShieldCheck className="text-slate-400" size={18} />
+                                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identity Archives</h3>
+                                <div className="ml-auto flex items-center gap-3">
+                                    <div className="text-right">
+                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">ID Number</p>
+                                        <p className="text-[11px] font-mono font-bold text-slate-900">{vendor.kyc.idNumber || "—"}</p>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                {/* Registration Doc */}
-                                <div className="border border-gray-100 rounded-3xl p-4 flex flex-col items-center justify-center relative overflow-hidden group bg-gray-50/50 hover:border-slate-300 transition-all cursor-pointer">
-                                    <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
-                                        <span className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-800 shadow-sm">Business Registration</span>
-                                        <a href={vendor.kyc.businessRegistrationDoc} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <ExternalLink size={14} />
-                                        </a>
-                                    </div>
-                                    <div className="w-full h-48 mt-10 rounded-2xl overflow-hidden bg-white flex items-center justify-center border border-gray-100">
-                                        {vendor.kyc.businessRegistrationDoc ? (
-                                            <img src={vendor.kyc.businessRegistrationDoc} alt="Biz Doc" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                {[
+                                    { label: "Business Doc", url: vendor.kyc.businessRegistrationDoc },
+                                    { label: "ID Front", url: vendor.kyc.idFrontUrl },
+                                    { label: "ID Back", url: vendor.kyc.idBackUrl }
+                                ].map((doc, i) => (
+                                    <div key={i} className="group relative border border-slate-100 rounded-lg h-32 overflow-hidden bg-slate-50 cursor-pointer">
+                                        {doc.url ? (
+                                            <>
+                                                <img src={doc.url} alt="" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all opacity-60 group-hover:opacity-100" />
+                                                <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <a href={doc.url} target="_blank" rel="noreferrer" className="p-2 bg-white rounded-lg text-slate-900 scale-90 group-hover:scale-100 transition-all">
+                                                        <ExternalLink size={14} />
+                                                    </a>
+                                                </div>
+                                            </>
                                         ) : (
-                                            <span className="text-gray-400 font-bold text-sm">Not Provided</span>
+                                            <div className="h-full flex items-center justify-center text-[10px] font-bold text-slate-400 bg-slate-100">MISSING</div>
                                         )}
+                                        <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-white/90 backdrop-blur-md border-t border-slate-100 text-[8px] font-bold uppercase tracking-widest text-slate-600 text-center">
+                                            {doc.label}
+                                        </div>
                                     </div>
-                                </div>
-
-                                {/* ID Front */}
-                                <div className="border border-gray-100 rounded-3xl p-4 flex flex-col items-center justify-center relative overflow-hidden group bg-gray-50/50 hover:border-slate-300 transition-all cursor-pointer">
-                                    <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
-                                        <span className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-800 shadow-sm">Gov ID Front</span>
-                                        <a href={vendor.kyc.idFrontUrl} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <ExternalLink size={14} />
-                                        </a>
-                                    </div>
-                                    <div className="w-full h-48 mt-10 rounded-2xl overflow-hidden bg-white flex items-center justify-center border border-gray-100">
-                                        {vendor.kyc.idFrontUrl ? (
-                                            <img src={vendor.kyc.idFrontUrl} alt="ID Front" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                        ) : (
-                                            <span className="text-gray-400 font-bold text-sm">Not Provided</span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* ID Back */}
-                                <div className="border border-gray-100 rounded-3xl p-4 flex flex-col items-center justify-center relative overflow-hidden group bg-gray-50/50 hover:border-slate-300 transition-all cursor-pointer">
-                                    <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
-                                        <span className="px-3 py-1 bg-white/90 backdrop-blur-md rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-800 shadow-sm">Gov ID Back</span>
-                                        <a href={vendor.kyc.idBackUrl} target="_blank" rel="noreferrer" className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <ExternalLink size={14} />
-                                        </a>
-                                    </div>
-                                    <div className="w-full h-48 mt-10 rounded-2xl overflow-hidden bg-white flex items-center justify-center border border-gray-100">
-                                        {vendor.kyc.idBackUrl ? (
-                                            <img src={vendor.kyc.idBackUrl} alt="ID Back" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                                        ) : (
-                                            <span className="text-gray-400 font-bold text-sm">Not Provided</span>
-                                        )}
-                                    </div>
-                                </div>
+                                ))}
                             </div>
                         </div>
                     )}
 
-                    {/* Highly Interactive Menu Section */}
+                    {/* Highly Refined Menu Section */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="bg-zinc-50 border border-gray-200 rounded-[32px] overflow-hidden"
+                        transition={{ delay: 0.1 }}
+                        className="bg-white border border-slate-200 rounded-xl overflow-hidden"
                     >
                         {/* Section Header */}
-                        <div className="bg-white border-b border-gray-100 px-5 md:px-8 py-5 md:py-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-                            <div className="flex items-start md:items-center gap-4">
-                                <div className="w-14 h-14 bg-orange-100 rounded-[20px] flex items-center justify-center shrink-0">
-                                    <Utensils className="text-orange-500" size={24} />
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-3 mb-1">
-                                        <h2 className="font-black text-gray-900 text-2xl tracking-tight">Menu Inventory</h2>
-                                        <span className="px-3 py-1 bg-gray-900 text-white rounded-full text-[10px] font-black">{foods.length}</span>
-                                    </div>
-                                    <p className="text-sm font-medium text-gray-500">Comprehensive list of all items published by this vendor</p>
-                                </div>
+                        <div className="bg-slate-900 px-5 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <Box className="text-slate-500" size={18} />
+                                <h3 className="text-xs font-bold text-white uppercase tracking-widest">Menu Inventory</h3>
+                                <span className="px-2 py-0.5 bg-slate-800 text-slate-400 rounded-md text-[9px] font-bold border border-slate-700">{foods.length} Items</span>
                             </div>
 
-                            {/* Advanced Filters */}
-                            <div className="flex flex-col sm:flex-row items-center gap-3 bg-gray-50/50 p-2 rounded-3xl border border-gray-100">
-                                <div className="relative w-full sm:w-auto">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            {/* Refined Filters */}
+                            <div className="flex items-center gap-2">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                                     <input
                                         value={foodSearch}
                                         onChange={e => setFoodSearch(e.target.value)}
-                                        placeholder="Search menu..."
-                                        className="h-12 w-full sm:w-64 pl-12 pr-4 bg-white border border-gray-200 focus:border-orange-500 rounded-[20px] outline-none text-sm font-semibold transition-all"
+                                        placeholder="Filter item..."
+                                        className="h-8 w-40 pl-9 pr-3 bg-slate-800 border border-slate-700 focus:border-slate-500 rounded-lg outline-none text-[11px] font-semibold text-white transition-all placeholder:text-slate-600"
                                     />
                                 </div>
                                 <select
                                     value={foodFilter}
                                     onChange={e => setFoodFilter(e.target.value)}
-                                    className="h-12 w-full sm:w-auto px-5 bg-white border border-gray-200 focus:border-orange-500 rounded-[20px] outline-none text-xs font-black uppercase tracking-wider transition-all cursor-pointer text-gray-700"
+                                    className="h-8 px-3 bg-slate-800 border border-slate-700 focus:border-slate-500 rounded-lg outline-none text-[9px] font-bold uppercase tracking-wider text-slate-400 cursor-pointer"
                                 >
-                                    <option value="all">All Items</option>
-                                    <option value="available">In Stock</option>
-                                    <option value="unavailable">Out of Stock</option>
+                                    <option value="all">Status: All</option>
+                                    <option value="available">Live Only</option>
+                                    <option value="unavailable">Offline</option>
                                 </select>
                             </div>
                         </div>
 
-                        {/* List Area */}
-                        <div className="p-5 md:p-8 min-h-[400px]">
-                            {filteredFoods.length === 0 ? (
-                                <div className="py-24 flex flex-col items-center justify-center text-center">
-                                    <div className="w-24 h-24 bg-white border border-gray-100 rounded-[32px] flex items-center justify-center mb-6 rotate-3">
-                                        <Utensils size={36} className="text-gray-300" />
-                                    </div>
-                                    <h3 className="text-xl font-black text-gray-800 mb-2">No items found</h3>
-                                    <p className="font-medium text-gray-500">{foods.length === 0 ? "This vendor has not published any menu items yet." : "Adjust your search filters to find what you're looking for."}</p>
+                        <div className="p-5 bg-slate-50/50">
+                            {filteredFoods.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                    {filteredFoods.map((f, i) => (
+                                        <FoodCard
+                                            key={f._id || i}
+                                            food={f}
+                                            index={i}
+                                            onViewDetails={() => setSelectedFoodDetails(f)}
+                                        />
+                                    ))}
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 gap-6">
-                                    {filteredFoods.map((food, i) => (
-                                        <FoodCard key={food._id} food={food} index={i} onViewDetails={() => setSelectedFoodDetails(food)} />
-                                    ))}
+                                <div className="py-12 flex flex-col items-center justify-center text-center">
+                                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mb-3">
+                                        <Search size={20} className="text-slate-300" />
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-900 uppercase tracking-widest">No matching items</p>
+                                    <p className="text-[10px] text-slate-400 mt-1">Refine your search parameters</p>
                                 </div>
                             )}
                         </div>
                     </motion.div>
+
                 </div>
 
-                {/* Optional Modals Context */}
+                {/* Overlays */}
                 {selectedFoodDetails && (
-                    <FoodDetailsModal food={selectedFoodDetails} onClose={() => setSelectedFoodDetails(null)} />
+                    <FoodDetailsModal
+                        food={selectedFoodDetails}
+                        onClose={() => setSelectedFoodDetails(null)}
+                    />
                 )}
+
             </AdminDashboardLayout>
         </AdminProtectedRoute>
     );
