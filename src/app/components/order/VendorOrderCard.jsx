@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { User, MapPin, Phone, ChevronRight, ShoppingBag, Bike, Hash, CalendarDays } from "lucide-react";
+import { User, MapPin, Phone, ChevronRight, ShoppingBag, Bike, Hash, CalendarDays, Clock, Zap, TrendingUp } from "lucide-react";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
+import { motion } from "framer-motion";
 
 export default function VendorOrderCard({ order, onAssign }) {
   const { vendorDetails } = useVendorStorage();
@@ -10,70 +11,104 @@ export default function VendorOrderCard({ order, onAssign }) {
 
   const dateObj = new Date(order.createdAt);
   const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const timeStr = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
   const detailedItems = userOrderId?.items?.filter(item => item.restaurantId === restaurantId) || [];
   const itemCount = detailedItems.length > 0 ? detailedItems.length : (order.items?.length || 0);
 
-  const getStatusStyle = (status) => {
-    switch (status.toLowerCase()) {
-      case 'pending': return "bg-amber-50 text-amber-600 dark:bg-amber-600/10 border-amber-100 dark:border-amber-600/20";
-      case 'accepted': return "bg-blue-50 text-blue-600 dark:bg-blue-600/10 border-blue-100 dark:border-blue-600/20";
-      case 'preparing': return "bg-orange-50 text-orange-600 dark:bg-orange-600/10 border-orange-100 dark:border-orange-600/20";
-      case 'ready':
-      case 'ready_for_pickup': return "bg-purple-50 text-purple-600 dark:bg-purple-600/10 border-purple-100 dark:border-purple-600/20";
-      case 'rider_assigned': return "bg-indigo-50 text-indigo-600 dark:bg-indigo-600/10 border-indigo-100 dark:border-indigo-600/20";
-      case 'out_for_delivery': return "bg-cyan-50 text-cyan-600 dark:bg-cyan-600/10 border-cyan-100 dark:border-cyan-600/20";
-      case 'delivered': return "bg-emerald-50 text-emerald-600 dark:bg-emerald-600/10 border-emerald-100 dark:border-emerald-600/20";
-      case 'completed': return "bg-green-50 text-green-600 dark:bg-green-600/10 border-green-100 dark:border-green-600/20";
-      case 'cancelled':
-      case 'failed': return "bg-rose-50 text-rose-600 dark:bg-rose-600/10 border-rose-100 dark:border-rose-600/20";
-      default: return "bg-slate-50 text-slate-500 dark:bg-slate-800 border-slate-100 dark:border-slate-800";
-    }
+  // Get status color and icon
+  const getStatusConfig = (status) => {
+    const configs = {
+      'pending': { bg: "bg-amber-50 dark:bg-amber-600/10", text: "text-amber-600", border: "border-amber-200 dark:border-amber-600/30", icon: Clock, label: "Pending" },
+      'accepted': { bg: "bg-blue-50 dark:bg-blue-600/10", text: "text-blue-600", border: "border-blue-200 dark:border-blue-600/30", icon: TrendingUp, label: "Accepted" },
+      'preparing': { bg: "bg-orange-50 dark:bg-orange-600/10", text: "text-orange-600", border: "border-orange-200 dark:border-orange-600/30", icon: Zap, label: "Preparing" },
+      'ready': { bg: "bg-purple-50 dark:bg-purple-600/10", text: "text-purple-600", border: "border-purple-200 dark:border-purple-600/30", icon: CheckCircle, label: "Ready" },
+      'ready_for_pickup': { bg: "bg-purple-50 dark:bg-purple-600/10", text: "text-purple-600", border: "border-purple-200 dark:border-purple-600/30", icon: CheckCircle, label: "Ready" },
+      'rider_assigned': { bg: "bg-indigo-50 dark:bg-indigo-600/10", text: "text-indigo-600", border: "border-indigo-200 dark:border-indigo-600/30", icon: Bike, label: "In Transit" },
+      'out_for_delivery': { bg: "bg-cyan-50 dark:bg-cyan-600/10", text: "text-cyan-600", border: "border-cyan-200 dark:border-cyan-600/30", icon: Bike, label: "Delivery" },
+      'delivered': { bg: "bg-emerald-50 dark:bg-emerald-600/10", text: "text-emerald-600", border: "border-emerald-200 dark:border-emerald-600/30", icon: CheckCircle, label: "Delivered" },
+      'completed': { bg: "bg-green-50 dark:bg-green-600/10", text: "text-green-600", border: "border-green-200 dark:border-green-600/30", icon: CheckCircle, label: "Completed" },
+      'cancelled': { bg: "bg-rose-50 dark:bg-rose-600/10", text: "text-rose-600", border: "border-rose-200 dark:border-rose-600/30", icon: ShoppingBag, label: "Cancelled" },
+      'failed': { bg: "bg-rose-50 dark:bg-rose-600/10", text: "text-rose-600", border: "border-rose-200 dark:border-rose-600/30", icon: ShoppingBag, label: "Failed" },
+    };
+    return configs[status.toLowerCase()] || configs['pending'];
   };
 
+  const CheckCircle = () => (
+    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+    </svg>
+  );
+
+  const statusConfig = getStatusConfig(order.orderStatus);
+  const isUrgent = order.orderStatus === 'pending';
+  const isReady = ['ready_for_pickup', 'ready'].includes(order.orderStatus);
+
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800 p-3.5 hover:border-orange-500/30 transition-all duration-300 flex flex-col h-full group relative overflow-hidden">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.3 }}
+      className="group h-full"
+    >
+      <div className={`bg-white dark:bg-slate-900 rounded-lg border transition-all duration-300 flex flex-col h-full overflow-hidden ${
+        isUrgent ? 'border-amber-300 dark:border-amber-600/50' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+      } relative`}>
       
-      {/* Header Ledger Info */}
-      <div className="flex justify-between items-start mb-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5">
-            <div className="p-1 bg-slate-50 dark:bg-slate-950 rounded-md border border-slate-100 dark:border-slate-800">
-               <Hash size={10} className="text-slate-400" />
+      {/* Status Bar Background */}
+      <div className={`absolute top-0 left-0 right-0 h-1.5 ${statusConfig.bg}`} />
+
+      {/* Header Section */}
+      <div className="p-3 space-y-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1.5">
+              <div className={`p-1.5 rounded-md border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
+                <Hash size={10} />
+              </div>
+              <span className="text-[11px] font-black text-slate-900 dark:text-white tabular-nums">
+                #{(order._id?.$oid || order._id || "").toString().slice(-6).toUpperCase()}
+              </span>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white">
-              {(order._id?.$oid || order._id || "").toString().slice(-6).toUpperCase()}
-            </span>
+            <div className="flex items-center gap-2 text-[9px] font-bold text-slate-500 dark:text-slate-400">
+              <Clock size={10} className="shrink-0" />
+              <span className="truncate">{dateStr} • {timeStr}</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 text-slate-400">
-            <CalendarDays size={10} />
-            <span className="text-[8px] font-black uppercase tracking-widest">
-              {dateStr}
-            </span>
-          </div>
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            className={`px-3 py-1.5 rounded-md text-[8px] font-black uppercase tracking-wider border flex items-center gap-1.5 shrink-0 ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
+          >
+            <statusConfig.icon size={10} />
+            {statusConfig.label}
+          </motion.div>
         </div>
-        <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest border ${getStatusStyle(order.orderStatus)}`}>
-          {order.orderStatus.replace(/_/g, ' ')}
-        </span>
       </div>
 
-      {/* Customer Record */}
-      <div className="bg-slate-50/50 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800/50 rounded-md p-2.5 mb-4">
+      {/* Customer Profile Section */}
+      <div className={`p-3 border-b transition-colors ${
+        isUrgent ? 'bg-amber-50/50 dark:bg-amber-600/5 border-amber-100/50 dark:border-amber-600/20' : 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-100 dark:border-slate-800'
+      }`}>
         <div className="flex items-center gap-3">
-          <div className="size-8 rounded-md bg-white dark:bg-slate-900 flex items-center justify-center border border-slate-100 dark:border-slate-800 overflow-hidden shadow-none">
+          <motion.div 
+            className="size-10 rounded-lg bg-linear-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center border border-slate-200 dark:border-slate-700 shrink-0 overflow-hidden"
+            whileHover={{ scale: 1.05 }}
+          >
             {user?.avatar ? (
               <img src={user.avatar} alt={user.firstname} className="w-full h-full object-cover" />
             ) : (
-              <User size={14} className="text-slate-300" />
+              <User size={14} className="text-slate-400" />
             )}
-          </div>
+          </motion.div>
           <div className="flex-1 min-w-0">
-             <h4 className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">
-              {user ? `${user.firstname} ${user.lastname}` : "GUEST ACCOUNT"}
+            <h4 className="text-[12px] font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">
+              {user ? `${user.firstname} ${user.lastname}` : "Guest"}
             </h4>
-            <div className="flex items-center gap-2 mt-0.5">
-              <Phone size={8} className="text-orange-600" />
-               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">
+            <div className="flex items-center gap-2 mt-1">
+              <Phone size={9} className="text-orange-500 shrink-0" />
+              <p className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate">
                 {user?.phone || order.userOrderId?.phone || "N/A"}
               </p>
             </div>
@@ -81,66 +116,102 @@ export default function VendorOrderCard({ order, onAssign }) {
         </div>
       </div>
 
-      {/* Manifest Summary */}
-      <div className="flex-1 mb-5">
-        <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-3 border-b border-slate-50 dark:border-slate-800 pb-1">Manifest</p>
+      {/* Manifest/Items Section */}
+      <div className="flex-1 p-3 border-b border-slate-100 dark:border-slate-800 min-h-0">
+        <p className="text-[9px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-wider mb-2.5">Order Items ({itemCount})</p>
 
         {detailedItems.length > 0 ? (
-          <div className="space-y-2">
-            {detailedItems.slice(0, 2).map((item, idx) => (
-              <div key={idx} className="flex items-center gap-2.5">
-                <div className="size-7 rounded-md bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 flex-shrink-0 flex items-center justify-center">
-                  <ShoppingBag size={10} className="text-slate-300" />
+          <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
+            {detailedItems.slice(0, 3).map((item, idx) => (
+              <motion.div 
+                key={idx} 
+                initial={{ opacity: 0, x: -5 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                className="flex items-start gap-2.5 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-md border border-slate-100 dark:border-slate-700 group/item hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <div className="size-8 rounded-md bg-linear-to-br from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 shrink-0 flex items-center justify-center border border-orange-200 dark:border-orange-700/30 overflow-hidden">
+                  {item.image_url ? (
+                    <img 
+                      src={item.image_url} 
+                      alt={item.name} 
+                      className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-300"
+                    />
+                  ) : (
+                    <ShoppingBag size={10} className="text-orange-400" />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight truncate leading-none mb-1">{item.variant?.name || "FOOD ITEM"}</p>
-                  <p className="text-[8px] font-black text-orange-600 uppercase tracking-widest">UNIT QTY: {item.quantity}</p>
+                  <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-tight truncate leading-tight">
+                    {item.variant?.name || item.name || "Item"}
+                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[8px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-wider">Qty: {item.quantity}</span>
+                    {item.portion_label && (
+                      <span className="text-[7px] font-bold text-slate-400 dark:text-slate-500 uppercase bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">
+                        {item.portion_label}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-            {detailedItems.length > 2 && (
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-2 pl-1">
-                + {detailedItems.length - 2} ADDITIONAL POSITIONS
-              </p>
+            {detailedItems.length > 3 && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-2 pl-2 py-1 border-l-2 border-orange-300 dark:border-orange-700/50"
+              >
+                + {detailedItems.length - 3} more item{detailedItems.length - 3 !== 1 ? 's' : ''}
+              </motion.div>
             )}
           </div>
         ) : (
-          <div className="flex items-center gap-2 text-slate-400 p-2 border border-dashed border-slate-100 dark:border-slate-800 rounded-md">
-            <ShoppingBag size={12} strokeWidth={3} />
-            <span className="text-[9px] font-black uppercase tracking-widest">{itemCount} UNITS LOGGED</span>
+          <div className="flex items-center gap-2 text-slate-400 p-2 border border-dashed border-slate-200 dark:border-slate-700 rounded-md bg-slate-50/50 dark:bg-slate-800/20">
+            <ShoppingBag size={12} />
+            <span className="text-[8px] font-black uppercase tracking-wider">{itemCount} units</span>
           </div>
         )}
       </div>
 
-      {/* Settlement & Actions */}
-      <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800 flex items-end justify-between">
-        <div>
-          <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Settlement Amt</p>
-          <p className="text-xl font-black text-slate-900 dark:text-white leading-none tracking-tight">
-            ₦{order.vendorTotal?.toLocaleString() || "0.00"}
-          </p>
-        </div>
+      {/* Settlement & Actions Footer */}
+      <div className="p-3 bg-linear-to-b from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 border-t border-slate-100 dark:border-slate-800 space-y-3">
         
-        <div className="flex items-center gap-1.5">
-          {(order.orderStatus === 'ready' || order.orderStatus === 'ready_for_pickup') && (vendorDetails?.vendor?.deliveryManagedBy !== 'admin' && vendorDetails?.deliveryManagedBy !== 'admin') && (
-            <button
+        {/* Settlement Amount */}
+        <div className="space-y-1">
+          <p className="text-[8px] font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider">Settlement</p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-[10px] font-black text-slate-400">₦</span>
+            <p className="text-2xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">
+              {(order.vendorTotal || 0).toLocaleString('en-NG')}
+            </p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 pt-1">
+          {isReady && (vendorDetails?.vendor?.deliveryManagedBy !== 'admin' && vendorDetails?.deliveryManagedBy !== 'admin') && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => onAssign?.(order.userOrderId?._id || order.userOrderId)}
-              className="flex items-center justify-center size-8 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-all active:scale-90"
-              title="ASSIGN COURIER"
+              className="flex items-center justify-center size-9 bg-linear-to-br from-orange-600 to-orange-700 text-white rounded-lg hover:opacity-90 transition-all active:scale-90 shrink-0 group/assign"
+              title="Assign Courier"
             >
-              <Bike size={14} />
-            </button>
+              <Bike size={14} className="group-hover/assign:rotate-12 transition-transform" />
+            </motion.button>
           )}
 
           <Link
-            href={`/vendors/order/${order._id?.$oid || order._id}`}
-            className="flex items-center gap-1.5 h-8 px-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-black uppercase tracking-widest rounded-md transition-all active:scale-95 group/btn"
+            href={`/vendors/orders/${order._id?.$oid || order._id}`}
+            className="flex-1 flex items-center justify-center gap-1.5 py-4 px-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all hover:opacity-90 active:scale-95 group/btn"
           >
-            LOGS <ChevronRight size={12} className="transition-transform group-hover/btn:translate-x-0.5" />
+            View Details
+            <ChevronRight size={12} className="group-hover/btn:translate-x-0.5 transition-transform" />
           </Link>
         </div>
       </div>
-
     </div>
+    </motion.div>
   );
 }

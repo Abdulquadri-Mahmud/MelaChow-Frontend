@@ -117,7 +117,7 @@ export default function CreateFoodWizardPage() {
         </div>
 
         {/* Page Title & Info */}
-        <div className="mb-6 md:mb-8 px-4 md:px-0 text-left">
+        <div className="mb-3 md:mb-4 px-4 md:px-20 text-left">
           <div className="flex gap-3 items-center mb-3">
             <BackButton label="" className="h-10 w-10 flex items-center justify-center rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800" />
             <h1 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
