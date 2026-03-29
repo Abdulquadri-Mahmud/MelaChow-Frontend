@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono, Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
+import { Geist, Geist_Mono, Outfit, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ApiProvider } from "./context/ApiContext";
 import { SocketProvider } from "./context/SocketContext";
@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
   fallback: ["monospace"],
 });
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta-sans",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
   display: "swap",
   fallback: ["system-ui", "sans-serif"],
@@ -99,7 +99,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${plusJakartaSans.variable} ${playfairDisplay.variable} antialiased transition-colors duration-300`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${playfairDisplay.variable} antialiased transition-colors duration-300`}>
         {/* ✅ ONLY base providers - no auth logic here */}
         <ThemeProvider>
           <ApiProvider>
@@ -118,7 +118,7 @@ export default function RootLayout({ children }) {
             className: 'dark:bg-slate-800 dark:text-white',
             style: {
               borderRadius: '16px',
-              fontFamily: 'var(--font-plus-jakarta-sans)',
+              fontFamily: 'var(--font-outfit)',
               fontSize: '14px',
               fontWeight: '600',
             },

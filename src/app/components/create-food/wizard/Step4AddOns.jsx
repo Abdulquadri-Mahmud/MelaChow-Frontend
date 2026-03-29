@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useCreateFoodStore } from "@/app/context/CreateFoodStore";
-import { Edit2, Plus, Trash2, X, Search } from "lucide-react";
+import { Edit2, Plus, Trash2, X, Search, Settings2, HelpCircle } from "lucide-react";
 import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 const GROUP_TITLE_PRESETS = {
     "Protein & Meat": [
@@ -179,9 +180,9 @@ export default function Step4AddOns({ onBack, onNext, onDeleteGroup, onDeleteOpt
                                 return (
                                     <div key={category} className="space-y-2">
                                         <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">{category}</span>
-                                        <div className="grid grid-cols-1 gap-1">
+                                        <div className="grid md:grid-cols-1 gap-1">
                                             {filtered.map(preset => {
-                                                const isActive = groupName === preset;
+                                                const isActive = groupName === preset && showGroupForm;
                                                 return (
                                                     <button
                                                         key={preset}
@@ -210,168 +211,244 @@ export default function Step4AddOns({ onBack, onNext, onDeleteGroup, onDeleteOpt
                     </div>
                 </div>
 
-                {/* ── RIGHT COLUMN: ACTIVE GROUPS & FORM ─────────── */}
+                {/* ── RIGHT COLUMN: ACTIVE GROUPS ─────────── */}
                 <div className="lg:col-span-8 space-y-6 pb-20">
-                    {showGroupForm ? (
-                        <div className="bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden animate-in zoom-in-95 duration-300">
-                             <div className="bg-slate-900 dark:bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-white/5">
-                                <span className="text-white font-black uppercase tracking-[0.2em] text-[10px]">
-                                    {groupId ? "Edit Options Group" : "Create a Group of Options"}
-                                </span>
-                                <button onClick={() => setShowGroupForm(false)} className="w-8 h-8 rounded-md bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all">
-                                    <X size={14} />
+                    <div className="space-y-4">
+                        {store.choice_groups.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-950 rounded-md border border-dashed border-slate-200 dark:border-slate-800 text-center space-y-6">
+                                <div className="w-16 h-16 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-700">
+                                    <Plus size={32} strokeWidth={1} />
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">No options added yet</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add groups like 'Choice of Protein' to give your customers more ways to order.</p>
+                                </div>
+                                <button
+                                    onClick={() => handleOpenGroupForm()}
+                                    className="h-10 px-8 bg-orange-600 text-white font-black uppercase tracking-widest text-[10px] rounded-md transition-all active:scale-95"
+                                >
+                                    Add Your First Options Group
                                 </button>
                             </div>
-
-                            <div className="p-3 md:p-4 space-y-4">
-                                <div className="space-y-3">
-                                    <label className="text-[11px] font-black uppercase tracking-[0.15em] text-slate-500">What is this group called?</label>
-                                    <input
-                                        autoFocus
-                                        type="text"
-                                        value={groupName}
-                                        onChange={e => { setGroupName(e.target.value); setIsCustomTitle(true); }}
-                                        placeholder="e.g. Extra Toppings, Choose a Side..."
-                                        className="w-full h-12 px-4 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-slate-900 dark:text-white font-black text-[11px] uppercase tracking-widest focus:outline-none focus:border-orange-600 focus:ring-4 focus:ring-orange-600/5 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-700"
-                                    />
-                                     <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Tip: Choose a name like 'Pick your spice level' or 'Add-on sides'.</p>
+                        ) : (
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between px-1">
+                                    <h3 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Current Options Groups ({store.choice_groups.length})</h3>
+                                    <button onClick={() => handleOpenGroupForm()} className="text-[11px] font-black text-orange-600 uppercase tracking-widest hover:text-orange-700 transition-colors bg-orange-600/10 px-4 py-2 rounded-md border border-orange-600/10">+ Add New Group</button>
                                 </div>
 
-                                <div className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-md border border-slate-100 dark:border-slate-800 space-y-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Make this required?</span>
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Should customers be forced to pick an option before they can order?</p>
-                                        </div>
-                                        <button 
-                                            onClick={() => setIsRequired(!isRequired)}
-                                            className={`w-10 h-5 rounded-md p-1 transition-all ${isRequired ? "bg-orange-600" : "bg-slate-200 dark:bg-slate-800"}`}
-                                        >
-                                            <div className={`w-3 h-3 bg-white rounded-sm transition-all ${isRequired ? "translate-x-5" : "translate-x-0"}`} />
-                                        </button>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-300/10 dark:border-slate-700/50">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">MIN CHOICES</label>
-                                            <input type="number" min="0" value={minSelections} onChange={e => setMinSelections(e.target.value)} className="w-full h-10 px-4 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-black text-[11px] text-slate-900 dark:text-white tabular-nums outline-none focus:border-orange-600" />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">MAX CHOICES</label>
-                                            <input type="number" min="1" value={maxSelections} onChange={e => setMaxSelections(e.target.value)} className="w-full h-10 px-4 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 font-black text-[11px] text-slate-900 dark:text-white tabular-nums outline-none focus:border-orange-600" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                                    <button onClick={handleSaveGroup} className="order-1 sm:order-2 flex-1 h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-md font-black uppercase tracking-widest text-[10px] active:scale-[0.98] transition-all">
-                                        {groupId ? "Save Changes" : "Create Group"}
-                                    </button>
-                                    <button onClick={() => setShowGroupForm(false)} className="order-2 sm:order-1 px-8 h-12 rounded-md font-black uppercase tracking-widest text-[10px] text-slate-400 hover:text-slate-600 transition-all">Discard</button>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {store.choice_groups.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center p-12 bg-white dark:bg-slate-950 rounded-md border border-dashed border-slate-200 dark:border-slate-800 text-center space-y-6">
-                                    <div className="w-16 h-16 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-700">
-                                        <Plus size={32} strokeWidth={1} />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">No options added yet</p>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Add groups like 'Choice of Protein' to give your customers more ways to order.</p>
-                                    </div>
-                                    <button
-                                        onClick={() => handleOpenGroupForm()}
-                                        className="h-10 px-8 bg-orange-600 text-white font-black uppercase tracking-widest text-[10px] rounded-md transition-all active:scale-95 shadow-none"
-                                    >
-                                        Add Your First Options Group
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="space-y-6">
-                                    <div className="flex items-center justify-between px-1">
-                                        <h3 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Current Options Groups ({store.choice_groups.length})</h3>
-                                        <button onClick={() => handleOpenGroupForm()} className="text-[10px] font-black text-orange-600 uppercase tracking-widest hover:text-orange-700 transition-colors bg-orange-600/10 px-3 py-1 rounded-md border border-orange-600/10">+ Add Group</button>
-                                    </div>
-
-                                    {store.choice_groups.map(group => (
-                                        <div key={group.tempId} className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md overflow-hidden">
-                                            <div className="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-5 py-4 flex items-center justify-between">
-                                                <div>
-                                                    <div className="flex items-center gap-3 mb-0.5">
-                                                        <h4 className="font-black text-[12px] text-slate-900 dark:text-white uppercase tracking-widest">{group.name}</h4>
-                                                        {group.is_required && <span className="bg-orange-600 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-md">Required</span>}
-                                                    </div>
-                                                    <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Settings: {group.min_selections}–{group.max_selections} Choices</p>
+                                {store.choice_groups.map(group => (
+                                    <div key={group.tempId} className="bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md overflow-hidden">
+                                        <div className="bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-5 py-4 flex items-center justify-between">
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-0.5">
+                                                    <h4 className="font-black text-[12px] text-slate-900 dark:text-white uppercase tracking-widest">{group.name}</h4>
+                                                    {group.is_required && <span className="bg-orange-600 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-md">Required</span>}
                                                 </div>
-                                                <div className="flex gap-1.5">
-                                                    <button onClick={() => handleOpenGroupForm(group)} className="w-8 h-8 rounded-md bg-white dark:bg-slate-950 text-slate-400 hover:text-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center transition-all"><Edit2 size={12} /></button>
-                                                    <button onClick={() => store.removeChoiceGroup(group.tempId)} className="w-8 h-8 rounded-md bg-white dark:bg-slate-950 text-slate-400 hover:text-red-600 border border-slate-200 dark:border-slate-800 flex items-center justify-center transition-all"><Trash2 size={12} /></button>
-                                                </div>
+                                                <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest underline decoration-orange-500/30 offset-2 decoration-2">Configuration: {group.min_selections}–{group.max_selections} Selection(s) allowed</p>
                                             </div>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => handleOpenGroupForm(group)} className="w-8 h-8 rounded-md bg-white dark:bg-slate-950 text-slate-400 hover:text-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center transition-all"><Edit2 size={12} /></button>
+                                                <button onClick={() => store.removeChoiceGroup(group.tempId)} className="w-8 h-8 rounded-md bg-white dark:bg-slate-950 text-slate-400 hover:text-red-600 border border-slate-200 dark:border-slate-800 flex items-center justify-center transition-all"><Trash2 size={12} /></button>
+                                            </div>
+                                        </div>
 
-                                            <div className="p-3 space-y-1">
-                                                {group.options.map(opt => (
-                                                    <div key={opt.tempId} className="flex items-center gap-4 px-3 py-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-900/50 group/opt transition-all">
-                                                        <div className="w-10 h-10 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 overflow-hidden flex items-center justify-center shrink-0">
-                                                            {opt.image_url ? <img src={opt.image_url} alt="" className="w-full h-full object-cover" /> : <div className="text-[8px] font-black text-slate-300">OPT</div>}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="font-black text-[10px] text-slate-900 dark:text-white uppercase tracking-widest truncate">{opt.label}</div>
-                                                            <div className="text-[9px] font-black text-orange-600 tabular-nums">+₦{opt.price_modifier_naira.toLocaleString()}</div>
-                                                        </div>
-                                                        <button onClick={() => store.removeChoiceOption(group.tempId, opt.tempId)} className="w-6 h-6 rounded-md text-slate-300 hover:text-red-600 lg:opacity-0 group-hover/opt:opacity-100 transition-all flex items-center justify-center"><X size={12} /></button>
+                                        <div className="p-3 space-y-1">
+                                            {group.options.map(opt => (
+                                                <div key={opt.tempId} className="flex items-center gap-4 px-3 py-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-900/50 group/opt transition-all border border-transparent hover:border-slate-100">
+                                                    <div className="w-10 h-10 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 overflow-hidden flex items-center justify-center shrink-0">
+                                                        {opt.image_url ? <img src={opt.image_url} alt="" className="w-full h-full object-cover" /> : <div className="text-[8px] font-black text-slate-300 italic">PHOTO</div>}
                                                     </div>
-                                                ))}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="font-black text-[10px] text-slate-900 dark:text-white uppercase tracking-widest truncate">{opt.label}</div>
+                                                        <div className="text-[9px] font-black text-orange-600 tabular-nums">+₦{opt.price_modifier_naira.toLocaleString()}</div>
+                                                    </div>
+                                                    <button onClick={() => store.removeChoiceOption(group.tempId, opt.tempId)} className="w-6 h-6 rounded-md text-slate-200 hover:text-red-600 lg:opacity-0 group-hover/opt:opacity-100 transition-all flex items-center justify-center"><X size={12} /></button>
+                                                </div>
+                                            ))}
 
-                                                {/* Inline Option Builder */}
-                                                <div className="mt-3 p-4 bg-slate-50 dark:bg-slate-900/30 rounded-md border border-slate-100 dark:border-slate-800 space-y-3">
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                            {/* Inline Option Builder */}
+                                            <div className="mt-3 p-4 bg-slate-50 dark:bg-slate-900/30 rounded-md border border-slate-100 dark:border-slate-800 space-y-3">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest pl-1">NAME</label>
                                                         <input 
                                                             type="text" 
                                                             placeholder="Choice name (e.g. Extra Cheese)" 
                                                             value={optionInputs[group.tempId]?.name || ""}
                                                             onChange={e => setOptionInputs(prev => ({ ...prev, [group.tempId]: { ...prev[group.tempId], name: e.target.value } }))}
-                                                            className="h-10 px-3 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-[10px] font-black uppercase tracking-widest focus:border-orange-600 outline-none placeholder:text-slate-300 dark:placeholder:text-slate-700"
+                                                            className="w-full h-10 px-3 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-[10px] font-black uppercase tracking-widest focus:border-orange-600 outline-none placeholder:text-slate-300 dark:placeholder:text-slate-700"
                                                         />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest pl-1">EXTRA PRICE</label>
                                                         <div className="relative">
                                                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-300">+₦</span>
                                                             <input 
                                                                 type="number" 
-                                                                placeholder="Extra Price (₦)" 
+                                                                placeholder="0.00" 
                                                                 value={optionInputs[group.tempId]?.price || ""}
                                                                 onChange={e => setOptionInputs(prev => ({ ...prev, [group.tempId]: { ...prev[group.tempId], price: e.target.value } }))}
                                                                 className="w-full h-10 pl-8 pr-3 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-[10px] font-black text-orange-600 outline-none focus:border-orange-600 tabular-nums"
                                                             />
                                                         </div>
                                                     </div>
+                                                </div>
 
-                                                    <div className="flex items-center gap-2">
+                                                <div className="flex items-end gap-2">
+                                                    <div className="flex-1 space-y-1">
+                                                        <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest pl-1">IMAGE URL (OPTIONAL)</label>
                                                         <input 
                                                             type="url" 
-                                                            placeholder="Photo URL (Optional)" 
+                                                            placeholder="https://..." 
                                                             value={optionInputs[group.tempId]?.image_url || ""}
                                                             onChange={e => setOptionInputs(prev => ({ ...prev, [group.tempId]: { ...prev[group.tempId], image_url: e.target.value } }))}
-                                                            className="flex-1 h-10 px-3 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-[10px] font-black uppercase tracking-widest focus:border-orange-600 outline-none placeholder:text-slate-300 dark:placeholder:text-slate-700"
+                                                            className="w-full h-10 px-3 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-[10px] font-black uppercase tracking-widest focus:border-orange-600 outline-none placeholder:text-slate-300 dark:placeholder:text-slate-700"
                                                         />
-                                                        <button 
-                                                            onClick={() => handleAddOption(group.tempId)}
-                                                            className="h-10 px-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-md font-black uppercase tracking-widest text-[9px] active:scale-[0.98] transition-all"
-                                                        >
-                                                            Add to Group
-                                                        </button>
                                                     </div>
+                                                    <button 
+                                                        onClick={() => handleAddOption(group.tempId)}
+                                                        className="h-10 px-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-md font-black uppercase tracking-widest text-[9px] active:scale-[0.98] transition-all border border-transparent dark:border-white/10"
+                                                    >
+                                                        Add to Group
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
-                                    ))}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── MODAL OVERLAY: CREATE/EDIT GROUP ─────────── */}
+                <AnimatePresence>
+                    {showGroupForm && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                            {/* Backdrop */}
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setShowGroupForm(false)}
+                                className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+                            />
+
+                            {/* Modal Content */}
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 30 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 30 }}
+                                transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                                className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800"
+                            >
+                                {/* Header */}
+                                <div className="bg-slate-900 dark:bg-slate-950 px-8 py-6 flex items-center justify-between border-b border-white/5 relative overflow-hidden">
+                                     {/* Background decoration */}
+                                     <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                                     
+                                     <div className="flex items-center gap-3 relative z-10">
+                                        <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-500">
+                                            <Settings2 size={20} strokeWidth={2.5} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-white font-black uppercase tracking-[0.2em] text-[11px] leading-none mb-1">
+                                                {groupId ? "Edit Section" : "New Selection Group"}
+                                            </h3>
+                                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Setup rules & visibility</p>
+                                        </div>
+                                     </div>
+
+                                    <button 
+                                        onClick={() => setShowGroupForm(false)} 
+                                        className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all relative z-10"
+                                    >
+                                        <X size={18} strokeWidth={2.5} />
+                                    </button>
                                 </div>
-                            )}
+
+                                {/* Body */}
+                                <div className="p-8 space-y-8">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Section Header</label>
+                                            <div className="flex items-center gap-1.5 text-orange-500">
+                                                <HelpCircle size={10} />
+                                                <span className="text-[8px] font-black uppercase tracking-widest italic cursor-help">Recommended</span>
+                                            </div>
+                                        </div>
+                                        <input
+                                            autoFocus
+                                            type="text"
+                                            value={groupName}
+                                            onChange={e => { setGroupName(e.target.value); setIsCustomTitle(true); }}
+                                            placeholder="e.g. Choose your protein, Extra toppings..."
+                                            className="w-full h-14 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white font-black text-[12px] uppercase italic tracking-tight focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-700"
+                                        />
+                                    </div>
+
+                                    <div className="p-6 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <div className="space-y-1">
+                                                <span className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Make this required</span>
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Force choice before checkout</p>
+                                            </div>
+                                            <button 
+                                                onClick={() => setIsRequired(!isRequired)}
+                                                className={`w-12 h-6 rounded-full p-1 transition-all duration-500 ${isRequired ? "bg-orange-600" : "bg-slate-200 dark:bg-slate-800"}`}
+                                            >
+                                                <div className={`w-4 h-4 bg-white rounded-full transition-all duration-300 transform ${isRequired ? "translate-x-6" : "translate-x-0"}`} />
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-200 dark:border-white/5">
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">MIN CHOICES</label>
+                                                </div>
+                                                <input 
+                                                    type="number" 
+                                                    min="0" 
+                                                    value={minSelections} 
+                                                    onChange={e => setMinSelections(e.target.value)} 
+                                                    className="w-full h-12 px-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-black text-[12px] text-slate-900 dark:text-white tabular-nums outline-none focus:border-orange-500" 
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2">
+                                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">MAX CHOICES</label>
+                                                </div>
+                                                <input 
+                                                    type="number" 
+                                                    min="1" 
+                                                    value={maxSelections} 
+                                                    onChange={e => setMaxSelections(e.target.value)} 
+                                                    className="w-full h-12 px-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 font-black text-[12px] text-slate-900 dark:text-white tabular-nums outline-none focus:border-orange-500" 
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                                        <button 
+                                            onClick={handleSaveGroup} 
+                                            className="order-1 sm:order-2 flex-[2] h-14 bg-orange-600 hover:bg-orange-700 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] active:scale-[0.98] transition-all italic"
+                                        >
+                                            {groupId ? "Update Section" : "Enable Options Group"}
+                                        </button>
+                                        <button 
+                                            onClick={() => setShowGroupForm(false)} 
+                                            className="order-2 sm:order-1 flex-1 h-14 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all"
+                                        >
+                                            Discard
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
                         </div>
                     )}
-                </div>
+                </AnimatePresence>
             </div>
         </div>
     );
