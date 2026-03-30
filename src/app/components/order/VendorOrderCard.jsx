@@ -174,6 +174,41 @@ export default function VendorOrderCard({ order, onAssign }) {
         )}
       </div>
 
+      {/* Preparation Directive Summary */}
+      {detailedItems.length > 0 && (
+        <div className="p-3 border-b border-orange-200 dark:border-orange-700/50 bg-orange-200/30 dark:bg-orange-900/20 backdrop-blur-sm">
+          <p className="text-[9px] font-black uppercase text-orange-700 dark:text-orange-300 tracking-wider mb-2">📋 Prepare</p>
+          <div className="space-y-1">
+            {detailedItems.map((item, idx) => {
+              const quantity = Number(item.quantity) || 1;
+              const portionLabel = item.portion_label || item.metadata?.portion_label || null;
+              const portionQuantity = Number(item.portion_quantity) || 1;
+              const itemName = item.name || item.variant?.name || "Item";
+              const options = item.selected_options || item.metadata?.selected_options || [];
+              const totalPortions = portionQuantity * quantity;
+              
+              let fullSentence = `${totalPortions} ${portionLabel ? portionLabel + ' ' : ''}portion${totalPortions > 1 ? 's' : ''} of ${itemName}`;
+              if (options.length > 0) {
+                const optionsTextList = options.map((opt) => `${(Number(opt.quantity) || 1) * quantity} ${opt.label}`);
+                fullSentence += `, with ${optionsTextList.length === 1 ? optionsTextList[0] : optionsTextList.length === 2 ? optionsTextList.join(' and ') : optionsTextList.slice(0, -1).join(', ') + ', and ' + optionsTextList.slice(-1)}`;
+              }
+              
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="text-[10px] text-orange-900 dark:text-orange-100 leading-snug p-2 bg-white/50 dark:bg-orange-950/40 backdrop-blur-sm rounded border border-orange-200 dark:border-orange-700/50"
+                >
+                  {fullSentence}.
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Settlement & Actions Footer */}
       <div className="p-3 bg-linear-to-b from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900 border-t border-slate-100 dark:border-slate-800 space-y-3">
         

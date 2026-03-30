@@ -201,7 +201,7 @@ export default function VendorOrderDetailsPage() {
 
     if (!order) {
         return (
-            <div className="flex flex-col h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 gap-4">
+            <div className="flex flex-col h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 gap-3">
                 <div className="p-5 bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800 border-dashed">
                     <AlertOctagon size={48} className="text-slate-300" />
                 </div>
@@ -298,7 +298,7 @@ export default function VendorOrderDetailsPage() {
                         initial={{ opacity: 0, y: -20, x: 20 }}
                         animate={{ opacity: 1, y: 0, x: 0 }}
                         exit={{ opacity: 0, y: -20, x: 20 }}
-                        className="fixed top-6 right-6 z-[100] bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-lg shadow flex items-center gap-3 min-w-[320px]"
+                        className="fixed top-4 right-6 z-[100] bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 rounded-lg shadow flex items-center gap-3 min-w-[320px]"
                     >
                         <div className="p-2 bg-emerald-100 dark:bg-emerald-500/20 rounded-lg">
                             <Check size={20} className="text-emerald-600" strokeWidth={3} />
@@ -318,7 +318,7 @@ export default function VendorOrderDetailsPage() {
                         initial={{ opacity: 0, y: -20, x: 20 }}
                         animate={{ opacity: 1, y: 0, x: 0 }}
                         exit={{ opacity: 0, y: -20, x: 20 }}
-                        className="fixed top-6 right-6 z-100 bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 p-4 rounded-lg shadow flex items-center gap-3 max-w-md min-w-[320px]"
+                        className="fixed top-4 right-6 z-100 bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 p-3 rounded-lg shadow flex items-center gap-3 max-w-md min-w-[320px]"
                     >
                         <div className="p-2 bg-rose-100 dark:bg-rose-500/20 rounded-lg">
                             <X size={20} className="text-rose-600" strokeWidth={3} />
@@ -343,11 +343,11 @@ export default function VendorOrderDetailsPage() {
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700 shadow-sm"
+                    className="bg-white dark:bg-slate-900 rounded-lg p-3 border border-slate-200 dark:border-slate-700 shadow-sm"
                 >
-                    <div className="flex flex-col lg:flex-row justify-between gap-4">
+                    <div className="flex flex-col lg:flex-row justify-between gap-3">
                         <div className="flex-1">
-                            <div className="flex flex-wrap items-center gap-4 mb-6">
+                            <div className="flex flex-wrap items-center gap-3 mb-6">
                                 <motion.button 
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
@@ -377,7 +377,7 @@ export default function VendorOrderDetailsPage() {
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex flex-wrap items-center gap-4">
+                            <div className="flex flex-wrap items-center gap-3">
                                 <motion.div 
                                     whileHover={{ scale: 1.05 }}
                                     className="flex items-center gap-3 py-2 px-4 bg-linear-to-r from-blue-100 to-cyan-100 dark:from-blue-900/40 dark:to-cyan-900/40 rounded-xl border-2 border-blue-300 dark:border-blue-700/50">
@@ -395,7 +395,7 @@ export default function VendorOrderDetailsPage() {
 
                         {/* Quick Actions */}
                         {availableActions.length > 0 && (
-                            <div className="flex flex-col gap-4 lg:min-w-[320px]">
+                            <div className="flex flex-col gap-3 lg:min-w-[320px]">
                                 <div className="flex items-center gap-3 leading-none border-b-2 border-slate-300 dark:border-slate-700 pb-3 mb-2">
                                     <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
                                         <Layers size={12} className="text-orange-600 dark:text-orange-400" strokeWidth={3} />
@@ -454,7 +454,7 @@ export default function VendorOrderDetailsPage() {
                     {/* Progress Timeline */}
                     <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
                         {isPlatformDelivery && (order.orderStatus === 'ready_for_pickup' || order.orderStatus === 'ready') && (
-                            <div className="mb-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-300 dark:border-blue-700 p-4 rounded flex items-start sm:items-center gap-3 text-blue-700 dark:text-blue-300">
+                            <div className="mb-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-300 dark:border-blue-700 p-3 rounded flex items-start sm:items-center gap-3 text-blue-700 dark:text-blue-300">
                                 <AlertCircle className="shrink-0 text-blue-600 dark:text-blue-400" size={18} strokeWidth={2} />
                                 <p className="text-[11px] font-bold leading-relaxed">
                                     Order is ready! Platform is looking for a courier.
@@ -495,7 +495,7 @@ export default function VendorOrderDetailsPage() {
                     </div>
                 </motion.div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                     <div className="lg:col-span-2 space-y-4">
 
                         {/* Items Manifest */}
@@ -506,7 +506,7 @@ export default function VendorOrderDetailsPage() {
                             className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden shadow-xl"
                         >
                             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-3">
                                     <div className="p-3 bg-linear-to-br from-slate-100 to-blue-100 dark:from-slate-800 dark:to-blue-900/40 rounded-xl text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
                                         <ShoppingBag size={20} strokeWidth={3} />
                                     </div>
@@ -556,9 +556,9 @@ export default function VendorOrderDetailsPage() {
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: idx * 0.05 + 0.2 }}
-                                            className="p-6 flex flex-col gap-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-all group"
+                                            className="p-4 flex flex-col gap-5 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-all group"
                                         >
-                                            <div className="flex flex-col sm:flex-row gap-6">
+                                            <div className="flex flex-col sm:flex-row gap-3">
                                                 {/* Image & Quantity */}
                                                 <div className="w-24 h-24 rounded-xl bg-linear-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 overflow-hidden shrink-0 relative border-3 border-slate-300 dark:border-slate-700 shadow-lg">
                                                     {itemImage ? (
@@ -575,7 +575,7 @@ export default function VendorOrderDetailsPage() {
 
                                                 <div className="flex-1 min-w-0">
                                                     {/* Header & Pricing */}
-                                                    <div className="flex flex-wrap items-center justify-between gap-4 mb-3">
+                                                    <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
                                                         <div>
                                                             <h4 className="font-black text-slate-900 dark:text-white text-[15px] uppercase tracking-tight leading-none mb-2 group-hover:text-orange-600 transition-colors">
                                                                 {itemName}
@@ -601,7 +601,7 @@ export default function VendorOrderDetailsPage() {
                                                     </div>
 
                                                     {/* Instruction Manifest */}
-                                                    <div className="bg-linear-to-br from-slate-100 to-blue-100 dark:from-slate-950/50 dark:to-slate-900/50 rounded-xl p-4 border-2 border-slate-300 dark:border-slate-700/50 shadow-md">
+                                                    <div className="bg-linear-to-br from-slate-100 to-blue-100 dark:from-slate-950/50 dark:to-slate-900/50 rounded-xl p-3 border-2 border-slate-300 dark:border-slate-700/50 shadow-md">
                                                         <div className="flex items-center gap-2 mb-3 leading-none">
                                                             <div className="p-1 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
                                                                 <Package size={12} className="text-orange-600 dark:text-orange-400" />
@@ -635,7 +635,7 @@ export default function VendorOrderDetailsPage() {
 
                                                     {/* Kitchen Note */}
                                                     {note && (
-                                                        <div className="mt-4 flex items-start gap-4 bg-amber-50/50 dark:bg-amber-900/20 p-4 rounded-xl border-2 border-dashed border-amber-300 dark:border-amber-700/50">
+                                                        <div className="mt-4 flex items-start gap-3 bg-amber-50/50 dark:bg-amber-900/20 p-3 rounded-xl border-2 border-dashed border-amber-300 dark:border-amber-700/50">
                                                             <div className="p-2 bg-amber-100 dark:bg-amber-900/40 rounded-lg text-amber-600 dark:text-amber-400 shrink-0">
                                                                 <AlertCircle size={16} strokeWidth={2.5} />
                                                             </div>
@@ -649,7 +649,7 @@ export default function VendorOrderDetailsPage() {
                                             </div>
 
                                             {/* Summary Banner */}
-                                            <div className="flex items-center gap-4 bg-linear-to-r from-slate-900 to-slate-800 dark:from-slate-900 dark:to-slate-800 text-white p-5 rounded-xl border-2 border-slate-700 dark:border-slate-700 overflow-hidden relative shadow-lg">
+                                            <div className="flex items-center gap-3 bg-linear-to-r from-slate-900 to-slate-800 dark:from-slate-900 dark:to-slate-800 text-white p-5 rounded-xl border-2 border-slate-700 dark:border-slate-700 overflow-hidden relative shadow-lg">
                                                 <div className="absolute top-0 right-0 w-32 h-32 bg-orange-600/15 rounded-full blur-3xl -mr-16 -mt-16" />
                                                 <div className="p-3 bg-slate-700 dark:bg-slate-800 rounded-lg relative z-10 shrink-0 border border-slate-600">
                                                     <Hash size={16} className="text-orange-500" strokeWidth={3} />
@@ -682,7 +682,7 @@ export default function VendorOrderDetailsPage() {
                                 </div>
                             </div>
 
-                            <div className="p-6 space-y-4">
+                            <div className="p-4 space-y-4">
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded border border-slate-200 dark:border-slate-700">
                                         <span className="text-[11px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Gross Merchandise Value</span>
@@ -708,7 +708,7 @@ export default function VendorOrderDetailsPage() {
                                 </div>
 
                                 <div className="pt-6 border-t-2 border-slate-200 dark:border-slate-700">
-                                    <div className="flex justify-between items-end bg-orange-600 dark:bg-orange-700 p-6 rounded border border-orange-500 dark:border-orange-600 text-white">
+                                    <div className="flex justify-between items-end bg-orange-600 dark:bg-orange-700 p-4 rounded border border-orange-500 dark:border-orange-600 text-white">
                                         <div className="flex flex-col">
                                             <span className="text-[11px] font-black text-orange-100 uppercase tracking-widest">🎯 Projected Net Payout</span>
                                             <span className="text-[9px] font-bold text-orange-100/80 uppercase tracking-widest mt-1">Automated Settlement Pending</span>
@@ -719,7 +719,7 @@ export default function VendorOrderDetailsPage() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-950/20 rounded border border-emerald-300 dark:border-emerald-700/50">
+                                <div className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-950/20 rounded border border-emerald-300 dark:border-emerald-700/50">
                                     <Wallet size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" strokeWidth={2.5} />
                                     <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 leading-tight">
                                         🔒 Escrow Protection: Funds released to wallet upon verified delivery.
@@ -738,7 +738,7 @@ export default function VendorOrderDetailsPage() {
                             transition={{ delay: 0.1 }}
                             className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden shadow-xl"
                         >
-                            <div className="p-6 flex flex-col items-center text-center border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                            <div className="p-4 flex flex-col items-center text-center border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
                                 <div className="relative mb-4">
                                     <motion.div 
                                         className="w-20 h-20 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden border-2 border-slate-300 dark:border-slate-700 flex items-center justify-center"
@@ -763,7 +763,7 @@ export default function VendorOrderDetailsPage() {
                                 <p className="text-[10px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-widest">✓ Verified Logistics Client</p>
                             </div>
 
-                            <div className="p-6">
+                            <div className="p-4">
                                 <motion.a
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
@@ -784,14 +784,14 @@ export default function VendorOrderDetailsPage() {
                                 transition={{ delay: 0.2 }}
                                 className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden shadow-xl"
                             >
-                                <div className="px-8 py-6 border-b-2 border-slate-200 dark:border-slate-700 flex items-center gap-4 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
+                                <div className="px-8 py-6 border-b-2 border-slate-200 dark:border-slate-700 flex items-center gap-3 bg-linear-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
                                     <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-700">
                                         <MapPin size={18} strokeWidth={3} />
                                     </div>
                                     <h4 className="font-black text-[13px] text-slate-900 dark:text-white uppercase tracking-widest">Drop-Off Point</h4>
                                 </div>
                                 <div className="p-8">
-                                    <div className="flex gap-6">
+                                    <div className="flex gap-3">
                                         <div className="flex flex-col items-center">
                                             <motion.div 
                                                 whileHover={{ scale: 1.1 }}
@@ -809,7 +809,7 @@ export default function VendorOrderDetailsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="bg-blue-50 dark:bg-blue-950/40 rounded-xl p-4 border-2 border-blue-200 dark:border-blue-800/50 mt-6">
+                                    <div className="bg-blue-50 dark:bg-blue-950/40 rounded-xl p-3 border-2 border-blue-200 dark:border-blue-800/50 mt-6">
                                         <div className="flex items-center gap-3 mb-2">
                                             <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
                                                 <Truck size={14} className="text-blue-600 dark:text-blue-400" strokeWidth={3} />
@@ -831,8 +831,8 @@ export default function VendorOrderDetailsPage() {
                             transition={{ delay: 0.3 }}
                             className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden shadow-xl p-8"
                         >
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-4">
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
                                     <div className={`w-14 h-14 rounded-xl flex items-center justify-center border-2 ${userOrderId?.paymentStatus === 'paid' 
                                         ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700' 
                                         : 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 border-amber-300 dark:border-amber-700'}`}>
@@ -865,7 +865,7 @@ export default function VendorOrderDetailsPage() {
             <AnimatePresence>
                 {showSummaryModal && order && (
                     <div 
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3"
                         onClick={() => setShowSummaryModal(false)}
                     >
                         <motion.div
@@ -877,14 +877,14 @@ export default function VendorOrderDetailsPage() {
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Modal Header */}
-                            <div className="bg-orange-600 dark:bg-orange-700 p-4 relative overflow-hidden">
+                            <div className="bg-orange-600 dark:bg-orange-700 p-3 relative overflow-hidden">
                                 <div className="relative z-10">
                                     <h2 className="text-xl font-bold text-white">📋 What to Prepare</h2>
                                 </div>
                             </div>
 
                             {/* Modal Content - Show all directive summaries */}
-                            <div className="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
+                            <div className="p-3 space-y-3 max-h-[70vh] overflow-y-auto">
                                 {detailedItems.length === 0 ? (
                                     <p className="text-sm text-slate-600 dark:text-slate-300">No items to prepare</p>
                                 ) : (
@@ -913,7 +913,7 @@ export default function VendorOrderDetailsPage() {
                             </div>
 
                             {/* Modal Footer */}
-                            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 border-t border-slate-200 dark:border-slate-700">
+                            <div className="bg-slate-50 dark:bg-slate-800/50 p-3 border-t border-slate-200 dark:border-slate-700">
                                 <button
                                     onClick={() => setShowSummaryModal(false)}
                                     className="w-full py-2 px-4 bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold rounded transition-colors"
@@ -929,12 +929,12 @@ export default function VendorOrderDetailsPage() {
             {/* Termination Protocol Modal */}
             <AnimatePresence>
                 {isCancelModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-950/80 backdrop-blur-sm">
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}
-                            className="bg-white dark:bg-slate-900 p-6 rounded-md max-w-sm w-full border border-slate-100 dark:border-slate-800 shadow-none"
+                            className="bg-white dark:bg-slate-900 p-4 rounded-md max-w-sm w-full border border-slate-100 dark:border-slate-800 shadow-none"
                         >
                             <div className="flex flex-col items-center text-center gap-5">
                                 <div className="p-3 bg-rose-600/10 rounded-md text-rose-600 border border-rose-600/20">
@@ -944,7 +944,7 @@ export default function VendorOrderDetailsPage() {
                                     <h3 className="text-[16px] font-black text-slate-900 dark:text-white uppercase tracking-tight">Terminate Order?</h3>
                                     
                                     {['accepted', 'preparing', 'ready_for_pickup'].includes(order?.orderStatus) ? (
-                                        <div className="text-slate-600 dark:text-slate-400 mt-4 text-[11px] font-bold text-left bg-rose-600/5 p-4 rounded-md border border-rose-600/10 uppercase tracking-widest space-y-2">
+                                        <div className="text-slate-600 dark:text-slate-400 mt-4 text-[11px] font-bold text-left bg-rose-600/5 p-3 rounded-md border border-rose-600/10 uppercase tracking-widest space-y-2">
                                             <p className="text-rose-600 font-black">ALERT: Active Protocol Interruption</p>
                                             <div className="space-y-1 mt-2">
                                                 <p>• Automated customer refund will initiate.</p>

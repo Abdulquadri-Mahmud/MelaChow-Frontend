@@ -17,7 +17,8 @@ import {
   TicketPercent,
   Bell,
   Bike,
-  HelpCircle
+  HelpCircle,
+  Package
 } from "lucide-react";
 import Logo from "../../logo/Logo";
 import { useApi } from "@/app/context/ApiContext";
@@ -57,6 +58,11 @@ const navItems = [
     name: "My Foods",
     icon: UtensilsCrossed,
     href: "/vendors/my-foods",
+  },
+  {
+    name: "My Combos",
+    icon: Package,
+    href: "/vendors/my-combos",
   },
   {
     name: "Create Food",
