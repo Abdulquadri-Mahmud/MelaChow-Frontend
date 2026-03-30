@@ -504,9 +504,10 @@ export const toggleComboAvailability = async (comboId, is_available) => {
  * Soft delete a combo (archive).
  * Sets is_archived: true and is_available: false
  */
-export const archiveComboItem = async (comboId) => {
+export const archiveComboItem = async (comboId, is_archived) => {
     const res = await getMenuAxios().patch(
-        `/v1/menu/combos/${comboId}/archive`
+        `/v1/menu/combos/${comboId}/archive`,
+        { is_archived }
     );
     return res.data;
 };

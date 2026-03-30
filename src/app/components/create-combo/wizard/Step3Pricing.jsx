@@ -21,107 +21,89 @@ export default function Step3Pricing() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="space-y-5"
     >
       {/* Combo Price */}
-      <div>
-        <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-          Combo Price (₦) *
+      <div className="bg-slate-50/50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+        <label className="block text-[11px] font-black uppercase tracking-widest mb-3 text-slate-500 dark:text-slate-400 pl-1">
+          Base Combo Pricing *
         </label>
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xl font-bold text-gray-900 dark:text-white">
-            ₦
-          </span>
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
+            <span className="text-xl font-black text-slate-900 dark:text-white leading-none">₦</span>
+            <div className="w-[1px] h-4 bg-slate-200 dark:bg-slate-800" />
+          </div>
           <input
             type="number"
             min="0"
             step="100"
             value={store.price_naira}
             onChange={(e) => store.setField('price_naira', e.target.value)}
-            placeholder="Enter combo price"
-            className="w-full pl-8 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent text-lg font-semibold"
+            placeholder="0.00"
+            className="w-full pl-12 pr-4 h-14 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-300 focus:border-orange-500 outline-none text-xl font-black tabular-nums transition-colors shadow-sm"
           />
         </div>
-        <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
-          This is the full price of the combo. Customers will see this amount.
+        <p className="mt-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest pl-1 leading-normal">
+          This is the primary price. Extra fees from choices will be added on top.
         </p>
       </div>
 
       {/* Contents List */}
-      <div>
-        <label className="block text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
-          What's Included (Optional)
+      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-50 dark:border-slate-800/50">
+        <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-slate-500 dark:text-slate-400 pl-1">
+          Combo Components
         </label>
-        <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
-          List what's included in this combo — customers will see this
+        <p className="text-[10px] font-medium text-slate-400 mb-4 pl-1">
+          Briefly list what's static in this bundle (e.g. 1X COKE, 2X JELLOF).
         </p>
         
-        <div className="flex flex-wrap gap-2 mb-3">
+        <div className="flex flex-wrap gap-1.5 mb-4 min-h-[40px]">
+          {store.contents.length === 0 && (
+             <span className="text-[10px] font-black text-slate-200 uppercase tracking-widest mt-2 italic">Nothing listed yet</span>
+          )}
           {store.contents.map((item) => (
             <motion.div
+              layout
               key={item}
-              layoutId={item}
-              className="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm"
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-500/5 dark:bg-orange-600/10 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-900/30 rounded-lg"
             >
-              {item}
+              <span className="text-[10px] font-black uppercase tracking-tight">{item}</span>
               <button
                 type="button"
                 onClick={() => store.removeContent(item)}
-                className="hover:text-blue-900 dark:hover:text-blue-200"
+                className="hover:text-rose-600 active:scale-90"
               >
-                <X size={14} />
+                <X size={12} strokeWidth={3} />
               </button>
             </motion.div>
           ))}
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 p-2 bg-slate-50/50 dark:bg-slate-950/50 rounded-lg border border-slate-100 dark:border-slate-800">
           <input
             type="text"
             value={contentInput}
             onChange={(e) => setContentInput(e.target.value)}
-            placeholder="e.g., Rice, Plantain, Chicken Lap"
+            placeholder="ADD COMPONENT..."
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 handleAddContent();
               }
             }}
-            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+            className="flex-1 px-3 h-10 bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white placeholder-slate-300 outline-none focus:border-orange-400"
           />
           <button
             type="button"
             onClick={handleAddContent}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium transition"
+            disabled={!contentInput.trim()}
+            className="px-4 h-10 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-md text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-30"
           >
             Add
           </button>
         </div>
-      </div>
-
-      {/* Navigation */}
-      <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="button"
-          onClick={() => store.prevStep()}
-          className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium"
-        >
-          ← Back
-        </button>
-        <button
-          type="button"
-          onClick={() => store.nextStep()}
-          disabled={!isReadyForNext}
-          className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
-            isReadyForNext
-              ? 'bg-orange-500 text-white hover:bg-orange-600'
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-          }`}
-        >
-          Next →
-        </button>
       </div>
     </motion.div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVendorProfile } from '@/app/context/VendorProfileContext';
 import { useVendorCombos } from '@/app/hooks/useVendorCombos';
@@ -21,14 +21,23 @@ export default function MyCombosPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const params = {
     ...(search && { search }),
-    ...(status === 'unavailable' && { is_available: false }),
-    ...(status === 'available' && { is_available: true }),
+    ...(status === 'unavailable' && { is_available: false, is_archived: false }),
+    ...(status === 'available' && { is_available: true, is_archived: false }),
+    ...(status === 'archived' && { is_archived: true }),
+    ...(status === 'all' && { is_archived: false }),
   };
 
   const { data, isLoading, isError, isFetching } = useVendorCombos(vendorId, params);
+
+  if (!mounted) return null;
 
   const combos = data?.combos || [];
   const pagination = data?.pagination || {};
@@ -133,9 +142,10 @@ export default function MyCombosPage() {
               }}
               className="px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
             >
-              <option value="all">All Combos</option>
-              <option value="available">Available</option>
-              <option value="unavailable">Hidden</option>
+              <option value="all">Active Combos</option>
+              <option value="available">Available Only</option>
+              <option value="unavailable">Hidden Only</option>
+              <option value="archived">Archived Items</option>
             </select>
           </div>
         </div>

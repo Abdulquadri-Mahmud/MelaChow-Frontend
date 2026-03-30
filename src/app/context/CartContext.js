@@ -49,11 +49,11 @@ export const CartProvider = ({ children }) => {
   };
 
   // Increase Quantity
-  const increaseQuantity = (foodId, portionId, variantId) => {
+  const increaseQuantity = (foodId, portionId, comboId) => {
     setCart((prev) =>
       prev.map((item) => {
         const isMatch = item.type === "combo"
-          ? item.variantId === variantId
+          ? (item.comboId === comboId || item.variantId === comboId)
           : item.foodId === foodId && item.portionId === portionId;
 
         return isMatch ? { ...item, quantity: item.quantity + 1 } : item;
@@ -63,10 +63,10 @@ export const CartProvider = ({ children }) => {
   };
 
   // Decrease Quantity
-  const decreaseQuantity = (foodId, portionId, variantId) => {
+  const decreaseQuantity = (foodId, portionId, comboId) => {
     const item = cart.find(i => 
       i.type === "combo"
-        ? i.variantId === variantId
+        ? (i.comboId === comboId || i.variantId === comboId)
         : i.foodId === foodId && i.portionId === portionId
     );
 
@@ -82,7 +82,7 @@ export const CartProvider = ({ children }) => {
       prev
         .map((item) => {
           const isMatch = item.type === "combo"
-            ? item.variantId === variantId
+            ? (item.comboId === comboId || item.variantId === comboId)
             : item.foodId === foodId && item.portionId === portionId;
           
           return isMatch ? { ...item, quantity: Math.max(0, item.quantity - 1) } : item;
@@ -92,11 +92,11 @@ export const CartProvider = ({ children }) => {
   };
 
   // Remove item
-  const removeFromCart = (foodId, portionId, variantId) => {
+  const removeFromCart = (foodId, portionId, comboId) => {
     setCart((prev) =>
       prev.filter((item) => {
         const isMatch = item.type === "combo"
-          ? item.variantId === variantId
+          ? (item.comboId === comboId || item.variantId === comboId)
           : item.foodId === foodId && item.portionId === portionId;
         return !isMatch;
       })
