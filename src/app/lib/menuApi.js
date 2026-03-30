@@ -424,3 +424,89 @@ export const getPublicFoodDetail = async (foodId) => {
   );
   return res.data;
 };
+
+// ─────────────────────────────────────────────
+// COMBO ITEMS (NEW SYSTEM)
+// ─────────────────────────────────────────────
+
+/**
+ * Create a combo item.
+ * Price sent as naira — backend converts to kobo internally.
+ * 
+ * Payload shape:
+ * {
+ *   name: string (required)
+ *   description?: string
+ *   image_url: string (required)
+ *   price_naira: number (required, > 0)
+ *   dietary_type: string (required, e.g., "veg", "vegan", "non-veg", "halal", "kosher", "mixed")
+ *   prep_time_minutes?: number (default 15)
+ *   tags?: string[] (max 6)
+ *   contents?: string[] (what's included, e.g., ["Rice", "Plantain", "Chicken"])
+ *   platform_category_id: string (required)
+ *   vendor_section_id?: string (optional)
+ *   choice_groups?: array (optional, for add-ons like protein choice, sauce level, etc.)
+ * }
+ * 
+ * Returns: { comboItem: { _id, name, price, ... } }
+ */
+export const createComboItem = async (vendorId, payload) => {
+    const res = await getMenuAxios().post(`/v1/menu/combos`, payload);
+    return res.data;
+};
+
+/**
+ * Get all combos for a vendor with optional filtering.
+ * 
+ * Query params:
+ * - is_available?: boolean
+ * - search?: string (searches name and description)
+ * 
+ * Returns: { combos: [...], total: number }
+ */
+export const getVendorCombos = async (vendorId, params = {}) => {
+    const res = await getMenuAxios().get(`/v1/menu/combos/vendor/${vendorId}`, { params });
+    return res.data;
+};
+
+/**
+ * Get a single combo by ID.
+ * Returns: { combo: { _id, name, choice_groups: [...], ... } }
+ */
+export const getComboById = async (comboId) => {
+    const res = await getMenuAxios().get(`/v1/menu/combos/${comboId}`);
+    return res.data;
+};
+
+/**
+ * Update a combo item.
+ * Same field shape as create — only include fields to update.
+ * Price sent as price_naira (naira) — backend converts to kobo.
+ */
+export const updateComboItem = async (comboId, payload) => {
+    const res = await getMenuAxios().patch(`/v1/menu/combos/${comboId}`, payload);
+    return res.data;
+};
+
+/**
+ * Toggle combo availability (make it visible/hidden to customers).
+ * Body: { is_available: boolean }
+ */
+export const toggleComboAvailability = async (comboId, is_available) => {
+    const res = await getMenuAxios().patch(
+        `/v1/menu/combos/${comboId}/availability`,
+        { is_available }
+    );
+    return res.data;
+};
+
+/**
+ * Soft delete a combo (archive).
+ * Sets is_archived: true and is_available: false
+ */
+export const archiveComboItem = async (comboId) => {
+    const res = await getMenuAxios().patch(
+        `/v1/menu/combos/${comboId}/archive`
+    );
+    return res.data;
+};

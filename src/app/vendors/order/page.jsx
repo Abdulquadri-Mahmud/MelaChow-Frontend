@@ -121,7 +121,7 @@ export default function VendorOrdersPage() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="bg-white dark:bg-slate-900 rounded-lg p-4 sm:p-6 border border-slate-200 dark:border-slate-800"
+          className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-800"
         >
           {/* Top Row: Back Button & Title */}
           <div className="flex items-center gap-3 mb-4">
@@ -254,7 +254,7 @@ export default function VendorOrdersPage() {
               className="space-y-6"
             >
               {/* Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {currentOrders.map((order, index) => (
                   <motion.div
                     key={order._id?.$oid || order._id}
@@ -277,7 +277,7 @@ export default function VendorOrdersPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-white dark:bg-slate-900 p-5 rounded-lg border border-slate-200 dark:border-slate-800"
                 >
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                     
                     {/* Result Counter */}
                     <div className="text-center sm:text-left">
