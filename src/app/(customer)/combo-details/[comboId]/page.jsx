@@ -229,7 +229,7 @@ export default function ComboDetailsPage() {
     if (isError || !combo) {
         return (
             <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center px-6">
-                <div className="text-center p-8 bg-white dark:bg-zinc-900 rounded-[32px] shadow-xl border border-zinc-100 dark:border-zinc-800 max-w-sm w-full">
+                <div className="text-center p-8 bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-100 dark:border-zinc-800 max-w-sm w-full">
                     <Package size={48} className="mx-auto text-zinc-300 mb-4" />
                     <h2 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight mb-2">Bundle Unavailable</h2>
                     <p className="text-zinc-500 text-sm mb-6">We couldn't load this combo right now. Please try again.</p>
@@ -300,7 +300,7 @@ export default function ComboDetailsPage() {
                                             className="w-full h-full object-cover"
                                         />
                                         {/* Deal badge */}
-                                        <div className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20">
+                                        <div className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">
                                             Bundle Deal
                                         </div>
 
@@ -512,26 +512,27 @@ export default function ComboDetailsPage() {
             </div>
 
             {/* ── Fixed Bottom Bar ──────────────────────────────────────── */}
-            <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 pb-safe z-40">
-                <div className="max-w-2xl mx-auto flex items-center gap-4">
+            <div className="fixed bottom-0 left-0 right-0 p-2 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 pb-safe z-40">
+                <div className="max-w-2xl mx-auto flex items-center gap-2">
 
                     {/* Quantity control */}
-                    <div className="flex items-center gap-1 bg-zinc-100/80 dark:bg-zinc-900/80 rounded-[24px] p-1.5 h-[64px] border border-zinc-200/50 dark:border-zinc-800/50 shadow-inner">
+                    <div className="flex items-center gap-1 bg-zinc-100/80 dark:bg-zinc-900/80 rounded-[21px] p-1 h-[48px] border border-zinc-200/50 dark:border-zinc-800/50 shadow-inner">
                         <button
                             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                            className="w-[48px] h-full flex items-center justify-center rounded-[18px] bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
+                            className="w-[30px] h-[30px] flex items-center justify-center rounded-2xl bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
                         >
-                            <Minus size={20} strokeWidth={3} />
+                            <Minus size={18} strokeWidth={3} />
+
                         </button>
-                        <div className="w-12 flex flex-col items-center">
+                        <div className="w-10 flex flex-col items-center">
                             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tighter leading-none mb-0.5">Qty</span>
-                            <span className="text-[18px] font-black text-zinc-900 dark:text-white tabular-nums leading-none">{quantity}</span>
+                            <span className="text-base font-black text-zinc-900 dark:text-white tabular-nums leading-none">{quantity}</span>
                         </div>
                         <button
                             onClick={() => setQuantity(quantity + 1)}
-                            className="w-[48px] h-full flex items-center justify-center rounded-[18px] bg-orange-500 text-white shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
+                            className="w-[30px] h-[30px] flex items-center justify-center rounded-2xl bg-orange-500 text-white active:scale-95 transition-all"
                         >
-                            <Plus size={20} strokeWidth={3} />
+                            <Plus size={18} strokeWidth={3} />
                         </button>
                     </div>
 
@@ -539,10 +540,10 @@ export default function ComboDetailsPage() {
                     <button
                         onClick={handleAddToCart}
                         disabled={!combo.is_available}
-                        className="flex-1 h-[64px] py-2 bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[28px] font-black text-[15px] uppercase tracking-[0.05em] italic flex items-center justify-between px-5 transition-all active:scale-[0.98] shadow-2xl shadow-zinc-200/50 dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50"
+                        className="flex-1 h-[45px] py-1.5 bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[20px] font-black text-[12px] uppercase tracking-[0.05em] italic flex items-center justify-between px-2 transition-all active:scale-[0.98] dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50"
                     >
-                        <div className="flex items-center gap-3 min-w-0">
-                            <div className="p-1.5 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/20 group-hover:rotate-12 transition-transform shrink-0">
+                        <div className="flex items-center gap-1 min-w-0">
+                            <div className="p-1.5 rounded-xl bg-orange-500 text-white group-hover:rotate-12 transition-transform shrink-0">
                                 <ShoppingCart size={18} />
                             </div>
                             <span className={`truncate ${combo.is_available ? "text-white dark:text-zinc-900 group-hover:text-orange-500" : "text-zinc-400"}`}>
@@ -552,8 +553,8 @@ export default function ComboDetailsPage() {
 
                         {combo.is_available && (
                             <div className="flex items-center gap-3 shrink-0 ml-2">
-                                <div className="w-[1.5px] h-6 bg-white/20 dark:bg-zinc-950/20 rounded-full" />
-                                <span className="text-orange-500 tabular-nums font-black text-[18px]">
+                                <div className="w-[1.5px] h-5 bg-white/20 dark:bg-zinc-950/20 rounded-full" />
+                                <span className="text-orange-500 tabular-nums font-black text-base">
                                     ₦{total.toLocaleString()}
                                 </span>
                             </div>

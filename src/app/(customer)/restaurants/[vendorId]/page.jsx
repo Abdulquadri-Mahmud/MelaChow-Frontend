@@ -6,7 +6,7 @@ import { getVendorStorefront, getMenuItemDetail } from "@/app/lib/menuApi";
 import { useState, useRef, useMemo } from "react";
 import Header2 from "@/app/components/App_Header/Header2";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
-import { MapPin, Clock, Star, ChevronRight, ShoppingCart, Check, Search, Info, Package, Sparkles, Store, X, Plus, Heart, Globe, Bike, Flame } from "lucide-react";
+import { MapPin, Clock, Star, ChevronRight, ShoppingCart, Check, Search, Info, Package, Sparkles, Store, X, Plus, Heart, Globe, Bike, Flame, Truck } from "lucide-react";
 
 const DIETARY_COLORS = {
     veg: "bg-green-100 text-green-700",
@@ -357,7 +357,7 @@ export default function StorefrontPage() {
                 
                 {/* Content Container */}
                 <div className="relative z-10 pt-24 lg:pt-36 px-2 max-w-7xl mx-auto">
-                    <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl p-2 md:p-6 rounded-[2.5rem] lg:rounded-[3rem] border-white/50 dark:border-zinc-800 md:flex items-start gap-8 shadow-2xl shadow-black/10">
+                    <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-2xl p-2 rounded-t-[2.5rem] lg:rounded-[3rem] border-white/50 dark:border-zinc-800 md:flex items-start gap-8 shadow-2xl shadow-black/10">
                         
                         {/* Logo */}
                         <div className="w-24 h-24 lg:w-32 lg:h-32 rounded-3xl overflow-hidden shrink-0 border-4 border-white dark:border-slate-800 bg-white -mt-16 lg:mt-0 mb-3 lg:mb-0 mx-auto lg:mx-0">
@@ -391,36 +391,34 @@ export default function StorefrontPage() {
                                 {vendor.description || "Discover delicious meals crafted with passion and fresh ingredients."}
                             </p> */}
                             
-                            {/* Meta Badges */}
-                            <div className="flex flex-wrap justify-center lg:justify-start gap-3 sm:gap-6">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                                        <Star size={14} className={vendor.rating ? "text-amber-500 fill-amber-500" : ""} />
-                                    </div>
-                                    <div className="flex flex-col text-left">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Rating</span>
-                                        <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-200">{vendor.rating ? `${vendor.rating} / 5.0` : "New on GrubDash"}</span>
-                                    </div>
+                            {/* Meta Info - Minimalist Design */}
+                            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mt-4 text-[13px] md:text-sm font-semibold text-zinc-600 dark:text-zinc-400">
+                                {/* Rating Badge */}
+                                <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-full text-zinc-900 dark:text-white font-black shadow-sm">
+                                    <Star size={14} className={vendor.rating ? "fill-orange-500 text-orange-500" : "text-orange-500"} />
+                                    <span>{vendor.rating ? vendor.rating : "New"}</span>
                                 </div>
-                                <div className="w-px h-8 bg-slate-200 dark:bg-slate-800 hidden sm:block" />
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                                        <Clock size={14} />
-                                    </div>
-                                    <div className="flex flex-col text-left">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Delivery Info</span>
-                                        <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-200">{vendor.estimatedDeliveryTime || 30} mins • ₦{vendor.deliveryFee?.toLocaleString() || 0} fee</span>
-                                    </div>
+
+                                {/* Delivery Time */}
+                                <div className="flex items-center gap-1.5">
+                                    <Clock size={16} className="text-zinc-400" />
+                                    <span>{vendor.estimatedDeliveryTime || 30} mins</span>
                                 </div>
-                                <div className="w-px h-8 bg-slate-200 dark:bg-slate-800 hidden sm:block" />
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                                        <MapPin size={14} />
-                                    </div>
-                                    <div className="flex flex-col text-left">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Location</span>
-                                        <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-200 truncate max-w-[120px] sm:max-w-xs">{vendor.address?.city || "Local Area"}</span>
-                                    </div>
+
+                                <div className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700 hidden sm:block" />
+
+                                {/* Delivery Fee */}
+                                <div className="flex items-center gap-1.5">
+                                    <Truck size={16} className="text-zinc-400" />
+                                    <span>₦{vendor.deliveryFee?.toLocaleString() || 0} delivery</span>
+                                </div>
+
+                                <div className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700 hidden sm:block" />
+
+                                {/* Location */}
+                                <div className="flex items-center gap-1.5">
+                                    <MapPin size={16} className="text-zinc-400" />
+                                    <span className="truncate max-w-[150px]">{vendor.address?.city || "Ikorodu"}</span>
                                 </div>
                             </div>
                         </div>
