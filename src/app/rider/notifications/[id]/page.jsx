@@ -13,7 +13,8 @@ import {
     getRiderSpecificOrder,
     toggleRiderAvailability,
     riderPickedUpOrder,
-    riderDeliveredOrder
+    requestDeliveryOTP,
+    riderConfirmDelivery
 } from "@/app/lib/riderApi";
 import toast from "react-hot-toast";
 
@@ -26,6 +27,7 @@ export default function NotificationOrderDetails() {
     const [notification, setNotification] = useState(null);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+    const [otpState, setOtpState] = useState({ step: "idle", otp: "", sending: false, confirming: false });
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -97,18 +99,36 @@ export default function NotificationOrderDetails() {
             if (actionType === "pickup") {
                 await riderPickedUpOrder(rider._id, order._id);
                 toast.success("Order picked up! Head to customer.");
+                // Refresh order
+                const orderRes = await getRiderSpecificOrder(rider._id, order._id);
+                setOrder(orderRes.data || orderRes.order || orderRes);
             } else if (actionType === "deliver") {
-                await riderDeliveredOrder(rider._id, order._id);
-                toast.success("Order delivered! Well done. 🎉");
+                setOtpState(prev => ({ ...prev, sending: true }));
+                await requestDeliveryOTP(rider._id, order._id);
+                setOtpState({ step: "awaiting_otp", otp: "", sending: false, confirming: false });
+                toast.success("OTP sent to customer's phone!");
             }
+        } catch (error) {
+            setOtpState(prev => ({ ...prev, sending: false }));
+            toast.error(error?.response?.data?.message || `Failed to ${actionType} order`);
+        } finally {
+            setActionLoading(false);
+        }
+    };
 
+    const handleConfirmOTP = async () => {
+        if (!otpState.otp.trim() || !order?._id || !rider?._id) return;
+        setOtpState(prev => ({ ...prev, confirming: true }));
+        try {
+            await riderConfirmDelivery(rider._id, order._id, otpState.otp.trim());
+            toast.success("Order delivered! Well done. 🎉");
+            setOtpState({ step: "idle", otp: "", sending: false, confirming: false });
             // Refresh order
             const orderRes = await getRiderSpecificOrder(rider._id, order._id);
             setOrder(orderRes.data || orderRes.order || orderRes);
         } catch (error) {
-            toast.error(error?.response?.data?.message || `Failed to ${actionType} order`);
-        } finally {
-            setActionLoading(false);
+            setOtpState(prev => ({ ...prev, confirming: false }));
+            toast.error(error?.response?.data?.message || "Incorrect OTP. Ask the customer to check again.");
         }
     };
 
@@ -314,15 +334,49 @@ export default function NotificationOrderDetails() {
                                     )}
                                 </button>
                             ) : (
-                                <button
-                                    onClick={() => handleAction("deliver")}
-                                    disabled={actionLoading}
-                                    className="w-full h-16 rounded-[24px] bg-blue-500 text-white font-black tracking-wide flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all active:scale-95 disabled:opacity-50"
-                                >
-                                    {actionLoading ? <Loader2 className="animate-spin" size={24} /> : (
-                                        <><CheckCircle2 size={20} className="mr-2" /> Mark Delivered</>
+                                <div>
+                                    <button
+                                        onClick={() => handleAction("deliver")}
+                                        disabled={actionLoading || otpState.sending}
+                                        className="w-full h-16 rounded-[24px] bg-blue-500 text-white font-black tracking-wide flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all active:scale-95 disabled:opacity-50"
+                                    >
+                                        {actionLoading || otpState.sending ? <Loader2 className="animate-spin" size={24} /> : (
+                                            <><CheckCircle2 size={20} className="mr-2" /> Mark Delivered</>
+                                        )}
+                                    </button>
+                                    
+                                    {/* OTP input */}
+                                    {otpState.step === "awaiting_otp" && (
+                                        <div className="mt-4 bg-white dark:bg-white/10 border border-blue-200 dark:border-blue-500/30 rounded-[24px] p-4 space-y-3">
+                                            <p className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-400">Ask customer for OTP</p>
+                                            <div className="flex gap-3">
+                                                <input
+                                                    type="number"
+                                                    inputMode="numeric"
+                                                    pattern="[0-9]*"
+                                                    maxLength={6}
+                                                    value={otpState.otp}
+                                                    onChange={e => setOtpState(prev => ({ ...prev, otp: e.target.value }))}
+                                                    placeholder="Enter OTP"
+                                                    className="flex-1 h-14 rounded-xl bg-zinc-50 dark:bg-white/10 border border-zinc-200 dark:border-white/10 px-4 text-lg font-black text-center tracking-widest text-zinc-900 dark:text-white outline-none focus:border-blue-500"
+                                                />
+                                                <button
+                                                    onClick={handleConfirmOTP}
+                                                    disabled={!otpState.otp.trim() || otpState.confirming}
+                                                    className="h-14 px-5 rounded-xl bg-blue-600 text-white font-black text-sm disabled:opacity-50 active:scale-95 transition-all"
+                                                >
+                                                    {otpState.confirming ? <Loader2 size={18} className="animate-spin" /> : "CONFIRM"}
+                                                </button>
+                                            </div>
+                                            <button
+                                                onClick={() => setOtpState({ step: "idle", otp: "", sending: false, confirming: false })}
+                                                className="block w-full text-center mt-2 text-xs text-zinc-400 font-bold uppercase tracking-wider"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
                                     )}
-                                </button>
+                                </div>
                             )}
                         </motion.div>
                     ) : (
