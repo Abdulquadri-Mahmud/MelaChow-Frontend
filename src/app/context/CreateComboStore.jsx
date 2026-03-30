@@ -62,7 +62,7 @@ export const useCreateComboStore = create(
       // ══════════════════════════════════════════════════════════════════════
       nextStep: () => {
         set((state) => ({
-          currentStep: Math.min(state.currentStep + 1, 4),
+          currentStep: Math.min(state.currentStep + 1, 5),
         }));
       },
 
@@ -73,7 +73,7 @@ export const useCreateComboStore = create(
       },
 
       goToStep: (step) => {
-        if (step >= 1 && step <= 4) {
+        if (step >= 1 && step <= 5) {
           set({ currentStep: step });
         }
       },
@@ -285,6 +285,7 @@ export const useCreateComboStore = create(
         price_naira: state.price_naira,
         choice_groups: state.choice_groups,
         currentStep: state.currentStep,
+        isDirty: state.isDirty,
         _id: state._id,
       }),
     }

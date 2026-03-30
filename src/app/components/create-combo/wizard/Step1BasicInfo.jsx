@@ -16,6 +16,9 @@ const DIETARY_OPTIONS = [
   { label: '🍽️ Mixed', value: 'mixed' },
 ];
 
+const CLOUDINARY_HOST = 'https://api.cloudinary.com/v1_1/dypn7gna0/image/upload';
+const CLOUDINARY_PRESET = 'GrubDash';
+
 export default function Step1BasicInfo() {
   const store = useCreateComboStore();
   const [uploading, setUploading] = useState(false);
@@ -32,17 +35,18 @@ export default function Step1BasicInfo() {
     setUploading(true);
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
 
     try {
-      const res = await fetch('/api/upload', {
+      const res = await fetch(CLOUDINARY_HOST, {
         method: 'POST',
         body: formData,
       });
 
       if (!res.ok) throw new Error('Upload failed');
 
-      const { imageUrl } = await res.json();
-      store.setField('image_url', imageUrl);
+      const data = await res.json();
+      store.setField('image_url', data.secure_url);
       toast.success('Image uploaded');
     } catch (err) {
       toast.error('Image upload failed');
@@ -65,13 +69,13 @@ export default function Step1BasicInfo() {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="space-y-4"
     >
       {/* Name */}
       <div>
-        <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+        <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-slate-500 dark:text-slate-400 pl-1">
           Combo Name *
         </label>
         <input
@@ -79,182 +83,154 @@ export default function Step1BasicInfo() {
           value={store.name}
           onChange={(e) => store.setField('name', e.target.value)}
           placeholder="e.g., Rice & Chicken Combo"
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+          className="w-full h-10 px-3 border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-[13px] font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:border-orange-500 outline-none transition-all"
         />
       </div>
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+        <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-slate-500 dark:text-slate-400 pl-1">
           Description
         </label>
         <textarea
           value={store.description}
           onChange={(e) => store.setField('description', e.target.value)}
-          placeholder="e.g., Rice + Plantain + Chicken Lap with special sauce"
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+          placeholder="What's in the box?"
+          rows={2}
+          className="w-full px-3 py-2 border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-[13px] font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:border-orange-500 outline-none transition-all resize-none"
         />
       </div>
 
-      {/* Image Upload */}
-      <div>
-        <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-          Combo Image *
-        </label>
-        {store.image_url ? (
-          <div className="relative w-full h-48 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600">
-            <Image
-              src={store.image_url}
-              alt="combo"
-              fill
-              className="object-cover"
-            />
-            <button
-              type="button"
-              onClick={() => store.setField('image_url', null)}
-              className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
-            >
-              <X size={16} />
-            </button>
-          </div>
-        ) : (
-          <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition">
-            <div className="flex flex-col items-center justify-center">
-              <Upload size={24} className="text-gray-400 mb-2" />
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                {uploading ? 'Uploading...' : 'Click to upload image'}
-              </span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Image Upload */}
+        <div>
+            <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-slate-500 dark:text-slate-400 pl-1">
+            Visual *
+            </label>
+            {store.image_url ? (
+            <div className="relative w-full h-28 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm bg-slate-50 dark:bg-slate-950">
+                <Image
+                src={store.image_url}
+                alt="combo"
+                fill
+                className="object-cover"
+                />
+                <button
+                type="button"
+                onClick={() => store.setField('image_url', null)}
+                className="absolute top-1.5 right-1.5 w-6 h-6 bg-rose-600 text-white rounded-md flex items-center justify-center hover:bg-rose-700 shadow-lg"
+                >
+                <X size={12} strokeWidth={3} />
+                </button>
             </div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              disabled={uploading}
-              className="hidden"
-            />
-          </label>
-        )}
-      </div>
-
-      {/* Dietary Type */}
-      <div>
-        <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-          Dietary Type *
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          {DIETARY_OPTIONS.map((option) => (
-            <motion.button
-              key={option.value}
-              type="button"
-              onClick={() => store.setField('dietary_type', option.value)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition ${
-                store.dietary_type === option.value
-                  ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
-                  : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-orange-400'
-              }`}
-            >
-              {option.label}
-            </motion.button>
-          ))}
+            ) : (
+            <label className="flex items-center justify-center w-full h-28 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-lg cursor-pointer hover:border-orange-500/50 hover:bg-orange-500/5 transition-all group">
+                <div className="flex flex-col items-center justify-center">
+                <Upload size={18} className="text-slate-300 group-hover:text-orange-500 mb-1.5 transition-colors" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-orange-600 transition-colors">
+                    {uploading ? 'Processing...' : 'Upload'}
+                </span>
+                </div>
+                <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploading}
+                className="hidden"
+                />
+            </label>
+            )}
         </div>
-      </div>
 
-      {/* Prep Time */}
-      <div>
-        <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-          Prep Time (minutes)
-        </label>
-        <input
-          type="number"
-          min="0"
-          max="180"
-          value={store.prep_time_minutes || ''}
-          onChange={(e) =>
-            store.setField('prep_time_minutes', e.target.value ? Number(e.target.value) : null)
-          }
-          placeholder="e.g., 15"
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-        />
+        <div className="space-y-4">
+            {/* Prep Time */}
+            <div>
+                <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-slate-500 dark:text-slate-400 pl-1">
+                Prep Time (Min)
+                </label>
+                <input
+                type="number"
+                min="0"
+                max="180"
+                value={store.prep_time_minutes || ''}
+                onChange={(e) =>
+                    store.setField('prep_time_minutes', e.target.value ? Number(e.target.value) : null)
+                }
+                placeholder="0"
+                className="w-full h-10 px-3 border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-[13px] font-black text-orange-600 tabular-nums focus:border-orange-500 outline-none"
+                />
+            </div>
+
+            {/* Dietary Type */}
+            <div>
+                <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-slate-500 dark:text-slate-400 pl-1">
+                Dietary Type *
+                </label>
+                <div className="relative">
+                    <select 
+                        value={store.dietary_type}
+                        onChange={(e) => store.setField('dietary_type', e.target.value)}
+                        className="w-full h-10 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-200 appearance-none focus:border-orange-500 outline-none"
+                    >
+                        {DIETARY_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <X size={12} className="rotate-45" />
+                    </div>
+                </div>
+            </div>
+        </div>
       </div>
 
       {/* Tags */}
       <div>
-        <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-          Tags (max 6)
+        <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-slate-500 dark:text-slate-400 pl-1">
+          Search Tags
         </label>
-        <div className="flex flex-wrap gap-2 mb-2">
-          {(store.tags || []).map((tag) => (
-            <motion.div
-              key={tag}
-              layoutId={tag}
-              className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-full text-sm"
-            >
-              {tag}
-              <button
-                type="button"
-                onClick={() => store.removeTag(tag)}
-                className="hover:text-orange-900 dark:hover:text-orange-200"
-              >
-                <X size={14} />
-              </button>
-            </motion.div>
-          ))}\n        </div>
-        {(store.tags || []).length < 6 && (
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Add a tag (popular, spicy, bestseller, etc.)"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddTag(e.currentTarget.value);
-                  e.currentTarget.value = '';
-                }
-              }}
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
-            />
-            <button
-              type="button"
-              onClick={(e) => {
-                const input = e.currentTarget.previousElementSibling;
-                if (input instanceof HTMLInputElement) {
-                  handleAddTag(input.value);
-                  input.value = '';
-                }
-              }}
-              className="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 text-sm font-medium"
-            >
-              Add
-            </button>
-          </div>
-        )}
+        <div className="p-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl space-y-3">
+            <div className="flex flex-wrap gap-1.5">
+                {(store.tags || []).map((tag) => (
+                    <motion.div
+                    key={tag}
+                    layoutId={tag}
+                    className="inline-flex items-center gap-1.5 px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-sm"
+                    >
+                    {tag}
+                    <button
+                        type="button"
+                        onClick={() => store.removeTag(tag)}
+                        className="text-slate-400 hover:text-rose-600"
+                    >
+                        <X size={10} strokeWidth={3} />
+                    </button>
+                    </motion.div>
+                ))}
+                {(store.tags || []).length === 0 && (
+                    <span className="text-[9px] font-bold text-slate-300 uppercase italic px-1">No tags added</span>
+                )}
+            </div>
+            
+            {(store.tags || []).length < 6 && (
+            <div className="flex gap-2">
+                <input
+                type="text"
+                placeholder="SPICY, BESTSELLER..."
+                onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddTag(e.currentTarget.value);
+                    e.currentTarget.value = '';
+                    }
+                }}
+                className="flex-1 h-9 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-black uppercase tracking-widest outline-none focus:border-orange-500 transition-all shadow-sm"
+                />
+            </div>
+            )}
+        </div>
       </div>
 
-      {/* Navigation */}
-      <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="button"
-          disabled
-          className="px-4 py-2 text-gray-400 cursor-not-allowed"
-        >
-          ← Back
-        </button>
-        <button
-          type="button"
-          onClick={() => store.nextStep()}
-          disabled={!isReadyForNext}
-          className={`flex-1 px-4 py-2 rounded-lg font-medium transition ${
-            isReadyForNext
-              ? 'bg-orange-500 text-white hover:bg-orange-600'
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-          }`}
-        >
-          Next →
-        </button>
-      </div>
     </motion.div>
   );
 }

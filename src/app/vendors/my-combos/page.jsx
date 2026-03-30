@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useVendorProfile } from '@/app/context/VendorProfileContext';
 import { useVendorCombos } from '@/app/hooks/useVendorCombos';
@@ -9,32 +9,51 @@ import { toggleComboAvailability, archiveComboItem } from '@/app/lib/menuApi';
 import ComboCard from './components/ComboCard';
 import ComboCardSkeleton from './components/ComboCardSkeleton';
 import EmptyCombos from './components/EmptyCombos';
-import { Plus, RotateCw } from 'lucide-react';
+import { Plus, RotateCw, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function MyCombosPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { vendorProfile } = useVendorProfile();
+  const { vendorProfile, isLoading: isProfileLoading } = useVendorProfile();
   const vendorId = vendorProfile?._id || vendorProfile?.id;
 
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
+  const [mounted, setMounted] = useState(false);
 
-  const params = {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const params = useMemo(() => ({
     ...(search && { search }),
-    ...(status === 'unavailable' && { is_available: false }),
-    ...(status === 'available' && { is_available: true }),
-  };
+    ...(status === 'unavailable' && { is_available: false, is_archived: false }),
+    ...(status === 'available' && { is_available: true, is_archived: false }),
+    ...(status === 'archived' && { is_archived: true }),
+    ...(status === 'all' && { is_archived: false }),
+  }), [search, status]);
 
-  const { data, isLoading, isError, isFetching } = useVendorCombos(vendorId, params);
+  const { data, isLoading, isError, isFetching, refetch } = useVendorCombos(vendorId, params);
+
+  // Hydration and Loading Guard
+  if (!mounted || (isProfileLoading && !vendorId)) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
+        <div className="flex flex-col items-center gap-4">
+           <Loader2 className="animate-spin text-orange-500 w-12 h-12" />
+           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const combos = data?.combos || [];
   const pagination = data?.pagination || {};
 
-  const invalidate = () => {
-    queryClient.invalidateQueries(['vendor-combos', vendorId]);
+  const handleRefresh = () => {
+    refetch();
   };
 
   const handleToggleAvailability = async (comboId) => {
@@ -43,7 +62,7 @@ export default function MyCombosPage() {
       if (!combo) return;
 
       await toggleComboAvailability(comboId, !combo.is_available);
-      invalidate();
+      handleRefresh();
       toast.success('Availability updated');
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to update availability');
@@ -55,8 +74,8 @@ export default function MyCombosPage() {
       const combo = combos.find((c) => c._id === comboId);
       if (!combo) return;
 
-      await archiveComboItem(comboId);
-      invalidate();
+      await archiveComboItem(comboId, !combo.is_archived);
+      handleRefresh();
       toast.success(combo.is_archived ? 'Combo restored' : 'Combo archived');
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to update combo');
@@ -91,7 +110,7 @@ export default function MyCombosPage() {
             <div className="flex items-center gap-2">
               {/* Refresh Button */}
               <button
-                onClick={invalidate}
+                onClick={handleRefresh}
                 disabled={isFetching}
                 className={`h-10 w-10 flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 transition-all ${
                   isFetching ? 'opacity-50' : 'active:scale-95'
@@ -133,9 +152,10 @@ export default function MyCombosPage() {
               }}
               className="px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
             >
-              <option value="all">All Combos</option>
-              <option value="available">Available</option>
-              <option value="unavailable">Hidden</option>
+              <option value="all">Active Combos</option>
+              <option value="available">Available Only</option>
+              <option value="unavailable">Hidden Only</option>
+              <option value="archived">Archived Items</option>
             </select>
           </div>
         </div>
@@ -165,7 +185,7 @@ export default function MyCombosPage() {
                 </p>
               </div>
               <button
-                onClick={invalidate}
+                onClick={handleRefresh}
                 className="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-xs font-black uppercase tracking-widest rounded-md transition-all active:scale-95"
               >
                 Try Again

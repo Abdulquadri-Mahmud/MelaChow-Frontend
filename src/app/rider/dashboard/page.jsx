@@ -9,7 +9,7 @@ import {
     ArrowUpRight, RefreshCcw
 } from "lucide-react";
 import { useRider } from "@/app/context/RiderContext";
-import { getActiveRiderOrder, riderPickedUpOrder, riderDeliveredOrder } from "@/app/lib/riderApi";
+import { getActiveRiderOrder, riderPickedUpOrder, requestDeliveryOTP, riderConfirmDelivery } from "@/app/lib/riderApi";
 import toast from "react-hot-toast";
 import socketService from "@/app/lib/socketService";
 import { useSocket } from "@/app/context/SocketContext";
@@ -21,6 +21,7 @@ export default function RiderDashboard() {
     const [activeOrder, setActiveOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [otpState, setOtpState] = useState({ step: "idle", otp: "", sending: false, confirming: false });
 
     const riderId = rider?._id || rider?.id;
 
@@ -103,22 +104,41 @@ export default function RiderDashboard() {
             if (action === "pickup") {
                 await riderPickedUpOrder(riderId, orderId);
                 toast.success("Order picked up! Head to the customer.");
+                fetchActiveOrder();
             } else if (action === "deliver") {
-                await riderDeliveredOrder(riderId, orderId);
-                toast.success("Order delivered! Well done. 🎉");
+                // Step 1: request OTP → sent to customer's phone
+                setOtpState(prev => ({ ...prev, sending: true }));
+                await requestDeliveryOTP(riderId, orderId);
+                setOtpState({ step: "awaiting_otp", otp: "", sending: false, confirming: false });
+                toast.success("OTP sent to customer's phone!");
             } else if (action === "accept") {
                 await toggleRiderAvailability(riderId, "on_delivery");
                 toast.success("Delivery Accepted! 🛵");
                 await refreshProfile();
+                fetchActiveOrder();
             } else if (action === "reject") {
                 await toggleRiderAvailability(riderId, "available");
                 toast.success("Order rejected");
                 setActiveOrder(null);
                 await refreshProfile();
             }
+        } catch (error) {
+            setOtpState(prev => ({ ...prev, sending: false }));
+            toast.error(error?.response?.data?.message || `Failed to ${action} order`);
+        }
+    };
+
+    const handleConfirmOTP = async () => {
+        if (!otpState.otp.trim() || !activeOrder || !riderId) return;
+        setOtpState(prev => ({ ...prev, confirming: true }));
+        try {
+            await riderConfirmDelivery(riderId, activeOrder._id, otpState.otp.trim());
+            toast.success("Order delivered! Well done. 🎉");
+            setOtpState({ step: "idle", otp: "", sending: false, confirming: false });
             fetchActiveOrder();
         } catch (error) {
-            toast.error(error?.response?.data?.message || `Failed to ${action} order`);
+            setOtpState(prev => ({ ...prev, confirming: false }));
+            toast.error(error?.response?.data?.message || "Incorrect OTP. Ask the customer to check again.");
         }
     };
 
@@ -379,13 +399,49 @@ export default function RiderDashboard() {
                                                 PICKED UP
                                             </button>
                                         ) : (
-                                            <button
-                                                onClick={() => handleAction("deliver")}
-                                                className="h-16 rounded-2xl bg-orange-600 dark:bg-orange-400 text-white dark:text-orange-900 flex items-center justify-center font-black text-sm transition-all active:scale-95"
-                                            >
-                                                <CheckCircle2 size={20} className="mr-2" />
-                                                DELIVERED
-                                            </button>
+                                            <>
+                                                <button
+                                                    onClick={() => handleAction("deliver")}
+                                                    disabled={otpState.sending}
+                                                    className="h-16 rounded-2xl bg-orange-600 dark:bg-orange-400 text-white dark:text-orange-900 flex items-center justify-center font-black text-sm transition-all active:scale-95 disabled:opacity-60"
+                                                >
+                                                    {otpState.sending
+                                                        ? <Loader2 size={20} className="animate-spin" />
+                                                        : <><CheckCircle2 size={20} className="mr-2" />DELIVERED</>}
+                                                </button>
+
+                                                {/* OTP input — appears after OTP is sent */}
+                                                {otpState.step === "awaiting_otp" && (
+                                                    <div className="col-span-2 mt-2 bg-white dark:bg-white/10 border border-orange-200 dark:border-orange-500/30 rounded-2xl p-4 space-y-3">
+                                                        <p className="text-[11px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-300">Ask the customer for the OTP sent to their phone</p>
+                                                        <div className="flex gap-3">
+                                                            <input
+                                                                type="number"
+                                                                inputMode="numeric"
+                                                                pattern="[0-9]*"
+                                                                maxLength={6}
+                                                                value={otpState.otp}
+                                                                onChange={e => setOtpState(prev => ({ ...prev, otp: e.target.value }))}
+                                                                placeholder="Enter OTP"
+                                                                className="flex-1 h-12 rounded-xl bg-zinc-50 dark:bg-white/10 border border-zinc-200 dark:border-white/10 px-4 text-lg font-black text-center tracking-widest text-zinc-900 dark:text-white outline-none focus:border-orange-500"
+                                                            />
+                                                            <button
+                                                                onClick={handleConfirmOTP}
+                                                                disabled={!otpState.otp.trim() || otpState.confirming}
+                                                                className="h-12 px-5 rounded-xl bg-orange-600 text-white font-black text-sm disabled:opacity-50 active:scale-95 transition-all"
+                                                            >
+                                                                {otpState.confirming ? <Loader2 size={18} className="animate-spin" /> : "CONFIRM"}
+                                                            </button>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => setOtpState({ step: "idle", otp: "", sending: false, confirming: false })}
+                                                            className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
                                     </>
                                 ) : (

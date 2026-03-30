@@ -66,8 +66,13 @@ export const riderPickedUpOrder = async (riderId, orderId) => {
     return response.data;
 };
 
-export const riderDeliveredOrder = async (riderId, orderId) => {
-    const response = await API.patch(`/riders/${riderId}/delivered`, { orderId });
+export const requestDeliveryOTP = async (riderId, orderId) => {
+    const response = await API.post(`/riders/${riderId}/request-delivery-otp`, { orderId });
+    return response.data;
+};
+
+export const riderConfirmDelivery = async (riderId, orderId, otp) => {
+    const response = await API.post(`/riders/${riderId}/confirm-delivery`, { orderId, otp });
     return response.data;
 };
 

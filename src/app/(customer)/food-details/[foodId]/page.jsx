@@ -691,17 +691,17 @@ export default function FoodDetails() {
             <div className="max-w-2xl mx-auto flex items-center gap-4">
                 
                 {/* Quantity Control Container */}
-                <div className="flex items-center gap-1 bg-zinc-100/80 dark:bg-zinc-900/80 rounded-[24px] p-1.5 h-[64px] border border-zinc-200/50 dark:border-zinc-800/50 shadow-inner group transition-colors">
+                <div className="flex items-center gap-1 bg-zinc-100/80 dark:bg-zinc-900/80 rounded-[20px] p-1 h-[52px] border border-zinc-200/50 dark:border-zinc-800/50 shadow-inner group transition-colors">
                     <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
                         disabled={!itemAvailability.available}
-                        className="w-[48px] h-full flex items-center justify-center rounded-[18px] bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all disabled:opacity-50 text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
+                        className="w-[40px] h-full flex items-center justify-center rounded-2xl bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all disabled:opacity-50 text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
                     >
-                        <Minus size={20} strokeWidth={3}/>
+                        <Minus size={18} strokeWidth={3}/>
                     </button>
-                    <div className="w-12 flex flex-col items-center">
+                    <div className="w-10 flex flex-col items-center">
                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tighter leading-none mb-0.5">Qty</span>
-                         <span className="text-[18px] font-black text-zinc-900 dark:text-white tabular-nums leading-none">
+                         <span className="text-base font-black text-zinc-900 dark:text-white tabular-nums leading-none">
                             {quantity}
                         </span>
                     </div>
@@ -714,21 +714,21 @@ export default function FoodDetails() {
                             }
                         }}
                         disabled={!itemAvailability.available}
-                        className="w-[48px] h-full flex items-center justify-center rounded-[18px] bg-orange-500 text-white shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
+                        className="w-[40px] h-full flex items-center justify-center rounded-2xl bg-orange-500 text-white shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
                     >
-                        <Plus size={20} strokeWidth={3}/>
+                        <Plus size={18} strokeWidth={3}/>
                     </button>
                 </div>
 
                 <button
                     onClick={handleAddToCartBaseItem}
                     disabled={!itemAvailability.available}
-                    className="flex-1 h-[64px] py-2 bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[28px] font-black text-[15px] uppercase tracking-[0.05em] italic flex items-center justify-between px-5 transition-all active:scale-[0.98] shadow-2xl shadow-zinc-200/50 dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50 overflow-hidden"
+                    className="flex-1 h-[52px] py-1.5 bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[20px] font-black text-[13px] uppercase tracking-[0.05em] italic flex items-center justify-between px-4 transition-all active:scale-[0.98] shadow-2xl shadow-zinc-200/50 dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50 overflow-hidden"
                 >
                     <div className="flex items-center gap-3 min-w-0">
-                       <div className="p-1.5 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/20 group-hover:rotate-12 transition-transform shrink-0">
+                       {/* <div className="p-1.5 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/20 group-hover:rotate-12 transition-transform shrink-0">
                           <ShoppingCart size={18} />
-                       </div>
+                       </div> */}
                        <span className={`truncate ${itemAvailability.available ? "text-white dark:text-zinc-900 group-hover:text-orange-500" : "text-zinc-400"}`}>
                           {itemAvailability.available ? "Add to Order" : "Sold Out"}
                        </span>
@@ -736,8 +736,8 @@ export default function FoodDetails() {
                     
                     {itemAvailability.available && (
                        <div className="flex items-center gap-3 shrink-0 ml-2">
-                          <div className="w-[1.5px] h-6 bg-white/20 dark:bg-zinc-950/20 rounded-full" />
-                          <span className="text-orange-500 tabular-nums font-black text-[18px]">
+                          <div className="w-[1.5px] h-5 bg-white/20 dark:bg-zinc-950/20 rounded-full" />
+                          <span className="text-orange-500 tabular-nums font-black text-base">
                               ₦{total.toLocaleString()}
                           </span>
                        </div>

@@ -479,6 +479,21 @@ export const getComboById = async (comboId) => {
 };
 
 /**
+ * Fetch full public combo detail for the storefront customization modal.
+ * Uses the customer-facing /vendors/ prefix endpoint.
+ *
+ * @param {string} vendorId - Vendor _id
+ * @param {string} comboId - ComboItem _id
+ * @returns {Promise<{ combo: Object }>}
+ */
+export const getStorefrontComboDetail = async (vendorId, comboId) => {
+    const res = await getMenuAxios().get(
+        `/v1/vendors/${vendorId}/menu/combos/${comboId}`
+    );
+    return res.data;
+};
+
+/**
  * Update a combo item.
  * Same field shape as create — only include fields to update.
  * Price sent as price_naira (naira) — backend converts to kobo.
@@ -504,9 +519,10 @@ export const toggleComboAvailability = async (comboId, is_available) => {
  * Soft delete a combo (archive).
  * Sets is_archived: true and is_available: false
  */
-export const archiveComboItem = async (comboId) => {
+export const archiveComboItem = async (comboId, is_archived) => {
     const res = await getMenuAxios().patch(
-        `/v1/menu/combos/${comboId}/archive`
+        `/v1/menu/combos/${comboId}/archive`,
+        { is_archived }
     );
     return res.data;
 };
