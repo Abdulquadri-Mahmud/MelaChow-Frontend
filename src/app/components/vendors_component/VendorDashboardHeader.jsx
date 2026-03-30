@@ -28,7 +28,7 @@ export default function VendorDashboardHeader({ vendor, onMenuClick }) {
           </p>
         </div>
 
-        <div className="relative w-full max-w-sm hidden md:block ml-8">
+        <div className="relative w-full max-w-sm hidden lg:block ml-8">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
             className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-md pl-10 pr-4 py-2 text-sm focus:ring-1 focus:ring-orange-500 placeholder:text-slate-500 text-slate-900 dark:text-white outline-none transition-all"
