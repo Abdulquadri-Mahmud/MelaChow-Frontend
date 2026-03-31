@@ -236,10 +236,14 @@ export default function AllFoods() {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-1.5 text-[9px] font-black text-zinc-400 mb-auto uppercase tracking-wider italic">
-                                            <Store size={12} className="text-orange-500" />
-                                            <span className="truncate">{food?.restaurant?.storeName || food?.vendor?.storeName || "Vendor"}</span>
-                                        </div>
+                                            <div className="flex items-center gap-1.5 text-[9px] font-black text-zinc-400 mb-auto uppercase tracking-wider italic">
+                                                <Store size={12} className="text-orange-500" />
+                                                <span className="truncate">{food?.restaurant?.storeName || food?.vendor?.storeName || "Vendor"}</span>
+                                                <span className="text-zinc-200 dark:text-zinc-700 mx-1">|</span>
+                                                <span className={`${isOpen ? 'text-emerald-500' : 'text-rose-500'} truncate`}>
+                                                    {status}
+                                                </span>
+                                            </div>
 
                                         {/* Info Row */}
                                         <div className="flex items-center justify-between mt-3 pt-3 border-t border-zinc-50 dark:border-zinc-800/50">

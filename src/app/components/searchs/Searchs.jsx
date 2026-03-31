@@ -25,6 +25,7 @@ import Link from "next/link";
 import NoFoodsFound from "../NoFoodsFound";
 import SearchFoodSkeleton from "@/app/skeleton/SearchFoodSkeleton";
 import { isVendorOpen } from "@/app/lib/utils";
+import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import { useCategories } from "@/app/hooks/useCategories";
 
 export const dynamic = "force-dynamic";
@@ -43,7 +44,8 @@ const FoodCard = ({ food }) => {
     
     // Check both potential properties for vendor/restaurant
     const vendor = food.restaurant || food.vendor;
-    const isOpen = isVendorOpen(vendor?.openingHours);
+    const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
+    const isOpen = status.startsWith("Open now");
 
     return (
         <div
@@ -123,7 +125,7 @@ const FoodCard = ({ food }) => {
 
                     {/* Status */}
                     <span className={`text-[10px] font-black uppercase tracking-tighter whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {isOpen ? "Open" : "Closed"}
+                        {status}
                     </span>
 
                     <span className="text-zinc-100 dark:text-zinc-800 text-xs">|</span>

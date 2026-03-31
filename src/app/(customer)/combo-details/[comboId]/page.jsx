@@ -17,7 +17,9 @@ import {
 import { BiCartAdd } from "react-icons/bi";
 
 import { useCart } from "@/app/context/CartContext";
+import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import { getVendorStorefront } from "@/app/lib/menuApi";
+
 import { useQuery } from "@tanstack/react-query";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -267,8 +269,8 @@ export default function ComboDetailsPage() {
                         <h2 className="text-sm font-bold text-zinc-900 dark:text-white line-clamp-1 italic uppercase tracking-tighter hover:underline">
                             {vendor?.storeName || "Bundle Details"}
                         </h2>
-                        <p className="text-[10px] font-bold text-emerald-500">
-                            {vendor?.isOpen ? "Open now" : "Closed"}
+                        <p className={`text-[10px] font-bold ${vendor?.openingHours && getVendorOpenAndCloseStatus(vendor.openingHours).startsWith("Open now") ? "text-emerald-500" : "text-rose-500"}`}>
+                            {vendor?.openingHours ? getVendorOpenAndCloseStatus(vendor.openingHours) : "Opening hours unavailable"}
                         </p>
                     </div>
                 </div>

@@ -41,8 +41,10 @@ export function useCartValidation(cartItems) {
         }
 
         cartItems.forEach((item, index) => {
-            // Check if portion is selected
-            if (!item.portionId) {
+            const isCombo = item.type === "combo" || ((item.comboId || item.variantId) && !item.foodId);
+
+            // Check if portion or combo is selected
+            if (!isCombo && !item.portionId) {
                 errors.push({
                     itemIndex: index,
                     itemName: item.name,
@@ -51,13 +53,20 @@ export function useCartValidation(cartItems) {
                 });
             }
 
-            // Check if item has required fields
-            if (!item.foodId) {
+            // Check if item has required fields (foodId for items, comboId for combos)
+            if (!isCombo && !item.foodId) {
                 errors.push({
                     itemIndex: index,
                     itemName: item.name,
                     field: "foodId",
                     message: "Missing food ID - please re-add this item"
+                });
+            } else if (isCombo && !(item.comboId || item.variantId)) {
+                errors.push({
+                    itemIndex: index,
+                    itemName: item.name,
+                    field: "comboId",
+                    message: "Missing Combo ID - please re-add this item"
                 });
             }
 

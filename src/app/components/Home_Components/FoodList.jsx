@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
 import { getFoodsByLocation } from "@/app/lib/userApi";
 import { isVendorOpen } from "@/app/lib/utils";
+import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
 const DIETARY_COLORS = {
   veg: "bg-green-100 text-green-700",
@@ -32,7 +33,8 @@ const FoodCard = ({ food }) => {
     const router = useRouter();
     const [liked, setLiked] = useState(false);
     const vendor = food.restaurant || food.vendor;
-    const isOpen = isVendorOpen(vendor?.openingHours);
+    const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
+    const isOpen = status.startsWith("Open now");
 
     // console.log(food);
     
@@ -113,8 +115,8 @@ const FoodCard = ({ food }) => {
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
 
                     {/* Status */}
-                    <span className={`text-xs font-bold whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {isOpen ? "Open" : "Closed"}
+                    <span className={`text-[10px] font-black uppercase italic whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {status}
                     </span>
 
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>

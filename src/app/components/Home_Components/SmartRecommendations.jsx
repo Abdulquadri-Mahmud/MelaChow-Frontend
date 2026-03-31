@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { getRecommendations } from "@/app/lib/api";
 import { isVendorOpen } from "@/app/lib/utils";
+import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
 const DIETARY_COLORS = {
   veg: "bg-green-100 text-green-700",
@@ -31,7 +32,8 @@ const DIETARY_COLORS = {
 const RecommendationCard = ({ food, router }) => {
     const [liked, setLiked] = useState(false);
     const vendor = food.restaurant || food.vendor;
-    const isOpen = isVendorOpen(vendor?.openingHours);
+    const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
+    const isOpen = status.startsWith("Open now");
 
     return (
         <div
@@ -110,8 +112,8 @@ const RecommendationCard = ({ food, router }) => {
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
 
                     {/* Status */}
-                    <span className={`text-xs font-bold whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {isOpen ? "Open" : "Closed"}
+                    <span className={`text-[10px] font-black uppercase italic whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {status}
                     </span>
 
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>

@@ -114,7 +114,8 @@ export function getVendorOpenStatus(openingHours) {
 
     if (closeMins < openMins) {
       if (currentTime < closeMins) {
-        return `Open now till ${formatDisplayTime(yesterday.close, true)}`;
+        return `Open now until ${formatDisplayTime(yesterday.close, true)}`;
+
       }
     }
   }
@@ -128,12 +129,14 @@ export function getVendorOpenStatus(openingHours) {
     if (closeMins > openMins) {
       // Normal hours (e.g. 09:00 - 16:00 (4PM))
       if (currentTime >= openMins && currentTime < closeMins) {
-        return `Open now till ${formatDisplayTime(today.close, true)}`;
+        return `Open now until ${formatDisplayTime(today.close, true)}`;
+
       }
     } else {
       // Overnight hours
       if (currentTime >= openMins) {
-        return `Open now till ${formatDisplayTime(today.close, true)}`;
+        return `Open now until ${formatDisplayTime(today.close, true)}`;
+
       }
     }
   }
@@ -141,7 +144,7 @@ export function getVendorOpenStatus(openingHours) {
   // 3. Not open now -> Find when it next opens
   const next = getNextOpeningDay(currentDayIndex);
   if (next) {
-    const dayLabel = next.isToday ? "today" : next.isTomorrow ? "tomorrow" : next.dayName.charAt(0).toUpperCase() + next.dayName.slice(1);
+    const dayLabel = next.isToday ? "today" : next.isTomorrow ? "tomorrow" : `on ${next.dayName.charAt(0).toUpperCase() + next.dayName.slice(1)}`;
     const openTimeDisplay = formatDisplayTime(next.hours.open, false);
 
     // Explicitly handle the "The restaurant has closed" message
@@ -150,15 +153,16 @@ export function getVendorOpenStatus(openingHours) {
       const todayOpenMins = parseTime(today.open, false);
 
       if (todayCloseMins > todayOpenMins && currentTime >= todayCloseMins) {
-        return `The restaurant has closed and will be open by ${openTimeDisplay} ${dayLabel}.`;
+        return `We are closed now. We will open at ${openTimeDisplay} ${dayLabel}.`;
       }
     }
 
     if (today && today.closed) {
-      return `Closed today. We'll be open by ${openTimeDisplay} ${dayLabel}.`;
+      return `Closed today. We will open at ${openTimeDisplay} ${dayLabel}.`;
     }
 
-    return `Closed now. We'll be open by ${openTimeDisplay} ${dayLabel}.`;
+    return `Closed now. We will open at ${openTimeDisplay} ${dayLabel}.`;
+
   }
 
   return "Closed until further notice.";

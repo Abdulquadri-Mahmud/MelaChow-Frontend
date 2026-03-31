@@ -21,6 +21,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { isVendorOpen } from "@/app/lib/utils";
+import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+
 import { getFoodsByLocation } from "@/app/lib/userApi";
 
 const VendorCardSkeleton = () => (
@@ -40,7 +42,7 @@ const VendorCardSkeleton = () => (
     </div>
 );
 
-const VendorCard = ({ _id, storeName, city, image, isOpen, rating, ratingCount, deliveryFee, badge }) => {
+const VendorCard = ({ _id, storeName, city, image, status, isOpen, rating, ratingCount, deliveryFee, badge }) => {
     const router = useRouter();
     const [liked, setLiked] = useState(false);
 
@@ -115,8 +117,8 @@ const VendorCard = ({ _id, storeName, city, image, isOpen, rating, ratingCount, 
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
 
                     {/* Status */}
-                    <span className={`text-xs font-bold whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {isOpen ? "Open" : "Closed"}
+                    <span className={`text-[10px] font-black uppercase italic whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {status}
                     </span>
 
                     {/* Rating — only render if rating data exists */}
@@ -202,7 +204,8 @@ export default function VendorList({ user }) {
                 city: vendor.city,
                 // Use logo as card image — no coverImage in this payload
                 image: vendor.logo || null,
-                isOpen: isVendorOpen(vendor.openingHours),
+                isOpen: getVendorOpenAndCloseStatus(vendor.openingHours).startsWith("Open now"),
+                status: getVendorOpenAndCloseStatus(vendor.openingHours),
                 // deliveryFee is on the food item, not the restaurant
                 deliveryFee: food.deliveryFee ?? vendor.deliveryFee ?? vendor.flatRateDeliveryFee ?? null,
                 // rating/ratingCount NOT in this payload
