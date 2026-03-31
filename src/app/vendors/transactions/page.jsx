@@ -17,7 +17,8 @@ import {
     Check,
     ExternalLink,
     FileText,
-    Clock
+    Clock,
+    RotateCw
 } from "lucide-react";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import { getVendorWallet } from "@/app/lib/vendorApi";
@@ -26,6 +27,7 @@ export default function TransactionsPage() {
     const [wallet, setWallet] = useState(null);
     const [transactions, setTransactions] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [typeFilter, setTypeFilter] = useState("all");
     const [selectedMonth, setSelectedMonth] = useState("all");
     const [showMonthDropdown, setShowMonthDropdown] = useState(false);
@@ -33,30 +35,36 @@ export default function TransactionsPage() {
     const [showModal, setShowModal] = useState(false);
     const { vendorDetails } = useVendorStorage();
 
-    useEffect(() => {
-        const fetchWallet = async () => {
-            try {
-                const res = await getVendorWallet();
-                if (res.success && res.data) {
-                    setWallet(res.data);
-                    const sortedTxns = (res.data.transactions || []).sort((a, b) =>
-                        new Date(b.date) - new Date(a.date)
-                    );
-                    setTransactions(sortedTxns);
-                }
-            } catch (err) {
-                if (err.response && err.response.status === 404) {
-                    // Wallet not created yet, show empty state
-                    setWallet({ balance: 0 });
-                    setTransactions([]);
-                } else {
-                    console.error("Failed to fetch wallet:", err);
-                }
-            } finally {
-                setIsLoading(false);
+    const fetchWallet = async (isRefresh = false) => {
+        try {
+            if (isRefresh) {
+                setIsRefreshing(true);
+            } else {
+                setIsLoading(true);
             }
-        };
+            const res = await getVendorWallet();
+            if (res.success && res.data) {
+                setWallet(res.data);
+                const sortedTxns = (res.data.transactions || []).sort((a, b) =>
+                    new Date(b.date) - new Date(a.date)
+                );
+                setTransactions(sortedTxns);
+            }
+        } catch (err) {
+            if (err.response && err.response.status === 404) {
+                // Wallet not created yet, show empty state
+                setWallet({ balance: 0 });
+                setTransactions([]);
+            } else {
+                console.error("Failed to fetch wallet:", err);
+            }
+        } finally {
+            setIsLoading(false);
+            setIsRefreshing(false);
+        }
+    };
 
+    useEffect(() => {
         fetchWallet();
     }, [vendorDetails]);
 
@@ -198,13 +206,23 @@ Need help? Contact support with your reference ID
                         <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Financial Ledger</h1>
                         <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 uppercase tracking-widest">Track earnings and manage platform payouts.</p>
                     </div>
-                    <button
-                        onClick={downloadReport}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-md text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
-                    >
-                        <Download size={14} />
-                        Export Ledger
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => fetchWallet(true)}
+                            disabled={isRefreshing}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500 rounded-md text-[10px] font-black uppercase tracking-widest border border-orange-200 dark:border-orange-500/20 active:scale-95 transition-all disabled:opacity-50"
+                        >
+                            <RotateCw size={14} className={isRefreshing ? "animate-spin" : ""} strokeWidth={2.5} />
+                            Refresh
+                        </button>
+                        <button
+                            onClick={downloadReport}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-md text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
+                        >
+                            <Download size={14} />
+                            Export Ledger
+                        </button>
+                    </div>
                 </motion.div>
 
                 {/* Balance Cards */}

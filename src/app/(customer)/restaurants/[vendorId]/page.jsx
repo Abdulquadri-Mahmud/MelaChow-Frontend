@@ -67,17 +67,22 @@ const FoodCard = ({ item, vendor, onSelect }) => {
 
             {/* Info Block */}
             <div className="px-3 pt-2.5 pb-3">
-                {/* Row 1: Name + Heart */}
-                <div className="flex justify-between items-center gap-2">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[calc(100%-28px)]">
-                        {item.name}
-                    </h3>
+                {/* Row 1: Name + Price + Heart */}
+                <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                            {item.name}
+                        </h3>
+                        <p className="text-xs font-black text-slate-900 dark:text-white mt-0.5">
+                            ₦{(item.portions?.min_price_naira || item.portions?.default_price_naira || 0).toLocaleString()}
+                        </p>
+                    </div>
                     <button
                         onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
-                        className="transition-colors"
+                        className="transition-colors shrink-0 pt-0.5"
                     >
                         <Heart
-                            size={18}
+                            size={16}
                             className={liked ? "fill-red-500 text-red-500" : "text-gray-400"}
                             strokeWidth={liked ? 0 : 1.5}
                         />
@@ -156,17 +161,22 @@ const ComboCard = ({ combo, vendor, onSelect }) => {
 
             {/* Info Block */}
             <div className="px-3 pt-2.5 pb-3">
-                {/* Row 1: Name + Heart */}
-                <div className="flex justify-between items-center gap-2">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[calc(100%-28px)]">
-                        {combo.name}
-                    </h3>
+                {/* Row 1: Name + Price + Heart */}
+                <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                            {combo.name}
+                        </h3>
+                        <p className="text-xs font-black text-slate-900 dark:text-white mt-0.5">
+                            ₦{(combo.price_naira || 0).toLocaleString()}
+                        </p>
+                    </div>
                     <button
                         onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
-                        className="transition-colors"
+                        className="transition-colors shrink-0 pt-0.5"
                     >
                         <Heart
-                            size={18}
+                            size={16}
                             className={liked ? "fill-red-500 text-red-500" : "text-gray-400"}
                             strokeWidth={liked ? 0 : 1.5}
                         />
