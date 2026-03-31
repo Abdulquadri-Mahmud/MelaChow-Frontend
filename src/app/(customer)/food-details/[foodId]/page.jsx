@@ -20,7 +20,9 @@ import { BiCartAdd } from "react-icons/bi";
 import { useCart } from "@/app/context/CartContext";
 import { isVendorOpen as isVendorOpenFn } from "@/app/lib/utils";
 import { getPublicFoodDetail } from "@/app/lib/menuApi";
+import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import FoodDetailsSkeleton from "@/app/skeleton/FoodDetailsSkeleton";
+
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
 
 export default function FoodDetails() {
@@ -294,15 +296,11 @@ export default function FoodDetails() {
 
   const totalItems = cart.length;
 
-  const isVendorOpen = food?.vendor?.openingHours
-    ? isVendorOpenFn(food.vendor.openingHours)
-    : null;
-
-  const openingMessage = isVendorOpen === true
-    ? "Open now"
-    : isVendorOpen === false
-    ? "Currently closed"
+  const vendorStatus = food?.vendor?.openingHours
+    ? getVendorOpenAndCloseStatus(food.vendor.openingHours)
     : "Opening hours unavailable";
+  
+  const isVendorOpen = vendorStatus.startsWith("Open now");
 
   const itemAvailability = checkAvailability();
 
@@ -332,8 +330,8 @@ export default function FoodDetails() {
             <h2 className="text-sm font-bold text-zinc-900 dark:text-white line-clamp-1 italic uppercase tracking-tighter hover:underline">
               {food?.vendor?.storeName || "Food Details"}
             </h2>
-            <p className={`text-[10px] font-bold ${openingMessage.includes('Open now') ? 'text-emerald-500' : 'text-rose-500'}`}>
-              {openingMessage}
+            <p className={`text-[10px] font-bold ${isVendorOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+              {vendorStatus}
             </p>
           </div>
         </div>

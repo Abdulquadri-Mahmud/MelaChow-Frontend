@@ -18,13 +18,17 @@ const DIETARY_COLORS = {
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
 import { isVendorOpen } from "@/app/lib/utils";
+import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import ViewVendorSkeleton from "@/app/skeleton/ViewVendorSkeleton";
 
 const FoodCard = ({ item, vendor, onSelect }) => {
     const isUnavailable = !item.is_available || !item.is_in_stock;
     const [liked, setLiked] = useState(false);
-    const isOpen = isVendorOpen(vendor?.openingHours);
+    const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
+    const isOpen = status.startsWith("Open now");
 
+    console.log(item)
+    console.log(vendor)
     return (
         <div
             onClick={() => !isUnavailable && onSelect(item)}
@@ -110,8 +114,8 @@ const FoodCard = ({ item, vendor, onSelect }) => {
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
 
                     {/* Status */}
-                    <span className={`text-xs font-bold whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {isOpen ? "Open" : "Closed"}
+                    <span className={`text-[10px] font-black uppercase italic whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {status}
                     </span>
 
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
@@ -132,7 +136,8 @@ const FoodCard = ({ item, vendor, onSelect }) => {
 const ComboCard = ({ combo, vendor, onSelect }) => {
     const isUnavailable = !combo.is_available;
     const [liked, setLiked] = useState(false);
-    const isOpen = isVendorOpen(vendor?.openingHours);
+    const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
+    const isOpen = status.startsWith("Open now");
     
     return (
         <div
@@ -204,8 +209,8 @@ const ComboCard = ({ combo, vendor, onSelect }) => {
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
 
                     {/* Status */}
-                    <span className={`text-xs font-bold whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {isOpen ? "Open" : "Closed"}
+                    <span className={`text-[10px] font-black uppercase italic whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {status}
                     </span>
 
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
@@ -386,11 +391,9 @@ export default function StorefrontPage() {
                                         {cuisine}
                                     </span>
                                 ))}
-                                {!vendor.isOpen && (
-                                    <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-rose-600 bg-rose-100 px-3 py-1 rounded-full">
-                                        Closed Currently
+                                    <span className={`text-[10px] sm:text-xs font-black uppercase tracking-widest px-3 py-1 rounded-full ${getVendorOpenAndCloseStatus(vendor.openingHours).startsWith("Open now") ? "text-emerald-600 bg-emerald-100" : "text-rose-600 bg-rose-100"}`}>
+                                        {getVendorOpenAndCloseStatus(vendor.openingHours)}
                                     </span>
-                                )}
                             </div>
                             
                             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-zinc-950 dark:text-white tracking-tighter mb-2 italic uppercase">
