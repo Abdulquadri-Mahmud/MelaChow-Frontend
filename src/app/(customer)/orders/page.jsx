@@ -278,9 +278,14 @@ function OrdersContent() {
                           </div>
 
                           <div className="space-y-4">
-                            {group.items.map((item) => {
+                            {group.items.map((item, index) => {
+                              const itemKey = item.type === 'combo' 
+                                ? `combo-${item.comboId || item.variantId}-${index}` 
+                                : `item-${item.foodId}-${item.portionId}-${index}`;
+
                               return (
-                                <div key={`${item.foodId}-${item.portionId}`} className="flex gap-4 group">
+                                <div key={itemKey} className="flex gap-4 group">
+
                                   <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-zinc-50 dark:bg-zinc-800 flex-shrink-0 shadow-inner">
                                     <img
                                       src={item.image_url || "/placeholder.jpg"}
@@ -295,7 +300,10 @@ function OrdersContent() {
                                         <h4 className="text-sm font-bold text-zinc-900 dark:text-white leading-tight">{item.name}</h4>
                                         {/* Portions and Options */}
                                         <div className="text-[10px] text-zinc-500 mt-1 space-y-0.5">
-                                          <p className="font-medium bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded w-fit text-zinc-700 dark:text-zinc-300">Size: {item.portion_label}</p>
+                                          <p className="font-medium bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded w-fit text-zinc-700 dark:text-zinc-300">
+                                            {item.type === 'combo' ? 'Bundle' : `Size: ${item.portion_label}`}
+                                          </p>
+
                                           {item.selected_options?.length > 0 && (
                                             <p className="opacity-80 flex flex-wrap gap-1">
                                               {item.selected_options.map((opt, i) => (
@@ -314,12 +322,15 @@ function OrdersContent() {
                                       <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-tighter self-center">₦{item.price_naira.toLocaleString()} / unit</p>
 
                                       <div className="flex items-center gap-3">
-                                        <button
-                                          onClick={() => handleEditClick(item)}
-                                          className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-all active:scale-90 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 shadow-sm"
-                                        >
-                                          {isFetchingFood && editingItem === item ? <Loader2 size={14} className="animate-spin" /> : <Pencil size={14} />}
-                                        </button>
+                                        {item.type !== 'combo' && (
+                                          <button
+                                            onClick={() => handleEditClick(item)}
+                                            className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl transition-all active:scale-90 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 shadow-sm"
+                                          >
+                                            {isFetchingFood && editingItem === item ? <Loader2 size={14} className="animate-spin" /> : <Pencil size={14} />}
+                                          </button>
+                                        )}
+
                                         <div className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-1 border border-zinc-100 dark:border-zinc-800 shadow-inner">
                                           <button
                                             onClick={() => decreaseQuantity(item.foodId, item.portionId, item.variantId)}

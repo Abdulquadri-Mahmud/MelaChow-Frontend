@@ -79,16 +79,27 @@ const groupItemsByRestaurant = (cartItems) => {
 export const transformCartItemToV2 = (cartItem) => {
   const isCombo =
     cartItem.type === "combo" ||
-    (cartItem.variantId && !cartItem.foodId);
+    ((cartItem.comboId || cartItem.variantId) && !cartItem.foodId);
+
 
   if (isCombo) {
     return {
       type:         "combo",                    // ← explicit literal
-      variantId:    cartItem.variantId,
+      comboId:      cartItem.comboId || cartItem.variantId,
+      variantId:    cartItem.comboId || cartItem.variantId, // Keep for backward compatibility
+
       restaurantId: cartItem.vendorId           // ← rename vendorId → restaurantId
                  || cartItem.restaurantId,
       quantity:     Number(cartItem.quantity),
       note:         cartItem.note || "",
+
+      selected_options: (cartItem.selected_options || []).map(opt => ({
+        group_id:             opt.group_id,
+        option_id:            opt.option_id,
+        label:                opt.label,
+        price_modifier_naira: opt.price_modifier_naira || 0,
+        quantity:             opt.quantity || 1,
+      })),
 
       selected_swaps: (cartItem.selected_swaps || []).map(swap => ({
         group_id:             swap.group_id,
@@ -110,6 +121,7 @@ export const transformCartItemToV2 = (cartItem) => {
         price_modifier_naira: cc.price_modifier_naira || 0,
       })),
     };
+
   }
 
   // Regular food item

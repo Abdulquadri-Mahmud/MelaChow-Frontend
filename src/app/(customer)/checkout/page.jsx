@@ -513,24 +513,36 @@ export default function CheckoutPage() {
               </div>
 
               {/* Items */}
-              {items.map(item => (
-                <div key={(item.foodId || '') + (item.portionId || item.variantId || '')} className="flex gap-3 border-b border-b-zinc-50 dark:border-b-zinc-800/50 last:border-0 pb-3 items-center group">
+              {items.map((item, index) => {
+                const isCombo = item.type === "combo" || (!item.foodId && (item.comboId || item.variantId));
+                const itemKey = isCombo 
+                  ? `checkout-combo-${item.comboId || item.variantId}-${index}` 
+                  : `checkout-item-${item.foodId}-${item.portionId}-${index}`;
+
+                return (
+                  <div key={itemKey} className="flex gap-3 border-b border-b-zinc-50 dark:border-b-zinc-800/50 last:border-0 pb-3 items-center group">
+
                   <div className="relative overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
                     <img src={item.image_url || item.image || "/placeholder.jpg"} alt={item.name} className="w-12 h-12 object-cover transition-transform group-hover:scale-110" />
                   </div>
                   <div className="flex-1 flex flex-col gap-0.5 min-w-0">
                     <p className="text-sm text-zinc-900 dark:text-white font-semibold uppercase italic leading-tight break-words">{item.name}</p>
-                    {item.portion_label && (
+                    {isCombo ? (
+                      <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">Bundle Deal</p>
+                    ) : item.portion_label && (
                       <p className="text-[10px] text-orange-500 font-black uppercase tracking-widest">{item.portion_label}</p>
                     )}
+
                     <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate font-bold uppercase tracking-tighter">{item.storeName}</p>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">₦{((item.price_naira || item.price || 0) * item.quantity).toLocaleString()}</p>
                   </div>
                   <div className="bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded-lg">
                     <span className="text-sm font-black text-orange-600 italic">x{item.quantity}</span>
                   </div>
-                </div>
-              ))}
+                  </div>
+                );
+              })}
+
 
               {/* Notes */}
               <div className="pt-2">
