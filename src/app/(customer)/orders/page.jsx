@@ -144,7 +144,8 @@ function OrdersContent() {
         </div>
 
         {/* Tab Content */}
-         <div className="pb-28">
+         <div className="">
+
            <Swiper
              onSwiper={setSwiperInstance}
              onSlideChange={(swiper) => {
@@ -309,26 +310,10 @@ function OrdersContent() {
                              </button>
                            </div>
                          </div>
-
-                       {/* Bottom Fixed Checkout Button */}
-                       <div className="fixed bottom-20 left-0 right-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 p-2 z-[100]">
-                         <motion.button
-                           initial={{ y: 20, opacity: 0 }}
-                           animate={{ y: 0, opacity: 1 }}
-                           onClick={() => router.push("/checkout")}
-                           className="max-w-xl mx-auto w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] italic flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-xl dark:shadow-none group"
-                         >
-                           Checkout Now
-                           <div className="flex items-center gap-2 border-l border-white/20 dark:border-zinc-200 pl-3 ml-2">
-                              <span className="text-orange-500">₦{subtotal.toLocaleString()}</span>
-                              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                           </div>
-                         </motion.button>
                        </div>
                      </div>
-                   </div>
-                 </>
-               )}
+                   </>
+                 )}
                </div>
              </SwiperSlide>
 
@@ -443,6 +428,29 @@ function OrdersContent() {
         onUpdate={handleUpdateOrder}
         onAdd={() => { }}
       />
+
+      {/* Bottom Fixed Checkout Button - Moved Outside Swiper */}
+      <AnimatePresence>
+        {activeTab === "cart" && cart.length > 0 && (
+          <div className="fixed bottom-20 left-0 right-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 p-2 z-[100]">
+            <motion.button
+              initial={{ y: 80, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 80, opacity: 0 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => router.push("/checkout")}
+              className="max-w-xl mx-auto w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] italic flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-xl dark:shadow-none group"
+            >
+              Checkout Now
+              <div className="flex items-center gap-1.5 border-l border-white/20 dark:border-zinc-200 pl-3 ml-2">
+                <span className="text-orange-500 font-bold">₦{subtotal.toLocaleString()}</span>
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </div>
+            </motion.button>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
