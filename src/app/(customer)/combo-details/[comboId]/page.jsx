@@ -197,7 +197,9 @@ export default function ComboDetailsPage() {
         addComboToCart({
             type:          "combo",
             comboId:       combo._id,
+            variantId:     combo._id, // Alias for backward compatibility
             vendorId:      vendor._id,
+
             storeName:     vendor.storeName,
             restaurantId:  vendor._id,
             name:          combo.name,
