@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { getVendorOrders } from "@/app/lib/vendorApi";
 import VendorOrderCard from "@/app/components/order/VendorOrderCard";
-import { ChevronLeft, ChevronRight, Package, Search, Filter, TrendingUp, Clock, CheckCircle2, Hash } from "lucide-react";
+import { ChevronLeft, ChevronRight, Package, Search, Filter, TrendingUp, Clock, CheckCircle2, Hash, RotateCw } from "lucide-react";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import RiderAssignmentModal from "../riders/RiderAssignmentModal";
 
@@ -14,6 +14,7 @@ export default function VendorOrdersPage() {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const { vendorDetails } = useVendorStorage();
@@ -22,9 +23,13 @@ export default function VendorOrdersPage() {
 
   const itemsPerPage = 6;
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (isRefresh = false) => {
     try {
-      setIsLoading(true);
+      if (isRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
       const res = await getVendorOrders();
       const data = res.vendorOrders || res.data || res || [];
       const orderData = Array.isArray(data) ? data : [];
@@ -34,6 +39,7 @@ export default function VendorOrdersPage() {
       console.error("Failed to fetch orders:", error);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -123,22 +129,36 @@ export default function VendorOrdersPage() {
           transition={{ duration: 0.4 }}
           className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-800"
         >
-          {/* Top Row: Back Button & Title */}
-          <div className="flex items-center gap-3 mb-4">
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => router.back()}
-              className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500 hover:text-orange-600 dark:hover:text-orange-500 transition-all border border-slate-200 dark:border-slate-700 active:scale-90 shrink-0"
-            >
-              <ChevronLeft size={18} />
-            </motion.button>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">
-                Order Logs
-              </h1>
+          {/* Top Row: Back Button & Title & Refresh */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => router.back()}
+                className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500 hover:text-orange-600 dark:hover:text-orange-500 transition-all border border-slate-200 dark:border-slate-700 active:scale-90 shrink-0"
+              >
+                <ChevronLeft size={18} />
+              </motion.button>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">
+                  Order Logs
+                </h1>
+              </div>
             </div>
+            
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => fetchOrders(true)}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 p-2 px-4 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500 rounded-lg font-black text-[10px] uppercase tracking-widest border border-orange-200 dark:border-orange-500/20 active:scale-95 transition-all disabled:opacity-50"
+            >
+              <RotateCw size={14} className={isRefreshing ? "animate-spin" : ""} strokeWidth={2.5}/>
+              Refresh
+            </motion.button>
           </div>
+
 
           {/* Second Row: Subtitle & Search */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
