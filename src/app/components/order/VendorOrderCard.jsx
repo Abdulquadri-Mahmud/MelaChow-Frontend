@@ -1,13 +1,22 @@
 import Link from "next/link";
-import { User, MapPin, Phone, ChevronRight, ShoppingBag, Bike, Hash, CalendarDays, Clock, Zap, TrendingUp } from "lucide-react";
-import { useVendorStorage } from "@/app/hooks/vendorStorage";
-import { motion } from "framer-motion";
+import { 
+  User, MapPin, Phone, ChevronRight, ShoppingBag, 
+  Bike, Hash, CalendarDays, Clock, Zap, TrendingUp,
+  MoreVertical, CheckCircle2, Loader2, Play, PackageCheck
+} from "lucide-react";
+import { useVendorProfile } from "@/app/context/VendorProfileContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import { updateOrderStatus, completeOrder } from "@/app/lib/vendorApi";
+import toast from "react-hot-toast";
 
-export default function VendorOrderCard({ order, onAssign }) {
-  const { vendorDetails } = useVendorStorage();
+export default function VendorOrderCard({ order, onAssign, onRefresh }) {
+  const { vendorProfile } = useVendorProfile();
+  const vendorDetails = vendorProfile;
   const { userOrderId, restaurantId } = order;
   const user = userOrderId?.userId;
-  const address = userOrderId?.deliveryAddress;
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   const dateObj = new Date(order.createdAt);
   const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -16,29 +25,62 @@ export default function VendorOrderCard({ order, onAssign }) {
   const detailedItems = userOrderId?.items?.filter(item => item.restaurantId === restaurantId) || [];
   const itemCount = detailedItems.length > 0 ? detailedItems.length : (order.items?.length || 0);
 
+  const vendorOrderId = order._id?.$oid || order._id;
+
+  const handleUpdateStatus = async (newStatus) => {
+    setIsUpdating(true);
+    setShowMenu(false);
+    try {
+        if (newStatus === 'completed') {
+            await completeOrder(vendorOrderId);
+        } else {
+            await updateOrderStatus(vendorOrderId, newStatus);
+        }
+        toast.success(`Order moved to ${newStatus.replace(/_/g, ' ')}`);
+        onRefresh?.();
+    } catch (err) {
+        toast.error(err?.response?.data?.message || "Failed to update status");
+    } finally {
+        setIsUpdating(false);
+    }
+  };
+
   // Get status color and icon
   const getStatusConfig = (status) => {
     const configs = {
       'pending': { bg: "bg-amber-50 dark:bg-amber-600/10", text: "text-amber-600", border: "border-amber-200 dark:border-amber-600/30", icon: Clock, label: "Pending" },
       'accepted': { bg: "bg-blue-50 dark:bg-blue-600/10", text: "text-blue-600", border: "border-blue-200 dark:border-blue-600/30", icon: TrendingUp, label: "Accepted" },
       'preparing': { bg: "bg-orange-50 dark:bg-orange-600/10", text: "text-orange-600", border: "border-orange-200 dark:border-orange-600/30", icon: Zap, label: "Preparing" },
-      'ready': { bg: "bg-purple-50 dark:bg-purple-600/10", text: "text-purple-600", border: "border-purple-200 dark:border-purple-600/30", icon: CheckCircle, label: "Ready" },
-      'ready_for_pickup': { bg: "bg-purple-50 dark:bg-purple-600/10", text: "text-purple-600", border: "border-purple-200 dark:border-purple-600/30", icon: CheckCircle, label: "Ready" },
+      'ready': { bg: "bg-purple-50 dark:bg-purple-600/10", text: "text-purple-600", border: "border-purple-200 dark:border-purple-600/30", icon: CheckCircle2, label: "Ready" },
+      'ready_for_pickup': { bg: "bg-purple-50 dark:bg-purple-600/10", text: "text-purple-600", border: "border-purple-200 dark:border-purple-600/30", icon: CheckCircle2, label: "Ready" },
       'rider_assigned': { bg: "bg-indigo-50 dark:bg-indigo-600/10", text: "text-indigo-600", border: "border-indigo-200 dark:border-indigo-600/30", icon: Bike, label: "In Transit" },
       'out_for_delivery': { bg: "bg-cyan-50 dark:bg-cyan-600/10", text: "text-cyan-600", border: "border-cyan-200 dark:border-cyan-600/30", icon: Bike, label: "Delivery" },
-      'delivered': { bg: "bg-emerald-50 dark:bg-emerald-600/10", text: "text-emerald-600", border: "border-emerald-200 dark:border-emerald-600/30", icon: CheckCircle, label: "Delivered" },
-      'completed': { bg: "bg-green-50 dark:bg-green-600/10", text: "text-green-600", border: "border-green-200 dark:border-green-600/30", icon: CheckCircle, label: "Completed" },
+      'delivered': { bg: "bg-emerald-50 dark:bg-emerald-600/10", text: "text-emerald-600", border: "border-emerald-200 dark:border-emerald-600/30", icon: CheckCircle2, label: "Delivered" },
+      'completed': { bg: "bg-green-50 dark:bg-green-600/10", text: "text-green-600", border: "border-green-200 dark:border-green-600/30", icon: CheckCircle2, label: "Completed" },
       'cancelled': { bg: "bg-rose-50 dark:bg-rose-600/10", text: "text-rose-600", border: "border-rose-200 dark:border-rose-600/30", icon: ShoppingBag, label: "Cancelled" },
       'failed': { bg: "bg-rose-50 dark:bg-rose-600/10", text: "text-rose-600", border: "border-rose-200 dark:border-rose-600/30", icon: ShoppingBag, label: "Failed" },
     };
     return configs[status.toLowerCase()] || configs['pending'];
   };
 
-  const CheckCircle = () => (
-    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-    </svg>
-  );
+  const getNextStatus = (current) => {
+    switch(current.toLowerCase()) {
+        case 'pending': return { label: 'Accept Order', status: 'accepted', icon: TrendingUp };
+        case 'accepted': return { label: 'Start Preparing', status: 'preparing', icon: Zap };
+        case 'preparing': return { label: 'Mark as Ready', status: 'ready_for_pickup', icon: CheckCircle2 };
+        case 'ready':
+        case 'ready_for_pickup': 
+            if (vendorDetails?.deliveryManagedBy === 'vendor') {
+                return { label: 'Out for Delivery', status: 'out_for_delivery', icon: Bike };
+            }
+            return null;
+        case 'out_for_delivery': return { label: 'Mark Completed', status: 'completed', icon: PackageCheck };
+        default: return null;
+    }
+  };
+
+  const nextAction = getNextStatus(order.orderStatus);
+  const nextStatusConfig = nextAction ? getStatusConfig(nextAction.status) : null;
 
   const statusConfig = getStatusConfig(order.orderStatus);
   const isUrgent = order.orderStatus === 'pending';
@@ -55,6 +97,58 @@ export default function VendorOrderCard({ order, onAssign }) {
       <div className={`bg-white dark:bg-slate-900 rounded-lg border transition-all duration-300 flex flex-col h-full overflow-hidden ${
         isUrgent ? 'border-amber-300 dark:border-amber-600/50' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
       } relative`}>
+      
+      {/* Quick Action Dots */}
+      <div className="absolute top-4 right-3 z-30">
+          <button 
+             onClick={(e) => { e.preventDefault(); setShowMenu(!showMenu); }}
+             className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 flex items-center justify-center text-slate-400 hover:text-orange-500 shadow-sm transition-all"
+          >
+              {isUpdating ? <Loader2 size={14} className="animate-spin text-orange-500" /> : <MoreVertical size={16} />}
+          </button>
+
+          <AnimatePresence>
+              {showMenu && (
+                  <>
+                      <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                      <motion.div 
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          className="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-2xl p-1.5 z-20"
+                      >
+                          {nextAction ? (
+                              <button 
+                                  onClick={() => handleUpdateStatus(nextAction.status)}
+                                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${nextStatusConfig.bg} ${nextStatusConfig.border} hover:scale-[1.02] active:scale-95 group/item`}
+                              >
+                                  <div className={`p-2 rounded-md ${nextStatusConfig.text} bg-white dark:bg-slate-900 shadow-sm`}>
+                                      <nextAction.icon size={14} />
+                                  </div>
+                                  <div className="text-left">
+                                      <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Move to Next</p>
+                                      <p className={`text-xs font-black uppercase tracking-tight ${nextStatusConfig.text}`}>{nextAction.label}</p>
+                                  </div>
+                              </button>
+                          ) : (
+                              <div className="p-3 text-center">
+                                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">No Actions Available</p>
+                              </div>
+                          )}
+
+                          <div className="h-px bg-slate-50 dark:bg-slate-800 my-1" />
+                          
+                          <Link href={`/vendors/order/${order._id?.$oid || order._id}`} className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                              <div className="p-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-400">
+                                  <PackageCheck size={14} />
+                              </div>
+                              <p className="text-xs font-black text-slate-500 uppercase tracking-tight uppercase">Order Details</p>
+                          </Link>
+                      </motion.div>
+                  </>
+              )}
+          </AnimatePresence>
+      </div>
       
       {/* Status Bar Background */}
       <div className={`absolute top-0 left-0 right-0 h-1.5 ${statusConfig.bg}`} />
@@ -76,14 +170,16 @@ export default function VendorOrderCard({ order, onAssign }) {
               <span className="truncate">{dateStr} • {timeStr}</span>
             </div>
           </div>
-          <motion.div
-            initial={{ scale: 0.8 }}
-            animate={{ scale: 1 }}
-            className={`px-3 py-1.5 rounded-md text-[8px] font-black uppercase tracking-wider border flex items-center gap-1.5 shrink-0 ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
-          >
-            <statusConfig.icon size={10} />
-            {statusConfig.label}
-          </motion.div>
+          <div className="mr-10"> {/* Space for dots */}
+            <motion.div
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                className={`px-3 py-1.5 rounded-md text-[8px] font-black uppercase tracking-wider border flex items-center gap-1.5 shrink-0 ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}
+            >
+                <statusConfig.icon size={10} />
+                {statusConfig.label}
+            </motion.div>
+          </div>
         </div>
       </div>
 
@@ -225,7 +321,7 @@ export default function VendorOrderCard({ order, onAssign }) {
 
         {/* Actions */}
         <div className="flex items-center gap-2 pt-1">
-          {isReady && (vendorDetails?.vendor?.deliveryManagedBy !== 'admin' && vendorDetails?.deliveryManagedBy !== 'admin') && (
+          {isReady && (vendorDetails?.deliveryManagedBy !== 'admin' && vendorDetails?.deliveryManagedBy !== 'admin') && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -238,7 +334,7 @@ export default function VendorOrderCard({ order, onAssign }) {
           )}
 
           <Link
-            href={`/vendors/orders/${order._id?.$oid || order._id}`}
+            href={`/vendors/order/${order._id?.$oid || order._id}`}
             className="flex-1 flex items-center justify-center gap-1.5 py-4 px-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all hover:opacity-90 active:scale-95 group/btn"
           >
             View Details
