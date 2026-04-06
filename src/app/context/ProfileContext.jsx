@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { createContext, useContext, useEffect } from "react";
 import { useApi } from "./ApiContext";
@@ -30,7 +30,7 @@ export const ProfileProvider = ({ children }) => {
 
   const fetchProfile = async () => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[ProfileContext] 🔍 fetchProfile START', {
+      console.log('[ProfileContext] ðŸ” fetchProfile START', {
         baseUrl,
         currentPath: pathname,
         hasToken: !!TokenManager.getToken(),
@@ -55,7 +55,7 @@ export const ProfileProvider = ({ children }) => {
       });
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('[ProfileContext] 📨 Response:', {
+        console.log('[ProfileContext] ðŸ“¨ Response:', {
           status: res.status,
           ok: res.ok,
         });
@@ -70,7 +70,7 @@ export const ProfileProvider = ({ children }) => {
 
         if (!isPublicRoute && !isRestaurantRoute && !isFoodDetailsRoute) {
           TokenManager.clearToken();
-          localStorage.removeItem("grubdash_user_cache");
+          localStorage.removeItem("melachow_user_cache");
           throw new Error("Session expired");
         }
 
@@ -103,7 +103,7 @@ export const ProfileProvider = ({ children }) => {
 
     placeholderData: () => {
       if (typeof window !== 'undefined') {
-        const cached = localStorage.getItem("grubdash_user_cache");
+        const cached = localStorage.getItem("melachow_user_cache");
         try {
           return cached ? JSON.parse(cached) : undefined;
         } catch (e) { return undefined; }
@@ -127,7 +127,7 @@ export const ProfileProvider = ({ children }) => {
     refetchOnReconnect: true,
   });
 
-  // ✅ Track if the VERY FIRST check has completed
+  // âœ… Track if the VERY FIRST check has completed
   const [hasInitialCheckDone, setHasInitialCheckDone] = React.useState(false);
 
   useEffect(() => {
@@ -141,7 +141,7 @@ export const ProfileProvider = ({ children }) => {
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[ProfileContext] 🔐 User Auth State:', {
+      console.log('[ProfileContext] ðŸ” User Auth State:', {
         hasUserData: !!data,
         isLoading,
         hasCheckedSession,
@@ -154,7 +154,7 @@ export const ProfileProvider = ({ children }) => {
 
   useEffect(() => {
     if (data && typeof window !== 'undefined') {
-      localStorage.setItem("grubdash_user_cache", JSON.stringify(data));
+      localStorage.setItem("melachow_user_cache", JSON.stringify(data));
     }
   }, [data]);
 
@@ -180,3 +180,4 @@ export const useProfile = () => {
   }
   return context;
 };
+

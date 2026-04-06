@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 
 export default function Logo() {
@@ -6,9 +6,10 @@ export default function Logo() {
     <div>
       <img
         src="/logo.png"
-        alt="GrubDash Logo"
+        alt="MelaChow Logo"
         className="w-[70px] object-contain"
       />
     </div>
   )
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,7 +21,7 @@ const LogoImage = () => (
     <div className="absolute inset-0 bg-orange-500/20 blur-xl rounded-full scale-125 transition-transform duration-700" />
     <img
       src="/logo.png"
-      alt="GrubDash Logo"
+      alt="MelaChow Logo"
       className="w-[160px] object-contain relative z-10"
     />
   </div>
@@ -30,7 +30,7 @@ const LogoImage = () => (
 const uploadToCloudinary = async (file) => {
   const fd = new FormData();
   fd.append("file", file);
-  fd.append("upload_preset", "GrubDash");
+  fd.append("upload_preset", "MelaChow");
   try {
     const res = await fetch("https://api.cloudinary.com/v1_1/dypn7gna0/image/upload", {
       method: "POST",
@@ -175,7 +175,7 @@ export default function VendorRegisterPage() {
     try {
       setIsLoadingLocations(true);
       setLocationError(null);
-      const response = await axios.get("https://grubdash-api.onrender.com/api/user/locations", {
+      const response = await axios.get("https://melachow-api.onrender.com/api/user/locations", {
         withCredentials: true,
       });
 
@@ -414,7 +414,7 @@ export default function VendorRegisterPage() {
         setModal({
           open: true,
           title: "Registration Successful",
-          message: "Verification code sent! 📧",
+          message: "Verification code sent! ðŸ“§",
           type: "success"
         });
 
@@ -672,7 +672,7 @@ export default function VendorRegisterPage() {
                           {payload.deliveryManagedBy === "admin" && <CheckCircle2 className="text-orange-600" size={16} />}
                         </div>
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white">Use platform delivery</p>
-                        <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tight">GrubDash handles delivery</p>
+                        <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tight">MelaChow handles delivery</p>
                       </button>
                     </div>
 
@@ -686,7 +686,7 @@ export default function VendorRegisterPage() {
                         >
                           <TextInput
                             path="flatRateDeliveryFee"
-                            placeholder="Flat Rate Delivery Fee (₦)"
+                            placeholder="Flat Rate Delivery Fee (â‚¦)"
                             icon={CreditCard}
                             type="number"
                             error={errors.flatRateDeliveryFee}
@@ -817,3 +817,4 @@ export default function VendorRegisterPage() {
     </div >
   );
 }
+

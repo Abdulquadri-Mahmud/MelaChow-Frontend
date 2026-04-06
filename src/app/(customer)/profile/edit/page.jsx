@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -17,10 +17,10 @@ import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "GrubDash");
+    formData.append("upload_preset", "MelaChow");
 
     try {
-        // ✅ Use fetch instead of axios to avoid Authorization header
+        // âœ… Use fetch instead of axios to avoid Authorization header
         const res = await fetch(
             "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload",
             {
@@ -96,7 +96,7 @@ export default function EditProfilePage() {
                 setAvatarSuccess("Your profile details have been updated.");
                 setOpenProfileMessage(true);
 
-                // ✅ Invalidate profile queries
+                // âœ… Invalidate profile queries
                 queryClient.invalidateQueries({ queryKey: ["userProfile"] });
                 queryClient.invalidateQueries({ queryKey: ["user"] });
 
@@ -143,7 +143,7 @@ export default function EditProfilePage() {
                 setAvatarSuccess("Profile photo updated!");
                 setOpenProfileMessage(true);
 
-                // ✅ Invalidate profile queries
+                // âœ… Invalidate profile queries
                 queryClient.invalidateQueries({ queryKey: ["userProfile"] });
                 queryClient.invalidateQueries({ queryKey: ["user"] });
 
@@ -347,3 +347,4 @@ export default function EditProfilePage() {
         </ProtectedRoute>
     );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,7 +34,7 @@ const FAQ_DATA = [
   {
     category: "finance",
     question: "How do payments and payouts work?",
-    answer: "GrubDash uses a secure Escrow system to protect both you and the customer. When a customer pays for an order, the funds are safely held by GrubDash. We do not release the food revenue to your wallet immediately upon payment."
+    answer: "MelaChow uses a secure Escrow system to protect both you and the customer. When a customer pays for an order, the funds are safely held by MelaChow. We do not release the food revenue to your wallet immediately upon payment."
   },
   {
     category: "finance",
@@ -265,7 +265,7 @@ export default function VendorFAQs() {
         </div>
 
         <Link
-          href="mailto:vendorsupport@grubdash.com"
+          href="mailto:vendorsupport@melachow.com"
           className="relative z-10 shrink-0 w-full sm:w-auto text-center bg-white hover:bg-slate-100 text-slate-900 px-6 py-3 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 group"
         >
           Contact Support
@@ -276,3 +276,4 @@ export default function VendorFAQs() {
     </div>
   );
 }
+

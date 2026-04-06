@@ -1,4 +1,4 @@
-# Order Creation Flow - V2 API Integration
+﻿# Order Creation Flow - V2 API Integration
 
 ## Overview
 
@@ -26,57 +26,57 @@ This document describes the enhanced order creation flow using the V2 API with s
 ## Flow Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    USER CHECKOUT FLOW                        │
-└─────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    USER CHECKOUT FLOW                        â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
 1. User adds items to cart
-   └─> Cart stored in localStorage via CartContext
+   â””â”€> Cart stored in localStorage via CartContext
 
 2. User navigates to /checkout
-   └─> CheckoutPage loads cart and user data
-   └─> Displays order summary grouped by restaurant
+   â””â”€> CheckoutPage loads cart and user data
+   â””â”€> Displays order summary grouped by restaurant
 
 3. User clicks "Complete Order"
-   └─> Validates delivery address
-   └─> Validates cart items (validateCartItems)
-   └─> Shows OrderProcessingLoader
+   â””â”€> Validates delivery address
+   â””â”€> Validates cart items (validateCartItems)
+   â””â”€> Shows OrderProcessingLoader
 
 4. Transform cart data
-   └─> transformCartToOrderV2() converts to V2 format
-   └─> Groups items by restaurant
-   └─> Calculates delivery fees per vendor
+   â””â”€> transformCartToOrderV2() converts to V2 format
+   â””â”€> Groups items by restaurant
+   â””â”€> Calculates delivery fees per vendor
 
 5. Create order (POST /api/orders/v2/create)
-   └─> Backend validates stock availability
-   └─> Backend validates restaurant hours
-   └─> Backend validates choices/variants
-   └─> Backend calculates final prices
-   └─> Backend initializes Paystack payment
+   â””â”€> Backend validates stock availability
+   â””â”€> Backend validates restaurant hours
+   â””â”€> Backend validates choices/variants
+   â””â”€> Backend calculates final prices
+   â””â”€> Backend initializes Paystack payment
 
 6. Redirect to Paystack
-   └─> User completes payment on Paystack
-   └─> Paystack redirects to /verify-payment?reference=XXX
+   â””â”€> User completes payment on Paystack
+   â””â”€> Paystack redirects to /verify-payment?reference=XXX
 
 7. Verify payment (POST /api/orders/v2/verify/:reference)
-   └─> Backend verifies with Paystack
-   └─> Backend creates order in database
-   └─> Backend returns order details
+   â””â”€> Backend verifies with Paystack
+   â””â”€> Backend creates order in database
+   â””â”€> Backend returns order details
 
 8. Show success page
-   └─> Display order confirmation
-   └─> Clear cart
-   └─> Redirect to order tracking
+   â””â”€> Display order confirmation
+   â””â”€> Clear cart
+   â””â”€> Redirect to order tracking
 
-┌─────────────────────────────────────────────────────────────┐
-│                    ERROR HANDLING                            │
-└─────────────────────────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚                    ERROR HANDLING                            â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 
 At each step, errors are caught and displayed:
-- Stock validation errors → "Item out of stock"
-- Restaurant closed → "Restaurant is currently closed"
-- Invalid choices → "Please select required options"
-- Payment errors → "Payment verification failed"
+- Stock validation errors â†’ "Item out of stock"
+- Restaurant closed â†’ "Restaurant is currently closed"
+- Invalid choices â†’ "Please select required options"
+- Payment errors â†’ "Payment verification failed"
 ```
 
 ## API Endpoints
@@ -334,12 +334,12 @@ Before submitting to the API, the frontend validates:
 ## Migration from V1
 
 ### Key Changes
-1. ✅ Use `createOrderV2()` instead of `createOrder()`
-2. ✅ Use `verifyPaymentV2()` instead of `verifyPayment()`
-3. ✅ Use `transformCartToOrderV2()` for data transformation
-4. ✅ No manual token handling (cookies automatic)
-5. ✅ Enhanced error handling with `OrderErrorDisplay`
-6. ✅ Loading states with `OrderProcessingLoader`
+1. âœ… Use `createOrderV2()` instead of `createOrder()`
+2. âœ… Use `verifyPaymentV2()` instead of `verifyPayment()`
+3. âœ… Use `transformCartToOrderV2()` for data transformation
+4. âœ… No manual token handling (cookies automatic)
+5. âœ… Enhanced error handling with `OrderErrorDisplay`
+6. âœ… Loading states with `OrderProcessingLoader`
 
 ### Backward Compatibility
 - Old V1 endpoints still work
@@ -393,12 +393,13 @@ Enable console logs to see:
 ## Contact
 
 - **Backend API Docs:** `/docs/ORDER_CREATION_V2.md`
-- **Frontend Team:** frontend@grubdash.com
-- **Backend Team:** backend@grubdash.com
+- **Frontend Team:** frontend@melachow.com
+- **Backend Team:** backend@melachow.com
 - **Slack Channel:** #frontend-orders
 
 ---
 
 **Last Updated:** 2026-01-26  
 **Version:** 2.0  
-**Status:** ✅ Production Ready
+**Status:** âœ… Production Ready
+

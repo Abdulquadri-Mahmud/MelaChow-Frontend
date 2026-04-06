@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -63,7 +63,7 @@ export default function RiderSettingsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                     <h2 className="text-xl font-black text-gray-900 dark:text-white truncate">{rider?.name || "Rider"}</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-0.5">{rider?.phone || "—"}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-0.5">{rider?.phone || "â€”"}</p>
                     <div className={`inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${isOnline ? "bg-green-500/10 text-green-400" : "bg-gray-500/10 text-gray-500"
                         }`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-green-500 animate-pulse" : "bg-gray-500"}`} />
@@ -71,7 +71,7 @@ export default function RiderSettingsPage() {
                     </div>
                 </div>
                 <button
-                    onClick={() => toast("Edit profile coming soon", { icon: "🚧" })}
+                    onClick={() => toast("Edit profile coming soon", { icon: "ðŸš§" })}
                     className="w-10 h-10 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl flex items-center justify-center text-gray-400 dark:text-gray-400 transition-colors shrink-0"
                 >
                     <Edit3 size={16} />
@@ -88,10 +88,10 @@ export default function RiderSettingsPage() {
                 <div className="px-4 pt-4 pb-2">
                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Account</p>
                 </div>
-                <SettingRow icon={User} label="Personal Info" value={rider?.name} onClick={() => toast("Coming soon", { icon: "🚧" })} />
-                <SettingRow icon={Phone} label="Phone Number" value={rider?.phone} onClick={() => toast("Coming soon", { icon: "🚧" })} />
-                <SettingRow icon={Star} label="My Ratings" value={`${rider?.rating?.toFixed(1) || "New"} • ${rider?.ratingCount || 0} reviews`} onClick={() => toast("Coming soon", { icon: "🚧" })} />
-                <SettingRow icon={Shield} label="Security" value="Password & 2FA" onClick={() => toast("Coming soon", { icon: "🚧" })} />
+                <SettingRow icon={User} label="Personal Info" value={rider?.name} onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
+                <SettingRow icon={Phone} label="Phone Number" value={rider?.phone} onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
+                <SettingRow icon={Star} label="My Ratings" value={`${rider?.rating?.toFixed(1) || "New"} â€¢ ${rider?.ratingCount || 0} reviews`} onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
+                <SettingRow icon={Shield} label="Security" value="Password & 2FA" onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
             </motion.div>
 
             {/* Preferences */}
@@ -148,9 +148,9 @@ export default function RiderSettingsPage() {
                 <div className="px-4 pt-4 pb-2">
                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Help & Support</p>
                 </div>
-                <SettingRow icon={HelpCircle} label="FAQs" onClick={() => toast("Coming soon", { icon: "🚧" })} />
-                <SettingRow icon={MessageCircle} label="Chat with Support" onClick={() => toast("Coming soon", { icon: "🚧" })} />
-                <SettingRow icon={Mail} label="Contact Us" value="support@grubdash.ng" onClick={() => toast("Coming soon", { icon: "🚧" })} />
+                <SettingRow icon={HelpCircle} label="FAQs" onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
+                <SettingRow icon={MessageCircle} label="Chat with Support" onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
+                <SettingRow icon={Mail} label="Contact Us" value="support@melachow.ng" onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
             </motion.div>
 
             {/* Logout */}
@@ -164,7 +164,8 @@ export default function RiderSettingsPage() {
             </motion.div>
 
             {/* App version */}
-            <p className="text-center text-[11px] text-gray-700 font-medium pb-2">GrubDash Rider v1.0.0</p>
+            <p className="text-center text-[11px] text-gray-700 font-medium pb-2">MelaChow Rider v1.0.0</p>
         </div>
     );
 }
+

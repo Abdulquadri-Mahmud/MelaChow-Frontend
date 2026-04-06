@@ -1,8 +1,8 @@
-# PWA Testing Checklist
+﻿# PWA Testing Checklist
 
 ## Pre-Deployment Testing
 
-### ✅ Service Worker Registration
+### âœ… Service Worker Registration
 
 - [ ] Service worker registers successfully on page load
 - [ ] No console errors during registration
@@ -10,13 +10,13 @@
 - [ ] Service worker scope is set to "/"
 
 **How to test:**
-1. Open DevTools → Application → Service Workers
+1. Open DevTools â†’ Application â†’ Service Workers
 2. Verify status shows "activated and is running"
 3. Check console for `[PWA] Service worker registered successfully`
 
 ---
 
-### ✅ Manifest Validation
+### âœ… Manifest Validation
 
 - [ ] Manifest loads without errors
 - [ ] All icons are accessible (check Network tab)
@@ -25,14 +25,14 @@
 - [ ] Shortcuts are defined
 
 **How to test:**
-1. Open DevTools → Application → Manifest
+1. Open DevTools â†’ Application â†’ Manifest
 2. Click "Update" to refresh
 3. Verify all fields are populated
 4. Check for any warnings
 
 ---
 
-### ✅ Caching Strategy
+### âœ… Caching Strategy
 
 #### Static Assets
 - [ ] JS files are cached on first visit
@@ -41,8 +41,8 @@
 - [ ] Logo/icons are cached
 
 **How to test:**
-1. Open DevTools → Application → Cache Storage
-2. Check `grubdash-v1.0.0-static` cache
+1. Open DevTools â†’ Application â†’ Cache Storage
+2. Check `melachow-v1.0.0-static` cache
 3. Verify assets are listed
 
 #### API Requests
@@ -52,7 +52,7 @@
 
 **How to test:**
 1. Make an API request (e.g., load restaurants)
-2. Go offline (DevTools → Network → Offline)
+2. Go offline (DevTools â†’ Network â†’ Offline)
 3. Reload page - should show cached data
 4. Go online - should fetch fresh data
 
@@ -63,12 +63,12 @@
 
 **How to test:**
 1. Load a page with images
-2. Check `grubdash-v1.0.0-images` cache
+2. Check `melachow-v1.0.0-images` cache
 3. Reload page - images should load from cache
 
 ---
 
-### ✅ Offline Functionality
+### âœ… Offline Functionality
 
 - [ ] Offline page loads when network is unavailable
 - [ ] Previously visited pages work offline
@@ -78,7 +78,7 @@
 
 **How to test:**
 1. Visit several pages while online
-2. Go offline (DevTools → Network → Offline)
+2. Go offline (DevTools â†’ Network â†’ Offline)
 3. Try navigating to a new page
 4. Should see offline page
 5. Try navigating to a previously visited page
@@ -86,7 +86,7 @@
 
 ---
 
-### ✅ Update Detection
+### âœ… Update Detection
 
 - [ ] Update banner appears when new version is available
 - [ ] Banner shows correct message
@@ -105,7 +105,7 @@
 
 ---
 
-### ✅ Critical Route Protection
+### âœ… Critical Route Protection
 
 - [ ] Update banner does NOT force reload on `/checkout`
 - [ ] Update banner does NOT force reload on `/payment`
@@ -121,7 +121,7 @@
 
 ---
 
-### ✅ Install Prompt
+### âœ… Install Prompt
 
 #### Android (Chrome)
 - [ ] Install prompt appears after 5 seconds
@@ -160,7 +160,7 @@
 
 ---
 
-### ✅ Session & Auth Safety
+### âœ… Session & Auth Safety
 
 - [ ] Login works in PWA
 - [ ] Logout works in PWA
@@ -181,7 +181,7 @@
 
 ---
 
-### ✅ Existing Flows (No Breaking Changes)
+### âœ… Existing Flows (No Breaking Changes)
 
 - [ ] Browse restaurants works
 - [ ] View food details works
@@ -201,7 +201,7 @@
 
 ---
 
-### ✅ Performance
+### âœ… Performance
 
 - [ ] Initial load time not significantly increased
 - [ ] Subsequent loads are faster (cached assets)
@@ -211,14 +211,14 @@
 - [ ] Images load quickly
 
 **How to test:**
-1. Open DevTools → Performance
+1. Open DevTools â†’ Performance
 2. Record page load
 3. Verify no long tasks (>50ms)
 4. Check Lighthouse score (aim for 90+)
 
 ---
 
-### ✅ Splash Screen Compatibility
+### âœ… Splash Screen Compatibility
 
 - [ ] Splash screen shows on first visit
 - [ ] Splash screen doesn't wait for service worker
@@ -270,14 +270,14 @@
 
 ### Lighthouse Audit
 
-- [ ] PWA score: 90+ ✅
-- [ ] Performance score: 85+ ✅
-- [ ] Accessibility score: 90+ ✅
-- [ ] Best Practices score: 90+ ✅
-- [ ] SEO score: 90+ ✅
+- [ ] PWA score: 90+ âœ…
+- [ ] Performance score: 85+ âœ…
+- [ ] Accessibility score: 90+ âœ…
+- [ ] Best Practices score: 90+ âœ…
+- [ ] SEO score: 90+ âœ…
 
 **How to run:**
-1. Open DevTools → Lighthouse
+1. Open DevTools â†’ Lighthouse
 2. Select "Progressive Web App"
 3. Click "Generate report"
 4. Fix any issues
@@ -379,3 +379,4 @@ _______________________________________________________
 
 **PWA Version:** 1.0.0
 **Last Updated:** 2026-02-02
+

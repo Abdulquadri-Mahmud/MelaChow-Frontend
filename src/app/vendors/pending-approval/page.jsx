@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { motion } from "framer-motion";
@@ -83,9 +83,10 @@ export default function PendingApproval() {
                 </div>
 
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 dark:text-slate-700">
-                    GrubDash Partner Network
+                    MelaChow Partner Network
                 </p>
             </motion.div>
         </div>
     );
 }
+

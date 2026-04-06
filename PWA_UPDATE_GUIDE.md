@@ -1,22 +1,22 @@
-# 🔄 PWA Update Guide - Version 2.1.0
+﻿# ðŸ”„ PWA Update Guide - Version 2.1.0
 
-## 📱 What's New in This Update
+## ðŸ“± What's New in This Update
 
 ### Version 2.1.0 (2026-02-05)
 
-This update includes critical fixes and new features for GrubDash PWA:
+This update includes critical fixes and new features for MelaChow PWA:
 
 ---
 
-## 🍎 iOS Safari Cookie Fix
+## ðŸŽ iOS Safari Cookie Fix
 
 **Problem Solved**: Authentication cookies now work correctly on iOS Safari and installed PWAs.
 
 **What Changed**:
-- ✅ Cookies are now first-party (same domain)
-- ✅ Login persists across app restarts
-- ✅ No more constant re-login required
-- ✅ Sessions maintained in PWA
+- âœ… Cookies are now first-party (same domain)
+- âœ… Login persists across app restarts
+- âœ… No more constant re-login required
+- âœ… Sessions maintained in PWA
 
 **Technical Details**:
 - Implemented Next.js API proxy
@@ -25,16 +25,16 @@ This update includes critical fixes and new features for GrubDash PWA:
 
 ---
 
-## 💰 Wallet Payment Feature
+## ðŸ’° Wallet Payment Feature
 
 **New Feature**: Pay for orders using your wallet balance!
 
 **What's New**:
-- ✅ Instant order fulfillment with wallet
-- ✅ No redirect needed for wallet payments
-- ✅ Real-time balance display
-- ✅ Smart validation (prevents insufficient balance orders)
-- ✅ Works with discount codes
+- âœ… Instant order fulfillment with wallet
+- âœ… No redirect needed for wallet payments
+- âœ… Real-time balance display
+- âœ… Smart validation (prevents insufficient balance orders)
+- âœ… Works with discount codes
 
 **How to Use**:
 1. Fund your wallet from the Wallet page
@@ -44,7 +44,7 @@ This update includes critical fixes and new features for GrubDash PWA:
 
 ---
 
-## 🔧 Technical Improvements
+## ðŸ”§ Technical Improvements
 
 ### API Updates
 - Updated to unified order creation endpoint (`/api/orders/v2/create`)
@@ -58,7 +58,7 @@ This update includes critical fixes and new features for GrubDash PWA:
 
 ---
 
-## 📲 How to Update Your PWA
+## ðŸ“² How to Update Your PWA
 
 ### For iOS Users
 
@@ -66,10 +66,10 @@ This update includes critical fixes and new features for GrubDash PWA:
    - Swipe up from bottom and swipe away the app
 
 2. **Clear Safari cache** (optional but recommended):
-   - Settings → Safari → Clear History and Website Data
+   - Settings â†’ Safari â†’ Clear History and Website Data
 
 3. **Reopen the PWA**:
-   - Tap the GrubDash icon on your home screen
+   - Tap the MelaChow icon on your home screen
    - The app will automatically update
 
 4. **Verify Update**:
@@ -85,21 +85,21 @@ This update includes critical fixes and new features for GrubDash PWA:
    - Swipe away from recent apps
 
 2. **Clear app data** (if needed):
-   - Long press app icon → App info → Storage → Clear data
+   - Long press app icon â†’ App info â†’ Storage â†’ Clear data
 
 3. **Reopen the PWA**:
-   - Tap the GrubDash icon
+   - Tap the MelaChow icon
    - App will update automatically
 
 ---
 
 ### For Desktop Users
 
-1. **Close all GrubDash tabs/windows**
+1. **Close all MelaChow tabs/windows**
 
 2. **Clear browser cache**:
-   - Chrome: Ctrl+Shift+Delete → Clear cached images and files
-   - Edge: Ctrl+Shift+Delete → Cached images and files
+   - Chrome: Ctrl+Shift+Delete â†’ Clear cached images and files
+   - Edge: Ctrl+Shift+Delete â†’ Cached images and files
    - Safari: Cmd+Option+E
 
 3. **Reopen the app**:
@@ -108,7 +108,7 @@ This update includes critical fixes and new features for GrubDash PWA:
 
 ---
 
-## 🧪 Testing the Update
+## ðŸ§ª Testing the Update
 
 ### Test iOS Cookie Fix
 
@@ -116,12 +116,12 @@ This update includes critical fixes and new features for GrubDash PWA:
    - Login to your account
    - Close the PWA completely
    - Reopen the PWA
-   - ✅ You should still be logged in
+   - âœ… You should still be logged in
 
 2. **Session Persistence**:
    - Use the app normally
    - Close and reopen multiple times
-   - ✅ Session should persist
+   - âœ… Session should persist
 
 ---
 
@@ -136,16 +136,16 @@ This update includes critical fixes and new features for GrubDash PWA:
    - Add items to cart
    - Go to checkout
    - Select "Pay with Wallet"
-   - ✅ Order should complete instantly
+   - âœ… Order should complete instantly
 
 3. **Check Balance**:
    - Verify wallet balance decreased
    - Check order appears in "My Orders"
-   - ✅ Order should show "Paid" status
+   - âœ… Order should show "Paid" status
 
 ---
 
-## ⚠️ Known Issues & Solutions
+## âš ï¸ Known Issues & Solutions
 
 ### Issue: Still Getting Logged Out on iOS
 
@@ -177,7 +177,7 @@ This update includes critical fixes and new features for GrubDash PWA:
 
 ---
 
-## 📊 Version History
+## ðŸ“Š Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
@@ -187,7 +187,7 @@ This update includes critical fixes and new features for GrubDash PWA:
 
 ---
 
-## 🔍 How to Check Your Version
+## ðŸ” How to Check Your Version
 
 ### In the PWA
 
@@ -206,7 +206,7 @@ This update includes critical fixes and new features for GrubDash PWA:
 
 ---
 
-## 🆘 Need Help?
+## ðŸ†˜ Need Help?
 
 ### Update Not Working?
 
@@ -222,7 +222,7 @@ This update includes critical fixes and new features for GrubDash PWA:
 
 ---
 
-## ✅ Update Checklist
+## âœ… Update Checklist
 
 After updating, verify:
 
@@ -237,25 +237,25 @@ After updating, verify:
 
 ---
 
-## 🎯 Benefits of This Update
+## ðŸŽ¯ Benefits of This Update
 
 ### For Users
 
-- ✅ No more constant re-login on iOS
-- ✅ Faster checkout with wallet
-- ✅ Better error messages
-- ✅ Smoother overall experience
+- âœ… No more constant re-login on iOS
+- âœ… Faster checkout with wallet
+- âœ… Better error messages
+- âœ… Smoother overall experience
 
 ### For Business
 
-- ✅ Better iOS user retention
-- ✅ Increased wallet usage
-- ✅ Reduced support tickets
-- ✅ Higher conversion rates
+- âœ… Better iOS user retention
+- âœ… Increased wallet usage
+- âœ… Reduced support tickets
+- âœ… Higher conversion rates
 
 ---
 
-## 📱 PWA Update Mechanism
+## ðŸ“± PWA Update Mechanism
 
 ### How PWA Updates Work
 
@@ -281,7 +281,7 @@ The manifest version change (`2.1.0`) triggers:
 
 ---
 
-## 🚀 What's Next?
+## ðŸš€ What's Next?
 
 ### Upcoming Features (v2.2.0)
 
@@ -297,6 +297,7 @@ Stay tuned for more updates!
 
 **Current Version**: 2.1.0  
 **Release Date**: 2026-02-05  
-**Status**: ✅ Live on Production
+**Status**: âœ… Live on Production
 
-**Enjoy the improved GrubDash experience! 🎉**
+**Enjoy the improved MelaChow experience! ðŸŽ‰**
+

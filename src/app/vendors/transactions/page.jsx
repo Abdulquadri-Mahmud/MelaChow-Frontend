@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -120,7 +120,7 @@ export default function TransactionsPage() {
                 txn._id,
                 txn.description || 'Transaction',
                 txn.type,
-                `₦${txn.amount.toLocaleString()}`,
+                `â‚¦${txn.amount.toLocaleString()}`,
                 formatDate(txn.date),
                 'Success'
             ])
@@ -147,12 +147,12 @@ TRANSACTION RECEIPT
 Transaction ID: ${transaction._id}
 Description: ${transaction.description || 'Transaction'}
 Type: ${transaction.type.toUpperCase()}
-Amount: ${transaction.type === 'credit' ? '+' : '-'}₦${transaction.amount.toLocaleString()}
+Amount: ${transaction.type === 'credit' ? '+' : '-'}â‚¦${transaction.amount.toLocaleString()}
 Date: ${formatDate(transaction.date)}
 Status: SUCCESS
 
 ==========================================
-GrubDash Vendor Platform
+MelaChow Vendor Platform
 Need help? Contact support with your reference ID
         `.trim();
 
@@ -248,7 +248,7 @@ Need help? Contact support with your reference ID
                                 <Wallet size={12} className="opacity-80" />
                                 <p className="text-white/80 text-[10px] font-black uppercase tracking-widest">Available Balance</p>
                             </div>
-                            <h2 className="text-3xl font-black tracking-tight leading-none my-2">₦{wallet?.balance?.toLocaleString() || "0.00"}</h2>
+                            <h2 className="text-3xl font-black tracking-tight leading-none my-2">â‚¦{wallet?.balance?.toLocaleString() || "0.00"}</h2>
                         </div>
                         <button className="w-full bg-white text-orange-600 px-4 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 mt-4">
                             <CreditCard size={14} />
@@ -269,7 +269,7 @@ Need help? Contact support with your reference ID
                         <div>
                             <p className="text-[10px] text-slate-400 mb-1 font-black uppercase tracking-widest leading-none">Total Credits</p>
                             <p className="text-xl font-black text-slate-900 dark:text-white leading-none">
-                                ₦{stats.totalCredits.toLocaleString()}
+                                â‚¦{stats.totalCredits.toLocaleString()}
                             </p>
                         </div>
                     </div>
@@ -287,7 +287,7 @@ Need help? Contact support with your reference ID
                         <div>
                             <p className="text-[10px] text-slate-400 mb-1 font-black uppercase tracking-widest leading-none">Total Debits</p>
                             <p className="text-xl font-black text-slate-900 dark:text-white leading-none">
-                                ₦{stats.totalDebits.toLocaleString()}
+                                â‚¦{stats.totalDebits.toLocaleString()}
                             </p>
                         </div>
                     </div>
@@ -444,7 +444,7 @@ Need help? Contact support with your reference ID
                                             </td>
                                             <td className={`px-5 py-3 text-right font-black text-[11px] ${txn.type === 'credit' ? 'text-emerald-600' : 'text-slate-900 dark:text-white'
                                                 }`}>
-                                                {txn.type === 'credit' ? '+' : '-'}₦{txn.amount.toLocaleString()}
+                                                {txn.type === 'credit' ? '+' : '-'}â‚¦{txn.amount.toLocaleString()}
                                             </td>
                                             <td className="px-5 py-3 text-center">
                                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 dark:bg-emerald-600/10 border border-emerald-100 dark:border-emerald-600/20">
@@ -532,7 +532,7 @@ function TransactionDetailsModal({ transaction, isOpen, onClose, formatDate, dow
                                         )}
                                     </div>
                                     <h2 className="text-3xl font-black tracking-tighter">
-                                        {transaction.type === 'credit' ? '+' : '-'}₦{transaction.amount.toLocaleString()}
+                                        {transaction.type === 'credit' ? '+' : '-'}â‚¦{transaction.amount.toLocaleString()}
                                     </h2>
                                     <div className="mt-4 flex flex-col items-center gap-1.5 px-4 py-2 bg-black/10 rounded-md">
                                         <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
@@ -665,3 +665,4 @@ function TransactionDetailsModal({ transaction, isOpen, onClose, formatDate, dow
         </AnimatePresence>
     );
 }
+

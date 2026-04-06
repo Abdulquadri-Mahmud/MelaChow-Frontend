@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Header2 from "@/app/components/App_Header/Header2";
 import Link from "next/link";
@@ -209,7 +209,7 @@ export default function Support() {
               icon={Mail}
               title="Email Us"
               subtitle="Response within 24h"
-              href="mailto:support@grubdash.com"
+              href="mailto:support@melachow.com"
             />
             <ContactOption
               icon={Phone}
@@ -224,3 +224,4 @@ export default function Support() {
     </div>
   );
 }
+

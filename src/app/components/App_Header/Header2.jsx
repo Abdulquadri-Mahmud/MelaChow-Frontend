@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -11,7 +11,7 @@ export default function Header2({ title, subtitle }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Extract route name from pathname (e.g. /auth/signin → "Signin")
+  // Extract route name from pathname (e.g. /auth/signin â†’ "Signin")
   const routeName = pathname
     ?.split("/")
     .filter(Boolean)
@@ -20,7 +20,7 @@ export default function Header2({ title, subtitle }) {
     .replace(/\b\w/g, (char) => char.toUpperCase()) || "Home";
 
   const displayTitle = title || routeName;
-  const displaySubtitle = subtitle || "GrubDash";
+  const displaySubtitle = subtitle || "MelaChow";
 
   return (
     <motion.header
@@ -64,3 +64,4 @@ export default function Header2({ title, subtitle }) {
     </motion.header>
   );
 }
+

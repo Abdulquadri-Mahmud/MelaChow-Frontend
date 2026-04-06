@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useCreateComboStore } from '@/app/context/CreateComboStore';
@@ -8,16 +8,16 @@ import Image from 'next/image';
 import toast from 'react-hot-toast';
 
 const DIETARY_OPTIONS = [
-  { label: '🌱 Vegetarian', value: 'veg' },
-  { label: '🥗 Vegan', value: 'vegan' },
-  { label: '🐔 Non-Veg', value: 'non-veg' },
-  { label: '✨ Halal', value: 'halal' },
-  { label: '✓ Kosher', value: 'kosher' },
-  { label: '🍽️ Mixed', value: 'mixed' },
+  { label: 'ðŸŒ± Vegetarian', value: 'veg' },
+  { label: 'ðŸ¥— Vegan', value: 'vegan' },
+  { label: 'ðŸ” Non-Veg', value: 'non-veg' },
+  { label: 'âœ¨ Halal', value: 'halal' },
+  { label: 'âœ“ Kosher', value: 'kosher' },
+  { label: 'ðŸ½ï¸ Mixed', value: 'mixed' },
 ];
 
 const CLOUDINARY_HOST = 'https://api.cloudinary.com/v1_1/dypn7gna0/image/upload';
-const CLOUDINARY_PRESET = 'GrubDash';
+const CLOUDINARY_PRESET = 'MelaChow';
 
 export default function Step1BasicInfo() {
   const store = useCreateComboStore();
@@ -234,3 +234,4 @@ export default function Step1BasicInfo() {
     </motion.div>
   );
 }
+

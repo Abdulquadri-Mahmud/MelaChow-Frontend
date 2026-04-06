@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
@@ -97,9 +97,9 @@ const FoodCard = ({ food }) => {
                     </button>
                 </div>
 
-                {/* Row 2: Vendor Name • Location */}
+                {/* Row 2: Vendor Name â€¢ Location */}
                 <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate mt-1 font-bold uppercase tracking-widest">
-                    {vendor?.storeName} • {vendor?.city || "Nearby"}
+                    {vendor?.storeName} â€¢ {vendor?.city || "Nearby"}
                 </p>
 
                 {/* Row 3: Metadata Line: Globe | Delivery | Status | Rating */}
@@ -116,7 +116,7 @@ const FoodCard = ({ food }) => {
                             return (!fee || fee === 0) ? (
                                 <span className="text-[10px] font-black text-zinc-900 dark:text-white uppercase">Free</span>
                             ) : (
-                                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tighter">₦{fee.toLocaleString()}</span>
+                                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tighter">â‚¦{fee.toLocaleString()}</span>
                             );
                         })()}
                     </div>
@@ -194,7 +194,7 @@ export default function FoodSearchMobile() {
         setLoading(true);
         setError(null);
 
-        // Simple params — category filtering is done on the frontend
+        // Simple params â€” category filtering is done on the frontend
         const params = query.trim() ? { q: query } : { q: '' };
 
         const res = await axios.get(`${baseUrl}/search/food/search`, {
@@ -254,7 +254,7 @@ export default function FoodSearchMobile() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Category grouping — always use all foods, filtered client-side by selectedCategory
+  // Category grouping â€” always use all foods, filtered client-side by selectedCategory
   const displayedFoods = useMemo(() => {
     if (!selectedCategory || !foods.length) return foods;
     const lower = selectedCategory.toLowerCase();
@@ -279,7 +279,7 @@ export default function FoodSearchMobile() {
     }, {});
   }, [displayedFoods]);
 
-  // Category click — just updates the URL; filtering is handled by displayedFoods memo
+  // Category click â€” just updates the URL; filtering is handled by displayedFoods memo
   const handleCategoryClick = async (category) => {
     if (activeCategory === category) {
       setActiveCategory("");
@@ -334,7 +334,7 @@ export default function FoodSearchMobile() {
               <div className="flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
                 <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">
-                  GrubDash
+                  MelaChow
                 </span>
               </div>
             </div>
@@ -474,7 +474,7 @@ export default function FoodSearchMobile() {
                   </h2>
                 </div>
 
-                <div className="flex gap-4 scroll overflow-x-auto px-4 pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
+                <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
                   {categoryFoods.map((food) => (
                     <FoodCard key={food._id} food={food} />
                   ))}
@@ -496,3 +496,4 @@ export default function FoodSearchMobile() {
     </div>
   );
 }
+

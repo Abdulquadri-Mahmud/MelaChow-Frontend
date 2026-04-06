@@ -1,14 +1,14 @@
-import axios from "axios";
+﻿import axios from "axios";
 import { TokenManager } from "@/app/lib/auth-token";
 
 const BASE_URL = "/api/vendors";
-// const BASE_URL = "https://grubdash-api.onrender.com/api/vendors";
+// const BASE_URL = "https://melachow-api.onrender.com/api/vendors";
 
 // Create axios instance
 // Create axios instance
 const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // ✅ Send cookies
+  withCredentials: true, // âœ… Send cookies
   timeout: 15000,
 });
 
@@ -54,9 +54,9 @@ api.interceptors.response.use(
 // const vendorData = getVendorData();
 // const getVendorId = vendorData?.vendor?.id;
 
-// ✅ CRUD Functions
+// âœ… CRUD Functions
 export const getVendors = async () => {
-  // ✅ Force Token Initialization if missing (Fix for refresh race condition)
+  // âœ… Force Token Initialization if missing (Fix for refresh race condition)
   if (!TokenManager.getToken('vendor')) {
     TokenManager.initialize();
   }
@@ -66,7 +66,7 @@ export const getVendors = async () => {
       headers: {
         "Content-Type": "application/json",
       },
-      metadata: { suppressUnauthorized: true }, // ✅ Prevent loop for auto-fetches
+      metadata: { suppressUnauthorized: true }, // âœ… Prevent loop for auto-fetches
     });
     return res.data.data || res.data;
   } catch (error) {
@@ -90,7 +90,7 @@ export const getVendorById = async (id) => {
   }
 };
 
-// ✅ API call (pure function) for PUBLIC display
+// âœ… API call (pure function) for PUBLIC display
 export const fetchVendorForUserDisplay = async (id) => {
   const res = await api.get(`/vendor?id=${id}`, {
     headers: {
@@ -128,4 +128,5 @@ export const deleteVendor = async () => {
   });
   return res.data;
 };
+
 

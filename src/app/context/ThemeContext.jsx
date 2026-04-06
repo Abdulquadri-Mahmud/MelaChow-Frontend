@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
@@ -14,7 +14,7 @@ export const ThemeProvider = ({ children }) => {
     const [theme, setThemeState] = useState('light');
 
     useEffect(() => {
-        const savedTheme = localStorage.getItem('grubdash-theme');
+        const savedTheme = localStorage.getItem('melachow-theme');
         // Default to light if no saved theme found
         if (savedTheme) {
             setThemeState(savedTheme);
@@ -28,13 +28,13 @@ export const ThemeProvider = ({ children }) => {
     const toggleTheme = () => {
         const newTheme = theme === 'light' ? 'dark' : 'light';
         setThemeState(newTheme);
-        localStorage.setItem('grubdash-theme', newTheme);
+        localStorage.setItem('melachow-theme', newTheme);
         document.documentElement.classList.toggle('dark', newTheme === 'dark');
     };
 
     const setTheme = (newTheme) => {
         setThemeState(newTheme);
-        localStorage.setItem('grubdash-theme', newTheme);
+        localStorage.setItem('melachow-theme', newTheme);
         document.documentElement.classList.toggle('dark', newTheme === 'dark');
     };
 
@@ -44,3 +44,4 @@ export const ThemeProvider = ({ children }) => {
         </ThemeContext.Provider>
     );
 };
+

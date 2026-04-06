@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -25,12 +25,12 @@ const FAQ_DATA = [
   // General
   {
     category: "general",
-    question: "What is GrubDash?",
-    answer: "GrubDash is your premium local food delivery companion. We connect you with the best restaurants, hidden gems, and local favorites in your city, delivering authentic flavors right to your doorstep with speed and care."
+    question: "What is MelaChow?",
+    answer: "MelaChow is your premium local food delivery companion. We connect you with the best restaurants, hidden gems, and local favorites in your city, delivering authentic flavors right to your doorstep with speed and care."
   },
   {
     category: "general",
-    question: "Where does GrubDash operate?",
+    question: "Where does MelaChow operate?",
     answer: "We currently operate in major cities across the region. You can check if we deliver to your area by entering your delivery address on the home page."
   },
 
@@ -75,7 +75,7 @@ const FAQ_DATA = [
   {
     category: "payment",
     question: "How do refunds work?",
-    answer: "Refunds are processed to your GrubDash Wallet instantly or to your original payment method within 3-5 business days, depending on your bank."
+    answer: "Refunds are processed to your MelaChow Wallet instantly or to your original payment method within 3-5 business days, depending on your bank."
   },
 
   // Delivery
@@ -318,7 +318,7 @@ export default function FAQs() {
             </Link>
 
             {/* Email */}
-            <Link href="mailto:support@grubdash.com" className="group">
+            <Link href="mailto:support@melachow.com" className="group">
               <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-blue-500/30 transition-all text-center space-y-4">
                 <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-500 mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Mail size={24} />
@@ -355,3 +355,4 @@ export default function FAQs() {
     </div>
   );
 }
+

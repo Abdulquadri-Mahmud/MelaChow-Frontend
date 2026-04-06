@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useApi } from "@/app/context/ApiContext";
 import { useState, useEffect } from "react";
@@ -62,7 +62,7 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
                 : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-slate-900/20'
                 }`}
             >
-              {type === 'success' ? 'Enter GrubDash' : 'Try Again'}
+              {type === 'success' ? 'Enter MelaChow' : 'Try Again'}
             </motion.button>
           </div>
         </motion.div>
@@ -276,3 +276,4 @@ export default function Signin() {
     </div>
   );
 }
+

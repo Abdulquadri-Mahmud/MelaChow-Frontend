@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -84,9 +84,10 @@ export default function PartnerPortalPage() {
                 </div>
 
                 <div className="mt-12 text-center pb-4 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600">
-                    Secure GrubDash Access
+                    Secure MelaChow Access
                 </div>
             </motion.div>
         </div>
     );
 }
+

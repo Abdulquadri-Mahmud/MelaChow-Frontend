@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { RiderProvider } from "@/app/context/RiderContext";
 import { usePathname } from "next/navigation";
@@ -29,7 +29,7 @@ function RiderHeader({ isOnline, toggleAvailability, isToggling }) {
                     <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-600/20">
                         <Bike size={20} />
                     </div>
-                    <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight hidden sm:block">GrubDash <span className="text-orange-600">Rider</span></span>
+                    <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight hidden sm:block">MelaChow <span className="text-orange-600">Rider</span></span>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -207,3 +207,4 @@ export default function RiderLayout({ children }) {
         </RiderProvider>
     );
 }
+

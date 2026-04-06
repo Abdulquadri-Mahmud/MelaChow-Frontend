@@ -1,8 +1,8 @@
-# PWA Quick Start Guide
+﻿# PWA Quick Start Guide
 
-## 🚀 Getting Started
+## ðŸš€ Getting Started
 
-Your GrubDash app now has full PWA support! Here's how to test it locally.
+Your MelaChow app now has full PWA support! Here's how to test it locally.
 
 ---
 
@@ -52,10 +52,10 @@ http://localhost:3000
 
 ### Verify Manifest
 
-1. In DevTools → **Application** tab
+1. In DevTools â†’ **Application** tab
 2. Click **Manifest** in left sidebar
 3. You should see:
-   - Name: "GrubDash - Food Delivery"
+   - Name: "MelaChow - Food Delivery"
    - Theme color: #ea580c
    - Icons: Multiple sizes listed
 
@@ -81,7 +81,7 @@ http://localhost:3000
 
 ## Step 5: Test Offline
 
-1. Open DevTools → **Network** tab
+1. Open DevTools â†’ **Network** tab
 2. Change throttling to **Offline**
 3. Try navigating to a new page
 4. You should see the offline page with helpful instructions
@@ -97,7 +97,7 @@ http://localhost:3000
 1. Open `public/sw.js`
 2. Change line 11:
    ```javascript
-   const CACHE_VERSION = 'grubdash-v1.0.1'; // Change from v1.0.0
+   const CACHE_VERSION = 'melachow-v1.0.1'; // Change from v1.0.0
    ```
 3. Save and rebuild:
    ```bash
@@ -206,6 +206,7 @@ navigator.serviceWorker.getRegistrations().then(regs => {
 
 ---
 
-**Happy Testing! 🎉**
+**Happy Testing! ðŸŽ‰**
 
 The PWA integration is complete and ready for testing. All existing features continue to work unchanged.
+

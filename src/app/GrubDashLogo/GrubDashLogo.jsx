@@ -1,13 +1,13 @@
-
+﻿
 const LogoImage = () => (
   <img
     src="/logo.png"
-    alt="GrubDash Logo"
+    alt="MelaChow Logo"
     className="md:w-[280px] w-[270px] object-contain"
   />
 );
 
-export default function GrubDashLogo() {
+export default function MelaChowLogo() {
   return (
     <div className="flex flex-col items-center justify-center space-y-4">
       <LogoImage />
@@ -41,3 +41,4 @@ export default function GrubDashLogo() {
     </div>
   );
 }
+

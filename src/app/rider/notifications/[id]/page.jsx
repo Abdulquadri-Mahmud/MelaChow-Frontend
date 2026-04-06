@@ -221,7 +221,7 @@ export default function NotificationOrderDetails() {
                         </div>
                         <div className="bg-white dark:bg-[#1A1D23] rounded-3xl p-5 border border-gray-100 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-2xl ml-4 transition-colors">
                             <p className="text-[10px] uppercase font-black tracking-widest text-orange-600 dark:text-orange-500 mb-1">Pickup From</p>
-                            <h3 className="font-black text-lg mb-1 text-gray-900 dark:text-white">{restaurant?.name || "GrubDash Vendor"}</h3>
+                            <h3 className="font-black text-lg mb-1 text-gray-900 dark:text-white">{restaurant?.name || "MelaChow Vendor"}</h3>
                             <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 leading-relaxed">{vendorAddress}</p>
                             <a
                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(vendorAddress)}`}

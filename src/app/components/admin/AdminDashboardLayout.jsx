@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -111,7 +111,7 @@ export default function AdminDashboardLayout({ children }) {
     return (
         <div className="min-h-screen bg-slate-50">
 
-            {/* ── Desktop Sidebar ────────────────────────────────────── */}
+            {/* â”€â”€ Desktop Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <aside className={`fixed inset-y-0 left-0 z-40 hidden lg:flex lg:flex-col bg-slate-900 border-r border-slate-800 transition-all duration-300 ${desktopSidebarOpen ? "lg:w-60 translate-x-0" : "-translate-x-full lg:translate-x-0 lg:w-0 lg:overflow-hidden"}`}>
                 <div className="flex flex-col flex-1 min-h-0 w-60">
                     {/* Logo */}
@@ -120,7 +120,7 @@ export default function AdminDashboardLayout({ children }) {
                             <Shield size={14} className="text-white" strokeWidth={2.5} />
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-white leading-none">GrubDash</p>
+                            <p className="text-sm font-bold text-white leading-none">MelaChow</p>
                             <p className="text-[10px] text-slate-500 mt-0.5">Admin Portal</p>
                         </div>
                     </div>
@@ -168,7 +168,7 @@ export default function AdminDashboardLayout({ children }) {
                 </div>
             </aside>
 
-            {/* ── Mobile Sidebar ─────────────────────────────────────── */}
+            {/* â”€â”€ Mobile Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <AnimatePresence>
                 {sidebarOpen && (
                     <>
@@ -188,7 +188,7 @@ export default function AdminDashboardLayout({ children }) {
                                         <Shield size={14} className="text-white" strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-bold text-white leading-none">GrubDash</p>
+                                        <p className="text-sm font-bold text-white leading-none">MelaChow</p>
                                         <p className="text-[10px] text-slate-500 mt-0.5">Admin Portal</p>
                                     </div>
                                 </div>
@@ -238,7 +238,7 @@ export default function AdminDashboardLayout({ children }) {
                 )}
             </AnimatePresence>
 
-            {/* ── Main Content Area ──────────────────────────────────── */}
+            {/* â”€â”€ Main Content Area â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <div className={`transition-all duration-300 ${desktopSidebarOpen ? "lg:pl-60" : "lg:pl-0"}`}>
 
                 {/* Top Header */}
@@ -326,7 +326,7 @@ export default function AdminDashboardLayout({ children }) {
                 <main className="p-4">{children}</main>
             </div>
 
-            {/* ── Logout Modal ───────────────────────────────────────── */}
+            {/* â”€â”€ Logout Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <AnimatePresence>
                 {showLogoutModal && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -374,3 +374,4 @@ export default function AdminDashboardLayout({ children }) {
         </div>
     );
 }
+

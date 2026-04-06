@@ -1,7 +1,7 @@
-# 🛵 Rider System Documentation
+﻿# ðŸ›µ Rider System Documentation
 
 ## Overview
-The GrubDash Rider System is a comprehensive, real-time logistics framework designed to bridge the gap between Vendors, Riders, and Customers. It handles rider recruitment, order dispatching, and delivery lifecycle management with high-fidelity visual feedback and low-latency communication.
+The MelaChow Rider System is a comprehensive, real-time logistics framework designed to bridge the gap between Vendors, Riders, and Customers. It handles rider recruitment, order dispatching, and delivery lifecycle management with high-fidelity visual feedback and low-latency communication.
 
 ---
 
@@ -99,3 +99,4 @@ The system uses a state-machine approach to manage deliveries.
 - **Rider not receiving jobs**: Ensure the Rider is switched to **"Online"** and the vendor has marked the order as **"Ready for Pickup"**.
 - **Assignment modal empty**: No riders in the fleet are currently "Available" (they are either Offline or already on a delivery).
 - **Socket Disconnection**: The `SocketContext` automatically handles reconnections, but riders can manually refresh the dashboard to force a state resync.
+

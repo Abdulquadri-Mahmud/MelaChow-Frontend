@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import {
   ChatBubbleLeftRightIcon,
   EnvelopeIcon,
@@ -35,7 +35,7 @@ export default function NeedHelp() {
             <ChatBubbleLeftRightIcon className="w-5 h-5" />
             Live Chat
           </button> */}
-          <Link href="mailto:support@grubdash.com" className="w-full md:w-auto">
+          <Link href="mailto:support@melachow.com" className="w-full md:w-auto">
             <button className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-2xl w-full transition-all shadow-lg shadow-orange-500/20 font-bold">
               <EnvelopeIcon className="w-5 h-5" />
               Email Support
@@ -96,7 +96,7 @@ export default function NeedHelp() {
                   <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
                     <ChatBubbleLeftRightIcon className="w-12 h-12 mb-2 text-zinc-300 dark:text-zinc-600" />
                     <p className="font-bold uppercase tracking-widest text-[10px] text-zinc-400 dark:text-zinc-500">
-                      Our team is ready 👋
+                      Our team is ready ðŸ‘‹
                     </p>
                   </div>
                 )}
@@ -126,3 +126,4 @@ export default function NeedHelp() {
     </>
   )
 }
+
