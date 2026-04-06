@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,7 +10,7 @@ import {
 
 import showAnimatedToast from "@/app/components/toast/showAnimatedToast";
 
-const CLOUDINARY_PRESET = "GrubDash"; // your Cloudinary preset
+const CLOUDINARY_PRESET = "MelaChow"; // your Cloudinary preset
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
 
 /***** VARIANT MODAL COMPONENT (step-by-step) *****/
@@ -45,7 +45,7 @@ export default function VariantModal({ open, onClose, initial = null, onSave, ac
       const data = await res.json();
       return data.secure_url;
     } catch (err) {
-      console.error("❌ Cloudinary upload error:", err);
+      console.error("âŒ Cloudinary upload error:", err);
 
       setError(err.message || "Cloudinary upload failed.");
 
@@ -110,7 +110,7 @@ export default function VariantModal({ open, onClose, initial = null, onSave, ac
             exit={{ y: 40, opacity: 0, scale: 0.98 }}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Add Variant — Step {step + 1}/3</h3>
+              <h3 className="text-lg font-semibold">Add Variant â€” Step {step + 1}/3</h3>
               <button onClick={() => { reset(); onClose(); }} className="p-1 rounded hover:bg-gray-100"><X /></button>
             </div>
 
@@ -125,7 +125,7 @@ export default function VariantModal({ open, onClose, initial = null, onSave, ac
 
               {step === 1 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Variant price (₦)</label>
+                  <label className="text-sm font-medium text-gray-700">Variant price (â‚¦)</label>
                   <input className="w-full border border-gray-200 p-3 rounded-lg mt-2 mb-4" value={payload.price} onChange={(e) => setPayload(p => ({ ...p, price: e.target.value }))} type="number" placeholder="1200" />
 
                   <label className="text-sm font-medium text-gray-700">Stock Quantity (Optional)</label>
@@ -180,3 +180,4 @@ export default function VariantModal({ open, onClose, initial = null, onSave, ac
     </AnimatePresence>
   );
 }
+

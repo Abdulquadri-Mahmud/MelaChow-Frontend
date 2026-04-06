@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import Header2 from "@/app/components/App_Header/Header2";
@@ -46,12 +46,12 @@ export default function ProfilePage() {
             <div className="w-full flex justify-center items-center mb-5">
               <img
                 src="/logo.png"
-                alt="GrubDash Logo"
+                alt="MelaChow Logo"
                 className="w-[170px] object-contain"
               />
             </div>
             <h2 className="text-2xl font-semibold text-orange-500 mb-2 text-center">
-              Welcome to GrubDash!
+              Welcome to MelaChow!
             </h2>
             <p className="text-center text-zinc-600 dark:text-zinc-400 mb-6">
               Please log in to view and manage your profile.
@@ -71,7 +71,7 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 </div>
-                <span className="text-orange-500 text-xl font-bold opacity-30 group-hover:opacity-100 transform transition-transform group-hover:translate-x-1">›</span>
+                <span className="text-orange-500 text-xl font-bold opacity-30 group-hover:opacity-100 transform transition-transform group-hover:translate-x-1">â€º</span>
               </div>
             </Link>
             <Link href="/auth/signin" className='cursor-pointer'>
@@ -118,3 +118,4 @@ export default function ProfilePage() {
     </ProtectedRoute>
   );
 }
+

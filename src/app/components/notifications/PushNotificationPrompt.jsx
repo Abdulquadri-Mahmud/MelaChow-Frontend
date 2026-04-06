@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
@@ -34,9 +34,9 @@ const PushNotificationPrompt = () => {
             const isAdminDashboard = pathname.startsWith('/admin') && !pathname.includes('/login');
             
             const hasOrdered = localStorage.getItem('has_placed_order') === 'true';
-            const isVendor = localStorage.getItem('grubdash_vendor_token_v1') !== null || localStorage.getItem('grubdash_vendor_cache') !== null;
-            const isRider = localStorage.getItem('grubdash_rider_token_v1') !== null || localStorage.getItem('grubdash_rider_cache') !== null;
-            const isAdmin = localStorage.getItem('grubdash_admin_token_v1') !== null;
+            const isVendor = localStorage.getItem('melachow_vendor_token_v1') !== null || localStorage.getItem('melachow_vendor_cache') !== null;
+            const isRider = localStorage.getItem('melachow_rider_token_v1') !== null || localStorage.getItem('melachow_rider_cache') !== null;
+            const isAdmin = localStorage.getItem('melachow_admin_token_v1') !== null;
 
             if (shouldShowPrompt()) {
                 // Show immediately (shorter delay) on critical pages
@@ -153,3 +153,4 @@ const PushNotificationPrompt = () => {
 };
 
 export default PushNotificationPrompt;
+

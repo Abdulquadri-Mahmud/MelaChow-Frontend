@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { createContext, useContext, useEffect } from "react";
 import { useApi } from "./ApiContext";
@@ -22,7 +22,7 @@ export const VendorProfileProvider = ({ children }) => {
         const token = TokenManager.getToken('vendor');
 
         if (process.env.NODE_ENV === 'development') {
-            console.log('[VendorProfileContext] 🔍 fetchVendorProfile START', {
+            console.log('[VendorProfileContext] ðŸ” fetchVendorProfile START', {
                 baseUrl,
                 currentPath: pathname,
                 hasToken: !!token,
@@ -44,7 +44,7 @@ export const VendorProfileProvider = ({ children }) => {
             });
 
             if (process.env.NODE_ENV === 'development') {
-                console.log('[VendorProfileContext] 📨 Response:', {
+                console.log('[VendorProfileContext] ðŸ“¨ Response:', {
                     status: res.status,
                     ok: res.ok,
                 });
@@ -57,7 +57,7 @@ export const VendorProfileProvider = ({ children }) => {
 
                 if (!isPublicRoute) {
                     TokenManager.clearToken('vendor');
-                    localStorage.removeItem("grubdash_vendor_cache");
+                    localStorage.removeItem("melachow_vendor_cache");
                     throw new Error("Vendor session expired");
                 }
 
@@ -79,7 +79,7 @@ export const VendorProfileProvider = ({ children }) => {
             const vendorData = data.data || data.vendor || data;
 
             if (process.env.NODE_ENV === 'development') {
-                console.log('[VendorProfileContext] ✅ Vendor loaded:', {
+                console.log('[VendorProfileContext] âœ… Vendor loaded:', {
                     hasVendor: !!vendorData,
                     vendorId: vendorData?._id || vendorData?.id,
                 });
@@ -99,7 +99,7 @@ export const VendorProfileProvider = ({ children }) => {
 
         placeholderData: () => {
             if (typeof window !== 'undefined') {
-                const cached = localStorage.getItem("grubdash_vendor_cache");
+                const cached = localStorage.getItem("melachow_vendor_cache");
                 try {
                     return cached ? JSON.parse(cached) : undefined;
                 } catch (e) {
@@ -125,12 +125,12 @@ export const VendorProfileProvider = ({ children }) => {
         refetchOnReconnect: true,
     });
 
-    // ✅ Simple: query completed = not fetching + has result
+    // âœ… Simple: query completed = not fetching + has result
     const hasCheckedSession = fetchStatus === 'idle' && (status === 'success' || status === 'error');
 
     useEffect(() => {
         if (process.env.NODE_ENV === 'development') {
-            console.log('[VendorProfileContext] 🔐 Vendor Auth State:', {
+            console.log('[VendorProfileContext] ðŸ” Vendor Auth State:', {
                 hasVendorData: !!data,
                 isLoading,
                 hasCheckedSession,
@@ -148,11 +148,11 @@ export const VendorProfileProvider = ({ children }) => {
             // If isApproved is missing, clear the cache instead of
             // storing a broken object that causes redirect loops.
             if (data.isApproved !== undefined) {
-                localStorage.setItem("grubdash_vendor_cache", JSON.stringify(data));
+                localStorage.setItem("melachow_vendor_cache", JSON.stringify(data));
             } else {
-                localStorage.removeItem("grubdash_vendor_cache");
+                localStorage.removeItem("melachow_vendor_cache");
                 if (process.env.NODE_ENV === 'development') {
-                    console.warn('[VendorProfileContext] ⚠️ isApproved missing from vendor data — cache cleared to prevent auth loop');
+                    console.warn('[VendorProfileContext] âš ï¸ isApproved missing from vendor data â€” cache cleared to prevent auth loop');
                 }
             }
         }
@@ -180,3 +180,4 @@ export const useVendorProfile = () => {
     }
     return context;
 };
+

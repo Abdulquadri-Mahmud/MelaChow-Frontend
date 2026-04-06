@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -60,7 +60,7 @@ const statusSteps = [
     key: "delivered",
     label: "Delivered",
     subtitle: "Hope you enjoy it!",
-    description: "Your meal has been dropped off. Thank you for using GrubDash!",
+    description: "Your meal has been dropped off. Thank you for using MelaChow!",
     icon: Home
   },
   {
@@ -89,7 +89,7 @@ export default function OrderTracking() {
   useEffect(() => {
     // Listen for real-time status updates
     onStatusUpdate((data) => {
-      console.log('🔄 Real-time status update:', data.status);
+      console.log('ðŸ”„ Real-time status update:', data.status);
       setOrderData(prev => prev ? { 
         ...prev, 
         orderStatus: data.status,
@@ -99,7 +99,7 @@ export default function OrderTracking() {
       // Optionally show a toast
       const statusLabel = statusSteps.find(s => s.key === data.status)?.label || data.status;
       toast.success(`Order Status: ${statusLabel}`, {
-        icon: '🚚',
+        icon: 'ðŸšš',
         style: {
           borderRadius: '16px',
           background: '#333',
@@ -112,7 +112,7 @@ export default function OrderTracking() {
 
     // Listen for real-time location updates (for future map integration)
     onLocationUpdate((data) => {
-      console.log('📍 Real-time location update:', data.location);
+      console.log('ðŸ“ Real-time location update:', data.location);
       // Update location in state if map is implemented
     });
   }, [onStatusUpdate, onLocationUpdate]);
@@ -362,10 +362,10 @@ export default function OrderTracking() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-black italic tracking-tight leading-tight">
-                      {orderData.riderId.name || "GrubDash Delivery Partner"}
+                      {orderData.riderId.name || "MelaChow Delivery Partner"}
                     </h3>
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mt-1">
-                      Professional Rider {orderData.riderId.phone && `• ${orderData.riderId.phone}`}
+                      Professional Rider {orderData.riderId.phone && `â€¢ ${orderData.riderId.phone}`}
                     </p>
                     <div className="flex items-center gap-3 mt-3">
                       <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-2 py-1 rounded-lg">
@@ -409,10 +409,10 @@ export default function OrderTracking() {
                     key={idx}
                     className="bg-zinc-50/50 dark:bg-zinc-800/50 p-3 rounded-[28px] border border-zinc-100/50 dark:border-zinc-700/50 space-y-3"
                   >
-                    {/* TOP ROW — image, name, price, review */}
+                    {/* TOP ROW â€” image, name, price, review */}
                     <div className="flex gap-4 items-start">
                       
-                      {/* Item Image — prefer variant image, fall back to item image_url */}
+                      {/* Item Image â€” prefer variant image, fall back to item image_url */}
                       <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-inner flex-shrink-0">
                         <img
                           src={item.variant?.image || item.image_url || "/placeholder.jpg"}
@@ -423,7 +423,7 @@ export default function OrderTracking() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        {/* Food name — the actual dish name e.g. "Jollof Rice" */}
+                        {/* Food name â€” the actual dish name e.g. "Jollof Rice" */}
                         <div className="flex items-center gap-2 flex-wrap">
                           <h4 className="text-sm font-black text-zinc-900 dark:text-white italic uppercase leading-tight">
                             {item.name || item.variant?.name}
@@ -437,7 +437,7 @@ export default function OrderTracking() {
 
                         {/* Portion / Multiplier Details */}
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
-                          {/* Portion label — e.g. "Large Bowl" */}
+                          {/* Portion label â€” e.g. "Large Bowl" */}
                           {item.portion_label && (
                             <div className="flex items-center gap-1.5">
                               <span className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
@@ -467,7 +467,7 @@ export default function OrderTracking() {
 
                       <div className="flex flex-col items-end gap-2 flex-shrink-0">
                         <div className="font-black text-sm text-zinc-900 dark:text-white">
-                          ₦{(item.price * item.quantity).toLocaleString()}
+                          â‚¦{(item.price * item.quantity).toLocaleString()}
                         </div>
                         <button
                           onClick={() => {
@@ -481,7 +481,7 @@ export default function OrderTracking() {
                       </div>
                     </div>
 
-                    {/* SELECTED OPTIONS — broken down by choice group */}
+                    {/* SELECTED OPTIONS â€” broken down by choice group */}
                     {((item.selected_options || item.metadata?.selected_options)?.length > 0) && (
                       <div className="space-y-3 pt-2">
                         {Object.entries(
@@ -520,7 +520,7 @@ export default function OrderTracking() {
                                   </div>
                                   {opt.price_modifier_naira > 0 && (
                                     <span className="text-[10px] font-black text-zinc-400">
-                                      + ₦{(opt.price_modifier_naira * (opt.quantity || 1)).toLocaleString()}
+                                      + â‚¦{(opt.price_modifier_naira * (opt.quantity || 1)).toLocaleString()}
                                     </span>
                                   )}
                                 </div>
@@ -531,29 +531,29 @@ export default function OrderTracking() {
                       </div>
                     )}
 
-                    {/* PRICING BREAKDOWN — only when options were added */}
+                    {/* PRICING BREAKDOWN â€” only when options were added */}
                     {item.metadata?.pricing && 
                      item.metadata.pricing.options_total > 0 && (
                       <div className="flex items-center justify-between px-3 py-2 bg-white dark:bg-zinc-900/60 rounded-2xl border border-zinc-100 dark:border-zinc-700">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-bold text-zinc-400">
-                            Base ₦{item.metadata.pricing.base_naira?.toLocaleString()}
+                            Base â‚¦{item.metadata.pricing.base_naira?.toLocaleString()}
                           </span>
                           <span className="text-zinc-300 dark:text-zinc-600">+</span>
                           <span className="text-[10px] font-bold text-orange-500">
-                            Add-ons ₦{item.metadata.pricing.options_total?.toLocaleString()}
+                            Add-ons â‚¦{item.metadata.pricing.options_total?.toLocaleString()}
                           </span>
                         </div>
                         <span className="text-[11px] font-black text-zinc-700 dark:text-zinc-300">
-                          = ₦{item.metadata.pricing.final_unit_naira?.toLocaleString()}
+                          = â‚¦{item.metadata.pricing.final_unit_naira?.toLocaleString()}
                         </span>
                       </div>
                     )}
 
-                    {/* CUSTOMER NOTE — only when note is non-empty */}
+                    {/* CUSTOMER NOTE â€” only when note is non-empty */}
                     {item.note && item.note.trim() !== '' && (
                       <div className="flex items-start gap-2 px-3 py-2 bg-amber-50 dark:bg-amber-500/10 rounded-2xl border border-amber-100 dark:border-amber-500/20">
-                        <span className="text-amber-500 text-[11px] mt-0.5 flex-shrink-0">📝</span>
+                        <span className="text-amber-500 text-[11px] mt-0.5 flex-shrink-0">ðŸ“</span>
                         <p className="text-[11px] font-bold text-amber-700 dark:text-amber-400 italic">
                           "{item.note}"
                         </p>
@@ -567,16 +567,16 @@ export default function OrderTracking() {
               <div className="mt-10 pt-8 border-t-2 border-zinc-50 dark:border-zinc-800 space-y-4">
                 <div className="flex justify-between items-center text-zinc-400 text-[11px] font-black uppercase tracking-widest">
                   <span>Subtotal</span>
-                  <span className="text-zinc-900 dark:text-white">₦{subtotal.toLocaleString()}</span>
+                  <span className="text-zinc-900 dark:text-white">â‚¦{subtotal.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center text-zinc-400 text-[11px] font-black uppercase tracking-widest">
                   <span>Delivery Service</span>
-                  <span className="text-orange-600">+ ₦{deliveryFee.toLocaleString()}</span>
+                  <span className="text-orange-600">+ â‚¦{deliveryFee.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-end pt-4">
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300 mb-1 leading-none">Total Payment</p>
-                    <h4 className="text-4xl font-black text-zinc-900 dark:text-white italic tracking-tighter leading-none">₦{total.toLocaleString()}</h4>
+                    <h4 className="text-4xl font-black text-zinc-900 dark:text-white italic tracking-tighter leading-none">â‚¦{total.toLocaleString()}</h4>
                   </div>
                   <div className="text-right">
                     <span className="text-[10px] font-black text-green-500 bg-green-500/10 px-3 py-1.5 rounded-xl uppercase tracking-widest">
@@ -608,7 +608,7 @@ export default function OrderTracking() {
                 <p className="text-xs font-black text-zinc-900 dark:text-white truncate uppercase italic mt-0.5">
                   {orderData.createdAt ? (
                     <>
-                      {new Date(orderData.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} • {new Date(orderData.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(orderData.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} â€¢ {new Date(orderData.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                     </>
                   ) : "Just Now"}
                 </p>
@@ -656,3 +656,4 @@ export default function OrderTracking() {
     </div>
   );
 }
+

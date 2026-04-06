@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -26,11 +26,11 @@ export default function VendorSetPassword() {
         e.preventDefault();
 
         if (!password || password.length < 8) {
-            setMessage("⚠️ Password must be at least 8 characters long.");
+            setMessage("âš ï¸ Password must be at least 8 characters long.");
             return;
         }
         if (password !== confirmPassword) {
-            setMessage("⚠️ Passwords do not match.");
+            setMessage("âš ï¸ Passwords do not match.");
             return;
         }
 
@@ -75,10 +75,10 @@ export default function VendorSetPassword() {
             }
 
             if (requiresApproval) {
-                setMessage("✅ Password set! Redirecting for business review...");
+                setMessage("âœ… Password set! Redirecting for business review...");
                 setTimeout(() => router.push("/vendors/pending-approval"), 1500);
             } else {
-                setMessage("✅ Registration complete! Welcome to GrubDash.");
+                setMessage("âœ… Registration complete! Welcome to MelaChow.");
                 setTimeout(() => router.push("/vendors/dashboard"), 1500);
             }
 
@@ -158,7 +158,7 @@ export default function VendorSetPassword() {
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 10 }}
-                                className={`text-center p-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 ${message.includes("✅") ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10" : "bg-rose-50 text-rose-500 dark:bg-rose-500/10"
+                                className={`text-center p-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 ${message.includes("âœ…") ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10" : "bg-rose-50 text-rose-500 dark:bg-rose-500/10"
                                     }`}
                             >
                                 {message}
@@ -187,3 +187,4 @@ export default function VendorSetPassword() {
         </div>
     );
 }
+

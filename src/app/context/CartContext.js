@@ -1,4 +1,4 @@
-// /context-api/CartContext.js
+﻿// /context-api/CartContext.js
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";
@@ -13,13 +13,13 @@ export const CartProvider = ({ children }) => {
 
   // Load cart from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem("grubdashCart");
+    const stored = localStorage.getItem("melachowCart");
     if (stored) setCart(JSON.parse(stored));
   }, []);
 
   // Store cart to localStorage
   useEffect(() => {
-    localStorage.setItem("grubdashCart", JSON.stringify(cart));
+    localStorage.setItem("melachowCart", JSON.stringify(cart));
   }, [cart]);
 
   // Add item
@@ -156,4 +156,5 @@ export const CartProvider = ({ children }) => {
     </CartContext.Provider>
   );
 };
+
 

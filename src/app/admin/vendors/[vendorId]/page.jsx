@@ -469,7 +469,7 @@ export default function VendorDetailPage() {
                                     <div className="flex items-center gap-2">
                                         <span className="text-[9px] font-bold text-slate-400 uppercase">Logistics:</span>
                                         {vendor.deliveryManagedBy === "admin" ? (
-                                            <span className="px-2 py-1 bg-slate-900 text-white rounded text-[9px] font-bold uppercase border border-slate-800">GrubDash Managed</span>
+                                            <span className="px-2 py-1 bg-slate-900 text-white rounded text-[9px] font-bold uppercase border border-slate-800">MelaChow Managed</span>
                                         ) : (
                                             <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded text-[9px] font-bold uppercase border border-slate-200 font-mono">Self Managed</span>
                                         )}

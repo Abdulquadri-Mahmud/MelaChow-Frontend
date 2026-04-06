@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -7,11 +7,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { deleteVendor, fetchVendorForUserDisplay, getVendorById, getVendors, updateVendor } from "../lib/vendorProfileApi";
 
-// ✅ Custom hook for managing vendor profiles
+// âœ… Custom hook for managing vendor profiles
 export const useVendors = () => {
   const queryClient = useQueryClient();
 
-  // 🔹 Fetch all vendors (background refresh & smooth UI)
+  // ðŸ”¹ Fetch all vendors (background refresh & smooth UI)
   const {
     data: vendors,
     isLoading,
@@ -21,16 +21,16 @@ export const useVendors = () => {
   } = useQuery({
     queryKey: ["vendors"],
     queryFn: getVendors,
-    // ✅ Load from Cache immediately
+    // âœ… Load from Cache immediately
     initialData: () => {
       if (typeof window !== 'undefined') {
-        const cached = localStorage.getItem("grubdash_vendor_cache");
+        const cached = localStorage.getItem("melachow_vendor_cache");
         try {
           return cached ? JSON.parse(cached) : undefined;
         } catch (e) { return undefined; }
       }
     },
-    // ✅ Retry logic for race conditions
+    // âœ… Retry logic for race conditions
     retry: (failureCount, error) => {
       if (failureCount >= 2) return false;
       // Network error
@@ -46,21 +46,21 @@ export const useVendors = () => {
     refetchOnMount: false,
   });
 
-  // ✅ Use isFetched directly for session check check
+  // âœ… Use isFetched directly for session check check
   const hasCheckedSession = isFetched;
 
-  // ✅ Sync cache
+  // âœ… Sync cache
   useEffect(() => {
     if (vendors && typeof window !== 'undefined') {
-      localStorage.setItem("grubdash_vendor_cache", JSON.stringify(vendors));
+      localStorage.setItem("melachow_vendor_cache", JSON.stringify(vendors));
     }
   }, [vendors]);
 
-  // 🔹 Optimistic update mutation for vendor profile
+  // ðŸ”¹ Optimistic update mutation for vendor profile
   const updateMutation = useMutation({
     mutationFn: ({ data }) => updateVendor({ data }),
 
-    // ⚙️ Optimistic update
+    // âš™ï¸ Optimistic update
     onMutate: async ({ data }) => {
       await queryClient.cancelQueries(["vendors"]);
 
@@ -80,48 +80,48 @@ export const useVendors = () => {
       return { previousVendors };
     },
 
-    // ✅ On success: confirm and refresh in background
+    // âœ… On success: confirm and refresh in background
     onSuccess: () => {
-      toast.success("✅ Vendor updated successfully!");
+      toast.success("âœ… Vendor updated successfully!");
       queryClient.invalidateQueries(["vendors"]);
     },
 
-    // ❌ On error: rollback UI to previous data
+    // âŒ On error: rollback UI to previous data
     onError: (error, _, context) => {
-      toast.error("❌ Failed to update vendor.");
+      toast.error("âŒ Failed to update vendor.");
       if (context?.previousVendors) {
         queryClient.setQueryData(["vendors"], context.previousVendors);
       }
     },
 
-    // 🧹 Always refetch in background to ensure sync
+    // ðŸ§¹ Always refetch in background to ensure sync
     onSettled: () => {
       queryClient.invalidateQueries(["vendors"]);
     },
   });
 
-  // 🔹 Delete vendor profile
+  // ðŸ”¹ Delete vendor profile
   const deleteMutation = useMutation({
     mutationFn: () => deleteVendor(),
     onSuccess: () => {
-      toast.success("🗑️ Vendor deleted successfully!");
+      toast.success("ðŸ—‘ï¸ Vendor deleted successfully!");
       queryClient.invalidateQueries(["vendors"]);
     },
-    onError: () => toast.error("❌ Failed to delete vendor."),
+    onError: () => toast.error("âŒ Failed to delete vendor."),
   });
 
   return {
     vendors,
     isLoading,
     isError,
-    hasCheckedSession, // ✅ Expose session check
+    hasCheckedSession, // âœ… Expose session check
     refetch,
     updateVendor: updateMutation.mutate,
     deleteVendor: deleteMutation.mutate,
   };
 };
 
-// ✅ Optional: Hook for fetching a single vendor by ID
+// âœ… Optional: Hook for fetching a single vendor by ID
 export const useVendorById = (id) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["vendor", id],
@@ -134,7 +134,7 @@ export const useVendorById = (id) => {
   return { vendor: data?.data, isLoading, isError };
 };
 
-// ✅ Custom hook using React Query
+// âœ… Custom hook using React Query
 export const useVendorForUserDisplay = (id) => {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["vendorDisplay", id],
@@ -151,3 +151,4 @@ export const useVendorForUserDisplay = (id) => {
     isError,
   };
 };
+

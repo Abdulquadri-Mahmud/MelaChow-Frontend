@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -133,7 +133,7 @@ export default function SplashScreen({ user, vendorDetails }) {
                         >
                             <Image
                                 src="/logo.png"
-                                alt="GrubDash"
+                                alt="MelaChow"
                                 width={120}
                                 height={120}
                                 className="object-contain"
@@ -218,3 +218,4 @@ export default function SplashScreen({ user, vendorDetails }) {
         </div>
     );
 }
+

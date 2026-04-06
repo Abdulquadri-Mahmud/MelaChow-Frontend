@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Secure Token Manager
  * 
  * Implements an in-memory token storage with localStorage fallback for iOS reliability.
@@ -6,10 +6,10 @@
  */
 
 const STORAGE_KEYS = {
-    user: 'grubdash_access_token_v1',
-    vendor: 'grubdash_vendor_token_v1',
-    admin: 'grubdash_admin_token_v1',
-    rider: 'grubdash_rider_token_v1'
+    user: 'melachow_access_token_v1',
+    vendor: 'melachow_vendor_token_v1',
+    admin: 'melachow_admin_token_v1',
+    rider: 'melachow_rider_token_v1'
 };
 
 // In-memory storage (primary)
@@ -95,7 +95,8 @@ export const TokenManager = {
     }
 };
 
-// ✅ Auto-initialize on import (Client-side only)
+// âœ… Auto-initialize on import (Client-side only)
 if (typeof window !== 'undefined') {
     TokenManager.initialize();
 }
+

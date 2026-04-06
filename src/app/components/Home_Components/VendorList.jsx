@@ -24,6 +24,7 @@ import { isVendorOpen } from "@/app/lib/utils";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
 import { getFoodsByLocation } from "@/app/lib/userApi";
+import { useLocationStore } from "@/app/store/userLocationStore";
 
 const VendorCardSkeleton = () => (
     <div
@@ -117,7 +118,7 @@ const VendorCard = ({ _id, storeName, city, image, status, isOpen, rating, ratin
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
 
                     {/* Status */}
-                    <span className={`text-[10px] font-black uppercase italic whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
+                    <span className={`text-[10px] font-semibold uppercase italic whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
                         {status}
                     </span>
 
@@ -147,32 +148,13 @@ const VendorCard = ({ _id, storeName, city, image, status, isOpen, rating, ratin
 export default function VendorList({ user }) {
     const router = useRouter();
 
-    // Location state with localStorage fallback
-    const [userLocation, setUserLocation] = useState(() => {
-        if (typeof window === "undefined") return null;
-        try {
-            const saved = localStorage.getItem("grubdash_location");
-            return saved ? JSON.parse(saved) : null;
-        } catch {
-            return null;
-        }
-    });
+    const { userLocation, syncWithUserAddress } = useLocationStore();
 
-    // Sync with default address
     useEffect(() => {
-        if (!userLocation && user?.addresses) {
-            const defaultAddr = user.addresses.find((a) => a.isDefault);
-            if (defaultAddr?.city && defaultAddr?.state) {
-                const loc = { city: defaultAddr.city, state: defaultAddr.state };
-                setUserLocation(loc);
-                localStorage.setItem("grubdash_location", JSON.stringify(loc));
-            }
-        } else if (!userLocation && !user) {
-            // Optional: Default location for guests so they see content
-            // const defaultLoc = { city: "Sagamu", state: "Ogun State" };
-            // setUserLocation(defaultLoc);
+        if (user) {
+            syncWithUserAddress(user);
         }
-    }, [user, userLocation]);
+    }, [user, syncWithUserAddress]);
 
     const { data: responseData, isLoading, isError } = useQuery({
         queryKey: ["foods-by-location", userLocation?.city, userLocation?.state],

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
@@ -24,7 +24,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { updateVendor } from "@/app/lib/vendorProfileApi";
 import { useQueryClient } from "@tanstack/react-query";
 
-const CLOUDINARY_PRESET = "GrubDash";
+const CLOUDINARY_PRESET = "MelaChow";
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
 
 const uploadToCloudinary = async (file) => {
@@ -199,11 +199,11 @@ export default function VendorProfilePage({ vendor }) {
 
       await updateVendor({ id: vendor._id, data: payload });
 
-      // ✅ Invalidate vendor profile query
+      // âœ… Invalidate vendor profile query
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
 
       toast.success(`${section.replace(/([A-Z])/g, ' $1').trim()} updated successfully!`, {
-        icon: '✅',
+        icon: 'âœ…',
         style: { borderRadius: '10px', background: '#333', color: '#fff' }
       });
     } catch (err) {
@@ -279,20 +279,20 @@ export default function VendorProfilePage({ vendor }) {
                 </p>
               </div>
               <div className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border w-fit ${vendor.active ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200"}`}>
-                {vendor.active ? "● Active" : "● Inactive"}
+                {vendor.active ? "â— Active" : "â— Inactive"}
               </div>
             </div>
 
             <div className="flex items-center gap-6 mt-5 pt-5 border-t border-slate-100 dark:border-slate-800/50">
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Total Sales</p>
-                <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">₦{vendor.totalSales?.toLocaleString() ?? "0"}</p>
+                <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">â‚¦{vendor.totalSales?.toLocaleString() ?? "0"}</p>
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Rating</p>
                 <div className="flex items-center gap-1">
                   <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{vendor.rating?.toFixed(1) ?? "New"}</span>
-                  <span className="text-orange-600">★</span>
+                  <span className="text-orange-600">â˜…</span>
                 </div>
               </div>
               <div>
@@ -374,7 +374,7 @@ export default function VendorProfilePage({ vendor }) {
                     value={cuisine}
                     onChange={(e) => handleCuisineChange(idx, e.target.value)}
                   />
-                  <button onClick={() => handleRemoveCuisine(idx)} className="w-5 h-5 rounded-md bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-rose-500 hover:text-white transition-colors text-xs font-black">×</button>
+                  <button onClick={() => handleRemoveCuisine(idx)} className="w-5 h-5 rounded-md bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-rose-500 hover:text-white transition-colors text-xs font-black">Ã—</button>
                 </div>
               ))}
               <button onClick={handleAddCuisine} className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-300 dark:border-slate-700 rounded-md text-slate-500 hover:text-orange-600 hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all font-black uppercase text-[9px] tracking-widest">
@@ -454,14 +454,14 @@ export default function VendorProfilePage({ vendor }) {
                   {deliverySettings.deliveryManagedBy === "admin" && <div className="w-4 h-4 rounded-full bg-orange-600 flex items-center justify-center"><Save className="text-white" size={10} /></div>}
                 </div>
                 <p className="text-sm font-bold text-gray-900">Use platform delivery</p>
-                <p className="text-xs text-gray-500 mt-1">GrubDash handles delivery for you</p>
+                <p className="text-xs text-gray-500 mt-1">MelaChow handles delivery for you</p>
               </button>
             </div>
 
             <AnimatePresence>
               {deliverySettings.deliveryManagedBy === "vendor" && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <InputGroup label="Flat Delivery Fee (₦)" type="number" value={deliverySettings.flatRateDeliveryFee} onChange={(e) => setDeliverySettings({ ...deliverySettings, flatRateDeliveryFee: e.target.value })} placeholder="0" />
+                  <InputGroup label="Flat Delivery Fee (â‚¦)" type="number" value={deliverySettings.flatRateDeliveryFee} onChange={(e) => setDeliverySettings({ ...deliverySettings, flatRateDeliveryFee: e.target.value })} placeholder="0" />
                   <InputGroup label="Delivery Radius (KM)" type="number" value={deliverySettings.deliveryRadiusKm} onChange={(e) => setDeliverySettings({ ...deliverySettings, deliveryRadiusKm: e.target.value })} placeholder="5" />
                 </motion.div>
               )}
@@ -512,3 +512,4 @@ export default function VendorProfilePage({ vendor }) {
     </div>
   );
 }
+

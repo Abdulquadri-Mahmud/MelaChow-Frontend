@@ -520,7 +520,7 @@ export default function StorefrontPage() {
 
                             {/* Horizontal scroll row — same as FoodList */}
                             {section.type === "combo" ? (
-                                <div className="flex gap-4 scroll overflow-x-auto px-4 pb-4 snap-x snap-mandatory no-scrollbar">
+                                <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
                                     {section.items.map(combo => (
                                         <ComboCard
                                             key={combo._id}

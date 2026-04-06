@@ -1,5 +1,5 @@
-const ACCENT = "#FF6600";
-const CLOUDINARY_PRESET = "GrubDash"; // your preset
+﻿const ACCENT = "#FF6600";
+const CLOUDINARY_PRESET = "MelaChow"; // your preset
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
 
 /***** HELPERS *****/
@@ -26,3 +26,4 @@ const uploadToCloudinary = async (file) => {
 };
 
 export default uploadToCloudinary;
+

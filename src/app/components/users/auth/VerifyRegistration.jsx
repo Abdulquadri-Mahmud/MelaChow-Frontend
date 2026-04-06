@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -317,7 +317,7 @@ export default function VerifyRegistration() {
                     </button>
 
                     <p className="text-[10px] text-center font-bold text-slate-400 uppercase tracking-widest pt-2">
-                        Secured by GrubDash Auth
+                        Secured by MelaChow Auth
                     </p>
                 </div>
             </motion.div>
@@ -332,3 +332,4 @@ export default function VerifyRegistration() {
         </div>
     );
 }
+

@@ -331,7 +331,7 @@ export default function VendorReviewPage() {
                                     </div>
                                     <DetailRow label="Cuisine Types" value={vendor.cuisineTypes} icon={Utensils} />
                                     <DetailRow label="Delivery Ready" value={vendor.acceptsDelivery} icon={Truck} />
-                                    <DetailRow label="Fulfillment" value={vendor.deliveryManagedBy === 'admin' ? "GRUBDASH" : "SELF-MANAGED"} icon={Truck} warning={!vendor.deliveryManagedBy} />
+                                    <DetailRow label="Fulfillment" value={vendor.deliveryManagedBy === 'admin' ? "MELACHOW" : "SELF-MANAGED"} icon={Truck} warning={!vendor.deliveryManagedBy} />
                                 </SectionCard>
 
                                 {/* Banking */}

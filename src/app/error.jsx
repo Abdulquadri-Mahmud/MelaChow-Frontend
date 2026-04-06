@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
 import Image from "next/image";
@@ -6,7 +6,7 @@ import { RefreshCw } from "lucide-react";
 
 export default function Error({ error, reset }) {
   useEffect(() => {
-    console.error("🔥 GrubDash Error Caught:", error);
+    console.error("ðŸ”¥ MelaChow Error Caught:", error);
   }, [error]);
 
   return (
@@ -32,8 +32,9 @@ export default function Error({ error, reset }) {
 
       {/* Optional Footer Tip */}
       <p className="mt-6 text-xs text-gray-400">
-        If this keeps happening, please contact GrubDash support.
+        If this keeps happening, please contact MelaChow support.
       </p>
     </div>
   );
 }
+

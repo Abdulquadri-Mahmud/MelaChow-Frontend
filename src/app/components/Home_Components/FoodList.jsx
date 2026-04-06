@@ -20,6 +20,7 @@ import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
 import { getFoodsByLocation } from "@/app/lib/userApi";
 import { isVendorOpen } from "@/app/lib/utils";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+import { useLocationStore } from "@/app/store/userLocationStore";
 
 const DIETARY_COLORS = {
   veg: "bg-green-100 text-green-700",
@@ -135,28 +136,13 @@ const FoodCard = ({ food }) => {
 };
 
 export default function FoodList({ user }) {
-  const [userLocation, setUserLocation] = useState(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      const saved = localStorage.getItem("grubdash_location");
-      return saved ? JSON.parse(saved) : null;
-    } catch { return null; }
-  });
+  const { userLocation, syncWithUserAddress } = useLocationStore();
 
   useEffect(() => {
-    if (!userLocation && user?.addresses) {
-      const defaultAddr = user.addresses.find((a) => a.isDefault);
-      if (defaultAddr?.city && defaultAddr?.state) {
-        const loc = { city: defaultAddr.city, state: defaultAddr.state };
-        setUserLocation(loc);
-        localStorage.setItem("grubdash_location", JSON.stringify(loc));
-      }
-    } else if (!userLocation && !user) {
-      // Default location for guest visibility
-      // const defaultLoc = { city: "Sagamu", state: "Ogun State" };
-      // setUserLocation(defaultLoc);
+    if (user) {
+      syncWithUserAddress(user);
     }
-  }, [user, userLocation]);
+  }, [user, syncWithUserAddress]);
 
   const { data: responseData, isLoading, isError } = useQuery({
     queryKey: ["foods-by-location", userLocation?.city, userLocation?.state],
@@ -199,7 +185,7 @@ export default function FoodList({ user }) {
             <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight capitalize">{category}</h2>
           </div>
 
-          <div className="flex gap-4 scroll overflow-x-auto px-4 pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
+          <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
             {categoryFoods.map((food) => (
               <FoodCard key={food._id} food={food} />
             ))}

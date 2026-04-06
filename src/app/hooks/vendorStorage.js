@@ -1,4 +1,4 @@
-import { useApi } from "../context/ApiContext";
+﻿import { useApi } from "../context/ApiContext";
 import { useVendorProfile } from "../context/VendorProfileContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { TokenManager } from "../lib/auth-token";
@@ -16,10 +16,10 @@ export const useVendorStorage = () => {
   const saveVendor = (payload) => {
     const data = payload?.vendor || payload;
 
-    // ✅ Cache for refresh resilience
+    // âœ… Cache for refresh resilience
     try {
       if (typeof window !== "undefined") {
-        localStorage.setItem("grubdash_vendor_cache", JSON.stringify(data));
+        localStorage.setItem("melachow_vendor_cache", JSON.stringify(data));
       }
     } catch (e) {
       console.warn("Failed to cache vendor", e);
@@ -38,7 +38,7 @@ export const useVendorStorage = () => {
 
   // Logout
   const logout = async () => {
-    console.log('[useVendorStorage] 🚪 Vendor logout initiated');
+    console.log('[useVendorStorage] ðŸšª Vendor logout initiated');
 
     try {
       const response = await fetch(`${baseUrl}/vendor/auth/logout`, {
@@ -57,11 +57,11 @@ export const useVendorStorage = () => {
     // Clear state
     queryClient.setQueryData(["vendors"], null);
     sessionStorage.removeItem("splashShown");
-    localStorage.removeItem("grubdash_vendor_cache");
+    localStorage.removeItem("melachow_vendor_cache");
     TokenManager.clearToken('vendor');
     queryClient.invalidateQueries(["vendors"]);
 
-    console.log('[useVendorStorage] ✅ Logout complete');
+    console.log('[useVendorStorage] âœ… Logout complete');
 
     // Redirect
     if (typeof window !== 'undefined') {
@@ -76,7 +76,7 @@ export const useVendorStorage = () => {
     queryClient.setQueryData(["vendors"], null);
   };
 
-  // ✅ Format for dashboard compatibility: { vendor: {...} }
+  // âœ… Format for dashboard compatibility: { vendor: {...} }
   const vendorDetails = vendorProfile ? { vendor: vendorProfile } : null;
 
   return {
@@ -89,3 +89,4 @@ export const useVendorStorage = () => {
     logout,
   };
 };
+

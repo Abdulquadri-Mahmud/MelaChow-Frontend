@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -62,7 +62,7 @@ export default function AdminLoginPage() {
                         <Shield className="w-10 h-10 text-white" strokeWidth={2.5} />
                     </motion.div>
                     <h1 className="text-4xl font-black text-white mb-2">Admin Portal</h1>
-                    <p className="text-orange-200 font-medium">GrubDash Management System</p>
+                    <p className="text-orange-200 font-medium">MelaChow Management System</p>
                 </div>
 
                 {/* Login Card */}
@@ -87,7 +87,7 @@ export default function AdminLoginPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="w-full pl-12 pr-4 py-3.5 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all text-gray-900 font-medium"
-                                    placeholder="admin@grubdash.com"
+                                    placeholder="admin@melachow.com"
                                     disabled={loading}
                                 />
                             </div>
@@ -107,7 +107,7 @@ export default function AdminLoginPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="w-full pl-12 pr-12 py-3.5 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all text-gray-900 font-medium"
-                                    placeholder="••••••••"
+                                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                                     disabled={loading}
                                 />
                                 <button
@@ -156,3 +156,4 @@ export default function AdminLoginPage() {
         </div>
     );
 }
+

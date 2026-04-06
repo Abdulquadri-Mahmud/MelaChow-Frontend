@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import {
@@ -14,7 +14,7 @@ export function usePushNotifications(role = 'user') {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const STORAGE_PREFIX = `grubdash_${role}_`;
+    const STORAGE_PREFIX = `melachow_${role}_`;
 
     /**
      * Listen for messages from Service Worker (Foreground notifications)
@@ -155,3 +155,4 @@ export function usePushNotifications(role = 'user') {
         dismissPrompt
     };
 }
+

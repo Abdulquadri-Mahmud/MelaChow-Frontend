@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 
@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Upload, Check, X } from "lucide-react";
 import showAnimatedToast from "@/app/components/toast/showAnimatedToast";
 
-const CLOUDINARY_PRESET = "GrubDash"; // your Cloudinary preset
+const CLOUDINARY_PRESET = "MelaChow"; // your Cloudinary preset
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
 
 export default function VariantModal({ open, onClose, initial = null, onSave }) {
@@ -42,7 +42,7 @@ export default function VariantModal({ open, onClose, initial = null, onSave }) 
       const data = await res.json();
       return data.secure_url;
     } catch (err) {
-      console.error("❌ Cloudinary upload error:", err);
+      console.error("âŒ Cloudinary upload error:", err);
       setError(err.message || "Cloudinary upload failed.");
       return null;
     }
@@ -128,7 +128,7 @@ export default function VariantModal({ open, onClose, initial = null, onSave }) 
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Add Variant — Step {step + 1}/3</h3>
+              <h3 className="text-lg font-semibold">Add Variant â€” Step {step + 1}/3</h3>
               <button
                 onClick={() => {
                   reset();
@@ -162,7 +162,7 @@ export default function VariantModal({ open, onClose, initial = null, onSave }) 
               {step === 1 && (
                 <div>
                   <label className="text-sm font-medium text-gray-700">
-                    Variant price (₦)
+                    Variant price (â‚¦)
                   </label>
                   <input
                     className="w-full border border-gray-200 p-3 rounded-lg mt-2"
@@ -276,3 +276,4 @@ export default function VariantModal({ open, onClose, initial = null, onSave }) 
     </AnimatePresence>
   );
 }
+

@@ -1,4 +1,4 @@
-# GrubDash Frontend - Food/Menu Management System Exploration
+﻿# MelaChow Frontend - Food/Menu Management System Exploration
 
 ## 1. Menu API Structure & Location
 
@@ -57,7 +57,7 @@ export const getMenuItemDetail = async (vendorId, itemId) => {
 // Add portion to item
 export const addPortion = async (vendorId, itemId, payload) => {
   // Payload: { label, price (IN KOBO), is_default, max_quantity, sort_order }
-  // ₦500 = 50000 kobo
+  // â‚¦500 = 50000 kobo
   return await axios.post(`/v1/menu/${vendorId}/items/${itemId}/portions`, payload);
 };
 
@@ -110,7 +110,7 @@ export const toggleMenuItemStock = async (vendorId, itemId, is_in_stock) => { ..
 export const useCreateFoodStore = create(
   persist(
     (set, get) => ({
-      // ─── STEP 1: BASIC INFO ──────────────────────
+      // â”€â”€â”€ STEP 1: BASIC INFO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       name: "",                                  // string
       description: "",                           // string
       image_url: null,                          // string | null
@@ -119,25 +119,25 @@ export const useCreateFoodStore = create(
       prep_time_minutes: 20,                    // number
       tags: [],                                  // string[]
 
-      // ─── STEP 2: CATEGORY & SECTION ──────────────
+      // â”€â”€â”€ STEP 2: CATEGORY & SECTION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       platform_category_id: null,               // string (leaf category ID)
       platform_category_label: null,             // string (for display)
       vendor_section_id: null,                  // string | null (vendor's custom section)
       vendor_section_label: null,                // string (for display)
 
-      // ─── STEP 3: PORTIONS ───────────────────────
+      // â”€â”€â”€ STEP 3: PORTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       portions: [
         // {
         //   tempId: generated UUID,
         //   label: "Small",
-        //   price_naira: 5000,                  // ₦ amount
+        //   price_naira: 5000,                  // â‚¦ amount
         //   is_default: true,
         //   max_quantity: null,
         //   sort_order: 0
         // }
       ],
 
-      // ─── STEP 4: CHOICE GROUPS ──────────────────
+      // â”€â”€â”€ STEP 4: CHOICE GROUPS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       choice_groups: [
         // {
         //   tempId: generated UUID,
@@ -157,14 +157,14 @@ export const useCreateFoodStore = create(
         // }
       ],
 
-      // ─── META ───────────────────────────────────
+      // â”€â”€â”€ META â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       currentStep: 1,                           // wizardStep: 1-5
       isSubmitting: false,
       isDirty: false,                           // auto-set on any change
       createdItemId: null,                      // set after initial creation
       _id: null,                                // for update flows
 
-      // ─── ACTIONS ─────────────────────────────────
+      // â”€â”€â”€ ACTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       setField: (field, value) => set((state) => ({
         ...state,
         [field]: value,
@@ -287,7 +287,7 @@ store.setStep(2);
 ### Step 2 - Categories
 **File:** [Step2Categories.jsx](src/app/components/create-food/wizard/Step2Categories.jsx)
 
-- Platform category tree browser (Root → Leaf categories)
+- Platform category tree browser (Root â†’ Leaf categories)
 - Vendor sections list (custom sections created by vendor)
 - Category search
 - Create new section functionality
@@ -322,7 +322,7 @@ store.setStep(2);
 
 - Preview all entered data
 - Final submission
-- Creates menu item → portions → choice groups → options sequentially
+- Creates menu item â†’ portions â†’ choice groups â†’ options sequentially
 
 **Pattern:** Calls `createMenuItem()` then `addPortion()` for each portion, then `addChoiceGroup()` and `addChoiceOption()` for each group/option
 
@@ -438,12 +438,12 @@ const navItems = [
     href: "/vendors/notifications",
   },
   {
-    name: "My Foods",           // ← FOOD MANAGEMENT
+    name: "My Foods",           // â† FOOD MANAGEMENT
     icon: UtensilsCrossed,
     href: "/vendors/my-foods",
   },
   {
-    name: "Create Food",        // ← CREATE FOOD WIZARD
+    name: "Create Food",        // â† CREATE FOOD WIZARD
     icon: PlusCircle,
     href: "/vendors/create-food",
   },
@@ -570,17 +570,17 @@ const navItems = [
 
 ```
 src/app/vendors/my-foods/
-├── page.jsx                    # Main foods list page
-├── [id]/
-│   ├── page.jsx               # Single food detail page
-│   └── edit/
-│       └── page.jsx           # Edit single food page
-├── components/
-│   ├── EmptyFoods.jsx         # Empty state
-│   ├── FoodCard.jsx           # Single food card component
-│   ├── FoodCardSkeleton.jsx   # Loading skeleton
-│   └── FoodsFilterBar.jsx     # Search/filter component
-└── filter-section.txt          # (documentation)
+â”œâ”€â”€ page.jsx                    # Main foods list page
+â”œâ”€â”€ [id]/
+â”‚   â”œâ”€â”€ page.jsx               # Single food detail page
+â”‚   â””â”€â”€ edit/
+â”‚       â””â”€â”€ page.jsx           # Edit single food page
+â”œâ”€â”€ components/
+â”‚   â”œâ”€â”€ EmptyFoods.jsx         # Empty state
+â”‚   â”œâ”€â”€ FoodCard.jsx           # Single food card component
+â”‚   â”œâ”€â”€ FoodCardSkeleton.jsx   # Loading skeleton
+â”‚   â””â”€â”€ FoodsFilterBar.jsx     # Search/filter component
+â””â”€â”€ filter-section.txt          # (documentation)
 ```
 
 ### My Foods Page Flow
@@ -813,3 +813,4 @@ export default function CreateFoodWizardPage() {
 | Food Components | `src/app/components/create-food/` |
 | Section Components | `src/app/components/vendors_component/foods/` |
 | Vendor Components | `src/app/components/vendors_component/layout/` |
+

@@ -113,6 +113,7 @@ export default function VendorDashboard() {
       completedOrders.forEach(order => {
         if (order.items && Array.isArray(order.items)) {
           order.items.forEach(item => {
+            if (!item || !item.foodId) return;
             const foodId = typeof item.foodId === 'object' ? item.foodId._id : item.foodId;
             if (!itemStats[foodId]) {
               itemStats[foodId] = {
@@ -187,6 +188,7 @@ export default function VendorDashboard() {
 
         // Resolve item names
         const itemNames = order.items?.map(item => {
+          if (!item || !item.foodId) return null;
           const fId = typeof item.foodId === 'object' ? item.foodId._id : item.foodId;
           const food = foods.find(f => f._id === fId);
           return food?.name;

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Bell, BellOff, Gift, Package, Sparkles, Check, AlertCircle, Loader2 } from "lucide-react";
@@ -90,10 +90,10 @@ export default function NotificationSettings() {
                         <h3 className="font-black text-zinc-900 dark:text-white text-xl tracking-tight italic uppercase">Notifications</h3>
                         <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-0.5">
                             {isEnabled
-                                ? "Active • Real-time updates"
+                                ? "Active â€¢ Real-time updates"
                                 : isDenied
-                                    ? "Blocked • Check Browser"
-                                    : "Disabled • Enable to stay updated"}
+                                    ? "Blocked â€¢ Check Browser"
+                                    : "Disabled â€¢ Enable to stay updated"}
                         </p>
                     </div>
                 </div>
@@ -121,7 +121,7 @@ export default function NotificationSettings() {
                     <AlertCircle className="text-rose-500 flex-shrink-0 mt-0.5" size={18} />
                     <div>
                         <p className="text-sm font-black text-rose-900 dark:text-rose-400 uppercase italic">Notifications Blocked</p>
-                        <p className="text-xs text-rose-700 dark:text-rose-300 mt-1">Please update your browser settings to allow notifications for GrubDash.</p>
+                        <p className="text-xs text-rose-700 dark:text-rose-300 mt-1">Please update your browser settings to allow notifications for MelaChow.</p>
                     </div>
                 </div>
             )}
@@ -232,3 +232,4 @@ function BenefitItem({ text }) {
         </li>
     );
 }
+

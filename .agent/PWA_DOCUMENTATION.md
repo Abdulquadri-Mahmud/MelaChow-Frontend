@@ -1,14 +1,14 @@
-# GrubDash PWA Integration
+﻿# MelaChow PWA Integration
 
 ## Overview
 
-GrubDash now has full Progressive Web App (PWA) support, allowing users to install the app on their devices for a native-like experience.
+MelaChow now has full Progressive Web App (PWA) support, allowing users to install the app on their devices for a native-like experience.
 
 ---
 
 ## Features
 
-### ✅ Implemented
+### âœ… Implemented
 
 1. **Service Worker**
    - Network-first strategy for API requests (fresh data priority)
@@ -45,22 +45,22 @@ GrubDash now has full Progressive Web App (PWA) support, allowing users to insta
 
 ```
 public/
-├── manifest.json           # PWA manifest
-├── sw.js                   # Service worker
-└── icons/                  # PWA icons
-    ├── icon-192x192.png
-    ├── icon-512x512.png
-    ├── icon-maskable-192x192.png
-    └── icon-maskable-512x512.png
+â”œâ”€â”€ manifest.json           # PWA manifest
+â”œâ”€â”€ sw.js                   # Service worker
+â””â”€â”€ icons/                  # PWA icons
+    â”œâ”€â”€ icon-192x192.png
+    â”œâ”€â”€ icon-512x512.png
+    â”œâ”€â”€ icon-maskable-192x192.png
+    â””â”€â”€ icon-maskable-512x512.png
 
 src/app/
-├── components/PWA/
-│   ├── PWAUpdateManager.jsx    # Update detection & banner
-│   └── PWAInstallPrompt.jsx    # Install prompt UI
-├── lib/
-│   └── pwa-utils.js            # Service worker registration
-└── offline/
-    └── page.jsx                # Offline fallback page
+â”œâ”€â”€ components/PWA/
+â”‚   â”œâ”€â”€ PWAUpdateManager.jsx    # Update detection & banner
+â”‚   â””â”€â”€ PWAInstallPrompt.jsx    # Install prompt UI
+â”œâ”€â”€ lib/
+â”‚   â””â”€â”€ pwa-utils.js            # Service worker registration
+â””â”€â”€ offline/
+    â””â”€â”€ page.jsx                # Offline fallback page
 ```
 
 ---
@@ -93,13 +93,13 @@ Users on these routes will see the update banner but won't be forced to update i
 ### For Users
 
 #### Android (Chrome)
-1. Visit GrubDash in Chrome
+1. Visit MelaChow in Chrome
 2. Tap the "Install" button in the custom prompt
-3. Or tap the menu (⋮) → "Install app"
+3. Or tap the menu (â‹®) â†’ "Install app"
 
 #### iOS (Safari)
-1. Visit GrubDash in Safari
-2. Tap the Share button (⬆️)
+1. Visit MelaChow in Safari
+2. Tap the Share button (â¬†ï¸)
 3. Scroll down and tap "Add to Home Screen"
 4. Tap "Add"
 
@@ -119,12 +119,12 @@ Users on these routes will see the update banner but won't be forced to update i
    ```
 
 3. **Test installation:**
-   - Open DevTools → Application → Manifest
+   - Open DevTools â†’ Application â†’ Manifest
    - Click "Update" to refresh manifest
    - Check "Service Workers" tab for registration
 
 4. **Test offline:**
-   - Open DevTools → Network
+   - Open DevTools â†’ Network
    - Set throttling to "Offline"
    - Navigate to any page
 
@@ -189,11 +189,11 @@ magick public/logo.png -resize 410x410 -gravity center -extent 512x512 -backgrou
 
 ### How Updates Work
 
-1. **User visits app** → Service worker checks for updates
-2. **New version detected** → New service worker installed in background
-3. **Update banner appears** → User can choose to update now or later
-4. **User clicks "Update Now"** → Service worker activates and page reloads
-5. **App updated** → User sees new version
+1. **User visits app** â†’ Service worker checks for updates
+2. **New version detected** â†’ New service worker installed in background
+3. **Update banner appears** â†’ User can choose to update now or later
+4. **User clicks "Update Now"** â†’ Service worker activates and page reloads
+5. **App updated** â†’ User sees new version
 
 ### Update Frequency
 
@@ -289,13 +289,13 @@ PWAs require HTTPS in production. Ensure your deployment uses:
 
 | Browser | Install | Offline | Updates |
 |---------|---------|---------|---------|
-| Chrome (Android) | ✅ | ✅ | ✅ |
-| Safari (iOS) | ✅ | ✅ | ✅ |
-| Edge | ✅ | ✅ | ✅ |
-| Firefox | ⚠️ | ✅ | ✅ |
-| Samsung Internet | ✅ | ✅ | ✅ |
+| Chrome (Android) | âœ… | âœ… | âœ… |
+| Safari (iOS) | âœ… | âœ… | âœ… |
+| Edge | âœ… | âœ… | âœ… |
+| Firefox | âš ï¸ | âœ… | âœ… |
+| Samsung Internet | âœ… | âœ… | âœ… |
 
-⚠️ Firefox supports PWAs but doesn't show install prompt on desktop
+âš ï¸ Firefox supports PWAs but doesn't show install prompt on desktop
 
 ---
 
@@ -381,3 +381,4 @@ For PWA-related issues:
 
 **Last Updated:** 2026-02-02
 **PWA Version:** 1.0.0
+

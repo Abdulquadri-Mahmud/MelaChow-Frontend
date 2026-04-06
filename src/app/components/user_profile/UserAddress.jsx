@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, MapPin, Trash2, Edit3, CheckCircle, X, Plus,
   ChevronRight, Home, Building2, Loader2, AlertCircle
@@ -18,6 +19,7 @@ export default function AddressPage() {
   const router = useRouter();
   const { baseUrl } = useApi();
   const { user } = useUserStorage();
+  const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -140,6 +142,12 @@ export default function AddressPage() {
         toast.success("Address location updated ✨");
       }
 
+      // Force UI sync across all Home widgets
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+      queryClient.invalidateQueries({ queryKey: ["smartRecommendations"] });
+      queryClient.invalidateQueries({ queryKey: ["foods-by-location"] });
+      queryClient.invalidateQueries({ queryKey: ["trendingFoods"] });
+
       setAddresses(res.data.addresses);
       setForm({ addressLine: "" });
       setSelectedStateId("");
@@ -170,6 +178,12 @@ export default function AddressPage() {
         withCredentials: true,
       });
 
+      // Force UI sync across all Home widgets
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+      queryClient.invalidateQueries({ queryKey: ["smartRecommendations"] });
+      queryClient.invalidateQueries({ queryKey: ["foods-by-location"] });
+      queryClient.invalidateQueries({ queryKey: ["trendingFoods"] });
+
       setAddresses(prev => prev.filter(addr => addr._id !== selectedAddressId));
       toast.success("Address removed successfully");
     } catch (err) {
@@ -191,6 +205,13 @@ export default function AddressPage() {
         { isDefault: true },
         { params: { addressId: id }, withCredentials: true }
       );
+      
+      // Force UI sync across all Home widgets
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+      queryClient.invalidateQueries({ queryKey: ["smartRecommendations"] });
+      queryClient.invalidateQueries({ queryKey: ["foods-by-location"] });
+      queryClient.invalidateQueries({ queryKey: ["trendingFoods"] });
+
       setAddresses(res.data.addresses);
       toast.success("Default address updated");
     } catch (err) {

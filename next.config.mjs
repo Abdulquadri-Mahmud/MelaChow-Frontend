@@ -8,7 +8,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'grubdash-api.onrender.com',
+        hostname: 'melachow-api.onrender.com',
       }
     ],
   },
@@ -17,7 +17,7 @@ const nextConfig = {
    * API Proxy Configuration for iOS Safari Cookie Fix
    * 
    * Problem: iOS Safari blocks third-party cookies, causing auth cookies
-   * from https://grubdash-api.onrender.com to be dropped when accessed
+   * from https://melachow-api.onrender.com to be dropped when accessed
    * from https://grub-dash-frontend-xi.vercel.app
    * 
    * Solution: Proxy all API requests through the frontend domain using
@@ -25,26 +25,26 @@ const nextConfig = {
    * 
    * How it works:
    * 1. Frontend makes request to: /api/user/auth/profile
-   * 2. Next.js rewrites to: https://grubdash-api.onrender.com/api/user/auth/profile
+   * 2. Next.js rewrites to: https://melachow-api.onrender.com/api/user/auth/profile
    * 3. Backend sets cookie with domain: grub-dash-frontend-xi.vercel.app
    * 4. iOS Safari accepts cookie (same domain = first-party)
    * 
    * Benefits:
-   * ✅ Works on iOS Safari
-   * ✅ Works on iOS PWAs
-   * ✅ No CORS issues
-   * ✅ No backend changes needed
-   * ✅ credentials: "include" works correctly
+   * âœ… Works on iOS Safari
+   * âœ… Works on iOS PWAs
+   * âœ… No CORS issues
+   * âœ… No backend changes needed
+   * âœ… credentials: "include" works correctly
    * 
    * Route Namespacing:
-   * ✅ /api/user/*     → User endpoints
-   * ✅ /api/vendors/*  → Vendor endpoints
-   * ✅ /api/admin/*    → Admin endpoints
+   * âœ… /api/user/*     â†’ User endpoints
+   * âœ… /api/vendors/*  â†’ Vendor endpoints
+   * âœ… /api/admin/*    â†’ Admin endpoints
    */
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://melachow-api.onrender.com';
 
-    // ✅ Only log in development (reduce console noise in production)
+    // âœ… Only log in development (reduce console noise in production)
     if (process.env.NODE_ENV === 'development') {
       console.log('[Next.js Proxy] Backend URL:', backendUrl);
       console.log('[Next.js Proxy] All /api/* requests will be proxied');
@@ -121,7 +121,7 @@ const nextConfig = {
   },
 
 
-  // ✅ Optional: Environment variable validation
+  // âœ… Optional: Environment variable validation
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_FRONTEND_URL: process.env.NEXT_PUBLIC_FRONTEND_URL,
@@ -129,3 +129,4 @@ const nextConfig = {
 };
 
 export default nextConfig;
+

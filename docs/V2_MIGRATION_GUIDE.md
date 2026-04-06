@@ -1,4 +1,4 @@
-# V2 Order Creation API - Migration Guide
+﻿# V2 Order Creation API - Migration Guide
 
 ## Overview
 
@@ -6,7 +6,7 @@ This guide helps you migrate from the V1 order creation API to the enhanced V2 A
 
 ## What's New in V2?
 
-### ✅ Enhanced Features
+### âœ… Enhanced Features
 1. **Server-Side Price Calculation** - Backend recalculates all prices to prevent tampering
 2. **Stock Validation** - Real-time inventory checks before order creation
 3. **Restaurant Hours Validation** - Ensures restaurants are open
@@ -14,7 +14,7 @@ This guide helps you migrate from the V1 order creation API to the enhanced V2 A
 5. **Better Error Messages** - Contextual, user-friendly error feedback
 6. **Cookie-Based Auth** - Improved security with HTTP-only cookies
 
-### 🔄 Breaking Changes
+### ðŸ”„ Breaking Changes
 - **None!** V1 endpoints still work, allowing gradual migration
 
 ## Migration Steps
@@ -49,7 +49,7 @@ const payload = {
       price: item.price,
       image: item.image,
     },
-    price: item.price, // ❌ Frontend price (can be tampered)
+    price: item.price, // âŒ Frontend price (can be tampered)
     quantity: item.quantity,
     restaurantId: item.restaurantId,
     metadata: item.metadata || {},
@@ -57,9 +57,9 @@ const payload = {
   })),
   deliveryAddress: {...},
   phone: userData.phone,
-  subtotal, // ❌ Frontend calculation
-  deliveryFee, // ❌ Frontend calculation
-  total, // ❌ Frontend calculation
+  subtotal, // âŒ Frontend calculation
+  deliveryFee, // âŒ Frontend calculation
+  total, // âŒ Frontend calculation
   email: userData.email,
 };
 ```
@@ -75,9 +75,9 @@ const payload = transformCartToOrderV2(
   notes
 );
 
-// ✅ Backend calculates subtotal, deliveryFee, and total
-// ✅ Backend validates prices against database
-// ✅ Cleaner, more secure payload
+// âœ… Backend calculates subtotal, deliveryFee, and total
+// âœ… Backend validates prices against database
+// âœ… Cleaner, more secure payload
 ```
 
 ### Step 3: Add Validation
@@ -399,25 +399,25 @@ const createOrder = USE_V2_API ? createOrderV2 : createOrderV1;
 ## Performance Comparison
 
 ### V1 API
-- ❌ Frontend calculates prices (can be tampered)
-- ❌ No stock validation
-- ❌ Generic error messages
-- ⚠️ Multiple validation checks on backend
-- ✅ Fast initial response
+- âŒ Frontend calculates prices (can be tampered)
+- âŒ No stock validation
+- âŒ Generic error messages
+- âš ï¸ Multiple validation checks on backend
+- âœ… Fast initial response
 
 ### V2 API
-- ✅ Backend calculates prices (secure)
-- ✅ Real-time stock validation
-- ✅ Contextual error messages
-- ✅ Single comprehensive validation
-- ✅ Optimized for accuracy
+- âœ… Backend calculates prices (secure)
+- âœ… Real-time stock validation
+- âœ… Contextual error messages
+- âœ… Single comprehensive validation
+- âœ… Optimized for accuracy
 
 ## Support
 
 ### Getting Help
 - **Documentation:** `/docs/ORDER_FLOW_V2.md`
 - **Slack:** #frontend-orders
-- **Email:** frontend@grubdash.com
+- **Email:** frontend@melachow.com
 
 ### Reporting Issues
 Include:
@@ -445,6 +445,7 @@ A: Yes, but it's recommended to migrate all order creation flows to V2 for consi
 
 ---
 
-**Migration Status:** ✅ Complete  
+**Migration Status:** âœ… Complete  
 **Last Updated:** 2026-01-26  
 **Version:** 2.0
+

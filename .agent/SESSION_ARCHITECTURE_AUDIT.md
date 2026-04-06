@@ -1,19 +1,19 @@
-# Session Architecture Audit Report
+﻿# Session Architecture Audit Report
 **Date:** 2026-02-02  
-**Status:** ✅ COMPLIANT with Refined Session Architecture
+**Status:** âœ… COMPLIANT with Refined Session Architecture
 
 ---
 
 ## Executive Summary
 
-The current GrubDash frontend authentication implementation **FULLY ALIGNS** with the refined session architecture principles. The system correctly implements:
+The current MelaChow frontend authentication implementation **FULLY ALIGNS** with the refined session architecture principles. The system correctly implements:
 
-1. ✅ **Cookie-first authentication** (HTTP-only cookies as source of truth)
-2. ✅ **Backend session validation** (via `/me` endpoints)
-3. ✅ **React Query as runtime state** (with iOS-friendly retry logic)
-4. ✅ **Session finality flag** (`hasCheckedSession`)
-5. ✅ **Safe localStorage usage** (UI continuity only, not auth)
-6. ✅ **AppBootstrapper gatekeeper** (prevents premature redirects)
+1. âœ… **Cookie-first authentication** (HTTP-only cookies as source of truth)
+2. âœ… **Backend session validation** (via `/me` endpoints)
+3. âœ… **React Query as runtime state** (with iOS-friendly retry logic)
+4. âœ… **Session finality flag** (`hasCheckedSession`)
+5. âœ… **Safe localStorage usage** (UI continuity only, not auth)
+6. âœ… **AppBootstrapper gatekeeper** (prevents premature redirects)
 
 ---
 
@@ -21,52 +21,52 @@ The current GrubDash frontend authentication implementation **FULLY ALIGNS** wit
 
 | Principle | Implementation | Status | Location |
 |-----------|---------------|--------|----------|
-| **Cookies = Source of Truth** | HTTP-only cookies sent via `credentials: "include"` | ✅ | `api.js`, `ProfileContext.jsx` |
-| **Backend Validates Session** | `/api/user/auth/profile`, `/api/vendor/me` | ✅ | `ProfileContext.jsx`, `useVendorQueries.js` |
-| **React Query = Runtime State** | `useQuery` with retry logic | ✅ | `ProfileContext.jsx` (L77-110) |
-| **Session Finality Flag** | `hasCheckedSession = isFetched` | ✅ | `ProfileContext.jsx` (L114) |
-| **localStorage = UI Only** | Cache for avatar/name, not auth | ✅ | `ProfileContext.jsx` (L81-88, L117-121) |
-| **No Premature Redirects** | Waits for `isAuthResolved` | ✅ | `AppBootstrapper.jsx` (L68) |
+| **Cookies = Source of Truth** | HTTP-only cookies sent via `credentials: "include"` | âœ… | `api.js`, `ProfileContext.jsx` |
+| **Backend Validates Session** | `/api/user/auth/profile`, `/api/vendor/me` | âœ… | `ProfileContext.jsx`, `useVendorQueries.js` |
+| **React Query = Runtime State** | `useQuery` with retry logic | âœ… | `ProfileContext.jsx` (L77-110) |
+| **Session Finality Flag** | `hasCheckedSession = isFetched` | âœ… | `ProfileContext.jsx` (L114) |
+| **localStorage = UI Only** | Cache for avatar/name, not auth | âœ… | `ProfileContext.jsx` (L81-88, L117-121) |
+| **No Premature Redirects** | Waits for `isAuthResolved` | âœ… | `AppBootstrapper.jsx` (L68) |
 
 ---
 
 ## Layer-by-Layer Analysis
 
-### 1️⃣ Cookie Storage (Backend)
+### 1ï¸âƒ£ Cookie Storage (Backend)
 
 **Implementation:**
 ```javascript
 // All API calls use credentials: "include"
 fetch(url, {
-  credentials: "include", // ✅ Sends HTTP-only cookies
+  credentials: "include", // âœ… Sends HTTP-only cookies
   headers: headers
 });
 
 axios.post(url, data, {
-  withCredentials: true, // ✅ Axios equivalent
+  withCredentials: true, // âœ… Axios equivalent
 });
 ```
 
-**Status:** ✅ **COMPLIANT**
+**Status:** âœ… **COMPLIANT**
 - Cookies are automatically sent with every request
 - No manual token extraction in frontend
 - Backend sets cookies with proper flags (assumed based on architecture)
 
 ---
 
-### 2️⃣ Backend Session Validation
+### 2ï¸âƒ£ Backend Session Validation
 
 **Implementation:**
 ```javascript
 // ProfileContext.jsx (L32-74)
 const fetchProfile = async () => {
   const res = await fetch(`${baseUrl}/user/auth/profile`, {
-    credentials: "include", // ✅ Cookie-based auth
+    credentials: "include", // âœ… Cookie-based auth
     headers: headers
   });
 
   if (res.status === 401) {
-    // ✅ Retry on protected routes (iOS race condition fix)
+    // âœ… Retry on protected routes (iOS race condition fix)
     if (isProtected) {
       throw new Error("Session check failed (401) on protected route");
     }
@@ -77,14 +77,14 @@ const fetchProfile = async () => {
 };
 ```
 
-**Status:** ✅ **COMPLIANT**
+**Status:** âœ… **COMPLIANT**
 - Backend endpoint validates session
 - 401 handled gracefully (retry on protected routes)
 - No frontend JWT decoding
 
 ---
 
-### 3️⃣ React Query = Runtime Session State
+### 3ï¸âƒ£ React Query = Runtime Session State
 
 **Implementation:**
 ```javascript
@@ -93,31 +93,31 @@ const { data, isLoading, error, refetch, isFetched } = useQuery({
   queryKey: ["userProfile"],
   queryFn: fetchProfile,
   initialData: () => {
-    // ✅ Load from cache for UI continuity
-    const cached = localStorage.getItem("grubdash_user_cache");
+    // âœ… Load from cache for UI continuity
+    const cached = localStorage.getItem("melachow_user_cache");
     return cached ? JSON.parse(cached) : undefined;
   },
   staleTime: 1000 * 60 * 5, // 5 minutes
   retry: (failureCount, error) => {
     if (failureCount >= 2) return false;
-    // ✅ Retry on network errors
+    // âœ… Retry on network errors
     if (error?.message?.includes("Failed to fetch")) return true;
-    // ✅ Retry on 401 (iOS race condition)
+    // âœ… Retry on 401 (iOS race condition)
     if (error?.message?.includes("Session check failed (401)")) return true;
     return false;
   },
-  retryDelay: 300, // ✅ Fast retry for iOS
+  retryDelay: 300, // âœ… Fast retry for iOS
 });
 ```
 
-**Status:** ✅ **COMPLIANT**
+**Status:** âœ… **COMPLIANT**
 - iOS-friendly retry logic (300ms delay, max 2 retries)
 - Handles transient failures gracefully
 - Cache used for UI only, not auth decisions
 
 ---
 
-### 4️⃣ Session Finality Flag
+### 4ï¸âƒ£ Session Finality Flag
 
 **Implementation:**
 ```javascript
@@ -128,59 +128,59 @@ const hasCheckedSession = isFetched;
 const isAuthResolved = hasUserChecked && hasVendorChecked;
 
 // AppBootstrapper.jsx (L68)
-if (!isAuthResolved) return; // ✅ No redirects before finality
+if (!isAuthResolved) return; // âœ… No redirects before finality
 ```
 
-**Status:** ✅ **COMPLIANT**
+**Status:** âœ… **COMPLIANT**
 - Uses `isFetched` directly (no race conditions)
 - Redirects blocked until session is conclusively checked
 - Prevents false logouts on page refresh
 
 ---
 
-### 5️⃣ localStorage = UI Continuity Only
+### 5ï¸âƒ£ localStorage = UI Continuity Only
 
 **Implementation:**
 ```javascript
 // ProfileContext.jsx (L81-88) - READ
 initialData: () => {
-  const cached = localStorage.getItem("grubdash_user_cache");
+  const cached = localStorage.getItem("melachow_user_cache");
   return cached ? JSON.parse(cached) : undefined;
 }
 
 // ProfileContext.jsx (L117-121) - WRITE
 useEffect(() => {
   if (data && typeof window !== 'undefined') {
-    localStorage.setItem("grubdash_user_cache", JSON.stringify(data));
+    localStorage.setItem("melachow_user_cache", JSON.stringify(data));
   }
 }, [data]);
 ```
 
-**Status:** ✅ **COMPLIANT**
+**Status:** âœ… **COMPLIANT**
 - localStorage used ONLY for UI snapshot
 - Never used for auth decisions
 - Synced after successful backend fetch
 
 **What's Cached:**
-- ✅ User profile (avatar, name, email)
-- ✅ Vendor details
-- ✅ Cart items
-- ✅ Addresses
+- âœ… User profile (avatar, name, email)
+- âœ… Vendor details
+- âœ… Cart items
+- âœ… Addresses
 
 **What's NOT Cached:**
-- ❌ Tokens (handled by TokenManager for iOS fallback only)
-- ❌ Auth state
-- ❌ Role validation
+- âŒ Tokens (handled by TokenManager for iOS fallback only)
+- âŒ Auth state
+- âŒ Role validation
 
 ---
 
-### 6️⃣ AppBootstrapper Gatekeeper
+### 6ï¸âƒ£ AppBootstrapper Gatekeeper
 
 **Implementation:**
 ```javascript
 // AppBootstrapper.jsx (L66-97)
 useEffect(() => {
-  // ✅ ONLY process after auth is resolved (Session Finality)
+  // âœ… ONLY process after auth is resolved (Session Finality)
   if (!isAuthResolved) return;
 
   // Dismiss splash screen
@@ -192,20 +192,20 @@ useEffect(() => {
   // Skip redirect logic for public routes
   if (isPublicRoute) return;
 
-  // ✅ iOS Race Condition Fix: Delay redirect
+  // âœ… iOS Race Condition Fix: Delay redirect
   if (!isAuthenticated && !isRedirecting) {
     const redirectTimer = setTimeout(() => {
-      console.log("🔒 Unauthorized access. Redirecting...");
+      console.log("ðŸ”’ Unauthorized access. Redirecting...");
       setIsRedirecting(true);
       router.replace("/auth/signin");
-    }, 300); // ✅ 300ms delay for iOS cookie restoration
+    }, 300); // âœ… 300ms delay for iOS cookie restoration
 
     return () => clearTimeout(redirectTimer);
   }
 }, [isAuthResolved, isAuthenticated, pathname, ...]);
 ```
 
-**Status:** ✅ **COMPLIANT**
+**Status:** âœ… **COMPLIANT**
 - Waits for session finality before any redirects
 - 300ms delay for iOS cookie restoration
 - Prevents redirect loops
@@ -237,7 +237,7 @@ export const TokenManager = {
 - TokenManager provides a temporary fallback
 - **NOT used for primary authentication**
 
-**Status:** ⚠️ **ACCEPTABLE** (with caveat)
+**Status:** âš ï¸ **ACCEPTABLE** (with caveat)
 - This is a **workaround** for iOS cookie delays
 - Backend still validates via cookies
 - Token is sent as `Authorization: Bearer` header
@@ -254,11 +254,11 @@ export const TokenManager = {
 
 | Issue | Solution | Status |
 |-------|----------|--------|
-| **iOS Cookie Delay** | Retry logic (300ms, 2x) | ✅ |
-| **Refresh Logout** | Session finality flag | ✅ |
-| **Cross-site Cookies** | `credentials: "include"` + `SameSite=None` | ✅ |
-| **UI Flash** | localStorage snapshot | ✅ |
-| **Android Stability** | No breaking changes | ✅ |
+| **iOS Cookie Delay** | Retry logic (300ms, 2x) | âœ… |
+| **Refresh Logout** | Session finality flag | âœ… |
+| **Cross-site Cookies** | `credentials: "include"` + `SameSite=None` | âœ… |
+| **UI Flash** | localStorage snapshot | âœ… |
+| **Android Stability** | No breaking changes | âœ… |
 
 ---
 
@@ -266,11 +266,11 @@ export const TokenManager = {
 
 | Aspect | Implementation | Status |
 |--------|---------------|--------|
-| **XSS Protection** | HTTP-only cookies | ✅ |
-| **Token Exposure** | Not in localStorage (except iOS fallback) | ⚠️ |
-| **CSRF Protection** | SameSite cookies + Backend validation | ✅ |
-| **Session Fixation** | Backend-controlled sessions | ✅ |
-| **Auth Authority** | Backend only | ✅ |
+| **XSS Protection** | HTTP-only cookies | âœ… |
+| **Token Exposure** | Not in localStorage (except iOS fallback) | âš ï¸ |
+| **CSRF Protection** | SameSite cookies + Backend validation | âœ… |
+| **Session Fixation** | Backend-controlled sessions | âœ… |
+| **Auth Authority** | Backend only | âœ… |
 
 **Note on TokenManager:**
 - The iOS fallback token in localStorage is a **minor XSS surface**
@@ -281,14 +281,14 @@ export const TokenManager = {
 
 ## Recommendations
 
-### ✅ Keep As-Is
+### âœ… Keep As-Is
 1. Cookie-first authentication
 2. React Query retry logic
 3. Session finality flag
 4. AppBootstrapper redirect logic
 5. localStorage UI caching
 
-### 🔧 Optional Improvements
+### ðŸ”§ Optional Improvements
 1. **Backend Cookie Priority:**
    ```javascript
    // Backend should prioritize cookies over Authorization header
@@ -309,11 +309,11 @@ export const TokenManager = {
 
 **The current architecture is PRODUCTION-READY and SECURE.**
 
-✅ Fully compliant with refined session architecture  
-✅ iOS & Android compatible  
-✅ No breaking changes required  
-✅ Security best practices followed  
-✅ Scalable and maintainable  
+âœ… Fully compliant with refined session architecture  
+âœ… iOS & Android compatible  
+âœ… No breaking changes required  
+âœ… Security best practices followed  
+âœ… Scalable and maintainable  
 
 **No immediate action required.** The system is stable and secure.
 
@@ -322,36 +322,37 @@ export const TokenManager = {
 ## Architecture Diagram
 
 ```
-┌──────────────────────────────┐
-│ 1. HTTP-only Cookie (Auth)   │  ← SOURCE OF TRUTH
-│    credentials: "include"    │
-└─────────────┬────────────────┘
-              │
-┌─────────────▼────────────────┐
-│ 2. Backend Validation        │
-│    GET /user/auth/profile    │
-│    Returns 401 if invalid    │
-└─────────────┬────────────────┘
-              │
-┌─────────────▼────────────────┐
-│ 3. React Query Cache         │
-│    useQuery (retry: 2x)      │
-│    isFetched → finality      │
-└─────────────┬────────────────┘
-              │
-┌─────────────▼────────────────┐
-│ 4. localStorage (UI Only)    │
-│    grubdash_user_cache       │
-│    Avatar, name, email       │
-└──────────────────────────────┘
-              │
-┌─────────────▼────────────────┐
-│ 5. AppBootstrapper           │
-│    Waits for isAuthResolved  │
-│    300ms delay for iOS       │
-└──────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ 1. HTTP-only Cookie (Auth)   â”‚  â† SOURCE OF TRUTH
+â”‚    credentials: "include"    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+              â”‚
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ 2. Backend Validation        â”‚
+â”‚    GET /user/auth/profile    â”‚
+â”‚    Returns 401 if invalid    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+              â”‚
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ 3. React Query Cache         â”‚
+â”‚    useQuery (retry: 2x)      â”‚
+â”‚    isFetched â†’ finality      â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+              â”‚
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ 4. localStorage (UI Only)    â”‚
+â”‚    melachow_user_cache       â”‚
+â”‚    Avatar, name, email       â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+              â”‚
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â–¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ 5. AppBootstrapper           â”‚
+â”‚    Waits for isAuthResolved  â”‚
+â”‚    300ms delay for iOS       â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 ---
 
 **End of Audit Report**
+

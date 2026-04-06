@@ -1,5 +1,5 @@
-/**
- * API Configuration for GrubDash Frontend
+﻿/**
+ * API Configuration for MelaChow Frontend
  * 
  * This file centralizes API URL configuration to support the iOS Safari
  * cookie fix via Next.js API proxy.
@@ -22,14 +22,14 @@
 export const getApiUrl = () => {
     // Check if we're in browser environment
     if (typeof window === 'undefined') {
-        const base = process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com';
+        const base = process.env.NEXT_PUBLIC_API_URL || 'https://melachow-api.onrender.com';
         return base.endsWith('/api') ? base : `${base}/api`;
     }
 
     // Client-side: Use relative URL to leverage Next.js proxy
     // This makes all API requests go through the frontend domain
     // Example: https://grub-dash-frontend-xi.vercel.app/api/user/auth/profile
-    //          ↓ (proxied to)
+    //          â†“ (proxied to)
     //          https://grub-dash-api.vercel.app/api/user/auth/profile
     return '/api';
     // return 'http://localhost:3001/api';
@@ -73,7 +73,7 @@ export const isUsingProxy = () => {
  * CRITICAL: credentials: "include" is required for cookies to work
  */
 export const defaultFetchOptions = {
-    credentials: 'include', // ✅ REQUIRED for cookies
+    credentials: 'include', // âœ… REQUIRED for cookies
     headers: {
         'Content-Type': 'application/json',
     },
@@ -85,7 +85,7 @@ export const defaultFetchOptions = {
  * CRITICAL: withCredentials: true is required for cookies to work
  */
 export const defaultAxiosConfig = {
-    withCredentials: true, // ✅ REQUIRED for cookies
+    withCredentials: true, // âœ… REQUIRED for cookies
     headers: {
         'Content-Type': 'application/json',
     },
@@ -148,3 +148,4 @@ export default {
     defaultAxiosConfig,
     apiFetch,
 };
+

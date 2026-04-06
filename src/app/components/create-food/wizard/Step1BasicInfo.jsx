@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useCreateFoodStore } from "@/app/context/CreateFoodStore";
@@ -6,7 +6,7 @@ import { Upload, X, ImageIcon, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
-const CLOUDINARY_PRESET = "GrubDash";
+const CLOUDINARY_PRESET = "MelaChow";
 
 const uploadToCloudinary = async (file) => {
     const formData = new FormData();
@@ -51,7 +51,7 @@ export default function Step1BasicInfo({ onNext }) {
         if (url) {
             store.setField("image_url", url);
         } else {
-            toast.error("Photo couldn't upload. Your food is saved without it — you can add a photo later.");
+            toast.error("Photo couldn't upload. Your food is saved without it â€” you can add a photo later.");
         }
     };
 
@@ -66,23 +66,23 @@ export default function Step1BasicInfo({ onNext }) {
     const PREDEFINED_TAGS = ["Spicy", "Delicious", "Vegan", "Sweet", "Bestseller", "New", "Healthy", "Gluten-Free"];
 
     const ITEM_TYPE_OPTIONS = [
-        { label: "Food", value: "FOOD", emoji: "🍽️" },
-        { label: "Drink", value: "DRINK", emoji: "🥤" },
-        { label: "Soup", value: "SOUP", emoji: "🥘" },
-        { label: "Swallow", value: "SWALLOW", emoji: "🫓" },
-        { label: "Protein", value: "PROTEIN", emoji: "🍗" },
-        { label: "Side", value: "SIDE", emoji: "🍟" },
-        { label: "Dessert", value: "DESSERT", emoji: "🍰" },
-        { label: "Other", value: "OTHER", emoji: "🍴" },
+        { label: "Food", value: "FOOD", emoji: "ðŸ½ï¸" },
+        { label: "Drink", value: "DRINK", emoji: "ðŸ¥¤" },
+        { label: "Soup", value: "SOUP", emoji: "ðŸ¥˜" },
+        { label: "Swallow", value: "SWALLOW", emoji: "ðŸ«“" },
+        { label: "Protein", value: "PROTEIN", emoji: "ðŸ—" },
+        { label: "Side", value: "SIDE", emoji: "ðŸŸ" },
+        { label: "Dessert", value: "DESSERT", emoji: "ðŸ°" },
+        { label: "Other", value: "OTHER", emoji: "ðŸ´" },
     ];
 
     const DIETARY_TYPE_OPTIONS = [
-        { label: "Mixed", value: "mixed", emoji: "🍽️", hint: "No restrictions" },
-        { label: "Halal", value: "halal", emoji: "☪️", hint: "Halal certified" },
-        { label: "Non-Veg", value: "non-veg", emoji: "🥩", hint: "Contains meat" },
-        { label: "Veg", value: "veg", emoji: "🥦", hint: "Vegetarian" },
-        { label: "Vegan", value: "vegan", emoji: "🌱", hint: "No animal products" },
-        { label: "Kosher", value: "kosher", emoji: "✡️", hint: "Kosher certified" },
+        { label: "Mixed", value: "mixed", emoji: "ðŸ½ï¸", hint: "No restrictions" },
+        { label: "Halal", value: "halal", emoji: "â˜ªï¸", hint: "Halal certified" },
+        { label: "Non-Veg", value: "non-veg", emoji: "ðŸ¥©", hint: "Contains meat" },
+        { label: "Veg", value: "veg", emoji: "ðŸ¥¦", hint: "Vegetarian" },
+        { label: "Vegan", value: "vegan", emoji: "ðŸŒ±", hint: "No animal products" },
+        { label: "Kosher", value: "kosher", emoji: "âœ¡ï¸", hint: "Kosher certified" },
     ];
 
     return (
@@ -268,3 +268,4 @@ export default function Step1BasicInfo({ onNext }) {
         </div>
     );
 }
+

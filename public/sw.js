@@ -1,5 +1,5 @@
-/**
- * GrubDash Service Worker
+﻿/**
+ * MelaChow Service Worker
  * 
  * Implements a production-grade caching strategy for a food delivery app:
  * - Cache static assets (JS, CSS, images, fonts)
@@ -8,7 +8,7 @@
  * - Skip waiting on update (controlled by update manager)
  */
 
-const CACHE_VERSION = 'grubdash-v1.1.0';
+const CACHE_VERSION = 'melachow-v1.1.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
@@ -29,7 +29,7 @@ const OFFLINE_PAGES = [
 // API endpoints (use network-first)
 const API_ROUTES = [
     '/api/',
-    'https://grubdash-api.onrender.com/api/',
+    'https://melachow-api.onrender.com/api/',
 ];
 
 // Static asset patterns (cache-first)
@@ -69,7 +69,7 @@ self.addEventListener('activate', (event) => {
                 cacheNames
                     .filter((cacheName) => {
                         // Delete old caches
-                        return cacheName.startsWith('grubdash-') && cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE && cacheName !== IMAGE_CACHE;
+                        return cacheName.startsWith('melachow-') && cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE && cacheName !== IMAGE_CACHE;
                     })
                     .map((cacheName) => {
                         console.log('[SW] Deleting old cache:', cacheName);
@@ -247,11 +247,11 @@ self.addEventListener('push', function (event) {
     console.log('[Service Worker] Push Received:', event);
 
     let notificationData = {
-        title: 'GrubDash',
+        title: 'MelaChow',
         body: 'You have a new notification',
         icon: '/icon-192x192.png', // Your PWA icon
         badge: '/badge-72x72.png', // Small monochrome icon for notification badge
-        tag: 'grubdash-notification',
+        tag: 'melachow-notification',
         requireInteraction: false,
         data: {}
     };
@@ -264,12 +264,12 @@ self.addEventListener('push', function (event) {
 
             // Extract notification details
             notificationData = {
-                title: payload.title || 'GrubDash',
+                title: payload.title || 'MelaChow',
                 body: payload.body || payload.message || 'You have a new update',
                 icon: payload.icon || '/icon-192x192.png',
                 badge: payload.badge || '/badge-72x72.png',
                 image: payload.image, // Large image (optional)
-                tag: payload.tag || `grubdash-${Date.now()}`,
+                tag: payload.tag || `melachow-${Date.now()}`,
                 requireInteraction: payload.requireInteraction || false,
                 vibrate: payload.vibrate || [200, 100, 200], // Vibration pattern
                 timestamp: payload.timestamp || Date.now(),
@@ -291,8 +291,8 @@ self.addEventListener('push', function (event) {
                 case 'order_dispatched':
                 case 'order_delivered':
                     notificationData.actions = [
-                        { action: 'track', title: '🚚 Track Order', icon: '/icons/track.png' },
-                        { action: 'view', title: '👁️ View Details', icon: '/icons/view.png' }
+                        { action: 'track', title: 'ðŸšš Track Order', icon: '/icons/track.png' },
+                        { action: 'view', title: 'ðŸ‘ï¸ View Details', icon: '/icons/view.png' }
                     ];
                     notificationData.tag = `order-${payload.orderId}`;
                     break;
@@ -300,21 +300,21 @@ self.addEventListener('push', function (event) {
                 case 'promo':
                 case 'discount':
                     notificationData.actions = [
-                        { action: 'browse', title: '🍔 Browse Menu', icon: '/icons/menu.png' },
-                        { action: 'dismiss', title: '❌ Dismiss', icon: '/icons/close.png' }
+                        { action: 'browse', title: 'ðŸ” Browse Menu', icon: '/icons/menu.png' },
+                        { action: 'dismiss', title: 'âŒ Dismiss', icon: '/icons/close.png' }
                     ];
                     break;
 
                 case 'delivery_nearby':
                     notificationData.actions = [
-                        { action: 'track', title: '📍 Track Rider', icon: '/icons/location.png' }
+                        { action: 'track', title: 'ðŸ“ Track Rider', icon: '/icons/location.png' }
                     ];
                     notificationData.requireInteraction = true; // Keep visible
                     break;
 
                 default:
                     notificationData.actions = [
-                        { action: 'view', title: '👁️ View', icon: '/icons/view.png' }
+                        { action: 'view', title: 'ðŸ‘ï¸ View', icon: '/icons/view.png' }
                     ];
             }
 
@@ -405,3 +405,4 @@ self.addEventListener('notificationclick', function (event) {
             })
     );
 });
+

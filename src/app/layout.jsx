@@ -45,13 +45,13 @@ export const viewport = {
 
 export const metadata = {
   title: {
-    default: "GrubDash",
-    template: "%s | GrubDash",
+    default: "MelaChow",
+    template: "%s | MelaChow",
   },
   description:
-    "GrubDash brings local flavors to your doorstep — discover and order delicious meals from trusted restaurants near you.",
+    "MelaChow brings local flavors to your doorstep â€” discover and order delicious meals from trusted restaurants near you.",
   keywords: [
-    "GrubDash",
+    "MelaChow",
     "food delivery",
     "restaurants",
     "local meals",
@@ -62,20 +62,20 @@ export const metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "GrubDash",
+    title: "MelaChow",
   },
   openGraph: {
-    title: "GrubDash — Local Meals Delivered Fast",
+    title: "MelaChow â€” Local Meals Delivered Fast",
     description:
-      "Discover, order, and enjoy fresh local dishes from trusted restaurants around you with GrubDash.",
+      "Discover, order, and enjoy fresh local dishes from trusted restaurants around you with MelaChow.",
     url: "https://grub-dash-ten.vercel.app",
-    siteName: "GrubDash",
+    siteName: "MelaChow",
     images: [
       {
         url: "https://res.cloudinary.com/dypn7gna0/image/upload/v1759974189/logo2_smrufe.png",
         width: 1200,
         height: 630,
-        alt: "GrubDash - Local Meals Delivered Fast",
+        alt: "MelaChow - Local Meals Delivered Fast",
       },
     ],
     locale: "en_US",
@@ -83,15 +83,15 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "GrubDash — Local Meals Delivered Fast",
+    title: "MelaChow â€” Local Meals Delivered Fast",
     description:
-      "Order delicious local dishes and get them delivered quickly with GrubDash.",
+      "Order delicious local dishes and get them delivered quickly with MelaChow.",
     images: [
       "https://res.cloudinary.com/dypn7gna0/image/upload/v1759974189/logo2_smrufe.png",
     ],
-    creator: "@grubdash_app",
+    creator: "@melachow_app",
   },
-  metadataBase: new URL("https://grubdash.vercel.app"),
+  metadataBase: new URL("https://melachow.vercel.app"),
 };
 
 import { ThemeProvider } from "./context/ThemeContext";
@@ -100,7 +100,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${playfairDisplay.variable} antialiased transition-colors duration-300`}>
-        {/* ✅ ONLY base providers - no auth logic here */}
+        {/* âœ… ONLY base providers - no auth logic here */}
         <ThemeProvider>
           <ApiProvider>
             <QueryProvider>
@@ -130,3 +130,4 @@ export default function RootLayout({ children }) {
 }
 
 // rmdir /s /q .next && npm run dev -- --turbopack
+

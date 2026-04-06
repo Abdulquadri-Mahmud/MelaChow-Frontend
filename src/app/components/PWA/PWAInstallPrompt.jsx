@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { X, Download, Smartphone } from "lucide-react";
@@ -143,7 +143,7 @@ export default function PWAInstallPrompt() {
 
                                     <div className="flex-1 min-w-0">
                                         <h3 className="font-bold text-sm md:text-base text-gray-900">
-                                            Install GrubDash
+                                            Install MelaChow
                                         </h3>
                                         <p className="text-xs md:text-sm text-gray-600 mt-0.5">
                                             {isIOS
@@ -208,7 +208,7 @@ export default function PWAInstallPrompt() {
                                         <Smartphone size={32} className="text-white" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-black text-white">Install GrubDash</h3>
+                                        <h3 className="text-xl font-black text-white">Install MelaChow</h3>
                                         <p className="text-white/80 text-sm mt-1">Add to Home Screen</p>
                                     </div>
                                 </div>
@@ -224,7 +224,7 @@ export default function PWAInstallPrompt() {
                                         <div className="flex-1">
                                             <p className="text-sm text-gray-900 font-semibold">Tap the Share button</p>
                                             <p className="text-xs text-gray-600 mt-1">
-                                                Look for the <span className="font-mono bg-gray-100 px-1 rounded">⬆️</span> icon at the bottom of Safari
+                                                Look for the <span className="font-mono bg-gray-100 px-1 rounded">â¬†ï¸</span> icon at the bottom of Safari
                                             </p>
                                         </div>
                                     </div>
@@ -236,7 +236,7 @@ export default function PWAInstallPrompt() {
                                         <div className="flex-1">
                                             <p className="text-sm text-gray-900 font-semibold">Select "Add to Home Screen"</p>
                                             <p className="text-xs text-gray-600 mt-1">
-                                                Scroll down and tap the option with a <span className="font-mono bg-gray-100 px-1 rounded">➕</span> icon
+                                                Scroll down and tap the option with a <span className="font-mono bg-gray-100 px-1 rounded">âž•</span> icon
                                             </p>
                                         </div>
                                     </div>
@@ -248,7 +248,7 @@ export default function PWAInstallPrompt() {
                                         <div className="flex-1">
                                             <p className="text-sm text-gray-900 font-semibold">Tap "Add"</p>
                                             <p className="text-xs text-gray-600 mt-1">
-                                                Confirm to add GrubDash to your home screen
+                                                Confirm to add MelaChow to your home screen
                                             </p>
                                         </div>
                                     </div>
@@ -268,3 +268,4 @@ export default function PWAInstallPrompt() {
         </>
     );
 }
+

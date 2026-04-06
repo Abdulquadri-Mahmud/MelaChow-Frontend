@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { X, RefreshCw, Clock } from "lucide-react";
@@ -140,12 +140,12 @@ export default function PWAUpdateManager() {
 
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-bold text-sm md:text-base">
-                                        {isUpdating ? "Updating GrubDash..." : "New Version Available"}
+                                        {isUpdating ? "Updating MelaChow..." : "New Version Available"}
                                     </h3>
                                     <p className="text-xs md:text-sm text-white/90 mt-0.5">
                                         {isUpdating
                                             ? "Please wait while we update the app"
-                                            : "A new version of GrubDash is ready to install"
+                                            : "A new version of MelaChow is ready to install"
                                         }
                                     </p>
                                 </div>
@@ -183,3 +183,4 @@ export default function PWAUpdateManager() {
         </AnimatePresence>
     );
 }
+

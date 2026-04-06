@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
@@ -19,7 +19,7 @@ export default function CustomerLogoutHandler() {
             logout();
             TokenManager.clearToken();
             sessionStorage.removeItem("splashShown");
-            localStorage.removeItem("grubdash_user_cache");
+            localStorage.removeItem("melachow_user_cache");
 
             // Only redirect if not already on auth pages
             if (!pathname.includes("/auth")) {
@@ -37,3 +37,4 @@ export default function CustomerLogoutHandler() {
 
     return null;
 }
+
