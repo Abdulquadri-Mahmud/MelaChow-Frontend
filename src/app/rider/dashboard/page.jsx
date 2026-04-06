@@ -399,55 +399,82 @@ export default function RiderDashboard() {
                                                 PICKED UP
                                             </button>
                                         ) : (
-                                            <>
-                                                <button
-                                                    onClick={() => handleAction("deliver")}
-                                                    disabled={otpState.sending}
-                                                    className="h-16 rounded-2xl bg-orange-600 dark:bg-orange-400 text-white dark:text-orange-900 flex items-center justify-center font-black text-sm transition-all active:scale-95 disabled:opacity-60"
-                                                >
-                                                    {otpState.sending
-                                                        ? <Loader2 size={20} className="animate-spin" />
-                                                        : <><CheckCircle2 size={20} className="mr-2" />DELIVERED</>}
-                                                </button>
-
-                                                {/* OTP input — appears after OTP is sent */}
-                                                {otpState.step === "awaiting_otp" && (
-                                                    <div className="col-span-2 mt-2 bg-white dark:bg-white/10 border border-orange-200 dark:border-orange-500/30 rounded-2xl p-4 space-y-3">
-                                                        <p className="text-[11px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-300">Ask the customer for the OTP sent to their phone</p>
-                                                        <div className="flex gap-3">
-                                                            <input
-                                                                type="number"
-                                                                inputMode="numeric"
-                                                                pattern="[0-9]*"
-                                                                maxLength={6}
-                                                                value={otpState.otp}
-                                                                onChange={e => setOtpState(prev => ({ ...prev, otp: e.target.value }))}
-                                                                placeholder="Enter OTP"
-                                                                className="flex-1 h-12 rounded-xl bg-zinc-50 dark:bg-white/10 border border-zinc-200 dark:border-white/10 px-4 text-lg font-black text-center tracking-widest text-zinc-900 dark:text-white outline-none focus:border-orange-500"
-                                                            />
-                                                            <button
-                                                                onClick={handleConfirmOTP}
-                                                                disabled={!otpState.otp.trim() || otpState.confirming}
-                                                                className="h-12 px-5 rounded-xl bg-orange-600 text-white font-black text-sm disabled:opacity-50 active:scale-95 transition-all"
-                                                            >
-                                                                {otpState.confirming ? <Loader2 size={18} className="animate-spin" /> : "CONFIRM"}
-                                                            </button>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => setOtpState({ step: "idle", otp: "", sending: false, confirming: false })}
-                                                            className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider"
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </>
+                                            <button
+                                                onClick={() => handleAction("deliver")}
+                                                disabled={otpState.sending}
+                                                className="h-16 rounded-2xl bg-orange-600 dark:bg-orange-400 text-white dark:text-orange-900 flex items-center justify-center font-black text-sm transition-all active:scale-95 disabled:opacity-60"
+                                            >
+                                                {otpState.sending
+                                                    ? <Loader2 size={20} className="animate-spin" />
+                                                    : <><CheckCircle2 size={20} className="mr-2" />DELIVERED</>}
+                                            </button>
                                         )}
                                     </>
                                 ) : (
                                     <p className="col-span-2 text-center text-gray-400 dark:text-white/60 text-xs font-bold py-4">Order status: {activeOrder.status}</p>
                                 )}
                             </div>
+
+                            {/* OTP Verification Modal */}
+                            <AnimatePresence>
+                                {otpState.step === "awaiting_otp" && (
+                                    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4">
+                                        <motion.div 
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            onClick={() => setOtpState({ step: "idle", otp: "", sending: false, confirming: false })}
+                                            className="absolute inset-0 bg-black/60 backdrop-blur-sm shadow-2xl"
+                                        />
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: 100, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 100, scale: 0.95 }}
+                                            className="relative w-full max-w-sm bg-white dark:bg-[#1A1D23] rounded-3xl p-6 shadow-2xl border border-gray-100 dark:border-white/10"
+                                        >
+                                            <div className="flex flex-col items-center text-center space-y-4">
+                                                <div className="w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center">
+                                                    <AlertCircle size={32} className="text-orange-600 dark:text-orange-500" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Verify Delivery</h3>
+                                                    <p className="text-[11px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-300 mt-1">Ask the customer for the OTP sent to their phone</p>
+                                                </div>
+
+                                                <div className="w-full space-y-4">
+                                                    <input
+                                                        type="number"
+                                                        inputMode="numeric"
+                                                        pattern="[0-9]*"
+                                                        autoFocus
+                                                        maxLength={6}
+                                                        value={otpState.otp}
+                                                        onChange={e => {
+                                                            if (e.target.value.length > 6) return;
+                                                            setOtpState(prev => ({ ...prev, otp: e.target.value }));
+                                                        }}
+                                                        placeholder="0 0 0 0 0 0"
+                                                        className="w-full h-16 rounded-2xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10 px-4 text-3xl font-black text-center tracking-[0.5em] text-zinc-900 dark:text-white outline-none focus:border-orange-500 caret-orange-500"
+                                                    />
+                                                    <button
+                                                        onClick={handleConfirmOTP}
+                                                        disabled={otpState.otp.trim().length !== 6 || otpState.confirming}
+                                                        className="w-full h-14 rounded-2xl bg-orange-600 text-white font-black text-sm disabled:opacity-50 active:scale-95 transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2"
+                                                    >
+                                                        {otpState.confirming ? <Loader2 size={18} className="animate-spin" /> : <><CheckCircle2 size={18} /> CONFIRM DELIVERY</>}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setOtpState({ step: "idle", otp: "", sending: false, confirming: false })}
+                                                        className="w-full py-2 text-[10px] text-zinc-400 font-black uppercase tracking-widest hover:text-zinc-600 dark:hover:text-white transition-colors"
+                                                    >
+                                                        Cancel & Return
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    </div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </motion.div>
                 ) : (

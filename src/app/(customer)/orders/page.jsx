@@ -44,7 +44,7 @@ function OrdersContent() {
     setIsFetchingFood(true);
     setEditingItem(item);
     try {
-      const res = await axios.get(`${baseUrl}/v1/vendors/${item.vendorId}/menu/items/${item.foodId}`);
+      const res = await axios.get(`/v1/vendors/${item.vendorId}/menu/items/${item.foodId}`);
       if (res.data && res.data.item) {
         const food = { ...res.data.item, vendor: { _id: item.vendorId, storeName: item.storeName } };
         setFoodForEdit(food);

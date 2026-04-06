@@ -285,6 +285,7 @@ export default function VendorOrdersPage() {
                     <VendorOrderCard 
                       order={order}
                       onAssign={(orderId) => setAssignmentModal({ isOpen: true, orderId })}
+                      onRefresh={fetchOrders}
                     />
                   </motion.div>
                 ))}
