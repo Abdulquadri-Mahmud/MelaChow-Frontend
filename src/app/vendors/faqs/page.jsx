@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -69,6 +69,20 @@ const FAQ_DATA = [
     answer: "If 'Delivery Managed By' is set to 'Admin', our platform riders handle the delivery. Once you mark an order as 'Ready for Pickup', only the assigned rider can update the status to 'Out for Delivery' and 'Delivered'."
   },
 
+  {
+    category: "orders",
+    question: "What do the different Order Statuses mean?",
+    answer: "Our system uses specific statuses to track every step of the order lifecycle. Understanding these helps you manage expectations and ensures timely payouts:\n\n" +
+            "• PENDING: The customer has paid, and the order is waiting for you to 'Accept' it.\n" +
+            "• ACCEPTED: You have confirmed the order. The customer is notified that you are starting work.\n" +
+            "• PREPARING: Your kitchen is currently cooking or packing the items.\n" +
+            "• READY FOR PICKUP: The order is fully packed and sitting on your counter. Marking this alerts the Admin and assigned Rider that the food is ready for extraction.\n" +
+            "• RIDER ASSIGNED: A platform or vendor rider has been officially linked to the order.\n" +
+            "• OUT FOR DELIVERY: The rider has scanned the order and left your store. The customer can now track them in real-time.\n" +
+            "• DELIVERED: The rider has reached the customer. ***CRITICAL: This status triggers the release of funds from Escrow to your Vendor Wallet.***\n" +
+            "• COMPLETED: The final confirmation that the business transaction is closed and successful.\n" +
+            "• CANCELLED: The order was stopped. If you cancel, the customer is automatically refunded to their wallet."
+  },
   // Menu Management
   {
     category: "menu",

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -79,9 +79,30 @@ export default function OrderTracking() {
   const [error, setError] = useState("");
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedFoodForReview, setSelectedFoodForReview] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const { baseUrl } = useApi();
   const { user } = useUserStorage();
+
+  const handleCancelOrder = async () => {
+    if (!window.confirm("Are you sure you want to cancel this order? Your funds will be automatically refunded to your MelaChow wallet.")) return;
+
+    setIsCancelling(true);
+    try {
+      const response = await axios.patch(`${baseUrl}/orders/${orderData._id}/cancel`, {}, {
+        withCredentials: true
+      });
+      
+      if (response.data.success) {
+        toast.success("Order cancelled and funds refunded!");
+        setOrderData(prev => ({ ...prev, orderStatus: 'cancelled' }));
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to cancel order");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   // Real-time tracking hook
   const { onStatusUpdate, onLocationUpdate } = useOrderTracking(orderId);
@@ -218,7 +239,7 @@ export default function OrderTracking() {
             className="mt-8 text-center"
           >
             <h2 className="text-3xl font-black text-zinc-900 dark:text-white italic uppercase tracking-tighter">
-              {statusSteps[currentStepIndex]?.label}
+              {orderStatus === 'cancelled' ? 'Order Cancelled' : statusSteps[currentStepIndex]?.label}
             </h2>
             <div className="flex items-center gap-2 justify-center mt-2">
               <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
@@ -236,6 +257,16 @@ export default function OrderTracking() {
                orderStatus === 'ready_for_pickup' ? 'Assigning Rider' : 'Tracking Active'}
             </span>
           </div>
+          {orderStatus === 'pending' && (
+            <button
+              onClick={handleCancelOrder}
+              disabled={isCancelling}
+              className="bg-red-50 dark:bg-red-950/30 px-4 py-2 rounded-2xl border border-red-100 dark:border-red-900/50 shadow-lg text-[10px] font-black text-red-600 uppercase hover:bg-red-100 transition-colors disabled:opacity-50"
+            >
+              {isCancelling ? "Cancelling..." : "Cancel Order"}
+            </button>
+          )}
+
           <button
             onClick={() => {
               if (orderData?.items?.length > 0) {
@@ -579,8 +610,10 @@ export default function OrderTracking() {
                     <h4 className="text-4xl font-black text-zinc-900 dark:text-white italic tracking-tighter leading-none">â‚¦{total.toLocaleString()}</h4>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] font-black text-green-500 bg-green-500/10 px-3 py-1.5 rounded-xl uppercase tracking-widest">
-                      Completed
+                    <span className={`text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest ${
+                      orderStatus === 'cancelled' ? 'text-red-500 bg-red-500/10' : 'text-green-500 bg-green-500/10'
+                    }`}>
+                      {orderStatus === 'cancelled' ? 'Order Refunded' : 'Transaction Active'}
                     </span>
                   </div>
                 </div>
