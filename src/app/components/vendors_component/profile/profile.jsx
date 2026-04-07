@@ -208,7 +208,8 @@ export default function VendorProfilePage({ vendor }) {
       });
     } catch (err) {
       console.error(err);
-      toast.error(`Failed to update ${section}`);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || `Failed to update ${section}`;
+      toast.error(errorMessage);
     } finally {
       setLoadingSection("");
     }
@@ -330,7 +331,7 @@ export default function VendorProfilePage({ vendor }) {
             <InputGroup label="New Password (Optional)" type="password" value={basicInfo.password} onChange={(e) => setBasicInfo({ ...basicInfo, password: e.target.value })} icon={Lock} placeholder="Leave blank to keep current" />
           </div>
           <div className="flex justify-end mt-4">
-            <button onClick={() => updateSection("basicInfo", basicInfo)} disabled={loadingSection === "basicInfo"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all  Active:scale-95 disabled:opacity-50">
+            <button onClick={() => updateSection("basicInfo", basicInfo)} disabled={loadingSection === "basicInfo"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
               {loadingSection === "basicInfo" ? "Saving..." : <><Save size={16} /> Save Changes</>}
             </button>
           </div>
@@ -476,7 +477,7 @@ export default function VendorProfilePage({ vendor }) {
             )}
           </div>
           <div className="flex justify-end mt-4">
-            <button onClick={() => updateSection("deliverySettings", deliverySettings)} disabled={loadingSection === "deliverySettings"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all  Active:scale-95 disabled:opacity-50">
+            <button onClick={() => updateSection("deliverySettings", deliverySettings)} disabled={loadingSection === "deliverySettings"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
               {loadingSection === "deliverySettings" ? "Saving..." : <><Save size={16} /> Update Delivery</>}
             </button>
           </div>
@@ -502,7 +503,7 @@ export default function VendorProfilePage({ vendor }) {
             </div>
           </div>
           <div className="flex justify-end mt-4">
-            <button onClick={() => updateSection("payoutDetails", payoutDetails)} disabled={loadingSection === "payoutDetails"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all  Active:scale-95 disabled:opacity-50">
+            <button onClick={() => updateSection("payoutDetails", payoutDetails)} disabled={loadingSection === "payoutDetails"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
               {loadingSection === "payoutDetails" ? "Saving..." : <><Save size={16} /> Update Finance</>}
             </button>
           </div>
