@@ -65,14 +65,14 @@ export const metadata = {
     title: "MelaChow",
   },
   openGraph: {
-    title: "MelaChow â€” Local Meals Delivered Fast",
+    title: "MelaChow — Local Meals Delivered Fast",
     description:
       "Discover, order, and enjoy fresh local dishes from trusted restaurants around you with MelaChow.",
-    url: "https://grub-dash-ten.vercel.app",
+    url: "https://melachow.vercel.app",
     siteName: "MelaChow",
     images: [
       {
-        url: "https://res.cloudinary.com/dypn7gna0/image/upload/v1759974189/logo2_smrufe.png",
+        url: "/logo.jpeg",
         width: 1200,
         height: 630,
         alt: "MelaChow - Local Meals Delivered Fast",
@@ -83,12 +83,10 @@ export const metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "MelaChow â€” Local Meals Delivered Fast",
+    title: "MelaChow — Local Meals Delivered Fast",
     description:
       "Order delicious local dishes and get them delivered quickly with MelaChow.",
-    images: [
-      "https://res.cloudinary.com/dypn7gna0/image/upload/v1759974189/logo2_smrufe.png",
-    ],
+    images: ["/logo.jpeg"],
     creator: "@melachow_app",
   },
   metadataBase: new URL("https://melachow.vercel.app"),

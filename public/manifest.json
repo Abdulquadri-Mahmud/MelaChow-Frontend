@@ -1,4 +1,4 @@
-﻿{
+{
     "name": "MelaChow - Food Delivery",
     "short_name": "MelaChow",
     "description": "Order delicious food from your favorite restaurants",
@@ -11,39 +11,15 @@
     "orientation": "portrait-primary",
     "icons": [
         {
-            "src": "/icons/android/launchericon-48x48.png",
-            "sizes": "48x48",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "/icons/android/launchericon-72x72.png",
-            "sizes": "72x72",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "/icons/android/launchericon-96x96.png",
-            "sizes": "96x96",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "/icons/android/launchericon-144x144.png",
-            "sizes": "144x144",
-            "type": "image/png",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "/icons/android/launchericon-192x192.png",
+            "src": "/logo.jpeg",
             "sizes": "192x192",
-            "type": "image/png",
+            "type": "image/jpeg",
             "purpose": "any maskable"
         },
         {
-            "src": "/icons/android/launchericon-512x512.png",
+            "src": "/logo.jpeg",
             "sizes": "512x512",
-            "type": "image/png",
+            "type": "image/jpeg",
             "purpose": "any maskable"
         }
     ],
@@ -67,8 +43,8 @@
             "url": "/",
             "icons": [
                 {
-                    "src": "/icons/android/launchericon-96x96.png",
-                    "sizes": "96x96"
+                    "src": "/logo.jpeg",
+                    "sizes": "192x192"
                 }
             ]
         },
@@ -79,8 +55,8 @@
             "url": "/orders",
             "icons": [
                 {
-                    "src": "/icons/android/launchericon-96x96.png",
-                    "sizes": "96x96"
+                    "src": "/logo.jpeg",
+                    "sizes": "192x192"
                 }
             ]
         }
