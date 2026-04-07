@@ -28,6 +28,7 @@ import DeleteModal from "./DeleteModal";
 import NeedHelp from "@/app/(customer)/profile/need_help_contact_info/NeedHelp";
 import NotificationSettings from "@/app/components/notifications/NotificationSettings";
 import { useTheme } from "@/app/context/ThemeContext";
+import PermanentInstallButton from "@/app/components/PermanentInstallButton";
 
 const ActionCard = ({ icon: Icon, title, description, onClick, href, color = "orange", isRed = false }) => {
   const router = useRouter();
@@ -265,6 +266,12 @@ const User_Profile = ({ userData, isLoading }) => {
           description={theme === 'light' ? "Switch to a darker interface" : "Switch to a brighter interface"}
           onClick={toggleTheme}
         />
+      </div>
+
+      {/* PWA Installation - Persistent Option */}
+      <div className="mt-8 px-6">
+        <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] pl-2 mb-4">Experience MelaChow App</p>
+        <PermanentInstallButton />
       </div>
 
       {/* Danger Zone */}
