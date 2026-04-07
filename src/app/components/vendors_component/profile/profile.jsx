@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
@@ -203,7 +203,7 @@ export default function VendorProfilePage({ vendor }) {
       queryClient.invalidateQueries({ queryKey: ["vendors"] });
 
       toast.success(`${section.replace(/([A-Z])/g, ' $1').trim()} updated successfully!`, {
-        icon: 'âœ…',
+        icon: '✅',
         style: { borderRadius: '10px', background: '#333', color: '#fff' }
       });
     } catch (err) {
@@ -278,21 +278,21 @@ export default function VendorProfilePage({ vendor }) {
                   {address.city || "City"}, {address.state || "State"}
                 </p>
               </div>
-              <div className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border w-fit ${vendor.active ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200"}`}>
-                {vendor.active ? "â— Active" : "â— Inactive"}
+              <div className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border w-fit ${vendor. Active ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200"}`}>
+                {vendor. Active ? "â—  Active" : "â— In Active"}
               </div>
             </div>
 
             <div className="flex items-center gap-6 mt-5 pt-5 border-t border-slate-100 dark:border-slate-800/50">
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Total Sales</p>
-                <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">â‚¦{vendor.totalSales?.toLocaleString() ?? "0"}</p>
+                <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">₦{vendor.totalSales?.toLocaleString() ?? "0"}</p>
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Rating</p>
                 <div className="flex items-center gap-1">
                   <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{vendor.rating?.toFixed(1) ?? "New"}</span>
-                  <span className="text-orange-600">â˜…</span>
+                  <span className="text-orange-600">★</span>
                 </div>
               </div>
               <div>
@@ -330,7 +330,7 @@ export default function VendorProfilePage({ vendor }) {
             <InputGroup label="New Password (Optional)" type="password" value={basicInfo.password} onChange={(e) => setBasicInfo({ ...basicInfo, password: e.target.value })} icon={Lock} placeholder="Leave blank to keep current" />
           </div>
           <div className="flex justify-end mt-4">
-            <button onClick={() => updateSection("basicInfo", basicInfo)} disabled={loadingSection === "basicInfo"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
+            <button onClick={() => updateSection("basicInfo", basicInfo)} disabled={loadingSection === "basicInfo"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all  Active:scale-95 disabled:opacity-50">
               {loadingSection === "basicInfo" ? "Saving..." : <><Save size={16} /> Save Changes</>}
             </button>
           </div>
@@ -352,7 +352,7 @@ export default function VendorProfilePage({ vendor }) {
             <InputGroup label="Postal Code" value={address.postalCode} onChange={(e) => setAddress({ ...address, postalCode: e.target.value })} />
           </div>
           <div className="flex justify-end mt-4">
-            <button onClick={() => updateSection("address", address)} disabled={loadingSection === "address"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
+            <button onClick={() => updateSection("address", address)} disabled={loadingSection === "address"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all  Active:scale-95 disabled:opacity-50">
               {loadingSection === "address" ? "Saving..." : <><Save size={16} /> Update Location</>}
             </button>
           </div>
@@ -369,13 +369,13 @@ export default function VendorProfilePage({ vendor }) {
             <div className="flex flex-wrap gap-2">
               {cuisineTypes.map((cuisine, idx) => (
                 <div key={idx} className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 pl-3 pr-2 py-1.5 rounded-md group hover:border-orange-500 transition-colors">
-                  <input
-                    className="bg-transparent outline-none text-xs font-black uppercase tracking-tight w-20 text-slate-700 dark:text-slate-300"
-                    value={cuisine}
-                    onChange={(e) => handleCuisineChange(idx, e.target.value)}
-                  />
-                  <button onClick={() => handleRemoveCuisine(idx)} className="w-5 h-5 rounded-md bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-rose-500 hover:text-white transition-colors text-xs font-black">Ã—</button>
-                </div>
+                    <input
+                      className="bg-transparent outline-none text-xs font-black uppercase tracking-tight w-20 text-slate-700 dark:text-slate-300"
+                      value={cuisine}
+                      onChange={(e) => handleCuisineChange(idx, e.target.value)}
+                    />
+                    <button onClick={() => handleRemoveCuisine(idx)} className="w-5 h-5 rounded-md bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-rose-500 hover:text-white transition-colors text-xs font-black">×</button>
+                  </div>
               ))}
               <button onClick={handleAddCuisine} className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-300 dark:border-slate-700 rounded-md text-slate-500 hover:text-orange-600 hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all font-black uppercase text-[9px] tracking-widest">
                 + Add Cuisine
@@ -383,7 +383,7 @@ export default function VendorProfilePage({ vendor }) {
             </div>
           </div>
           <div className="flex justify-end mt-6">
-            <button onClick={() => updateSection("cuisineTypes", cuisineTypes)} disabled={loadingSection === "cuisineTypes"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all active:scale-95 disabled:opacity-50">
+            <button onClick={() => updateSection("cuisineTypes", cuisineTypes)} disabled={loadingSection === "cuisineTypes"} className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-orange-600 transition-all  Active:scale-95 disabled:opacity-50">
               {loadingSection === "cuisineTypes" ? "Saving..." : <><Save size={18} /> Update Cuisines</>}
             </button>
           </div>
@@ -398,25 +398,25 @@ export default function VendorProfilePage({ vendor }) {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => (
-              <div key={day} className="border border-gray-100 bg-gray-50/30 p-4 rounded-2xl space-y-3">
+              <div key={day} className="border border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/40 p-4 rounded-xl space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="capitalize font-bold text-gray-900">{day}</span>
+                  <span className="capitalize font-black text-[11px] uppercase tracking-wider text-slate-900 dark:text-white">{day}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] font-bold text-gray-400 uppercase">Open</label>
-                    <input type="time" value={openingHours[day]?.open || ""} onChange={(e) => handleOpeningHoursChange(day, "open", e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg p-2 text-sm outline-none focus:border-orange-500" />
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1 d-block">Open</label>
+                    <input type="time" value={openingHours[day]?.open || ""} onChange={(e) => handleOpeningHoursChange(day, "open", e.target.value)} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-md p-2 text-xs outline-none focus:border-orange-500 transition-all font-bold" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-gray-400 uppercase">Close</label>
-                    <input type="time" value={openingHours[day]?.close || ""} onChange={(e) => handleOpeningHoursChange(day, "close", e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg p-2 text-sm outline-none focus:border-orange-500" />
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1 d-block">Close</label>
+                    <input type="time" value={openingHours[day]?.close || ""} onChange={(e) => handleOpeningHoursChange(day, "close", e.target.value)} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-md p-2 text-xs outline-none focus:border-orange-500 transition-all font-bold" />
                   </div>
                 </div>
               </div>
             ))}
           </div>
           <div className="flex justify-end mt-4">
-            <button onClick={() => updateSection("openingHours", openingHours)} disabled={loadingSection === "openingHours"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
+            <button onClick={() => updateSection("openingHours", openingHours)} disabled={loadingSection === "openingHours"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all  Active:scale-95 disabled:opacity-50">
               {loadingSection === "openingHours" ? "Saving..." : <><Save size={16} /> Update Hours</>}
             </button>
           </div>
@@ -461,7 +461,7 @@ export default function VendorProfilePage({ vendor }) {
             <AnimatePresence>
               {deliverySettings.deliveryManagedBy === "vendor" && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <InputGroup label="Flat Delivery Fee (â‚¦)" type="number" value={deliverySettings.flatRateDeliveryFee} onChange={(e) => setDeliverySettings({ ...deliverySettings, flatRateDeliveryFee: e.target.value })} placeholder="0" />
+                  <InputGroup label="Flat Delivery Fee (₦)" type="number" value={deliverySettings.flatRateDeliveryFee} onChange={(e) => setDeliverySettings({ ...deliverySettings, flatRateDeliveryFee: e.target.value })} placeholder="0" />
                   <InputGroup label="Delivery Radius (KM)" type="number" value={deliverySettings.deliveryRadiusKm} onChange={(e) => setDeliverySettings({ ...deliverySettings, deliveryRadiusKm: e.target.value })} placeholder="5" />
                 </motion.div>
               )}
@@ -476,7 +476,7 @@ export default function VendorProfilePage({ vendor }) {
             )}
           </div>
           <div className="flex justify-end mt-4">
-            <button onClick={() => updateSection("deliverySettings", deliverySettings)} disabled={loadingSection === "deliverySettings"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
+            <button onClick={() => updateSection("deliverySettings", deliverySettings)} disabled={loadingSection === "deliverySettings"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all  Active:scale-95 disabled:opacity-50">
               {loadingSection === "deliverySettings" ? "Saving..." : <><Save size={16} /> Update Delivery</>}
             </button>
           </div>
@@ -490,8 +490,8 @@ export default function VendorProfilePage({ vendor }) {
           onToggle={() => toggleSection('payoutDetails')}
         >
           <div className="space-y-6">
-            <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-              <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><DollarSign size={16} className="text-emerald-500" /> Bank Details</h4>
+            <div className="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-5 border border-slate-100 dark:border-slate-800">
+              <h4 className="font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2 uppercase text-xs tracking-wider"><DollarSign size={16} className="text-emerald-500" /> Bank Details</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <InputGroup label="Bank Name" value={payoutDetails.bankName} onChange={(e) => setPayoutDetails({ ...payoutDetails, bankName: e.target.value })} icon={Store} />
@@ -502,7 +502,7 @@ export default function VendorProfilePage({ vendor }) {
             </div>
           </div>
           <div className="flex justify-end mt-4">
-            <button onClick={() => updateSection("payoutDetails", payoutDetails)} disabled={loadingSection === "payoutDetails"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
+            <button onClick={() => updateSection("payoutDetails", payoutDetails)} disabled={loadingSection === "payoutDetails"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all  Active:scale-95 disabled:opacity-50">
               {loadingSection === "payoutDetails" ? "Saving..." : <><Save size={16} /> Update Finance</>}
             </button>
           </div>
