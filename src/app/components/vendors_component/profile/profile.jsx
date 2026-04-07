@@ -23,6 +23,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { updateVendor } from "@/app/lib/vendorProfileApi";
 import { useQueryClient } from "@tanstack/react-query";
+import PermanentInstallButton from "@/app/components/PermanentInstallButton";
 
 const CLOUDINARY_PRESET = "MelaChow";
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
@@ -508,6 +509,12 @@ export default function VendorProfilePage({ vendor }) {
             </button>
           </div>
         </Section>
+
+        {/* PWA Install Section */}
+        <div className="mt-8 mb-10">
+          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4 text-center">Take your store on the go</p>
+          <PermanentInstallButton />
+        </div>
 
       </div>
     </div>

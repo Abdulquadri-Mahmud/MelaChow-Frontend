@@ -25,8 +25,9 @@ import {
 
 import { useState, useEffect } from "react";
 import adminApi from "@/app/lib/adminApi";
-import { Loader2 } from "lucide-react";
+import { Loader2, Download } from "lucide-react";
 import Link from "next/link";
+import PermanentInstallButton from "@/app/components/PermanentInstallButton";
 
 const CompactStat = ({ icon: Icon, label, value, colorClass, loading }) => (
     <div className="bg-white border border-slate-200 rounded-lg p-3 flex items-center gap-3">
@@ -271,6 +272,14 @@ export default function AdminDashboardPage() {
                         <div className="absolute top-0 right-0 p-8 opacity-5">
                             <Settings size={120} className="animate-spin-slow" />
                         </div>
+                    </div>
+                    {/* PWA Install CTA */}
+                    <div className="bg-white border border-slate-200 rounded-lg p-5">
+                        <div className="flex items-center gap-2 mb-3">
+                            <Download size={14} className="text-orange-600" />
+                            <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest">Install Admin App</h3>
+                        </div>
+                        <PermanentInstallButton />
                     </div>
                 </div>
             </AdminDashboardLayout>

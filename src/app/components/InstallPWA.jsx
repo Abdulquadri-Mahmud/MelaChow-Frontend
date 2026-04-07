@@ -16,7 +16,17 @@ const InstallPWA = () => {
   const [showIOSTutorial, setShowIOSTutorial] = useState(false);
 
   useEffect(() => {
-    // Show banner after 3 seconds if app is installable or is on iOS (and not installed)
+    // Register Service Worker
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((reg) => console.log("Service Worker registered"))
+          .catch((err) => console.error("Service Worker registration failed", err));
+      });
+    }
+
+    // Show banner after 2 seconds if app is installable or is on iOS (and not installed)
     const timer = setTimeout(() => {
       if ((isInstallable || platform === 'ios') && !isInstalled) {
         // Check if user has dismissed it recently (session-based)
