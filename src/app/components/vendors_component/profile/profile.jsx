@@ -274,14 +274,14 @@ export default function VendorProfilePage({ vendor }) {
           <div className="flex-1 pt-14 md:pt-14">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-black text-gray-900 tracking-tight">{basicInfo.storeName || "My Store"}</h1>
+                <h1 className="text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight">{basicInfo.storeName || "My Store"}</h1>
                 <p className="text-gray-500 font-medium flex items-center gap-1 mt-1">
                   <MapPin size={14} className="text-orange-500" />
                   {address.city || "City"}, {address.state || "State"}
                 </p>
               </div>
               <div className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border w-fit ${vendor. Active ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200"}`}>
-                {vendor. Active ? "â—  Active" : "â— In Active"}
+                {vendor. Active ? "Active" : "In Active"}
               </div>
             </div>
 

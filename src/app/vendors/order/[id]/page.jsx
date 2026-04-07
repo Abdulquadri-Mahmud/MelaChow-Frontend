@@ -336,7 +336,7 @@ export default function VendorOrderDetailsPage() {
                 )}
             </AnimatePresence>
 
-            <div className="max-w-7xl mx-auto space-y-4 px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto space-y-4 py-4 px-4">
 
                 {/* Header Section with Actions */}
                 <motion.div
@@ -521,7 +521,12 @@ export default function VendorOrderDetailsPage() {
                                     const lineTotal = unitPrice * quantity;
                                     const totalPortions = portionQuantity * quantity;
                                     
-                                    let fullSentence = `Prepare ${totalPortions} ${portionLabel ? portionLabel + ' ' : ''}portion${totalPortions > 1 ? 's' : ''} of ${itemName}`;
+                                    // Prevent "Portion portions" redundancy
+                                    const displayLabel = portionLabel 
+                                        ? (portionLabel.toLowerCase().includes('portion') ? portionLabel : `${portionLabel} portion`) 
+                                        : 'portion';
+                                    
+                                    let fullSentence = `Prepare ${totalPortions} ${displayLabel}${totalPortions > 1 && !displayLabel.toLowerCase().endsWith('s') ? 's' : ''} of ${itemName}`;
                                     if (options.length > 0) {
                                         const optionsTextList = options.map((opt) => `${(Number(opt.quantity) || 1) * quantity} ${opt.label}`);
                                         fullSentence += `, with ${optionsTextList.length === 1 ? optionsTextList[0] : optionsTextList.length === 2 ? optionsTextList.join(' and ') : optionsTextList.slice(0, -1).join(', ') + ', and ' + optionsTextList.slice(-1)}`;
@@ -588,7 +593,7 @@ export default function VendorOrderDetailsPage() {
                                                         <div className="space-y-2">
                                                             <p className="text-[10px] font-black text-slate-700 dark:text-slate-200 flex items-center gap-2 uppercase tracking-wide leading-none">
                                                                 <span className="w-1.5 h-1.5 bg-orange-600 rounded-full" />
-                                                                EXTRACT {totalPortions} {portionLabel || 'DEFAULT'} PORTION{totalPortions !== 1 ? 'S' : ''}
+                                                                EXTRACT {totalPortions} {displayLabel.toUpperCase()}{totalPortions > 1 && !displayLabel.toLowerCase().endsWith('s') ? 'S' : ''}
                                                             </p>
                                                             
                                                             {options.length > 0 && (

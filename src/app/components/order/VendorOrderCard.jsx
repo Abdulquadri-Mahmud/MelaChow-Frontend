@@ -276,6 +276,7 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
           <p className="text-[9px] font-black uppercase text-orange-700 dark:text-orange-300 tracking-wider mb-2">📋 Prepare</p>
           <div className="space-y-1">
             {detailedItems.map((item, idx) => {
+
               const quantity = Number(item.quantity) || 1;
               const portionLabel = item.portion_label || item.metadata?.portion_label || null;
               const portionQuantity = Number(item.portion_quantity) || 1;
@@ -283,7 +284,12 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
               const options = item.selected_options || item.metadata?.selected_options || [];
               const totalPortions = portionQuantity * quantity;
               
-              let fullSentence = `${totalPortions} ${portionLabel ? portionLabel + ' ' : ''}portion${totalPortions > 1 ? 's' : ''} of ${itemName}`;
+              // Prevent "Portion portions" redundancy
+              const displayLabel = portionLabel 
+                ? (portionLabel.toLowerCase().includes('portion') ? portionLabel : `${portionLabel} portion`) 
+                : 'portion';
+              
+              let fullSentence = `${totalPortions} ${displayLabel}${totalPortions > 1 && !displayLabel.toLowerCase().endsWith('s') ? 's' : ''} of ${itemName}`;
               if (options.length > 0) {
                 const optionsTextList = options.map((opt) => `${(Number(opt.quantity) || 1) * quantity} ${opt.label}`);
                 fullSentence += `, with ${optionsTextList.length === 1 ? optionsTextList[0] : optionsTextList.length === 2 ? optionsTextList.join(' and ') : optionsTextList.slice(0, -1).join(', ') + ', and ' + optionsTextList.slice(-1)}`;
