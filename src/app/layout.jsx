@@ -93,17 +93,19 @@ export const metadata = {
 };
 
 import { ThemeProvider } from "./context/ThemeContext";
+import InstallPWA from "./components/InstallPWA";
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${playfairDisplay.variable} antialiased transition-colors duration-300`}>
-        {/* âœ… ONLY base providers - no auth logic here */}
+        {/* ✅ ONLY base providers - no auth logic here */}
         <ThemeProvider>
           <ApiProvider>
             <QueryProvider>
               <SocketProvider>
                 {children}
+                <InstallPWA />
               </SocketProvider>
             </QueryProvider>
           </ApiProvider>
