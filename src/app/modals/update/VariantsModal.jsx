@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Upload, Check, X } from "lucide-react";
 import showAnimatedToast from "@/app/components/toast/showAnimatedToast";
 
-const CLOUDINARY_PRESET = "MelaChow"; // your Cloudinary preset
+const CLOUDINARY_PRESET = "GrubDash"; // your Cloudinary preset
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
 
 export default function VariantModal({ open, onClose, initial = null, onSave }) {

@@ -25,7 +25,7 @@ import { updateVendor } from "@/app/lib/vendorProfileApi";
 import { useQueryClient } from "@tanstack/react-query";
 import PermanentInstallButton from "@/app/components/PermanentInstallButton";
 
-const CLOUDINARY_PRESET = "MelaChow";
+const CLOUDINARY_PRESET = "GrubDash";
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
 
 const uploadToCloudinary = async (file) => {
@@ -39,14 +39,15 @@ const uploadToCloudinary = async (file) => {
     });
 
     if (!res.ok) {
-      throw new Error(`Cloudinary upload failed: ${res.status}`);
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(`Cloudinary upload failed: ${res.status} ${errorData.error?.message || ''}`);
     }
 
     const data = await res.json();
     return data.secure_url;
   } catch (err) {
-    console.error("Cloudinary upload error:", err);
-    toast.error("Image upload failed!");
+    console.error("Cloudinary upload error detailed:", err);
+    toast.error(`Image upload failed: ${err.message}`);
     return null;
   }
 };
@@ -280,8 +281,8 @@ export default function VendorProfilePage({ vendor }) {
                   {address.city || "City"}, {address.state || "State"}
                 </p>
               </div>
-              <div className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border w-fit ${vendor. Active ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200"}`}>
-                {vendor. Active ? "Active" : "In Active"}
+            <div className={`px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border w-fit ${vendor.isActive ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-rose-50 text-rose-600 border-rose-200"}`}>
+                {vendor.isActive ? "Active" : "In Active"}
               </div>
             </div>
 
@@ -293,13 +294,13 @@ export default function VendorProfilePage({ vendor }) {
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Rating</p>
                 <div className="flex items-center gap-1">
-                  <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{vendor.rating?.toFixed(1) ?? "New"}</span>
+                  <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{vendor.ratings?.toFixed(1) ?? "New"}</span>
                   <span className="text-orange-600">★</span>
                 </div>
               </div>
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Joined</p>
-                <p className="text-sm font-black text-slate-900 dark:text-white tracking-tight">{new Date(vendor.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm font-black text-slate-900 dark:text-white tracking-tight">{vendor.createdAt ? new Date(vendor.createdAt).toLocaleDateString() : 'N/A'}</p>
               </div>
             </div>
           </div>

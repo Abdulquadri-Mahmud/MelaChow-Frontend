@@ -30,7 +30,7 @@ const LogoImage = () => (
 const uploadToCloudinary = async (file) => {
   const fd = new FormData();
   fd.append("file", file);
-  fd.append("upload_preset", "MelaChow");
+  fd.append("upload_preset", "GrubDash");
   try {
     const res = await fetch("https://api.cloudinary.com/v1_1/dypn7gna0/image/upload", {
       method: "POST",
