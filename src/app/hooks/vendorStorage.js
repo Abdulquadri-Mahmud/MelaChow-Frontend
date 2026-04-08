@@ -2,6 +2,7 @@ import { useApi } from "../context/ApiContext";
 import { useVendorProfile } from "../context/VendorProfileContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { TokenManager } from "../lib/auth-token";
+import { useMemo } from "react";
 
 /**
  * Hook for managing Vendor data via VendorProfileContext.
@@ -16,7 +17,7 @@ export const useVendorStorage = () => {
   const saveVendor = (payload) => {
     const data = payload?.vendor || payload;
 
-    // âœ… Cache for refresh resilience
+    // ✅ Cache for refresh resilience
     try {
       if (typeof window !== "undefined") {
         localStorage.setItem("melachow_vendor_cache", JSON.stringify(data));
@@ -61,7 +62,7 @@ export const useVendorStorage = () => {
     TokenManager.clearToken('vendor');
     queryClient.invalidateQueries(["vendors"]);
 
-    console.log('[useVendorStorage] âœ… Logout complete');
+    console.log('[useVendorStorage] ✅ Logout complete');
 
     // Redirect
     if (typeof window !== 'undefined') {
@@ -76,8 +77,11 @@ export const useVendorStorage = () => {
     queryClient.setQueryData(["vendors"], null);
   };
 
-  // âœ… Format for dashboard compatibility: { vendor: {...} }
-  const vendorDetails = vendorProfile ? { vendor: vendorProfile } : null;
+  // ✅ Memoize to prevent unstable object references causing infinite re-renders
+  const vendorDetails = useMemo(
+    () => (vendorProfile ? { vendor: vendorProfile } : null),
+    [vendorProfile]
+  );
 
   return {
     vendorDetails,
