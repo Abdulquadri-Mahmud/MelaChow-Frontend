@@ -256,7 +256,7 @@ export default function VendorProfilePage({ vendor }) {
             <img
               src={logo || "/placeholder.jpg"}
               alt="Cover Background"
-              className="w-full h-full object-cover opacity-50 blur-xl scale-110"
+              className="w-full h-full object-cover opacity-70 blur-md scale-110"
             />
           </div>
           <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
