@@ -521,12 +521,22 @@ export default function VendorOrderDetailsPage() {
                                     const lineTotal = unitPrice * quantity;
                                     const totalPortions = portionQuantity * quantity;
                                     
-                                    // Prevent "Portion portions" redundancy
-                                    const displayLabel = portionLabel 
-                                        ? (portionLabel.toLowerCase().includes('portion') ? portionLabel : `${portionLabel} portion`) 
-                                        : 'portion';
+                                    // Smarter portion display logic to avoid "Portion portions"
+                                    const cleanPortionLabel = portionLabel?.trim() || "";
+                                    const hasPortionWord = cleanPortionLabel.toLowerCase().includes('portion');
                                     
-                                    let fullSentence = `Prepare ${totalPortions} ${displayLabel}${totalPortions > 1 && !displayLabel.toLowerCase().endsWith('s') ? 's' : ''} of ${itemName}`;
+                                    let portionText = "";
+                                    if (!cleanPortionLabel) {
+                                        portionText = totalPortions > 1 ? "portions" : "portion";
+                                    } else if (hasPortionWord) {
+                                        // If it already has "portion", just use it as is
+                                        portionText = cleanPortionLabel;
+                                    } else {
+                                        // Otherwise add "portion" with correct pluralization
+                                        portionText = `${cleanPortionLabel} ${totalPortions > 1 ? "portions" : "portion"}`;
+                                    }
+
+                                    let fullSentence = `Prepare ${totalPortions} ${portionText} of ${itemName}`;
                                     if (options.length > 0) {
                                         const optionsTextList = options.map((opt) => `${(Number(opt.quantity) || 1) * quantity} ${opt.label}`);
                                         fullSentence += `, with ${optionsTextList.length === 1 ? optionsTextList[0] : optionsTextList.length === 2 ? optionsTextList.join(' and ') : optionsTextList.slice(0, -1).join(', ') + ', and ' + optionsTextList.slice(-1)}`;
@@ -593,7 +603,7 @@ export default function VendorOrderDetailsPage() {
                                                         <div className="space-y-2">
                                                             <p className="text-[10px] font-black text-slate-700 dark:text-slate-200 flex items-center gap-2 uppercase tracking-wide leading-none">
                                                                 <span className="w-1.5 h-1.5 bg-orange-600 rounded-full" />
-                                                                EXTRACT {totalPortions} {displayLabel.toUpperCase()}{totalPortions > 1 && !displayLabel.toLowerCase().endsWith('s') ? 'S' : ''}
+                                                                EXTRACT {totalPortions} {portionText.toUpperCase()}
                                                             </p>
                                                             
                                                             {options.length > 0 && (

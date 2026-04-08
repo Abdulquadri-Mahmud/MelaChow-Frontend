@@ -1,4 +1,4 @@
-﻿import { io } from 'socket.io-client';
+import { io } from 'socket.io-client';
 
 class SocketService {
     constructor() {
@@ -41,7 +41,7 @@ class SocketService {
             auth: {
                 token: token || undefined  // Don't send null/empty string
             },
-            withCredentials: true,         // â† This sends httpOnly cookies automatically
+            withCredentials: true,         // This sends httpOnly cookies automatically
             transports: ['websocket'],
             reconnection: true,
             reconnectionDelay: 2000,
@@ -59,22 +59,22 @@ class SocketService {
      */
     setupEventListeners() {
         this.socket.on('connect', () => {
-            console.log('âœ… Socket.IO connected:', this.socket.id);
+            console.log('Socket.IO connected:', this.socket.id);
             this.isConnected = true;
         });
 
         this.socket.on('disconnect', (reason) => {
-            console.log('ðŸ”´ Socket.IO disconnected:', reason);
+            console.log('Socket.IO disconnected:', reason);
             this.isConnected = false;
         });
 
         this.socket.on('connect_error', (error) => {
-            console.error('âŒ Socket.IO connection error:', error.message);
+            console.error('Socket.IO connection error:', error.message);
         });
 
         this.socket.on('pong', (data) => {
             if (process.env.NODE_ENV === 'development') {
-                console.log('ðŸ“ Pong received:', data.timestamp);
+                console.log('Pong received:', data.timestamp);
             }
         });
     }
@@ -85,7 +85,7 @@ class SocketService {
     subscribeToOrder(orderId) {
         if (!this.socket) return;
         this.socket.emit('subscribe_order', orderId);
-        console.log(`ðŸ“¦ Subscribed to order: ${orderId}`);
+        console.log(`Subscribed to order: ${orderId}`);
     }
 
     /**
@@ -94,7 +94,7 @@ class SocketService {
     unsubscribeFromOrder(orderId) {
         if (!this.socket) return;
         this.socket.emit('unsubscribe_order', orderId);
-        console.log(`ðŸ“¦ Unsubscribed from order: ${orderId}`);
+        console.log(`Unsubscribed from order: ${orderId}`);
     }
 
     /**
@@ -103,7 +103,7 @@ class SocketService {
     subscribeToRider(riderId) {
         if (!this.socket) return;
         this.socket.emit('subscribe_rider', riderId);
-        console.log(`ðŸ›µ Subscribed to rider: ${riderId}`);
+        console.log(`Subscribed to rider: ${riderId}`);
     }
 
     /**
@@ -112,7 +112,7 @@ class SocketService {
     subscribeToRiderOrder(orderId) {
         if (!this.socket) return;
         this.socket.emit('subscribe_rider_order', orderId);
-        console.log(`ðŸ“¦ Rider subscribed to order: ${orderId}`);
+        console.log(`Rider subscribed to order: ${orderId}`);
     }
 
     /**
@@ -121,7 +121,7 @@ class SocketService {
     subscribeToRestaurant(restaurantId) {
         if (!this.socket) return;
         this.socket.emit('subscribe_restaurant', restaurantId);
-        console.log(`ðŸª Subscribed to restaurant: ${restaurantId}`);
+        console.log(`Subscribed to restaurant: ${restaurantId}`);
     }
 
     /**
@@ -196,7 +196,7 @@ class SocketService {
             this.socket.disconnect();
             this.socket = null;
             this.isConnected = false;
-            console.log('ðŸ”´ Socket.IO manually disconnected');
+            console.log('Socket.IO manually disconnected');
         }
     }
 

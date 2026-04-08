@@ -44,7 +44,7 @@ const navItems = [
   {
     name: "Orders",
     icon: <FaClipboardList />,
-    href: "/vendors/orders",
+    href: "/vendors/order",
     tooltip: "Track and manage customer orders in real time",
   },
   {

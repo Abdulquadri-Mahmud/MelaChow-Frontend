@@ -1,4 +1,4 @@
-﻿import { useApi } from "../context/ApiContext";
+import { useApi } from "../context/ApiContext";
 import { useProfile } from "../context/ProfileContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { TokenManager } from "../lib/auth-token";
@@ -40,7 +40,7 @@ export const useUserStorage = () => {
   // Full logout: clear user + optional data
   const logout = async () => {
     // âœ… ADD DEBUG LOG
-    console.log('[useUserStorage] ðŸšª Logout initiated');
+    console.log('[useUserStorage] Logout initiated');
 
     try {
       // âœ… Call backend logout endpoint

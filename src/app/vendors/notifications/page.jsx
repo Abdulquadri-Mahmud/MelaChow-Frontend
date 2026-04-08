@@ -110,10 +110,13 @@ export default function VendorNotificationsPage() {
 
     const handleNotificationClick = async (notification) => {
         if (!notification.read) await markAsRead(notification._id);
+        
         if (notification.url) {
-            router.push(notification.url);
+            // ✅ SANITIZER: Prevent 404 by correcting legacy plural URLs
+            const sanitizedUrl = notification.url.replace('/vendors/orders/', '/vendors/order/');
+            router.push(sanitizedUrl);
         } else if (notification.orderId) {
-            router.push(`/vendors/orders/${notification.orderDatabaseId || notification.orderId}`);
+            router.push(`/vendors/order/${notification.orderDatabaseId || notification.orderId}`);
         }
     };
 

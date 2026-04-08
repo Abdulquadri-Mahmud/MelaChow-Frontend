@@ -181,7 +181,7 @@ export const SocketProvider = ({ children }) => {
                         body: `Order #${order.orderNumber || order._id?.slice(-6)} · ${order.customerName || 'Customer'} · ${order.deliveryAddress?.address || ''}`,
                         type: 'vendor_new_order',
                         orderId: order._id,
-                        url: `/vendors/orders/${order._id}`,
+                        url: `/vendors/order/${order._id}`,
                         createdAt: new Date().toISOString(),
                         read: false,
                         customerName: order.customerName,
@@ -197,7 +197,7 @@ export const SocketProvider = ({ children }) => {
                         <div
                             className={`bg-white dark:bg-slate-900 shadow-2xl rounded-2xl p-4 flex items-start gap-4 w-full max-w-sm border-l-4 border-orange-500 cursor-pointer ${t.visible ? 'animate-in slide-in-from-right-full' : 'animate-out fade-out'}`}
                             onClick={() => {
-                                window.location.href = `/vendors/orders/${order._id}`;
+                                window.location.href = `/vendors/order/${order._id}`;
                                 toast.dismiss(t.id);
                             }}
                         >

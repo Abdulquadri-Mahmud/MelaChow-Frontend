@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -686,7 +686,7 @@ export default function VendorRegisterPage() {
                         >
                           <TextInput
                             path="flatRateDeliveryFee"
-                            placeholder="Flat Rate Delivery Fee (â‚¦)"
+                            placeholder="Flat Rate Delivery Fee (₦)"
                             icon={CreditCard}
                             type="number"
                             error={errors.flatRateDeliveryFee}

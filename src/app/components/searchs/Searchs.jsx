@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import axios from "axios";
@@ -116,7 +116,7 @@ const FoodCard = ({ food }) => {
                             return (!fee || fee === 0) ? (
                                 <span className="text-[10px] font-black text-zinc-900 dark:text-white uppercase">Free</span>
                             ) : (
-                                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tighter">â‚¦{fee.toLocaleString()}</span>
+                                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tighter">₦{fee.toLocaleString()}</span>
                             );
                         })()}
                     </div>

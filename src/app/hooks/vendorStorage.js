@@ -1,4 +1,4 @@
-﻿import { useApi } from "../context/ApiContext";
+import { useApi } from "../context/ApiContext";
 import { useVendorProfile } from "../context/VendorProfileContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { TokenManager } from "../lib/auth-token";
@@ -38,7 +38,7 @@ export const useVendorStorage = () => {
 
   // Logout
   const logout = async () => {
-    console.log('[useVendorStorage] ðŸšª Vendor logout initiated');
+    console.log('[useVendorStorage] Vendor logout initiated');
 
     try {
       const response = await fetch(`${baseUrl}/vendor/auth/logout`, {

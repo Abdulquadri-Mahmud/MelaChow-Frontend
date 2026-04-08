@@ -39,7 +39,7 @@ export default function VendorNotFound() {
             </div>
 
             <div className="mt-16 pt-8 border-t border-gray-100 dark:border-slate-800 w-full grid grid-cols-1 sm:grid-cols-3 gap-6 opacity-60">
-                <Link href="/vendors/orders" className="p-4 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-2xl transition-all group flex flex-col items-center">
+                <Link href="/vendors/order" className="p-4 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-2xl transition-all group flex flex-col items-center">
                     <ShoppingBag size={20} className="mb-2 text-gray-400 group-hover:text-orange-500 transition-colors" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Order History</span>
                 </Link>
