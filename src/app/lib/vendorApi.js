@@ -52,7 +52,7 @@ export const getVendorDetails = async () => {
 };
 
 export const getVendorWallet = async () => {
-    const response = await API.get(`/wallet`);
+    const response = await API.get(`/vendors/get-wallet`);
     return response.data;
 };
 
