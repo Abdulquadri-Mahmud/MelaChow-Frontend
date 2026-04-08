@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -40,10 +40,10 @@ export const useVendors = () => {
       return false;
     },
     retryDelay: (attemptIndex) => Math.min(100 * Math.pow(2, attemptIndex), 1000),
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 5000, // 5 seconds (fast refresh for settings)
     gcTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   // âœ… Use isFetched directly for session check check

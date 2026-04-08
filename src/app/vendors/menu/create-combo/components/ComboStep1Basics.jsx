@@ -6,7 +6,7 @@ import { ImageIcon, Loader2, Upload, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
-const CLOUDINARY_PRESET = "MelaChow";
+const CLOUDINARY_PRESET = "GrubDash";
 
 const uploadToCloudinary = async (file) => {
     const formData = new FormData();

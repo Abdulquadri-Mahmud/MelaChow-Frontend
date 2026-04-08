@@ -158,12 +158,16 @@ export const VendorProfileProvider = ({ children }) => {
         }
     }, [data]);
 
+    // Smart loading: only true if we are loading and have no data (including cache/placeholder)
+    const isActuallyLoading = isLoading && !data;
+
     return (
         <VendorProfileContext.Provider
             value={{
                 vendorProfile: data,
-                isLoading,
-                hasCheckedSession,
+                isLoading: isActuallyLoading,
+                isRefetching: fetchStatus === "fetching",
+                hasCheckedSession: hasCheckedSession,
                 error: error ? error.message : null,
                 refetchVendorProfile: refetch,
             }}

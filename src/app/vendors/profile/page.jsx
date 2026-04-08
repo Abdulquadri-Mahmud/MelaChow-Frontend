@@ -9,7 +9,8 @@ export default function ProfilePage() {
   const { vendors: vendor, isLoading, isError } = useVendors();
   // 'vendors' variable holds the data from getVendors, which is now the single vendor profile
 
-  if (isLoading) {
+  // Loading state (only show skeleton if we have NO data yet)
+  if (isLoading && !vendor) {
     return <VendorProfileSkeleton />;
   }
 

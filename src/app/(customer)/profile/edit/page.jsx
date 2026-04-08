@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
 const uploadToCloudinary = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "MelaChow");
+    formData.append("upload_preset", "GrubDash");
 
     try {
         // âœ… Use fetch instead of axios to avoid Authorization header

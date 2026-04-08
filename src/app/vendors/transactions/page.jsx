@@ -64,6 +64,12 @@ export default function TransactionsPage() {
                 setTransactions(sortedTxns);
             }
 
+            // Fetch vendor profile for payout details
+            const profileRes = await getVendorDetails();
+            if (profileRes.success) {
+                setVendorProfile(profileRes.data);
+            }
+
             // Fetch withdrawal history
             const withdrawalRes = await getWithdrawalHistory();
             if (withdrawalRes.success) {
@@ -83,10 +89,8 @@ export default function TransactionsPage() {
     };
 
     useEffect(() => {
-        if (vendorDetails?.vendor?._id) {
-            fetchWallet();
-        }
-    }, [vendorDetails?.vendor?._id]);
+        fetchWallet();
+    }, [vendorDetails]);
 
     // Get available months from transactions
     const availableMonths = useMemo(() => {
@@ -626,7 +630,7 @@ Need help? Contact support with your reference ID
                     isOpen={showBankModal}
                     onClose={() => setShowBankModal(false)}
                     onSaved={() => fetchWallet(true)}
-                    initialData={vendorDetails?.vendor?.payoutDetails}
+                    existingDetails={vendorProfile?.payoutDetails}
                 />
 
                 <WithdrawFundsModal 
@@ -637,7 +641,7 @@ Need help? Contact support with your reference ID
                         fetchWallet(true);
                         setActiveTab("payouts");
                     }}
-                    payoutDetails={vendorDetails?.vendor?.payoutDetails}
+                    payoutDetails={vendorProfile?.payoutDetails}
                 />
 
                 {/* Transaction Details Modal */}
