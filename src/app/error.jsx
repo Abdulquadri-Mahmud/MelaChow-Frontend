@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect } from "react";
 import Image from "next/image";
@@ -6,7 +6,7 @@ import { RefreshCw } from "lucide-react";
 
 export default function Error({ error, reset }) {
   useEffect(() => {
-    console.error("ðŸ”¥ MelaChow Error Caught:", error);
+    console.error("MelaChow Error Caught:", error);
   }, [error]);
 
   return (

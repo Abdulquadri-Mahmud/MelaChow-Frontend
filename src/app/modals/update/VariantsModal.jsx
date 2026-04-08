@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 
@@ -162,7 +162,7 @@ export default function VariantModal({ open, onClose, initial = null, onSave }) 
               {step === 1 && (
                 <div>
                   <label className="text-sm font-medium text-gray-700">
-                    Variant price (â‚¦)
+                    Variant price (₦)
                   </label>
                   <input
                     className="w-full border border-gray-200 p-3 rounded-lg mt-2"

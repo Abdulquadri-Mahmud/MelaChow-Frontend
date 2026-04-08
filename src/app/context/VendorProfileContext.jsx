@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useEffect } from "react";
 import { useApi } from "./ApiContext";
@@ -22,7 +22,7 @@ export const VendorProfileProvider = ({ children }) => {
         const token = TokenManager.getToken('vendor');
 
         if (process.env.NODE_ENV === 'development') {
-            console.log('[VendorProfileContext] ðŸ” fetchVendorProfile START', {
+            console.log('[VendorProfileContext] fetchVendorProfile START', {
                 baseUrl,
                 currentPath: pathname,
                 hasToken: !!token,
@@ -44,7 +44,7 @@ export const VendorProfileProvider = ({ children }) => {
             });
 
             if (process.env.NODE_ENV === 'development') {
-                console.log('[VendorProfileContext] ðŸ“¨ Response:', {
+                console.log('[VendorProfileContext] Response:', {
                     status: res.status,
                     ok: res.ok,
                 });
@@ -79,7 +79,7 @@ export const VendorProfileProvider = ({ children }) => {
             const vendorData = data.data || data.vendor || data;
 
             if (process.env.NODE_ENV === 'development') {
-                console.log('[VendorProfileContext] âœ… Vendor loaded:', {
+                console.log('[VendorProfileContext] Vendor loaded:', {
                     hasVendor: !!vendorData,
                     vendorId: vendorData?._id || vendorData?.id,
                 });
@@ -125,12 +125,12 @@ export const VendorProfileProvider = ({ children }) => {
         refetchOnReconnect: true,
     });
 
-    // âœ… Simple: query completed = not fetching + has result
+    // Simple: query completed = not fetching + has result
     const hasCheckedSession = fetchStatus === 'idle' && (status === 'success' || status === 'error');
 
     useEffect(() => {
         if (process.env.NODE_ENV === 'development') {
-            console.log('[VendorProfileContext] ðŸ” Vendor Auth State:', {
+            console.log('[VendorProfileContext] Vendor Auth State:', {
                 hasVendorData: !!data,
                 isLoading,
                 hasCheckedSession,

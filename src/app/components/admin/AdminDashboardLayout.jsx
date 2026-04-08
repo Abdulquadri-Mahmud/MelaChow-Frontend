@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import NotificationBell from "@/app/components/NotificationBell";
+import PermanentInstallButton from "@/app/components/PermanentInstallButton";
 
 const navigation = [
     {
@@ -156,7 +157,8 @@ export default function AdminDashboardLayout({ children }) {
                     </nav>
 
                     {/* Sidebar Footer */}
-                    <div className="px-3 py-3 border-t border-slate-800">
+                    <div className="px-3 py-3 border-t border-slate-800 space-y-2">
+                        <PermanentInstallButton />
                         <button
                             onClick={handleOpenLogoutModal}
                             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition-colors"
@@ -226,7 +228,8 @@ export default function AdminDashboardLayout({ children }) {
                                 ))}
                             </nav>
 
-                            <div className="px-3 py-3 border-t border-slate-800">
+                            <div className="px-3 py-3 border-t border-slate-800 space-y-2">
+                                <PermanentInstallButton />
                                 <button onClick={handleOpenLogoutModal}
                                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium text-slate-400 hover:bg-rose-500/10 hover:text-rose-400 transition-colors">
                                     <LogOut size={15} />

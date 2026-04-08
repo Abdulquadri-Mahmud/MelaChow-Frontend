@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useCreateComboStore } from "@/app/context/CreateComboStore";
@@ -89,7 +89,7 @@ export default function ComboStep1Basics({ onNext }) {
                     <div className="space-y-3">
                         <label className="text-[11px] font-black text-slate-900 dark:text-slate-300 uppercase tracking-widest block">Bundle Price <span className="text-rose-500">*</span></label>
                         <div className="relative group">
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-black text-slate-400 tracking-tighter transition-colors group-focus-within:text-orange-500">â‚¦</div>
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-black text-slate-400 tracking-tighter transition-colors group-focus-within:text-orange-500">₦</div>
                             <input
                                 type="number"
                                 value={store.price_naira}
@@ -100,7 +100,7 @@ export default function ComboStep1Basics({ onNext }) {
                         </div>
                         <div className="p-4 bg-orange-50 dark:bg-orange-500/5 rounded-xl border border-orange-100 dark:border-orange-500/10">
                             <p className="text-[11px] font-bold text-orange-600 dark:text-orange-400 leading-relaxed flex gap-2">
-                                <span className="shrink-0 text-base">ðŸ’¡</span>
+                                <span className="shrink-0 text-base">💡</span>
                                 Merchants who price combos 10-15% lower than individual items see significantly higher order volumes.
                             </p>
                         </div>

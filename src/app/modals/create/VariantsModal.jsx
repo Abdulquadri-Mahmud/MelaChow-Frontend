@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -125,7 +125,7 @@ export default function VariantModal({ open, onClose, initial = null, onSave, ac
 
               {step === 1 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Variant price (â‚¦)</label>
+                  <label className="text-sm font-medium text-gray-700">Variant price (₦)</label>
                   <input className="w-full border border-gray-200 p-3 rounded-lg mt-2 mb-4" value={payload.price} onChange={(e) => setPayload(p => ({ ...p, price: e.target.value }))} type="number" placeholder="1200" />
 
                   <label className="text-sm font-medium text-gray-700">Stock Quantity (Optional)</label>
