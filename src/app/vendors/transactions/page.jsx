@@ -77,11 +77,12 @@ export default function TransactionsPage() {
             }
 
         } catch (err) {
-            console.error("Ledger fetch error:", err);
-            // Handle wallet not created
+            console.error("Transactions fetch error:", err);
+            // Handle wallet not created (404) by providing a default empty balance
             if (err.response?.status === 404) {
-                setWallet({ balance: 0 });
+                setWallet({ balance: 0, transactions: [] });
             }
+            // Note: 500 errors are caught but we don't set partial state to avoid loop triggers
         } finally {
             setIsLoading(false);
             setIsRefreshing(false);
@@ -90,7 +91,8 @@ export default function TransactionsPage() {
 
     useEffect(() => {
         fetchWallet();
-    }, [vendorDetails]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Get available months from transactions
     const availableMonths = useMemo(() => {
