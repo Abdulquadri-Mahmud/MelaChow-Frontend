@@ -52,8 +52,39 @@ export const getVendorDetails = async () => {
 };
 
 export const getVendorWallet = async () => {
-  const response = await API.get(`/vendors/get-wallet`);
-  return response.data;
+    const response = await API.get(`/wallet`);
+    return response.data;
+};
+
+// --- PAYOUT & BANK MANAGEMENT ---
+export const getBankList = async () => {
+    const response = await API.get('/wallet/banks');
+    return response.data;
+};
+
+export const resolveBankAccount = async (account_number, bank_code) => {
+    const response = await API.get(`/wallet/resolve-account?account_number=${account_number}&bank_code=${bank_code}`);
+    return response.data;
+};
+
+export const saveVendorBankAccount = async (data) => {
+    const response = await API.post('/wallet/bank-account', data);
+    return response.data;
+};
+
+export const removeVendorBankAccount = async () => {
+    const response = await API.delete('/wallet/bank-account');
+    return response.data;
+};
+
+export const initiateWithdrawal = async (amount) => {
+    const response = await API.post('/wallet/withdraw', { amount });
+    return response.data;
+};
+
+export const getWithdrawalHistory = async () => {
+    const response = await API.get('/wallet/withdrawals');
+    return response.data;
 };
 
 export const getVendorOrders = async () => {
