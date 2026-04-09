@@ -35,7 +35,12 @@ export function ConfigureBankModal({ isOpen, onClose, onSaved, existingDetails }
     useEffect(() => {
         if (isOpen) {
             fetchBanks();
+            setSelectedBank(existingDetails?.bankCode || "");
+            setAccountNumber(existingDetails?.accountNumber || "");
+            setAccountName(existingDetails?.accountName || "");
+            setError("");
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
     const fetchBanks = async () => {
@@ -73,9 +78,26 @@ export function ConfigureBankModal({ isOpen, onClose, onSaved, existingDetails }
 
     // Auto-resolve when bank and 10-digit account number are present
     useEffect(() => {
-        if (accountNumber.length === 10 && selectedBank && !accountName && !isResolving) {
-            handleResolve();
-        }
+        if (accountNumber.length !== 10 || !selectedBank || accountName || isResolving) return;
+
+        const resolve = async () => {
+            setIsResolving(true);
+            setError("");
+            try {
+                const res = await resolveBankAccount(accountNumber, selectedBank);
+                if (res.account_name) {
+                    setAccountName(res.account_name);
+                }
+            } catch {
+                setError("Could not verify account. Please check details.");
+                setAccountName("");
+            } finally {
+                setIsResolving(false);
+            }
+        };
+
+        resolve();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [accountNumber, selectedBank]);
 
     const handleSave = async () => {

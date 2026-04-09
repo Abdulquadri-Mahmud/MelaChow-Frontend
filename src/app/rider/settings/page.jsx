@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
 import { useRider } from "@/app/context/RiderContext";
+import PermanentInstallButton from "@/app/components/PermanentInstallButton";
 import toast from "react-hot-toast";
 
 const SettingRow = ({ icon: Icon, label, value, onClick, danger = false, badge }) => (
@@ -161,6 +162,15 @@ export default function RiderSettingsPage() {
                 className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none rounded-3xl overflow-hidden"
             >
                 <SettingRow icon={LogOut} label="Log Out" danger onClick={handleLogout} />
+            </motion.div>
+
+            {/* Install App */}
+            <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+            >
+                <PermanentInstallButton />
             </motion.div>
 
             {/* App version */}
