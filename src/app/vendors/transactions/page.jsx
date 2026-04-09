@@ -237,7 +237,7 @@ Need help? Contact support with your reference ID
                 >
                     <div>
                         <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Financial Ledger</h1>
-                        <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 uppercase tracking-widest">Track earnings and manage platform payouts.</p>
+                        <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 uppercase tracking-widest">Track earnings and manage platform payouts.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
@@ -411,7 +411,7 @@ Need help? Contact support with your reference ID
                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                             <div className="space-y-0.5">
                                 <h3 className="font-black text-lg text-slate-900 dark:text-white uppercase tracking-tight">Transaction History</h3>
-                                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                                <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                                     {filteredTransactions.length} transaction{filteredTransactions.length !== 1 ? 's' : ''} recorded
                                 </p>
                             </div>
