@@ -31,6 +31,7 @@ export default function VendorDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [payoutDetails, setPayoutDetails] = useState(null);
   const [liveWalletBalance, setLiveWalletBalance] = useState(0);
+  const [livePendingBalance, setLivePendingBalance] = useState(0);
   const [showBankModal, setShowBankModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const { vendorDetails } = useVendorStorage();
@@ -60,6 +61,7 @@ export default function VendorDashboard() {
           }
           if (walletResult.status === "fulfilled" && walletResult.value?.success) {
             setLiveWalletBalance(walletResult.value.data?.balance || 0);
+            setLivePendingBalance(walletResult.value.data?.pendingBalance || 0);
           }
         });
 
@@ -114,7 +116,7 @@ export default function VendorDashboard() {
       // Use successful orders for "Sales Performance"
       completedOrders.forEach(order => {
         if (order.createdAt) {
-          const orderDate = order.createdAt.split('T')[0];
+          const orderDate = new Date(order.createdAt).toISOString().split('T')[0];
           const dayEntry = last7Days.find(d => d.date === orderDate);
           if (dayEntry) {
             dayEntry.value += (order.vendorTotal || 0);
@@ -351,12 +353,12 @@ export default function VendorDashboard() {
             <div className="flex items-center gap-3 mt-4">
               <div>
                 <p className="text-[10px] uppercase text-slate-500 font-black tracking-widest mb-0.5">Available Balance</p>
-                <p className="text-2xl font-black text-orange-500">₦{walletBalance.toLocaleString()}</p>
+                <p className="text-2xl font-black text-orange-500">₦{liveWalletBalance.toLocaleString()}</p>
               </div>
               <div className="h-8 w-px bg-slate-200 dark:bg-white/10"></div>
               <div>
                 <p className="text-[10px] uppercase text-slate-500 font-black tracking-widest mb-0.5">Pending</p>
-                <p className="text-2xl font-black text-slate-400">₦0.00</p>
+                <p className="text-2xl font-black text-slate-400">₦{livePendingBalance.toLocaleString()}</p>
               </div>
             </div>
           </div>
