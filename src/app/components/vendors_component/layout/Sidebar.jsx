@@ -216,7 +216,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 mt-6 space-y-2 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 md:px-4 px-2 mt-6 space-y-2 overflow-y-auto custom-scrollbar">
           {navItems.map((item) => {
             const active = isSegmentActive(item.href);
             const Icon = item.icon;
@@ -266,7 +266,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         </nav>
 
         {/* Footer / Logout */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-900 space-y-3">
+        <div className="p-2 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-900 space-y-3">
           {(open || isMobile) && <PermanentInstallButton />}
           <button
             onClick={() => setShowLogoutModal(true)}
