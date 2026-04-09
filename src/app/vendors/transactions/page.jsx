@@ -24,7 +24,7 @@ import {
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import { 
     getVendorWallet, 
-    getVendorDetails, 
+    getVendorPayoutDetails, 
     getWithdrawalHistory 
 } from "@/app/lib/vendorApi";
 import { ConfigureBankModal, WithdrawFundsModal } from "./components/PayoutModals";
@@ -64,16 +64,23 @@ export default function TransactionsPage() {
                 setTransactions(sortedTxns);
             }
 
-            // Fetch vendor profile for payout details
-            const profileRes = await getVendorDetails();
-            if (profileRes.success) {
-                setVendorProfile(profileRes.data);
+            // Fetch payout details — dedicated endpoint, never exposes recipientCode
+            try {
+                const payoutRes = await getVendorPayoutDetails();
+                if (payoutRes?.success) {
+                    setVendorProfile({ payoutDetails: payoutRes.payoutDetails });
+                }
+            } catch (payoutErr) {
+                console.error("Payout details fetch error:", payoutErr.message);
             }
 
-            // Fetch withdrawal history
-            const withdrawalRes = await getWithdrawalHistory();
-            if (withdrawalRes.success) {
-                setWithdrawals(withdrawalRes.data);
+            // Fetch withdrawal history — backend returns { withdrawals: [...] }
+            try {
+                const withdrawalRes = await getWithdrawalHistory();
+                setWithdrawals(withdrawalRes?.withdrawals || []);
+            } catch (withdrawErr) {
+                console.error("Withdrawal history fetch error:", withdrawErr.message);
+                setWithdrawals([]);
             }
 
         } catch (err) {
@@ -252,10 +259,10 @@ Need help? Contact support with your reference ID
                 </motion.div>
 
                 {/* Balance Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
 
                     {/* Escrow Banner */}
-                    <div className="md:col-span-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-800/50 rounded-md p-3 flex items-start gap-3">
+                    <div className="md:col-span-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-800/50 rounded-md p-3 flex items-start gap-3">
                         <div className="p-1.5 bg-blue-100 dark:bg-blue-800 text-blue-600 rounded-md flex-shrink-0">
                             <Wallet size={14} />
                         </div>
@@ -278,7 +285,7 @@ Need help? Contact support with your reference ID
                         </div>
                         <button 
                             onClick={() => {
-                                if (!vendorProfile?.payoutDetails?.accountNumber) {
+                                if (!vendorProfile?.payoutDetails?.payoutEnabled) {
                                     setShowBankModal(true);
                                 } else {
                                     setShowWithdrawModal(true);
@@ -287,8 +294,26 @@ Need help? Contact support with your reference ID
                             className="w-full bg-white text-orange-600 px-4 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 mt-4"
                         >
                             <CreditCard size={14} />
-                            {vendorProfile?.payoutDetails?.accountNumber ? "Withdraw Funds" : "Link Bank Account"}
+                            {vendorProfile?.payoutDetails?.payoutEnabled ? "Withdraw Funds" : "Link Bank Account"}
                         </button>
+                    </div>
+
+                    {/* Pending Card */}
+                    <div className="bg-white dark:bg-slate-900 rounded-md p-4 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-md text-blue-600">
+                                <Clock size={16} />
+                            </div>
+                            <span className="text-[9px] font-black text-blue-600 bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.5 rounded-md uppercase tracking-widest border border-blue-100 dark:border-blue-500/20">
+                                In Escrow
+                            </span>
+                        </div>
+                        <div>
+                            <p className="text-[10px] text-slate-400 mb-1 font-black uppercase tracking-widest leading-none">Pending Balance</p>
+                            <p className="text-xl font-black text-slate-900 dark:text-white leading-none">
+                                ₦{wallet?.pendingBalance?.toLocaleString() || "0.00"}
+                            </p>
+                        </div>
                     </div>
 
                     {/* Earnings Card */}

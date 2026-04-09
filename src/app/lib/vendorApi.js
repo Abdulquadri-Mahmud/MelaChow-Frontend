@@ -82,6 +82,11 @@ export const initiateWithdrawal = async (amount) => {
     return response.data;
 };
 
+export const getVendorPayoutDetails = async () => {
+    const response = await API.get('/vendors/payout-details');
+    return response.data; // Returns { success: true, payoutDetails: {...} | null }
+};
+
 export const getWithdrawalHistory = async () => {
     const response = await API.get('/wallet/withdrawals');
     return response.data;
