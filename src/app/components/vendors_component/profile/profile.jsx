@@ -492,21 +492,19 @@ export default function VendorProfilePage({ vendor }) {
           isOpen={openSections.payoutDetails}
           onToggle={() => toggleSection('payoutDetails')}
         >
-          <div className="space-y-6">
-            <div className="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-5 border border-slate-100 dark:border-slate-800">
-              <h4 className="font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2 uppercase text-xs tracking-wider"><DollarSign size={16} className="text-emerald-500" /> Bank Details</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <InputGroup label="Bank Name" value={payoutDetails.bankName} onChange={(e) => setPayoutDetails({ ...payoutDetails, bankName: e.target.value })} icon={Store} />
-                </div>
-                <InputGroup label="Account Name" value={payoutDetails.accountName} onChange={(e) => setPayoutDetails({ ...payoutDetails, accountName: e.target.value })} icon={FileText} />
-                <InputGroup label="Account Number" value={payoutDetails.accountNumber} onChange={(e) => setPayoutDetails({ ...payoutDetails, accountNumber: e.target.value })} icon={CreditCard} />
-              </div>
+          <div className="p-8 flex flex-col items-center justify-center text-center bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 rounded-xl">
+            <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 mb-4">
+              <CreditCard size={32} />
             </div>
-          </div>
-          <div className="flex justify-end mt-4">
-            <button onClick={() => updateSection("payoutDetails", payoutDetails)} disabled={loadingSection === "payoutDetails"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
-              {loadingSection === "payoutDetails" ? "Saving..." : <><Save size={16} /> Update Finance</>}
+            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">High Security Notice</h3>
+            <p className="text-[10px] text-slate-500 max-w-sm font-black uppercase tracking-widest mb-6 leading-relaxed">
+              Financial details have been migrated to the secure Paystack verification system. Direct profile overrides are disabled to protect your revenue.
+            </p>
+            <button 
+              onClick={() => { window.location.href = "/vendors/transactions" }}
+              className="bg-orange-600 text-white px-6 py-3 rounded-md text-[10px] font-black uppercase tracking-[0.15em] transition-all hover:bg-orange-700 active:scale-95"
+            >
+              Manage Bank via Secure Gateway
             </button>
           </div>
         </Section>

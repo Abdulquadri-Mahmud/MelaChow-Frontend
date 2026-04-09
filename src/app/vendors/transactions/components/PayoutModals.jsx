@@ -48,7 +48,16 @@ export function ConfigureBankModal({ isOpen, onClose, onSaved, existingDetails }
         try {
             const res = await getBankList();
             if (res.banks) {
-                setBanks(res.banks);
+                // Deduplicate banks by bank.code to prevent React key warning
+                const uniqueBanks = [];
+                const seenCodes = new Set();
+                for (const bank of res.banks) {
+                    if (!seenCodes.has(bank.code)) {
+                        seenCodes.add(bank.code);
+                        uniqueBanks.push(bank);
+                    }
+                }
+                setBanks(uniqueBanks);
             }
         } catch (err) {
             console.error("Failed to fetch banks:", err);
