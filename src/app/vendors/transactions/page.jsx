@@ -378,7 +378,7 @@ Need help? Contact support with your reference ID
 
                 {/* Transactions List */}
                 <div
-                    className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden"
+                    className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-800/50 overflow-hidden shadow-xl shadow-slate-200/30 dark:shadow-none"
                 >
 
                     {/* Filters Header */}
@@ -508,7 +508,7 @@ Need help? Contact support with your reference ID
                     <div className="overflow-x-auto">
                         {activeTab === "ledger" ? (
                             <table className="w-full text-left">
-                                <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-400 text-[9px] uppercase font-black tracking-widest border-b border-slate-100 dark:border-slate-800">
+                                <thead className="bg-slate-50/50 dark:bg-slate-950/20 text-slate-400 text-[9px] uppercase font-black tracking-widest border-b border-slate-100 dark:border-slate-800">
                                     <tr>
                                         <th className="px-5 py-3">Transaction</th>
                                         <th className="px-5 py-3">Reference</th>
@@ -572,7 +572,7 @@ Need help? Contact support with your reference ID
                             </table>
                         ) : (
                             <table className="w-full text-left">
-                                <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-400 text-[9px] uppercase font-black tracking-widest border-b border-slate-100 dark:border-slate-800">
+                                <thead className="bg-slate-50/50 dark:bg-slate-950/20 text-slate-400 text-[9px] uppercase font-black tracking-widest border-b border-slate-100 dark:border-slate-800">
                                     <tr>
                                         <th className="px-5 py-3">Payout Ref</th>
                                         <th className="px-5 py-3">Destination</th>
