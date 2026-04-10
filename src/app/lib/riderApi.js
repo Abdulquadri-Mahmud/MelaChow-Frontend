@@ -45,6 +45,11 @@ export const getRiderProfile = async () => {
     return response.data;
 };
 
+export const updateRiderProfile = async (riderId, data) => {
+    const response = await API.patch(`/riders/${riderId}`, data);
+    return response.data;
+};
+
 // Status
 export const toggleRiderAvailability = async (riderId, status) => {
     if (!riderId || riderId === 'undefined') {

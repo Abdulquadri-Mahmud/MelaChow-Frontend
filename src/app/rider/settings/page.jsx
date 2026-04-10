@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     Bike, Phone, User, Shield, LogOut, ChevronRight,
-    Bell, Moon, HelpCircle, MessageCircle, Star, Edit3, Mail
+    Bell, Moon, HelpCircle, MessageCircle, Star, Edit3, Mail,
+    Camera, Lock
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
 import { useRider } from "@/app/context/RiderContext";
@@ -38,29 +39,101 @@ const SettingRow = ({ icon: Icon, label, value, onClick, danger = false, badge }
     </button>
 );
 
+const CLOUDINARY_PRESET = "GrubDash";
+const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
+
+const uploadToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_PRESET);
+    try {
+        const res = await fetch(CLOUDINARY_HOST, {
+            method: "POST",
+            body: formData,
+        });
+        if (!res.ok) throw new Error("Upload failed");
+        const data = await res.json();
+        return data.secure_url;
+    } catch (err) {
+        toast.error("Image upload failed");
+        return null;
+    }
+};
+
 export default function RiderSettingsPage() {
-    const { rider, logout, isOnline, toggleAvailability } = useRider();
+    const { rider, logout, isOnline, toggleAvailability, updateProfile } = useRider();
     const { theme, toggleTheme } = useTheme();
     const [notifications, setNotifications] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [editData, setEditData] = useState({ name: "", phone: "", email: "", password: "" });
 
     const handleLogout = () => {
         toast.success("Logged out successfully");
         setTimeout(logout, 800);
     };
 
+    const openEdit = () => {
+        setEditData({
+            name: rider?.name || "",
+            phone: rider?.phone || "",
+            email: rider?.email || "",
+            password: ""
+        });
+        setIsEditing(true);
+    };
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        setIsSaving(true);
+        
+        // Filter out empty password
+        const dataToUpdate = { ...editData };
+        if (!dataToUpdate.password) delete dataToUpdate.password;
+
+        const success = await updateProfile(dataToUpdate);
+        if (success) setIsEditing(false);
+        setIsSaving(false);
+    };
+
+    const handleAvatarChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const toastId = toast.loading("Uploading avatar...");
+        const url = await uploadToCloudinary(file);
+        
+        if (url) {
+            const success = await updateProfile({ avatar: url });
+            if (success) {
+                toast.success("Avatar updated", { id: toastId });
+            } else {
+                toast.dismiss(toastId);
+            }
+        } else {
+            toast.dismiss(toastId);
+        }
+    };
+
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 pb-10">
             {/* Profile Card */}
             <motion.div
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white dark:bg-gradient-to-br dark:from-[#1E2128] dark:to-[#1A1D23] border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none rounded-[28px] p-6 flex items-center gap-5"
             >
-                <div className="w-20 h-20 rounded-3xl bg-orange-100 flex items-center justify-center overflow-hidden border-2 border-orange-500/30 shrink-0">
-                    {rider?.avatar
-                        ? <img src={rider.avatar} alt="" className="w-full h-full object-cover" />
-                        : <Bike size={32} className="text-orange-600" />
-                    }
+                <div className="relative group">
+                    <div className="w-20 h-20 rounded-3xl bg-orange-100 flex items-center justify-center overflow-hidden border-2 border-orange-500/30 shrink-0">
+                        {rider?.avatar
+                            ? <img src={rider.avatar} alt="" className="w-full h-full object-cover" />
+                            : <Bike size={32} className="text-orange-600" />
+                        }
+                    </div>
+                    <label className="absolute -bottom-1 -right-1 w-8 h-8 bg-orange-600 text-white rounded-xl flex items-center justify-center cursor-pointer shadow-lg border-2 border-white dark:border-[#1E2128] hover:scale-110 transition-all">
+                        <Camera size={14} />
+                        <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
+                    </label>
                 </div>
                 <div className="flex-1 min-w-0">
                     <h2 className="text-xl font-black text-gray-900 dark:text-white truncate">{rider?.name || "Rider"}</h2>
@@ -72,7 +145,7 @@ export default function RiderSettingsPage() {
                     </div>
                 </div>
                 <button
-                    onClick={() => toast("Edit profile coming soon", { icon: "ðŸš§" })}
+                    onClick={openEdit}
                     className="w-10 h-10 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl flex items-center justify-center text-gray-400 dark:text-gray-400 transition-colors shrink-0"
                 >
                     <Edit3 size={16} />
@@ -87,12 +160,13 @@ export default function RiderSettingsPage() {
                 className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none rounded-3xl overflow-hidden"
             >
                 <div className="px-4 pt-4 pb-2">
-                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Account</p>
+                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Account & Security</p>
                 </div>
-                <SettingRow icon={User} label="Personal Info" value={rider?.name} onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
-                <SettingRow icon={Phone} label="Phone Number" value={rider?.phone} onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
-                <SettingRow icon={Star} label="My Ratings" value={`${rider?.rating?.toFixed(1) || "New"} â€¢ ${rider?.ratingCount || 0} reviews`} onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
-                <SettingRow icon={Shield} label="Security" value="Password & 2FA" onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
+                <SettingRow icon={User} label="Personal Info" value={rider?.name} onClick={openEdit} />
+                <SettingRow icon={Phone} label="Phone Number" value={rider?.phone} onClick={openEdit} />
+                <SettingRow icon={Mail} label="Email Address" value={rider?.email || "Not set"} onClick={openEdit} />
+                <SettingRow icon={Lock} label="Security" value="Update Password" onClick={openEdit} />
+                <SettingRow icon={Star} label="My Ratings" value={`${rider?.rating?.toFixed(1) || "New"} â€¢ ${rider?.ratingCount || 0} reviews`} onClick={() => toast("Ratings cannot be edited", { icon: "🔒" })} />
             </motion.div>
 
             {/* Preferences */}
@@ -175,6 +249,107 @@ export default function RiderSettingsPage() {
 
             {/* App version */}
             <p className="text-center text-[11px] text-gray-700 font-medium pb-2">MelaChow Rider v1.0.0</p>
+
+            {/* Edit Profile Modal */}
+            <AnimatePresence>
+            {isEditing && (
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
+                    <motion.div
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        exit={{ y: "100%" }}
+                        className="bg-white dark:bg-[#1A1D23] w-full max-w-lg rounded-t-[32px] sm:rounded-[32px] overflow-hidden shadow-2xl max-h-[90vh] overflow-y-auto"
+                    >
+                        <div className="p-6 sm:p-8 space-y-6">
+                            <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-[#1A1D23] z-10 pb-2">
+                                <h3 className="text-2xl font-black text-gray-900 dark:text-white">Profile Settings</h3>
+                                <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center text-gray-500 hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                                    <Edit3 size={18} className="rotate-45" />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleSave} className="space-y-6 pb-4">
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Full Name</label>
+                                            <input
+                                                type="text"
+                                                value={editData.name}
+                                                onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                                                className="w-full bg-gray-50 dark:bg-white/5 border-0 focus:ring-2 focus:ring-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-900 dark:text-white transition-all shadow-inner"
+                                                placeholder="Enter your name"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Phone Number</label>
+                                            <input
+                                                type="tel"
+                                                value={editData.phone}
+                                                onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                                                className="w-full bg-gray-50 dark:bg-white/5 border-0 focus:ring-2 focus:ring-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-900 dark:text-white transition-all shadow-inner"
+                                                placeholder="Enter phone number"
+                                                required
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Email Address</label>
+                                            <input
+                                                type="email"
+                                                value={editData.email}
+                                                onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                                                className="w-full bg-gray-50 dark:bg-white/5 border-0 focus:ring-2 focus:ring-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-900 dark:text-white transition-all shadow-inner"
+                                                placeholder="Enter email address"
+                                            />
+                                        </div>
+
+                                        <div className="mt-4 pt-4 border-t border-black/5 dark:border-white/5">
+                                            <label className="text-xs font-black text-orange-600 uppercase tracking-widest px-1 mb-2 block">Security Override</label>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">New Password</label>
+                                                <input
+                                                    type="password"
+                                                    value={editData.password}
+                                                    onChange={(e) => setEditData({ ...editData, password: e.target.value })}
+                                                    className="w-full bg-orange-50/50 dark:bg-orange-500/5 border border-orange-200/50 dark:border-orange-500/10 focus:ring-2 focus:ring-orange-500 rounded-2xl p-4 text-sm font-bold text-gray-900 dark:text-white transition-all shadow-inner"
+                                                    placeholder="Enter new password (optional)"
+                                                    autoComplete="new-password"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-2 flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsEditing(false)}
+                                        className="flex-1 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-900 dark:text-white font-black p-4 rounded-2xl transition-all"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSaving}
+                                        className="flex-[2] bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white font-black p-4 rounded-2xl transition-all shadow-lg shadow-orange-600/20 flex items-center justify-center gap-2"
+                                    >
+                                        {isSaving ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Processing...
+                                            </>
+                                        ) : "Save Changes"}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+            </AnimatePresence>
         </div>
     );
 }
