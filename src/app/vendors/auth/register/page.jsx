@@ -414,7 +414,7 @@ export default function VendorRegisterPage() {
         setModal({
           open: true,
           title: "Registration Successful",
-          message: "Verification code sent! ðŸ“§",
+          message: "Verification code sent! 📩",
           type: "success"
         });
 
