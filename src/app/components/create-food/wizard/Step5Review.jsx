@@ -189,7 +189,7 @@ export default function Step5Review({ onBack, onComplete, onSetStep }) {
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-8 h-8 rounded-md bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shrink-0 flex items-center justify-center">
                                                                 {opt.image_url ? (
-                                                                    <img src={opt.image_url} alt={opt.label} className="w-full h-full object-cover grayscale opacity-60" />
+                                                                    <img src={opt.image_url} alt={opt.label} className="w-full h-full object-cover" />
                                                                 ) : (
                                                                     <ImageIcon size={12} className="text-slate-300 dark:text-slate-700" />
                                                                 )}

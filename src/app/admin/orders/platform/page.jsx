@@ -25,6 +25,7 @@ import AdminDashboardLayout from "@/app/components/admin/AdminDashboardLayout";
 import adminApi from "@/app/lib/adminApi";
 import toast from "react-hot-toast";
 import AdminRiderAssignmentModal from '@/app/components/admin/AdminRiderAssignmentModal';
+import { generateOrderItemsStatement } from "@/app/lib/utils";
 
 const statusConfig = {
     pending: { color: "bg-yellow-50 text-yellow-600", label: "Pending" },
@@ -300,6 +301,17 @@ export default function PlatformDeliveriesPage() {
                                                                 </button>
                                                             )}
                                                         </div>
+                                                    </div>
+
+                                                    {/* Descriptive Order Narrative */}
+                                                    <div className="pt-3 border-t border-slate-100">
+                                                        <div className="flex items-center gap-1.5 mb-1.5">
+                                                            <div className="w-1 h-1 rounded-full bg-slate-400" />
+                                                            <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.15em]">Directive</p>
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-slate-700 leading-snug uppercase italic line-clamp-2">
+                                                            {generateOrderItemsStatement(order, { includeCustomerName: true })}
+                                                        </p>
                                                     </div>
                                                 </div>
 

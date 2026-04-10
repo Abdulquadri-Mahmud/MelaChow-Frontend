@@ -40,6 +40,7 @@ import AdminDashboardLayout from "@/app/components/admin/AdminDashboardLayout";
 import adminApi from "@/app/lib/adminApi";
 import toast from "react-hot-toast";
 import AdminRiderAssignmentModal from '@/app/components/admin/AdminRiderAssignmentModal';
+import { generateOrderItemsStatement } from "@/app/lib/utils";
 
 const statusConfig = {
     pending: { color: "text-amber-500", bg: "bg-amber-50", border: "border-amber-100", label: "Pending Activation" },
@@ -246,6 +247,32 @@ export default function OrderDetailsPage() {
                             >
                                 <ShieldCheck size={16} /> Override Status
                             </button>
+                        </div>
+                    </div>
+
+                    {/* DESCRIPTIVE NARRATIVE SUMMARY */}
+                    <div className="mb-8">
+                        <div className="bg-slate-900 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden">
+                            {/* Decorative background element */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-slate-800 rounded-full -translate-y-32 translate-x-32 opacity-20" />
+                            
+                            <div className="relative z-10">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500">Intelligent Order Narrative</p>
+                                </div>
+                                <h2 className="text-lg md:text-xl font-black text-white leading-relaxed uppercase italic tracking-tight">
+                                    {generateOrderItemsStatement(order, { includeCustomerName: true })}
+                                </h2>
+                                <div className="mt-4 flex items-center gap-4">
+                                    <div className="px-3 py-1 bg-slate-800 rounded-lg border border-slate-700 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                        System Processed
+                                    </div>
+                                    <div className="px-3 py-1 bg-slate-800 rounded-lg border border-slate-700 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                        Fulfillment Ready
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
