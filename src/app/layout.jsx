@@ -46,6 +46,10 @@ export const viewport = {
 export const metadata = {
   metadataBase: new URL("https://www.melachow.com"),
 
+  verification: {
+    google: "dDaMQbK3bEMaCansUdJKYJaNmvytgcnsOMKeZ8HNQjg",
+  },
+
   // ── Core ──────────────────────────────────────────────────────────────
   title: {
     default: "MelaChow — Nigerian Food Delivery, Order Local Meals Online",

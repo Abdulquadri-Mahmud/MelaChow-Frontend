@@ -144,8 +144,25 @@ export default function RiderDashboard() {
 
     if (loading) {
         return (
-            <div className="flex justify-center py-20">
-                <Loader2 className="animate-spin text-orange-500" size={36} />
+            <div className="space-y-6 animate-pulse">
+                {/* Greeting Skeleton */}
+                <div className="flex justify-between items-start">
+                    <div>
+                        <div className="h-9 w-48 bg-gray-200 dark:bg-white/10 rounded-xl"></div>
+                        <div className="h-4 w-64 bg-gray-200 dark:bg-white/5 rounded-lg mt-3"></div>
+                    </div>
+                    <div className="w-10 h-10 bg-gray-200 dark:bg-white/10 rounded-xl"></div>
+                </div>
+
+                {/* Quick Stats Skeleton */}
+                <div className="grid grid-cols-2 gap-4">
+                    {[1, 2, 3, 4].map(idx => (
+                        <div key={idx} className="bg-gray-200 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl h-[120px]"></div>
+                    ))}
+                </div>
+
+                {/* Active Order Skeleton */}
+                <div className="w-full h-[400px] bg-gray-200 dark:bg-white/5 rounded-[20px]"></div>
             </div>
         );
     }
@@ -176,7 +193,7 @@ export default function RiderDashboard() {
             <div className="grid grid-cols-2 gap-4">
                 <Link
                     href="/rider/wallet"
-                    className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3 cursor-pointer hover:border-orange-500/30 transition-all group block"
+                    className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-xl md:p-5 p-3 cursor-pointer hover:border-orange-500/30 transition-all group block"
                 >
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-orange-500/10 text-orange-500 rounded-lg group-hover:bg-orange-600 group-hover:text-white transition-colors">
@@ -191,7 +208,7 @@ export default function RiderDashboard() {
                     <div className="text-[10px] text-gray-600 font-bold mt-1">lifetime total</div>
                 </Link>
 
-                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3">
+                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-xl md:p-5 p-3">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 rounded-lg">
                             <Star size={16} />
@@ -206,7 +223,7 @@ export default function RiderDashboard() {
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3">
+                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-xl md:p-5 p-3">
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2 bg-blue-500/10 text-blue-600 dark:text-blue-500 rounded-lg">
                             <Activity size={16} />
@@ -219,7 +236,7 @@ export default function RiderDashboard() {
                     <div className="text-[10px] text-gray-600 font-bold mt-1">lifetime</div>
                 </div>
 
-                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-3xl md:p-5 p-3">
+                <div className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-xl md:p-5 p-3">
                     <div className="flex items-center gap-3 mb-2">
                         <div className={`p-2 rounded-lg ${isOnline ? "bg-green-500/10 text-green-600 dark:text-green-500" : "bg-red-500/10 text-red-600 dark:text-red-500"}`}>
                             <Bike size={16} />
@@ -316,8 +333,80 @@ export default function RiderDashboard() {
                                 </div>
                             </div>
 
+                            {/* Order Summary */}
+                            {activeOrder?.items && activeOrder.items.length > 0 && (
+                                <div className="bg-white/50 dark:bg-white/5 backdrop-blur-sm rounded-xl p-5 mb-8 border border-orange-100 dark:border-white/5">
+                                    <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                                        <Package size={16} className="text-orange-600 dark:text-orange-400" />
+                                        Order Summary
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {activeOrder.items.map((item, idx) => {
+                                            const itemName = item.name || item.variant?.name || item.foodName || "Item";
+                                            const quantity = Number(item.quantity) || 1;
+                                            const options = item.selected_options || [];
+                                            const portionLabel = item.portion_label || item.portion || "";
+                                            
+                                            const hasPortionWord = portionLabel.toLowerCase().includes('portion');
+                                            let portionText = "";
+                                            if (!portionLabel) {
+                                                portionText = quantity > 1 ? "portions" : "portion";
+                                            } else if (hasPortionWord) {
+                                                portionText = portionLabel;
+                                            } else {
+                                                portionText = `${portionLabel} ${quantity > 1 ? "portions" : "portion"}`;
+                                            }
+
+                                            let fullSentence = `Deliver ${quantity} ${portionText} of ${itemName}`;
+                                            if (options.length > 0) {
+                                                const optionsTextList = options.map((opt) => `${Number(opt.quantity) > 0 ? (Number(opt.quantity) * quantity) + 'x ' : ''}${opt.label || opt.name}`);
+                                                fullSentence += `, with ${optionsTextList.length === 1 ? optionsTextList[0] : optionsTextList.length === 2 ? optionsTextList.join(' and ') : optionsTextList.slice(0, -1).join(', ') + ', and ' + optionsTextList.slice(-1)}`;
+                                            }
+                                            fullSentence += ".";
+
+                                            return (
+                                                <div key={idx} className="border-b border-gray-100 dark:border-white/5 last:border-0 pb-3 last:pb-0">
+                                                    <div className="flex gap-3">
+                                                        <div className="p-1.5 h-fit bg-slate-100 dark:bg-slate-800 rounded text-slate-500">
+                                                            <Package size={12} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-snug">
+                                                                {fullSentence}
+                                                            </p>
+                                                            {item.note && (
+                                                                <p className="text-xs text-orange-600 dark:text-orange-400 mt-1 italic font-medium">
+                                                                    Note: {item.note}
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/10 flex justify-between items-center px-1">
+                                        <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Items</span>
+                                        <span className="text-sm font-black text-gray-900 dark:text-white">
+                                            {activeOrder.items.reduce((acc, item) => acc + (item.quantity || 1), 0)}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* General Order Note */}
+                            {activeOrder?.note && (
+                                <div className="bg-orange-50 dark:bg-orange-900/20 rounded-2xl p-4 mb-8 border border-orange-100 dark:border-orange-500/20 flex gap-3 items-start">
+                                    <AlertCircle size={18} className="text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
+                                    <div>
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 mb-1">Customer Note</h4>
+                                        <p className="text-sm font-medium text-orange-900 dark:text-orange-100">{activeOrder.note}</p>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Customer & Call Section */}
-                            <div className="bg-white dark:bg-white/10 backdrop-blur-sm rounded-3xl p-4 mb-8 flex items-center justify-between border border-orange-100 dark:border-white/5">
+                            <div className="bg-white dark:bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-8 flex items-center justify-between border border-orange-100 dark:border-white/5">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-500/20 flex items-center justify-center">
                                         <Star size={18} className="text-orange-600 dark:text-orange-300" />
@@ -430,7 +519,7 @@ export default function RiderDashboard() {
                                             initial={{ opacity: 0, y: 100, scale: 0.95 }}
                                             animate={{ opacity: 1, y: 0, scale: 1 }}
                                             exit={{ opacity: 0, y: 100, scale: 0.95 }}
-                                            className="relative w-full max-w-sm bg-white dark:bg-[#1A1D23] rounded-3xl p-6 shadow-2xl border border-gray-100 dark:border-white/10"
+                                            className="relative w-full max-w-sm bg-white dark:bg-[#1A1D23] rounded-xl p-6 shadow-2xl border border-gray-100 dark:border-white/10"
                                         >
                                             <div className="flex flex-col items-center text-center space-y-4">
                                                 <div className="w-16 h-16 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center">
