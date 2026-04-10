@@ -1,4 +1,4 @@
-﻿import axios from "axios";
+import axios from "axios";
 import { TokenManager } from "@/app/lib/auth-token";
 
 const BASE_URL = "/api/vendors";
@@ -8,7 +8,7 @@ const BASE_URL = "/api/vendors";
 // Create axios instance
 const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // âœ… Send cookies
+  withCredentials: true, // ✅ Send cookies
   timeout: 15000,
 });
 
@@ -54,9 +54,9 @@ api.interceptors.response.use(
 // const vendorData = getVendorData();
 // const getVendorId = vendorData?.vendor?.id;
 
-// âœ… CRUD Functions
+// ✅ CRUD Functions
 export const getVendors = async () => {
-  // âœ… Force Token Initialization if missing (Fix for refresh race condition)
+  // ✅ Force Token Initialization if missing (Fix for refresh race condition)
   if (!TokenManager.getToken('vendor')) {
     TokenManager.initialize();
   }
@@ -66,7 +66,7 @@ export const getVendors = async () => {
       headers: {
         "Content-Type": "application/json",
       },
-      metadata: { suppressUnauthorized: true }, // âœ… Prevent loop for auto-fetches
+      metadata: { suppressUnauthorized: true }, // ✅ Prevent loop for auto-fetches
     });
     return res.data.data || res.data;
   } catch (error) {
@@ -90,7 +90,7 @@ export const getVendorById = async (id) => {
   }
 };
 
-// âœ… API call (pure function) for PUBLIC display
+// ✅ API call (pure function) for PUBLIC display
 export const fetchVendorForUserDisplay = async (id) => {
   const res = await api.get(`/vendor?id=${id}`, {
     headers: {

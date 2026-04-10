@@ -44,7 +44,7 @@ export const viewport = {
 };
 
 export const metadata = {
-  metadataBase: new URL("https://melachow.vercel.app"),
+  metadataBase: new URL("https://www.melachow.com"),
 
   // ── Core ──────────────────────────────────────────────────────────────
   title: {
@@ -78,7 +78,7 @@ export const metadata = {
 
   // ── Canonical & Alternates ─────────────────────────────────────────────
   alternates: {
-    canonical: "https://melachow.vercel.app",
+    canonical: "https://www.melachow.com",
   },
 
   // ── Robots ────────────────────────────────────────────────────────────
@@ -124,7 +124,7 @@ export const metadata = {
     title: "MelaChow — Nigerian Food Delivery, Order Local Meals Online",
     description:
       "Discover and order delicious Nigerian meals from trusted local restaurants. Jollof rice, suya, amala, soups, and more — delivered fast to your door.",
-    url: "https://melachow.vercel.app",
+    url: "https://www.melachow.com",
     siteName: "MelaChow",
     images: [
       {
@@ -164,7 +164,7 @@ export const metadata = {
   // ── App Links (deep linking for mobile apps) ──────────────────────────
   appLinks: {
     web: {
-      url: "https://melachow.vercel.app",
+      url: "https://www.melachow.com",
       should_fallback: true,
     },
   },
@@ -179,8 +179,8 @@ const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "MelaChow",
-  url: "https://melachow.vercel.app",
-  logo: "https://melachow.vercel.app/logo.jpeg",
+  url: "https://www.melachow.com",
+  logo: "https://www.melachow.com/logo.jpeg",
   description: "MelaChow is Nigeria's premier food delivery platform connecting customers with trusted local restaurants.",
   sameAs: [
     "https://twitter.com/melachow_app",
@@ -196,13 +196,13 @@ const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
   name: "MelaChow",
-  url: "https://melachow.vercel.app",
+  url: "https://www.melachow.com",
   description: "Order Nigerian food online from trusted local restaurants. Fast delivery of jollof rice, suya, amala, soups and more.",
   potentialAction: {
     "@type": "SearchAction",
     target: {
       "@type": "EntryPoint",
-      urlTemplate: "https://melachow.vercel.app/search?q={search_term_string}",
+      urlTemplate: "https://www.melachow.com/search?q={search_term_string}",
     },
     "query-input": "required name=search_term_string",
   },
@@ -213,9 +213,9 @@ const foodServiceSchema = {
   "@type": "FoodService",
   name: "MelaChow",
   description: "Nigerian food delivery platform connecting customers with local restaurants.",
-  url: "https://melachow.vercel.app",
-  logo: "https://melachow.vercel.app/logo.jpeg",
-  image: "https://melachow.vercel.app/logo.jpeg",
+  url: "https://www.melachow.com",
+  logo: "https://www.melachow.com/logo.jpeg",
+  image: "https://www.melachow.com/logo.jpeg",
   areaServed: {
     "@type": "Country",
     name: "Nigeria",
@@ -223,7 +223,7 @@ const foodServiceSchema = {
   serviceType: "Food Delivery",
   availableChannel: {
     "@type": "ServiceChannel",
-    serviceUrl: "https://melachow.vercel.app",
+    serviceUrl: "https://www.melachow.com",
     serviceType: "Online",
   },
   hasOfferCatalog: {

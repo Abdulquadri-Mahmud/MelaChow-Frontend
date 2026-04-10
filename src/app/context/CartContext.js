@@ -1,4 +1,4 @@
-﻿// /context-api/CartContext.js
+// /context-api/CartContext.js
 "use client";
 
 import { createContext, useContext, useState, useEffect } from "react";

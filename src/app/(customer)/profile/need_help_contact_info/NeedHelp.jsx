@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react'
+import React, { useState } from 'react'
 import {
   ChatBubbleLeftRightIcon,
   EnvelopeIcon,
@@ -96,7 +96,7 @@ export default function NeedHelp() {
                   <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
                     <ChatBubbleLeftRightIcon className="w-12 h-12 mb-2 text-zinc-300 dark:text-zinc-600" />
                     <p className="font-bold uppercase tracking-widest text-[10px] text-zinc-400 dark:text-zinc-500">
-                      Our team is ready ðŸ‘‹
+                      Our team is ready 👋
                     </p>
                   </div>
                 )}

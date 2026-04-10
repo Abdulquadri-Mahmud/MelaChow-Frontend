@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { createContext, useContext } from "react";
 
 const ApiContext = createContext({ baseUrl: "" });
@@ -10,7 +10,7 @@ export const ApiProvider = ({ children }) => {
   // const baseUrl = "https://melachow-api.onrender.com/api";
   // const baseUrl = "http://localhost:3001/api";
 
-  // âœ… Debug logging for development
+  // ✅ Debug logging for development
   if (process.env.NODE_ENV === 'development') {
     console.log('[ApiContext] Initialized with baseUrl:', baseUrl);
     console.log('[ApiContext] All API requests will proxy through:', baseUrl);

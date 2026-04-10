@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import Header2 from "@/app/components/App_Header/Header2";
@@ -71,7 +71,7 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 </div>
-                <span className="text-orange-500 text-xl font-bold opacity-30 group-hover:opacity-100 transform transition-transform group-hover:translate-x-1">â€º</span>
+                <span className="text-orange-500 text-xl font-bold opacity-30 group-hover:opacity-100 transform transition-transform group-hover:translate-x-1">›</span>
               </div>
             </Link>
             <Link href="/auth/signin" className='cursor-pointer'>

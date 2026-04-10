@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { X, Download, Smartphone } from "lucide-react";
@@ -224,7 +224,7 @@ export default function PWAInstallPrompt() {
                                         <div className="flex-1">
                                             <p className="text-sm text-gray-900 font-semibold">Tap the Share button</p>
                                             <p className="text-xs text-gray-600 mt-1">
-                                                Look for the <span className="font-mono bg-gray-100 px-1 rounded">â¬†ï¸</span> icon at the bottom of Safari
+                                                Look for the <span className="font-mono bg-gray-100 px-1 rounded">⬆️</span> icon at the bottom of Safari
                                             </p>
                                         </div>
                                     </div>
@@ -236,7 +236,7 @@ export default function PWAInstallPrompt() {
                                         <div className="flex-1">
                                             <p className="text-sm text-gray-900 font-semibold">Select "Add to Home Screen"</p>
                                             <p className="text-xs text-gray-600 mt-1">
-                                                Scroll down and tap the option with a <span className="font-mono bg-gray-100 px-1 rounded">âž•</span> icon
+                                                Scroll down and tap the option with a <span className="font-mono bg-gray-100 px-1 rounded">➕</span> icon
                                             </p>
                                         </div>
                                     </div>

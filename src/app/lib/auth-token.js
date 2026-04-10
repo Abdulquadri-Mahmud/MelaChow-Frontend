@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Secure Token Manager
  * 
  * Implements an in-memory token storage with localStorage fallback for iOS reliability.
@@ -95,7 +95,7 @@ export const TokenManager = {
     }
 };
 
-// âœ… Auto-initialize on import (Client-side only)
+// ✅ Auto-initialize on import (Client-side only)
 if (typeof window !== 'undefined') {
     TokenManager.initialize();
 }
