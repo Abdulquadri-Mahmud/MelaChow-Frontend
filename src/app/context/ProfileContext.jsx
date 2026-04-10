@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useEffect } from "react";
 import { useApi } from "./ApiContext";
@@ -30,7 +30,7 @@ export const ProfileProvider = ({ children }) => {
 
   const fetchProfile = async () => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[ProfileContext] ðŸ” fetchProfile START', {
+      console.log('[ProfileContext] 🔍 fetchProfile START', {
         baseUrl,
         currentPath: pathname,
         hasToken: !!TokenManager.getToken(),
@@ -55,7 +55,7 @@ export const ProfileProvider = ({ children }) => {
       });
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('[ProfileContext] ðŸ“¨ Response:', {
+        console.log('[ProfileContext] 📥 Response:', {
           status: res.status,
           ok: res.ok,
         });
@@ -127,7 +127,7 @@ export const ProfileProvider = ({ children }) => {
     refetchOnReconnect: true,
   });
 
-  // âœ… Track if the VERY FIRST check has completed
+  // ✅ Track if the VERY FIRST check has completed
   const [hasInitialCheckDone, setHasInitialCheckDone] = React.useState(false);
 
   useEffect(() => {
@@ -141,7 +141,7 @@ export const ProfileProvider = ({ children }) => {
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[ProfileContext] ðŸ” User Auth State:', {
+      console.log('[ProfileContext] 🔍 User Auth State:', {
         hasUserData: !!data,
         isLoading,
         hasCheckedSession,

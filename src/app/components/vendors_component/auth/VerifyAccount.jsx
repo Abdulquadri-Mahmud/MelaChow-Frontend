@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -75,7 +75,7 @@ export default function VerifyAccount() {
       // Auto-verify on paste
       handleVerify(newOtp);
     } else {
-      setMessage("âš ï¸ Please paste a valid 6-digit OTP");
+      setMessage("⚠️ Please paste a valid 6-digit OTP");
     }
   };
 
@@ -85,7 +85,7 @@ export default function VerifyAccount() {
     const currentOtp = Array.isArray(val) ? val : otp;
     const otpString = currentOtp.join("");
     if (otpString.length !== 6) {
-      setMessage("âš ï¸ Please enter a valid 6-digit OTP.");
+      setMessage("⚠️ Please enter a valid 6-digit OTP.");
       return;
     }
 
@@ -93,7 +93,7 @@ export default function VerifyAccount() {
       setLoading(true);
       setMessage(null);
 
-      // âœ… Explicit endpoint construction for clarity
+      // ✅ Explicit endpoint construction for clarity
       const endpoint = `${baseUrl}/vendor/auth/verify-otp`;
 
       if (process.env.NODE_ENV === 'development') {
@@ -106,7 +106,7 @@ export default function VerifyAccount() {
         { email, otp: otpString },
         {
           headers: { "Content-Type": "application/json" },
-          withCredentials: true,  // âœ… CRITICAL: Required to save vendorToken cookie
+          withCredentials: true,  // ✅ CRITICAL: Required to save vendorToken cookie
         }
       );
 
@@ -123,7 +123,7 @@ export default function VerifyAccount() {
         console.log('[VendorVerify] OTP verified successfully. Proceeding to set password.');
       }
 
-      setMessage("âœ… Verified successfully! Now set your password...");
+      setMessage("✅ Verified successfully! Now set your password...");
       setTimeout(() => router.push(`/vendors/auth/set-password?email=${encodeURIComponent(email)}`), 1500);
     } catch (error) {
       console.error('[VendorVerify] Verification error:', error);
@@ -155,13 +155,13 @@ export default function VerifyAccount() {
 
   // Resend OTP
   const handleResendOTP = async () => {
-    if (!email) return setMessage("âš ï¸ Email not found.");
+    if (!email) return setMessage("⚠️ Email not found.");
 
     try {
       setResending(true);
       setMessage(null);
 
-      // âœ… Explicit endpoint construction for clarity
+      // ✅ Explicit endpoint construction for clarity
       const endpoint = `${baseUrl}/vendor/auth/resend-otp`;
 
       if (process.env.NODE_ENV === 'development') {
@@ -187,7 +187,7 @@ export default function VerifyAccount() {
         return;
       }
 
-      setMessage("âœ… OTP resent successfully! Check your email.");
+      setMessage("✅ OTP resent successfully! Check your email.");
     } catch (error) {
       console.error('[VendorVerify] Resend error:', error);
 
@@ -270,7 +270,7 @@ export default function VerifyAccount() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className={`text-center p-3 rounded-xl mb-6 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 ${message.includes("âœ…") ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"
+              className={`text-center p-3 rounded-xl mb-6 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 ${message.includes("✅") ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-500"
                 }`}
             >
               {message}

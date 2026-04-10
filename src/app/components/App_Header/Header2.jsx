@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -11,7 +11,7 @@ export default function Header2({ title, subtitle }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Extract route name from pathname (e.g. /auth/signin â†’ "Signin")
+  // Extract route name from pathname (e.g. /auth/signin → "Signin")
   const routeName = pathname
     ?.split("/")
     .filter(Boolean)

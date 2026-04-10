@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -66,7 +66,7 @@ export default function VendorLoginPage() {
         saveVendor(vendorData);
       }
 
-      setMessage("Signin successful! ðŸŽ‰ Redirecting...");
+      setMessage("Signin successful! 🎉 Redirecting...");
       setTimeout(() => {
         router.push("/vendors/dashboard");
       }, 1000);
@@ -91,7 +91,7 @@ export default function VendorLoginPage() {
         }, 2000);
       } else if (status === 423) {
         // Guide: Brute force lock.
-        setMessage("ðŸš¨ Security Lock: Too many attempts. Please wait 15 minutes.");
+        setMessage("🚨 Security Lock: Too many attempts. Please wait 15 minutes.");
       } else if (status === 401) {
         setMessage("Invalid credentials. Please check your email and password.");
       } else {
@@ -183,7 +183,7 @@ export default function VendorLoginPage() {
 
         <div className="mt-4 pt-4 border-t border-slate-50 dark:border-slate-800 text-center space-y-4">
           <p className="text-[11px] font-bold text-slate-500 uppercase tracking-tight">
-            Donâ€™t have a vendor account?{" "}
+            Don't have a vendor account?{" "}
             <Link
               href="/vendors/auth/register"
               className="text-orange-600 hover:text-orange-700 transition font-black tracking-widest italic"
@@ -201,7 +201,7 @@ export default function VendorLoginPage() {
         </div>
       </motion.div>
 
-      {/* âœ… Premium Notification Modal */}
+      {/* ✅ Premium Notification Modal */}
       <AnimatePresence>
         {message && (
           <motion.div

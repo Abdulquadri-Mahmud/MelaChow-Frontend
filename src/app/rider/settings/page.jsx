@@ -137,7 +137,7 @@ export default function RiderSettingsPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                     <h2 className="text-xl font-black text-gray-900 dark:text-white truncate">{rider?.name || "Rider"}</h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-0.5">{rider?.phone || "â€”"}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium mt-0.5">{rider?.phone || "—"}</p>
                     <div className={`inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${isOnline ? "bg-green-500/10 text-green-400" : "bg-gray-500/10 text-gray-500"
                         }`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-green-500 animate-pulse" : "bg-gray-500"}`} />
@@ -166,7 +166,7 @@ export default function RiderSettingsPage() {
                 <SettingRow icon={Phone} label="Phone Number" value={rider?.phone} onClick={openEdit} />
                 <SettingRow icon={Mail} label="Email Address" value={rider?.email || "Not set"} onClick={openEdit} />
                 <SettingRow icon={Lock} label="Security" value="Update Password" onClick={openEdit} />
-                <SettingRow icon={Star} label="My Ratings" value={`${rider?.rating?.toFixed(1) || "New"} â€¢ ${rider?.ratingCount || 0} reviews`} onClick={() => toast("Ratings cannot be edited", { icon: "🔒" })} />
+                <SettingRow icon={Star} label="My Ratings" value={`${rider?.rating?.toFixed(1) || "New"} • ${rider?.ratingCount || 0} reviews`} onClick={() => toast("Ratings cannot be edited", { icon: "🔒" })} />
             </motion.div>
 
             {/* Preferences */}
@@ -223,9 +223,9 @@ export default function RiderSettingsPage() {
                 <div className="px-4 pt-4 pb-2">
                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Help & Support</p>
                 </div>
-                <SettingRow icon={HelpCircle} label="FAQs" onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
-                <SettingRow icon={MessageCircle} label="Chat with Support" onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
-                <SettingRow icon={Mail} label="Contact Us" value="support@melachow.ng" onClick={() => toast("Coming soon", { icon: "ðŸš§" })} />
+                <SettingRow icon={HelpCircle} label="FAQs" onClick={() => toast("Coming soon", { icon: "🚧" })} />
+                <SettingRow icon={MessageCircle} label="Chat with Support" onClick={() => toast("Coming soon", { icon: "🚧" })} />
+                <SettingRow icon={Mail} label="Contact Us" value="support@melachow.ng" onClick={() => toast("Coming soon", { icon: "🚧" })} />
             </motion.div>
 
             {/* Logout */}
