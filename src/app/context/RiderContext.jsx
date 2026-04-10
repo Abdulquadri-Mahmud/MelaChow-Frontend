@@ -207,6 +207,25 @@ export const RiderProvider = ({ children }) => {
         }
     };
 
+    const updateProfile = async (updateData) => {
+        const currentRiderId = rider?._id || rider?.id;
+        if (!currentRiderId) return;
+
+        try {
+            const { updateRiderProfile } = await import('@/app/lib/riderApi');
+            const response = await updateRiderProfile(currentRiderId, updateData);
+            if (response.success) {
+                setRider(prev => ({ ...prev, ...response.data }));
+                toast.success('Profile updated successfully');
+                return true;
+            }
+        } catch (error) {
+            console.error('Update profile error:', error);
+            toast.error(error?.response?.data?.message || 'Failed to update profile');
+            return false;
+        }
+    };
+
     return (
         <RiderContext.Provider value={{
             rider,
@@ -216,6 +235,7 @@ export const RiderProvider = ({ children }) => {
             toggleAvailability,
             logout,
             refreshProfile,
+            updateProfile,
             notifications,
             setNotifications,
             unreadCount,
