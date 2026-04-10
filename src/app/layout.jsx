@@ -44,30 +44,86 @@ export const viewport = {
 };
 
 export const metadata = {
+  metadataBase: new URL("https://melachow.vercel.app"),
+
+  // ── Core ──────────────────────────────────────────────────────────────
   title: {
-    default: "MelaChow",
+    default: "MelaChow — Nigerian Food Delivery, Order Local Meals Online",
     template: "%s | MelaChow",
   },
   description:
-    "MelaChow brings local flavors to your doorstep â€” discover and order delicious meals from trusted restaurants near you.",
+    "MelaChow is Nigeria's premier food delivery platform. Order jollof rice, suya, amala, pounded yam, and more from trusted local restaurants. Fast delivery, great prices.",
   keywords: [
     "MelaChow",
-    "food delivery",
-    "restaurants",
-    "local meals",
-    "Nigeria food app",
-    "order food online",
+    "Nigerian food delivery",
+    "order food online Nigeria",
+    "jollof rice delivery",
+    "local meals Nigeria",
+    "food near me Nigeria",
+    "restaurant delivery Nigeria",
+    "Lagos food delivery",
+    "Abuja food delivery",
+    "African food delivery",
+    "suya delivery",
+    "amala delivery",
+    "pounded yam delivery",
+    "fast food delivery Nigeria",
+    "online food ordering Nigeria",
+    "best food app Nigeria",
+    "restaurant app Nigeria",
+    "local restaurant delivery",
+    "MelaChow app",
+    "food delivery app Nigeria",
   ],
+
+  // ── Canonical & Alternates ─────────────────────────────────────────────
+  alternates: {
+    canonical: "https://melachow.vercel.app",
+  },
+
+  // ── Robots ────────────────────────────────────────────────────────────
+  robots: {
+    index: true,
+    follow: true,
+    nocache: false,
+    googleBot: {
+      index: true,
+      follow: true,
+      noimageindex: false,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
+  // ── Icons ─────────────────────────────────────────────────────────────
+  icons: {
+    icon: [
+      { url: "/logo.jpeg", type: "image/jpeg" },
+      { url: "/favicon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/logo.jpeg",
+  },
+
+  // ── PWA / Apple Web App ───────────────────────────────────────────────
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "MelaChow",
+    startupImage: [
+      { url: "/logo.jpeg" },
+    ],
   },
+
+  // ── Open Graph ────────────────────────────────────────────────────────
   openGraph: {
-    title: "MelaChow — Local Meals Delivered Fast",
+    title: "MelaChow — Nigerian Food Delivery, Order Local Meals Online",
     description:
-      "Discover, order, and enjoy fresh local dishes from trusted restaurants around you with MelaChow.",
+      "Discover and order delicious Nigerian meals from trusted local restaurants. Jollof rice, suya, amala, soups, and more — delivered fast to your door.",
     url: "https://melachow.vercel.app",
     siteName: "MelaChow",
     images: [
@@ -75,30 +131,113 @@ export const metadata = {
         url: "/logo.jpeg",
         width: 1200,
         height: 630,
-        alt: "MelaChow - Local Meals Delivered Fast",
+        alt: "MelaChow — Nigerian Food Delivery App",
+        type: "image/jpeg",
       },
     ],
-    locale: "en_US",
+    locale: "en_NG",
+    alternateLocale: ["en_US", "en_GB"],
     type: "website",
+    countryName: "Nigeria",
   },
+
+  // ── Twitter / X ───────────────────────────────────────────────────────
   twitter: {
     card: "summary_large_image",
-    title: "MelaChow — Local Meals Delivered Fast",
+    title: "MelaChow — Nigerian Food Delivery, Order Local Meals Online",
     description:
-      "Order delicious local dishes and get them delivered quickly with MelaChow.",
-    images: ["/logo.jpeg"],
+      "Order jollof rice, suya, amala, and more from trusted Nigerian restaurants. Fast delivery with MelaChow.",
+    images: [
+      {
+        url: "/logo.jpeg",
+        alt: "MelaChow — Nigerian Food Delivery App",
+      },
+    ],
     creator: "@melachow_app",
+    site: "@melachow_app",
   },
-  metadataBase: new URL("https://melachow.vercel.app"),
+
+  // ── Category & Classification ─────────────────────────────────────────
+  category: "food & dining",
+  classification: "Food Delivery Service",
+
+  // ── App Links (deep linking for mobile apps) ──────────────────────────
+  appLinks: {
+    web: {
+      url: "https://melachow.vercel.app",
+      should_fallback: true,
+    },
+  },
 };
+
 
 import { ThemeProvider } from "./context/ThemeContext";
 import InstallPWA from "./components/InstallPWA";
+import JsonLd from "./components/JsonLd";
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "MelaChow",
+  url: "https://melachow.vercel.app",
+  logo: "https://melachow.vercel.app/logo.jpeg",
+  description: "MelaChow is Nigeria's premier food delivery platform connecting customers with trusted local restaurants.",
+  sameAs: [
+    "https://twitter.com/melachow_app",
+  ],
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer support",
+    availableLanguage: "English",
+  },
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "MelaChow",
+  url: "https://melachow.vercel.app",
+  description: "Order Nigerian food online from trusted local restaurants. Fast delivery of jollof rice, suya, amala, soups and more.",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: "https://melachow.vercel.app/search?q={search_term_string}",
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
+const foodServiceSchema = {
+  "@context": "https://schema.org",
+  "@type": "FoodService",
+  name: "MelaChow",
+  description: "Nigerian food delivery platform connecting customers with local restaurants.",
+  url: "https://melachow.vercel.app",
+  logo: "https://melachow.vercel.app/logo.jpeg",
+  image: "https://melachow.vercel.app/logo.jpeg",
+  areaServed: {
+    "@type": "Country",
+    name: "Nigeria",
+  },
+  serviceType: "Food Delivery",
+  availableChannel: {
+    "@type": "ServiceChannel",
+    serviceUrl: "https://melachow.vercel.app",
+    serviceType: "Online",
+  },
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "Nigerian Meals & Restaurants",
+  },
+};
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${playfairDisplay.variable} antialiased transition-colors duration-300`}>
+        {/* ── Structured Data ─────────────────────────────────────── */}
+        <JsonLd data={[organizationSchema, websiteSchema, foodServiceSchema]} />
         {/* ✅ ONLY base providers - no auth logic here */}
         <ThemeProvider>
           <ApiProvider>
