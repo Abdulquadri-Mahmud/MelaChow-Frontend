@@ -149,8 +149,8 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       <motion.aside
         initial={false}
         animate={isMobile
-          ? { x: mobileOpen ? 0 : "-100%", width: 280 }
-          : { x: 0, width: open ? 280 : 80 }
+          ? { x: mobileOpen ? 0 : "-100%", width: 310 }
+          : { x: 0, width: open ? 310 : 80 }
         }
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className={`fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-[60] flex flex-col`}

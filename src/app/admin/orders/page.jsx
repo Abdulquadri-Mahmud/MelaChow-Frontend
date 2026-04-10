@@ -35,6 +35,7 @@ import AdminDashboardLayout from "@/app/components/admin/AdminDashboardLayout";
 import adminApi from "@/app/lib/adminApi";
 import toast from "react-hot-toast";
 import AdminRiderAssignmentModal from '@/app/components/admin/AdminRiderAssignmentModal';
+import { generateOrderItemsStatement } from "@/app/lib/utils";
 
 const statusConfig = {
     pending: { color: "bg-amber-50 text-amber-700 border-amber-200", label: "Pending" },
@@ -527,6 +528,12 @@ export default function AdminOrdersPage() {
                                                         <p className="text-[11px] font-bold text-slate-500 uppercase truncate leading-none mb-1">{order.items?.[0]?.foodId?.name || "Order"}</p>
                                                         <p className="text-xs font-bold text-slate-900">₦{order.total?.toLocaleString()}</p>
                                                     </div>
+                                                </div>
+
+                                                <div className="mb-3 px-2 py-1.5 bg-slate-50 rounded border border-slate-100">
+                                                    <p className="text-[9px] font-bold text-slate-600 leading-tight uppercase italic line-clamp-2">
+                                                        {generateOrderItemsStatement(order, { includeCustomerName: true })}
+                                                    </p>
                                                 </div>
 
                                                 <div className="flex items-center justify-between">

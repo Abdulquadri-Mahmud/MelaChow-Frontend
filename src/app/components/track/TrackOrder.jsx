@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import ReviewModal from "@/app/modals/ReviewModal";
 import { useOrderTracking } from "@/app/hooks/useOrderTracking";
 import toast from "react-hot-toast";
+import { generateOrderItemsStatement } from "@/app/lib/utils";
 
 const statusSteps = [
   {
@@ -596,6 +597,17 @@ export default function OrderTracking() {
 
               {/* Enhanced Pricing Breakdown */}
               <div className="mt-10 pt-8 border-t-2 border-zinc-50 dark:border-zinc-800 space-y-4">
+                {/* Full Order Narrative Statement */}
+                <div className="mb-6 bg-orange-50 dark:bg-orange-950/20 p-5 rounded-[28px] border border-orange-100 dark:border-orange-900/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-orange-600" />
+                    <p className="text-[10px] font-black uppercase tracking-widest text-orange-600">Order Directive Summary</p>
+                  </div>
+                  <p className="text-[14px] font-black text-zinc-900 dark:text-white leading-relaxed uppercase italic">
+                    {generateOrderItemsStatement(orderData, { prefix: "You ordered for" })}
+                  </p>
+                </div>
+
                 <div className="flex justify-between items-center text-zinc-400 text-[11px] font-black uppercase tracking-widest">
                   <span>Subtotal</span>
                   <span className="text-zinc-900 dark:text-white">₦{subtotal.toLocaleString()}</span>

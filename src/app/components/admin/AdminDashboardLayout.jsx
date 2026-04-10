@@ -113,8 +113,8 @@ export default function AdminDashboardLayout({ children }) {
         <div className="min-h-screen bg-slate-50">
 
             {/* â”€â”€ Desktop Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-            <aside className={`fixed inset-y-0 left-0 z-40 hidden lg:flex lg:flex-col bg-slate-900 border-r border-slate-800 transition-all duration-300 ${desktopSidebarOpen ? "lg:w-60 translate-x-0" : "-translate-x-full lg:translate-x-0 lg:w-0 lg:overflow-hidden"}`}>
-                <div className="flex flex-col flex-1 min-h-0 w-60">
+            <aside className={`fixed inset-y-0 left-0 z-40 hidden lg:flex lg:flex-col bg-slate-900 border-r border-slate-800 transition-all duration-300 ${desktopSidebarOpen ? "lg:w-72 translate-x-0" : "-translate-x-full lg:translate-x-0 lg:w-0 lg:overflow-hidden"}`}>
+                <div className="flex flex-col flex-1 min-h-0 w-72">
                     {/* Logo */}
                     <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-800">
                         <div className="w-7 h-7 bg-orange-500 rounded flex items-center justify-center flex-shrink-0">
@@ -242,7 +242,7 @@ export default function AdminDashboardLayout({ children }) {
             </AnimatePresence>
 
             {/* â”€â”€ Main Content Area â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-            <div className={`transition-all duration-300 ${desktopSidebarOpen ? "lg:pl-60" : "lg:pl-0"}`}>
+            <div className={`transition-all duration-300 ${desktopSidebarOpen ? "lg:pl-72" : "lg:pl-0"}`}>
 
                 {/* Top Header */}
                 <header className="sticky top-0 z-30 bg-white border-b border-slate-200 border-t-2 border-t-orange-500">
