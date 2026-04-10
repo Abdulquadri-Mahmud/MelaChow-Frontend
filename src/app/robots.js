@@ -58,6 +58,5 @@ export default function robots() {
       { userAgent: 'Google-Extended', disallow: ['/'] },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
-    host: baseUrl,
   }
 }
