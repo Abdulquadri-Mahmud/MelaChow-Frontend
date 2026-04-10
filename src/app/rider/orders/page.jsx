@@ -47,14 +47,19 @@ export default function RiderOrdersPage() {
 
     const filtered = orders.filter(order => {
         const matchesTab = activeTab === "all" || order.status === activeTab || order.orderStatus === activeTab;
+        const restaurantNameForSearch =
+            order.items?.[0]?.restaurantId?.storeName ||
+            order.items?.[0]?.storeName || "";
+
         const matchesSearch = !search ||
             (order._id || "").toLowerCase().includes(search.toLowerCase()) ||
-            (order.orderNumber || "").toLowerCase().includes(search.toLowerCase());
+            (order.orderId || "").toLowerCase().includes(search.toLowerCase()) ||
+            restaurantNameForSearch.toLowerCase().includes(search.toLowerCase());
         return matchesTab && matchesSearch;
     });
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <div>
                 <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-1">Order History</h1>
                 <p className="text-gray-500 font-medium">All your past and active deliveries</p>
@@ -111,6 +116,25 @@ export default function RiderOrdersPage() {
                             const dateStr = date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
                             const timeStr = date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
+                            // Resolve restaurant name from populated items array
+                            const restaurantName =
+                                order.items?.[0]?.restaurantId?.storeName ||
+                                order.items?.[0]?.storeName ||
+                                null;
+
+                            // Resolve delivery area — addressLine first, fall back to city
+                            const deliveryArea =
+                                order.deliveryAddress?.addressLine ||
+                                order.deliveryAddress?.address ||
+                                order.deliveryAddress?.cityName ||
+                                order.deliveryAddress?.city ||
+                                null;
+
+                            // Rider's actual earnings — never the customer delivery fee.
+                            // riderEarnings is written at delivery time in markDelivered.
+                            // Fallback to 0 for orders that predate this field.
+                            const earnings = order.riderEarnings ?? 0;
+
                             return (
                                 <motion.div
                                     key={order._id}
@@ -130,15 +154,33 @@ export default function RiderOrdersPage() {
                                                 {status.label}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+
+                                        {/* Restaurant name — most recognisable job identifier for rider */}
+                                        {restaurantName && (
+                                            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 truncate mt-0.5">
+                                                {restaurantName}
+                                            </p>
+                                        )}
+
+                                        <div className="flex items-center gap-2 text-xs text-gray-500 font-medium mt-0.5">
                                             <Clock size={11} />
                                             <span>{dateStr} at {timeStr}</span>
                                         </div>
+
+                                        {/* Delivery area — helps rider identify which job this was */}
+                                        {deliveryArea && (
+                                            <p className="text-[11px] text-gray-400 dark:text-gray-600 truncate mt-0.5">
+                                                To: {deliveryArea}
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="text-right shrink-0">
+                                        <div className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-0.5">
+                                            Your earnings
+                                        </div>
                                         <div className="font-black text-gray-900 dark:text-white text-sm">
-                                            ₦{(order.earnings || order.deliveryFee || 0).toLocaleString()}
+                                            ₦{earnings.toLocaleString()}
                                         </div>
                                         <ChevronRight size={16} className="text-gray-400 dark:text-gray-600 group-hover:text-orange-500 transition-colors ml-auto mt-1" />
                                     </div>

@@ -142,7 +142,7 @@ export default function NotificationOrderDetails() {
 
     if (!order) {
         return (
-            <div className="flex flex-col items-center justify-center p-6 text-center pt-24 min-h-screen bg-gray-50 dark:bg-[#0F1115] transition-colors">
+            <div className="flex flex-col items-center justify-center p-3 text-center pt-24 min-h-screen bg-gray-50 dark:bg-[#0F1115] transition-colors">
                 <Package size={64} className="text-gray-400 dark:text-gray-600 mb-6" />
                 <h1 className="text-2xl font-black text-gray-900 dark:text-white">Order Unavaliable</h1>
                 <p className="text-gray-500 max-w-sm mt-3 font-medium">
@@ -181,9 +181,9 @@ export default function NotificationOrderDetails() {
     const payout = order.deliveryShare || order.total || 0;
 
     return (
-        <div className="min-h-screen pb-32 max-w-md mx-auto relative pt-4 text-gray-900 dark:text-white transition-colors bg-gray-50 dark:bg-transparent">
+        <div className="min-h-screen pb-32 max-w-full mx-auto relative text-gray-900 dark:text-white transition-colors bg-gray-50 dark:bg-transparent">
             {/* Header */}
-            <div className="flex items-center gap-4 px-4 mb-6 sticky top-0 bg-gray-50/90 dark:bg-[#0F1115]/90 backdrop-blur-xl z-10 py-4 border-b border-gray-200 dark:border-white/5 transition-colors">
+            <div className="flex items-center gap-4 mb-6 sticky top-0 bg-gray-50/90 dark:bg-[#0F1115]/90 backdrop-blur-xl z-10 py-2 border-b border-gray-200 dark:border-white/5 transition-colors">
                 <button
                     onClick={() => router.back()}
                     className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center active:scale-90 transition-transform text-gray-700 dark:text-white"
@@ -201,9 +201,9 @@ export default function NotificationOrderDetails() {
                 <motion.div
                     initial={{ y: 20, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    className="bg-green-500/10 border-2 border-green-500/20 rounded-3xl p-6 flex flex-col items-center justify-center relative overflow-hidden"
+                    className="bg-green-500/10 border-2 border-green-500/20 rounded-xl p-3 flex flex-col items-center justify-center relative overflow-hidden"
                 >
-                    <div className="absolute -right-6 -top-6 text-green-500/10">
+                    <div className="absolute -right-6 -top-3 text-green-500/10">
                         <Wallet size={120} />
                     </div>
                     <p className="text-green-500 text-xs font-black uppercase tracking-widest mb-1 relative z-10">Estimated Payout</p>
@@ -219,7 +219,7 @@ export default function NotificationOrderDetails() {
                         <div className="absolute -left-[22px] top-3 w-8 h-8 rounded-full bg-white dark:bg-[#1A1D23] border-[3px] border-orange-500 flex items-center justify-center shadow-[0_0_15px_rgba(249,115,22,0.5)] z-10">
                             <Bike size={14} className="text-orange-500" />
                         </div>
-                        <div className="bg-white dark:bg-[#1A1D23] rounded-3xl p-5 border border-gray-100 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-2xl ml-4 transition-colors">
+                        <div className="bg-white dark:bg-[#1A1D23] rounded-xl p-3 border border-gray-100 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-2xl ml-4 transition-colors">
                             <p className="text-[10px] uppercase font-black tracking-widest text-orange-600 dark:text-orange-500 mb-1">Pickup From</p>
                             <h3 className="font-black text-lg mb-1 text-gray-900 dark:text-white">{restaurant?.name || "MelaChow Vendor"}</h3>
                             <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 leading-relaxed">{vendorAddress}</p>
@@ -240,7 +240,7 @@ export default function NotificationOrderDetails() {
                         <div className="absolute -left-[22px] top-3 w-8 h-8 rounded-full bg-white dark:bg-[#1A1D23] border-[3px] border-blue-500 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)] z-10">
                             <MapPin size={14} className="text-blue-500" />
                         </div>
-                        <div className="bg-white dark:bg-[#1A1D23] rounded-3xl p-5 border border-gray-100 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-2xl ml-4 transition-colors">
+                        <div className="bg-white dark:bg-[#1A1D23] rounded-xl p-3 border border-gray-100 dark:border-white/5 shadow-xl shadow-black/5 dark:shadow-2xl ml-4 transition-colors">
                             <p className="text-[10px] uppercase font-black tracking-widest text-blue-600 dark:text-blue-500 mb-1">Deliver To</p>
                             <h3 className="font-black text-lg mb-1 text-gray-900 dark:text-white">{customerName}</h3>
                             <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 leading-relaxed line-clamp-2">{customerAddress}</p>
@@ -269,29 +269,61 @@ export default function NotificationOrderDetails() {
                 </div>
 
                 {/* Order Items */}
-                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="bg-white dark:bg-[#1A1D23] rounded-3xl p-6 mt-4 border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none transition-colors">
+                <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="bg-white dark:bg-[#1A1D23] rounded-xl p-3 mt-4 border border-gray-100 dark:border-white/5 shadow-sm dark:shadow-none transition-colors">
                     <p className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-4 flex items-center gap-2">
                         <Package size={14} /> Item Summary
                     </p>
-                    <ul className="space-y-4">
-                        {order.items?.map((item, idx) => (
-                            <li key={idx} className="flex gap-4 items-start">
-                                <div className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center text-xs font-black text-gray-700 dark:text-white shrink-0 mt-0.5">
-                                    {item.quantity}x
-                                </div>
-                                <div>
-                                    <p className="font-bold text-sm text-gray-800 dark:text-gray-200">{item.variant?.name || "Order Item"}</p>
-                                    {item.note && <p className="text-xs text-orange-500 dark:text-orange-400/80 mt-1 italic">"{item.note}"</p>}
-                                </div>
-                            </li>
-                        ))}
+                    <ul className="space-y-3">
+                        {order.items?.map((item, idx) => {
+                            const itemName = item.name || item.variant?.name || item.foodName || "Order Item";
+                            const quantity = Number(item.quantity) || 1;
+                            const options = item.selected_options || [];
+                            const portionLabel = item.portion_label || item.portion || "";
+                            
+                            const hasPortionWord = portionLabel.toLowerCase().includes('portion');
+                            let portionText = "";
+                            if (!portionLabel) {
+                                portionText = quantity > 1 ? "portions" : "portion";
+                            } else if (hasPortionWord) {
+                                portionText = portionLabel;
+                            } else {
+                                portionText = `${portionLabel} ${quantity > 1 ? "portions" : "portion"}`;
+                            }
+
+                            let fullSentence = `Deliver ${quantity} ${portionText} of ${itemName}`;
+                            if (options.length > 0) {
+                                const optionsTextList = options.map((opt) => `${Number(opt.quantity) > 0 ? (Number(opt.quantity) * quantity) + 'x ' : ''}${opt.label || opt.name}`);
+                                fullSentence += `, with ${optionsTextList.length === 1 ? optionsTextList[0] : optionsTextList.length === 2 ? optionsTextList.join(' and ') : optionsTextList.slice(0, -1).join(', ') + ', and ' + optionsTextList.slice(-1)}`;
+                            }
+                            fullSentence += ".";
+
+                            return (
+                                <li key={idx} className="border-b border-gray-100 dark:border-white/5 last:border-0 pb-3 last:pb-0">
+                                    <div className="flex gap-3">
+                                        <div className="p-1.5 h-fit bg-slate-100 dark:bg-[#0F1115] rounded text-slate-500">
+                                            <Package size={12} />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-snug">
+                                                {fullSentence}
+                                            </p>
+                                            {item.note && (
+                                                <p className="text-xs text-orange-600 dark:text-orange-400 mt-1 italic font-medium">
+                                                    Note: {item.note}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </motion.div>
 
             </div>
 
             {/* Sticky Action Drawer */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-[#0F1115]/90 backdrop-blur-2xl border-t border-gray-200 dark:border-white/10 p-4 z-50 rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.5)] max-w-md mx-auto transition-colors">
+            <div className="fixed bottom-20 sm:bottom-0 left-0 right-0 bg-white/90 dark:bg-[#0F1115]/90 backdrop-blur-2xl border-t border-gray-200 dark:border-white/10 p-4 z-40 sm:rounded-t-[40px] rounded-3xl sm:-mb-0 mb-2 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.5)] max-w-md mx-auto transition-colors">
                 <AnimatePresence mode="popLayout">
                     {isPending ? (
                         <motion.div
@@ -302,7 +334,7 @@ export default function NotificationOrderDetails() {
                             <button
                                 onClick={handleReject}
                                 disabled={actionLoading}
-                                className="h-16 rounded-[24px] bg-red-500/10 hover:bg-red-500/20 border-2 border-red-500/20 text-red-500 font-black flex items-center justify-center shadow-lg transition-all active:scale-95 disabled:opacity-50"
+                                className="h-16 rounded-xl bg-red-500/10 hover:bg-red-500/20 border-2 border-red-500/20 text-red-500 font-black flex items-center justify-center shadow-lg transition-all active:scale-95 disabled:opacity-50"
                             >
                                 {actionLoading ? <Loader2 className="animate-spin" size={24} /> : (
                                     <><X size={20} className="mr-2" /> Reject</>
@@ -311,7 +343,7 @@ export default function NotificationOrderDetails() {
                             <button
                                 onClick={handleAccept}
                                 disabled={actionLoading}
-                                className="h-16 rounded-[24px] bg-green-500 hover:bg-green-600 text-white font-black flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)] transition-all active:scale-95 disabled:opacity-50"
+                                className="h-16 rounded-xl bg-green-500 hover:bg-green-600 text-white font-black flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)] transition-all active:scale-95 disabled:opacity-50"
                             >
                                 {actionLoading ? <Loader2 className="animate-spin" size={24} /> : (
                                     <><CheckCircle2 size={20} className="mr-2" /> ACCEPT</>
@@ -327,7 +359,7 @@ export default function NotificationOrderDetails() {
                                 <button
                                     onClick={() => handleAction("pickup")}
                                     disabled={actionLoading}
-                                    className="w-full h-16 rounded-[24px] bg-gray-900 dark:bg-white text-orange-500 dark:text-orange-600 font-black tracking-wide flex items-center justify-center shadow-xl transition-all active:scale-95 disabled:opacity-50"
+                                    className="w-full h-16 rounded-xl bg-gray-900 dark:bg-white text-orange-500 dark:text-orange-600 font-black tracking-wide flex items-center justify-center shadow-xl transition-all active:scale-95 disabled:opacity-50"
                                 >
                                     {actionLoading ? <Loader2 className="animate-spin" size={24} /> : (
                                         <><Package size={20} className="mr-2" /> Mark Picked Up</>
@@ -338,7 +370,7 @@ export default function NotificationOrderDetails() {
                                     <button
                                         onClick={() => handleAction("deliver")}
                                         disabled={actionLoading || otpState.sending}
-                                        className="w-full h-16 rounded-[24px] bg-blue-500 text-white font-black tracking-wide flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all active:scale-95 disabled:opacity-50"
+                                        className="w-full h-16 rounded-xl bg-blue-500 text-white font-black tracking-wide flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.5)] transition-all active:scale-95 disabled:opacity-50"
                                     >
                                         {actionLoading || otpState.sending ? <Loader2 className="animate-spin" size={24} /> : (
                                             <><CheckCircle2 size={20} className="mr-2" /> Mark Delivered</>
