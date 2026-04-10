@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { Bell, BellOff, Gift, Package, Sparkles, Check, AlertCircle, Loader2 } from "lucide-react";
@@ -90,10 +90,10 @@ export default function NotificationSettings() {
                         <h3 className="font-black text-zinc-900 dark:text-white text-xl tracking-tight italic uppercase">Notifications</h3>
                         <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-0.5">
                             {isEnabled
-                                ? "Active â€¢ Real-time updates"
+                                ? "Active • Real-time updates"
                                 : isDenied
-                                    ? "Blocked â€¢ Check Browser"
-                                    : "Disabled â€¢ Enable to stay updated"}
+                                    ? "Blocked • Check Browser"
+                                    : "Disabled • Enable to stay updated"}
                         </p>
                     </div>
                 </div>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { RiderProvider } from "@/app/context/RiderContext";
 import { usePathname } from "next/navigation";

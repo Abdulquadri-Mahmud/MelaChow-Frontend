@@ -3,7 +3,7 @@ export const metadata = {
   description:
     "Search for your favourite Nigerian meals, dishes, or restaurants on MelaChow. Fast, accurate results with instant delivery options.",
   alternates: {
-    canonical: "https://melachow.vercel.app/search",
+    canonical: "https://www.melachow.com/search",
   },
   robots: {
     index: false, // Search result pages should not be indexed — not canonical

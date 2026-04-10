@@ -1,5 +1,5 @@
 export default function robots() {
-  const baseUrl = 'https://melachow.vercel.app'
+  const baseUrl = 'https://www.melachow.com'
 
   return {
     rules: [

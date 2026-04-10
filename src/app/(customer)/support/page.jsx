@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Header2 from "@/app/components/App_Header/Header2";
 import Link from "next/link";

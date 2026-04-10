@@ -1,4 +1,4 @@
-const baseUrl = 'https://melachow.vercel.app'
+const baseUrl = 'https://www.melachow.com'
 
 export default function sitemap() {
   const now = new Date()

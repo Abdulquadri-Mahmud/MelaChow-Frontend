@@ -1,4 +1,4 @@
-﻿import { create } from "zustand";
+import { create } from "zustand";
 
 const getInitialLocation = () => {
     if (typeof window === "undefined") return null;

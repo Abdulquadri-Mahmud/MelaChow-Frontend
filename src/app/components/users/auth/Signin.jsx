@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useApi } from "@/app/context/ApiContext";
 import { useState, useEffect } from "react";

@@ -1,4 +1,4 @@
-﻿
+
 const LogoImage = () => (
   <img
     src="/logo.png"

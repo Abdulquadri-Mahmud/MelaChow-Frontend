@@ -1,4 +1,4 @@
-﻿/**
+/**
  * API Configuration for MelaChow Frontend
  * 
  * This file centralizes API URL configuration to support the iOS Safari
@@ -29,7 +29,7 @@ export const getApiUrl = () => {
     // Client-side: Use relative URL to leverage Next.js proxy
     // This makes all API requests go through the frontend domain
     // Example: https://grub-dash-frontend-xi.vercel.app/api/user/auth/profile
-    //          â†“ (proxied to)
+    //          ↓ (proxied to)
     //          https://grub-dash-api.vercel.app/api/user/auth/profile
     return '/api';
     // return 'http://localhost:3001/api';
@@ -73,7 +73,7 @@ export const isUsingProxy = () => {
  * CRITICAL: credentials: "include" is required for cookies to work
  */
 export const defaultFetchOptions = {
-    credentials: 'include', // âœ… REQUIRED for cookies
+    credentials: 'include', // ✅ REQUIRED for cookies
     headers: {
         'Content-Type': 'application/json',
     },
@@ -85,7 +85,7 @@ export const defaultFetchOptions = {
  * CRITICAL: withCredentials: true is required for cookies to work
  */
 export const defaultAxiosConfig = {
-    withCredentials: true, // âœ… REQUIRED for cookies
+    withCredentials: true, // ✅ REQUIRED for cookies
     headers: {
         'Content-Type': 'application/json',
     },

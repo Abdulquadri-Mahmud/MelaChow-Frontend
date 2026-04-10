@@ -5,13 +5,13 @@ export const metadata = {
   description:
     "Browse restaurants and dishes near you on MelaChow. Order jollof rice, suya, amala, soups, and more from trusted local Nigerian restaurants.",
   alternates: {
-    canonical: "https://melachow.vercel.app/home",
+    canonical: "https://www.melachow.com/home",
   },
   openGraph: {
     title: "MelaChow — Order Food Near You",
     description:
       "Discover local Nigerian restaurants and order your favourite meals for fast delivery to your doorstep.",
-    url: "https://melachow.vercel.app/home",
+    url: "https://www.melachow.com/home",
     images: [{ url: "/logo.jpeg", width: 1200, height: 630, alt: "MelaChow Home" }],
   },
 };
