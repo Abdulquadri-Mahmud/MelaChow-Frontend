@@ -42,7 +42,7 @@ const nextConfig = {
    * âœ… /api/admin/*    â†’ Admin endpoints
    */
   async rewrites() {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://melachow-api.onrender.com';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com';
 
     // âœ… Only log in development (reduce console noise in production)
     if (process.env.NODE_ENV === 'development') {

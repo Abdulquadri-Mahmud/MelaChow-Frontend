@@ -1,6 +1,6 @@
 import FoodDetailsClient from "./FoodDetailsClient";
 
-const API_URL = "https://grubdash-api.onrender.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://grubdash-api.onrender.com";
 
 async function getFoodData(foodId) {
   try {
@@ -8,8 +8,7 @@ async function getFoodData(foodId) {
       next: { revalidate: 3600 },
     });
     if (!res.ok) return null;
-    const data = await res.json();
-    return data?.food || null;
+    return await res.json();
   } catch (error) {
     console.error("Error fetching food data for SEO:", error);
     return null;
@@ -17,8 +16,9 @@ async function getFoodData(foodId) {
 }
 
 export async function generateMetadata({ params }) {
-  const { foodId } = params;
-  const food = await getFoodData(foodId);
+  const { foodId } = await params;
+  const data = await getFoodData(foodId);
+  const food = data?.food;
 
   if (!food) {
     return {
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function Page({ params }) {
-  const { foodId } = params;
+  const { foodId } = await params;
   const initialData = await getFoodData(foodId);
 
   return <FoodDetailsClient initialData={initialData} foodId={foodId} />;

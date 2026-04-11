@@ -1,15 +1,17 @@
 import RestaurantClient from "./RestaurantClient";
 
-const API_URL = "https://grubdash-api.onrender.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://grubdash-api.onrender.com";
 
-async function getVendorData(vendorId) {
+async function getFullMenu(vendorId) {
   try {
     const res = await fetch(`${API_URL}/v1/vendors/${vendorId}/menu`, {
       next: { revalidate: 3600 },
     });
+
+    console.log(res);
+    
     if (!res.ok) return null;
-    const data = await res.json();
-    return data?.vendor || null;
+    return await res.json();
   } catch (error) {
     console.error("Error fetching vendor data for SEO:", error);
     return null;
@@ -17,8 +19,9 @@ async function getVendorData(vendorId) {
 }
 
 export async function generateMetadata({ params }) {
-  const { vendorId } = params;
-  const vendor = await getVendorData(vendorId);
+  const { vendorId } = await params;
+  const data = await getFullMenu(vendorId);
+  const vendor = data?.vendor;
 
   if (!vendor) {
     return {
@@ -55,10 +58,8 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function Page({ params }) {
-  const { vendorId } = params;
-  const initialData = await fetch(`${API_URL}/v1/vendors/${vendorId}/menu`, {
-    next: { revalidate: 3600 },
-  }).then(res => res.ok ? res.json() : null).catch(() => null);
+  const { vendorId } = await params;
+  const initialData = await getFullMenu(vendorId);
 
   return <RestaurantClient initialData={initialData} vendorId={vendorId} />;
 }
