@@ -44,10 +44,14 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
     const { addComboToCart, cart } = useCart();
 
     // Data State
-    const [combo, setCombo] = useState(initialData || null);
-    const [isLoading, setIsLoading] = useState(!initialData);
+    const initialCombo = initialData?.combo || (initialData?.success ? null : initialData);
+    const [combo, setCombo] = useState(initialCombo && Object.keys(initialCombo).length > 0 ? initialCombo : null);
+    const [isLoading, setIsLoading] = useState(!initialCombo || Object.keys(initialCombo).length === 0);
     const [isError, setIsError] = useState(false);
-    const [vendor, setVendor] = useState(initialData?.vendor || null);
+    const [vendor, setVendor] = useState(initialData?.vendor || initialCombo?.vendor || null);
+
+    console.log('[ComboDetailsPage] 🍱 initialData:', initialData);
+    console.log('[ComboDetailsPage] 🍕 combo state:', combo);
 
     // Selections state
     const [selections, setSelections] = useState({});

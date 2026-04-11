@@ -32,9 +32,13 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
   const { addToCart, cart } = useCart();
 
   // Data State
-  const [food, setFood] = useState(initialData || null);
-  const [isLoading, setIsLoading] = useState(!initialData);
+  const initialFood = initialData?.food || (initialData?.success ? null : initialData);
+  const [food, setFood] = useState(initialFood && Object.keys(initialFood).length > 0 ? initialFood : null);
+  const [isLoading, setIsLoading] = useState(!initialFood || Object.keys(initialFood).length === 0);
   const [isError, setIsError] = useState(false);
+
+  console.log('[FoodDetailsClient] 🥗 initialData:', initialData);
+  console.log('[FoodDetailsClient] 🥦 food state:', food);
   const [isClient, setIsClient] = useState(false);
 
   // Default customization state for base item
@@ -69,7 +73,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
   // Fetch Food (only if initialData is missing)
   useEffect(() => {
     const fetchFood = async () => {
-      if (initialData && food) return;
+      // Only skip if we already have the food object populated with actual data
+      if (food && food.name) return;
       
       try {
         setIsLoading(true);
@@ -215,8 +220,9 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
           return;
       }
 
-      for (let i = 0; i < (food.choiceGroups || []).length; i++) {
-          const group = food.choiceGroups[i];
+      const choiceGroups = food.choiceGroups || food.choice_groups || [];
+      for (let i = 0; i < choiceGroups.length; i++) {
+          const group = choiceGroups[i];
           const sel = selections[i];
           let count = 0;
           if (Array.isArray(sel)) {
@@ -237,7 +243,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
       const selectedOptions = [];
       Object.keys(selections).forEach(key => {
           const gIdx = Number(key);
-          const group = food.choiceGroups[gIdx];
+          const group = choiceGroups[gIdx];
           const sel = selections[key];
           const items = Array.isArray(sel) ? sel : (sel ? [sel] : []);
           items.forEach(opt => {
@@ -606,9 +612,9 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
               )}
 
               {/* Choice Groups */}
-              {food.choiceGroups?.length > 0 && (
+              {(food.choiceGroups?.length > 0 || food.choice_groups?.length > 0) && (
                 <div className="space-y-4 mb-8">
-                  {food.choiceGroups.map((group, gIdx) => (
+                  {(food.choiceGroups || food.choice_groups).map((group, gIdx) => (
                     <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[32px] p-4 border border-zinc-100 dark:border-zinc-800 shadow-sm flex flex-col">
                       <div className="flex items-center gap-2 mb-1">
                         <div className="w-1.5 h-6 bg-orange-500 rounded-full" />

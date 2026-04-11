@@ -27,8 +27,8 @@ const FoodCard = ({ item, vendor, onSelect }) => {
     const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
     const isOpen = status.startsWith("Open now");
 
-    console.log(item)
-    console.log(vendor)
+    // console.log(item)
+    // console.log(vendor)
     return (
         <div
             onClick={() => !isUnavailable && onSelect(item)}
