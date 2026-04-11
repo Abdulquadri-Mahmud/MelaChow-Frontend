@@ -253,6 +253,17 @@ export default function RiderAssignmentModal({ isOpen, onClose, orderId, vendorI
                                                                     <Phone size={12} className={isSelected ? 'text-white/60' : 'text-orange-500'} />
                                                                     {rider.phone}
                                                                 </div>
+                                                                <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest ${
+                                                                    isSelected 
+                                                                        ? 'bg-white/20 text-white' 
+                                                                        : rider.status === 'available'
+                                                                            ? 'bg-green-500/10 text-green-600'
+                                                                            : rider.status === 'on_delivery'
+                                                                                ? 'bg-blue-500/10 text-blue-600'
+                                                                                : 'bg-slate-100 text-slate-500'
+                                                                }`}>
+                                                                    {rider.status?.replace(/_/g, ' ') || 'Unknown'}
+                                                                </div>
                                                                 <div className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider ${isSelected ? 'text-white/80' : 'text-slate-500'}`}>
                                                                     <Star size={12} className={isSelected ? 'text-white' : 'text-yellow-500 fill-yellow-500'} />
                                                                     {rider.rating ? Number(rider.rating).toFixed(1) : "5.0"}

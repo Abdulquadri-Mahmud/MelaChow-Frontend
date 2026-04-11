@@ -115,6 +115,12 @@ export const getRiderSpecificOrder = async (riderId, orderId) => {
 
 // ── Payout API ────────────────────────────────────────────────────────────────
 
+// Fetch live bank list from Paystack (same endpoint used by vendor page)
+export const getBankList = async () => {
+    const response = await API.get('/wallet/banks');
+    return response.data;
+};
+
 // Resolve account name before saving (confirm before committing)
 export const resolveRiderAccountName = async (riderId, accountNumber, bankCode) => {
     const response = await API.get(
