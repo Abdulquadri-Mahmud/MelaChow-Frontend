@@ -115,9 +115,11 @@ export const getRiderSpecificOrder = async (riderId, orderId) => {
 
 // ── Payout API ────────────────────────────────────────────────────────────────
 
-// Fetch live bank list from Paystack (same endpoint used by vendor page)
+// Fetch live bank list from Paystack via rider-scoped route.
+// NOTE: /wallet/banks uses vendorAuth — calling it as a rider returns 401
+// which triggers the rider logout interceptor. Use /riders/banks instead.
 export const getBankList = async () => {
-    const response = await API.get('/wallet/banks');
+    const response = await API.get('/riders/banks');
     return response.data;
 };
 
