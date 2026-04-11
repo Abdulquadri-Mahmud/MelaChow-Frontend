@@ -21,7 +21,7 @@ export default function RiderDashboard() {
     const [activeOrder, setActiveOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [otpState, setOtpState] = useState({ step: "idle", otp: "", sending: false, confirming: false });
+    const [otpState, setOtpState] = useState({ step: "idle", otp: "", sending: false, confirming: false, method: "", message: "" });
 
     const riderId = rider?._id || rider?.id;
 
@@ -106,11 +106,18 @@ export default function RiderDashboard() {
                 toast.success("Order picked up! Head to the customer.");
                 fetchActiveOrder();
             } else if (action === "deliver") {
-                // Step 1: request OTP → sent to customer's phone
+                // Step 1: request OTP
                 setOtpState(prev => ({ ...prev, sending: true }));
-                await requestDeliveryOTP(riderId, orderId);
-                setOtpState({ step: "awaiting_otp", otp: "", sending: false, confirming: false });
-                toast.success("OTP sent to customer's phone!");
+                const res = await requestDeliveryOTP(riderId, orderId);
+                setOtpState({ 
+                    step: "awaiting_otp", 
+                    otp: "", 
+                    sending: false, 
+                    confirming: false,
+                    method: res.method || "",
+                    message: res.message || "OTP sent to customer"
+                });
+                toast.success(res.message || "OTP requested!");
             } else if (action === "accept") {
                 await toggleRiderAvailability(riderId, "on_delivery");
                 toast.success("Delivery Accepted! 🛵");
@@ -134,7 +141,7 @@ export default function RiderDashboard() {
         try {
             await riderConfirmDelivery(riderId, activeOrder._id, otpState.otp.trim());
             toast.success("Order delivered! Well done. 🎉");
-            setOtpState({ step: "idle", otp: "", sending: false, confirming: false });
+            setOtpState({ step: "idle", otp: "", sending: false, confirming: false, method: "", message: "" });
             fetchActiveOrder();
         } catch (error) {
             setOtpState(prev => ({ ...prev, confirming: false }));
@@ -527,7 +534,9 @@ export default function RiderDashboard() {
                                                 </div>
                                                 <div>
                                                     <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Verify Delivery</h3>
-                                                    <p className="text-[11px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-300 mt-1">Ask the customer for the OTP sent to their phone</p>
+                                                    <p className="text-[11px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-300 mt-1">
+                                                        {otpState.message || "Ask the customer for the code sent to them"}
+                                                    </p>
                                                 </div>
 
                                                 <div className="w-full space-y-4">

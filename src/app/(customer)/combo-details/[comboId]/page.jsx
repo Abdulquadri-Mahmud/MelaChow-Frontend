@@ -1,15 +1,17 @@
 import ComboDetailsClient from "./ComboDetailsClient";
 
-const API_URL = "https://grubdash-api.onrender.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://grubdash-api.onrender.com";
 
 async function getComboData(comboId) {
   try {
     const res = await fetch(`${API_URL}/v1/menu/combos/${comboId}`, {
       next: { revalidate: 3600 },
     });
+
+    console.log(res);
+    
     if (!res.ok) return null;
-    const data = await res.json();
-    return data?.combo || null;
+    return await res.json();
   } catch (error) {
     console.error("Error fetching combo data for SEO:", error);
     return null;
@@ -17,8 +19,9 @@ async function getComboData(comboId) {
 }
 
 export async function generateMetadata({ params }) {
-  const { comboId } = params;
-  const combo = await getComboData(comboId);
+  const { comboId } = await params;
+  const data = await getComboData(comboId);
+  const combo = data?.combo;
 
   if (!combo) {
     return {
@@ -55,7 +58,7 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function Page({ params }) {
-  const { comboId } = params;
+  const { comboId } = await params;
   const initialData = await getComboData(comboId);
 
   return <ComboDetailsClient initialData={initialData} comboId={comboId} />;
