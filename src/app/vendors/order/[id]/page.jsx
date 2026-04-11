@@ -174,10 +174,10 @@ export default function VendorOrderDetailsPage() {
             'pending': ['accepted', 'cancelled'],
             'accepted': ['preparing', 'cancelled'],
             'preparing': ['ready_for_pickup', 'cancelled'],
-            'ready_for_pickup': ['rider_assigned', 'out_for_delivery'],
-            'ready': ['rider_assigned', 'out_for_delivery'],
-            'rider_assigned': ['out_for_delivery'],
-            'out_for_delivery': ['delivered'],
+            'ready_for_pickup': ['rider_assigned', 'cancelled'],
+            'ready': ['rider_assigned', 'cancelled'],
+            'rider_assigned': ['out_for_delivery', 'cancelled'],
+            'out_for_delivery': ['delivered', 'cancelled'],
             'delivered': ['completed'],
             'completed': [],
             'cancelled': [],
@@ -417,7 +417,7 @@ export default function VendorOrderDetailsPage() {
                                                 className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-md font-black text-[9px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed flex-1 min-w-[130px] border shadow-none ${isCancelAction
                                                     ? 'bg-white dark:bg-slate-900 text-rose-600 border-rose-100 dark:border-rose-900/40 hover:bg-rose-50'
                                                     : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent hover:opacity-90'
-                                                    } ${status === 'accepted' || status === 'preparing' || status === 'ready' || status === 'ready_for_pickup' ? 'bg-orange-600 text-white border-transparent' : ''}`}
+                                                    } ${status === 'accepted' || status === 'preparing' || status === 'ready' || status === 'ready_for_pickup' || status === 'rider_assigned' || status === 'out_for_delivery' || status === 'delivered' ? 'bg-orange-600 text-white border-transparent' : ''}`}
                                             >
                                                 {isUpdating ? (
                                                     <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
