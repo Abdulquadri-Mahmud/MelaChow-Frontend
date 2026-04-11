@@ -153,7 +153,7 @@ function PayoutSheet({ riderId, walletBalance, onClose, onSuccess }) {
     const netAmount = Math.max(0, numAmount - transferFee);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center">
             <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 onClick={onClose}
@@ -162,15 +162,17 @@ function PayoutSheet({ riderId, walletBalance, onClose, onSuccess }) {
             <motion.div
                 initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                className="relative w-full max-w-lg bg-white dark:bg-[#111318] rounded-t-2xl px-4 pt-3 pb-32 shadow-xl max-h-[90vh] overflow-y-auto"
+                className="relative w-full h-full bg-white dark:bg-[#111318] px-4 pt-3 pb-6 shadow-xl overflow-y-auto flex flex-col"
             >
-                <div className="w-8 h-1 bg-gray-200 dark:bg-white/10 rounded-full mx-auto mb-4" />
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 w-7 h-7 rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                    <X size={14} />
-                </button>
+                <div className="flex items-center justify-between mb-5 sticky top-0 bg-white dark:bg-[#111318] py-2 z-10">
+                    <h2 className="text-base font-black text-gray-900 dark:text-white uppercase tracking-widest">Payout</h2>
+                    <button
+                        onClick={onClose}
+                        className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+                    >
+                        <X size={16} />
+                    </button>
+                </div>
 
                 <AnimatePresence mode="wait">
                     {step === "loading" && (
@@ -182,10 +184,6 @@ function PayoutSheet({ riderId, walletBalance, onClose, onSuccess }) {
 
                     {step === "setup" && (
                         <motion.div key="setup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                            <div>
-                                <h2 className="text-base font-black text-gray-900 dark:text-white">Add Bank Account</h2>
-                                <p className="text-gray-500 text-xs font-medium mt-0.5">Verify your account to withdraw earnings.</p>
-                            </div>
 
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Account Number</label>
@@ -262,10 +260,6 @@ function PayoutSheet({ riderId, walletBalance, onClose, onSuccess }) {
 
                     {step === "withdraw" && (
                         <motion.div key="withdraw" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                            <div>
-                                <h2 className="text-base font-black text-gray-900 dark:text-white">Cash Out</h2>
-                                <p className="text-gray-500 text-xs font-medium mt-0.5">Transfer earnings to your bank.</p>
-                            </div>
 
                             {bankAccount && (
                                 <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 flex items-center justify-between">
