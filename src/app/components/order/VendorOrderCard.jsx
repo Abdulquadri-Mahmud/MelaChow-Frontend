@@ -70,10 +70,10 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
         case 'preparing': return { label: 'Mark as Ready', status: 'ready_for_pickup', icon: CheckCircle2 };
         case 'ready':
         case 'ready_for_pickup': 
-            if (vendorDetails?.deliveryManagedBy === 'vendor') {
-                return { label: 'Out for Delivery', status: 'out_for_delivery', icon: Bike };
-            }
+            // Return null so they use the 'Assign Courier' button in the footer
             return null;
+        case 'rider_assigned': 
+            return { label: 'Out for Delivery', status: 'out_for_delivery', icon: Bike };
         case 'out_for_delivery': return { label: 'Mark Completed', status: 'completed', icon: PackageCheck };
         default: return null;
     }
@@ -142,8 +142,24 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
                               <div className="p-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-400">
                                   <PackageCheck size={14} />
                               </div>
-                              <p className="text-xs font-black text-slate-500 uppercase tracking-tight uppercase">Order Details</p>
+                              <p className="text-xs font-black text-slate-500 uppercase tracking-tight">Order Details</p>
                           </Link>
+
+                          {['pending', 'accepted', 'preparing', 'ready', 'ready_for_pickup'].includes(order.orderStatus?.toLowerCase()) && (
+                              <button 
+                                  onClick={() => {
+                                      if(window.confirm("Are you sure you want to cancel this order?")) {
+                                          handleUpdateStatus('cancelled');
+                                      }
+                                  }}
+                                  className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors text-rose-600"
+                              >
+                                  <div className="p-2 rounded-md bg-rose-100 dark:bg-rose-900/30 text-rose-600">
+                                      <ShoppingBag size={14} />
+                                  </div>
+                                  <p className="text-xs font-black uppercase tracking-tight">Cancel Order</p>
+                              </button>
+                          )}
                       </motion.div>
                   </>
               )}

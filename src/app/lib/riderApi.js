@@ -113,4 +113,44 @@ export const getRiderSpecificOrder = async (riderId, orderId) => {
     return response.data;
 };
 
+// ── Payout API ────────────────────────────────────────────────────────────────
+
+// Fetch live bank list from Paystack (same endpoint used by vendor page)
+export const getBankList = async () => {
+    const response = await API.get('/wallet/banks');
+    return response.data;
+};
+
+// Resolve account name before saving (confirm before committing)
+export const resolveRiderAccountName = async (riderId, accountNumber, bankCode) => {
+    const response = await API.get(
+        `/riders/${riderId}/payout/resolve-account?accountNumber=${accountNumber}&bankCode=${bankCode}`
+    );
+    return response.data;
+};
+
+// Save bank account and create Paystack recipient
+export const saveRiderBankAccount = async (riderId, data) => {
+    const response = await API.post(`/riders/${riderId}/payout/bank-account`, data);
+    return response.data;
+};
+
+// Get saved bank account details
+export const getRiderBankAccount = async (riderId) => {
+    const response = await API.get(`/riders/${riderId}/payout/bank-account`);
+    return response.data;
+};
+
+// Initiate withdrawal to bank account
+export const initiateWithdrawal = async (riderId, amount) => {
+    const response = await API.post(`/riders/${riderId}/payout/withdraw`, { amount });
+    return response.data;
+};
+
+// Fetch withdrawal history
+export const getRiderWithdrawalHistory = async (riderId) => {
+    const response = await API.get(`/riders/${riderId}/payout/history`);
+    return response.data;
+};
+
 export default API;

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import {
     Bike, Phone, User, Shield, LogOut, ChevronRight,
     Bell, Moon, HelpCircle, MessageCircle, Star, Edit3, Mail,
@@ -248,7 +249,7 @@ export default function RiderSettingsPage() {
             </motion.div>
 
             {/* App version */}
-            <p className="text-center text-[11px] text-gray-700 font-medium pb-2">MelaChow Rider v1.0.0</p>
+            <p className="text-center text-[11px] text-gray-700 font-semibold pb-2">MelaChow Rider v1.0.1</p>
 
             {/* Edit Profile Modal */}
             <AnimatePresence>
