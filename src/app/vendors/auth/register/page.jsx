@@ -342,7 +342,7 @@ export default function VendorRegisterPage() {
       if (!payload.address.street) e["address.street"] = "Street required";
       if (!payload.address.city) e["address.city"] = "City required";
       if (!payload.address.state) e["address.state"] = "State required";
-      if (!payload.address.postalCode) e["address.postalCode"] = "Postal required";
+      // if (!payload.address.postalCode) e["address.postalCode"] = "Postal required";
     }
     if (s === 4) {
       // Operations step - simplified
@@ -586,8 +586,6 @@ export default function VendorRegisterPage() {
                 <div className="space-y-6">
                   <StepHeader title="Business Location" desc="Where do we send the orders?" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <TextInput path="address.street" placeholder="Street Address" icon={MapPin} error={errors["address.street"]} payload={payload} setField={setField} />
-
                     {/* Dynamic State Selection */}
                     <InputWrap label="State" icon={MapPin} error={errors["address.state"]}>
                       <div className="relative">
@@ -646,7 +644,9 @@ export default function VendorRegisterPage() {
                       </div>
                     </InputWrap>
 
-                    <TextInput path="address.postalCode" placeholder="Postal / Zip Code" icon={MapPin} error={errors["address.postalCode"]} payload={payload} setField={setField} />
+                    <TextInput path="address.street" placeholder="Street Address" icon={MapPin} error={errors["address.street"]} payload={payload} setField={setField} />
+
+                    {/* <TextInput path="address.postalCode" placeholder="Postal / Zip Code" icon={MapPin} error={errors["address.postalCode"]} payload={payload} setField={setField} /> */}
                   </div>
                 </div>
               )}
