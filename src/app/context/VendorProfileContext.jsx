@@ -64,6 +64,14 @@ export const VendorProfileProvider = ({ children }) => {
                 return null;
             }
 
+            if (res.status === 403) {
+                // Access forbidden (suspended, inactive, or deleted)
+                console.warn("[VendorProfileContext] Unauthorized access (403) - Clearing session");
+                TokenManager.clearToken('vendor');
+                localStorage.removeItem("melachow_vendor_cache");
+                return null; // Resolve as no session rather than an error
+            }
+
             if (!res.ok) {
                 let errorMessage = "Failed to fetch vendor profile";
                 try {
