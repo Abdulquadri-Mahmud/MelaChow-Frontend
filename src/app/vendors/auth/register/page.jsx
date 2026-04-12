@@ -61,14 +61,15 @@ const InputWrap = ({ label, icon: Icon, error, children }) => (
   </div>
 );
 
-const TextInput = ({ path, placeholder, type = "text", icon, error, payload, setField }) => (
+const TextInput = ({ path, placeholder, type = "text", icon, error, payload, setField, readOnly = false }) => (
   <InputWrap label={placeholder} icon={icon} error={error}>
     <input
       type={type}
       placeholder={`Enter ${placeholder.toLowerCase()}`}
       value={path.split('.').reduce((o, i) => o[i], payload)}
       onChange={(e) => setField(path, e.target.value)}
-      className="w-full bg-slate-50 dark:bg-slate-800/50  p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
+      readOnly={readOnly}
+      className={`w-full bg-slate-50 dark:bg-slate-800/50  p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white ${readOnly ? 'opacity-70 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : ''}`}
     />
   </InputWrap>
 );
@@ -131,6 +132,11 @@ export default function VendorRegisterPage() {
     logo: null,
   });
 
+  // Banking state
+  const [banks, setBanks] = useState([]);
+  const [isVerifyingBank, setIsVerifyingBank] = useState(false);
+  const [bankVerified, setBankVerified] = useState(false);
+
   const [errors, setErrors] = useState({});
 
   const [payload, setPayload] = useState({
@@ -160,6 +166,7 @@ export default function VendorRegisterPage() {
     },
     payoutDetails: {
       bankName: "",
+      bankCode: "",
       accountName: "",
       accountNumber: "",
       payoutMethod: "paystack",
@@ -175,7 +182,7 @@ export default function VendorRegisterPage() {
     try {
       setIsLoadingLocations(true);
       setLocationError(null);
-      const response = await axios.get("https://grubdash-api.onrender.com/api/user/locations", {
+      const response = await axios.get(`${baseUrl}/user/locations`, {
         withCredentials: true,
       });
 
@@ -218,8 +225,53 @@ export default function VendorRegisterPage() {
   };
 
   // Fetch locations when component mounts
+  // Fetch Banks
+  const fetchBanks = async () => {
+    try {
+      const response = await axios.get(`${baseUrl}/wallet/public/banks`);
+      if (response.data?.banks) {
+        setBanks(response.data.banks);
+      }
+    } catch (err) {
+      console.error("Failed to fetch banks:", err);
+    }
+  };
+
+  // Resolve Bank Account
+  const handleVerifyBank = async () => {
+    const { accountNumber, bankCode } = payload.payoutDetails;
+    if (!accountNumber || !bankCode) {
+      setModal({ open: true, title: "Missing Info", message: "Please select a bank and enter account number.", type: "error" });
+      return;
+    }
+
+    try {
+      setIsVerifyingBank(true);
+      const res = await axios.get(`${baseUrl}/wallet/public/resolve-account`, {
+        params: { account_number: accountNumber, bank_code: bankCode }
+      });
+      
+      if (res.data?.account_name) {
+        setField("payoutDetails.accountName", res.data.account_name);
+        setBankVerified(true);
+      }
+    } catch (err) {
+      setModal({ 
+        open: true, 
+        title: "Verification Failed", 
+        message: err.response?.data?.message || "Could not verify account. Please check details.", 
+        type: "error" 
+      });
+      setBankVerified(false);
+    } finally {
+      setIsVerifyingBank(false);
+    }
+  };
+
   useEffect(() => {
     fetchLocations();
+    // Pre-fetch banks for Step 5
+    fetchBanks();
   }, []);
 
   // Persist form data to session storage
@@ -388,6 +440,7 @@ export default function VendorRegisterPage() {
         // Step 5 - Payout & Delivery
         payoutDetails: {
           bankName: payload.payoutDetails.bankName,
+          bankCode: payload.payoutDetails.bankCode,
           accountName: payload.payoutDetails.accountName,
           accountNumber: payload.payoutDetails.accountNumber,
           payoutMethod: payload.payoutDetails.payoutMethod,
@@ -635,9 +688,67 @@ export default function VendorRegisterPage() {
                 <div className="space-y-8">
                   <StepHeader title="Payout & Delivery" desc="Final details before we launch your store" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <TextInput path="payoutDetails.bankName" placeholder="Bank Name" icon={CreditCard} error={errors["payoutDetails.bankName"]} payload={payload} setField={setField} />
-                    <TextInput path="payoutDetails.accountName" placeholder="Account Name" icon={User} error={errors["payoutDetails.accountName"]} payload={payload} setField={setField} />
-                    <TextInput path="payoutDetails.accountNumber" placeholder="Account Number" icon={CreditCard} error={errors["payoutDetails.accountNumber"]} payload={payload} setField={setField} />
+                    <InputWrap label="Select Bank" icon={Store} error={errors["payoutDetails.bankName"]}>
+                      <div className="relative">
+                        <select
+                          value={payload.payoutDetails.bankCode}
+                          disabled={bankVerified}
+                          onChange={(e) => {
+                            const selectedBank = banks.find(b => b.code === e.target.value);
+                            setField("payoutDetails.bankCode", e.target.value);
+                            setField("payoutDetails.bankName", selectedBank ? selectedBank.name : "");
+                            setBankVerified(false);
+                          }}
+                          className="w-full bg-slate-50 dark:bg-slate-800/50  p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none disabled:opacity-60"
+                        >
+                          <option value="">Choose your bank</option>
+                          {banks.map((bank) => (
+                            <option key={bank.id} value={bank.code}>
+                              {bank.name}
+                            </option>
+                          ))}
+                        </select>
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+                      </div>
+                    </InputWrap>
+
+                    <TextInput 
+                      path="payoutDetails.accountNumber" 
+                      placeholder="Account Number" 
+                      icon={CreditCard} 
+                      error={errors["payoutDetails.accountNumber"]} 
+                      payload={payload} 
+                      setField={(path, val) => {
+                        setField(path, val);
+                        setBankVerified(false);
+                      }} 
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <TextInput 
+                      path="payoutDetails.accountName" 
+                      placeholder="Verified Account Name" 
+                      icon={User} 
+                      error={errors["payoutDetails.accountName"]} 
+                      payload={payload} 
+                      setField={setField}
+                      readOnly={true}
+                    />
+                    {!bankVerified ? (
+                      <button
+                        type="button"
+                        onClick={handleVerifyBank}
+                        disabled={isVerifyingBank}
+                        className="absolute right-2 top-[30px] px-4 py-2 bg-slate-900 dark:bg-orange-600 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all disabled:opacity-50"
+                      >
+                        {isVerifyingBank ? <Loader2 className="animate-spin" size={12} /> : "Verify Account"}
+                      </button>
+                    ) : (
+                      <div className="absolute right-4 top-[38px] text-emerald-500 flex items-center gap-1.5 font-bold text-[9px] uppercase tracking-widest">
+                        <CheckCircle2 size={14} /> Verified
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
