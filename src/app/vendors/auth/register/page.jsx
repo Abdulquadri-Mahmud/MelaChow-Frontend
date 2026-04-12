@@ -844,9 +844,18 @@ export default function VendorRegisterPage() {
             </motion.button>
           </div>
 
-          <div className="text-center mt-4">
-            <Link href="/vendors/auth/login" className="text-[10px] font-black uppercase italic tracking-[0.2em] text-slate-400 hover:text-orange-600 transition-colors underline-offset-4 decoration-orange-600/30">
-              Already a Partner? SIGN IN
+          <div className="text-center mt-8 pt-4">
+            <Link 
+              href="/vendors/auth/login" 
+              className="inline-flex items-center gap-2 px-8 py-3 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all group"
+            >
+              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
+                Already a Partner?
+              </span>
+              <span className="text-[10px] font-black uppercase italic tracking-widest text-orange-600 group-hover:translate-x-1 transition-transform">
+                Sign In
+              </span>
+              <ChevronRight size={12} className="text-orange-600 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </motion.div>
