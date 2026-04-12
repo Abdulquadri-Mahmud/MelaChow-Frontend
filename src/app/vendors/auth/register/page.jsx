@@ -342,7 +342,7 @@ export default function VendorRegisterPage() {
       if (!payload.address.street) e["address.street"] = "Street required";
       if (!payload.address.city) e["address.city"] = "City required";
       if (!payload.address.state) e["address.state"] = "State required";
-      if (!payload.address.postalCode) e["address.postalCode"] = "Postal required";
+      // if (!payload.address.postalCode) e["address.postalCode"] = "Postal required";
     }
     if (s === 4) {
       // Operations step - simplified
@@ -586,8 +586,6 @@ export default function VendorRegisterPage() {
                 <div className="space-y-6">
                   <StepHeader title="Business Location" desc="Where do we send the orders?" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <TextInput path="address.street" placeholder="Street Address" icon={MapPin} error={errors["address.street"]} payload={payload} setField={setField} />
-
                     {/* Dynamic State Selection */}
                     <InputWrap label="State" icon={MapPin} error={errors["address.state"]}>
                       <div className="relative">
@@ -646,7 +644,9 @@ export default function VendorRegisterPage() {
                       </div>
                     </InputWrap>
 
-                    <TextInput path="address.postalCode" placeholder="Postal / Zip Code" icon={MapPin} error={errors["address.postalCode"]} payload={payload} setField={setField} />
+                    <TextInput path="address.street" placeholder="Street Address" icon={MapPin} error={errors["address.street"]} payload={payload} setField={setField} />
+
+                    {/* <TextInput path="address.postalCode" placeholder="Postal / Zip Code" icon={MapPin} error={errors["address.postalCode"]} payload={payload} setField={setField} /> */}
                   </div>
                 </div>
               )}
@@ -844,9 +844,18 @@ export default function VendorRegisterPage() {
             </motion.button>
           </div>
 
-          <div className="text-center mt-4">
-            <Link href="/vendors/auth/login" className="text-[10px] font-black uppercase italic tracking-[0.2em] text-slate-400 hover:text-orange-600 transition-colors underline-offset-4 decoration-orange-600/30">
-              Already a Partner? SIGN IN
+          <div className="text-center mt-8 pt-4">
+            <Link 
+              href="/vendors/auth/login" 
+              className="inline-flex items-center gap-2 px-8 py-3 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all group"
+            >
+              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
+                Already a Partner?
+              </span>
+              <span className="text-[10px] font-black uppercase italic tracking-widest text-orange-600 group-hover:translate-x-1 transition-transform">
+                Sign In
+              </span>
+              <ChevronRight size={12} className="text-orange-600 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         </motion.div>
@@ -905,18 +914,10 @@ export default function VendorRegisterPage() {
                     <div className="flex gap-3">
                       <button
                         onClick={() => setModal({ ...modal, open: false })}
-                        className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:bg-slate-200 transition-all"
+                        className="w-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:bg-slate-200 transition-all"
                       >
                         Review Details
                       </button>
-                      {modal.type === 'success' && (
-                        <Link
-                          href="/vendors/auth/login"
-                          className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest flex items-center justify-center hover:scale-[1.02] shadow-lg transition-all"
-                        >
-                          GOTO DASHBOARD
-                        </Link>
-                      )}
                     </div>
                   </>
                 )}

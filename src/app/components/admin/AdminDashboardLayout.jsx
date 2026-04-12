@@ -170,7 +170,7 @@ export default function AdminDashboardLayout({ children }) {
                 </div>
             </aside>
 
-            {/* â”€â”€ Mobile Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/*Mobile Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             <AnimatePresence>
                 {sidebarOpen && (
                     <>
@@ -182,7 +182,7 @@ export default function AdminDashboardLayout({ children }) {
                         <motion.aside
                             initial={{ x: -280 }} animate={{ x: 0 }} exit={{ x: -280 }}
                             transition={{ type: "spring", damping: 28, stiffness: 220 }}
-                            className="fixed inset-y-0 left-0 w-64 bg-slate-900 z-50 lg:hidden flex flex-col border-r border-slate-800"
+                            className="fixed inset-y-0 left-0 w-72 bg-slate-900 z-50 lg:hidden flex flex-col border-r border-slate-800"
                         >
                             <div className="flex items-center justify-between px-4 py-4 border-b border-slate-800">
                                 <div className="flex items-center gap-2.5">
