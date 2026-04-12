@@ -78,7 +78,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto px-4 py-4">
+        <div className={`fixed inset-0 z-[10001] flex items-center justify-center overflow-y-auto ${!hasExistingAddress ? 'p-0' : 'px-4 py-4'}`}>
           <motion.div
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             initial={{ opacity: 0 }}
@@ -88,10 +88,14 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
           />
 
           <motion.div
-            className="relative w-full max-w-lg mx-auto overflow-hidden rounded-3xl bg-white dark:bg-slate-900 shadow-2xl border border-transparent dark:border-slate-800"
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            className={`relative w-full ${
+              !hasExistingAddress 
+                ? "h-screen w-screen max-w-none rounded-none" 
+                : "max-w-lg mx-auto rounded-3xl"
+            } overflow-hidden bg-white dark:bg-slate-900 shadow-2xl border border-transparent dark:border-slate-800`}
+            initial={{ opacity: 0, scale: !hasExistingAddress ? 1 : 0.9, y: !hasExistingAddress ? 0 : 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            exit={{ opacity: 0, scale: !hasExistingAddress ? 1 : 0.9, y: !hasExistingAddress ? 0 : 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
             {/* Header with Background Pattern */}

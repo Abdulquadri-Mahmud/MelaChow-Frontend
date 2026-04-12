@@ -5,6 +5,7 @@ import { Home, Search, ShoppingCart, Headset, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "../context/CartContext";
+import { useUserStorage } from "../hooks/useUserStorage";
 
 const navItems = [
   { name: "Home", href: "/home", icon: Home },
@@ -17,13 +18,17 @@ const navItems = [
 export default function BottomBar() {
   const pathname = usePathname();
   const { cart, isModalOpen } = useCart();
+  const { user, isLoading } = useUserStorage();
 
   // Hide the bottom nav when the customization modal is open, 
   // or on specific pages (Restaurant Storefront, Food Details, Checkout)
   const isFoodDetailsPage = pathname.startsWith("/food-details/");
   const isCheckoutPage = pathname === "/checkout";
   
-  if (isModalOpen || isFoodDetailsPage || isCheckoutPage) return null;
+  // Also hide if logged in but no addresses (mandatory address modal state)
+  const isNoAddress = !isLoading && user && user?.addresses?.length === 0;
+
+  if (isModalOpen || isFoodDetailsPage || isCheckoutPage || isNoAddress) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 px-0 md:max-w-md md:mx-auto z-[9999]">

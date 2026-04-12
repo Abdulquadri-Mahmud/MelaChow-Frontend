@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, X, Sparkles, ShieldCheck, Zap } from "lucide-react";
+import { Bell, Sparkles, ShieldCheck, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 import toast from "react-hot-toast";
@@ -11,7 +11,6 @@ export default function NotificationPromptBanner() {
         isSupported,
         subscribe,
         shouldShowPrompt,
-        dismissPrompt
     } = usePushNotifications();
 
     const [isVisible, setIsVisible] = useState(false);
@@ -20,11 +19,7 @@ export default function NotificationPromptBanner() {
     useEffect(() => {
         if (!isSupported) return;
 
-        // Check reminder time from localStorage
-        const reminderTime = localStorage.getItem("notification-reminder-time");
-        const isReminderDue = !reminderTime || Date.now() > parseInt(reminderTime);
-
-        if (shouldShowPrompt() && isReminderDue) {
+        if (shouldShowPrompt()) {
             // Enhanced delay for premium entrance
             const timer = setTimeout(() => {
                 setIsVisible(true);
@@ -55,18 +50,6 @@ export default function NotificationPromptBanner() {
         } finally {
             setIsSubscribing(false);
         }
-    };
-
-    const handleRemindLater = () => {
-        // Set reminder for 24 hours from now
-        const reminderTime = Date.now() + (24 * 60 * 60 * 1000);
-        localStorage.setItem("notification-reminder-time", reminderTime.toString());
-        setIsVisible(false);
-    };
-
-    const handleDismiss = () => {
-        dismissPrompt();
-        setIsVisible(false);
     };
 
     if (!isSupported) return null;
@@ -113,12 +96,6 @@ export default function NotificationPromptBanner() {
                                     </div>
                                 </div>
                             </div>
-                            <button
-                                onClick={handleDismiss}
-                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-slate-900 dark:hover:text-white"
-                            >
-                                <X size={20} />
-                            </button>
                         </div>
 
                         {/* Body */}
@@ -133,17 +110,11 @@ export default function NotificationPromptBanner() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            <button
-                                onClick={handleRemindLater}
-                                className="flex-1 py-4 px-4 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700 transition-all active:scale-95"
-                            >
-                                Not Now
-                            </button>
+                        <div className="flex gap-3">
                             <button
                                 onClick={handleEnableNow}
                                 disabled={isSubscribing}
-                                className="flex-[1.5] py-4 px-4 rounded-2xl bg-orange-500 text-white font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-xl shadow-orange-500/20 active:scale-95 disabled:opacity-70"
+                                className="w-full py-4 px-4 rounded-2xl bg-orange-500 text-white font-black text-xs uppercase tracking-widest hover:bg-orange-600 transition-all flex items-center justify-center gap-2 shadow-xl shadow-orange-500/20 active:scale-95 disabled:opacity-70"
                             >
                                 {isSubscribing ? (
                                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -153,14 +124,6 @@ export default function NotificationPromptBanner() {
                                 Enable Alerts
                             </button>
                         </div>
-
-                        {/* Dismiss Permanently Info */}
-                        <button
-                            onClick={handleDismiss}
-                            className="w-full mt-4 text-[9px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 uppercase tracking-[0.2em] transition-colors"
-                        >
-                            Never show this again
-                        </button>
                     </div>
                 </motion.div>
             )}
