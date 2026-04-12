@@ -64,7 +64,31 @@ export const VendorProfileProvider = ({ children }) => {
                 return null;
             }
 
+            if (res.status === 403) {
+                // Vendor is suspended, inactive, or deleted — identity confirmed but access denied.
+                // Clear session so they land on login. Return a shaped object so
+                // VendorBootstrapper can surface a reason if needed in future.
+                console.warn("[VendorProfileContext] 403 — vendor access denied. Clearing session.");
+                TokenManager.clearToken('vendor');
+                localStorage.removeItem("melachow_vendor_cache");
+                return null;
+            }
+
+            if (res.status >= 500) {
+                // Server/infrastructure error — do NOT clear the session.
+                // Let TanStack Query retry logic handle transient failures.
+                let serverError = "Server error. Please try again shortly.";
+                try {
+                    const errorData = await res.json();
+                    serverError = errorData.message || serverError;
+                } catch {
+                    // Not JSON
+                }
+                throw new Error(serverError);
+            }
+
             if (!res.ok) {
+                // Any other non-OK status (400, 404, etc.) — throw with server message.
                 let errorMessage = "Failed to fetch vendor profile";
                 try {
                     const errorData = await res.json();
