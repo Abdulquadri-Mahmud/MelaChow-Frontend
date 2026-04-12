@@ -905,18 +905,10 @@ export default function VendorRegisterPage() {
                     <div className="flex gap-3">
                       <button
                         onClick={() => setModal({ ...modal, open: false })}
-                        className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:bg-slate-200 transition-all"
+                        className="w-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:bg-slate-200 transition-all"
                       >
                         Review Details
                       </button>
-                      {modal.type === 'success' && (
-                        <Link
-                          href="/vendors/auth/login"
-                          className="flex-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest flex items-center justify-center hover:scale-[1.02] shadow-lg transition-all"
-                        >
-                          GOTO DASHBOARD
-                        </Link>
-                      )}
                     </div>
                   </>
                 )}
