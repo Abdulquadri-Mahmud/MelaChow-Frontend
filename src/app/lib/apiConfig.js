@@ -22,7 +22,7 @@
 export const getApiUrl = () => {
     // Check if we're in browser environment
     if (typeof window === 'undefined') {
-        const base = process.env.NEXT_PUBLIC_API_URL || 'https://melachow-api.onrender.com';
+        const base = process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com';
         return base.endsWith('/api') ? base : `${base}/api`;
     }
 

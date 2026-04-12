@@ -2,7 +2,7 @@ import axios from "axios";
 import { TokenManager } from "@/app/lib/auth-token";
 
 const BASE_URL = "/api/vendors";
-// const BASE_URL = "https://melachow-api.onrender.com/api/vendors";
+// const BASE_URL = "https://grubdash-api.onrender.com/api/vendors";
 
 // Create axios instance
 // Create axios instance

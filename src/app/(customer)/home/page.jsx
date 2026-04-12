@@ -18,7 +18,7 @@ export default function HomePage() {
   const [isAddressOpen, setIsAddressOpen] = useState(false);
   const { user, isLoading } = useUserStorage();
 
-  // Auto-open modal if user has no saved addresses
+  // Autoen modal if user has no saved addresses
   useEffect(() => {
     if (!isLoading && user && user?.addresses?.length === 0) {
       setIsAddressOpen(true);

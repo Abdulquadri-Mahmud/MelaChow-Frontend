@@ -33,7 +33,7 @@ class SocketService {
         const SOCKET_URL =
             process.env.NEXT_PUBLIC_SOCKET_URL ||
             process.env.NEXT_PUBLIC_API_URL ||
-            'https://melachow-api.onrender.com';
+            'https://grubdash-api.onrender.com';
 
         console.log('[Socket.IO] Initializing new connection to:', SOCKET_URL);
         
