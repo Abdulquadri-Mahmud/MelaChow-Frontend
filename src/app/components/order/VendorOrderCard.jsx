@@ -64,17 +64,24 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
   };
 
   const getNextStatus = (current) => {
-    switch(current.toLowerCase()) {
+    const isVendorManaged = vendorDetails?.deliveryManagedBy === 'vendor';
+    const status = current?.toLowerCase();
+
+    switch(status) {
         case 'pending': return { label: 'Accept Order', status: 'accepted', icon: TrendingUp };
         case 'accepted': return { label: 'Start Preparing', status: 'preparing', icon: Zap };
         case 'preparing': return { label: 'Mark as Ready', status: 'ready_for_pickup', icon: CheckCircle2 };
         case 'ready':
         case 'ready_for_pickup': 
-            // Return null so they use the 'Assign Courier' button in the footer
+            // Only allow manual "Out for Delivery" if vendor managed and they want to skip assignment? 
+            // No, user said "once they assigned rider", so we return null here to force assignment first.
             return null;
         case 'rider_assigned': 
-            return { label: 'Out for Delivery', status: 'out_for_delivery', icon: Bike };
-        case 'out_for_delivery': return { label: 'Mark Completed', status: 'completed', icon: PackageCheck };
+            return isVendorManaged ? { label: 'Out for Delivery', status: 'out_for_delivery', icon: Bike } : null;
+        case 'out_for_delivery': 
+            return isVendorManaged ? { label: 'Mark Completed', status: 'completed', icon: PackageCheck } : null;
+        case 'delivered':
+            return isVendorManaged ? { label: 'Mark Completed', status: 'completed', icon: PackageCheck } : null;
         default: return null;
     }
   };
@@ -82,9 +89,10 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
   const nextAction = getNextStatus(order.orderStatus);
   const nextStatusConfig = nextAction ? getStatusConfig(nextAction.status) : null;
 
-  const statusConfig = getStatusConfig(order.orderStatus);
-  const isUrgent = order.orderStatus === 'pending';
-  const isReady = ['ready_for_pickup', 'ready'].includes(order.orderStatus);
+  const currentStatus = order.orderStatus?.toLowerCase() || 'pending';
+  const statusConfig = getStatusConfig(currentStatus);
+  const isUrgent = currentStatus === 'pending';
+  const isReady = ['ready_for_pickup', 'ready'].includes(currentStatus);
 
   return (
     <motion.div 
@@ -136,14 +144,31 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
                               </div>
                           )}
 
-                          <div className="h-px bg-slate-50 dark:bg-slate-800 my-1" />
-                          
-                          <Link href={`/vendors/order/${order._id?.$oid || order._id}`} className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                              <div className="p-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-400">
-                                  <PackageCheck size={14} />
-                              </div>
-                              <p className="text-xs font-black text-slate-500 uppercase tracking-tight">Order Details</p>
-                          </Link>
+                           {isReady && vendorDetails?.deliveryManagedBy === 'vendor' && (
+                                <button 
+                                    onClick={() => {
+                                        setShowMenu(false);
+                                        onAssign?.(order.userOrderId?._id || order.userOrderId);
+                                    }}
+                                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors text-orange-600"
+                                >
+                                    <div className="p-2 rounded-md bg-orange-100 dark:bg-orange-900/30 text-orange-600">
+                                        <Bike size={14} />
+                                    </div>
+                                    <p className="text-xs font-black uppercase tracking-tight">Assign Rider</p>
+                                </button>
+                           )}
+
+                           <div className="h-px bg-slate-50 dark:bg-slate-800 my-1" />
+                           
+                           <Link href={`/vendors/order/${order._id?.$oid || order._id}`} className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                               <div className="p-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-400">
+                                   <PackageCheck size={14} />
+                               </div>
+                               <p className="text-xs font-black text-slate-500 uppercase tracking-tight">Order Details</p>
+                           </Link>
+
+                           <div className="h-px bg-slate-50 dark:bg-slate-800 my-1" />
 
                           {['pending', 'accepted', 'preparing', 'ready', 'ready_for_pickup'].includes(order.orderStatus?.toLowerCase()) && (
                               <button 
@@ -353,15 +378,18 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
 
         {/* Actions */}
         <div className="flex items-center gap-2 pt-1">
-          {isReady && (vendorDetails?.deliveryManagedBy !== 'admin' && vendorDetails?.deliveryManagedBy !== 'admin') && (
+          {isReady && vendorDetails?.deliveryManagedBy === 'vendor' && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => onAssign?.(order.userOrderId?._id || order.userOrderId)}
-              className="flex items-center justify-center size-9 bg-linear-to-br from-orange-600 to-orange-700 text-white rounded-lg hover:opacity-90 transition-all active:scale-90 shrink-0 group/assign"
+              onClick={(e) => {
+                e.preventDefault();
+                onAssign?.(order.userOrderId?._id || order.userOrderId);
+              }}
+              className="flex items-center justify-center size-10 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all active:scale-90 shrink-0 group/assign shadow-lg shadow-orange-500/20"
               title="Assign Courier"
             >
-              <Bike size={14} className="group-hover/assign:rotate-12 transition-transform" />
+              <Bike size={16} className="group-hover/assign:rotate-12 transition-transform" />
             </motion.button>
           )}
 

@@ -89,8 +89,8 @@ export default function FinancePage() {
                 ? breakdownRes.data
                 : (breakdownRes.data?.vendors || []);
 
-            const sortedBreakdown = [...breakdownData].sort((a, b) => (b.commissionPaid || 0) - (a.commissionPaid || 0));
-            setVendorBreakdown(sortedBreakdown);
+            // Backend now sorts by orderCount — preserve that order
+            setVendorBreakdown(breakdownData);
         } catch (err) {
             console.error(err);
             toast.error("Failed to load finance data");
@@ -182,7 +182,7 @@ export default function FinancePage() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                         <div>
                             <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2 uppercase tracking-tight">
-                                Commission Hub
+                                Finance Hub
                                 <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-50 text-orange-600 rounded-full border border-orange-100 italic tracking-widest uppercase">Finance Center</span>
                             </h1>
                             <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
@@ -247,7 +247,7 @@ export default function FinancePage() {
                                     <CompactStat title="Gross Balance" value={summary?.currentPlatformBalance || 0} icon={Wallet} colorClass="bg-blue-100 text-blue-600" subtitle="Platform-wide holdings" />
                                     <CompactStat title="Escrow Hold" value={summary?.totalEscrowHeld || 0} icon={Lock} colorClass="bg-amber-100 text-amber-600" subtitle="Vendor food reserve" />
                                     <CompactStat title="Available Funds" value={summary?.availableBalance || 0} icon={DollarSign} colorClass="bg-emerald-100 text-emerald-600" subtitle="Cleared and ready" />
-                                    <CompactStat title="Net Revenue" value={summary?.combinedPlatformRevenue || 0} icon={TrendingUp} colorClass="bg-orange-100 text-orange-600" subtitle="Platform slice only" />
+                                    <CompactStat title="Delivery Spread Earned" value={summary?.totalDeliverySpreadEarned || 0} icon={TrendingUp} colorClass="bg-orange-100 text-orange-600" subtitle="₦400 per platform delivery" />
                                 </div>
 
                                 {/* Flow Chart & Volume */}
@@ -315,7 +315,7 @@ export default function FinancePage() {
                                                     <Tooltip contentStyle={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '4px', fontSize: '10px' }} itemStyle={{ fontWeight: 700 }} />
                                                     <Legend iconType="rect" wrapperStyle={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', paddingTop: '10px' }} />
                                                     <Area type="monotone" dataKey="revenue" stroke="#0f172a" strokeWidth={2} fillOpacity={1} fill="url(#colorRevenue)" name="Global GMV" />
-                                                    <Area type="monotone" dataKey="commission" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorCommission)" name="Platform Comm" />
+                                                    <Area type="monotone" dataKey="deliveryRevenue" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorCommission)" name="Delivery Spread" />
                                                 </AreaChart>
                                             </ResponsiveContainer>
                                         </div>
@@ -343,13 +343,17 @@ export default function FinancePage() {
                                             onChange={(e) => setTransactionTypeFilter(e.target.value)}
                                             className="h-9 px-3 bg-white border border-slate-200 rounded-md outline-none text-[10px] font-bold uppercase tracking-tight appearance-none cursor-pointer"
                                         >
-                                            <option value="all">Global Events</option>
-                                            <option value="delivery_fee">Logistics Yield</option>
-                                            <option value="commission">Partner Commissions</option>
-                                            <option value="refund">Platform Refunds</option>
-                                            <option value="payout">Vendor Payouts</option>
-                                            <option value="escrow_release">Vault Releases</option>
-                                            <option value="adjustment">Internal Adj.</option>
+                                            <option value="all">All Event Types</option>
+                                            <option value="delivery_fee">Delivery Fee Collected</option>
+                                            <option value="delivery_spread">Delivery Spread Retained</option>
+                                            <option value="escrow_hold">Escrow Hold</option>
+                                            <option value="escrow_release">Escrow Release</option>
+                                            <option value="rider_payout">Rider Payout</option>
+                                            <option value="refund">Customer Refund</option>
+                                            <option value="withdrawal">Vendor/Rider Withdrawal</option>
+                                            <option value="top_up">Wallet Top-Up</option>
+                                            <option value="manual_credit">Manual Credit</option>
+                                            <option value="manual_debit">Manual Debit</option>
                                         </select>
                                         <div className="flex bg-white border border-slate-200 p-1 rounded-md">
                                             {["all", "credit", "debit"].map((t) => (
@@ -437,9 +441,9 @@ export default function FinancePage() {
                                                 <tr className="bg-slate-50 border-b border-slate-200">
                                                     <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Partner Identity</th>
                                                     <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Volume</th>
-                                                    <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Settled Commission</th>
+                                                    <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Food Subtotal</th>
                                                     <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Net Payable</th>
-                                                    <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Logistics Induced</th>
+                                                    <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Delivery Share</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100">
@@ -458,7 +462,7 @@ export default function FinancePage() {
                                                             <td className="px-4 py-3 text-center">
                                                                 <span className="text-[10px] font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{vendor.orderCount}</span>
                                                             </td>
-                                                            <td className="px-4 py-3 text-xs font-bold text-emerald-600">₦{vendor.commissionPaid?.toLocaleString()}</td>
+                                                            <td className="px-4 py-3 text-xs font-bold text-slate-700">₦{vendor.totalSubtotal?.toLocaleString()}</td>
                                                             <td className="px-4 py-3 text-xs font-bold text-slate-900">₦{vendor.vendorEarnings?.toLocaleString()}</td>
                                                             <td className="px-4 py-3 text-right">
                                                                 <p className="text-xs font-bold text-blue-600">₦{vendor.deliveryShareGenerated?.toLocaleString() || 0}</p>
@@ -545,7 +549,8 @@ export default function FinancePage() {
                                                     <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Event ID</th>
                                                     <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reasoning</th>
                                                     <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Temporal</th>
-                                                    <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Comm. Claws</th>
+                                                    <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Comm. Retained</th>
+                                                    <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</th>
                                                     <th className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-right">Refund Outlay</th>
                                                 </tr>
                                             </thead>
@@ -561,7 +566,18 @@ export default function FinancePage() {
                                                                 <p className="text-[9px] font-bold text-slate-400 mt-0.5 max-w-[180px] truncate">{refund.notes}</p>
                                                             </td>
                                                             <td className="px-4 py-3 text-[10px] font-medium text-slate-400">{new Date(refund.createdAt).toLocaleDateString()}</td>
-                                                            <td className="px-4 py-3 text-xs font-bold text-emerald-600">₦{refund.commissionRetained?.toLocaleString()}</td>
+                                                            <td className="px-4 py-3 text-xs font-bold text-slate-500">₦{refund.commissionRetained?.toLocaleString()}</td>
+                                                            <td className="px-4 py-3">
+                                                                <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border ${
+                                                                    refund.status === 'completed'
+                                                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                                        : refund.status === 'pending_wallet'
+                                                                            ? 'bg-rose-50 text-rose-600 border-rose-100'
+                                                                            : 'bg-slate-50 text-slate-500 border-slate-200'
+                                                                }`}>
+                                                                    {refund.status === 'pending_wallet' ? '⚠ Wallet Pending' : refund.status}
+                                                                </span>
+                                                            </td>
                                                             <td className="px-4 py-3 text-right text-xs font-bold text-rose-600">₦{refund.amount?.toLocaleString()}</td>
                                                         </tr>
                                                     ))

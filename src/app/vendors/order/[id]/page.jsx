@@ -153,15 +153,8 @@ export default function VendorOrderDetailsPage() {
         if (newStatus === 'cancelled') {
             setIsCancelModalOpen(true);
         } else if (newStatus === 'rider_assigned') {
-            let vendorOrderId;
-            if (typeof order._id === 'string') {
-                vendorOrderId = order._id;
-            } else if (order._id?.$oid) {
-                vendorOrderId = order._id.$oid;
-            } else {
-                vendorOrderId = id;
-            }
-            setAssignmentModal({ isOpen: true, orderId: vendorOrderId });
+            const effectiveUserOrderId = order.userOrderId?._id || order.userOrderId || order._id?.$oid || order._id;
+            setAssignmentModal({ isOpen: true, orderId: effectiveUserOrderId });
         } else {
             performStatusUpdate(newStatus);
         }
@@ -170,15 +163,17 @@ export default function VendorOrderDetailsPage() {
     // Get available next statuses based on current status
     const getAvailableStatuses = (currentStatus) => {
         const status = currentStatus?.toLowerCase();
+        const isVendorManaged = vendorDetails?.vendor?.deliveryManagedBy === 'vendor' || vendorDetails?.deliveryManagedBy === 'vendor';
+        
         const statusFlow = {
             'pending': ['accepted', 'cancelled'],
             'accepted': ['preparing', 'cancelled'],
             'preparing': ['ready_for_pickup', 'cancelled'],
-            'ready_for_pickup': ['rider_assigned', 'cancelled'],
-            'ready': ['rider_assigned', 'cancelled'],
-            'rider_assigned': ['out_for_delivery', 'cancelled'],
-            'out_for_delivery': ['delivered', 'cancelled'],
-            'delivered': ['completed'],
+            'ready_for_pickup': isVendorManaged ? ['rider_assigned', 'cancelled'] : ['cancelled'],
+            'ready': isVendorManaged ? ['rider_assigned', 'cancelled'] : ['cancelled'],
+            'rider_assigned': isVendorManaged ? ['out_for_delivery', 'cancelled'] : [],
+            'out_for_delivery': isVendorManaged ? ['delivered', 'cancelled'] : [],
+            'delivered': isVendorManaged ? ['completed'] : [],
             'completed': [],
             'cancelled': [],
             'failed': ['refunded'],
@@ -336,7 +331,7 @@ export default function VendorOrderDetailsPage() {
                 )}
             </AnimatePresence>
 
-            <div className="max-w-7xl mx-auto space-y-4 py-4 px-4">
+            <div className="max-w-7xl mx-auto space-y-4">
 
                 {/* Header Section with Actions */}
                 <motion.div
@@ -389,16 +384,16 @@ export default function VendorOrderDetailsPage() {
                                 <div className="flex flex-wrap gap-2">
                                     {availableActions.map((status) => {
                                         const statusLabels = {
-                                            'accepted': { label: 'CONFIRM RECEIPT', icon: Check },
-                                            'preparing': { label: 'INITIATE PREP', icon: ShoppingBag },
-                                            'ready': { label: 'FINALIZED', icon: CheckCircle2 },
-                                            'ready_for_pickup': { label: 'FINALIZED', icon: CheckCircle2 },
-                                            'rider_assigned': { label: 'ASSIGN COURIER', icon: User },
-                                            'out_for_delivery': { label: 'DISPATCH', icon: Truck },
-                                            'delivered': { label: 'DELIVERED', icon: CheckCircle2 },
-                                            'completed': { label: 'SETTLE LOG', icon: Check },
-                                            'cancelled': { label: 'VOID LOG', icon: X },
-                                            'refunded': { label: 'VOID & CREDIT', icon: CreditCard }
+                                            'accepted': { label: 'Accept Order', icon: Check },
+                                            'preparing': { label: 'Start Preparing', icon: ShoppingBag },
+                                            'ready': { label: 'Mark as Ready', icon: CheckCircle2 },
+                                            'ready_for_pickup': { label: 'Mark as Ready', icon: CheckCircle2 },
+                                            'rider_assigned': { label: 'Assign Rider', icon: User },
+                                            'out_for_delivery': { label: 'Out for Delivery', icon: Truck },
+                                            'delivered': { label: 'Mark as Delivered', icon: CheckCircle2 },
+                                            'completed': { label: 'Complete Order', icon: Check },
+                                            'cancelled': { label: 'Cancel Order', icon: X },
+                                            'refunded': { label: 'Refund Customer', icon: CreditCard }
                                         };
 
                                         const actionConfig = statusLabels[status];
@@ -669,30 +664,32 @@ export default function VendorOrderDetailsPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-black text-[12px] text-slate-900 dark:text-white uppercase tracking-widest">Earnings Breakdown</h3>
-                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Asset Payout Reconciliation Protocol</p>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Escrow Payout Reconciliation</p>
                                 </div>
                             </div>
 
                             <div className="p-5 space-y-4">
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest">Gross Merchandise Value</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">Food Subtotal</span>
                                         <span className="text-[12px] font-black text-slate-900 dark:text-white">₦{(order.vendorTotal + (order.commission || 0)).toLocaleString()}</span>
                                     </div>
 
-                                    <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-bold uppercase tracking-widest">Escrow Commission</span>
-                                            <div className="p-1 bg-slate-50 dark:bg-slate-800 rounded-md">
-                                                <Info size={10} className="text-slate-400" />
+                                    {order.commission > 0 && (
+                                        <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-bold uppercase tracking-widest">Platform Commission</span>
+                                                <div className="p-1 bg-slate-50 dark:bg-slate-800 rounded-md">
+                                                    <Info size={10} className="text-slate-400" />
+                                                </div>
                                             </div>
+                                            <span className="text-[12px] font-black text-rose-600">- ₦{order.commission.toLocaleString()}</span>
                                         </div>
-                                        <span className="text-[12px] font-black text-rose-600">- ₦{order.commission?.toLocaleString() || '0'}</span>
-                                    </div>
+                                    )}
 
                                     {order.deliveryShare > 0 && (
                                         <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
-                                            <span className="text-[10px] font-bold uppercase tracking-widest">Logistics Offset</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest">Delivery Fee (Your Rider)</span>
                                             <span className="text-[12px] font-black text-emerald-600">+ ₦{order.deliveryShare?.toLocaleString()}</span>
                                         </div>
                                     )}
@@ -702,7 +699,7 @@ export default function VendorOrderDetailsPage() {
                                     <div className="flex justify-between items-end bg-slate-50 dark:bg-slate-950 p-4 rounded-md border border-slate-100 dark:border-slate-800">
                                         <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Projected Net Payout</span>
-                                            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Automated Settlement Pending</span>
+                                            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Released to wallet on delivery</span>
                                         </div>
                                         <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
                                             ₦{((order.vendorTotal || 0) + (order.deliveryShare || 0)).toLocaleString()}
