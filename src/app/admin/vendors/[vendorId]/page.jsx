@@ -569,6 +569,33 @@ export default function VendorDetailPage() {
                         </div>
                     </div>
 
+                    {/* Operating Schedule Panel */}
+                    {vendor.openingHours && Object.keys(vendor.openingHours).length > 0 && (
+                        <div className="bg-white border border-slate-200 rounded-xl p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Clock size={14} className="text-slate-400" />
+                                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Operating Schedule</h3>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
+                                    const schedule = vendor.openingHours[day] || {};
+                                    const isClosed = schedule.closed || (!schedule.open && !schedule.close);
+                                    
+                                    return (
+                                        <div key={day} className={`border rounded-xl p-3 text-center flex flex-col justify-center items-center transition-colors ${isClosed ? 'bg-slate-50 border-slate-100 opacity-70' : 'bg-blue-50/30 border-blue-100/50 hover:border-blue-200 hover:bg-blue-50/50'}`}>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{day.substring(0,3)}</p>
+                                            {isClosed ? (
+                                                <span className="px-2 py-0.5 bg-rose-50 text-rose-500 rounded-md text-[9px] font-black uppercase tracking-widest border border-rose-100/50">Closed</span>
+                                            ) : (
+                                                <p className="text-xs font-black text-slate-800">{schedule.open} <span className="text-slate-400 font-medium mx-0.5">-</span> {schedule.close}</p>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    )}
+
                     {/* KYC Documents Panel */}
                     {vendor.kyc && (
                         <div className="bg-white border border-slate-200 rounded-xl p-5">

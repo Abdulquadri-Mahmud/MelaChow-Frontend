@@ -22,7 +22,7 @@ const PermanentInstallButton = () => {
   // ── Already installed ──────────────────────────────────────────────────────
   if (isInstalled) {
     return (
-      <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl border border-emerald-100 dark:border-emerald-500/20">
+      <div className="flex items-center gap-3 p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl border border-emerald-100 dark:border-emerald-500/20">
         <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-emerald-500/20">
           <CheckCircle2 size={24} />
         </div>
@@ -59,7 +59,7 @@ const PermanentInstallButton = () => {
   const Modal = ({ show, onClose, children }) => (
     <AnimatePresence>
       {show && (
-        <div className="fixed inset-0 z-[10002] flex items-end justify-center sm:items-center p-4">
+        <div className="fixed inset-0 z-[10002] flex items-end justify-center sm:items-center p-2">
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
