@@ -56,7 +56,7 @@ export default function CommissionLedgerPage() {
         setLoading(true);
         try {
             const data = await adminApi.getCommissionLedger(filters);
-            setLedgerData(data.data?.ledger || []);
+            setLedgerData(data.data?.orders || []);
             setSummary(data.data?.summary || null);
         } catch (error) {
             console.error(error);
@@ -91,8 +91,8 @@ export default function CommissionLedgerPage() {
                     {/* Header Section */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-900">Commission Ledger</h1>
-                            <p className="text-sm text-slate-500 mt-0.5">Financial breakdown of platform revenue and delivery earnings</p>
+                            <h1 className="text-2xl font-bold text-slate-900">Revenue Ledger</h1>
+                            <p className="text-sm text-slate-500 mt-0.5">Platform delivery spread and order financial breakdown. Commission is currently disabled — revenue comes from delivery spread only.</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <button
@@ -112,7 +112,7 @@ export default function CommissionLedgerPage() {
                             icon={Percent}
                             label="Commission Earned"
                             value={summary?.totalCommissionEarned || 0}
-                            accentColor="indigo"
+                            accentColor="slate"
                             loading={loading}
                         />
                         <StatTile
@@ -124,7 +124,7 @@ export default function CommissionLedgerPage() {
                         />
                         <StatTile
                             icon={DollarSign}
-                            label="Combined Revenue"
+                            label="Platform Revenue"
                             value={summary?.combinedPlatformRevenue || 0}
                             accentColor="orange"
                             loading={loading}
@@ -227,7 +227,9 @@ export default function CommissionLedgerPage() {
                                                 </td>
                                                 <td className="px-4 py-3 text-sm font-medium text-slate-500">{formatCurrency(row.subtotal)}</td>
                                                 <td className="px-4 py-3">
-                                                    <span className="text-sm font-bold text-slate-900">{formatCurrency(row.commissionTotal)}</span>
+                                                    <span className={`text-sm font-bold ${(row.totalCommission || 0) > 0 ? 'text-slate-900' : 'text-slate-400'}`}>
+                                                        {formatCurrency(row.totalCommission)}
+                                                    </span>
                                                 </td>
                                                 <td className="px-4 py-3 text-sm font-medium text-slate-500">{formatCurrency(row.deliveryFeeHeld)}</td>
                                                 <td className="px-4 py-3 text-right">
