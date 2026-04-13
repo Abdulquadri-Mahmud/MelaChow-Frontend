@@ -40,15 +40,8 @@ export function generateOrderItemsStatement(order, { includeCustomerName = false
     const options = item.selected_options || item.metadata?.selected_options || [];
     const totalPortions = portionQuantity * quantity;
 
-    let portionText = "";
     const cleanPortionLabel = (portionLabel || "").trim();
-    if (!cleanPortionLabel) {
-      portionText = totalPortions > 1 ? "portions" : "portion";
-    } else if (cleanPortionLabel.toLowerCase().includes("portion")) {
-      portionText = cleanPortionLabel;
-    } else {
-      portionText = `${cleanPortionLabel} ${totalPortions > 1 ? "portions" : "portion"}`;
-    }
+    let portionText = cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion");
 
     let statement = `${totalPortions} ${portionText} of ${itemName}`;
     if (options.length > 0) {
