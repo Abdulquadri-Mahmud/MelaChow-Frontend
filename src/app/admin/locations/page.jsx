@@ -4,18 +4,60 @@ import { useState, useEffect, useMemo } from "react";
 import {
   Plus, Loader2, CheckCircle2, Clock, Building2, Navigation,
   AlertTriangle, Search, Filter, X, MapPin, Users, Calendar,
-  Eye, EyeOff, Edit3, RefreshCw, ChevronRight
+  Eye, EyeOff, Edit3, RefreshCw, ChevronRight, Activity, PieChart,
+  ChevronDown, Map
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import toast from "react-hot-toast";
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
 import AdminDashboardLayout from "@/app/components/admin/AdminDashboardLayout";
 import adminApi from "@/app/lib/adminApi";
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   SHARED UI COMPONENTS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+const StatTile = ({ label, value, bg, text, icon: Icon }) => (
+    <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-4 hover:border-orange-200 transition-all group shadow-sm bg-gradient-to-br from-white to-slate-50/30">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bg} ${text} bg-opacity-30 group-hover:bg-opacity-40 transition-colors`}>
+            <Icon size={18} />
+        </div>
+        <div className="min-w-0">
+            <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-1 truncate">{label}</p>
+            <p className="text-lg font-extrabold text-slate-900 leading-none">{value}</p>
+        </div>
+    </div>
+);
+
+const Th = ({ children, right, center }) => (
+    <th className={`px-4 py-3 text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.15em] bg-slate-50 border-b border-slate-100 ${right ? "text-right" : ""} ${center ? "text-center" : ""}`}>
+        {children}
+    </th>
+);
+
+const Badge = ({ children, status }) => {
+    const variants = {
+        active: "bg-emerald-50 text-emerald-700 border-emerald-100",
+        inactive: "bg-slate-50 text-slate-500 border-slate-200",
+        pending: "bg-amber-50 text-amber-700 border-amber-200"
+    };
+    return (
+        <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest border shadow-sm ${variants[status] || variants.inactive}`}>
+            {children}
+        </span>
+    );
+};
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MAIN MANAGEMENT COMPONENT
+   ───────────────────────────────────────────────────────────────────────────── */
+
 function AdminLocationManagement() {
   const [activeTab, setActiveTab] = useState('states');
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
+  const [metrics, setMetrics] = useState(null);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [backendStatus, setBackendStatus] = useState('checking');
@@ -44,84 +86,70 @@ function AdminLocationManagement() {
   const [resolveCity, setResolveCity] = useState('');
   const [createLocation, setCreateLocation] = useState(false);
 
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [statesRes, citiesRes, reqsRes, metricsRes] = await Promise.all([
+        adminApi.getAllStates(),
+        adminApi.getAllCities(),
+        adminApi.getLocationRequests(),
+        adminApi.getLocationMetrics()
+      ]);
+      
+      setStates(statesRes.states || []);
+      setCities(citiesRes.cities || []);
+      setPendingRequests(reqsRes.vendors || []);
+      setMetrics(metricsRes.top_cities || []);
+      setBackendStatus('available');
+    } catch (err) {
+      console.error('Initialization error:', err);
+      setBackendStatus('error');
+      toast.error("Location Registry Offline");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    setLoading(true);
-    const init = async () => {
-      try {
-        await Promise.all([fetchStates(), fetchCities(), fetchPendingRequests()]);
-        setBackendStatus('available');
-      } catch (err) {
-        console.error('Initialization error:', err);
-        setBackendStatus('error');
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
+    fetchData();
   }, []);
 
-  const fetchStates = async () => {
-    try {
-      const data = await adminApi.getAllStates();
-      if (data.success) setStates(data.states || []);
-    } catch (err) { console.error('Error fetching states:', err); }
-  };
-
-  const fetchCities = async () => {
-    try {
-      const data = await adminApi.getAllCities();
-      if (data.success) setCities(data.cities || []);
-    } catch (err) { console.error('Error fetching cities:', err); }
-  };
-
-  const fetchPendingRequests = async () => {
-    try {
-      const data = await adminApi.getLocationRequests();
-      if (data.success) setPendingRequests(data.vendors || []);
-    } catch (err) { console.error('Error fetching pending requests:', err); }
-  };
-
-  const createState = async (e) => {
+  const handleCreateState = async (e) => {
     e.preventDefault();
-    if (!newStateName.trim()) { toast.error('Please enter a state name'); return; }
+    if (!newStateName.trim()) return;
     try {
       setLoading(true);
       const data = await adminApi.createState({ name: newStateName.trim() });
       if (data.success) {
-        toast.success('State created');
+        toast.success('Region Added');
         setNewStateName('');
         setShowStateModal(false);
-        fetchStates();
-      } else { toast.error(data.message || 'Failed to create state'); }
-    } catch (err) { toast.error(err.message || 'Error creating state'); }
+        fetchData();
+      }
+    } catch (err) { toast.error(err.message); }
     finally { setLoading(false); }
   };
 
-  const submitCity = async (e) => {
+  const handleCitySubmit = async (e) => {
     e.preventDefault();
-    if (!newCityName.trim() || !selectedStateId) { toast.error('Please fill in all fields'); return; }
+    if (!newCityName.trim() || !selectedStateId) return;
     try {
       setLoading(true);
-      const payload = { name: newCityName.trim(), stateId: selectedStateId, platformDeliveryFee: Number(newPlatformDeliveryFee) || 0 };
+      const payload = { 
+        name: newCityName.trim(), 
+        stateId: selectedStateId, 
+        platformDeliveryFee: Number(newPlatformDeliveryFee) || 0 
+      };
       const data = editingCityId
         ? await adminApi.updateCity(editingCityId, payload)
         : await adminApi.createCity(payload);
       if (data.success) {
-        toast.success(editingCityId ? 'City updated' : 'City created');
+        toast.success(editingCityId ? 'City Refined' : 'City Established');
         resetCityForm();
-        fetchCities();
-        fetchStates();
-      } else { toast.error(data.message || 'Failed to save city'); }
-    } catch (err) { toast.error(err.message || 'Error saving city'); }
+        fetchData();
+      }
+    } catch (err) { toast.error(err.message); }
     finally { setLoading(false); }
-  };
-
-  const handleEditCity = (city) => {
-    setEditingCityId(city._id);
-    setNewCityName(city.name);
-    setSelectedStateId(city.stateId?._id || city.stateId || '');
-    setNewPlatformDeliveryFee(city.platformDeliveryFee || 0);
-    setShowCityModal(true);
   };
 
   const resetCityForm = () => {
@@ -135,15 +163,13 @@ function AdminLocationManagement() {
   const toggleStateStatus = async (stateId, newStatus) => {
     if (togglingStateIds.has(stateId)) return;
     setTogglingStateIds(prev => new Set(prev).add(stateId));
-    // Optimistic update
     setStates(prev => prev.map(s => s._id === stateId ? { ...s, isActive: newStatus } : s));
     try {
       await adminApi.toggleStateStatus(stateId, newStatus);
-      toast.success(newStatus ? 'State activated' : 'State deactivated');
+      toast.success(newStatus ? 'Region Active' : 'Region Paused');
     } catch (err) {
-      // Revert
       setStates(prev => prev.map(s => s._id === stateId ? { ...s, isActive: !newStatus } : s));
-      toast.error(err.message || 'Error updating state status');
+      toast.error('Sync Failure');
     } finally {
       setTogglingStateIds(prev => { const n = new Set(prev); n.delete(stateId); return n; });
     }
@@ -152,35 +178,32 @@ function AdminLocationManagement() {
   const toggleCityStatus = async (cityId, newStatus) => {
     if (togglingCityIds.has(cityId)) return;
     setTogglingCityIds(prev => new Set(prev).add(cityId));
-    // Optimistic update
     setCities(prev => prev.map(c => c._id === cityId ? { ...c, isActive: newStatus } : c));
     try {
       await adminApi.toggleCityStatus(cityId, newStatus);
-      toast.success(newStatus ? 'City activated' : 'City deactivated');
+      toast.success(newStatus ? 'City Online' : 'City Paused');
     } catch (err) {
-      // Revert
       setCities(prev => prev.map(c => c._id === cityId ? { ...c, isActive: !newStatus } : c));
-      toast.error(err.message || 'Error updating city status');
+      toast.error('Sync Failure');
     } finally {
       setTogglingCityIds(prev => { const n = new Set(prev); n.delete(cityId); return n; });
     }
   };
 
-  const approveVendor = async () => {
-    if (!selectedVendor || !resolveState.trim() || !resolveCity.trim()) { toast.error('Please fill in all fields'); return; }
+  const handleApproveVendor = async () => {
+    if (!selectedVendor || !resolveState.trim() || !resolveCity.trim()) return;
     try {
       setLoading(true);
       const data = await adminApi.approveVendorLocation(selectedVendor._id, {
         state: resolveState.trim(), city: resolveCity.trim(), createLocation
       });
       if (data.success) {
-        toast.success('Vendor approved ✅');
+        toast.success('Vector Authorized');
         setSelectedVendor(null);
-        setResolveState(''); setResolveCity(''); setCreateLocation(false);
         setShowRequestModal(false);
-        fetchPendingRequests();
-      } else { toast.error(data.message || 'Failed to approve vendor'); }
-    } catch (err) { toast.error(err.message || 'Error approving vendor'); }
+        fetchData();
+      }
+    } catch (err) { toast.error(err.message); }
     finally { setLoading(false); }
   };
 
@@ -203,87 +226,114 @@ function AdminLocationManagement() {
     r.requestedCity?.toLowerCase().includes(requestSearch.toLowerCase())
   ), [pendingRequests, requestSearch]);
 
-  const stats = useMemo(() => ({
-    totalStates: states.length,
-    activeStates: states.filter(s => s.isActive).length,
-    totalCities: cities.length,
-    activeCities: cities.filter(c => c.isActive).length,
-    pendingRequests: pendingRequests.length
-  }), [states, cities, pendingRequests]);
-
   if (backendStatus === 'checking') {
     return (
-      <div className="flex items-center justify-center py-32">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400 mr-3" />
-        <span className="text-slate-500 text-sm font-medium">Loading locations...</span>
+      <div className="flex flex-col items-center justify-center py-32">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500 mb-4" />
+        <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em]">Synchronizing Geographic Data…</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 uppercase tracking-tight">Location Management</h1>
-          <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
-          <p className="text-sm text-slate-500 mt-1.5 font-medium">Manage active states, cities, and vendor location requests</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-100 shrink-0">
+            <Map size={20} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-xl font-extrabold text-slate-900 uppercase tracking-tight leading-tight">Geographic Hub</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <div className="h-0.5 w-6 bg-orange-500 rounded-full" />
+              <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest leading-none">Global Coverage Control</p>
+            </div>
+          </div>
         </div>
         <button
-          onClick={() => { fetchStates(); fetchCities(); fetchPendingRequests(); toast.success('Refreshed'); }}
-          className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors text-[10px] font-bold uppercase tracking-widest"
+          onClick={fetchData}
+          className="inline-flex items-center gap-2.5 px-5 py-2.5 bg-slate-900 text-white text-[10px] font-extrabold uppercase tracking-[0.15em] rounded-xl hover:bg-orange-600 transition-all shadow-xl shadow-slate-200 active:scale-95"
         >
-          <RefreshCw className="w-4 h-4" />
-          Sync Data
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          Registry Sync
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {[
-          { label: 'Total States', value: stats.totalStates, icon: <Navigation size={14} /> },
-          { label: 'Active States', value: stats.activeStates, icon: <CheckCircle2 size={14} />, accent: true },
-          { label: 'Total Cities', value: stats.totalCities, icon: <Building2 size={14} /> },
-          { label: 'Active Cities', value: stats.activeCities, icon: <MapPin size={14} />, accent: true },
-          { label: 'Pending', value: stats.pendingRequests, icon: <Clock size={14} />, warn: stats.pendingRequests > 0 },
-        ].map((s, i) => (
-          <div key={i} className={`bg-white border rounded-lg px-4 py-3 ${s.warn ? 'border-amber-300 bg-amber-50' : 'border-slate-200'}`}>
-            <div className={`flex items-center gap-1.5 text-xs font-medium mb-1 ${s.warn ? 'text-amber-600' : 'text-slate-500'}`}>
-              {s.icon} {s.label}
+      {/* Analytics Distribution */}
+      <AnimatePresence>
+        {metrics?.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm flex flex-col lg:flex-row"
+          >
+            <div className="p-5 border-r border-slate-100 lg:w-1/3 bg-slate-50/50">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-[10px] font-extrabold text-slate-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                  <Activity size={14} className="text-orange-500" /> Vendor Density
+                </h3>
+                <span className="text-[9px] font-extrabold text-orange-600 bg-orange-100 px-2 py-0.5 rounded uppercase tracking-tighter shadow-sm">Hotspots</span>
+              </div>
+              <div className="space-y-3">
+                <StatTile label="Total Nodes" value={states.length} icon={Navigation} bg="bg-blue-100" text="text-blue-600" />
+                <StatTile label="Active Cities" value={cities.filter(c => c.isActive).length} icon={Building2} bg="bg-emerald-100" text="text-emerald-600" />
+                <StatTile label="Top Territory" value={metrics[0]?.name || "N/A"} icon={PieChart} bg="bg-orange-100" text="text-orange-600" />
+              </div>
             </div>
-            <p className={`text-2xl font-bold ${s.warn ? 'text-amber-700' : s.accent ? 'text-emerald-700' : 'text-slate-900'}`}>{s.value}</p>
-          </div>
-        ))}
-      </div>
+            <div className="p-5 flex-1 h-[240px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={metrics.slice(0, 8)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#64748b', fontWeight: 800, textTransform: 'uppercase' }} width={80} />
+                  <Tooltip 
+                    cursor={{ fill: '#fff7ed' }}
+                    contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} 
+                    itemStyle={{ fontSize: '12px', fontWeight: 'bold', color: '#f48525' }}
+                    labelStyle={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8', marginBottom: '4px' }}
+                  />
+                  <Bar dataKey="count" name="Vendors" radius={[0, 4, 4, 0]} barSize={20}>
+                    {metrics.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index === 0 ? '#f48525' : '#fbbf24'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Tab Container */}
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-        {/* Tabs */}
-        <div className="flex border-b border-slate-200 bg-slate-50">
+      {/* Tabs / Content */}
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+        <div className="flex bg-slate-50 border-b border-slate-200 p-1">
           {[
-            { key: 'states', label: 'States', count: filteredStates.length, icon: <Navigation size={14} /> },
-            { key: 'cities', label: 'Cities', count: filteredCities.length, icon: <Building2 size={14} /> },
-            { key: 'requests', label: 'Pending Requests', count: filteredRequests.length, icon: <Clock size={14} />, badge: filteredRequests.length > 0 },
-          ].map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-5 py-3 text-[10px] font-bold uppercase tracking-widest border-b-2 transition-all ${activeTab === tab.key
-                ? 'border-orange-500 text-slate-900 bg-white'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-white/50'
-              }`}
-            >
-              {tab.icon}
-              {tab.label}
-              <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${tab.badge ? 'bg-amber-500 text-white' : activeTab === tab.key ? 'bg-slate-100 text-slate-600' : 'bg-slate-200 text-slate-500'}`}>
-                {tab.count}
-              </span>
-            </button>
-          ))}
+            { key: 'states', label: 'Provinces', count: states.length, icon: Navigation },
+            { key: 'cities', label: 'Districts', count: cities.length, icon: Building2 },
+            { key: 'requests', label: 'Entrance Requests', count: pendingRequests.length, icon: Clock, warn: pendingRequests.length > 0 }
+          ].map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`flex-1 flex items-center justify-center gap-2.5 px-4 py-3 text-[10px] font-extrabold uppercase tracking-widest transition-all rounded-xl ${activeTab === tab.key
+                  ? 'bg-white text-orange-600 shadow-sm border border-orange-100'
+                  : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100/50'
+                }`}
+              >
+                <Icon size={14} className={activeTab === tab.key ? "text-orange-500" : "text-slate-400"} />
+                {tab.label}
+                <span className={`px-2 py-0.5 rounded-full text-[9px] shadow-inner font-black ${tab.warn ? 'bg-orange-500 text-white animate-pulse' : activeTab === tab.key ? 'bg-orange-100 text-orange-600' : 'bg-slate-200 text-slate-500'}`}>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Tab Content */}
-        <div className="p-4">
+        <div className="p-6">
           <AnimatePresence mode="wait">
             {activeTab === 'states' && (
               <StatesPanel
@@ -296,7 +346,7 @@ function AdminLocationManagement() {
                 setShowModal={setShowStateModal}
                 newStateName={newStateName}
                 setNewStateName={setNewStateName}
-                onCreateState={createState}
+                onCreateState={handleCreateState}
                 searchTerm={stateSearch}
                 setSearchTerm={setStateSearch}
                 filter={stateFilter}
@@ -320,8 +370,14 @@ function AdminLocationManagement() {
                 newPlatformDeliveryFee={newPlatformDeliveryFee}
                 setNewPlatformDeliveryFee={setNewPlatformDeliveryFee}
                 editingCityId={editingCityId}
-                onSubmitCity={submitCity}
-                onEditCity={handleEditCity}
+                onSubmitCity={handleCitySubmit}
+                onEditCity={(item) => {
+                  setEditingCityId(item._id);
+                  setNewCityName(item.name);
+                  setSelectedStateId(item.stateId?._id || item.stateId);
+                  setNewPlatformDeliveryFee(item.platformDeliveryFee);
+                  setShowCityModal(true);
+                }}
                 searchTerm={citySearch}
                 setSearchTerm={setCitySearch}
                 filter={cityFilter}
@@ -345,7 +401,7 @@ function AdminLocationManagement() {
                 setResolveCity={setResolveCity}
                 createLocation={createLocation}
                 setCreateLocation={setCreateLocation}
-                onApproveVendor={approveVendor}
+                onApproveVendor={handleApproveVendor}
                 searchTerm={requestSearch}
                 setSearchTerm={setRequestSearch}
               />
@@ -357,108 +413,103 @@ function AdminLocationManagement() {
   );
 }
 
-// ─── States Panel ────────────────────────────────────────────────
+/* ─────────────────────────────────────────────────────────────────────────────
+   SUB-PANELS
+   ───────────────────────────────────────────────────────────────────────────── */
+
 const StatesPanel = ({ states, loading, onToggleStatus, togglingIds, showModal, setShowModal, newStateName, setNewStateName, onCreateState, searchTerm, setSearchTerm, filter, setFilter }) => (
-  <motion.div key="states" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-    {/* Toolbar */}
-    <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between">
-      <div className="flex flex-1 items-center gap-2">
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input
-            type="text" placeholder="Search states..." value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 h-9 bg-white border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-orange-500 transition-colors font-medium"
-          />
-        </div>
-        <div className="flex bg-slate-100 p-0.5 rounded-md">
-          {['all', 'active', 'inactive'].map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`px-3 py-1 rounded text-xs font-medium capitalize transition-all ${filter === f ? 'bg-white text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>
-              {f}
-            </button>
-          ))}
-        </div>
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+      <div className="relative flex-1 max-w-sm group">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-orange-500 transition-colors" />
+        <input
+          type="text" placeholder="Locate province record…" value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-11 pr-4 h-11 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 transition-all font-medium"
+        />
       </div>
-      <button onClick={() => setShowModal(true)}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-orange-700 transition-colors shadow-sm shadow-orange-500/20">
-        <Plus size={15} /> Add State
-      </button>
+      <div className="flex items-center gap-3">
+          <div className="flex bg-slate-100 border border-slate-200 p-1 rounded-xl">
+            {['all', 'active', 'inactive'].map(f => (
+              <button key={f} onClick={() => setFilter(f)}
+                className={`px-4 py-1.5 rounded-lg text-[9px] font-extrabold uppercase tracking-widest transition-all ${filter === f ? 'bg-white text-orange-600 shadow-sm border border-orange-100' : 'text-slate-400 hover:text-slate-600'}`}>
+                {f}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setShowModal(true)}
+            className="h-11 px-5 bg-orange-600 text-white text-[10px] font-extrabold uppercase tracking-[0.15em] rounded-xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-100 active:scale-95 flex items-center gap-2">
+            <Plus size={16} /> New Region
+          </button>
+      </div>
     </div>
 
-    {/* States Table */}
-    {loading ? (
-      <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-400 mr-2" /><span className="text-slate-500 text-sm">Loading...</span></div>
-    ) : states.length === 0 ? (
-      <EmptyState icon={<Navigation size={20} />} title="No states found" description="Create your first state to get started" />
-    ) : (
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">State</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Cities</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Created</th>
-              <th className="text-right py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {states.map(state => (
-              <tr key={state._id} className="hover:bg-slate-50/50 transition-colors">
-                <td className="py-3 px-4">
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-7 h-7 rounded flex items-center justify-center flex-shrink-0 ${state.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
-                      <Navigation size={13} />
-                    </div>
-                    <span className="font-semibold text-sm text-slate-900">{state.name}</span>
+    <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      <table className="w-full">
+        <thead>
+          <tr>
+            <Th>Classification</Th>
+            <Th center>Districts</Th>
+            <Th center>Registry Date</Th>
+            <Th center>Status</Th>
+            <th className="bg-slate-50 border-b border-slate-100 w-10"></th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-50 font-medium">
+          {states.map(state => (
+            <tr key={state._id} className="hover:bg-orange-50/30 transition-all group">
+              <td className="py-4 px-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${state.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                    <Navigation size={15} />
                   </div>
-                </td>
-                <td className="py-3 px-4">
-                  <span className="text-sm text-slate-500">{state.cities?.length ?? '—'}</span>
-                </td>
-                <td className="py-3 px-4">
-                  <button
-                    onClick={() => onToggleStatus(state._id, !state.isActive)}
-                    disabled={togglingIds.has(state._id)}
-                    title={state.isActive ? 'Click to deactivate' : 'Click to activate'}
-                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-[11px] font-medium transition-all cursor-pointer disabled:cursor-wait ${state.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200'}`}
-                  >
-                    {togglingIds.has(state._id) ? <Loader2 size={10} className="animate-spin" /> : <span className={`w-1.5 h-1.5 rounded-full ${state.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />}
-                    {state.isActive ? 'Active' : 'Inactive'}
-                  </button>
-                </td>
-                <td className="py-3 px-4">
-                  <span className="text-xs text-slate-500">{new Date(state.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                </td>
-                <td className="py-3 px-4 text-right">
-                  <span className="text-xs text-slate-400 italic">Click status to toggle</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    )}
+                  <span className="font-extrabold text-sm text-slate-900 uppercase tracking-tight">{state.name}</span>
+                </div>
+              </td>
+              <td className="py-4 px-4 text-center">
+                <span className="text-xs font-extrabold text-slate-500 bg-slate-50 border border-slate-100 px-3 py-1 rounded-full">{state.cities?.length || 0} Nodes</span>
+              </td>
+              <td className="py-4 px-4 text-center text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                {new Date(state.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+              </td>
+              <td className="py-4 px-4 text-center">
+                <button
+                  onClick={() => onToggleStatus(state._id, !state.isActive)}
+                  disabled={togglingIds.has(state._id)}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-extrabold border uppercase tracking-widest transition-all ${state.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-rose-50 hover:text-rose-700 shadow-sm shadow-emerald-50' : 'bg-slate-50 text-slate-400 border-slate-200 shadow-inner'}`}
+                >
+                  {togglingIds.has(state._id) ? <Loader2 size={12} className="animate-spin text-orange-500" /> : <div className={`w-1.5 h-1.5 rounded-full ${state.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300'}`} />}
+                  {state.isActive ? 'Online' : 'Paused'}
+                </button>
+              </td>
+              <td className="pr-4 py-4 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                <ChevronRight size={16} className="text-slate-300 ml-auto" />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {states.length === 0 && <EmptyState icon={<Navigation size={24} />} title="No Regions Found" description="Initialize your geography by adding a first state record." />}
+    </div>
 
     {/* Create State Modal */}
     <AnimatePresence>
       {showModal && (
-        <Modal title="Add State" onClose={() => setShowModal(false)}>
-          <form onSubmit={onCreateState} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">State Name <span className="text-red-500">*</span></label>
+        <Modal title="Establish New Region" onClose={() => setShowModal(false)}>
+          <form onSubmit={onCreateState} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">State Nomenclature</label>
               <input type="text" value={newStateName} onChange={(e) => setNewStateName(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900 transition-all"
-                placeholder="e.g., Lagos" required autoFocus />
+                className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all placeholder:text-slate-400"
+                placeholder="e.g. LAGOS" required autoFocus />
             </div>
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => setShowModal(false)}
-                className="flex-1 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
+                className="flex-1 h-11 bg-white border border-slate-200 text-slate-600 text-[10px] font-extrabold uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-colors">Abort</button>
               <button type="submit" disabled={loading}
-                className="flex-1 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-                {loading ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
-                Create State
+                className="flex-1 h-11 bg-slate-900 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-xl hover:bg-orange-600 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
+                {loading ? <Loader2 size={16} className="animate-spin" /> : <Plus size={16} />}
+                Create Entry
               </button>
             </div>
           </form>
@@ -468,142 +519,131 @@ const StatesPanel = ({ states, loading, onToggleStatus, togglingIds, showModal, 
   </motion.div>
 );
 
-// ─── Cities Panel ────────────────────────────────────────────────
 const CitiesPanel = ({ cities, states, loading, onToggleStatus, togglingIds, showModal, setShowModal, newCityName, setNewCityName, selectedStateId, setSelectedStateId, newPlatformDeliveryFee, setNewPlatformDeliveryFee, editingCityId, onSubmitCity, onEditCity, searchTerm, setSearchTerm, filter, setFilter, stateFilter, setStateFilter }) => (
-  <motion.div key="cities" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-    {/* Toolbar */}
-    <div className="flex flex-col md:flex-row gap-3 md:items-center justify-between">
-      <div className="flex flex-wrap flex-1 items-center gap-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input type="text" placeholder="Search cities..." value={searchTerm}
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <div className="flex flex-col lg:flex-row gap-4 justify-between items-center bg-slate-50/50 p-4 rounded-xl border border-slate-100 shadow-inner">
+      <div className="flex flex-1 items-center gap-3 w-full lg:w-auto">
+        <div className="relative flex-1 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-orange-500 transition-colors" />
+          <input type="text" placeholder="Locate district record…" value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 pr-4 h-9 w-48 bg-white border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-orange-500 transition-colors font-medium" />
-        </div>
-        <div className="flex bg-slate-100 p-0.5 rounded-md">
-          {['all', 'active', 'inactive'].map(f => (
-            <button key={f} onClick={() => setFilter(f)}
-              className={`px-3 py-1 rounded text-xs font-medium capitalize transition-all ${filter === f ? 'bg-white text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}>
-              {f}
-            </button>
-          ))}
+            className="w-full pl-11 pr-4 h-11 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 transition-all" />
         </div>
         <select value={stateFilter} onChange={(e) => setStateFilter(e.target.value)}
-          className="h-9 px-3 border border-slate-200 rounded-md text-sm text-slate-600 bg-white outline-none focus:ring-1 focus:ring-slate-900 cursor-pointer">
-          <option value="all">All States</option>
-          {states.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+          className="h-11 px-4 border border-slate-200 rounded-xl text-[10px] font-extrabold uppercase tracking-widest text-slate-600 bg-white outline-none focus:border-orange-500 shadow-sm cursor-pointer min-w-[140px]">
+          <option value="all">Global (All States)</option>
+          {states.map(s => <option key={s._id} value={s._id}>{s.name.toUpperCase()}</option>)}
         </select>
       </div>
-      <button onClick={() => setShowModal(true)}
-        className="inline-flex items-center gap-2 px-4 py-2 bg-orange-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-orange-700 transition-colors shadow-sm shadow-orange-500/20">
-        <Plus size={15} /> Add City
-      </button>
+      <div className="flex items-center gap-3 w-full lg:w-auto">
+          <div className="flex bg-slate-100 border border-slate-200 p-1 rounded-xl">
+            {['all', 'active', 'inactive'].map(f => (
+              <button key={f} onClick={() => setFilter(f)}
+                className={`px-4 py-1.5 rounded-lg text-[9px] font-extrabold uppercase tracking-widest transition-all ${filter === f ? 'bg-white text-orange-600 shadow-sm border border-orange-100' : 'text-slate-400 hover:text-slate-600'}`}>
+                {f}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setShowModal(true)}
+            className="h-11 px-5 bg-orange-600 text-white text-[10px] font-extrabold uppercase tracking-[0.15em] rounded-xl hover:bg-orange-700 transition-all shadow-lg active:scale-95 flex items-center gap-2">
+            <Plus size={16} /> New District
+          </button>
+      </div>
     </div>
 
-    {/* Cities Table */}
-    {loading ? (
-      <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-400 mr-2" /><span className="text-slate-500 text-sm">Loading...</span></div>
-    ) : cities.length === 0 ? (
-      <EmptyState icon={<Building2 size={20} />} title="No cities found" description="Create your first city to get started" />
-    ) : (
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">City</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">State</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Platform Fee</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-              <th className="text-right py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {cities.map(city => {
-              const fmt = (v) => new Intl.NumberFormat().format(v || 0);
-              return (
-                <tr key={city._id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className={`w-7 h-7 rounded flex items-center justify-center flex-shrink-0 ${city.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
-                        <Building2 size={13} />
-                      </div>
-                      <span className="font-semibold text-sm text-slate-900">{city.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded font-medium">{city.stateId?.name || '—'}</span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className="text-sm font-semibold text-slate-900">₦{fmt(city.platformDeliveryFee)}</span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <button
-                      onClick={() => onToggleStatus(city._id, !city.isActive)}
-                      disabled={togglingIds.has(city._id)}
-                      title={city.isActive ? 'Click to deactivate' : 'Click to activate'}
-                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-[11px] font-medium transition-all cursor-pointer disabled:cursor-wait ${city.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200'}`}
-                    >
-                      {togglingIds.has(city._id) ? <Loader2 size={10} className="animate-spin" /> : <span className={`w-1.5 h-1.5 rounded-full ${city.isActive ? 'bg-emerald-500' : 'bg-slate-400'}`} />}
-                      {city.isActive ? 'Active' : 'Inactive'}
-                    </button>
-                  </td>
-                  <td className="py-3 px-4">
+    <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      <table className="w-full">
+        <thead>
+          <tr>
+            <Th>Node Identity</Th>
+            <Th>Parent Region</Th>
+            <Th center>Logistics Base</Th>
+            <Th center>Status</Th>
+            <Th right>Actions</Th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-50 font-medium whitespace-nowrap">
+          {cities.map(city => (
+            <tr key={city._id} className="hover:bg-orange-50/30 transition-all group">
+              <td className="py-4 px-4 font-extrabold text-slate-900 flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 border border-slate-100 ${city.isActive ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-400'}`}>
+                  <Building2 size={15} />
+                </div>
+                <div className="min-w-0">
+                  <span className="uppercase tracking-tight block truncate">{city.name}</span>
+                  <span className="text-[9px] text-slate-400 font-extrabold tracking-widest uppercase">District Node</span>
+                </div>
+              </td>
+              <td className="py-4 px-4">
+                <span className="text-[9px] font-extrabold text-slate-500 bg-slate-100 px-3 py-1 rounded-full uppercase tracking-wider">{city.stateId?.name || 'Isolated'}</span>
+              </td>
+              <td className="py-4 px-4 text-center">
+                <span className="text-xs font-black text-slate-900 bg-orange-50 px-3 py-1 rounded-lg border border-orange-100">₦{new Intl.NumberFormat().format(city.platformDeliveryFee || 0)}</span>
+              </td>
+              <td className="py-4 px-4 text-center">
+                <button
+                  onClick={() => onToggleStatus(city._id, !city.isActive)}
+                  disabled={togglingIds.has(city._id)}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-extrabold border uppercase tracking-widest transition-all ${city.isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-rose-50 shadow-sm shadow-emerald-50/50' : 'bg-slate-50 text-slate-400 border-slate-200 shadow-inner'}`}
+                >
+                  {togglingIds.has(city._id) ? <Loader2 size={12} className="animate-spin text-orange-500" /> : <div className={`w-1.5 h-1.5 rounded-full ${city.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300'}`} />}
+                  {city.isActive ? 'Active' : 'Offline'}
+                </button>
+              </td>
+              <td className="py-4 px-4">
+                <div className="flex items-center justify-end">
                     <button onClick={() => onEditCity(city)}
-                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Edit">
-                      <Edit3 size={14} />
+                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all border border-transparent hover:border-blue-100" title="Refine Metadata">
+                      <Edit3 size={15} />
                     </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {cities.length === 0 && <EmptyState icon={<Building2 size={24} />} title="No Districts Found" description="The geography registry is empty for this selection." />}
+    </div>
 
     {/* City Modal */}
     <AnimatePresence>
       {showModal && (
-        <Modal title={editingCityId ? 'Edit City' : 'Add City'} onClose={() => setShowModal(false)}>
-          <form onSubmit={onSubmitCity} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">State <span className="text-red-500">*</span></label>
+        <Modal title={editingCityId ? 'Refine District Metadata' : 'Establish District Node'} onClose={() => setShowModal(false)}>
+          <form onSubmit={onSubmitCity} className="space-y-5">
+            <div className="space-y-2">
+              <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Parent Territory</label>
               <select value={selectedStateId} onChange={(e) => setSelectedStateId(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900 bg-white" required>
-                <option value="">Select State</option>
-                {states.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all cursor-pointer" required>
+                <option value="">Select Target Region</option>
+                {states.map(s => <option key={s._id} value={s._id}>{s.name.toUpperCase()}</option>)}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">City Name <span className="text-red-500">*</span></label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">District Identifier</label>
               <input type="text" value={newCityName} onChange={(e) => setNewCityName(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900"
-                placeholder="e.g., Ikeja" required />
+                className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all font-medium"
+                placeholder="e.g. IKEJA CENTRAL" required />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Platform Delivery Fee (₦)</label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₦</span>
+            <div className="space-y-2">
+              <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Base Logistics Fee (₦)</label>
+              <div className="relative group">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-black">₦</span>
                 <input 
-                  type="number" 
-                  min="0"
-                  step="0.01"
+                  type="number" min="0" step="1"
                   onWheel={(e) => e.target.blur()} 
                   value={newPlatformDeliveryFee || 0} 
                   onChange={(e) => setNewPlatformDeliveryFee(e.target.value)}
-                  className="w-full pl-7 pr-4 py-2 border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900 focus:border-slate-900" 
-                  placeholder="0" 
+                  className="w-full h-11 pl-9 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-black outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all" 
                 />
               </div>
-              <p className="text-xs text-slate-400 mt-1">Applies to all admin-managed deliveries in this city.</p>
             </div>
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => setShowModal(false)}
-                className="flex-1 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
+                className="flex-1 h-11 bg-white border border-slate-200 text-slate-600 text-[10px] font-extrabold uppercase tracking-widest rounded-xl hover:bg-slate-50 mr-1 transition-colors">Dismiss</button>
               <button type="submit" disabled={loading}
-                className="flex-1 py-2 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-                {loading ? <Loader2 size={14} className="animate-spin" /> : editingCityId ? <Edit3 size={14} /> : <Plus size={14} />}
-                {editingCityId ? 'Update City' : 'Create City'}
+                className="flex-1 h-11 bg-slate-900 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-xl hover:bg-orange-600 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
+                {loading ? <Loader2 size={16} className="animate-spin" /> : editingCityId ? <Edit3 size={16} /> : <Plus size={16} />}
+                {editingCityId ? 'Authorize Update' : 'Initialize Node'}
               </button>
             </div>
           </form>
@@ -613,99 +653,107 @@ const CitiesPanel = ({ cities, states, loading, onToggleStatus, togglingIds, sho
   </motion.div>
 );
 
-// ─── Pending Requests Panel ───────────────────────────────────────
 const PendingRequestsPanel = ({ requests, loading, selectedVendor, setSelectedVendor, showModal, setShowModal, resolveState, setResolveState, resolveCity, setResolveCity, createLocation, setCreateLocation, onApproveVendor, searchTerm, setSearchTerm }) => (
-  <motion.div key="requests" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-    <div className="relative max-w-xs">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-      <input type="text" placeholder="Search requests..." value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full pl-9 pr-4 h-9 bg-slate-50 border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900 transition-colors" />
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+    <div className="bg-orange-50/50 border border-orange-100 p-4 rounded-xl flex items-center justify-between shadow-sm">
+      <div className="relative max-w-sm flex-1 group">
+         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-orange-500 transition-colors" />
+         <input type="text" placeholder="Scan incoming vectors…" value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-11 pr-4 h-11 bg-white border border-slate-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-orange-400/20 focus:border-orange-400 transition-all shadow-sm" />
+      </div>
+      <div className="flex flex-col items-end">
+        <span className="text-[10px] font-extrabold text-orange-600 uppercase tracking-widest">Admission Queue</span>
+        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Active Entrance Demands</span>
+      </div>
     </div>
 
-    {loading ? (
-      <div className="flex items-center justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-400 mr-2" /><span className="text-slate-500 text-sm">Loading...</span></div>
-    ) : requests.length === 0 ? (
-      <EmptyState icon={<CheckCircle2 size={20} />} title="No pending requests" description="All location requests have been processed" success />
-    ) : (
-      <div className="border border-slate-200 rounded-lg overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Requested Location</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-              <th className="text-right py-2.5 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
+    <div className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+      <table className="w-full">
+        <thead>
+          <tr>
+            <Th>Vector Identity</Th>
+            <Th>Target coordinates</Th>
+            <Th center>Log Entry</Th>
+            <Th right>Operations</Th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-50 font-medium whitespace-nowrap">
+          {requests.map(vendor => (
+            <tr key={vendor._id} className="hover:bg-slate-50 transition-all group">
+              <td className="py-4 px-4 font-extrabold text-slate-900 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform">
+                  <Users size={15} />
+                </div>
+                <div>
+                  <span className="uppercase tracking-tight block">{vendor.storeName}</span>
+                  <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest">Entry Agent</span>
+                </div>
+              </td>
+              <td className="py-4 px-4 uppercase font-bold text-xs text-slate-600">
+                <div className="flex items-center gap-2">
+                  <span className="opacity-60">{vendor.requestedState}</span>
+                  <ChevronRight size={12} className="text-orange-500" />
+                  <span className="text-slate-900">{vendor.requestedCity}</span>
+                </div>
+              </td>
+              <td className="py-4 px-4 text-center">
+                <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">{new Date(vendor.createdAt).toLocaleDateString()}</span>
+              </td>
+              <td className="py-4 px-4 text-right">
+                <button
+                  onClick={() => { setSelectedVendor(vendor); setResolveState(vendor.requestedState); setResolveCity(vendor.requestedCity); setShowModal(true); }}
+                  className="px-5 py-2 bg-slate-900 text-white text-[9px] font-extrabold uppercase tracking-[0.2em] rounded-xl hover:bg-orange-600 transition-all shadow-lg active:scale-95">
+                  Resolution
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {requests.map(vendor => (
-              <tr key={vendor._id} className="hover:bg-slate-50/50 transition-colors">
-                <td className="py-3 px-4">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
-                      <Users size={13} />
-                    </div>
-                    <span className="font-semibold text-sm text-slate-900">{vendor.storeName}</span>
-                  </div>
-                </td>
-                <td className="py-3 px-4">
-                  <div className="flex items-center gap-1 text-sm text-slate-600">
-                    <span>{vendor.requestedState}</span>
-                    <ChevronRight size={12} className="text-slate-400" />
-                    <span className="font-medium text-slate-900">{vendor.requestedCity}</span>
-                  </div>
-                </td>
-                <td className="py-3 px-4">
-                  <span className="text-xs text-slate-400">{new Date(vendor.createdAt).toLocaleDateString()}</span>
-                </td>
-                <td className="py-3 px-4 text-right">
-                  <button
-                    onClick={() => { setSelectedVendor(vendor); setResolveState(vendor.requestedState); setResolveCity(vendor.requestedCity); setShowModal(true); }}
-                    className="px-3 py-1 bg-slate-900 text-white text-xs font-medium rounded-md hover:bg-slate-800 transition-colors">
-                    Resolve
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    )}
+          ))}
+        </tbody>
+      </table>
+      {requests.length === 0 && <EmptyState icon={<CheckCircle2 size={24} />} title="Registry Saturated" description="Zero pending entrance requests detected in the queue." success />}
+    </div>
 
     {/* Resolve Modal */}
     <AnimatePresence>
       {showModal && selectedVendor && (
-        <Modal title={`Resolve: ${selectedVendor.storeName}`} onClose={() => { setShowModal(false); setSelectedVendor(null); setResolveState(''); setResolveCity(''); setCreateLocation(false); }}>
-          <div className="space-y-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
-              <p className="text-xs font-medium text-amber-700 mb-0.5">Requested Location</p>
-              <p className="text-sm font-semibold text-amber-900">{selectedVendor.requestedState}, {selectedVendor.requestedCity}</p>
+        <Modal title={`Resolution Matrix: ${selectedVendor.storeName}`} onClose={() => { setShowModal(false); setSelectedVendor(null); }}>
+          <div className="space-y-6">
+            <div className="bg-orange-50 border border-orange-100 rounded-xl px-4 py-3.5 shadow-inner">
+              <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1">Signal Inputs</p>
+              <p className="text-sm font-extrabold text-slate-900 uppercase tracking-tight">{selectedVendor.requestedState}, {selectedVendor.requestedCity}</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">State <span className="text-red-500">*</span></label>
-              <input type="text" value={resolveState} onChange={(e) => setResolveState(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900"
-                placeholder={selectedVendor.requestedState} />
+            <div className="space-y-4 pt-1">
+              <div className="space-y-2">
+                <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Authorized Province</label>
+                <input type="text" value={resolveState} onChange={(e) => setResolveState(e.target.value)}
+                  className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-orange-500 transition-all"
+                  placeholder={selectedVendor.requestedState} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Authorized District</label>
+                <input type="text" value={resolveCity} onChange={(e) => setResolveCity(e.target.value)}
+                  className="w-full h-11 px-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold outline-none focus:border-orange-500 transition-all"
+                  placeholder={selectedVendor.requestedCity} />
+              </div>
+              <label className="flex items-center gap-3 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-orange-50 transition-all group">
+                <div className="relative flex items-center">
+                  <input type="checkbox" checked={createLocation} onChange={(e) => setCreateLocation(e.target.checked)}
+                    className="w-5 h-5 rounded-lg border-2 border-slate-300 text-orange-600 focus:ring-orange-500 transition-all cursor-pointer" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-extrabold text-slate-900 uppercase tracking-widest block">Auto-Establish Node</span>
+                  <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-tighter">Register coordinates if missing in core registry</span>
+                </div>
+              </label>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">City <span className="text-red-500">*</span></label>
-              <input type="text" value={resolveCity} onChange={(e) => setResolveCity(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm outline-none focus:ring-1 focus:ring-slate-900"
-                placeholder={selectedVendor.requestedCity} />
-            </div>
-            <label className="flex items-center gap-2.5 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors">
-              <input type="checkbox" checked={createLocation} onChange={(e) => setCreateLocation(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300" />
-              <span className="text-sm text-slate-700">Create location if it doesn't exist</span>
-            </label>
-            <div className="flex gap-2 pt-1">
-              <button type="button" onClick={() => { setShowModal(false); setSelectedVendor(null); setResolveState(''); setResolveCity(''); setCreateLocation(false); }}
-                className="flex-1 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
+            <div className="flex gap-3 pt-2">
+              <button type="button" onClick={() => { setShowModal(false); setSelectedVendor(null); }}
+                className="flex-1 h-11 bg-white border border-slate-200 text-slate-600 text-[10px] font-extrabold uppercase tracking-widest rounded-xl hover:bg-slate-50 ml-1">Abort</button>
               <button onClick={onApproveVendor} disabled={loading}
-                className="flex-1 py-2 bg-emerald-700 text-white text-sm font-medium rounded-lg hover:bg-emerald-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-                {loading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
-                Approve Vendor
+                className="flex-1 h-11 bg-emerald-700 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-xl hover:bg-emerald-800 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
+                {loading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={16} />}
+                Authorize Vector
               </button>
             </div>
           </div>
@@ -715,64 +763,37 @@ const PendingRequestsPanel = ({ requests, loading, selectedVendor, setSelectedVe
   </motion.div>
 );
 
-// ─── Shared Components ────────────────────────────────────────────
+/* ─────────────────────────────────────────────────────────────────────────────
+   SHARED UI ELEMENTS (MODAL, EMPTY, ETC)
+   ───────────────────────────────────────────────────────────────────────────── */
+
 const EmptyState = ({ icon, title, description, success }) => (
-  <div className="text-center py-14">
-    <div className={`mx-auto w-10 h-10 rounded-full flex items-center justify-center mb-3 ${success ? 'bg-emerald-50 text-emerald-500' : 'bg-slate-100 text-slate-400'}`}>
+  <div className="text-center py-20 bg-slate-50/30">
+    <div className={`mx-auto w-14 h-14 rounded-2xl flex items-center justify-center mb-4 shadow-sm border ${success ? 'bg-emerald-50 text-emerald-500 border-emerald-100' : 'bg-white text-slate-300 border-slate-100'}`}>
       {icon}
     </div>
-    <h3 className="text-sm font-semibold text-slate-900 mb-1">{title}</h3>
-    <p className="text-xs text-slate-500">{description}</p>
+    <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] mb-1">{title}</h3>
+    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest opacity-60">{description}</p>
   </div>
 );
 
 const Modal = ({ title, children, onClose }) => (
   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-    className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-    <motion.div initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
+    className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4" onClick={onClose}>
+    <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
       onClick={(e) => e.stopPropagation()}
-      className="bg-white rounded-xl w-full max-w-md overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
-        <h3 className="text-base font-bold text-slate-900">{title}</h3>
-        <button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-700 transition-colors">
+      className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-white/20">
+      <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+        <h3 className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">{title}</h3>
+        <button onClick={onClose} className="p-2 hover:bg-white rounded-xl text-slate-400 hover:text-orange-500 transition-all shadow-sm">
           <X size={18} />
         </button>
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-6">{children}</div>
     </motion.div>
   </motion.div>
 );
 
-const DeactivationConfirmModal = ({ item, onClose, onConfirm, loading }) => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-    className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4" onClick={onClose}>
-    <motion.div initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
-      onClick={(e) => e.stopPropagation()}
-      className="bg-white rounded-xl p-6 w-full max-w-sm text-center border border-slate-200">
-      <div className="mx-auto w-12 h-12 bg-red-50 border border-red-100 rounded-full flex items-center justify-center mb-4">
-        <AlertTriangle className="w-6 h-6 text-red-600" />
-      </div>
-      <h3 className="text-base font-bold text-slate-900 mb-1">Confirm Deactivation</h3>
-      <p className="text-sm text-slate-500 mb-5">
-        Are you sure you want to deactivate <span className="font-semibold text-slate-900">"{item.name}"</span>?
-        This will hide it from vendors and users immediately.
-      </p>
-      <div className="flex gap-2">
-        <button onClick={onClose}
-          className="flex-1 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">
-          Cancel
-        </button>
-        <button onClick={onConfirm} disabled={loading}
-          className="flex-1 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-          {loading ? <Loader2 size={14} className="animate-spin" /> : <EyeOff size={14} />}
-          Deactivate
-        </button>
-      </div>
-    </motion.div>
-  </motion.div>
-);
-
-// ─── Export ───────────────────────────────────────────────────────
 export default function AdminLocationPage() {
   return (
     <AdminProtectedRoute>

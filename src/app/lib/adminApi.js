@@ -223,6 +223,10 @@ class AdminAPI {
         );
     }
 
+    async getUserMetrics() {
+        return this.handleResponse(api.get("/api/admin/users/metrics"));
+    }
+
     // ==================== ADMIN MANAGEMENT ====================
 
     async getAllAdmins() {
@@ -261,10 +265,18 @@ class AdminAPI {
         );
     }
 
+    async getCategoryMetrics() {
+        return this.handleResponse(api.get("/api/admin/categories/metrics"));
+    }
+
     // ==================== LOCATION MANAGEMENT ====================
 
     async getAllStates() {
         return this.handleResponse(api.get("/api/admin/locations/states"));
+    }
+
+    async getLocationMetrics() {
+        return this.handleResponse(api.get("/api/admin/locations/metrics"));
     }
 
     async createState(stateData) {
