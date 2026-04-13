@@ -162,6 +162,10 @@ class AdminAPI {
         );
     }
 
+    async getVendorMetrics() {
+        return this.handleResponse(api.get("/api/admin/vendors/metrics"));
+    }
+
     async getVendorFoods(vendorId) {
         return this.handleResponse(
             api.get(`/api/admin/vendors/foods?vendorId=${vendorId}`)
@@ -460,6 +464,12 @@ class AdminAPI {
         const query = new URLSearchParams(params).toString();
         const data = await this.handleResponse(api.get(`/api/admin/finance/refunds?${query}`));
         return data;
+    }
+
+    // ==================== DASHBOARD ANALYTICS ====================
+
+    async getOperationalVelocity() {
+        return this.handleResponse(api.get(`/api/admin/dashboard/operational-velocity`));
     }
 }
 

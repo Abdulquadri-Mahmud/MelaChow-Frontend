@@ -2,7 +2,7 @@
 
 import AdminProtectedRoute from "@/app/components/admin/AdminProtectedRoute";
 import AdminDashboardLayout from "@/app/components/admin/AdminDashboardLayout";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     FolderTree,
     Store,
@@ -16,30 +16,44 @@ import {
     XCircle,
     DollarSign,
     Settings,
-    Info,
     ArrowUpRight,
     ArrowRight,
     Activity,
-    ShieldCheck
+    ShieldCheck,
+    BarChart3,
+    Download
 } from "lucide-react";
-
 import { useState, useEffect } from "react";
 import adminApi from "@/app/lib/adminApi";
-import { Loader2, Download } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import PermanentInstallButton from "@/app/components/PermanentInstallButton";
 
-const CompactStat = ({ icon: Icon, label, value, colorClass, loading }) => (
-    <div className="bg-white border border-slate-200 rounded-lg p-3 flex items-center gap-3">
-        <div className={`w-10 h-10 rounded flex items-center justify-center ${colorClass} bg-opacity-10 shrink-0`}>
-            <Icon size={20} className={colorClass.split(' ')[1]} />
+// Recharts for operations analytics
+import {
+    AreaChart,
+    Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+    BarChart,
+    Bar
+} from "recharts";
+
+// ─── Shared Stat Tile Component ───────────────────────────────────────────────
+const StatTile = ({ icon: Icon, label, value, loading, bgClass, textClass }) => (
+    <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-4 hover:border-orange-200 hover:shadow-sm transition-all group">
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${bgClass} ${textClass} bg-opacity-30 group-hover:bg-opacity-50 transition-colors`}>
+            <Icon size={20} className={textClass} />
         </div>
-        <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">{label}</p>
+        <div className="min-w-0">
+            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1 truncate">{label}</p>
             {loading ? (
-                <div className="h-5 w-16 bg-slate-100 animate-pulse rounded" />
+                <div className="h-6 w-16 bg-slate-100 animate-pulse rounded-md" />
             ) : (
-                <p className="text-base font-bold text-slate-900 leading-none">{value}</p>
+                <p className="text-xl font-extrabold text-slate-900 leading-none">{value.toLocaleString()}</p>
             )}
         </div>
     </div>
@@ -69,6 +83,8 @@ const getActivityConfig = (action) => {
     }
 };
 
+// ======================================================================
+
 export default function AdminDashboardPage() {
     const [stats, setStats] = useState({
         categories: 0,
@@ -80,6 +96,7 @@ export default function AdminDashboardPage() {
     const [loading, setLoading] = useState(true);
     const [pendingVendors, setPendingVendors] = useState([]);
     const [activities, setActivities] = useState([]);
+    const [chartData, setChartData] = useState([]);
 
     const formatTimeAgo = (dateString) => {
         if (!dateString) return "Recently";
@@ -97,24 +114,26 @@ export default function AdminDashboardPage() {
         const fetchDashboardData = async () => {
             setLoading(true);
             try {
-                const [userStats, vendorsData, categoriesData, activitiesData] = await Promise.all([
+                const [userStats, vendorsData, categoriesData, activitiesData, operationsData] = await Promise.all([
                     adminApi.getUserStats(),
                     adminApi.getAllVendors(),
                     adminApi.getAllCategories(),
-                    adminApi.getActivities({ limit: 10 })
+                    adminApi.getActivities({ limit: 10 }),
+                    adminApi.getOperationalVelocity()
                 ]);
 
                 const pending = vendorsData.vendors?.filter(v => !v.verified) || [];
                 setStats({
-                    users: userStats.stats.totalUsers || 0,
+                    users: userStats.stats?.totalUsers || 0,
                     vendors: vendorsData.vendors?.length || 0,
                     categories: categoriesData.data?.length || 0,
-                    orders: userStats.stats.totalOrders || 0,
+                    orders: userStats.stats?.totalOrders || 0,
                     pendingVendors: pending.length
                 });
 
                 setPendingVendors(pending.slice(0, 5) || []);
                 setActivities(activitiesData.activities || []);
+                setChartData(operationsData.operationalData || []);
             } catch (error) {
                 console.error("Dashboard fetch error:", error);
             } finally {
@@ -128,97 +147,165 @@ export default function AdminDashboardPage() {
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="space-y-4">
-                    {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+                <div className="space-y-5">
+                    {/* ── HEADER ────────────────────────────────────────────── */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
                         <div>
-                            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                                Platform Overview
-                                <span className="text-[10px] font-bold px-2 py-0.5 bg-orange-50 text-orange-600 rounded-full tracking-widest uppercase border border-orange-100 italic">Live Activity</span>
-                            </h1>
-                            <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
-                            <p className="text-sm text-slate-500 mt-1.5">Key performance indicators and administrative alerts.</p>
+                            <div className="flex items-center gap-3 mb-1.5">
+                                <div className="w-9 h-9 bg-gradient-to-br from-orange-500 to-amber-400 rounded-xl flex items-center justify-center shadow-md shadow-orange-200 shrink-0">
+                                    <Activity size={17} className="text-white" />
+                                </div>
+                                <h1 className="text-xl font-extrabold text-slate-900 uppercase tracking-tight">
+                                    Platform Control Center
+                                </h1>
+                                <span className="hidden md:inline text-[9px] font-extrabold px-2.5 py-1 bg-orange-50 text-orange-600 rounded-full border border-orange-200 uppercase tracking-widest">
+                                    Live Operations
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2 ml-12">
+                                <div className="h-0.5 w-8 bg-gradient-to-r from-orange-500 to-amber-400 rounded-full" />
+                                <p className="text-xs text-slate-500 font-medium leading-snug">
+                                    Real-time analytics, key metrics, and immediate administrative alerts.
+                                </p>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Link href="/admin/audit-logs" className="h-9 px-3 bg-white border border-slate-200 text-slate-600 rounded-md flex items-center gap-2 font-bold text-[10px] uppercase hover:bg-slate-50 transition-colors">
-                                <Activity size={14} /> Global Logs
+                        <div className="flex items-center gap-2 shrink-0">
+                            <Link href="/admin/audit-logs" className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-xl shadow-md border border-slate-800 text-xs font-extrabold uppercase tracking-widest hover:bg-slate-800 transition-colors">
+                                <Activity size={14} className="text-orange-400" /> System Logs
                             </Link>
                         </div>
                     </div>
 
-                    {/* Stats Grid */}
+                    {/* ── STAT METRICS GRID ─────────────────────────────────── */}
                     <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-                        <CompactStat icon={FolderTree} label="Categories" value={stats.categories} loading={loading} colorClass="bg-blue-100 text-blue-600" />
-                        <CompactStat icon={Store} label="Active Vendors" value={stats.vendors} loading={loading} colorClass="bg-orange-100 text-orange-600" />
-                        <CompactStat icon={Users} label="Total Registries" value={stats.users} loading={loading} colorClass="bg-purple-100 text-purple-600" />
-                        <CompactStat icon={ShoppingBag} label="Platform Volume" value={stats.orders} loading={loading} colorClass="bg-emerald-100 text-emerald-600" />
-                        <CompactStat icon={ShieldCheck} label="Action Required" value={stats.pendingVendors} loading={loading} colorClass="bg-red-100 text-red-600" />
+                        <StatTile icon={ShoppingBag} label="Total Orders" value={stats.orders} loading={loading} bgClass="bg-emerald-100" textClass="text-emerald-600" />
+                        <StatTile icon={Store} label="Active Vendors" value={stats.vendors} loading={loading} bgClass="bg-orange-100" textClass="text-orange-600" />
+                        <StatTile icon={Users} label="Registered Users" value={stats.users} loading={loading} bgClass="bg-blue-100" textClass="text-blue-600" />
+                        <StatTile icon={FolderTree} label="Menu Categories" value={stats.categories} loading={loading} bgClass="bg-amber-100" textClass="text-amber-600" />
+                        <StatTile icon={ShieldCheck} label="Pending Review" value={stats.pendingVendors} loading={loading} bgClass="bg-rose-100" textClass="text-rose-600" />
+                    </div>
+
+                    {/* ── OPERATIONS ANALYTICS CHART ────────────────────────── */}
+                    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                        <div className="h-0.5 bg-gradient-to-r from-orange-500 to-amber-400 shrink-0" />
+                        <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                            <div className="flex items-center gap-2.5">
+                                <BarChart3 size={16} className="text-orange-500" />
+                                <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest">7-Day Operational Velocity</h3>
+                            </div>
+                            {!loading && (
+                                <div className="hidden md:flex items-center gap-4">
+                                    <div className="flex items-center gap-1.5 font-extrabold text-[9px] uppercase tracking-widest text-slate-500">
+                                        <div className="w-2 h-2 rounded-full bg-orange-500" /> System Volume
+                                    </div>
+                                    <div className="flex items-center gap-1.5 font-extrabold text-[9px] uppercase tracking-widest text-slate-500">
+                                        <div className="w-2 h-2 rounded-full bg-amber-300" /> Onboarding Flux
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-4 h-[280px]">
+                            {loading ? (
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <Loader2 size={32} className="animate-spin text-orange-400" />
+                                </div>
+                            ) : (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                                            </linearGradient>
+                                            <linearGradient id="colorOnboard" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#fcd34d" stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor="#fcd34d" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 700 }} dy={10} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748b', fontWeight: 700 }} />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
+                                            itemStyle={{ fontSize: '12px', fontWeight: 'bold' }}
+                                            labelStyle={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8', marginBottom: '4px' }}
+                                        />
+                                        <Area type="monotone" dataKey="volume" name="System Volume" stroke="#f97316" strokeWidth={3} fillOpacity={1} fill="url(#colorVolume)" />
+                                        <Area type="monotone" dataKey="onboarding" name="Partners Onboarded" stroke="#fcd34d" strokeWidth={3} fillOpacity={1} fill="url(#colorOnboard)" />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            )}
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {/* Pending Approvals */}
-                        <div className="bg-white border border-slate-200 rounded-lg flex flex-col overflow-hidden">
-                            <div className="p-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                                <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                                    <Clock size={14} className="text-orange-600" /> Pending Approvals
+                        {/* ── PENDING APPROVALS LIST ──────────────────────────────── */}
+                        <div className="bg-white border border-slate-200 rounded-xl flex flex-col overflow-hidden shadow-sm">
+                            <div className="h-0.5 bg-rose-500 shrink-0" />
+                            <div className="p-3.5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                                <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                    <Clock size={15} className="text-rose-500" /> Pending Approvals
                                 </h3>
-                                <Link href="/admin/vendors/pending" className="text-[10px] font-bold text-blue-600 uppercase hover:underline">Review All</Link>
+                                <Link href="/admin/vendors/pending" className="text-[10px] font-extrabold text-rose-600 uppercase hover:text-rose-700 hover:underline tracking-widest">Review All</Link>
                             </div>
                             <div className="divide-y divide-slate-100 flex-1">
                                 {loading ? (
-                                    <div className="flex justify-center py-12"><Loader2 size={24} className="animate-spin text-slate-300" /></div>
+                                    <div className="flex justify-center py-12"><Loader2 size={24} className="animate-spin text-rose-300" /></div>
                                 ) : pendingVendors.length > 0 ? pendingVendors.map((vendor) => (
-                                    <div key={vendor._id} className="flex items-center justify-between p-3 hover:bg-slate-50 transition-colors">
+                                    <div key={vendor._id} className="flex items-center justify-between p-4 hover:bg-rose-50/50 transition-colors group cursor-pointer" onClick={() => router.push(`/admin/vendors/pending/${vendor._id}`)}>
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-slate-100 border border-slate-200 rounded flex items-center justify-center text-slate-400 font-bold text-xs">
-                                                {vendor.storeName?.[0]}
+                                            <div className="w-10 h-10 bg-slate-100 border border-slate-200 rounded-lg flex items-center justify-center text-slate-400 font-extrabold text-[10px] uppercase">
+                                                {vendor.logo ? <img src={vendor.logo} className="w-full h-full object-cover rounded-lg" alt=""/> : vendor.storeName?.[0]}
                                             </div>
                                             <div>
-                                                <p className="text-xs font-bold text-slate-900 leading-none mb-1">{vendor.storeName}</p>
-                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Applied {new Date(vendor.createdAt).toLocaleDateString()}</p>
+                                                <p className="text-sm font-extrabold text-slate-900 leading-none mb-1.5 group-hover:text-rose-600 transition-colors">{vendor.storeName}</p>
+                                                <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Applied {new Date(vendor.createdAt).toLocaleDateString()}</p>
                                             </div>
                                         </div>
-                                        <Link href="/admin/vendors/pending" className="p-1.5 text-slate-400 hover:text-slate-900 border border-transparent hover:border-slate-200 rounded transition-all">
-                                            <ArrowRight size={14} />
-                                        </Link>
+                                        <div className="w-8 h-8 rounded-lg bg-white border border-transparent group-hover:border-rose-200 flex items-center justify-center text-slate-300 group-hover:text-rose-600 transition-all shadow-sm opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0">
+                                            <ArrowRight size={14} strokeWidth={2.5} />
+                                        </div>
                                     </div>
                                 )) : (
                                     <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-                                        <CheckCircle size={24} className="mb-2 opacity-20" />
-                                        <p className="text-[10px] font-bold uppercase tracking-widest">Queue Clear</p>
+                                        <CheckCircle size={32} className="mb-2 text-emerald-300 opacity-50" />
+                                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">Queue Clear</p>
                                     </div>
                                 )}
                             </div>
                         </div>
 
-                        {/* Recent Activity */}
-                        <div className="bg-white border border-slate-200 rounded-lg flex flex-col overflow-hidden">
-                            <div className="p-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
-                                <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                                    <Activity size={14} className="text-blue-500" /> Platform Audit
+                        {/* ── PLATFORM AUDIT LIST ────────────────────────────────── */}
+                        <div className="bg-white border border-slate-200 rounded-xl flex flex-col overflow-hidden shadow-sm">
+                            <div className="h-0.5 bg-blue-500 shrink-0" />
+                            <div className="p-3.5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                                <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                    <Activity size={15} className="text-blue-500" /> Platform Audit
                                 </h3>
-                                <Link href="/admin/audit-logs" className="text-[10px] font-bold text-blue-600 uppercase hover:underline">Full Audit</Link>
+                                <Link href="/admin/audit-logs" className="text-[10px] font-extrabold text-blue-600 uppercase hover:text-blue-700 hover:underline tracking-widest">Full Audit</Link>
                             </div>
                             <div className="divide-y divide-slate-100 flex-1">
                                 {loading ? (
-                                    <div className="flex justify-center py-12"><Loader2 size={24} className="animate-spin text-slate-300" /></div>
+                                    <div className="flex justify-center py-12"><Loader2 size={24} className="animate-spin text-blue-300" /></div>
                                 ) : activities.length > 0 ? (
                                     activities.map((activity) => {
                                         const config = getActivityConfig(activity.action);
                                         const Icon = config.icon;
                                         return (
-                                            <div key={activity._id} className="flex items-start gap-3 p-3 hover:bg-slate-50 transition-colors group">
-                                                <div className={`mt-0.5 w-7 h-7 rounded border flex items-center justify-center shrink-0 ${config.color}`}>
-                                                    <Icon size={14} />
+                                            <div key={activity._id} className="flex items-start gap-3 p-4 hover:bg-slate-50 transition-colors group">
+                                                <div className={`mt-0.5 w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 ${config.color}`}>
+                                                    <Icon size={14} strokeWidth={2.5} />
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <p className="text-xs font-bold text-slate-700 truncate">{activity.details}</p>
-                                                        <span className="text-[9px] font-bold text-slate-400 shrink-0 uppercase">{formatTimeAgo(activity.createdAt)}</span>
+                                                    <div className="flex justify-between items-start gap-2 mb-1.5">
+                                                        <p className="text-xs font-bold text-slate-700 truncate group-hover:text-slate-900">{activity.details}</p>
+                                                        <span className="text-[9px] font-extrabold text-slate-400 shrink-0 uppercase tracking-widest">{formatTimeAgo(activity.createdAt)}</span>
                                                     </div>
-                                                    <div className="flex items-center gap-1.5 mt-0.5">
-                                                        <div className="w-1 h-1 bg-slate-300 rounded-full" />
-                                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic">{activity.adminId?.name || 'Automated System'}</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded text-[9px] font-extrabold uppercase tracking-widest">
+                                                            {activity.adminId?.name || 'System Auto'}
+                                                        </span>
+                                                        <span className="text-[9px] font-extrabold text-slate-400 tracking-widest uppercase truncate">{activity.action}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -226,58 +313,71 @@ export default function AdminDashboardPage() {
                                     })
                                 ) : (
                                     <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-                                        <Activity size={24} className="mb-2 opacity-20" />
-                                        <p className="text-[10px] font-bold uppercase tracking-widest">No Recent Logs</p>
+                                        <Activity size={32} className="mb-2 text-slate-300 opacity-50" />
+                                        <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">No Recent Logs</p>
                                     </div>
                                 )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Operational Guardrails */}
-                    <div className="bg-slate-900 rounded-lg p-5 text-white overflow-hidden relative">
+                    {/* ── OPERATIONAL GUARDRAILS (Dark Footer Action Area) ──────── */}
+                    <div className="bg-slate-900 rounded-xl p-6 text-white overflow-hidden relative shadow-lg">
                         <div className="relative z-10">
-                            <h3 className="text-sm font-bold uppercase tracking-[0.2em] mb-4">Core Management Access</h3>
+                            <div className="flex items-center gap-2 mb-5">
+                                <Settings size={18} className="text-orange-500" />
+                                <h3 className="text-xs font-extrabold uppercase tracking-[0.2em]">Core Management Routing</h3>
+                            </div>
+                            
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <Link href="/admin/categories" className="group bg-white/5 border border-white/10 p-3 rounded-md hover:bg-white/10 transition-colors">
-                                    <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center mb-2.5">
-                                        <FolderTree size={16} />
+                                <Link href="/admin/categories" className="group bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all backdrop-blur-sm relative overflow-hidden">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-lg flex items-center justify-center mb-3 shadow-sm border border-blue-400/30">
+                                        <FolderTree size={18} className="text-white" />
                                     </div>
-                                    <h4 className="text-xs font-bold mb-1 flex items-center gap-1.5">
-                                        Catalog Management <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <h4 className="text-sm font-extrabold mb-1.5 flex items-center justify-between">
+                                        Catalog Editor <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-400 -translate-y-1 translate-x-1 group-hover:translate-x-0 group-hover:translate-y-0" />
                                     </h4>
-                                    <p className="text-[10px] text-slate-400 leading-normal font-medium">Standardize food categories and platform menus.</p>
+                                    <p className="text-[10px] text-slate-400 leading-relaxed font-bold uppercase tracking-widest">Standardize food categories and platform menus.</p>
                                 </Link>
-                                <Link href="/admin/vendors/pending" className="group bg-white/5 border border-white/10 p-3 rounded-md hover:bg-white/10 transition-colors">
-                                    <div className="w-8 h-8 bg-orange-500 rounded flex items-center justify-center mb-2.5">
-                                        <Store size={16} />
+                                
+                                <Link href="/admin/vendors" className="group bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all backdrop-blur-sm relative overflow-hidden">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-amber-500 rounded-lg flex items-center justify-center mb-3 shadow-sm border border-orange-400/30">
+                                        <Store size={18} className="text-white" />
                                     </div>
-                                    <h4 className="text-xs font-bold mb-1 flex items-center gap-1.5">
-                                        Partner Verification <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <h4 className="text-sm font-extrabold mb-1.5 flex items-center justify-between">
+                                        Partner Directory <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity text-orange-400 -translate-y-1 translate-x-1 group-hover:translate-x-0 group-hover:translate-y-0" />
                                     </h4>
-                                    <p className="text-[10px] text-slate-400 leading-normal font-medium">Review and verify incoming vendor applications.</p>
+                                    <p className="text-[10px] text-slate-400 leading-relaxed font-bold uppercase tracking-widest">Manage store operational states and commission settings.</p>
                                 </Link>
-                                <Link href="/admin/dashboard" className="group bg-white/5 border border-white/10 p-3 rounded-md hover:bg-white/10 transition-colors">
-                                    <div className="w-8 h-8 bg-emerald-500 rounded flex items-center justify-center mb-2.5">
-                                        <TrendingUp size={16} />
+                                
+                                <Link href="/admin/finance" className="group bg-white/5 border border-white/10 p-4 rounded-xl hover:bg-white/10 hover:border-white/20 transition-all backdrop-blur-sm relative overflow-hidden">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center mb-3 shadow-sm border border-emerald-400/30">
+                                        <DollarSign size={18} className="text-white" />
                                     </div>
-                                    <h4 className="text-xs font-bold mb-1 flex items-center gap-1.5">
-                                        Operational Yield <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <h4 className="text-sm font-extrabold mb-1.5 flex items-center justify-between">
+                                        Financial Hub <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400 -translate-y-1 translate-x-1 group-hover:translate-x-0 group-hover:translate-y-0" />
                                     </h4>
-                                    <p className="text-[10px] text-slate-400 leading-normal font-medium">Live monitoring of system growth and engagement.</p>
+                                    <p className="text-[10px] text-slate-400 leading-relaxed font-bold uppercase tracking-widest">Reconcile platform payouts, fees, and spread income.</p>
                                 </Link>
                             </div>
                         </div>
+                        
                         {/* Background subtle decoration */}
-                        <div className="absolute top-0 right-0 p-8 opacity-5">
-                            <Settings size={120} className="animate-spin-slow" />
+                        <div className="absolute top-0 right-0 p-8 opacity-5 scale-150 origin-top-right transform-gpu pointer-events-none">
+                            <ShieldCheck size={200} />
                         </div>
                     </div>
-                    {/* PWA Install CTA */}
-                    <div className="bg-white border border-slate-200 rounded-lg p-5">
-                        <div className="flex items-center gap-2 mb-3">
-                            <Download size={14} className="text-orange-600" />
-                            <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest">Install Admin App</h3>
+
+                    {/* ── PWA HEADER & INSTALL TILE ──────────────────────────── */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100">
+                                <Download size={14} strokeWidth={2.5} />
+                            </div>
+                            <div>
+                                <h3 className="text-[11px] font-extrabold text-slate-900 uppercase tracking-widest leading-none">Install Admin App</h3>
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Direct system access</p>
+                            </div>
                         </div>
                         <PermanentInstallButton />
                     </div>
