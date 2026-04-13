@@ -33,11 +33,11 @@ const GlassBadge = ({ children, colorClass, size = "md" }) => {
 
 // ─── Food Card ────────────────────────────────────────────────────────────────
 function FoodCard({ food, index, onViewDetails }) {
-    const imgSrc = food.images?.[0]?.url || (typeof food.images?.[0] === "string" ? food.images[0] : null) || food.image || null;
+    const imgSrc = food.images?.[0]?.url || (typeof food.images?.[0] === "string" ? food.images[0] : null) || food.image || food.image_url || null;
 
     const hasVariants = food.variants?.length > 0;
     const hasPortions = food.portions?.length > 0;
-    const hasChoiceGroups = food.choiceGroups?.length > 0;
+    const hasChoiceGroups = food.choiceGroups?.length > 0 || food.choice_groups?.length > 0;
     const hasDiscount = food.discount?.active;
     const hasPromos = food.activePromotions?.length > 0;
     const hasExtras = hasVariants || hasPortions || hasChoiceGroups || hasDiscount || hasPromos;
@@ -46,10 +46,10 @@ function FoodCard({ food, index, onViewDetails }) {
         <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white border rounded-xl overflow-hidden transition-all duration-200 border-slate-200 hover:border-slate-400 group relative"
+            className="bg-white border rounded-xl overflow-hidden transition-all duration-200 border-slate-200 hover:border-slate-400 group relative flex flex-col h-full"
         >
             <div
-                className="flex items-center gap-4 p-3 cursor-pointer hover:bg-slate-50/50"
+                className="flex items-center gap-4 p-3 cursor-pointer hover:bg-slate-50/50 flex-1"
                 onClick={() => hasExtras && onViewDetails()}
             >
                 {/* Slimmer Image */}
@@ -67,15 +67,20 @@ function FoodCard({ food, index, onViewDetails }) {
 
                 {/* Compact Info */}
                 <div className="flex-1 min-w-0 pr-8">
-                    <div className="flex items-center gap-2 mb-0.5">
+                    <div className="flex items-center justify-between gap-2 mb-0.5">
                         <h3 className="font-bold text-slate-900 text-sm truncate">{food.name}</h3>
-                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-tighter ${food.available || food.isAvailable ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
-                            {food.available || food.isAvailable ? "Stock" : "Out"}
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-tighter shrink-0 ${food.available || food.isAvailable || food.is_available ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                            {food.available || food.isAvailable || food.is_available ? "Stock" : "Out"}
                         </span>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between gap-3 mt-1.5">
                         <span className="text-sm font-bold text-slate-900">₦{fmt(food.price)}</span>
-                        {food.orderCount > 0 && <span className="text-[10px] text-slate-400 font-medium">{food.orderCount} orders</span>}
+                        <div className="flex items-center gap-2">
+                            <span className={`text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded ${food.isComboItem ? 'bg-purple-50 text-purple-600 border border-purple-100' : food.isMenuItem ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-slate-50 text-slate-500 border border-slate-200'}`}>
+                                {food.typeLabel || 'Food'}
+                            </span>
+                            {food.orderCount > 0 && <span className="text-[10px] text-slate-400 font-medium">{food.orderCount} opts</span>}
+                        </div>
                     </div>
                 </div>
 
@@ -382,8 +387,18 @@ export default function VendorDetailPage() {
     );
 
     const foods = vendor.foods || [];
-    const filteredFoods = foods.filter(f => {
-        const available = f.available || f.isAvailable;
+    const menuItems = vendor.menuItems || [];
+    const comboItems = vendor.comboItems || [];
+    
+    // Normalize new items slightly
+    const mappedMenuItems = menuItems.map(m => ({ ...m, isMenuItem: true, typeLabel: 'Menu Item', image: m.image_url }));
+    const mappedComboItems = comboItems.map(c => ({ ...c, isComboItem: true, typeLabel: 'Combo', image: c.image_url }));
+    const mappedFoods = foods.map(f => ({ ...f, typeLabel: 'Legacy Food' }));
+
+    const allInventory = [...mappedFoods, ...mappedMenuItems, ...mappedComboItems];
+
+    const filteredFoods = allInventory.filter(f => {
+        const available = f.available || f.isAvailable || f.is_available;
         if (foodFilter === "available" && !available) return false;
         if (foodFilter === "unavailable" && available) return false;
         if (foodSearch) return f.name?.toLowerCase().includes(foodSearch.toLowerCase());
@@ -463,7 +478,7 @@ export default function VendorDetailPage() {
                                     <div className="w-px h-6 bg-slate-100" />
                                     <div>
                                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Menu Items</p>
-                                        <p className="text-sm font-black text-slate-900">{foods.length}</p>
+                                        <p className="text-sm font-black text-slate-900">{(vendor.foods?.length || 0) + (vendor.menuItems?.length || 0) + (vendor.comboItems?.length || 0)}</p>
                                     </div>
                                     <div className="w-px h-6 bg-slate-100 flex-1 hidden md:block" />
                                     <div className="flex items-center gap-2">
@@ -569,6 +584,33 @@ export default function VendorDetailPage() {
                         </div>
                     </div>
 
+                    {/* Operating Schedule Panel */}
+                    {vendor.openingHours && Object.keys(vendor.openingHours).length > 0 && (
+                        <div className="bg-white border border-slate-200 rounded-xl p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Clock size={14} className="text-slate-400" />
+                                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Operating Schedule</h3>
+                            </div>
+                            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                                {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
+                                    const schedule = vendor.openingHours[day] || {};
+                                    const isClosed = schedule.closed || (!schedule.open && !schedule.close);
+                                    
+                                    return (
+                                        <div key={day} className={`border rounded-xl p-3 text-center flex flex-col justify-center items-center transition-colors ${isClosed ? 'bg-slate-50 border-slate-100 opacity-70' : 'bg-blue-50/30 border-blue-100/50 hover:border-blue-200 hover:bg-blue-50/50'}`}>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">{day.substring(0,3)}</p>
+                                            {isClosed ? (
+                                                <span className="px-2 py-0.5 bg-rose-50 text-rose-500 rounded-md text-[9px] font-black uppercase tracking-widest border border-rose-100/50">Closed</span>
+                                            ) : (
+                                                <p className="text-xs font-black text-slate-800">{schedule.open} <span className="text-slate-400 font-medium mx-0.5">-</span> {schedule.close}</p>
+                                            )}
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                    )}
+
                     {/* KYC Documents Panel */}
                     {vendor.kyc && (
                         <div className="bg-white border border-slate-200 rounded-xl p-5">
@@ -623,7 +665,7 @@ export default function VendorDetailPage() {
                             <div className="flex items-center gap-3">
                                 <Box className="text-slate-500" size={18} />
                                 <h3 className="text-xs font-bold text-white uppercase tracking-widest">Menu Inventory</h3>
-                                <span className="px-2 py-0.5 bg-slate-800 text-slate-400 rounded-md text-[9px] font-bold border border-slate-700">{foods.length} Items</span>
+                                <span className="px-2 py-0.5 bg-slate-800 text-slate-400 rounded-md text-[9px] font-bold border border-slate-700">{allInventory.length} Items</span>
                             </div>
 
                             {/* Refined Filters */}

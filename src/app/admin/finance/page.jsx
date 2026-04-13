@@ -107,7 +107,8 @@ export default function FinancePage() {
             const formattedData = rawData.map(item => ({
                 ...item,
                 date: item.date || item.label || item._id,
-                revenue: item.revenue || item.totalRevenue || 0,
+                revenue: item.globalGMV || item.totalRevenue || 0,
+                deliveryRevenue: item.deliveryRevenue || 0,
                 commission: item.commission || 0
             }));
 
