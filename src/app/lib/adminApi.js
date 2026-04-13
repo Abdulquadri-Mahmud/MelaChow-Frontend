@@ -162,6 +162,10 @@ class AdminAPI {
         );
     }
 
+    async getVendorMetrics() {
+        return this.handleResponse(api.get("/api/admin/vendors/metrics"));
+    }
+
     async getVendorFoods(vendorId) {
         return this.handleResponse(
             api.get(`/api/admin/vendors/foods?vendorId=${vendorId}`)
