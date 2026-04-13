@@ -461,6 +461,12 @@ class AdminAPI {
         const data = await this.handleResponse(api.get(`/api/admin/finance/refunds?${query}`));
         return data;
     }
+
+    // ==================== DASHBOARD ANALYTICS ====================
+
+    async getOperationalVelocity() {
+        return this.handleResponse(api.get(`/api/admin/dashboard/operational-velocity`));
+    }
 }
 
 export default new AdminAPI();
