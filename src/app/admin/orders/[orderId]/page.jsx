@@ -395,17 +395,27 @@ export default function OrderDetailsPage() {
                         {/* COLUMN 2: LOGISTICS & RIDER TIMELINE */}
                         <div className="space-y-6">
                             <ContentCard title="Fulfillment Rider" icon={Bike}>
-                                {order.riderId ? (
+                                {order.deliveryType === 'vendor_managed' ? (
+                                    <div className="py-6 text-center bg-emerald-50 rounded-lg border border-dashed border-emerald-200">
+                                        <div className="w-10 h-10 bg-white rounded flex items-center justify-center mx-auto mb-3 text-emerald-500 shadow-sm border border-emerald-100">
+                                            <ShieldCheck size={18} />
+                                        </div>
+                                        <p className="text-sm font-bold text-emerald-700 mb-1">Vendor Managed Logistics</p>
+                                        <p className="text-[11px] font-medium text-emerald-600/80 max-w-[200px] mx-auto leading-snug">
+                                            The vendor uses their own internal delivery team for this order. No platform driver is required.
+                                        </p>
+                                    </div>
+                                ) : order.riderId ? (
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 font-bold border border-slate-200">
-                                                {order.riderId?.firstname?.[0]}
+                                            <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 font-bold border border-slate-200 uppercase">
+                                                {order.riderId?.name?.[0] || 'R'}
                                             </div>
                                             <div className="flex-1">
-                                                <h4 className="text-sm font-bold text-slate-900">{order.riderId?.firstname} {order.riderId?.lastname}</h4>
+                                                <h4 className="text-sm font-bold text-slate-900 truncate pr-2">{order.riderId?.name || "MelaChow Courier"}</h4>
                                                 <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
                                                     <span className="flex items-center gap-1">
-                                                        <Activity size={12} className="text-emerald-500" /> Active
+                                                        <Activity size={12} className="text-emerald-500" /> {(order.riderId?.status || "Active").toUpperCase()}
                                                     </span>
                                                     <span>•</span>
                                                     <span className="flex items-center gap-1">
@@ -468,8 +478,13 @@ export default function OrderDetailsPage() {
                                                         &quot;{log.reason}&quot;
                                                     </div>
                                                 )}
-                                                <div className="text-xs text-slate-400 mt-0.5">
-                                                    By: {log.changedBy || 'System'}
+                                                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-1">
+                                                    By: {log.changedBy 
+                                                        ? (log.changedBy.toLowerCase().includes('vendor') ? "Restaurant Admin" 
+                                                          : log.changedBy.toLowerCase().includes('rider') ? "Fulfillment Courier" 
+                                                          : log.changedBy.toLowerCase().includes('admin') ? "System Administrator" 
+                                                          : log.changedBy) 
+                                                        : 'Automated System'}
                                                 </div>
                                             </div>
                                         </div>
