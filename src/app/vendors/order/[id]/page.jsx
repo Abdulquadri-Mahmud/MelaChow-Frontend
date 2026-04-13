@@ -38,6 +38,7 @@ export default function VendorOrderDetailsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isUpdating, setIsUpdating] = useState(false);
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(true);
     const [assignmentModal, setAssignmentModal] = useState({ isOpen: false, orderId: null });
     const [showSuccessToast, setShowSuccessToast] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
@@ -285,6 +286,104 @@ export default function VendorOrderDetailsPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans">
+
+            {/* Global Executive Summary Modal */}
+            <AnimatePresence>
+                {isSummaryModalOpen && order && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="bg-white dark:bg-slate-900 rounded-md w-full max-w-lg border border-slate-100 dark:border-slate-800 shadow-2xl overflow-hidden"
+                        >
+                            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-orange-600/10 rounded-md text-orange-600 border border-orange-600/20">
+                                        <Package size={16} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tight text-[14px]">Executive Order Summary</h3>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Automated Directive Briefing</p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setIsSummaryModalOpen(false)}
+                                    className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-md text-slate-400 transition-colors cursor-pointer"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                            
+                            <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto no-scrollbar">
+                                {/* Status Sentence */}
+                                <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-md border border-blue-100 dark:border-blue-900/30 flex gap-3 items-start">
+                                    <Info className="text-blue-500 shrink-0 mt-0.5" size={16} />
+                                    <p className="text-[12px] font-bold text-blue-800 dark:text-blue-300 leading-relaxed">
+                                        The current status of this order is <span className="font-black uppercase tracking-wide">{statusConfig.label}</span>. 
+                                        {order.orderStatus === 'pending' && " Please review and accept the order immediately to begin preparation."}
+                                        {order.orderStatus === 'accepted' && " The customer has been notified that you accepted the order."}
+                                        {order.orderStatus === 'preparing' && " The kitchen is currently enlisted to prepare these items."}
+                                        {order.orderStatus === 'ready' && " The items have been parked and are awaiting extraction."}
+                                        {order.orderStatus === 'ready_for_pickup' && " The items are securely packaged and awaiting the courier."}
+                                        {order.orderStatus === 'delivered' && " This order has successfully reached the destination."}
+                                    </p>
+                                </div>
+
+                                {/* Directives */}
+                                <div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Kitchen Directives ({detailedItems.length})</p>
+                                    <div className="space-y-3">
+                                        {detailedItems.map((item, idx) => {
+                                            const itemName = item.name || item.variant?.name || "Unknown Item";
+                                            const quantity = Number(item.quantity) || 1;
+                                            const portionQuantity = Number(item.portion_quantity) || 1;
+                                            const totalPortions = portionQuantity * quantity;
+                                            const options = item.selected_options || item.metadata?.selected_options || [];
+                                            const cleanPortionLabel = (item.portion_label || item.metadata?.portion_label || "")?.trim();
+                                            
+                                            let portionText = "";
+                                            if (!cleanPortionLabel) {
+                                                portionText = totalPortions > 1 ? "portions" : "portion";
+                                            } else if (cleanPortionLabel.toLowerCase().includes('portion')) {
+                                                portionText = cleanPortionLabel;
+                                            } else {
+                                                portionText = `${cleanPortionLabel} ${totalPortions > 1 ? "portions" : "portion"}`;
+                                            }
+
+                                            let fullSentence = `Prepare ${totalPortions} ${portionText} of ${itemName}`;
+                                            if (options.length > 0) {
+                                                const optionsTextList = options.map((opt) => `${(Number(opt.quantity) || 1) * quantity} ${opt.label}`);
+                                                fullSentence += `, with ${optionsTextList.length === 1 ? optionsTextList[0] : optionsTextList.length === 2 ? optionsTextList.join(' and ') : optionsTextList.slice(0, -1).join(', ') + ', and ' + optionsTextList.slice(-1)}`;
+                                            }
+                                            fullSentence += ".";
+
+                                            return (
+                                                <div key={idx} className="flex gap-3 bg-slate-900 text-white p-3.5 rounded-md border border-slate-800 relative overflow-hidden">
+                                                    <div className="absolute top-0 right-0 w-24 h-24 bg-orange-600/10 rounded-full blur-2xl -mr-12 -mt-12" />
+                                                    <div className="p-2 bg-slate-800 rounded-md shrink-0 relative z-10 self-start">
+                                                        <Hash size={12} className="text-orange-500" />
+                                                    </div>
+                                                    <p className="text-[12px] font-black uppercase tracking-wide leading-tight relative z-10 mt-0.5">{fullSentence}</p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+                                <button 
+                                    onClick={() => setIsSummaryModalOpen(false)}
+                                    className="w-full py-3 bg-orange-600 text-white text-[11px] font-black uppercase tracking-widest rounded-md hover:opacity-90 transition-opacity active:scale-95 shadow-none"
+                                >
+                                    Acknowledge & Close
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             <AnimatePresence>
                 {showSuccessToast && (
