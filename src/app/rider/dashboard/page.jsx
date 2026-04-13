@@ -354,15 +354,7 @@ export default function RiderDashboard() {
                                             const options = item.selected_options || [];
                                             const portionLabel = item.portion_label || item.portion || "";
                                             
-                                            const hasPortionWord = portionLabel.toLowerCase().includes('portion');
-                                            let portionText = "";
-                                            if (!portionLabel) {
-                                                portionText = quantity > 1 ? "portions" : "portion";
-                                            } else if (hasPortionWord) {
-                                                portionText = portionLabel;
-                                            } else {
-                                                portionText = `${portionLabel} ${quantity > 1 ? "portions" : "portion"}`;
-                                            }
+                                            let portionText = portionLabel || (quantity > 1 ? "portions" : "portion");
 
                                             let fullSentence = `Deliver ${quantity} ${portionText} of ${itemName}`;
                                             if (options.length > 0) {

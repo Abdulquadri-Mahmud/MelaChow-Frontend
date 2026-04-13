@@ -195,24 +195,29 @@ export default function OrderDetailsPage() {
     const subtotal = order.financialSummary?.subtotal || order.subtotal || 0;
     const deliveryFee = order.financialSummary?.totalDeliveryFee || order.deliveryFee || 0;
     
-    // Platform Revenue = Sale Commission + 20% Delivery Fee (if platform managed)
+    const isPlatformManaged = order.deliveryType === "platform_managed";
+    
+    // MelaChow System now uses a Fixed Rider Payout strategy (₦600) rather than a rigid 80/20 percentage split.
+    const riderShare = isPlatformManaged ? Math.min(600, deliveryFee) : 0; 
+    
+    // Platform Revenue = Sale Commission + Platform Logistics (Remaining Delivery Fee)
     const saleCommission = order.financialSummary?.totalCommission || 0;
-    const deliveryCommission = order.deliveryType === "platform_managed" ? (deliveryFee * 0.2) : 0;
+    const deliveryCommission = isPlatformManaged ? Math.max(0, deliveryFee - riderShare) : 0;
     const totalPlatformRevenue = saleCommission + deliveryCommission;
     
-    // Vendor Gross Earnings = Subtotal - Sale Commission
-    const vendorEarnings = subtotal - saleCommission;
-    
-    // Rider Share = 80% of Delivery Fee (if platform managed)
-    const riderShare = order.deliveryType === "platform_managed" ? (deliveryFee * 0.8) : deliveryFee;
+    // Vendor Gross Earnings: 
+    // Subtotal - Sale Commission + Delivery Fee (ONLY if they handle delivery themselves)
+    const vendorDeliveryEarnings = isPlatformManaged ? 0 : deliveryFee;
+    const vendorOrderFoodEarnings = order.financialSummary?.totalVendorEarnings || (subtotal - saleCommission);
+    const vendorEarnings = vendorOrderFoodEarnings + vendorDeliveryEarnings;
 
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="max-w-[1500px] mx-auto pb-20 px-4">
+                <div className="max-w-[1500px] mx-auto pb-20">
 
                     {/* SYSTEM LOGISTICS HEADER */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-6 my-4">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-6">
                         <div className="flex items-start gap-4">
                             <button
                                 onClick={() => router.push("/admin/orders")}
@@ -252,7 +257,7 @@ export default function OrderDetailsPage() {
 
                     {/* DESCRIPTIVE NARRATIVE SUMMARY */}
                     <div className="mb-8">
-                        <div className="bg-slate-900 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden">
+                        <div className="bg-slate-900 rounded-2xl p-3 border border-slate-700 shadow-xl relative overflow-hidden">
                             {/* Decorative background element */}
                             <div className="absolute top-0 right-0 w-64 h-64 bg-slate-800 rounded-full -translate-y-32 translate-x-32 opacity-20" />
                             
@@ -390,17 +395,27 @@ export default function OrderDetailsPage() {
                         {/* COLUMN 2: LOGISTICS & RIDER TIMELINE */}
                         <div className="space-y-6">
                             <ContentCard title="Fulfillment Rider" icon={Bike}>
-                                {order.riderId ? (
+                                {order.deliveryType === 'vendor_managed' ? (
+                                    <div className="py-6 text-center bg-emerald-50 rounded-lg border border-dashed border-emerald-200">
+                                        <div className="w-10 h-10 bg-white rounded flex items-center justify-center mx-auto mb-3 text-emerald-500 shadow-sm border border-emerald-100">
+                                            <ShieldCheck size={18} />
+                                        </div>
+                                        <p className="text-sm font-bold text-emerald-700 mb-1">Vendor Managed Logistics</p>
+                                        <p className="text-[11px] font-medium text-emerald-600/80 max-w-[200px] mx-auto leading-snug">
+                                            The vendor uses their own internal delivery team for this order. No platform driver is required.
+                                        </p>
+                                    </div>
+                                ) : order.riderId ? (
                                     <div className="space-y-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 font-bold border border-slate-200">
-                                                {order.riderId?.firstname?.[0]}
+                                            <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 font-bold border border-slate-200 uppercase">
+                                                {order.riderId?.name?.[0] || 'R'}
                                             </div>
                                             <div className="flex-1">
-                                                <h4 className="text-sm font-bold text-slate-900">{order.riderId?.firstname} {order.riderId?.lastname}</h4>
+                                                <h4 className="text-sm font-bold text-slate-900 truncate pr-2">{order.riderId?.name || "MelaChow Courier"}</h4>
                                                 <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
                                                     <span className="flex items-center gap-1">
-                                                        <Activity size={12} className="text-emerald-500" /> Active
+                                                        <Activity size={12} className="text-emerald-500" /> {(order.riderId?.status || "Active").toUpperCase()}
                                                     </span>
                                                     <span>•</span>
                                                     <span className="flex items-center gap-1">
@@ -463,8 +478,13 @@ export default function OrderDetailsPage() {
                                                         &quot;{log.reason}&quot;
                                                     </div>
                                                 )}
-                                                <div className="text-xs text-slate-400 mt-0.5">
-                                                    By: {log.changedBy || 'System'}
+                                                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mt-1">
+                                                    By: {log.changedBy 
+                                                        ? (log.changedBy.toLowerCase().includes('vendor') ? "Restaurant Admin" 
+                                                          : log.changedBy.toLowerCase().includes('rider') ? "Fulfillment Courier" 
+                                                          : log.changedBy.toLowerCase().includes('admin') ? "System Administrator" 
+                                                          : log.changedBy) 
+                                                        : 'Automated System'}
                                                 </div>
                                             </div>
                                         </div>
@@ -549,7 +569,7 @@ export default function OrderDetailsPage() {
                                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
                                 className="relative w-full max-w-md bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden"
                             >
-                                <div className="p-6">
+                                <div className="p-3">
                                     <div className="flex items-center gap-3 mb-4">
                                         <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-700 border border-slate-200">
                                             <ShieldCheck size={20} />

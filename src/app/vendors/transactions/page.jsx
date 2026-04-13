@@ -171,34 +171,62 @@ export default function TransactionsPage() {
         document.body.removeChild(link);
     };
 
-    // Download Single Transaction Receipt
+    // Download Single Transaction Receipt as PDF via Browser Print
     const downloadReceipt = (transaction) => {
-        const receiptContent = `
-TRANSACTION RECEIPT
-==========================================
-
-Transaction ID: ${transaction._id}
-Description: ${transaction.description || 'Transaction'}
-Type: ${transaction.type.toUpperCase()}
-Amount: ${transaction.type === 'credit' ? '+' : '-'}₦${transaction.amount.toLocaleString()}
-Date: ${formatDate(transaction.date)}
-Status: SUCCESS
-
-==========================================
-MelaChow Vendor Platform
-Need help? Contact support with your reference ID
-        `.trim();
-
-        const blob = new Blob([receiptContent], { type: 'text/plain;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-
-        link.setAttribute('href', url);
-        link.setAttribute('download', `receipt_${transaction._id.slice(-8)}.txt`);
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const printWindow = window.open('', '_blank');
+        const content = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Receipt - ${transaction._id}</title>
+                <style>
+                    body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; margin: 0; color: #0f172a; }
+                    .receipt-box { border: 2px solid #e2e8f0; border-radius: 12px; padding: 30px; max-width: 600px; margin: 0 auto; }
+                    .header { text-align: center; margin-bottom: 30px; border-bottom: 2px dashed #e2e8f0; padding-bottom: 20px; }
+                    .title { font-size: 24px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: 2px; color: ${transaction.type === 'credit' ? '#059669' : '#ea580c'}; }
+                    .amount { font-size: 48px; font-weight: 900; margin: 10px 0; }
+                    .row { display: flex; justify-content: space-between; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; }
+                    .label { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 1px; }
+                    .value { font-size: 14px; font-weight: 800; text-align: right; }
+                    .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #64748b; font-weight: 600; }
+                </style>
+            </head>
+            <body>
+                <div class="receipt-box">
+                    <div class="header">
+                        <div class="title">Transaction Receipt</div>
+                        <div class="amount">${transaction.type === 'credit' ? '+' : '-'}₦${transaction.amount.toLocaleString()}</div>
+                        <div style="font-weight: 800; color: #059669; font-size: 12px; text-transform: uppercase;">✔ SUCCESS</div>
+                    </div>
+                    <div class="row">
+                        <div class="label">Reference ID</div>
+                        <div class="value" style="font-family: monospace;">${transaction._id}</div>
+                    </div>
+                    <div class="row">
+                        <div class="label">Classification</div>
+                        <div class="value" style="text-transform: uppercase;">${transaction.type}</div>
+                    </div>
+                    <div class="row">
+                        <div class="label">Date & Time</div>
+                        <div class="value">${formatDate(transaction.date)}</div>
+                    </div>
+                    <div class="row">
+                        <div class="label">Description</div>
+                        <div class="value">${transaction.description || 'Transaction'}</div>
+                    </div>
+                    <div class="footer">
+                        MelaChow Vendor Platform<br/>
+                        Support Ref: hash-${transaction._id.slice(-8)}
+                    </div>
+                </div>
+                <script>
+                    window.onload = () => { window.print(); window.setTimeout(() => { window.close() }, 500); }
+                </script>
+            </body>
+            </html>
+        `;
+        printWindow.document.write(content);
+        printWindow.document.close();
     };
 
     // Calculate stats for filtered transactions
@@ -767,13 +795,19 @@ function TransactionDetailsModal({ transaction, isOpen, onClose, formatDate, dow
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
                             transition={{ type: "spring", duration: 0.5 }}
-                            className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden"
+                            className="relative w-full max-w-xs bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xl"
                         >
                             {/* Header with Background */}
                             <div className={`relative p-5 ${transaction.type === 'credit'
                                 ? 'bg-emerald-600'
                                 : 'bg-orange-600'
                                 } text-white`}>
+                                <button 
+                                    onClick={onClose}
+                                    className="absolute top-4 right-4 p-1.5 bg-black/20 hover:bg-black/30 text-white rounded-full transition-colors z-20 cursor-pointer"
+                                >
+                                    <X size={16} />
+                                </button>
                                 <div className="relative z-10 text-center">
                                     <p className="text-white/80 text-[10px] font-black uppercase tracking-[0.2em] mb-3">
                                         Transaction Receipt

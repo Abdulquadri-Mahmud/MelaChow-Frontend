@@ -325,20 +325,8 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
               const options = item.selected_options || item.metadata?.selected_options || [];
               const totalPortions = portionQuantity * quantity;
               
-              // Smarter portion display logic to avoid "Portion portions"
               const cleanPortionLabel = portionLabel?.trim() || "";
-              const hasPortionWord = cleanPortionLabel.toLowerCase().includes('portion');
-              
-              let portionText = "";
-              if (!cleanPortionLabel) {
-                portionText = totalPortions > 1 ? "portions" : "portion";
-              } else if (hasPortionWord) {
-                // If it already has "portion", just use it as is
-                portionText = cleanPortionLabel;
-              } else {
-                // Otherwise add "portion" with correct pluralization
-                portionText = `${cleanPortionLabel} ${totalPortions > 1 ? "portions" : "portion"}`;
-              }
+              let portionText = cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion");
 
               let fullSentence = `Prepare ${totalPortions} ${portionText} of ${itemName}`;
               if (options.length > 0) {
