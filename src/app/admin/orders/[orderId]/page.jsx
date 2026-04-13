@@ -195,24 +195,29 @@ export default function OrderDetailsPage() {
     const subtotal = order.financialSummary?.subtotal || order.subtotal || 0;
     const deliveryFee = order.financialSummary?.totalDeliveryFee || order.deliveryFee || 0;
     
-    // Platform Revenue = Sale Commission + 20% Delivery Fee (if platform managed)
+    const isPlatformManaged = order.deliveryType === "platform_managed";
+    
+    // MelaChow System now uses a Fixed Rider Payout strategy (₦600) rather than a rigid 80/20 percentage split.
+    const riderShare = isPlatformManaged ? Math.min(600, deliveryFee) : 0; 
+    
+    // Platform Revenue = Sale Commission + Platform Logistics (Remaining Delivery Fee)
     const saleCommission = order.financialSummary?.totalCommission || 0;
-    const deliveryCommission = order.deliveryType === "platform_managed" ? (deliveryFee * 0.2) : 0;
+    const deliveryCommission = isPlatformManaged ? Math.max(0, deliveryFee - riderShare) : 0;
     const totalPlatformRevenue = saleCommission + deliveryCommission;
     
-    // Vendor Gross Earnings = Subtotal - Sale Commission
-    const vendorEarnings = subtotal - saleCommission;
-    
-    // Rider Share = 80% of Delivery Fee (if platform managed)
-    const riderShare = order.deliveryType === "platform_managed" ? (deliveryFee * 0.8) : deliveryFee;
+    // Vendor Gross Earnings: 
+    // Subtotal - Sale Commission + Delivery Fee (ONLY if they handle delivery themselves)
+    const vendorDeliveryEarnings = isPlatformManaged ? 0 : deliveryFee;
+    const vendorOrderFoodEarnings = order.financialSummary?.totalVendorEarnings || (subtotal - saleCommission);
+    const vendorEarnings = vendorOrderFoodEarnings + vendorDeliveryEarnings;
 
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="max-w-[1500px] mx-auto pb-20 px-4">
+                <div className="max-w-[1500px] mx-auto pb-20">
 
                     {/* SYSTEM LOGISTICS HEADER */}
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-6 my-4">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-6">
                         <div className="flex items-start gap-4">
                             <button
                                 onClick={() => router.push("/admin/orders")}
@@ -252,7 +257,7 @@ export default function OrderDetailsPage() {
 
                     {/* DESCRIPTIVE NARRATIVE SUMMARY */}
                     <div className="mb-8">
-                        <div className="bg-slate-900 rounded-2xl p-6 border border-slate-700 shadow-xl relative overflow-hidden">
+                        <div className="bg-slate-900 rounded-2xl p-3 border border-slate-700 shadow-xl relative overflow-hidden">
                             {/* Decorative background element */}
                             <div className="absolute top-0 right-0 w-64 h-64 bg-slate-800 rounded-full -translate-y-32 translate-x-32 opacity-20" />
                             
@@ -549,7 +554,7 @@ export default function OrderDetailsPage() {
                                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
                                 className="relative w-full max-w-md bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden"
                             >
-                                <div className="p-6">
+                                <div className="p-3">
                                     <div className="flex items-center gap-3 mb-4">
                                         <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-700 border border-slate-200">
                                             <ShieldCheck size={20} />
