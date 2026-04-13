@@ -217,7 +217,7 @@ export default function VendorOrderDetailsPage() {
     const address = order.userOrderId?.deliveryAddress || order.deliveryAddress;
 
     // Extract restaurantId (could be at root or inside first item)
-    const effectiveRestaurantId = order.restaurantId || (order.items?.[0]?.restaurantId?.$oid || order.items?.[0]?.restaurantId);
+    const effectiveRestaurantId = order.restaurantId?._id || order.restaurantId?.$oid || order.restaurantId || order.items?.[0]?.restaurantId?._id || order.items?.[0]?.restaurantId?.$oid || order.items?.[0]?.restaurantId;
 
     // Format Date
     const dateObj = new Date(order.createdAt);
@@ -227,8 +227,8 @@ export default function VendorOrderDetailsPage() {
     // Filter items for this vendor
     const itemsToFilter = order.userOrderId?.items || order.items || [];
     const detailedItems = itemsToFilter.filter(item => {
-        const itemRestId = item.restaurantId?.$oid || item.restaurantId;
-        return itemRestId === effectiveRestaurantId;
+        const itemRestId = item.restaurantId?._id || item.restaurantId?.$oid || item.restaurantId;
+        return String(itemRestId) === String(effectiveRestaurantId);
     });
 
     // Progress Timeline Mapping (Maps to 6 visual steps)
