@@ -13,7 +13,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { Flame, Star, Store, MapPin, Heart, Globe, Bike } from "lucide-react";
+import { Flame, Star, Store, MapPin, Heart, Globe, Bike, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
@@ -176,9 +176,10 @@ export default function TrendingFoods({ user }) {
                 </div>
                 <button 
                   onClick={() => router.push("/trending-foods")}
-                  className="text-orange-600 text-xs font-bold uppercase tracking-widest hover:underline"
+                  className="text-orange-600 text-[10px] font-black uppercase tracking-[0.1em] hover:bg-orange-50 dark:hover:bg-orange-500/10 px-3 py-1.5 rounded-full transition-all flex items-center gap-1 group"
                 >
                   View All
+                  <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
                 </button>
             </div>
 
