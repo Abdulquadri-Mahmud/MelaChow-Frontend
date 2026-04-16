@@ -8,7 +8,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/app/context/ApiContext";
-import { fetchUser } from "@/app/lib/api";
+import { useUserStorage } from "@/app/hooks/useUserStorage";
 import axios from "axios";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
@@ -32,21 +32,14 @@ export default function TrendingPage() {
     const { baseUrl } = useApi();
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
+    const { user, isLoading: isUserLoading } = useUserStorage();
 
-    const { data: userData } = useQuery({
-        queryKey: ["userProfile", token],
-        queryFn: () => fetchUser(token),
-        enabled: !!token,
-    });
-
-    const user = userData?.user;
     const defaultAddr = useMemo(() => {
         if (!user?.addresses?.length) return null;
         return user.addresses.find((a) => a.isDefault) || user.addresses[0];
     }, [user]);
 
-    const { data: foods = [], isLoading, isError, refetch } = useQuery({
+    const { data: foods = [], isLoading: isTrendingLoading, isError, refetch } = useQuery({
         queryKey: ["trending-all", defaultAddr?.city, defaultAddr?.state],
         queryFn: async () => {
             try {
@@ -166,7 +159,7 @@ export default function TrendingPage() {
                     </p>
                 </div>
 
-                {(isLoading || (!defaultAddr && !!token)) ? (
+                {(isTrendingLoading || isUserLoading || (!defaultAddr && user)) ? (
                     <div className="space-y-4">
                         {[1, 2, 3].map(i => <Skeleton key={i} />)}
                     </div>
@@ -180,7 +173,7 @@ export default function TrendingPage() {
                         <button onClick={() => refetch()} className="bg-orange-600 text-white text-[10px] font-black uppercase px-8 py-2.5 rounded-full shadow-lg">Retry Sync</button>
                     </div>
                 ) : filteredFoods.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 px-8 text-center bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-100 shadow-xl shadow-zinc-200/50">
+                    <div className="flex flex-col items-center justify-center py-12 px-8 text-center bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-100 shadow-xl ">
                         <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
                             <div className="absolute inset-0 bg-orange-600/5 rounded-full scale-125 blur-3xl animate-pulse" />
                             <div className="bg-orange-50 dark:bg-orange-950/20 p-8 rounded-full">
