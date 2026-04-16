@@ -18,7 +18,12 @@ import {
     Filter,
     X,
     Inbox,
-    BellRing
+    BellRing,
+    Activity,
+    ShieldAlert,
+    UserCheck,
+    Navigation,
+    MousePointer2
 } from "lucide-react";
 import { useNotificationManager } from "@/app/hooks/useNotificationManager";
 import { useState, useMemo } from "react";
@@ -29,26 +34,46 @@ const getNotificationConfig = (type) => {
     switch (type) {
         case 'admin_order_ready':
         case 'rider_assignment_needed':
-            return { icon: Bike, color: "text-rose-500 bg-rose-50 border-rose-100", label: "Logistics" };
+            return { 
+                icon: Navigation, 
+                color: "text-orange-500 bg-orange-50 border-orange-100 shadow-[0_0_15px_rgba(249,115,22,0.1)]", 
+                label: "Dispatch",
+                glow: "shadow-orange-100"
+            };
         case 'admin_order_delivered':
-            return { icon: CheckCheck, color: "text-emerald-500 bg-emerald-50 border-emerald-100", label: "Completion" };
+            return { 
+                icon: UserCheck, 
+                color: "text-emerald-500 bg-emerald-50 border-emerald-100 shadow-[0_0_15px_rgba(16,185,129,0.1)]", 
+                label: "Complete",
+                glow: "shadow-emerald-100"
+            };
         case 'system':
-            return { icon: AlertCircle, color: "text-amber-500 bg-amber-50 border-amber-100", label: "System" };
+            return { 
+                icon: ShieldAlert, 
+                color: "text-blue-500 bg-blue-50 border-blue-100 shadow-[0_0_15px_rgba(59,130,246,0.1)]", 
+                label: "Critical",
+                glow: "shadow-blue-100"
+            };
         default:
-            return { icon: Bell, color: "text-blue-500 bg-blue-50 border-blue-100", label: "Update" };
+            return { 
+                icon: Bell, 
+                color: "text-slate-500 bg-slate-50 border-slate-200 shadow-[0_0_15px_rgba(100,116,139,0.1)]", 
+                label: "Intelligence",
+                glow: "shadow-slate-100"
+            };
     }
 };
 
 const formatTimeAgo = (dateString) => {
-    if (!dateString) return "Recently";
+    if (!dateString) return "RECENT";
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now - date) / 1000);
 
-    if (diffInSeconds < 60) return "Just now";
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    return date.toLocaleDateString();
+    if (diffInSeconds < 60) return "JUST NOW";
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}M AGO`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}H AGO`;
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase();
 };
 
 export default function AdminNotificationsPage() {
@@ -82,169 +107,182 @@ export default function AdminNotificationsPage() {
     const handleMarkAllRead = async () => {
         try {
             await markAllAsRead();
-            toast.success("All notifications marked as read");
+            toast.success("Intelligence Feed Synchronized");
         } catch (err) {
-            toast.error("Failed to mark all as read");
+            toast.error("Operation Failure");
         }
     };
 
     const handleClearAll = async () => {
-        if (!confirm("Are you sure you want to clear all notifications?")) return;
+        if (!confirm("Are you sure you want to purge your intelligence feed?")) return;
         try {
             await clearAll();
-            toast.success("Inbox cleared");
+            toast.success("Feed Cleared");
         } catch (err) {
-            toast.error("Failed to clear inbox");
+            toast.error("Operation Failure");
         }
     };
 
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="max-w-4xl mx-auto space-y-4">
+                <div className="max-w-4xl mx-auto space-y-6">
                     {/* Header */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-                        <div>
-                            <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2 uppercase tracking-tight">
-                                Notification Center
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+                        <div className="flex items-center gap-4">
+                            <div className="relative">
+                                <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-xl shadow-slate-200 shrink-0">
+                                    <Bell size={22} className="text-orange-500" />
+                                </div>
                                 {unreadCount > 0 && (
-                                    <span className="bg-orange-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center border border-orange-700 shadow-sm animate-pulse">
-                                        {unreadCount}
-                                    </span>
+                                    <div className="absolute -top-1 -right-1 bg-orange-600 border-2 border-white w-5 h-5 rounded-full flex items-center justify-center shadow-lg shadow-orange-200 animate-bounce">
+                                        <span className="text-[10px] font-black text-white leading-none">
+                                            {unreadCount}
+                                        </span>
+                                    </div>
                                 )}
-                            </h1>
-                            <div className="h-0.5 w-6 bg-orange-500 rounded-full mt-1" />
-                            <p className="text-sm text-slate-500 mt-1.5 font-medium">Real-time logistics alerts and platform updates.</p>
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-extrabold text-slate-900 uppercase tracking-tight">Intelligence Center</h1>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                    <div className="h-0.5 w-6 bg-orange-500 rounded-full" />
+                                    <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest leading-none">Real-time Operational Signals</p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            {/* Push Notification Toggle */}
+
+                        <div className="flex items-center gap-2.5">
                             {isPushSupported && (
                                 <button
                                     onClick={isPushEnabled ? unsubscribe : subscribe}
                                     disabled={loading || pushPermission === 'denied'}
-                                    className={`h-9 px-3 rounded-md flex items-center gap-2 font-bold text-[10px] uppercase transition-all shadow-sm border ${isPushEnabled
-                                        ? "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100"
-                                        : "bg-orange-500 border-orange-600 text-white hover:bg-orange-600"
+                                    className={`h-11 px-6 rounded-xl flex items-center gap-2.5 text-[10px] font-extrabold uppercase tracking-widest transition-all shadow-lg active:scale-95 border ${isPushEnabled
+                                        ? "bg-white border-emerald-100 text-emerald-600 hover:bg-emerald-50"
+                                        : "bg-slate-900 border-slate-700 text-white hover:bg-orange-600"
                                         }`}
-                                    title={pushPermission === 'denied' ? "Permission Denied in Browser" : "Toggle Push Notifications"}
                                 >
-                                    {loading ? <Loader2 size={14} className="animate-spin" /> : <BellRing size={14} />}
-                                    {isPushEnabled ? "Alerts On" : "Enable Alerts"}
+                                    {loading ? <Loader2 size={16} className="animate-spin" /> : <BellRing size={16} />}
+                                    {isPushEnabled ? "Live Alerting Active" : "Initialize Push Signal"}
                                 </button>
                             )}
 
-                            <button
-                                onClick={handleMarkAllRead}
-                                disabled={unreadCount === 0 || loading}
-                                className="h-9 px-3 bg-white border border-slate-200 text-slate-600 rounded-md flex items-center gap-2 font-bold text-[10px] uppercase hover:bg-slate-50 transition-colors disabled:opacity-50"
-                            >
-                                <CheckCheck size={14} /> Mark Read
-                            </button>
-                            <button
-                                onClick={handleClearAll}
-                                disabled={notifications.length === 0 || loading}
-                                className="h-9 px-3 bg-white border border-slate-200 text-rose-600 rounded-md flex items-center gap-2 font-bold text-[10px] uppercase hover:bg-rose-50 transition-colors disabled:opacity-50"
-                            >
-                                <Trash2 size={14} /> Clear All
-                            </button>
+                            <div className="flex items-center bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+                                <button
+                                    onClick={handleMarkAllRead}
+                                    disabled={unreadCount === 0 || loading}
+                                    className="p-2 text-slate-600 hover:text-orange-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 group"
+                                    title="Mark All Read"
+                                >
+                                    <CheckCheck size={18} className="group-hover:scale-110 transition-transform" />
+                                </button>
+                                <button
+                                    onClick={handleClearAll}
+                                    disabled={notifications.length === 0 || loading}
+                                    className="p-2 text-slate-600 hover:text-rose-600 hover:bg-white rounded-lg transition-all disabled:opacity-30 group"
+                                    title="Purge Intelligence"
+                                >
+                                    <Trash2 size={18} className="group-hover:rotate-12 transition-transform" />
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Filters */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
-                        <button
-                            onClick={() => setFilter('all')}
-                            className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${filter === 'all' ? 'bg-orange-600 text-white border-orange-700 shadow-sm shadow-orange-500/20' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
-                        >
-                            All Activity
-                        </button>
-                        <button
-                            onClick={() => setFilter('unread')}
-                            className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${filter === 'unread' ? 'bg-orange-600 text-white border-orange-700 shadow-sm shadow-orange-500/20' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
-                        >
-                            Unread
-                        </button>
-                        <button
-                            onClick={() => setFilter('logistics')}
-                            className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all ${filter === 'logistics' ? 'bg-orange-600 text-white border-orange-700 shadow-sm shadow-orange-500/20' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}
-                        >
-                            Logistics Only
-                        </button>
+                    {/* Filters Bar */}
+                    <div className="bg-white border border-slate-200 rounded-2xl p-1.5 flex items-center gap-1 shadow-sm w-fit">
+                        {[
+                            { id: 'all', label: 'Global Feed', icon: Activity },
+                            { id: 'unread', label: 'Priority', icon: MousePointer2 },
+                            { id: 'logistics', label: 'Dispatch', icon: Navigation },
+                        ].map((item) => {
+                            const Icon = item.icon;
+                            return (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setFilter(item.id)}
+                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-extrabold uppercase tracking-[0.15em] transition-all ${filter === item.id ? 'bg-orange-600 text-white shadow-lg shadow-orange-100' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+                                >
+                                    <Icon size={14} className={filter === item.id ? "text-white" : "text-slate-300"} />
+                                    {item.label}
+                                </button>
+                            );
+                        })}
                     </div>
 
-                    {/* Notifications List */}
-                    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col min-h-[400px]">
+                    {/* Feed Content */}
+                    <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col min-h-[500px] relative">
+                        <div className="h-1 bg-gradient-to-r from-orange-500 via-amber-400 to-orange-500 w-full animate-gradient-x" />
+                        
                         <AnimatePresence mode="popLayout">
                             {loading && notifications.length === 0 ? (
-                                <div className="flex-1 flex flex-col items-center justify-center py-20">
-                                    <Loader2 size={32} className="animate-spin text-slate-300" />
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-4 shadow-sm italic">Synchronizing Feeds...</p>
+                                <div className="flex-1 flex flex-col items-center justify-center py-32">
+                                    <Loader2 size={36} className="animate-spin text-orange-500 mb-6" />
+                                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.3em] animate-pulse italic">Synchronizing Operational Dataset…</p>
                                 </div>
                             ) : filteredNotifications.length > 0 ? (
-                                <div className="divide-y divide-slate-100">
+                                <div className="divide-y divide-slate-50">
                                     {filteredNotifications.map((notification) => {
                                         const config = getNotificationConfig(notification.type);
                                         const Icon = config.icon;
                                         return (
                                             <motion.div
                                                 layout
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                                exit={{ opacity: 0 }}
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, scale: 0.95 }}
                                                 key={notification._id}
-                                                className={`group relative flex items-start gap-4 p-4 transition-colors ${!notification.read ? 'bg-orange-50/50 shadow-[inset_3px_0_0_0_#ea580c]' : 'hover:bg-slate-50/50'}`}
+                                                className={`group relative flex items-start gap-5 p-6 transition-all ${!notification.read ? 'bg-orange-50/20 shadow-[inset_4px_0_0_0_#ea580c]' : 'hover:bg-slate-50/40'}`}
                                             >
-                                                {/* Icon */}
-                                                <div className={`mt-1 w-10 h-10 rounded border flex items-center justify-center shrink-0 ${config.color}`}>
-                                                    <Icon size={18} />
+                                                {/* Visual ID/Icon */}
+                                                <div className={`mt-1 w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 transition-all group-hover:scale-105 ${config.color} ${config.glow}`}>
+                                                    <Icon size={22} />
                                                 </div>
 
-                                                {/* Content */}
-                                                <div className="flex-1 min-w-0 pr-10">
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <span className="text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded border border-slate-200 leading-none">
+                                                {/* Metadata & Title */}
+                                                <div className="flex-1 min-w-0 pr-12">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg border leading-none ${config.color}`}>
                                                             {config.label}
                                                         </span>
-                                                        <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                                                            <Clock size={10} /> {formatTimeAgo(notification.createdAt)}
+                                                        <span className="text-[10px] text-slate-400 font-extrabold flex items-center gap-1.5 uppercase tracking-tighter">
+                                                            <Clock size={12} className="text-slate-300" /> {formatTimeAgo(notification.createdAt)}
                                                         </span>
                                                     </div>
-                                                    <h4 className={`text-sm tracking-tight leading-snug ${!notification.read ? 'font-bold text-slate-900' : 'font-medium text-slate-600'}`}>
+                                                    <h4 className={`text-base tracking-tight leading-snug uppercase ${!notification.read ? 'font-extrabold text-slate-900' : 'font-bold text-slate-600'}`}>
                                                         {notification.title}
                                                     </h4>
-                                                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                                    <p className="text-[13px] text-slate-500 mt-2 leading-relaxed font-medium">
                                                         {notification.body}
                                                     </p>
 
-                                                    {/* Link Action */}
+                                                    {/* Contextual Link */}
                                                     {notification.url && (
                                                         <Link
                                                             href={notification.url}
                                                             onClick={() => !notification.read && markAsRead(notification._id)}
-                                                            className="inline-flex items-center gap-1.5 mt-3 text-[11px] font-bold text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-wide group/link"
+                                                            className="inline-flex items-center gap-2.5 mt-5 px-5 py-2.5 bg-slate-900 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-xl hover:bg-orange-600 transition-all shadow-lg active:scale-95 group/link"
                                                         >
-                                                            Take Action <ArrowRight size={12} className="group-hover/link:translate-x-0.5 transition-transform" />
+                                                            Initialize Action Matrix <ArrowRight size={14} className="group-hover/link:translate-x-1 transition-transform" />
                                                         </Link>
                                                     )}
                                                 </div>
 
-                                                {/* Float Actions */}
-                                                <div className="absolute right-4 top-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {/* Precision Actions */}
+                                                <div className="absolute right-6 top-6 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
                                                     {!notification.read && (
                                                         <button
                                                             onClick={() => markAsRead(notification._id)}
-                                                            title="Mark as read"
-                                                            className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-white border hover:border-slate-200 rounded transition-all"
+                                                            title="Signal Read Receipt"
+                                                            className="p-2.5 text-slate-400 hover:text-orange-600 hover:bg-white border border-transparent hover:border-orange-100 rounded-xl transition-all shadow-sm"
                                                         >
-                                                            <CheckCheck size={14} />
+                                                            <CheckCheck size={18} />
                                                         </button>
                                                     )}
                                                     <button
                                                         onClick={() => deleteNotification(notification._id)}
-                                                        title="Delete"
-                                                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-white border hover:border-slate-200 rounded transition-all"
+                                                        title="Purge Record"
+                                                        className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-white border border-transparent hover:border-rose-100 rounded-xl transition-all shadow-sm"
                                                     >
-                                                        <Trash2 size={14} />
+                                                        <Trash2 size={18} />
                                                     </button>
                                                 </div>
                                             </motion.div>
@@ -252,43 +290,43 @@ export default function AdminNotificationsPage() {
                                     })}
 
                                     {hasMore && (
-                                        <div className="p-4 flex justify-center">
+                                        <div className="p-8 flex justify-center bg-slate-50/30">
                                             <button
                                                 onClick={loadMore}
                                                 disabled={loading}
-                                                className="h-10 px-6 border border-slate-200 rounded-md text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                                                className="h-12 px-8 bg-white border border-slate-200 rounded-2xl text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-600 hover:border-orange-400 hover:text-orange-600 transition-all shadow-sm active:scale-95"
                                             >
-                                                {loading ? <Loader2 size={16} className="animate-spin" /> : "Load More Activity"}
+                                                {loading ? <Loader2 size={18} className="animate-spin mr-2" /> : "Extend Feed Horizon"}
                                             </button>
                                         </div>
                                     )}
                                 </div>
                             ) : (
-                                <div className="flex-1 flex flex-col items-center justify-center py-20 text-slate-400">
-                                    <div className="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mb-4">
-                                        <Inbox size={32} className="opacity-20" />
+                                <div className="flex-1 flex flex-col items-center justify-center py-40">
+                                    <div className="w-20 h-20 bg-slate-50 border border-slate-100 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner">
+                                        <Inbox size={40} className="text-slate-200" />
                                     </div>
-                                    <h3 className="text-sm font-bold text-slate-900 mb-1">Inbox Zero</h3>
-                                    <p className="text-xs max-w-[220px] text-center">No notifications found for the selected filter. You're all caught up!</p>
+                                    <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest mb-2">Registry Silent</h3>
+                                    <p className="text-[11px] font-bold text-slate-400 max-w-[280px] text-center uppercase tracking-tighter opacity-80">Zero undetected operational signals in the current matrix.</p>
                                     <button
                                         onClick={refreshNotifications}
-                                        className="mt-6 text-[10px] font-bold uppercase text-blue-600 hover:underline"
+                                        className="mt-8 px-6 py-2.5 bg-slate-100 text-slate-500 hover:text-orange-600 hover:bg-orange-50 rounded-xl text-[9px] font-extrabold uppercase tracking-widest border border-transparent hover:border-orange-100 transition-all"
                                     >
-                                        Check for Updates
+                                        Force Synchronize
                                     </button>
                                 </div>
                             )}
                         </AnimatePresence>
                     </div>
 
-                    {/* Tips/Info */}
-                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex gap-3">
-                        <div className="w-8 h-8 rounded bg-blue-500 flex items-center justify-center shrink-0">
-                            <Clock size={16} className="text-white" />
+                    {/* Operational Protocols */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex gap-5 items-center">
+                        <div className="w-12 h-12 rounded-xl bg-orange-600/20 flex items-center justify-center shrink-0 border border-orange-600/20">
+                            <Clock size={20} className="text-orange-500 animate-pulse" />
                         </div>
                         <div>
-                            <p className="text-[11px] font-bold text-blue-900 uppercase tracking-wide">Automatic Reconciliation</p>
-                            <p className="text-[10px] text-blue-700 font-medium">Missed alerts are automatically delivered whenever you connect. Check the Logistics filter for urgent rider assignments.</p>
+                            <p className="text-[10px] font-extrabold text-orange-500 uppercase tracking-[0.15em] mb-0.5">Automated Reconciliation Protocol</p>
+                            <p className="text-[11px] text-slate-400 font-bold tracking-tight opacity-70">Logistics signals prioritize rider matching integrity. Check the Dispatch filter for immediate assignment demands.</p>
                         </div>
                     </div>
                 </div>

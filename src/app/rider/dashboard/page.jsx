@@ -21,7 +21,36 @@ export default function RiderDashboard() {
     const [activeOrder, setActiveOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [otpState, setOtpState] = useState({ step: "idle", otp: "", sending: false, confirming: false, method: "", message: "" });
+    const [otpState, setOtpState] = useState(() => {
+        if (typeof window !== "undefined") {
+            const saved = localStorage.getItem("pending_delivery_otp");
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    return { ...parsed, confirming: false, sending: false };
+                } catch (e) {
+                    console.error("Failed to parse saved OTP state", e);
+                }
+            }
+        }
+        return { step: "idle", otp: "", sending: false, confirming: false, method: "", message: "" };
+    });
+
+    // Persist OTP state
+    useEffect(() => {
+        if (otpState.step === "awaiting_otp") {
+            localStorage.setItem("pending_delivery_otp", JSON.stringify(otpState));
+        } else if (otpState.step === "idle") {
+            localStorage.removeItem("pending_delivery_otp");
+        }
+    }, [otpState]);
+
+    // Safety: Clear stale OTP state if active order is gone
+    useEffect(() => {
+        if (!loading && !activeOrder && otpState.step !== "idle") {
+            setOtpState({ step: "idle", otp: "", sending: false, confirming: false, method: "", message: "" });
+        }
+    }, [loading, activeOrder, otpState.step]);
 
     const riderId = rider?._id || rider?.id;
 
@@ -143,6 +172,8 @@ export default function RiderDashboard() {
             toast.success("Order delivered! Well done. 🎉");
             setOtpState({ step: "idle", otp: "", sending: false, confirming: false, method: "", message: "" });
             fetchActiveOrder();
+            // Refresh profile to update earnings automatically
+            await refreshProfile();
         } catch (error) {
             setOtpState(prev => ({ ...prev, confirming: false }));
             toast.error(error?.response?.data?.message || "Incorrect OTP. Ask the customer to check again.");
@@ -511,7 +542,6 @@ export default function RiderDashboard() {
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}
                                             exit={{ opacity: 0 }}
-                                            onClick={() => setOtpState({ step: "idle", otp: "", sending: false, confirming: false })}
                                             className="absolute inset-0 bg-black/60 backdrop-blur-sm shadow-2xl"
                                         />
                                         <motion.div 
@@ -553,12 +583,9 @@ export default function RiderDashboard() {
                                                     >
                                                         {otpState.confirming ? <Loader2 size={18} className="animate-spin" /> : <><CheckCircle2 size={18} /> CONFIRM DELIVERY</>}
                                                     </button>
-                                                    <button
-                                                        onClick={() => setOtpState({ step: "idle", otp: "", sending: false, confirming: false })}
-                                                        className="w-full py-2 text-[10px] text-zinc-400 font-black uppercase tracking-widest hover:text-zinc-600 dark:hover:text-white transition-colors"
-                                                    >
-                                                        Cancel & Return
-                                                    </button>
+                                                    <div className="py-2 text-[10px] text-zinc-400 font-black uppercase tracking-widest">
+                                                        Code verification required
+                                                    </div>
                                                 </div>
                                             </div>
                                         </motion.div>

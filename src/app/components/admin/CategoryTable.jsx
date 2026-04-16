@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Edit2, Trash2, ChevronRight, ImageIcon, Loader2 } from "lucide-react";
-import { format } from "date-fns";
+import { Edit2, Trash2, ChevronRight, ImageIcon, Loader2, Eye } from "lucide-react";
+
+const Th = ({ children, right, center }) => (
+    <th className={`px-4 py-3 text-[9px] font-extrabold text-slate-400 uppercase tracking-[0.15em] bg-slate-50 border-b border-slate-100 ${right ? "text-right" : ""} ${center ? "text-center" : ""}`}>
+        {children}
+    </th>
+);
 
 export default function CategoryTable({ categories, onEdit, onDelete, onToggleActive, currentPage, setCurrentPage }) {
-    // const [currentPage, setCurrentPage] = useState(1); // Lifted to parent
-    const itemsPerPage = 10;
-
+    const itemsPerPage = 8;
     const [togglingIds, setTogglingIds] = useState(new Set());
 
     const handleToggle = async (category) => {
@@ -24,10 +27,6 @@ export default function CategoryTable({ categories, onEdit, onDelete, onToggleAc
         }
     };
 
-    // Reset page when categories change (e.g. search filter)
-    // You might want to do this in a useEffect or useMemo if props change frequently
-    // For now, let's keep it simple.
-
     const totalPages = Math.ceil(categories.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const displayedCategories = categories.slice(startIndex, startIndex + itemsPerPage);
@@ -42,35 +41,37 @@ export default function CategoryTable({ categories, onEdit, onDelete, onToggleAc
 
     if (!categories || categories.length === 0) {
         return (
-            <div className="text-center py-12 bg-white rounded-xl border border-slate-200 shadow-sm">
-                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-slate-100">
-                    <ImageIcon className="text-slate-400" size={20} />
+            <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-slate-100" />
+                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                    <ImageIcon className="text-slate-300" size={24} />
                 </div>
-                <h3 className="text-base font-bold text-slate-900">No Categories Found</h3>
-                <p className="text-sm text-slate-500 mt-1">Get started by creating your first category.</p>
+                <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">No Categories Records</h3>
+                <p className="text-xs text-slate-500 mt-1 font-medium italic">Initialize your platform menu by adding a first category.</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="h-0.5 bg-gradient-to-r from-orange-500 to-amber-400 w-full" />
             <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full text-left">
                     <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200">
-                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Category</th>
-                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Parent</th>
-                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                            <th className="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Created</th>
-                            <th className="text-right py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                        <tr>
+                            <Th>Classification</Th>
+                            <Th>Hierarchy</Th>
+                            <Th center>Visibility</Th>
+                            <Th center>Registry Date</Th>
+                            <Th right>Actions</Th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {displayedCategories.map((category) => (
-                            <tr key={category._id} className="hover:bg-slate-50/50 transition-colors">
-                                <td className="py-3 px-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex-shrink-0 overflow-hidden border border-slate-200">
+                            <tr key={category._id} className="hover:bg-orange-50/40 transition-all group">
+                                <td className="py-4 px-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-slate-100 flex-shrink-0 overflow-hidden border border-slate-200 group-hover:border-orange-300 transition-colors shadow-sm relative">
                                             {category.image ? (
                                                 <img
                                                     src={category.image}
@@ -78,77 +79,76 @@ export default function CategoryTable({ categories, onEdit, onDelete, onToggleAc
                                                     className="w-full h-full object-cover"
                                                 />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                                    <ImageIcon size={18} />
+                                                <div className="w-full h-full flex items-center justify-center text-slate-300 group-hover:text-orange-400 transition-colors">
+                                                    <ImageIcon size={20} />
                                                 </div>
                                             )}
                                         </div>
-                                        <div>
-                                            <h4 className="font-semibold text-sm text-slate-900">{category.name}</h4>
+                                        <div className="min-w-0">
+                                            <h4 className="font-extrabold text-sm text-slate-900 group-hover:text-orange-600 transition-colors uppercase tracking-tight leading-none">{category.name}</h4>
                                             {category.description && (
-                                                <p className="text-xs text-slate-500 line-clamp-1 max-w-[200px]">
+                                                <p className="text-[11px] text-slate-500 line-clamp-1 max-w-[200px] mt-1.5 font-medium leading-tight">
                                                     {category.description}
                                                 </p>
                                             )}
                                         </div>
                                     </div>
                                 </td>
-                                <td className="py-3 px-4">
+                                <td className="py-4 px-4">
                                     {category.parent ? (
-                                        <div className="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md w-fit">
-                                            <span className="font-medium">{category.parent.name}</span>
-                                            <ChevronRight size={12} className="text-slate-400" />
-                                            <span className="font-semibold">{category.name}</span>
+                                        <div className="flex items-center gap-2 text-[10px] text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-full w-fit uppercase font-bold tracking-wider group-hover:bg-white transition-colors">
+                                            <span className="opacity-60">{category.parent.name}</span>
+                                            <ChevronRight size={10} className="text-orange-500" />
+                                            <span className="text-slate-900">{category.name}</span>
                                         </div>
                                     ) : (
-                                        <span className="text-xs font-semibold text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-md">Root</span>
+                                        <span className="text-[10px] font-extrabold text-white bg-slate-900 px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm">Master Root</span>
                                     )}
                                 </td>
-                                <td className="py-3 px-4">
+                                <td className="py-4 px-4 text-center">
                                     <button
                                         onClick={() => handleToggle(category)}
                                         disabled={togglingIds.has(category._id)}
-                                        title={category.isActive ? "Click to deactivate" : "Click to activate"}
-                                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium border transition-colors cursor-pointer disabled:cursor-wait ${
+                                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-extrabold border uppercase tracking-widest transition-all shadow-sm ${
                                             category.isActive
                                                 ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200"
-                                                : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"
+                                                : "bg-slate-50 text-slate-400 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"
                                         }`}
                                     >
                                         {togglingIds.has(category._id) ? (
-                                            <Loader2 size={10} className="animate-spin" />
+                                            <Loader2 size={12} className="animate-spin text-orange-500" />
                                         ) : (
-                                            <span className={`w-1.5 h-1.5 rounded-full ${
-                                                category.isActive ? "bg-emerald-500" : "bg-slate-400"
+                                            <div className={`w-1.5 h-1.5 rounded-full ${
+                                                category.isActive ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-slate-300"
                                             }`} />
                                         )}
-                                        {category.isActive ? "Active" : "Inactive"}
+                                        {category.isActive ? "Online" : "Paused"}
                                     </button>
                                 </td>
-                                <td className="py-3 px-4">
-                                    <span className="text-sm text-slate-500 font-medium">
+                                <td className="py-4 px-4 text-center">
+                                    <span className="text-xs text-slate-500 font-bold uppercase tracking-tight">
                                         {new Date(category.createdAt).toLocaleDateString(undefined, {
-                                            year: "numeric",
                                             month: "short",
                                             day: "numeric",
+                                            year: "numeric"
                                         })}
                                     </span>
                                 </td>
-                                <td className="py-3 px-4">
-                                    <div className="flex items-center justify-end gap-1">
+                                <td className="py-4 px-4">
+                                    <div className="flex items-center justify-end gap-2">
                                         <button
                                             onClick={() => onEdit(category)}
-                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                                            title="Edit Category"
+                                            className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all border border-transparent hover:border-orange-100"
+                                            title="Edit Classification"
                                         >
-                                            <Edit2 size={16} />
+                                            <Edit2 size={15} />
                                         </button>
                                         <button
                                             onClick={() => onDelete(category)}
-                                            className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
-                                            title="Delete Category"
+                                            className="p-2 text-slate-400 hover:text-black hover:bg-slate-100 rounded-xl transition-all border border-transparent hover:border-slate-200"
+                                            title="Remove Record"
                                         >
-                                            <Trash2 size={16} />
+                                            <Trash2 size={15} />
                                         </button>
                                     </div>
                                 </td>
@@ -160,22 +160,22 @@ export default function CategoryTable({ categories, onEdit, onDelete, onToggleAc
 
             {/* Pagination */}
             {totalPages > 1 && (
-                <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 bg-slate-50">
-                    <span className="text-xs text-slate-500 font-medium">
-                        Page <span className="font-semibold text-slate-900">{currentPage}</span> of <span className="font-semibold text-slate-900">{totalPages}</span>
+                <div className="flex items-center justify-between px-6 py-4 border-t border-slate-50 bg-slate-50/50">
+                    <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">
+                        Index Entry <span className="text-slate-900">{startIndex + 1}-{Math.min(startIndex + itemsPerPage, categories.length)}</span> of <span className="text-slate-900">{categories.length}</span>
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                         <button
                             onClick={handlePrevious}
                             disabled={currentPage === 1}
-                            className="px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="h-9 px-4 bg-white border border-slate-200 rounded-xl text-[10px] font-extrabold uppercase tracking-widest text-slate-600 hover:border-orange-400 hover:text-orange-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
                         >
                             Previous
                         </button>
                         <button
                             onClick={handleNext}
                             disabled={currentPage === totalPages}
-                            className="px-3 py-1.5 bg-white border border-slate-200 rounded-md text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="h-9 px-4 bg-white border border-slate-200 rounded-xl text-[10px] font-extrabold uppercase tracking-widest text-slate-600 hover:border-orange-400 hover:text-orange-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
                         >
                             Next
                         </button>
