@@ -51,6 +51,7 @@ export default function TrendingPage() {
                     params: {
                         city: defaultAddr?.city,
                         state: defaultAddr?.state,
+                        limit: 50,
                     },
                     withCredentials: true, // ✅ Use cookie-based auth
                 });

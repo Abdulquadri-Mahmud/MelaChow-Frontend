@@ -174,6 +174,12 @@ export default function TrendingFoods({ user }) {
                     </div>
                     <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">Trending Near You</h2>
                 </div>
+                <button 
+                  onClick={() => router.push("/trending-foods")}
+                  className="text-orange-600 text-xs font-bold uppercase tracking-widest hover:underline"
+                >
+                  View All
+                </button>
             </div>
 
             <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
