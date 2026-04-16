@@ -41,7 +41,10 @@ export default function TrendingPage() {
     });
 
     const user = userData?.user;
-    const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
+    const defaultAddr = useMemo(() => {
+        if (!user?.addresses?.length) return null;
+        return user.addresses.find((a) => a.isDefault) || user.addresses[0];
+    }, [user]);
 
     const { data: foods = [], isLoading, isError, refetch } = useQuery({
         queryKey: ["trending-all", defaultAddr?.city, defaultAddr?.state],
@@ -91,10 +94,12 @@ export default function TrendingPage() {
                                     <ArrowLeft size={20} className="text-zinc-600 dark:text-zinc-400" />
                                 </button>
                                 <div className="flex flex-col">
-                                    <h1 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">Trending</h1>
-                                    <div className="flex items-center gap-1 text-orange-600">
-                                        <MapPin size={12} className="fill-orange-600/20" />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest truncate max-w-[120px]">
+                                    <h1 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white uppercase italic leading-none">
+                                        Trending {defaultAddr?.city && <span className="text-orange-600">in {defaultAddr.city}</span>}
+                                    </h1>
+                                    <div className="flex items-center gap-1 text-zinc-500 mt-0.5">
+                                        <MapPin size={10} />
+                                        <span className="text-[9px] font-black uppercase tracking-widest truncate max-w-[120px]">
                                             {defaultAddr ? `${defaultAddr.city}, ${defaultAddr.state}` : "Set Location"}
                                         </span>
                                     </div>
