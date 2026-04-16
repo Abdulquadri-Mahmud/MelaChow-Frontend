@@ -161,7 +161,7 @@ export default function TrendingPage() {
                     </p>
                 </div>
 
-                {isLoading ? (
+                {(isLoading || (!defaultAddr && !!token)) ? (
                     <div className="space-y-4">
                         {[1, 2, 3].map(i => <Skeleton key={i} />)}
                     </div>
