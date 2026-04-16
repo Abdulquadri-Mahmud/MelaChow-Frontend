@@ -43,7 +43,7 @@ export function generateOrderItemsStatement(order, { includeCustomerName = false
     const cleanPortionLabel = (portionLabel || "").trim();
     let portionText = cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion");
 
-    let statement = `${totalPortions} ${portionText} of ${itemName}`;
+    let statement = `${totalPortions} ${portionText}${quantity > 1 ? ` (${quantity} units/qty)` : ""} of ${itemName}`;
     if (options.length > 0) {
       const optionsTextList = options.map((opt) => `${(Number(opt.quantity) || 1) * quantity} ${opt.label}`);
       statement += `, with ${optionsTextList.length === 1 

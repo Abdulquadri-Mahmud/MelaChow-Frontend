@@ -28,7 +28,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20 transition-colors duration-300">
       <HomeHeader />
-      <div className="md:px-4 p-2">
+      <div className="md:px-4 p-2 space-y-4">
         <SearchBar />
         <CategoryList />
         <VendorList user={user} />

@@ -7,6 +7,7 @@ import {
     StarHalf, Star as StarEmpty
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/app/context/ApiContext";
 import { fetchUser } from "@/app/lib/api";
@@ -143,7 +144,7 @@ export default function AllRestaurants() {
                 </div>
             </header>
 
-            <main className="max-w-md mx-auto px-4 pt-6">
+            <main className="max-w-md mx-auto px-2 pt-6">
                 {/* Intro */}
                 <div className="mb-6 px-1">
                     <h2 className="text-2xl font-black text-zinc-900 dark:text-white uppercase italic tracking-tight leading-none">
@@ -157,7 +158,7 @@ export default function AllRestaurants() {
                 {isLoading ? (
                     <div className="grid grid-cols-1 gap-4">
                         {[1, 2, 3].map((i) => (
-                            <div key={i} className="rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm border border-zinc-100 dark:border-zinc-800">
+                            <div key={i} className="rounded-md overflow-hidden bg-white dark:bg-zinc-900 shadow-sm border border-zinc-100 dark:border-zinc-800">
                                 <Skeleton height={176} />
                                 <div className="p-2.5">
                                     <div className="flex justify-between items-start">
@@ -253,76 +254,122 @@ export default function AllRestaurants() {
                         </button>
                     </div>
                 ) : (
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-6 pb-12">
                         {filteredVendors.map(vendor => {
                             const { isOpen, status } = getStatusInfo(vendor);
                             return (
-                                <div
+                                <motion.div
                                     key={vendor._id}
-                                    className="bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-zinc-200/40 dark:hover:shadow-none border border-zinc-100 dark:border-zinc-800 transition-all duration-500 cursor-pointer group"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    whileHover={{ y: -4 }}
+                                    className="bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-zinc-100 dark:border-zinc-800 transition-all duration-500 cursor-pointer group"
                                     onClick={() => router.push(`/restaurants/${String(vendor._id)}`)}
                                 >
-                                    <div className="relative h-48">
-                                        {!imgLoaded[vendor._id] && <Skeleton height="100%" width="100%" />}
+                                    {/* Image Section */}
+                                    <div className="relative h-56 overflow-hidden">
+                                        {!imgLoaded[vendor._id] && (
+                                            <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+                                        )}
                                         <img
                                             src={vendor.logo}
                                             alt={vendor.storeName}
                                             onLoad={() => setImgLoaded((prev) => ({ ...prev, [vendor._id]: true }))}
-                                            className={`h-full w-full object-cover transition-all duration-700 group-hover:scale-110 ${imgLoaded[vendor._id] ? "opacity-100" : "opacity-0"}`}
+                                            className={`h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110 ${imgLoaded[vendor._id] ? "opacity-100" : "opacity-0"}`}
                                         />
 
-                                        {/* Badges */}
+                                        {/* Overlay Gradient */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+
+                                        {/* Status & Featured Badges */}
                                         <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-                                            <div className="flex flex-col gap-2">
-                                                {vendor.metadata?.featured && (
-                                                    <span className="bg-orange-600 text-white text-[9px] font-black px-3 py-1.5 rounded-xl shadow-lg uppercase tracking-widest italic">
-                                                        FEATURED
+                                            <div className="flex gap-2">
+                                                {isOpen ? (
+                                                    <span className="bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg uppercase tracking-wider">
+                                                        <Clock size={12} strokeWidth={3} /> Open Now
+                                                    </span>
+                                                ) : (
+                                                    <span className="bg-zinc-950/80 backdrop-blur-md text-zinc-400 text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg uppercase tracking-wider">
+                                                        <Clock size={12} strokeWidth={3} /> Closed
                                                     </span>
                                                 )}
-                                                <span
-                                                    className={`${isOpen ? "bg-white/90 text-orange-600" : "bg-zinc-900/90 text-zinc-400"} text-[9px] font-black px-3 py-1.5 rounded-xl shadow-lg uppercase tracking-widest backdrop-blur-md`}
-                                                >
-                                                    {isOpen ? "OPEN" : "CLOSED"}
+                                                {vendor.metadata?.featured && (
+                                                    <span className="bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg uppercase tracking-wider">
+                                                        <Sparkles size={12} strokeWidth={3} /> Featured
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <button className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md flex items-center justify-center transition-colors">
+                                                <Heart size={20} className="text-white" />
+                                            </button>
+                                        </div>
+
+                                        {/* Rating Display */}
+                                        <div className="absolute bottom-4 left-4 flex items-center gap-2">
+                                            <div className="bg-white dark:bg-zinc-900 rounded-2xl px-3 py-2 flex items-center gap-1.5 shadow-xl border border-white/50 dark:border-zinc-800">
+                                                <Star size={16} className="text-orange-500 fill-orange-500" />
+                                                <span className="text-sm font-black text-zinc-900 dark:text-white">
+                                                    {Number(vendor.rating || 0).toFixed(1)}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-zinc-400">
+                                                    ({(vendor.ratingCount || 0).toLocaleString()}+)
                                                 </span>
                                             </div>
                                         </div>
-
-                                        {/* Rating */}
-                                        <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md text-zinc-900 dark:text-white text-[10px] font-black px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-lg border border-white/20">
-                                            <Star size={12} className="text-orange-500 fill-orange-500" />
-                                            <span>{vendor.ratingCount || 0}</span>
-                                        </div>
                                     </div>
 
-                                    <div className="p-4">
-                                        <div className="flex justify-between items-start">
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex items-center gap-2 mb-1.5">
-                                                    <Store size={18} className="text-orange-600" />
-                                                    <h3 className="font-black text-zinc-900 dark:text-white text-lg truncate uppercase tracking-tight italic leading-tight">{vendor.storeName}</h3>
+                                    {/* Content Section */}
+                                    <div className="p-2">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-2xl font-black text-zinc-900 dark:text-white truncate tracking-tight mb-1 group-hover:text-orange-600 transition-colors">
+                                                    {vendor.storeName}
+                                                </h3>
+                                                <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-sm font-medium italic">
+                                                    <MapPin size={14} className="text-orange-500" />
+                                                    <span className="truncate">{vendor.fullAddress || `${vendor.address?.city}, ${vendor.address?.state}`}</span>
                                                 </div>
-                                                <div className="flex items-center text-[10px] text-zinc-500 font-bold tracking-widest uppercase">
-                                                    <Clock size={14} className="mr-1.5 text-orange-500" />
-                                                    <span className="truncate italic">{status}</span>
-                                                </div>
-                                            </div>
-                                            <div className="bg-orange-600 text-white p-2.5 rounded-2xl shadow-lg shadow-orange-600/20 transform group-hover:rotate-90 transition-transform duration-500">
-                                                <Plus size={20} strokeWidth={3} />
                                             </div>
                                         </div>
 
-                                        <div className="mt-4 flex justify-between items-center bg-zinc-50 dark:bg-zinc-800/50 p-3 rounded-2xl">
-                                            <div className="flex items-center gap-1.5 text-[10px] font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-tighter">
-                                                <MapPin size={12} className="text-orange-500" />
-                                                <span className="truncate">{vendor.address?.city}</span>
+                                        <div className="flex flex-wrap gap-2 mb-2">
+                                            {(vendor.cuisineTypes || []).slice(0, 3).map((cuisine, idx) => (
+                                                <span 
+                                                    key={idx}
+                                                    className="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl border border-zinc-200/50 dark:border-zinc-700/50"
+                                                >
+                                                    {cuisine}
+                                                </span>
+                                            ))}
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-3 p-1">
+                                            <div className="bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl p-2 flex flex-col gap-1 border border-zinc-100 dark:border-zinc-800/50">
+                                                <div className="flex items-center gap-1.5 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
+                                                    <Truck size={14} /> Delivery
+                                                </div>
+                                                <div className="text-lg font-black text-zinc-900 dark:text-white flex items-baseline gap-1">
+                                                    {vendor.deliveryFee > 0 ? (
+                                                        <>
+                                                            <span className="text-xs uppercase opacity-30">₦</span>
+                                                            {vendor.deliveryFee.toLocaleString()}
+                                                        </>
+                                                    ) : (
+                                                        <span className="text-emerald-500 uppercase italic">Free</span>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-1.5 text-[10px] font-black text-orange-600 uppercase tracking-tighter italic">
-                                                <Truck size={14} />
-                                                <span>₦{(vendor.deliveryFee || 0).toLocaleString()}</span>
+                                            <div className="bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl p-2 flex flex-col gap-1 border border-zinc-100 dark:border-zinc-800/50">
+                                                <div className="flex items-center gap-1.5 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
+                                                    <Clock size={14} /> Estimates
+                                                </div>
+                                                <div className="text-lg font-black text-zinc-900 dark:text-white flex items-baseline gap-1 italic">
+                                                    15-25 <span className="text-xs uppercase opacity-30 not-italic">min</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </motion.div>
                             )
                         })}
                     </div>
