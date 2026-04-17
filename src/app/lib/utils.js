@@ -43,14 +43,22 @@ export function generateOrderItemsStatement(order, { includeCustomerName = false
     const cleanPortionLabel = (portionLabel || "").trim();
     let portionText = cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion");
 
-    let statement = `${totalPortions} ${portionText}${quantity > 1 ? ` (${quantity} units/qty)` : ""} of ${itemName}`;
+    // "X unit(s) of [Item] (Y portions total)"
+    let statement = `${quantity} ${quantity > 1 ? "units" : "unit"} of ${itemName}`;
+    if (portionQuantity > 0) {
+      statement += ` (${totalPortions} ${portionText})`;
+    }
+
     if (options.length > 0) {
-      const optionsTextList = options.map((opt) => `${(Number(opt.quantity) || 1) * quantity} ${opt.label}`);
-      statement += `, with ${optionsTextList.length === 1 
+      // List options per unit (e.g. "3 Beef" instead of "6 Beef" for 2 units)
+      const optionsTextList = options.map((opt) => `${opt.quantity || 1} ${opt.label}`);
+      const optionsSentence = optionsTextList.length === 1 
         ? optionsTextList[0] 
         : optionsTextList.length === 2 
           ? optionsTextList.join(" and ") 
-          : optionsTextList.slice(0, -1).join(", ") + ", and " + optionsTextList.slice(-1)}`;
+          : optionsTextList.slice(0, -1).join(", ") + ", and " + optionsTextList.slice(-1);
+      
+      statement += `, each with ${optionsSentence}`;
     }
     return statement;
   });
