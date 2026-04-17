@@ -133,7 +133,7 @@ const RecommendationCard = ({ food, router }) => {
 };
 
 // --- Recommendation Section Layout ---
-const RecommendationSection = ({ title, icon: Icon, items, router, viewAllLink, accentColor = "text-orange-600", accentBg = "bg-orange-100" }) => {
+const RecommendationSection = ({ title, icon: Icon, items, router, accentColor = "text-orange-600", accentBg = "bg-orange-100" }) => {
     if (!items || items.length === 0) return null;
 
     return (
@@ -148,16 +148,6 @@ const RecommendationSection = ({ title, icon: Icon, items, router, viewAllLink, 
                         {title}
                     </h2>
                 </div>
-
-                {viewAllLink && (
-                    <button
-                        onClick={() => router.push(viewAllLink)}
-                        className={`${accentColor} text-[10px] font-black uppercase tracking-[0.1em] hover:bg-zinc-100 dark:hover:bg-zinc-800 px-3 py-1.5 rounded-full transition-all flex items-center gap-1 group`}
-                    >
-                        View All
-                        <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                    </button>
-                )}
             </div>
 
             <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
@@ -213,18 +203,7 @@ export default function SmartRecommendations() {
                 accentBg="bg-orange-100 dark:bg-orange-500/20"
             />
 
-            {/* 2. Trending Nearby */}
-            <RecommendationSection
-                title={`Trending in ${meta?.location?.city || "your area"}`}
-                icon={TrendingUp}
-                items={arrays.trendingNearby}
-                router={router}
-                accentColor="text-rose-600"
-                accentBg="bg-rose-100 dark:bg-rose-500/20"
-                viewAllLink="/trending-foods"
-            />
-
-            {/* 3. Hidden Gems */}
+            {/* 2. Hidden Gems */}
             <RecommendationSection
                 title="Curated Choices"
                 icon={Sparkles}
