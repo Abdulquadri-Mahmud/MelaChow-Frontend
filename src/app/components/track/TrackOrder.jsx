@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+
 import axios from "axios";
 import { Clock, Truck, Package, Home, CheckCircle, Star, Phone, Bike } from "lucide-react";
 import { useApi } from "@/app/context/ApiContext";
@@ -81,6 +82,9 @@ export default function OrderTracking() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedFoodForReview, setSelectedFoodForReview] = useState(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [showReviewBanner, setShowReviewBanner] = useState(false);
+  const [hasAutoPrompted, setHasAutoPrompted] = useState(false);
+  const reviewTimerRef = useRef(null);
 
   const { baseUrl } = useApi();
   const { user } = useUserStorage();
@@ -138,6 +142,25 @@ export default function OrderTracking() {
       // Update location in state if map is implemented
     });
   }, [onStatusUpdate, onLocationUpdate]);
+
+  // ─── Auto-trigger review banner 3s after delivery ────────────────────────────
+  useEffect(() => {
+    if (!orderData || hasAutoPrompted) return;
+    const isDelivered = ['delivered', 'completed'].includes(orderData.orderStatus);
+    if (!isDelivered) return;
+
+    // Check if customer already reviewed / dismissed for this order
+    const dismissed = localStorage.getItem(`review_prompted_${orderId}`);
+    if (dismissed) return;
+
+    // Auto-show banner after 3 seconds
+    reviewTimerRef.current = setTimeout(() => {
+      setShowReviewBanner(true);
+      setHasAutoPrompted(true);
+    }, 3000);
+
+    return () => clearTimeout(reviewTimerRef.current);
+  }, [orderData?.orderStatus, orderId, hasAutoPrompted]);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -270,12 +293,19 @@ export default function OrderTracking() {
 
           <button
             onClick={() => {
+              const isDelivered = ['delivered', 'completed'].includes(orderStatus);
+              if (!isDelivered) return;
               if (orderData?.items?.length > 0) {
                 setSelectedFoodForReview(orderData.items[0]);
                 setIsReviewModalOpen(true);
+                setShowReviewBanner(false);
               }
             }}
-            className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-zinc-800/50 shadow-lg text-[10px] font-black text-zinc-500 uppercase hover:text-orange-600 transition-colors"
+            className={`bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/50 dark:border-zinc-800/50 shadow-lg text-[10px] font-black uppercase transition-colors ${
+              ['delivered', 'completed'].includes(orderStatus)
+                ? 'text-orange-600 hover:text-orange-700'
+                : 'text-zinc-300 cursor-not-allowed'
+            }`}
           >
             Review Order
           </button>
@@ -688,11 +718,103 @@ export default function OrderTracking() {
         </motion.button>
       </motion.div>
 
+      {/* ── Auto Review Banner ───────────────────────────────────────────────── */}
+      {showReviewBanner && (
+        <motion.div
+          initial={{ y: 120, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 120, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          className="fixed bottom-0 left-0 right-0 z-[140] p-4 pb-8"
+        >
+          <div className="max-w-md mx-auto bg-white dark:bg-zinc-900 rounded-[32px] shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.15)] border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+            {/* Orange accent bar */}
+            <div className="h-1 bg-gradient-to-r from-orange-400 via-orange-600 to-amber-500" />
+            <div className="p-5">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-orange-50 dark:bg-orange-500/10 rounded-2xl flex items-center justify-center">
+                    <Star size={20} className="text-orange-500 fill-orange-500" />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-black text-zinc-900 dark:text-white uppercase tracking-tight">How was your order?</p>
+                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Your feedback helps other customers</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowReviewBanner(false);
+                    localStorage.setItem(`review_prompted_${orderId}`, 'dismissed');
+                  }}
+                  className="p-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl text-zinc-400 hover:text-zinc-600 transition-colors"
+                >
+                  <span className="text-lg leading-none">×</span>
+                </button>
+              </div>
+
+              {/* Item thumbnails */}
+              {orderData?.items?.length > 0 && (
+                <div className="flex items-center gap-2 mb-4">
+                  {orderData.items.slice(0, 3).map((item, idx) => (
+                    <div key={idx} className="w-10 h-10 rounded-xl overflow-hidden border-2 border-white dark:border-zinc-800 shadow-sm">
+                      <img
+                        src={item.variant?.image || item.image_url || '/placeholder.jpg'}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                  {orderData.items.length > 3 && (
+                    <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                      <span className="text-[10px] font-black text-zinc-500">+{orderData.items.length - 3}</span>
+                    </div>
+                  )}
+                  <p className="text-[11px] font-bold text-zinc-500 ml-1">{orderData.items.length} item{orderData.items.length > 1 ? 's' : ''}</p>
+                </div>
+              )}
+
+              {/* CTA Buttons */}
+              <div className="flex items-center gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => {
+                    if (orderData?.items?.length > 0) {
+                      setSelectedFoodForReview(orderData.items[0]);
+                      setIsReviewModalOpen(true);
+                      setShowReviewBanner(false);
+                      localStorage.setItem(`review_prompted_${orderId}`, 'prompted');
+                    }
+                  }}
+                  className="flex-1 py-3.5 bg-orange-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
+                >
+                  <Star size={14} className="fill-white" />
+                  Rate Now
+                </motion.button>
+                <button
+                  onClick={() => {
+                    setShowReviewBanner(false);
+                    localStorage.setItem(`review_prompted_${orderId}`, 'dismissed');
+                  }}
+                  className="px-5 py-3.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-500 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  Later
+                </button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Review Modal */}
       {selectedFoodForReview && (
         <ReviewModal
           isOpen={isReviewModalOpen}
-          onClose={() => setIsReviewModalOpen(false)}
+          onClose={() => {
+            setIsReviewModalOpen(false);
+            localStorage.setItem(`review_prompted_${orderId}`, 'submitted');
+          }}
           food={selectedFoodForReview}
           vendorId={orderData.items[0].restaurantId}
           baseUrl={baseUrl}
