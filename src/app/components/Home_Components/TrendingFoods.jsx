@@ -89,7 +89,7 @@ const TrendingCard = ({ item }) => {
 
                 {/* Row 2: Vendor Name • Location */}
                 <p className="text-[11px] text-gray-500 dark:text-zinc-400 truncate mt-0.5">
-                    {item.restaurant?.storeName} • {item.restaurant?.city || "Nearby"}
+                    {item.restaurant?.storeName} {" \u2022 "} {item.restaurant?.city || "Nearby"}
                 </p>
 
                 {/* Row 3: Metadata Line: Globe | Delivery | Status | Rating */}

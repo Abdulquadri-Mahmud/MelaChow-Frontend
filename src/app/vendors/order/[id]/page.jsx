@@ -344,10 +344,19 @@ export default function VendorOrderDetailsPage() {
                                             
                                             let portionText = cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion");
 
-                                            let fullSentence = `Prepare ${totalPortions} ${portionText}${quantity > 1 ? ` (${quantity} units/qty)` : ""} of ${itemName}`;
+                                            // "X unit(s) of [Item] (Y portions total)"
+                                            let fullSentence = `${quantity} ${quantity > 1 ? "units" : "unit"} of ${itemName}`;
+                                            if (portionQuantity > 0) {
+                                                fullSentence += ` (${totalPortions} ${portionText})`;
+                                            }
                                             if (options.length > 0) {
-                                                const optionsTextList = options.map((opt) => `${(Number(opt.quantity) || 1) * quantity} ${opt.label}`);
-                                                fullSentence += `, with ${optionsTextList.length === 1 ? optionsTextList[0] : optionsTextList.length === 2 ? optionsTextList.join(' and ') : optionsTextList.slice(0, -1).join(', ') + ', and ' + optionsTextList.slice(-1)}`;
+                                                const optionsTextList = options.map((opt) => `${opt.quantity || 1} ${opt.label}`);
+                                                const optionsSentence = optionsTextList.length === 1
+                                                    ? optionsTextList[0]
+                                                    : optionsTextList.length === 2
+                                                        ? optionsTextList.join(" and ")
+                                                        : optionsTextList.slice(0, -1).join(", ") + ", and " + optionsTextList.slice(-1);
+                                                fullSentence += `, each with ${optionsSentence}`;
                                             }
                                             fullSentence += ".";
 
@@ -611,10 +620,19 @@ export default function VendorOrderDetailsPage() {
                                     const cleanPortionLabel = portionLabel?.trim() || "";
                                     let portionText = cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion");
 
-                                    let fullSentence = `Prepare ${totalPortions} ${portionText}${quantity > 1 ? ` (${quantity} units/qty)` : ""} of ${itemName}`;
+                                    // "X unit(s) of [Item] (Y portions total)"
+                                    let fullSentence = `${quantity} ${quantity > 1 ? "units" : "unit"} of ${itemName}`;
+                                    if (portionQuantity > 0) {
+                                        fullSentence += ` (${totalPortions} ${portionText})`;
+                                    }
                                     if (options.length > 0) {
-                                        const optionsTextList = options.map((opt) => `${(Number(opt.quantity) || 1) * quantity} ${opt.label}`);
-                                        fullSentence += `, with ${optionsTextList.length === 1 ? optionsTextList[0] : optionsTextList.length === 2 ? optionsTextList.join(' and ') : optionsTextList.slice(0, -1).join(', ') + ', and ' + optionsTextList.slice(-1)}`;
+                                        const optionsTextList = options.map((opt) => `${opt.quantity || 1} ${opt.label}`);
+                                        const optionsSentence = optionsTextList.length === 1
+                                            ? optionsTextList[0]
+                                            : optionsTextList.length === 2
+                                                ? optionsTextList.join(" and ")
+                                                : optionsTextList.slice(0, -1).join(", ") + ", and " + optionsTextList.slice(-1);
+                                        fullSentence += `, each with ${optionsSentence}`;
                                     }
                                     fullSentence += ".";
 

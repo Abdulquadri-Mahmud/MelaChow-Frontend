@@ -81,7 +81,7 @@ const VendorCard = ({ _id, storeName, city, image, status, isOpen, rating, ratin
                 <div className="flex justify-between items-center gap-2">
                     <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[calc(100%-28px)]">
                         {storeName}
-                        <span className="text-[11px] font-normal text-gray-500 dark:text-zinc-400 ml-1.5">• {city || "Nearby"}</span>
+                        <span className="text-[11px] font-normal text-gray-500 dark:text-zinc-400 ml-1.5">{" \u2022 "} {city || "Nearby"}</span>
                     </h3>
                     <button
                         onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
