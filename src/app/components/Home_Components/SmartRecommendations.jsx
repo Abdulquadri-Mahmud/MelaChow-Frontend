@@ -88,7 +88,7 @@ const RecommendationCard = ({ food, router }) => {
 
                 {/* Row 2: Vendor Name • Location */}
                 <p className="text-[11px] text-gray-500 dark:text-zinc-400 truncate mt-0.5">
-                    {vendor?.storeName} • {vendor?.city || "Nearby"}
+                    {vendor?.storeName} {" \u2022 "} {vendor?.city || "Nearby"}
                 </p>
 
                 {/* Row 3: Metadata Line: Globe | Delivery | Status | Rating */}
