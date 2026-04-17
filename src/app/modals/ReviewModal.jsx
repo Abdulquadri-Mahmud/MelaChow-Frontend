@@ -52,7 +52,7 @@ export default function ReviewModal({ isOpen, onClose, food, vendorId, baseUrl }
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onClose}
-                    className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                    className="absolute  inset-0 bg-black/60 backdrop-blur-sm"
                 />
 
                 {/* Modal */}
@@ -60,7 +60,7 @@ export default function ReviewModal({ isOpen, onClose, food, vendorId, baseUrl }
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl border border-zinc-100 dark:border-zinc-800"
+                    className="relative  bg-white dark:bg-zinc-900 w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl border border-zinc-100 dark:border-zinc-800"
                 >
                     <div className="p-6">
                         <div className="flex justify-between items-center mb-6">

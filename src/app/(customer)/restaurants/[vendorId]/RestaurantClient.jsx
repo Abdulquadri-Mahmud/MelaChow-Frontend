@@ -3,10 +3,12 @@
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getVendorStorefront, getMenuItemDetail } from "@/app/lib/menuApi";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
+
 import Header2 from "@/app/components/App_Header/Header2";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
-import { MapPin, Clock, Star, ChevronRight, ShoppingCart, Check, Search, Info, Package, Sparkles, Store, X, Plus, Heart, Globe, Bike, Flame, Truck } from "lucide-react";
+import { MapPin, Clock, Star, ChevronRight, ShoppingCart, Check, Search, Info, Package, Sparkles, Store, X, Plus, Heart, Globe, Bike, Flame, Truck, MessageSquare, ThumbsUp, ChevronLeft, ChevronRight as ChevronRightIcon, Loader2 } from "lucide-react";
+
 
 const DIETARY_COLORS = {
     veg: "bg-green-100 text-green-700",
@@ -240,6 +242,11 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const [loadingItem, setLoadingItem] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeSectionId, setActiveSectionId] = useState(null);
+    const [activeTab, setActiveTab] = useState("menu"); // "menu" | "reviews"
+    const [reviewsData, setReviewsData] = useState(null);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
+    const [reviewsPage, setReviewsPage] = useState(1);
+    const [ratingFilter, setRatingFilter] = useState(null); // null = all
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ["vendor-storefront", vendorId],
@@ -253,6 +260,42 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const sections    = data?.sections || [];
     const unsectioned = data?.unsectioned || [];
     const combos      = data?.combos || [];
+
+    // Fetch reviews when tab switches to reviews
+    const fetchReviews = useCallback(async (page = 1, rating = null) => {
+        if (!vendorId) return;
+        setReviewsLoading(true);
+        try {
+            const params = new URLSearchParams({ page, limit: 8 });
+            if (rating) params.append('rating', rating);
+            const res = await fetch(`/api/public/reviews/vendor/${vendorId}?${params}`);
+            const json = await res.json();
+            if (json.success) setReviewsData(json.data);
+        } catch (e) {
+            console.error('Failed to fetch reviews', e);
+        } finally {
+            setReviewsLoading(false);
+        }
+    }, [vendorId]);
+
+    useEffect(() => {
+        if (activeTab === 'reviews' && !reviewsData) {
+            fetchReviews(reviewsPage, ratingFilter);
+        }
+    }, [activeTab]);
+
+    const handleRatingFilter = (star) => {
+        const newFilter = ratingFilter === star ? null : star;
+        setRatingFilter(newFilter);
+        setReviewsPage(1);
+        fetchReviews(1, newFilter);
+    };
+
+    const handleReviewsPage = (newPage) => {
+        setReviewsPage(newPage);
+        fetchReviews(newPage, ratingFilter);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     // console.log('[StorefrontPage] 🍱 sections:', sections);
     // console.log('[StorefrontPage] 📦 unsectioned:', unsectioned);
@@ -443,9 +486,32 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
             </div>
 
             {/* Search & Navigation Bar */}
-            <div className="sticky top-[64px] z-30 bg-zinc-50/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50 pt-6 pb-4 transform-gpu transition-all">
+            <div className="sticky top-[64px] z-30 bg-zinc-50/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50 pt-4 pb-4 transform-gpu transition-all">
                 <div className="max-w-7xl mx-auto px-4 space-y-3">
-                    {/* Search Bar */}
+
+                    {/* Menu / Reviews Tab Toggle */}
+                    <div className="flex gap-2">
+                        {[
+                            { id: 'menu', label: 'Menu', icon: Package },
+                            { id: 'reviews', label: `Reviews${vendor?.ratingCount ? ` (${vendor.ratingCount})` : ''}`, icon: Star },
+                        ].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 h-10 px-5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border ${
+                                    activeTab === tab.id
+                                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent'
+                                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                                }`}
+                            >
+                                <tab.icon size={12} />
+                                {tab.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Search Bar — only in menu tab */}
+                    {activeTab === 'menu' && (
                     <div className="relative group max-w-md mx-auto lg:mx-0">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
                         <input
@@ -457,16 +523,17 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                         />
                         {searchQuery && (
                             <button 
-                                onClick={() => setSearchQuery("")}
+                                onClick={() => setSearchQuery('')}
                                 className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 bg-slate-100 p-1 rounded-full"
                             >
                                 <X size={14} />
                             </button>
                         )}
                     </div>
+                    )}
                     
-                    {/* Category Nav - Only show if not heavily searching */}
-                    {!searchQuery && (
+                    {/* Category Nav - Only show if not heavily searching and on menu tab */}
+                    {!searchQuery && activeTab === 'menu' && (
                         <div className="flex gap-2 sm:gap-3 scroll overflow-x-auto pb-2 scrollbar-none snap-x mask-fade-edges">
                             {allSections.map(section => (
                                 <button
@@ -486,8 +553,179 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                 </div>
             </div>
 
-            {/* Main Menu Content — mirrors FoodList layout */}
-            {searchQuery && totalItems === 0 ? (
+            {/* ── REVIEWS TAB ──────────────────────────────────────────────── */}
+            {activeTab === 'reviews' && (
+                <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+                    {reviewsLoading ? (
+                        <div className="flex flex-col items-center justify-center py-24 gap-4">
+                            <Loader2 size={32} className="animate-spin text-orange-500" />
+                            <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Loading Reviews...</p>
+                        </div>
+                    ) : reviewsData ? (
+                        <>
+                            {/* Overall Score Card */}
+                            <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm">
+                                <div className="flex flex-col sm:flex-row items-center gap-6">
+                                    {/* Big Score */}
+                                    <div className="text-center shrink-0">
+                                        <p className="text-7xl font-black text-zinc-900 dark:text-white leading-none">
+                                            {reviewsData.restaurant.averageRating || '—'}
+                                        </p>
+                                        <div className="flex justify-center gap-0.5 mt-2">
+                                            {[1,2,3,4,5].map(s => (
+                                                <Star key={s} size={16}
+                                                    className={s <= Math.round(reviewsData.restaurant.averageRating) ? 'fill-orange-500 text-orange-500' : 'text-zinc-200 dark:text-zinc-700'}
+                                                />
+                                            ))}
+                                        </div>
+                                        <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">
+                                            {reviewsData.restaurant.totalReviews} review{reviewsData.restaurant.totalReviews !== 1 ? 's' : ''}
+                                        </p>
+                                    </div>
+
+                                    {/* Star Distribution Bars */}
+                                    <div className="flex-1 w-full space-y-2">
+                                        {[5,4,3,2,1].map(star => {
+                                            const pct = reviewsData.ratingPercentages?.[star] || 0;
+                                            const count = reviewsData.ratingDistribution?.[star] || 0;
+                                            return (
+                                                <button
+                                                    key={star}
+                                                    onClick={() => handleRatingFilter(star)}
+                                                    className={`w-full flex items-center gap-3 group transition-opacity ${
+                                                        ratingFilter && ratingFilter !== star ? 'opacity-40' : 'opacity-100'
+                                                    }`}
+                                                >
+                                                    <span className="text-[11px] font-black text-zinc-500 w-4 shrink-0">{star}</span>
+                                                    <Star size={10} className="fill-orange-400 text-orange-400 shrink-0" />
+                                                    <div className="flex-1 h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                                                        <div
+                                                            className="h-full bg-orange-500 rounded-full transition-all duration-500"
+                                                            style={{ width: `${pct}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className="text-[10px] font-black text-zinc-400 w-6 text-right shrink-0">{count}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                {ratingFilter && (
+                                    <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
+                                        <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest">
+                                            Showing {ratingFilter}-star reviews only
+                                        </p>
+                                        <button
+                                            onClick={() => handleRatingFilter(ratingFilter)}
+                                            className="text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:text-zinc-700"
+                                        >
+                                            Clear filter ×
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Review Cards */}
+                            {reviewsData.reviews.length === 0 ? (
+                                <div className="text-center py-16">
+                                    <div className="w-16 h-16 bg-zinc-100 dark:bg-zinc-900 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                                        <MessageSquare size={28} className="text-zinc-300" />
+                                    </div>
+                                    <p className="text-sm font-black text-zinc-500 uppercase tracking-widest">No reviews yet</p>
+                                    <p className="text-xs text-zinc-400 mt-1">Be the first to leave a review after ordering!</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {reviewsData.reviews.map((review, idx) => {
+                                        const user = review.userId;
+                                        const food = review.foodId;
+                                        const initials = user ? `${user.firstname?.[0] || ''}${user.lastname?.[0] || ''}`.toUpperCase() : '?';
+                                        const date = new Date(review.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                                        return (
+                                            <div key={review._id || idx} className="bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-zinc-100 dark:border-zinc-800 space-y-3">
+                                                {/* Header */}
+                                                <div className="flex items-center gap-3">
+                                                    {/* Avatar */}
+                                                    <div className="w-10 h-10 rounded-2xl overflow-hidden bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-sm shrink-0">
+                                                        {user?.avatar ? (
+                                                            <img src={user.avatar} alt={initials} className="w-full h-full object-cover" />
+                                                        ) : initials}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-[13px] font-black text-zinc-900 dark:text-white truncate">
+                                                            {user ? `${user.firstname} ${user.lastname}` : 'Anonymous'}
+                                                        </p>
+                                                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{date}</p>
+                                                    </div>
+                                                    {/* Stars */}
+                                                    <div className="flex items-center gap-0.5 shrink-0">
+                                                        {[1,2,3,4,5].map(s => (
+                                                            <Star key={s} size={12}
+                                                                className={s <= review.rating ? 'fill-orange-500 text-orange-500' : 'text-zinc-200 dark:text-zinc-700'}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Food tag */}
+                                                {food && (
+                                                    <div className="flex items-center gap-2">
+                                                        {food.image_url && (
+                                                            <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
+                                                                <img src={food.image_url} alt={food.name} className="w-full h-full object-cover" />
+                                                            </div>
+                                                        )}
+                                                        <span className="text-[10px] font-black text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded-lg uppercase tracking-widest">
+                                                            {food.name}
+                                                        </span>
+                                                    </div>
+                                                )}
+
+                                                {/* Comment */}
+                                                <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                                                    "{review.comment}"
+                                                </p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Pagination */}
+                            {reviewsData.pagination?.totalPages > 1 && (
+                                <div className="flex items-center justify-between pt-4">
+                                    <button
+                                        onClick={() => handleReviewsPage(reviewsPage - 1)}
+                                        disabled={!reviewsData.pagination.hasPrev}
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-[11px] font-black uppercase tracking-widest text-zinc-600 disabled:opacity-30 hover:border-zinc-400 transition-colors"
+                                    >
+                                        <ChevronLeft size={14} /> Prev
+                                    </button>
+                                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                        Page {reviewsPage} of {reviewsData.pagination.totalPages}
+                                    </span>
+                                    <button
+                                        onClick={() => handleReviewsPage(reviewsPage + 1)}
+                                        disabled={!reviewsData.pagination.hasNext}
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-[11px] font-black uppercase tracking-widest text-zinc-600 disabled:opacity-30 hover:border-zinc-400 transition-colors"
+                                    >
+                                        Next <ChevronRightIcon size={14} />
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="text-center py-16">
+                            <p className="text-sm text-zinc-400">Could not load reviews. Try again.</p>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* ── MENU TAB ─────────────────────────────────────────────────── */}
+            {activeTab === 'menu' && (
+            searchQuery && totalItems === 0 ? (
                 <div className="text-center py-20 px-4">
                     <div className="w-20 h-20 bg-slate-100 dark:bg-slate-900 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-slate-400">
                         <Search size={32} />
@@ -495,7 +733,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                     <h3 className="text-xl font-black text-slate-900 dark:text-white capitalize tracking-tight mb-2">No items found</h3>
                     <p className="text-slate-500 text-sm">We couldn't find anything matching &quot;{searchQuery}&quot;.</p>
                     <button 
-                        onClick={() => setSearchQuery("")}
+                        onClick={() => setSearchQuery('')}
                         className="mt-6 text-orange-600 font-bold text-sm bg-orange-50 px-6 py-2.5 rounded-xl hover:bg-orange-100 transition-colors"
                     >
                         Clear Search
@@ -509,7 +747,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                             ref={el => sectionRefs.current[section._id] = el}
                             className="scroll-mt-48"
                         >
-                            {/* Section Header — same as FoodList */}
+                            {/* Section Header */}
                             <div className="flex items-center gap-2 px-4 mb-4">
                                 <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
                                 <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight capitalize">
@@ -520,8 +758,8 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                 </span>
                             </div>
 
-                            {/* Horizontal scroll row — same as FoodList */}
-                            {section.type === "combo" ? (
+                            {/* Horizontal scroll row */}
+                            {section.type === 'combo' ? (
                                 <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
                                     {section.items.map(combo => (
                                         <ComboCard
@@ -547,6 +785,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                         </div>
                     ))}
                 </div>
+            )
             )}
 
             {/* Removed Floating Cart per Request */}
