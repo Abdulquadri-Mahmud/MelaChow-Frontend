@@ -725,7 +725,7 @@ export default function OrderTracking() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 120, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="fixed bottom-0 left-0 right-0 z-[140] p-4 pb-8"
+          className="fixed bottom-0 left-0 right-0 z-[10000] p-4 pb-8"
         >
           <div className="max-w-md mx-auto bg-white dark:bg-zinc-900 rounded-[32px] shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.15)] border border-zinc-100 dark:border-zinc-800 overflow-hidden">
             {/* Orange accent bar */}

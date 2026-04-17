@@ -440,7 +440,7 @@ export default function FoodSearchMobile() {
 
         {/* 🚀 Category Pill Navigation (Horizontal Segmented Style) */}
         <div className="max-w-xl mx-auto border-t border-zinc-100 dark:border-zinc-900">
-          <div className="flex scroll overflow-x-auto no-scrollbar gap-2 py-4 px-4 items-center">
+          <div className="flex scroll overflow-x-auto no-scrollbar gap-2 py-4 px-2 items-center">
             {categories.map((category) => (
               <motion.button
                 key={category._id}
@@ -468,7 +468,7 @@ export default function FoodSearchMobile() {
       </div>
 
       {/* 📊 Refinement Toolbar / Result Counter */}
-      <div className="max-w-xl mx-auto px-6 pt-6">
+      <div className="max-w-xl mx-auto px-2 pt-6">
           <motion.div 
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
