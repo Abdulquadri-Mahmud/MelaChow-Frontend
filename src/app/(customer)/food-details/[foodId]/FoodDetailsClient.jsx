@@ -16,14 +16,15 @@ import {
   ShoppingCart
 } from "lucide-react";
 import { BiCartAdd } from "react-icons/bi";
+import { Swiper, SwiperSlide } from 'swiper/react';
+import 'swiper/css';
 
 import { useCart } from "@/app/context/CartContext";
 import { isVendorOpen as isVendorOpenFn } from "@/app/lib/utils";
 import { getPublicFoodDetail } from "@/app/lib/menuApi";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
-import FoodDetailsSkeleton from "@/app/skeleton/FoodDetailsSkeleton";
-
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
+import { Package, MessageSquare, Loader2, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
 
 export default function FoodDetails({ initialData, foodId: propFoodId }) {
   const router = useRouter();
@@ -53,6 +54,16 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
     variant: null, // this will be a combo
     portion: null
   });
+
+  // Swipeable Tabs State
+  const [activeTab, setActiveTab] = useState("details"); // "details" | "reviews"
+  const [swiperInstance, setSwiperInstance] = useState(null);
+  
+  // Reviews State
+  const [reviewsData, setReviewsData] = useState(null);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [ratingFilter, setRatingFilter] = useState(null);
 
   // Reset base customizer when food fetches
   useEffect(() => {
@@ -97,6 +108,42 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
 
     if (foodId) fetchFood();
   }, [foodId, initialData]);
+
+  // Fetch Reviews
+  const fetchFoodReviews = async (page = 1, rating = null) => {
+    if (!foodId) return;
+    setReviewsLoading(true);
+    try {
+      const params = new URLSearchParams({ page, limit: 10 });
+      if (rating) params.append('rating', rating);
+      const res = await fetch(`/api/public/reviews/food/${foodId}?${params}`);
+      const json = await res.json();
+      if (json.success) setReviewsData(json.data);
+    } catch (e) {
+      console.error('Failed to fetch food reviews', e);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'reviews' && !reviewsData) {
+      fetchFoodReviews(reviewsPage, ratingFilter);
+    }
+  }, [activeTab]);
+
+  const handleRatingFilter = (star) => {
+    const newFilter = ratingFilter === star ? null : star;
+    setRatingFilter(newFilter);
+    setReviewsPage(1);
+    fetchFoodReviews(1, newFilter);
+  };
+
+  const handleReviewsPage = (newPage) => {
+    setReviewsPage(newPage);
+    fetchFoodReviews(newPage, ratingFilter);
+    // Maybe scrollTo section?
+  };
 
   // Handlers
   const openModal = (variant = null, portion = null) => {
@@ -369,116 +416,154 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
             </div>
           </div>
         ) : food ? (
-          <div className="space-y-6">
-
-            {/* Main Info Card */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-1 pt-2">
-              <div className="bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-sm">
-                {/* Image Section */}
-                <div className="relative w-full bg-zinc-100 dark:bg-zinc-800 p-2">
-                  <div className="w-full h-[250px] md:h-[300px] rounded-[32px] overflow-hidden relative">
-                    <img
-                      src={food?.image_url || "/placeholder.jpg"}
-                      alt={food?.name}
-                      className="w-full h-full object-cover"
-                    />
-                    {/* Unavailability badge overlay */}
-                    {!itemAvailability.available && (
-                      <div className="absolute top-3 right-3 z-10">
-                        <div className="bg-black/80 backdrop-blur-md
-                          text-white text-[10px] font-bold px-3 py-1
-                          rounded-full uppercase tracking-widest
-                          border border-white/20">
-                          {itemAvailability.reason}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="absolute top-3 left-3 pr-6 flex flex-wrap gap-2 z-10">
-                      {/* Item type badge */}
-                      {food.item_type && (
-                        <div className="bg-orange-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20">
-                          {food.item_type}
-                        </div>
-                      )}
-
-                      {/* Platform category badge */}
-                      {food.platform_category && (
-                        <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-zinc-800 dark:text-zinc-200 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-zinc-100 dark:border-zinc-800 shadow-sm">
-                          {food.platform_category.parent?.name && (
-                            <span className="text-zinc-400 dark:text-zinc-500">
-                              {food.platform_category.parent.name} ·{" "}
-                            </span>
-                          )}
-                          {food.platform_category.name}
-                        </div>
-                      )}
-
-                      {/* Dietary type badge */}
-                      {food.dietary_type && food.dietary_type !== "mixed" && (
-                        <div className={`text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-white/20 backdrop-blur-md ${
-                          food.dietary_type === "veg" || food.dietary_type === "vegan"
-                            ? "bg-green-500 text-white"
-                            : food.dietary_type === "halal"
-                            ? "bg-teal-500 text-white"
-                            : food.dietary_type === "non-veg"
-                            ? "bg-red-500 text-white"
-                            : "bg-zinc-800 text-white"
-                        }`}>
-                          {food.dietary_type}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Text Content */}
-                <div className="md:p-5 p-2 pb-4">
-                  <h3 className="text-2xl font-bold text-zinc-900 dark:text-white leading-tight tracking-tight uppercase mb-2">
-                    {food?.name}
-                  </h3>
-                  <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed italic font-medium">
-                    "{food?.description || "A masterfully crafted dish prepared with the finest ingredients."}"
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {/* Rating Pill */}
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-white bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                      <Star size={12} className="text-orange-500 fill-orange-500" />
-                      <span>{food.rating > 0 ? food.rating.toFixed(1) : "New"}</span>
-                      <span className="text-zinc-300 dark:text-zinc-700">|</span>
-                      <span className="text-zinc-500 dark:text-zinc-400">{food.ratingCount || 0} reviews</span>
-                    </div>
-                  </div>
-
-                  {/* Quick Stats */}
-                  <div className="grid grid-cols-2 gap-3 mt-6">
-                    {/* Time Stat */}
-                    <div className="flex items-center gap-3 p-3 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-2xl border border-zinc-100/80 dark:border-zinc-700/80 backdrop-blur-sm">
-                      <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800"><Clock size={18} /></div>
-                      <div>
-                        <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Est. Time</p>
-                        <p className="text-sm font-black text-zinc-900 dark:text-white leading-none">{food?.prep_time_minutes ? `${food.prep_time_minutes} min` : `25 min`}</p>
-                      </div>
-                    </div>
-
-                    {/* Delivery */}
-                    <div className="flex items-center gap-3 p-3 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-2xl border border-zinc-100/80 dark:border-zinc-700/80 backdrop-blur-sm">
-                      <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800"><Truck size={18} /></div>
-                      <div>
-                        <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Delivery</p>
-                        <p className="text-sm font-black text-zinc-900 dark:text-white leading-none">
-                          {food?.deliveryFee ? `₦${food.deliveryFee.toLocaleString()}` : "Free"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          <>
+            {/* 🏷️ TAB TOGGLE */}
+            <div className="px-4 sticky pt-2 top-[72px] z-20 mb-4">
+              <div className="flex bg-zinc-200/50 dark:bg-zinc-800/50 p-1 rounded-2xl w-full max-w-sm mx-auto backdrop-blur-md border border-white/20 dark:border-zinc-800/50 shadow-sm">
+                {[
+                  { id: 'details', label: 'Details', icon: Package },
+                  { id: 'reviews', label: `Reviews${food?.totalReviews ? ` (${food.totalReviews})` : ''}`, icon: MessageSquare },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setActiveTab(tab.id);
+                      swiperInstance?.slideTo(tab.id === 'details' ? 0 : 1);
+                    }}
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${
+                      activeTab === tab.id
+                      ? "bg-white dark:bg-zinc-700 text-orange-600 shadow-sm"
+                      : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
+                    }`}
+                  >
+                    <tab.icon size={12} />
+                    {tab.label}
+                  </button>
+                ))}
               </div>
-            </motion.div>
+            </div>
 
-            {/* AVAILABLE OPTIONS SELECTION */}
-            <div className="px-4 space-y-4">
+            <Swiper
+              onSwiper={setSwiperInstance}
+              onSlideChange={(swiper) => {
+                setActiveTab(swiper.activeIndex === 0 ? 'details' : 'reviews');
+              }}
+              speed={400}
+              simulateTouch={true}
+              touchRatio={1}
+              autoHeight={true}
+              className="w-full"
+            >
+              {/* SLIDE 1: DETAILS */}
+              <SwiperSlide>
+                <div className="space-y-6 pb-24">
+                  {/* Main Info Card */}
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-1 pt-2">
+                    <div className="bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-sm">
+                      {/* Image Section */}
+                      <div className="relative w-full bg-zinc-100 dark:bg-zinc-800 p-2">
+                        <div className="w-full h-[250px] md:h-[300px] rounded-[32px] overflow-hidden relative">
+                          <img
+                            src={food?.image_url || "/placeholder.jpg"}
+                            alt={food?.name}
+                            className="w-full h-full object-cover"
+                          />
+                          {/* Unavailability badge overlay */}
+                          {!itemAvailability.available && (
+                            <div className="absolute top-3 right-3 z-10">
+                              <div className="bg-black/80 backdrop-blur-md
+                                text-white text-[10px] font-bold px-3 py-1
+                                rounded-full uppercase tracking-widest
+                                border border-white/20">
+                                {itemAvailability.reason}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="absolute top-3 left-3 pr-6 flex flex-wrap gap-2 z-10">
+                            {/* Item type badge */}
+                            {food.item_type && (
+                              <div className="bg-orange-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20">
+                                {food.item_type}
+                              </div>
+                            )}
+
+                            {/* Platform category badge */}
+                            {food.platform_category && (
+                              <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-zinc-800 dark:text-zinc-200 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-zinc-100 dark:border-zinc-800 shadow-sm">
+                                {food.platform_category.parent?.name && (
+                                  <span className="text-zinc-400 dark:text-zinc-500">
+                                    {food.platform_category.parent.name} ·{" "}
+                                  </span>
+                                )}
+                                {food.platform_category.name}
+                              </div>
+                            )}
+
+                            {/* Dietary type badge */}
+                            {food.dietary_type && food.dietary_type !== "mixed" && (
+                              <div className={`text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-white/20 backdrop-blur-md ${
+                                food.dietary_type === "veg" || food.dietary_type === "vegan"
+                                  ? "bg-green-500 text-white"
+                                  : food.dietary_type === "halal"
+                                  ? "bg-teal-500 text-white"
+                                  : food.dietary_type === "non-veg"
+                                  ? "bg-red-500 text-white"
+                                  : "bg-zinc-800 text-white"
+                              }`}>
+                                {food.dietary_type}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Text Content */}
+                      <div className="md:p-5 p-2 pb-4">
+                        <h3 className="text-2xl font-bold text-zinc-900 dark:text-white leading-tight tracking-tight uppercase mb-1">
+                          {food?.name}
+                        </h3>
+                        <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed italic font-medium">
+                          "{food?.description || "A masterfully crafted dish prepared with the finest ingredients."}"
+                        </p>
+
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          {/* Rating Pill */}
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-white bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                            <Star size={12} className="text-orange-500 fill-orange-500" />
+                            <span>{food.rating > 0 ? food.rating.toFixed(1) : "New"}</span>
+                            <span className="text-zinc-300 dark:text-zinc-700">|</span>
+                            <span className="text-zinc-500 dark:text-zinc-400">{food.totalReviews || food.ratingCount || 0} reviews</span>
+                          </div>
+                        </div>
+
+                        {/* Quick Stats */}
+                        <div className="grid grid-cols-2 gap-3 mt-6">
+                          {/* Time Stat */}
+                          <div className="flex items-center gap-3 p-3 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-2xl border border-zinc-100/80 dark:border-zinc-700/80 backdrop-blur-sm">
+                            <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800"><Clock size={18} /></div>
+                            <div>
+                              <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Est. Time</p>
+                              <p className="text-sm font-black text-zinc-900 dark:text-white leading-none">{food?.prep_time_minutes ? `${food.prep_time_minutes} min` : `25 min`}</p>
+                            </div>
+                          </div>
+
+                          {/* Delivery */}
+                          <div className="flex items-center gap-3 p-3 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-2xl border border-zinc-100/80 dark:border-zinc-700/80 backdrop-blur-sm">
+                            <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800"><Truck size={18} /></div>
+                            <div>
+                              <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Delivery</p>
+                              <p className="text-sm font-black text-zinc-900 dark:text-white leading-none">
+                                {food?.deliveryFee ? `₦${food.deliveryFee.toLocaleString()}` : "Free"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  <div className="px-4 space-y-4">
 
               {/* Combos Grid (unchanged) */}
               {food.combos?.length > 0 && (
@@ -687,8 +772,142 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
                 </div>
               )}
 
-            </div>
-          </div>
+                  </div>
+                </div>
+              </SwiperSlide>
+
+              {/* SLIDE 2: REVIEWS */}
+              <SwiperSlide>
+                <div className="max-w-2xl mx-auto px-4 py-8 space-y-6 pb-24">
+                  {reviewsLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20 gap-4">
+                        <Loader2 size={32} className="animate-spin text-orange-500" />
+                        <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Loading Reviews...</p>
+                    </div>
+                  ) : reviewsData ? (
+                    <>
+                      {/* Overall Stats */}
+                      <div className="bg-white dark:bg-zinc-900 rounded-[32px] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm">
+                        <div className="flex flex-col sm:flex-row items-center gap-6">
+                            <div className="text-center shrink-0">
+                                <p className="text-6xl font-black text-zinc-900 dark:text-white leading-none">
+                                    {reviewsData.food.averageRating || '—'}
+                                </p>
+                                <div className="flex justify-center gap-0.5 mt-2">
+                                    {[1,2,3,4,5].map(s => (
+                                        <Star key={s} size={14}
+                                            className={s <= Math.round(reviewsData.food.averageRating) ? 'fill-orange-500 text-orange-500' : 'text-zinc-200 dark:text-zinc-700'}
+                                        />
+                                    ))}
+                                </div>
+                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">
+                                    {reviewsData.food.totalReviews} review{reviewsData.food.totalReviews !== 1 ? 's' : ''}
+                                </p>
+                            </div>
+
+                            <div className="flex-1 w-full space-y-2">
+                                {[5,4,3,2,1].map(star => {
+                                    const pct = reviewsData.ratingPercentages?.[star] || 0;
+                                    const count = reviewsData.ratingDistribution?.[star] || 0;
+                                    return (
+                                        <button
+                                            key={star}
+                                            onClick={() => handleRatingFilter(star)}
+                                            className={`w-full flex items-center gap-3 group transition-opacity ${
+                                                ratingFilter && ratingFilter !== star ? 'opacity-40' : 'opacity-100'
+                                            }`}
+                                        >
+                                            <span className="text-[10px] font-black text-zinc-500 w-4 shrink-0">{star}</span>
+                                            <Star size={10} className="fill-orange-400 text-orange-400 shrink-0" />
+                                            <div className="flex-1 h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full bg-orange-500 rounded-full transition-all duration-500"
+                                                    style={{ width: `${pct}%` }}
+                                                />
+                                            </div>
+                                            <span className="text-[9px] font-black text-zinc-400 w-6 text-right shrink-0">{count}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                      </div>
+
+                      {/* Review Cards List */}
+                      {reviewsData.reviews.length === 0 ? (
+                        <div className="text-center py-20 bg-white dark:bg-zinc-900 rounded-[40px] border border-dashed border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden relative group">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="w-24 h-24 bg-zinc-50 dark:bg-zinc-800/50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 transform rotate-3 group-hover:rotate-6 transition-transform">
+                                <MessageSquare size={40} className="text-zinc-300 dark:text-zinc-600" strokeWidth={1.5} />
+                            </div>
+                            <h3 className="text-xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white mb-2">No feedback yet</h3>
+                            <p className="text-zinc-500 dark:text-zinc-400 text-xs max-w-[200px] mx-auto font-medium leading-relaxed uppercase tracking-widest opacity-80">
+                                Be the first to share your thoughts on this dish!
+                            </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                            {reviewsData.reviews.map((review, idx) => {
+                                const user = review.userId;
+                                const initials = user ? `${user.firstname?.[0] || ''}${user.lastname?.[0] || ''}`.toUpperCase() : '?';
+                                const date = new Date(review.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                                return (
+                                    <div key={review._id || idx} className="bg-white dark:bg-zinc-900 rounded-[28px] p-4 border border-zinc-100 dark:border-zinc-800 space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-2xl overflow-hidden bg-orange-500 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-lg shadow-orange-500/20">
+                                              {user?.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : initials}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[13px] font-black text-zinc-900 dark:text-white truncate">
+                                                    {user ? `${user.firstname} ${user.lastname}` : 'Anonymous'}
+                                                </p>
+                                                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{date}</p>
+                                            </div>
+                                            <div className="flex items-center gap-0.5 shrink-0">
+                                                {[1,2,3,4,5].map(s => (
+                                                    <Star key={s} size={12}
+                                                        className={s <= review.rating ? 'fill-orange-500 text-orange-500' : 'text-zinc-200 dark:text-zinc-700'}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed italic">
+                                            "{review.comment}"
+                                        </p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                      )}
+
+                      {/* Pagination */}
+                      {reviewsData.pagination?.totalPages > 1 && (
+                        <div className="flex items-center justify-between pt-4">
+                            <button
+                                onClick={() => handleReviewsPage(reviewsPage - 1)}
+                                disabled={!reviewsData.pagination.hasPrev}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-[11px] font-black uppercase tracking-widest text-zinc-600 disabled:opacity-30"
+                            >
+                                <ChevronLeft size={14} /> Prev
+                            </button>
+                            <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                Page {reviewsPage} of {reviewsData.pagination.totalPages}
+                            </span>
+                            <button
+                                onClick={() => handleReviewsPage(reviewsPage + 1)}
+                                disabled={!reviewsData.pagination.hasNext}
+                                className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-[11px] font-black uppercase tracking-widest text-zinc-600 disabled:opacity-30"
+                            >
+                                Next <ChevronRightIcon size={14} />
+                            </button>
+                        </div>
+                      )}
+                    </>
+                  ) : null}
+                </div>
+              </SwiperSlide>
+            </Swiper>
+          </>
         ) : null}
       </div>
 
