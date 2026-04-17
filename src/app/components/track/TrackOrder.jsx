@@ -683,7 +683,7 @@ export default function OrderTracking() {
                 <p className="text-xs font-black text-zinc-900 dark:text-white truncate uppercase italic mt-0.5">
                   {orderData.createdAt ? (
                     <>
-                      {new Date(orderData.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} â€¢ {new Date(orderData.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(orderData.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} {" \u2022 "} {new Date(orderData.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                     </>
                   ) : "Just Now"}
                 </p>

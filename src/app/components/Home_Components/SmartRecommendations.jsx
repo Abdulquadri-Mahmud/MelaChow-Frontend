@@ -133,9 +133,9 @@ const RecommendationCard = ({ food, router }) => {
 };
 
 // --- Recommendation Section Layout ---
-const RecommendationSection = ({ title, icon: Icon, items, router, accentColor = "text-orange-600", accentBg = "bg-orange-100" }) => {
+const RecommendationSection = ({ title, icon: Icon, items, router, viewAllRoute = "/all-foods", accentColor = "text-orange-600", accentBg = "bg-orange-100" }) => {
     if (!items || items.length === 0) return null;
-
+ 
     return (
         <div className="mt-8 px-0">
             {/* Header */}
@@ -148,8 +148,16 @@ const RecommendationSection = ({ title, icon: Icon, items, router, accentColor =
                         {title}
                     </h2>
                 </div>
-            </div>
 
+                <button
+                    onClick={() => router.push(viewAllRoute)}
+                    className={`${accentColor} text-[10px] font-black uppercase tracking-[0.1em] hover:opacity-70 px-3 py-1.5 rounded-full transition-all flex items-center gap-1 group`}
+                >
+                    View All
+                    <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                </button>
+            </div>
+ 
             <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
                 {items.map((food) => (
                     <RecommendationCard key={food._id} food={food} router={router} />
@@ -199,6 +207,7 @@ export default function SmartRecommendations() {
                 icon={Clock}
                 items={arrays.timeOfDay}
                 router={router}
+                viewAllRoute="/all-foods"
                 accentColor="text-orange-600"
                 accentBg="bg-orange-100 dark:bg-orange-500/20"
             />
@@ -209,6 +218,7 @@ export default function SmartRecommendations() {
                 icon={Sparkles}
                 items={arrays.underrated}
                 router={router}
+                viewAllRoute="/trending-foods"
                 accentColor="text-purple-600"
                 accentBg="bg-purple-100 dark:bg-purple-500/20"
             />
@@ -219,6 +229,7 @@ export default function SmartRecommendations() {
                 icon={Wallet}
                 items={arrays.budgetFriendly}
                 router={router}
+                viewAllRoute="/all-foods"
                 accentColor="text-emerald-600"
                 accentBg="bg-emerald-100 dark:bg-emerald-500/20"
             />

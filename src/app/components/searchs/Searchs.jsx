@@ -97,9 +97,9 @@ const FoodCard = ({ food }) => {
                     </button>
                 </div>
 
-                {/* Row 2: Vendor Name â€¢ Location */}
+                {/* Row 2: Vendor Name • Location */}
                 <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate mt-1 font-bold uppercase tracking-widest">
-                    {vendor?.storeName} â€¢ {vendor?.city || "Nearby"}
+                    {vendor?.storeName} {" \u2022 "} {vendor?.city || "Nearby"}
                 </p>
 
                 {/* Row 3: Metadata Line: Globe | Delivery | Status | Rating */}
@@ -194,7 +194,7 @@ export default function FoodSearchMobile() {
         setLoading(true);
         setError(null);
 
-        // Simple params â€” category filtering is done on the frontend
+        // Simple params — category filtering is done on the frontend
         const params = query.trim() ? { q: query } : { q: '' };
 
         const res = await axios.get(`${baseUrl}/search/food/search`, {
@@ -254,7 +254,7 @@ export default function FoodSearchMobile() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Category grouping â€” always use all foods, filtered client-side by selectedCategory
+  // Category grouping — always use all foods, filtered client-side by selectedCategory
   const displayedFoods = useMemo(() => {
     if (!selectedCategory || !foods.length) return foods;
     const lower = selectedCategory.toLowerCase();
@@ -279,7 +279,7 @@ export default function FoodSearchMobile() {
     }, {});
   }, [displayedFoods]);
 
-  // Category click â€” just updates the URL; filtering is handled by displayedFoods memo
+  // Category click — just updates the URL; filtering is handled by displayedFoods memo
   const handleCategoryClick = async (category) => {
     if (activeCategory === category) {
       setActiveCategory("");
@@ -314,47 +314,50 @@ export default function FoodSearchMobile() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-50 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50 transition-all duration-300">
-        <div className="max-w-xl mx-auto px-2 pt-2 pb-2">
-          {/* Top Row */}
-          <div className="flex items-center justify-between mb-4 px-2">
-            <button
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20 selection:bg-orange-500/30">
+      <style jsx global>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
+
+      {/* 🎭 Premium Floating Search Header */}
+      <div className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-200/50 dark:border-zinc-800/50 transition-all duration-300">
+        <div className="max-w-xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <motion.button
+              whileTap={{ scale: 0.9 }}
               onClick={() => router.back()}
-              className="p-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-orange-50 hover:text-orange-600 dark:hover:text-orange-400 transition-all active:scale-95"
+              className="p-2.5 rounded-2xl bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-800 transition-colors hover:text-orange-500"
             >
               <ArrowLeft size={20} strokeWidth={2.5} />
-            </button>
+            </motion.button>
 
             <div className="flex flex-col items-center">
-              <h1 className="text-xl font-black tracking-tight text-zinc-900 dark:text-white uppercase">
-                Search
-              </h1>
-              <div className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">
-                  MelaChow
-                </span>
-              </div>
+                <span className="text-[9px] font-black uppercase text-orange-500 tracking-[0.2em] italic opacity-70 leading-none mb-1">Explore</span>
+                <h1 className="text-lg font-black text-zinc-900 dark:text-zinc-100 uppercase italic tracking-tighter leading-none">Cravings</h1>
             </div>
 
-            <div className="w-10"></div>
+            <motion.button 
+                whileHover={{ rotate: 180 }}
+                className="p-2.5 rounded-2xl bg-zinc-100 dark:bg-zinc-900 text-zinc-400 border border-zinc-200/50 dark:border-zinc-800"
+            >
+                <Sparkles size={20} />
+            </motion.button>
           </div>
 
-          {/* Search Input Area */}
-          <div className="relative px-2">
+          {/* 🔍 Elite Search Bar */}
+          <div className="relative">
             <form onSubmit={handleSearchSubmit} className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/10 to-orange-600/10 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
-
-              <div className="relative flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-3 rounded-2xl shadow-inner transition-all duration-300">
-                <Search size={22} className="text-zinc-400 transition-colors ml-1" />
-
+              <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-3xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
+              
+              <div className="relative flex items-center gap-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 h-14 px-4 rounded-2xl transition-all duration-300 group-focus-within:border-orange-500/50 group-focus-within:shadow-2xl group-focus-within:shadow-orange-500/10">
+                <Search size={20} className="text-zinc-400 group-focus-within:text-orange-500 transition-colors" />
+                
                 <input
                   ref={inputRef}
                   type="text"
-                  placeholder="What are you craving?"
-                  className="flex-1 outline-none bg-transparent text-base font-semibold text-zinc-800 dark:text-zinc-100 placeholder-zinc-400"
+                  placeholder="What's your mood today?"
+                  className="flex-1 outline-none bg-transparent text-sm font-bold text-zinc-800 dark:text-zinc-100 placeholder-zinc-400/70"
                   value={query || ""}
                   onChange={(e) => {
                     setQuery(e.target.value || "");
@@ -364,64 +367,70 @@ export default function FoodSearchMobile() {
                   autoFocus
                 />
 
-                <div className="p-2 bg-zinc-200 dark:bg-zinc-800 rounded-xl text-zinc-500">
-                  <SlidersHorizontal size={18} strokeWidth={2.5} />
+                <div className="flex items-center gap-2">
+                    <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800" />
+                    <button type="button" className="p-2 text-zinc-400 hover:text-orange-500">
+                        <SlidersHorizontal size={18} strokeWidth={2.5} />
+                    </button>
                 </div>
               </div>
 
-              {/* Dropdown */}
+              {/* 💧 Dropdown */}
               <AnimatePresence>
                 {showDropdown && (autocomplete.length > 0 || trending.length > 0) && (
                   <motion.div
                     ref={dropdownRef}
-                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                    className="absolute top-full left-0 w-full bg-white/95 dark:bg-zinc-950/95 backdrop-blur-2xl border border-zinc-200/50 dark:border-zinc-800/50 mt-4 rounded-[28px] z-[60] max-h-96 overflow-y-auto p-2"
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute top-full left-0 w-full bg-white/95 dark:bg-zinc-950/95 backdrop-blur-3xl border border-zinc-200 dark:border-zinc-800/80 mt-4 rounded-3xl z-[60] shadow-2xl shadow-black/20 overflow-hidden"
                   >
-                    {autocomplete.length > 0 && (
-                      <div className="mb-4">
-                        <div className="px-4 py-3 flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Suggestions</span>
-                        </div>
-                        <div className="space-y-1">
-                          {autocomplete.map((item, idx) => (
-                            <div
-                              key={`auto-${idx}`}
-                              onClick={() => handleDropdownSelect(item.name, "autocomplete")}
-                              className="group px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl cursor-pointer text-zinc-700 dark:text-zinc-200 text-sm flex items-center justify-between transition-all"
-                            >
-                              <div className="flex items-center gap-3">
-                                <Search size={16} className="text-zinc-400 group-hover:text-orange-500 transition-colors" />
-                                <span className="font-bold">{item.name}</span>
-                              </div>
+                    <div className="p-3">
+                        {autocomplete.length > 0 && (
+                        <div className="mb-4">
+                            <div className="px-4 py-2 flex items-center gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-orange-500 italic">Matching Now</span>
                             </div>
-                          ))}
+                            <div className="space-y-1">
+                            {autocomplete.map((item, idx) => (
+                                <motion.div
+                                    key={`auto-${idx}`}
+                                    whileHover={{ x: 4 }}
+                                    onClick={() => handleDropdownSelect(item.name, "autocomplete")}
+                                    className="px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl cursor-pointer text-zinc-800 dark:text-zinc-200 text-sm flex items-center gap-3 transition-colors"
+                                >
+                                    <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 ">
+                                        <Search size={14} />
+                                    </div>
+                                    <span className="font-bold">{item.name}</span>
+                                </motion.div>
+                            ))}
+                            </div>
                         </div>
-                      </div>
-                    )}
+                        )}
 
-                    {trending.length > 0 && (
-                      <div className="mb-2">
-                        <div className="px-4 py-2 flex items-center gap-2">
-                          <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Trending Now</span>
-                        </div>
-                        <div className="flex flex-wrap gap-2 px-3 pb-2">
-                          {trending.map((trend) => (
-                            <div
-                              key={`trend-${trend._id}`}
-                              onClick={() => handleDropdownSelect(trend.keyword, "trending")}
-                              className="px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-lg hover:border-orange-500/50 hover:bg-orange-50 dark:hover:bg-orange-950/30 cursor-pointer text-xs font-bold flex items-center gap-1.5 transition-all text-zinc-600 dark:text-zinc-300 hover:text-orange-600"
-                            >
-                              <Flame size={12} className="text-orange-500 fill-orange-500/20" />
-                              <span>{trend.keyword}</span>
+                        {trending.length > 0 && (
+                        <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/50">
+                            <div className="px-4 py-2 flex items-center gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">🔥 Buzzing Searches</span>
                             </div>
-                          ))}
+                            <div className="flex flex-wrap gap-2 px-3 pb-2">
+                            {trending.map((trend) => (
+                                <motion.div
+                                    key={`trend-${trend._id}`}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => handleDropdownSelect(trend.keyword, "trending")}
+                                    className="px-4 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl hover:border-orange-500/40 hover:text-orange-600 cursor-pointer text-[11px] font-black uppercase tracking-tight flex items-center gap-2 transition-all"
+                                >
+                                    <Flame size={12} className="text-orange-500" />
+                                    <span>{trend.keyword}</span>
+                                </motion.div>
+                            ))}
+                            </div>
                         </div>
-                      </div>
-                    )}
+                        )}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -429,58 +438,107 @@ export default function FoodSearchMobile() {
           </div>
         </div>
 
-        {/* Categories scroll area */}
-        <div className="max-w-xl mx-auto px-2 pb-4">
-          <div className="flex scroll overflow-x-auto no-scrollbar gap-2.5 pt-4 px-2">
+        {/* 🚀 Category Pill Navigation (Horizontal Segmented Style) */}
+        <div className="max-w-xl mx-auto border-t border-zinc-100 dark:border-zinc-900">
+          <div className="flex scroll overflow-x-auto no-scrollbar gap-2 py-4 px-4 items-center">
             {categories.map((category) => (
               <motion.button
                 key={category._id}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => handleCategoryClick(category.name)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl whitespace-nowrap transition-all duration-300
+                className={`relative px-6 py-2.5 rounded-2xl whitespace-nowrap transition-all duration-500 text-[11px] font-black uppercase tracking-wider
                   ${activeCategory === category.name
-                    ? "bg-orange-600 text-white font-bold"
-                    : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-100 dark:border-zinc-800"
+                    ? "text-white"
+                    : "text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900/50 hover:bg-zinc-200 dark:hover:bg-zinc-800"
                   }
                 `}
               >
-                <Flame
-                  size={14}
-                  className={activeCategory === category.name ? "text-white fill-white" : "text-orange-500"}
-                />
-                <span className="text-xs uppercase tracking-widest font-bold">{category.name}</span>
+                {activeCategory === category.name && (
+                  <motion.div
+                    layoutId="active-pill"
+                    className="absolute inset-0 bg-orange-600 rounded-2xl shadow-lg shadow-orange-500/30"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10">{category.name}</span>
               </motion.button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Results */}
-      <div className="max-w-xl mx-auto pt-3">
+      {/* 📊 Refinement Toolbar / Result Counter */}
+      <div className="max-w-xl mx-auto px-6 pt-6">
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-end justify-between border-b border-zinc-200/50 dark:border-zinc-800 pb-3"
+          >
+              <div className="flex flex-col">
+                  <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest leading-none mb-1">
+                      {query ? `Results for "${query}"` : 'Discovery Feed'}
+                  </span>
+                  <p className="text-sm font-black text-zinc-900 dark:text-white italic tracking-tighter">
+                      <span className="text-orange-500">{displayedFoods.length}</span> exquisite items found
+                  </p>
+              </div>
+
+              <div className="flex items-center gap-1 text-[10px] font-black text-zinc-400 uppercase tracking-widest px-3 py-1 bg-zinc-100 dark:bg-zinc-900 rounded-lg">
+                  Sort: <span className="text-zinc-900 dark:text-zinc-200">Relevance</span>
+              </div>
+          </motion.div>
+      </div>
+
+      {/* 🍱 Results Feed */}
+      <div className="max-w-xl mx-auto mt-6">
         {loading ? (
           <div className="px-4">
             <SearchFoodSkeleton items={6} />
           </div>
         ) : displayedFoods.length === 0 ? (
-          <NoFoodsFound />
+          <div className="animate-in fade-in slide-in-from-bottom-5 duration-700">
+            <NoFoodsFound />
+          </div>
         ) : (
-          <div className="space-y-8 pb-10 pl-2">
-            {Object.entries(foodsByCategory).map(([category, categoryFoods]) => (
-              <div key={category} className="px-0">
-                <div className="flex items-center gap-2 px-4 mb-4">
-                  <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
-                  <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight capitalize">
-                    {category}
-                  </h2>
-                </div>
+          <div className="space-y-12 pb-24 pl-2 overflow-hidden">
+            <AnimatePresence mode="popLayout">
+                {Object.entries(foodsByCategory).map(([category, categoryFoods], sectionIdx) => (
+                <motion.div 
+                    key={category} 
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: sectionIdx * 0.1 }}
+                    className="px-0 relative"
+                >
+                    {/* Floating Glow in Background */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
+                    
+                    <div className="flex items-center gap-3 px-6 mb-6">
+                        <div className="flex flex-col">
+                           <span className="text-[9px] font-black text-orange-500 uppercase tracking-[0.3em] leading-none mb-1 opacity-50 italic">Section</span>
+                           <h2 className="text-2xl font-black text-zinc-950 dark:text-zinc-50 tracking-tighter uppercase italic leading-none">
+                                {category}
+                            </h2>
+                        </div>
+                    </div>
 
-                <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
-                  {categoryFoods.map((food) => (
-                    <FoodCard key={food._id} food={food} />
-                  ))}
-                </div>
-              </div>
-            ))}
+                    <div className="flex gap-5 scroll overflow-x-auto pb-4 px-6 snap-x snap-mandatory no-scrollbar">
+                    {categoryFoods.map((food, foodIdx) => (
+                        <motion.div 
+                            key={food._id} 
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: (sectionIdx * 0.1) + (foodIdx * 0.05) }}
+                            className="snap-start"
+                        >
+                            <FoodCard food={food} />
+                        </motion.div>
+                    ))}
+                    </div>
+                </motion.div>
+                ))}
+            </AnimatePresence>
           </div>
         )}
       </div>
@@ -488,7 +546,7 @@ export default function FoodSearchMobile() {
       <div className="fixed bottom-6 right-6 z-50">
         <button 
            onClick={() => router.push('/home')}
-           className="bg-orange-500 text-white rounded-full p-4 hover:bg-orange-600 transition-all hover:scale-110 active:scale-95"
+           className="bg-orange-500 text-white rounded-full p-4 hover:bg-orange-600 transition-all hover:scale-110 active:scale-95 shadow-2xl shadow-orange-500/40"
         >
           <Store size={24} />
         </button>
@@ -496,4 +554,3 @@ export default function FoodSearchMobile() {
     </div>
   );
 }
-
