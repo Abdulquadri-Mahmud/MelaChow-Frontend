@@ -18,7 +18,7 @@ export default function SearchBar() {
       transition={{ delay: 0.3, duration: 0.4 }}
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
-      className="relative z-20 group"
+      className="mt-2 relative z-20 group"
       onClick={handleClick}
     >
       <div className="absolute inset-0 bg-orange-200 blur-lg opacity-10 rounded-2xl group-hover:opacity-20 transition-opacity duration-300" />

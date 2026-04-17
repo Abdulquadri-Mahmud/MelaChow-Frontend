@@ -8,7 +8,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/app/context/ApiContext";
-import { fetchUser } from "@/app/lib/api";
+import { useUserStorage } from "@/app/hooks/useUserStorage";
 import axios from "axios";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
@@ -32,18 +32,14 @@ export default function TrendingPage() {
     const { baseUrl } = useApi();
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
+    const { user, isLoading: isUserLoading } = useUserStorage();
 
-    const { data: userData } = useQuery({
-        queryKey: ["userProfile", token],
-        queryFn: () => fetchUser(token),
-        enabled: !!token,
-    });
+    const defaultAddr = useMemo(() => {
+        if (!user?.addresses?.length) return null;
+        return user.addresses.find((a) => a.isDefault) || user.addresses[0];
+    }, [user]);
 
-    const user = userData?.user;
-    const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
-
-    const { data: foods = [], isLoading, isError, refetch } = useQuery({
+    const { data: foods = [], isLoading: isTrendingLoading, isError, refetch } = useQuery({
         queryKey: ["trending-all", defaultAddr?.city, defaultAddr?.state],
         queryFn: async () => {
             try {
@@ -51,6 +47,7 @@ export default function TrendingPage() {
                     params: {
                         city: defaultAddr?.city,
                         state: defaultAddr?.state,
+                        limit: 50,
                     },
                     withCredentials: true, // ✅ Use cookie-based auth
                 });
@@ -90,10 +87,12 @@ export default function TrendingPage() {
                                     <ArrowLeft size={20} className="text-zinc-600 dark:text-zinc-400" />
                                 </button>
                                 <div className="flex flex-col">
-                                    <h1 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">Trending</h1>
-                                    <div className="flex items-center gap-1 text-orange-600">
-                                        <MapPin size={12} className="fill-orange-600/20" />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest truncate max-w-[120px]">
+                                    <h1 className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white uppercase italic leading-none">
+                                        Trending {defaultAddr?.city && <span className="text-orange-600">in {defaultAddr.city}</span>}
+                                    </h1>
+                                    <div className="flex items-center gap-1 text-zinc-500 mt-0.5">
+                                        <MapPin size={10} />
+                                        <span className="text-[9px] font-black uppercase tracking-widest truncate max-w-[120px]">
                                             {defaultAddr ? `${defaultAddr.city}, ${defaultAddr.state}` : "Set Location"}
                                         </span>
                                     </div>
@@ -160,7 +159,7 @@ export default function TrendingPage() {
                     </p>
                 </div>
 
-                {isLoading ? (
+                {(isTrendingLoading || isUserLoading || (!defaultAddr && user)) ? (
                     <div className="space-y-4">
                         {[1, 2, 3].map(i => <Skeleton key={i} />)}
                     </div>
@@ -174,7 +173,7 @@ export default function TrendingPage() {
                         <button onClick={() => refetch()} className="bg-orange-600 text-white text-[10px] font-black uppercase px-8 py-2.5 rounded-full shadow-lg">Retry Sync</button>
                     </div>
                 ) : filteredFoods.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 px-8 text-center bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-100 shadow-xl shadow-zinc-200/50">
+                    <div className="flex flex-col items-center justify-center py-12 px-8 text-center bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-100 shadow-xl ">
                         <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
                             <div className="absolute inset-0 bg-orange-600/5 rounded-full scale-125 blur-3xl animate-pulse" />
                             <div className="bg-orange-50 dark:bg-orange-950/20 p-8 rounded-full">

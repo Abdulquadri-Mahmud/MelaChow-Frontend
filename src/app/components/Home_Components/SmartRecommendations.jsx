@@ -14,7 +14,8 @@ import {
     Heart,
     Globe,
     Bike,
-    Star
+    Star,
+    ChevronRight,
 } from "lucide-react";
 import { getRecommendations } from "@/app/lib/api";
 import { isVendorOpen } from "@/app/lib/utils";
@@ -202,17 +203,7 @@ export default function SmartRecommendations() {
                 accentBg="bg-orange-100 dark:bg-orange-500/20"
             />
 
-            {/* 2. Trending Nearby */}
-            <RecommendationSection
-                title={`Trending in ${meta?.location?.city || "your area"}`}
-                icon={TrendingUp}
-                items={arrays.trendingNearby}
-                router={router}
-                accentColor="text-rose-600"
-                accentBg="bg-rose-100 dark:bg-rose-500/20"
-            />
-
-            {/* 3. Hidden Gems */}
+            {/* 2. Hidden Gems */}
             <RecommendationSection
                 title="Curated Choices"
                 icon={Sparkles}

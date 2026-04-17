@@ -13,7 +13,7 @@
  */
 
 import { useMemo, useState, useEffect } from "react";
-import { Utensils, Star, Heart, Globe, Bike, MapPin, Flame } from "lucide-react";
+import { Utensils, Star, Heart, Globe, Bike, MapPin, Flame, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
@@ -136,6 +136,7 @@ const FoodCard = ({ food }) => {
 };
 
 export default function FoodList({ user }) {
+  const router = useRouter();
   const { userLocation, syncWithUserAddress } = useLocationStore();
 
   useEffect(() => {
@@ -180,9 +181,19 @@ export default function FoodList({ user }) {
     <div className="space-y-8 pb-10">
       {Object.entries(foodsByCategory).map(([category, categoryFoods]) => (
         <div key={category} className="px-0">
-          <div className="flex items-center gap-2 px-4 mb-4">
-            <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight capitalize">{category}</h2>
+          <div className="flex items-center justify-between px-4 mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight capitalize">{category}</h2>
+            </div>
+            
+            <button
+               onClick={() => router.push(`/search?category=${encodeURIComponent(category)}`)}
+               className="text-orange-600 text-[10px] font-black uppercase tracking-[0.1em] hover:bg-orange-50 dark:hover:bg-orange-500/10 px-3 py-1.5 rounded-full transition-all flex items-center gap-1 group"
+            >
+              View All
+              <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+            </button>
           </div>
 
           <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
