@@ -492,7 +492,7 @@ export default function FoodSearchMobile() {
       {/* 🍱 Results Feed */}
       <div className="max-w-xl mx-auto mt-6">
         {loading ? (
-          <div className="px-4">
+          <div className="px-2">
             <SearchFoodSkeleton items={6} />
           </div>
         ) : displayedFoods.length === 0 ? (
@@ -523,7 +523,7 @@ export default function FoodSearchMobile() {
                         </div>
                     </div>
 
-                    <div className="flex gap-5 scroll overflow-x-auto pb-4 px-6 snap-x snap-mandatory no-scrollbar">
+                    <div className="flex gap-5 scroll overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
                     {categoryFoods.map((food, foodIdx) => (
                         <motion.div 
                             key={food._id} 
