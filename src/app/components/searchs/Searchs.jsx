@@ -543,7 +543,7 @@ export default function FoodSearchMobile() {
         )}
       </div>
 
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-18 right-6 z-50">
         <button 
            onClick={() => router.push('/home')}
            className="bg-orange-500 text-white rounded-full p-4 hover:bg-orange-600 transition-all hover:scale-110 active:scale-95 shadow-2xl shadow-orange-500/40"
