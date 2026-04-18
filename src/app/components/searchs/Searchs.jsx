@@ -440,7 +440,7 @@ export default function FoodSearchMobile() {
 
         {/* 🚀 Category Pill Navigation (Horizontal Segmented Style) */}
         <div className="max-w-xl mx-auto border-t border-zinc-100 dark:border-zinc-900">
-          <div className="flex scroll overflow-x-auto no-scrollbar gap-2 py-4 px-4 items-center">
+          <div className="flex scroll overflow-x-auto no-scrollbar gap-2 py-4 px-2 items-center">
             {categories.map((category) => (
               <motion.button
                 key={category._id}
@@ -468,7 +468,7 @@ export default function FoodSearchMobile() {
       </div>
 
       {/* 📊 Refinement Toolbar / Result Counter */}
-      <div className="max-w-xl mx-auto px-6 pt-6">
+      <div className="max-w-xl mx-auto px-2 pt-6">
           <motion.div 
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -492,7 +492,7 @@ export default function FoodSearchMobile() {
       {/* 🍱 Results Feed */}
       <div className="max-w-xl mx-auto mt-6">
         {loading ? (
-          <div className="px-4">
+          <div className="px-2">
             <SearchFoodSkeleton items={6} />
           </div>
         ) : displayedFoods.length === 0 ? (
@@ -523,7 +523,7 @@ export default function FoodSearchMobile() {
                         </div>
                     </div>
 
-                    <div className="flex gap-5 scroll overflow-x-auto pb-4 px-6 snap-x snap-mandatory no-scrollbar">
+                    <div className="flex gap-5 scroll overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
                     {categoryFoods.map((food, foodIdx) => (
                         <motion.div 
                             key={food._id} 
@@ -543,7 +543,7 @@ export default function FoodSearchMobile() {
         )}
       </div>
 
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-18 right-6 z-50">
         <button 
            onClick={() => router.push('/home')}
            className="bg-orange-500 text-white rounded-full p-4 hover:bg-orange-600 transition-all hover:scale-110 active:scale-95 shadow-2xl shadow-orange-500/40"
