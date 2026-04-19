@@ -42,7 +42,8 @@ export default function VendorOrdersPage() {
   useEffect(() => {
     fetchOrders();
   }, []);
-ned Search & Status Filter
+
+  // Combined Search & Status Filter
   useEffect(() => {
     let result = orders;
 
