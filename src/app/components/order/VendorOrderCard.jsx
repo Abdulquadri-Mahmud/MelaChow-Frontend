@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { 
   User, MapPin, Phone, ChevronRight, ShoppingBag, 
-  Bike, Hash, CalendarDays, Clock, Zap, TrendingUp,
-  MoreVertical, CheckCircle2, Loader2, Play, PackageCheck
+  Hash, CalendarDays, Clock, Zap, TrendingUp,
+  MoreVertical, CheckCircle2, Loader2, Play, PackageCheck,
+  Bike
 } from "lucide-react";
 import { useVendorProfile } from "@/app/context/VendorProfileContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -73,13 +74,7 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
         case 'preparing': return { label: 'Mark as Ready', status: 'ready_for_pickup', icon: CheckCircle2 };
         case 'ready':
         case 'ready_for_pickup': 
-            // Only allow manual "Out for Delivery" if vendor managed and they want to skip assignment? 
-            // No, user said "once they assigned rider", so we return null here to force assignment first.
             return null;
-        case 'rider_assigned': 
-            return isVendorManaged ? { label: 'Out for Delivery', status: 'out_for_delivery', icon: Bike } : null;
-        case 'out_for_delivery': 
-            return isVendorManaged ? { label: 'Mark Completed', status: 'completed', icon: PackageCheck } : null;
         case 'delivered':
             return isVendorManaged ? { label: 'Mark Completed', status: 'completed', icon: PackageCheck } : null;
         default: return null;
@@ -116,50 +111,35 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
           </button>
 
           <AnimatePresence>
-              {showMenu && (
-                  <>
-                      <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                      <motion.div 
-                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                          className="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-2xl p-1.5 z-20"
-                      >
-                          {nextAction ? (
-                              <button 
-                                  onClick={() => handleUpdateStatus(nextAction.status)}
-                                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${nextStatusConfig.bg} ${nextStatusConfig.border} hover:scale-[1.02] active:scale-95 group/item`}
-                              >
-                                  <div className={`p-2 rounded-md ${nextStatusConfig.text} bg-white dark:bg-slate-900 shadow-sm`}>
-                                      <nextAction.icon size={14} />
-                                  </div>
-                                  <div className="text-left">
-                                      <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Move to Next</p>
-                                      <p className={`text-xs font-black uppercase tracking-tight ${nextStatusConfig.text}`}>{nextAction.label}</p>
-                                  </div>
-                              </button>
-                          ) : (
-                              <div className="p-3 text-center">
-                                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">No Actions Available</p>
-                              </div>
-                          )}
+                                {showMenu && (
+                                    <>
+                                        <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
+                                        <motion.div 
+                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            className="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-2xl p-1.5 z-20"
+                                        >
+                                            {nextAction ? (
+                                                <button 
+                                                    onClick={() => handleUpdateStatus(nextAction.status)}
+                                                    className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${nextStatusConfig.bg} ${nextStatusConfig.border} hover:scale-[1.02] active:scale-95 group/item`}
+                                                >
+                                                    <div className={`p-2 rounded-md ${nextStatusConfig.text} bg-white dark:bg-slate-900 shadow-sm`}>
+                                                        <nextAction.icon size={14} />
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Move to Next</p>
+                                                        <p className={`text-xs font-black uppercase tracking-tight ${nextStatusConfig.text}`}>{nextAction.label}</p>
+                                                    </div>
+                                                </button>
+                                            ) : (
+                                                <div className="p-3 text-center">
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">No Actions Available</p>
+                                                </div>
+                                            )}
 
-                           {isReady && vendorDetails?.deliveryManagedBy === 'vendor' && (
-                                <button 
-                                    onClick={() => {
-                                        setShowMenu(false);
-                                        onAssign?.(order.userOrderId?._id || order.userOrderId);
-                                    }}
-                                    className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors text-orange-600"
-                                >
-                                    <div className="p-2 rounded-md bg-orange-100 dark:bg-orange-900/30 text-orange-600">
-                                        <Bike size={14} />
-                                    </div>
-                                    <p className="text-xs font-black uppercase tracking-tight">Assign Rider</p>
-                                </button>
-                           )}
-
-                           <div className="h-px bg-slate-50 dark:bg-slate-800 my-1" />
+                                            <div className="h-px bg-slate-50 dark:bg-slate-800 my-1" />
                            
                            <Link href={`/vendors/order/${order._id?.$oid || order._id}`} className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                <div className="p-2 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-400">
@@ -378,21 +358,6 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
 
         {/* Actions */}
         <div className="flex items-center gap-2 pt-1">
-          {isReady && vendorDetails?.deliveryManagedBy === 'vendor' && (
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={(e) => {
-                e.preventDefault();
-                onAssign?.(order.userOrderId?._id || order.userOrderId);
-              }}
-              className="flex items-center justify-center size-10 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-all active:scale-90 shrink-0 group/assign shadow-lg shadow-orange-500/20"
-              title="Assign Courier"
-            >
-              <Bike size={16} className="group-hover/assign:rotate-12 transition-transform" />
-            </motion.button>
-          )}
-
           <Link
             href={`/vendors/order/${order._id?.$oid || order._id}`}
             className="flex-1 flex items-center justify-center gap-1.5 py-4 px-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all hover:opacity-90 active:scale-95 group/btn"

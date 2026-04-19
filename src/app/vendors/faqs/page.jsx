@@ -39,7 +39,7 @@ const FAQ_DATA = [
   {
     category: "finance",
     question: "When is my money released from Escrow?",
-    answer: "The exact moment the order status is marked as 'Delivered' (by the rider or by you, if you manage your own deliveries), the system automatically releases the escrowed funds directly into your Vendor Wallet. This ensures fair play and system integrity."
+    answer: "The exact moment the order status is marked as 'Delivered' by the platform rider, the system automatically releases the escrowed funds directly into your Vendor Wallet. This ensures fair play and system integrity."
   },
   {
     category: "finance",
@@ -60,13 +60,8 @@ const FAQ_DATA = [
   },
   {
     category: "orders",
-    question: "I manage my own deliveries. How do I get paid for delivery?",
-    answer: "If you have set 'Delivery Managed By' to 'Vendor' and configured a Flat Rate Delivery Fee, the delivery fee paid by the customer is bundled into your Escrow hold. When you mark the order as 'Delivered', both your food revenue and the delivery fee are released to your wallet."
-  },
-  {
-    category: "orders",
     question: "Why can't I update the status to 'Delivered'?",
-    answer: "If 'Delivery Managed By' is set to 'Admin', our platform riders handle the delivery. Once you mark an order as 'Ready for Pickup', only the assigned rider can update the status to 'Out for Delivery' and 'Delivered'."
+    answer: "Delivery is centrally managed by MelaChow. Once you mark an order as 'Ready for Pickup', only the assigned platform rider can update the status to 'Out for Delivery' and 'Delivered' after extraction and drop-off."
   },
 
   {
@@ -76,8 +71,8 @@ const FAQ_DATA = [
             "• PENDING: The customer has paid, and the order is waiting for you to 'Accept' it.\n" +
             "• ACCEPTED: You have confirmed the order. The customer is notified that you are starting work.\n" +
             "• PREPARING: Your kitchen is currently cooking or packing the items.\n" +
-            "• READY FOR PICKUP: The order is fully packed and sitting on your counter. Marking this alerts the Admin and assigned Rider that the food is ready for extraction.\n" +
-            "• RIDER ASSIGNED: A platform or vendor rider has been officially linked to the order.\n" +
+            "• READY FOR PICKUP: The order is fully packed and sitting on your counter. Marking this alerts the assigned platform rider that the food is ready for extraction.\n" +
+            "• RIDER ASSIGNED: A platform rider has been officially linked to the order.\n" +
             "• OUT FOR DELIVERY: The rider has scanned the order and left your store. The customer can now track them in real-time.\n" +
             "• DELIVERED: The rider has reached the customer. ***CRITICAL: This status triggers the release of funds from Escrow to your Vendor Wallet.***\n" +
             "• COMPLETED: The final confirmation that the business transaction is closed and successful.\n" +

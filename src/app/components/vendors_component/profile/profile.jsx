@@ -425,65 +425,6 @@ export default function VendorProfilePage({ vendor }) {
           </div>
         </Section>
 
-        {/* Delivery Settings */}
-        <Section
-          title="Delivery Settings"
-          icon={Truck}
-          isOpen={openSections.deliverySettings}
-          onToggle={() => toggleSection('deliverySettings')}
-        >
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setDeliverySettings({ ...deliverySettings, deliveryManagedBy: "vendor" })}
-                className={`flex flex-col items-start p-4 rounded-2xl border-2 transition-all text-left ${deliverySettings.deliveryManagedBy === "vendor" ? "border-orange-600 bg-orange-50" : "border-gray-100 bg-white"}`}
-              >
-                <div className="flex items-center justify-between w-full mb-2">
-                  <Truck className={deliverySettings.deliveryManagedBy === "vendor" ? "text-orange-600" : "text-gray-400"} size={20} />
-                  {deliverySettings.deliveryManagedBy === "vendor" && <div className="w-4 h-4 rounded-full bg-orange-600 flex items-center justify-center"><Save className="text-white" size={10} /></div>}
-                </div>
-                <p className="text-sm font-bold text-gray-900">Manage my own delivery</p>
-                <p className="text-xs text-gray-500 mt-1">You use your own riders for fulfillment</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setDeliverySettings({ ...deliverySettings, deliveryManagedBy: "admin", flatRateDeliveryFee: 0 })}
-                className={`flex flex-col items-start p-4 rounded-2xl border-2 transition-all text-left ${deliverySettings.deliveryManagedBy === "admin" ? "border-orange-600 bg-orange-50" : "border-gray-100 bg-white"}`}
-              >
-                <div className="flex items-center justify-between w-full mb-2">
-                  <Store className={deliverySettings.deliveryManagedBy === "admin" ? "text-orange-600" : "text-gray-400"} size={20} />
-                  {deliverySettings.deliveryManagedBy === "admin" && <div className="w-4 h-4 rounded-full bg-orange-600 flex items-center justify-center"><Save className="text-white" size={10} /></div>}
-                </div>
-                <p className="text-sm font-bold text-gray-900">Use platform delivery</p>
-                <p className="text-xs text-gray-500 mt-1">MelaChow handles delivery for you</p>
-              </button>
-            </div>
-
-            <AnimatePresence>
-              {deliverySettings.deliveryManagedBy === "vendor" && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <InputGroup label="Flat Delivery Fee (₦)" type="number" value={deliverySettings.flatRateDeliveryFee} onChange={(e) => setDeliverySettings({ ...deliverySettings, flatRateDeliveryFee: e.target.value })} placeholder="0" />
-                  <InputGroup label="Delivery Radius (KM)" type="number" value={deliverySettings.deliveryRadiusKm} onChange={(e) => setDeliverySettings({ ...deliverySettings, deliveryRadiusKm: e.target.value })} placeholder="5" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {deliverySettings.deliveryManagedBy === "admin" && (
-              <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
-                <p className="text-xs font-medium text-orange-800 flex items-center gap-2">
-                  <Save size={14} /> Platform delivery fees are set by the administrator for your city.
-                </p>
-              </div>
-            )}
-          </div>
-          <div className="flex justify-end mt-4">
-            <button onClick={() => updateSection("deliverySettings", deliverySettings)} disabled={loadingSection === "deliverySettings"} className="flex items-center gap-2 bg-orange-600 text-white px-5 py-2.5 rounded-md font-black uppercase text-[10px] tracking-widest hover:bg-orange-700 transition-all active:scale-95 disabled:opacity-50">
-              {loadingSection === "deliverySettings" ? "Saving..." : <><Save size={16} /> Update Delivery</>}
-            </button>
-          </div>
-        </Section>
 
         {/* Payout Details */}
         <Section

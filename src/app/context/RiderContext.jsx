@@ -164,11 +164,25 @@ export const RiderProvider = ({ children }) => {
         };
     }, [riderId, wsConnected, socket]);
 
-    const logout = () => {
-        TokenManager.clearToken('rider');
-        setRider(null);
-        setIsOnline(false);
-        window.location.href = '/auth/rider/login';
+    const logout = async () => {
+        try {
+            console.log('🛵 Logging out rider form backend...')
+            const { baseUrl } = await import('@/app/lib/api').then(m => m.default || m);
+            const apiUrl = typeof baseUrl === 'string' ? baseUrl : (process.env.NEXT_PUBLIC_API_URL || '');
+            await fetch(`${apiUrl}/rider/auth/logout`, {
+                method: "POST",
+                credentials: "include"
+            });
+        } catch (error) {
+            console.error('Failed to call backend logout:', error);
+        } finally {
+            TokenManager.clearToken('rider');
+            setRider(null);
+            setIsOnline(false);
+            if (typeof window !== 'undefined') {
+                window.location.href = '/auth/rider/login';
+            }
+        }
     };
 
     const toggleAvailability = async () => {

@@ -21,7 +21,7 @@ import {
 import { motion } from "framer-motion";
 
 import { getVendorDetails, getVendorPayoutDetails, getVendorWallet } from "@/app/lib/vendorApi";
-import { ConfigureBankModal, WithdrawFundsModal } from "../transactions/components/PayoutModals";
+import { ConfigureBankModal } from "../transactions/components/PayoutModals";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import { useVendorMenu } from "@/app/hooks/useMenu";
 import VendorDashboardSkeleton from "@/app/skeleton/VendorDashboardSkeleton";
@@ -33,7 +33,6 @@ export default function VendorDashboard() {
   const [liveWalletBalance, setLiveWalletBalance] = useState(0);
   const [livePendingBalance, setLivePendingBalance] = useState(0);
   const [showBankModal, setShowBankModal] = useState(false);
-  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const { vendorDetails } = useVendorStorage();
 
   const vendorId = vendorDetails?.vendor?.id || vendorDetails?._id || vendorDetails?.id;
@@ -339,17 +338,8 @@ export default function VendorDashboard() {
           <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-500/10 to-transparent opacity-50 pointer-events-none"></div>
           <div className="z-10 w-full md:w-auto">
             <h2 className="text-lg font-black mb-0.5 text-slate-900 dark:text-white uppercase tracking-tight">Revenue Hub</h2>
-            <p className="text-slate-500 dark:text-slate-400 max-w-md text-[10px] font-bold uppercase tracking-widest">Automatic Payouts • Instant Withdrawals</p>
+            <p className="text-slate-500 dark:text-slate-400 max-w-md text-[10px] font-bold uppercase tracking-widest">Automatic Daily Payouts @ 8:00 PM</p>
 
-            {/* Delivery Mode Visibility */}
-            <div className="mt-3 flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 rounded-md border border-slate-100 dark:border-slate-700 w-fit">
-              <div className={`w-1.5 h-1.5 rounded-full ${vendorData?.deliveryManagedBy === "vendor" ? "bg-orange-500" : "bg-blue-500"}`} />
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">
-                {vendorData?.deliveryManagedBy === "vendor"
-                  ? `Vendor Delivery • ₦${vendorData?.flatRateDeliveryFee || 0} Rate`
-                  : "Platform Managed Delivery"}
-              </p>
-            </div>
             <div className="flex items-center gap-3 mt-4">
               <div>
                 <p className="text-[10px] uppercase text-slate-500 font-black tracking-widest mb-0.5">Available Balance</p>
@@ -364,17 +354,11 @@ export default function VendorDashboard() {
           </div>
           <div className="z-10 flex flex-col gap-2 min-w-[220px] w-full md:w-auto">
             <button
-              onClick={() => {
-                if (!payoutDetails?.payoutEnabled) {
-                  setShowBankModal(true);
-                } else {
-                  setShowWithdrawModal(true);
-                }
-              }}
+              onClick={() => setShowBankModal(true)}
               className="w-full bg-orange-600 text-white font-black uppercase text-[10px] tracking-widest h-10 px-6 rounded-md transition-all flex items-center justify-center gap-2 active:scale-95"
             >
               <CreditCard size={14} />
-              {payoutDetails?.payoutEnabled ? "Withdraw Funds" : "Link Bank Account"}
+              {payoutDetails?.payoutEnabled ? "Bank Settings" : "Link Bank Account"}
             </button>
             <Link href="/vendors/transactions" className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-black uppercase text-[10px] tracking-widest h-10 px-6 rounded-md hover:bg-slate-200 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2">
               History
@@ -520,18 +504,6 @@ export default function VendorDashboard() {
         existingDetails={payoutDetails}
       />
 
-      <WithdrawFundsModal
-        isOpen={showWithdrawModal}
-        onClose={() => setShowWithdrawModal(false)}
-        balance={liveWalletBalance}
-        onInitiated={() => {
-          setShowWithdrawModal(false);
-          getVendorWallet()
-            .then(res => { if (res?.success) setLiveWalletBalance(res.data?.balance || 0); })
-            .catch(() => {});
-        }}
-        payoutDetails={payoutDetails}
-      />
 
     </div>
   );

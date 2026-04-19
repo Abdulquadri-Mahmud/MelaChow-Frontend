@@ -19,7 +19,6 @@ import {
     getBankList, 
     resolveBankAccount, 
     saveVendorBankAccount,
-    initiateWithdrawal 
 } from "../../../lib/vendorApi";
 
 export function ConfigureBankModal({ isOpen, onClose, onSaved, existingDetails }) {
@@ -276,161 +275,59 @@ export function ConfigureBankModal({ isOpen, onClose, onSaved, existingDetails }
     );
 }
 
-export function WithdrawFundsModal({ isOpen, onClose, balance, onInitiated, payoutDetails }) {
-    const [amount, setAmount] = useState("");
-    const [error, setError] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
+export function PayoutScheduleInfo({ nextPayoutTime, balance, payoutDetails }) {
+    const now = new Date();
+    const todayAt8PM = new Date();
+    todayAt8PM.setHours(20, 0, 0, 0);
+    const isAfter8PM = now >= todayAt8PM;
 
-    const amountNum = Number(amount) || 0;
-    
-    // Fee Logic
-    const fees = useMemo(() => {
-        if (amountNum <= 0) return 0;
-        if (amountNum <= 5000) return 10;
-        if (amountNum <= 50000) return 25;
-        return 50;
-    }, [amountNum]);
+    const scheduledTime = isAfter8PM
+        ? "Tomorrow at 8:00 PM"
+        : "Today at 8:00 PM";
 
-    const netAmount = Math.max(0, amountNum - fees);
-
-    const handleSubmit = async () => {
-        if (amountNum < 1000) {
-            setError("Minimum withdrawal is ₦1,000");
-            return;
-        }
-        if (amountNum > balance) {
-            setError("Insufficient balance");
-            return;
-        }
-
-        setIsSubmitting(true);
-        setError("");
-        try {
-            await initiateWithdrawal(amountNum);
-            onInitiated();
-            onClose();
-        } catch (err) {
-            setError(err.response?.data?.message || "Failed to initiate withdrawal.");
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    if (!isOpen) return null;
+    const hasBank = payoutDetails?.payoutEnabled && payoutDetails?.accountNumber;
 
     return (
-        <AnimatePresence>
-            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onClose}
-                    className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-                />
-                
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden"
-                >
-                    <div className="p-5 border-b border-slate-50 dark:border-slate-800/50 flex items-center justify-between">
-                        <div>
-                            <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Withdraw Funds</h2>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 uppercase tracking-widest">Available: ₦{balance.toLocaleString()}</p>
-                        </div>
-                        <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600">
-                            <X size={20} />
-                        </button>
-                    </div>
-
-                    <div className="p-5 space-y-5">
-                        {error && (
-                            <div className="p-3 bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 rounded-md flex items-center gap-3 text-rose-600">
-                                <AlertCircle size={16} className="shrink-0" />
-                                <p className="text-[10px] font-black uppercase tracking-widest leading-tight">{error}</p>
-                            </div>
-                        )}
-
-                        <div className="space-y-4">
-                            {/* Amount Input */}
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Withdrawal Amount (₦)</label>
-                                <div className="relative">
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-900 dark:text-white font-black">
-                                        ₦
-                                    </div>
-                                    <input
-                                        type="number"
-                                        placeholder="0"
-                                        value={amount}
-                                        onChange={(e) => setAmount(e.target.value)}
-                                        className="w-full pl-9 pr-4 py-4 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md text-2xl font-black text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 tracking-tight"
-                                    />
-                                </div>
-                                <div className="flex justify-between px-1">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Min: ₦1,000</p>
-                                    <button 
-                                        onClick={() => setAmount(balance.toString())}
-                                        className="text-[9px] font-black text-orange-600 uppercase tracking-widest"
-                                    >
-                                        Withdraw Max
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Fee Breakdown */}
-                            <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md space-y-3">
-                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                                    <span className="text-slate-400">Total Requested</span>
-                                    <span className="text-slate-900 dark:text-white">₦{amountNum.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                                    <span className="text-slate-400 flex items-center gap-1">
-                                        Paystack Fee <Info size={10} className="text-slate-300" />
-                                    </span>
-                                    <span className="text-rose-500">- ₦{fees.toLocaleString()}</span>
-                                </div>
-                                <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white">Net Payout</span>
-                                    <span className="text-lg font-black text-emerald-600 tracking-tight">₦{netAmount.toLocaleString()}</span>
-                                </div>
-                            </div>
-
-                            {/* Destination Bank */}
-                            <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-md">
-                                <div className="p-2 bg-blue-100 dark:bg-blue-500/20 text-blue-600 rounded-md">
-                                    <Building2 size={16} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-[8px] font-black text-blue-600/60 uppercase tracking-widest leading-none mb-1">Settling To</p>
-                                    <p className="text-[10px] font-black text-blue-900 dark:text-blue-300 uppercase truncate leading-none">
-                                        {payoutDetails?.bankName} — {payoutDetails?.accountNumber}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="p-5 pt-0">
-                        <button
-                            onClick={handleSubmit}
-                            disabled={amountNum < 1000 || amountNum > balance || isSubmitting}
-                            className="w-full py-4 bg-orange-600 text-white rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale"
-                        >
-                            {isSubmitting ? (
-                                <Loader2 size={16} className="animate-spin" />
-                            ) : (
-                                <>
-                                    <ArrowDownToLine size={16} />
-                                    Initiate Withdrawal
-                                </>
-                            )}
-                        </button>
-                    </div>
-                </motion.div>
+        <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-md p-4 space-y-3">
+            <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                <p className="text-[10px] font-black text-blue-900 dark:text-blue-300 uppercase tracking-widest">
+                    Automatic Payout Scheduled
+                </p>
             </div>
-        </AnimatePresence>
+            {hasBank ? (
+                <>
+                    <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest">
+                            Next Payout
+                        </p>
+                        <p className="text-[10px] font-black text-blue-900 dark:text-blue-200 uppercase tracking-widest">
+                            {scheduledTime}
+                        </p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest">
+                            Amount
+                        </p>
+                        <p className="text-sm font-black text-blue-900 dark:text-blue-200">
+                            ₦{balance?.toLocaleString() || "0"}
+                        </p>
+                    </div>
+                    <div className="pt-2 border-t border-blue-200 dark:border-blue-500/20">
+                        <p className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+                            Destination: {payoutDetails.bankName} — {payoutDetails.accountNumber}
+                        </p>
+                    </div>
+                    <p className="text-[9px] text-blue-600/70 dark:text-blue-400/70 font-medium leading-relaxed">
+                        Earnings from today after 8 PM will be included in tomorrow's payout. 
+                        Minimum balance of ₦1,500 required.
+                    </p>
+                </>
+            ) : (
+                <p className="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-widest">
+                    Link a bank account below to receive automatic payouts.
+                </p>
+            )}
+        </div>
     );
 }

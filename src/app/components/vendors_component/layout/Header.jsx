@@ -1,5 +1,6 @@
 "use client";
 import { useVendors } from "@/app/hooks/useVendorQueries";
+import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import { FaBell } from "react-icons/fa";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -66,9 +67,7 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname(); // e.g. "/vendors/my-foods"
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const { baseUrl } = useApi();
-
-  const router = useRouter();
+  const { logout } = useVendorStorage();
 
   // determine active by checking if any path segment equals the nav href
   const pathSegments = (pathname || "/vendors") // ["vendors","my-foods"]
@@ -77,23 +76,7 @@ export default function Header() {
   const handleLogout = async () => {
     try {
       setLogoutLoading(true);
-      const res = await fetch(`${baseUrl}/vendor/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-        // headers: {
-        //   Authorization: `Bearer ${token}`,
-        // },
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        // localStorage.removeItem("vendorToken"); // Removed
-        // localStorage.removeItem("vendorToken");
-        router.push("/vendors/auth/login");
-      } else {
-        console.error("Logout failed:", data);
-      }
+      await logout();
     } catch (err) {
       console.error("Logout error:", err);
     } finally {

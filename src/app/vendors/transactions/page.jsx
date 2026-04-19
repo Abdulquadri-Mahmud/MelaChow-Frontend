@@ -27,7 +27,7 @@ import {
     getVendorPayoutDetails, 
     getWithdrawalHistory 
 } from "@/app/lib/vendorApi";
-import { ConfigureBankModal, WithdrawFundsModal } from "./components/PayoutModals";
+import { ConfigureBankModal, PayoutScheduleInfo } from "./components/PayoutModals";
 
 export default function TransactionsPage() {
     const [wallet, setWallet] = useState(null);
@@ -43,7 +43,6 @@ export default function TransactionsPage() {
     const [selectedTransaction, setSelectedTransaction] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showBankModal, setShowBankModal] = useState(false);
-    const [showWithdrawModal, setShowWithdrawModal] = useState(false);
     const { vendorDetails } = useVendorStorage();
 
     const fetchWallet = async (isRefresh = false) => {
@@ -360,17 +359,11 @@ export default function TransactionsPage() {
                             <h2 className="text-3xl font-black tracking-tight leading-none my-2">₦{wallet?.balance?.toLocaleString() || "0.00"}</h2>
                         </div>
                         <button 
-                            onClick={() => {
-                                if (!vendorProfile?.payoutDetails?.payoutEnabled) {
-                                    setShowBankModal(true);
-                                } else {
-                                    setShowWithdrawModal(true);
-                                }
-                            }}
+                            onClick={() => setShowBankModal(true)}
                             className="w-full bg-white text-orange-600 px-4 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 mt-4"
                         >
-                            <CreditCard size={14} />
-                            {vendorProfile?.payoutDetails?.payoutEnabled ? "Withdraw Funds" : "Link Bank Account"}
+                            <Building2 size={14} />
+                            {vendorProfile?.payoutDetails?.payoutEnabled ? "Bank Settings" : "Link Bank Account"}
                         </button>
                     </div>
 
@@ -428,6 +421,11 @@ export default function TransactionsPage() {
                         </div>
                     </div>
                 </div>
+
+                <PayoutScheduleInfo
+                    balance={wallet?.balance || 0}
+                    payoutDetails={vendorProfile?.payoutDetails}
+                />
 
                 {/* Bank Configuration Banner */}
                 {!vendorProfile?.payoutDetails?.accountNumber && (
@@ -736,16 +734,6 @@ export default function TransactionsPage() {
                     existingDetails={vendorProfile?.payoutDetails}
                 />
 
-                <WithdrawFundsModal 
-                    isOpen={showWithdrawModal}
-                    onClose={() => setShowWithdrawModal(false)}
-                    balance={wallet?.balance || 0}
-                    onInitiated={() => {
-                        fetchWallet(true);
-                        setActiveTab("payouts");
-                    }}
-                    payoutDetails={vendorProfile?.payoutDetails}
-                />
 
                 {/* Transaction Details Modal */}
                 <TransactionDetailsModal

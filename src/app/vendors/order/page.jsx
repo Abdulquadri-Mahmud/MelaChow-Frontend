@@ -6,7 +6,6 @@ import { getVendorOrders } from "@/app/lib/vendorApi";
 import VendorOrderCard from "@/app/components/order/VendorOrderCard";
 import { ChevronLeft, ChevronRight, Package, Search, Filter, TrendingUp, Clock, CheckCircle2, Hash, RotateCw } from "lucide-react";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
-import RiderAssignmentModal from "../riders/RiderAssignmentModal";
 
 export default function VendorOrdersPage() {
   const router = useRouter();
@@ -18,9 +17,6 @@ export default function VendorOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const { vendorDetails } = useVendorStorage();
-
-  const [assignmentModal, setAssignmentModal] = useState({ isOpen: false, orderId: null });
-
   const itemsPerPage = 6;
 
   const fetchOrders = async (isRefresh = false) => {
@@ -284,7 +280,6 @@ export default function VendorOrdersPage() {
                   >
                     <VendorOrderCard 
                       order={order}
-                      onAssign={(orderId) => setAssignmentModal({ isOpen: true, orderId })}
                       onRefresh={fetchOrders}
                     />
                   </motion.div>
@@ -400,14 +395,6 @@ export default function VendorOrdersPage() {
             </motion.div>
           )}
         </AnimatePresence>
-
-        <RiderAssignmentModal
-            isOpen={assignmentModal.isOpen}
-            onClose={() => setAssignmentModal({ isOpen: false, orderId: null })}
-            orderId={assignmentModal.orderId}
-            vendorId={vendorDetails?.vendor?._id || vendorDetails?.vendor?.id}
-            onAssigned={() => fetchOrders()}
-        />
 
       </div>
     </div>
