@@ -62,6 +62,11 @@ export const ProfileProvider = ({ children }) => {
       }
 
       if (res.status === 401) {
+        // Always clear stale cache on 401 — prevents it from surfacing as
+        // placeholder data the next time the app opens.
+        TokenManager.clearToken();
+        localStorage.removeItem("melachow_user_cache");
+
         const isPublicRoute = PUBLIC_ROUTES.some(route =>
           pathname?.startsWith(route) || pathname === route
         );
@@ -69,8 +74,6 @@ export const ProfileProvider = ({ children }) => {
         const isFoodDetailsRoute = pathname?.startsWith("/food-details/");
 
         if (!isPublicRoute && !isRestaurantRoute && !isFoodDetailsRoute) {
-          TokenManager.clearToken();
-          localStorage.removeItem("melachow_user_cache");
           throw new Error("Session expired");
         }
 
