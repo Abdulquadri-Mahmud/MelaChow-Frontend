@@ -15,6 +15,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Utensils, Star, Heart, Globe, Bike, MapPin, Flame, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
 import { getFoodsByLocation } from "@/app/lib/userApi";
@@ -40,9 +41,9 @@ const FoodCard = ({ food }) => {
     // console.log(food);
     
     return (
-        <div
-            onClick={() => router.push(`/food-details/${food._id}`)}
-            className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 ${!isOpen ? '' : ''}`}
+        <Link
+            href={`/food-details/${food._id}`}
+            className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 block ${!isOpen ? '' : ''}`}
             style={{ width: "72vw", maxWidth: "280px" }}
         >
             {/* Image Container */}
@@ -131,7 +132,7 @@ const FoodCard = ({ food }) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 };
 
@@ -187,13 +188,13 @@ export default function FoodList({ user }) {
               <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight capitalize">{category}</h2>
             </div>
             
-            <button
-               onClick={() => router.push(`/search?category=${encodeURIComponent(category)}`)}
+            <Link
+               href={`/search?category=${encodeURIComponent(category)}`}
                className="text-orange-600 text-[10px] font-black uppercase tracking-[0.1em] hover:bg-orange-50 dark:hover:bg-orange-500/10 px-3 py-1.5 rounded-full transition-all flex items-center gap-1 group"
             >
               View All
               <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-            </button>
+            </Link>
           </div>
 
           <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">

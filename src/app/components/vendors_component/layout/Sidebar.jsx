@@ -36,11 +36,11 @@ const navItems = [
     icon: Wallet,
     href: "/vendors/transactions",
   },
-  {
-    name: "Coupons",
-    icon: TicketPercent,
-    href: "/vendors/coupons",
-  },
+  // {
+  //   name: "Coupons",
+  //   icon: TicketPercent,
+  //   href: "/vendors/coupons",
+  // },
   {
     name: "Orders",
     icon: ClipboardList,

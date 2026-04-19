@@ -9,6 +9,12 @@ import CustomerLogoutHandler from "./CustomerLogoutHandler";
 // Routes that should be accessible to guests (no auth required)
 const GUEST_ALLOWED_ROUTES = [
     "/",
+    "/home",
+    "/all-restaurants",
+    "/all-foods",
+    "/search",
+    "/trending-foods",
+    "/trending-restaurants",
     "/faqs",
     "/get-help",
 ];
@@ -71,10 +77,13 @@ export default function CustomerBootstrapper({ children }) {
         setIsRedirecting(false);
     }, [pathname]);
 
-    // Render absolutely nothing to the DOM while the auth session checks. 
-    // This allows the PWA native splash screen to remain the sole focus.
+    // Only render nothing if it's a strictly protected route and we haven't checked session yet,
+    // to prevent exposing private layouts momentarily. For public SEO routes, always render children.
     if (!hasCheckedSession) {
-        return null;
+        const isProtectedRoute = !isGuestAllowedRoute && !isRestaurantRoute && !isFoodDetailsRoute;
+        if (isProtectedRoute) {
+            return null;
+        }
     }
 
     return (
