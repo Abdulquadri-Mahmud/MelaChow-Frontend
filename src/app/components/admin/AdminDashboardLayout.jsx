@@ -14,6 +14,7 @@ import {
     Star,
     Settings,
     LogOut,
+    TrendingUp,
     Menu,
     X,
     Bell,
@@ -65,8 +66,9 @@ const navigation = [
     {
         title: "Financials",
         items: [
-            { icon: BarChart3, label: "Finance Hub",    href: "/admin/finance" },
-            { icon: Percent,   label: "Revenue Ledger", href: "/admin/orders/commission" },
+            { icon: BarChart3, label: "Finance Hub",      href: "/admin/finance" },
+            { icon: TrendingUp, label: "Platform Revenue", href: "/admin/payments" },
+            { icon: Percent,   label: "Revenue Ledger",    href: "/admin/orders/commission" },
         ],
     },
     {
@@ -120,15 +122,15 @@ function SidebarContent({ pathname, router, onNavigate, onLogout, installOpen, s
     return (
         <>
             {/* Brand left-edge accent */}
-            <div className="absolute inset-y-0 left-0 w-0.5 bg-gradient-to-b from-orange-500 via-amber-400 to-transparent opacity-70 pointer-events-none" />
+            <div className="absolute inset-y-0 left-0 w-0.5 bg-orange-500/30 pointer-events-none" />
 
             {/* ── Logo ─────────────────────────────────────────────────── */}
             <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.06] shrink-0">
-                <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-400 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-orange-900/50">
+                <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
                     <Shield size={15} className="text-white" strokeWidth={2.5} />
                 </div>
                 <div>
-                    <p className="text-sm font-extrabold text-white leading-none tracking-wide">MelaChow</p>
+                    <p className="text-sm font-bold text-white leading-none tracking-tight">MelaChow</p>
                     <p className="text-[10px] text-amber-400/60 mt-0.5 font-semibold tracking-widest uppercase">Admin Portal</p>
                 </div>
                 <div className="ml-auto flex gap-0.5 opacity-25 shrink-0">
@@ -142,7 +144,7 @@ function SidebarContent({ pathname, router, onNavigate, onLogout, installOpen, s
             <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-5 scrollbar-hide min-h-0">
                 {navigation.map((section) => (
                     <div key={section.title}>
-                        <p className="px-3 text-[9px] font-extrabold text-amber-400 uppercase tracking-[0.2em] mb-1.5 opacity-60">
+                        <p className="px-3 text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">
                             {section.title}
                         </p>
                         <div className="space-y-0.5">

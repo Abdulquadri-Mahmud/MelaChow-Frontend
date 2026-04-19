@@ -49,13 +49,24 @@ export default function AdminRidersPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    
+    // Bank States
+    const [banks, setBanks] = useState([]);
+    const [resolvingAccount, setResolvingAccount] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
         password: "",
-        vendorId: ""
+        vendorId: "",
+        payoutDetails: {
+            bankCode: "",
+            bankName: "",
+            accountNumber: "",
+            accountName: "",
+            payoutEnabled: false
+        }
     });
 
     const fetchRiders = async () => {
@@ -79,6 +90,15 @@ export default function AdminRidersPage() {
         }
     };
 
+    const fetchBanks = async () => {
+        try {
+            const data = await adminApi.getPublicBanks();
+            setBanks(data.data || []);
+        } catch (error) {
+            console.error("Failed to load banks:", error);
+        }
+    };
+
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
@@ -94,6 +114,7 @@ export default function AdminRidersPage() {
     useEffect(() => {
         fetchRiders();
         fetchVendors();
+        fetchBanks();
     }, []);
 
     const handleOpenModal = (mode, rider = null) => {
@@ -105,7 +126,14 @@ export default function AdminRidersPage() {
                 name: rider.name,
                 phone: rider.phone,
                 password: "",
-                vendorId: rider.vendorId?._id || rider.vendorId || ""
+                vendorId: rider.vendorId?._id || rider.vendorId || "",
+                payoutDetails: {
+                    bankCode: rider.payoutDetails?.bankCode || "",
+                    bankName: rider.payoutDetails?.bankName || "",
+                    accountNumber: rider.payoutDetails?.accountNumber || "",
+                    accountName: rider.payoutDetails?.accountName || "",
+                    payoutEnabled: rider.payoutDetails?.payoutEnabled || false
+                }
             });
         } else {
             setSelectedRider(null);
@@ -113,10 +141,49 @@ export default function AdminRidersPage() {
                 name: "",
                 phone: "",
                 password: "",
-                vendorId: ""
+                vendorId: "",
+                payoutDetails: {
+                    bankCode: "",
+                    bankName: "",
+                    accountNumber: "",
+                    accountName: "",
+                    payoutEnabled: false
+                }
             });
         }
         setShowModal(true);
+    };
+
+    const handleResolveAccount = async (accountNumber, bankCode) => {
+        if (accountNumber.length !== 10 || !bankCode) return;
+        
+        setResolvingAccount(true);
+        try {
+            const data = await adminApi.resolveAccount(accountNumber, bankCode);
+            if (data.success && data.data?.accountName) {
+                setFormData(prev => ({
+                    ...prev,
+                    payoutDetails: {
+                        ...prev.payoutDetails,
+                        accountName: data.data.accountName,
+                        payoutEnabled: true
+                    }
+                }));
+                toast.success("Account verified: " + data.data.accountName);
+            }
+        } catch (error) {
+            setFormData(prev => ({
+                ...prev,
+                payoutDetails: {
+                    ...prev.payoutDetails,
+                    accountName: "Verification failed",
+                    payoutEnabled: false
+                }
+            }));
+            toast.error("Could not verify account");
+        } finally {
+            setResolvingAccount(false);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -382,6 +449,77 @@ export default function AdminRidersPage() {
                                                 placeholder="080XXXXXXXX"
                                             />
                                         </div>
+                                    </div>
+
+                                    {/* ── PAYOUT DETAILS ─────────────────────────────────── */}
+                                    <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 space-y-3">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="w-1.5 h-3 bg-orange-400 rounded-full" />
+                                            <h3 className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Payout & Bank Credentials</h3>
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest pl-1">Bank Institution</label>
+                                            <div className="relative">
+                                                <select
+                                                    value={formData.payoutDetails.bankCode}
+                                                    onChange={(e) => {
+                                                        const selectedBank = banks.find(b => b.code === e.target.value);
+                                                        setFormData({
+                                                            ...formData,
+                                                            payoutDetails: {
+                                                                ...formData.payoutDetails,
+                                                                bankCode: e.target.value,
+                                                                bankName: selectedBank?.name || ""
+                                                            }
+                                                        });
+                                                        handleResolveAccount(formData.payoutDetails.accountNumber, e.target.value);
+                                                    }}
+                                                    className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl outline-none text-xs font-bold focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all appearance-none cursor-pointer pr-9 text-slate-700 shadow-sm"
+                                                >
+                                                    <option value="">Select Bank...</option>
+                                                    {banks.map(b => (
+                                                        <option key={b.code} value={b.code}>{b.name}</option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest pl-1">Account Number (NUBAN)</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    maxLength="10"
+                                                    value={formData.payoutDetails.accountNumber}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/\D/g, "");
+                                                        setFormData({
+                                                            ...formData,
+                                                            payoutDetails: { ...formData.payoutDetails, accountNumber: val }
+                                                        });
+                                                        if (val.length === 10) handleResolveAccount(val, formData.payoutDetails.bankCode);
+                                                    }}
+                                                    className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl outline-none text-xs font-bold focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all placeholder:text-slate-300 shadow-sm"
+                                                    placeholder="0123456789"
+                                                />
+                                                {resolvingAccount && (
+                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                        <Loader2 className="animate-spin text-orange-500" size={14} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {formData.payoutDetails.accountName && (
+                                            <div className={`p-2 rounded-lg border flex items-center gap-2 ${formData.payoutDetails.payoutEnabled ? 'bg-emerald-50 border-emerald-100' : 'bg-rose-50 border-rose-100'}`}>
+                                                <div className={`w-1.5 h-1.5 rounded-full ${formData.payoutDetails.payoutEnabled ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                                <p className={`text-[10px] font-bold ${formData.payoutDetails.payoutEnabled ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                                    {formData.payoutDetails.accountName}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                     
                                     <div className="space-y-1">

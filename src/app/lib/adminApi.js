@@ -483,6 +483,27 @@ class AdminAPI {
     async getOperationalVelocity() {
         return this.handleResponse(api.get(`/api/admin/dashboard/operational-velocity`));
     }
+
+    // ==================== BANK & WALLET ====================
+
+    async getPublicBanks() {
+        return this.handleResponse(api.get("/api/wallet/public/banks"));
+    }
+
+    async resolveAccount(accountNumber, bankCode) {
+        return this.handleResponse(
+            api.get(`/api/wallet/public/resolve-account?accountNumber=${accountNumber}&bankCode=${bankCode}`)
+        );
+    }
+
+    async getWalletBreakdown() {
+        return this.handleResponse(api.get("/api/admin/finance/wallet-breakdown"));
+    }
+
+    async getPayoutHistory(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return this.handleResponse(api.get(`/api/admin/finance/payout-history?${query}`));
+    }
 }
 
 export default new AdminAPI();

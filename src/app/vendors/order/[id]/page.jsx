@@ -29,7 +29,6 @@ import {
 } from "lucide-react";
 import { getVendorOrderById, updateOrderStatus, completeOrder } from "@/app/lib/vendorApi";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
-import RiderAssignmentModal from "../../riders/RiderAssignmentModal";
 
 export default function VendorOrderDetailsPage() {
     const { id } = useParams();
@@ -39,7 +38,6 @@ export default function VendorOrderDetailsPage() {
     const [isUpdating, setIsUpdating] = useState(false);
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
     const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(true);
-    const [assignmentModal, setAssignmentModal] = useState({ isOpen: false, orderId: null });
     const [showSuccessToast, setShowSuccessToast] = useState(false);
     const [errorMessage, setErrorMessage] = useState(null);
     const { vendorDetails } = useVendorStorage();
@@ -153,9 +151,6 @@ export default function VendorOrderDetailsPage() {
     const handleStatusUpdate = (newStatus) => {
         if (newStatus === 'cancelled') {
             setIsCancelModalOpen(true);
-        } else if (newStatus === 'rider_assigned') {
-            const effectiveUserOrderId = order.userOrderId?._id || order.userOrderId || order._id?.$oid || order._id;
-            setAssignmentModal({ isOpen: true, orderId: effectiveUserOrderId });
         } else {
             performStatusUpdate(newStatus);
         }
@@ -170,11 +165,9 @@ export default function VendorOrderDetailsPage() {
             'pending': ['accepted', 'cancelled'],
             'accepted': ['preparing', 'cancelled'],
             'preparing': ['ready_for_pickup', 'cancelled'],
-            'ready_for_pickup': isVendorManaged ? ['rider_assigned', 'cancelled'] : ['cancelled'],
-            'ready': isVendorManaged ? ['rider_assigned', 'cancelled'] : ['cancelled'],
-            'rider_assigned': isVendorManaged ? ['out_for_delivery', 'cancelled'] : [],
-            'out_for_delivery': isVendorManaged ? ['delivered', 'cancelled'] : [],
-            'delivered': isVendorManaged ? ['completed'] : [],
+            'ready_for_pickup': ['cancelled'],
+            'ready': ['cancelled'],
+            'delivered': [],
             'completed': [],
             'cancelled': [],
             'failed': ['refunded'],
@@ -239,7 +232,6 @@ export default function VendorOrderDetailsPage() {
         'preparing': 2,
         'ready': 3,
         'ready_for_pickup': 3,
-        'rider_assigned': 4,
         'out_for_delivery': 4,
         'delivered': 5,
         'completed': 5
@@ -258,8 +250,6 @@ export default function VendorOrderDetailsPage() {
             case 'ready':
             case 'ready_for_pickup':
                 return { color: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400", icon: CheckCircle2, label: "Ready for Pickup" };
-            case 'rider_assigned':
-                return { color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400", icon: User, label: "Rider Assigned" };
             case 'out_for_delivery':
                 return { color: "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-400", icon: Truck, label: "Out for Delivery" };
             case 'delivered':
@@ -281,8 +271,8 @@ export default function VendorOrderDetailsPage() {
     const StatusIcon = statusConfig.icon;
     const availableActions = getAvailableStatuses(order.orderStatus);
 
-    const isPlatformDelivery = vendorDetails?.vendor?.deliveryManagedBy === "admin" || vendorDetails?.deliveryManagedBy === "admin";
-    const lockedPlatformStatuses = ["rider_assigned", "out_for_delivery", "delivered", "completed"];
+    const isPlatformDelivery = true; // All vendors are now platform managed
+    const lockedPlatformStatuses = ["out_for_delivery", "delivered", "completed"];
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans">
@@ -489,8 +479,6 @@ export default function VendorOrderDetailsPage() {
                                             'preparing': { label: 'Start Preparing', icon: ShoppingBag },
                                             'ready': { label: 'Mark as Ready', icon: CheckCircle2 },
                                             'ready_for_pickup': { label: 'Mark as Ready', icon: CheckCircle2 },
-                                            'rider_assigned': { label: 'Assign Rider', icon: User },
-                                            'out_for_delivery': { label: 'Out for Delivery', icon: Truck },
                                             'delivered': { label: 'Mark as Delivered', icon: CheckCircle2 },
                                             'completed': { label: 'Complete Order', icon: Check },
                                             'cancelled': { label: 'Cancel Order', icon: X },
@@ -513,7 +501,7 @@ export default function VendorOrderDetailsPage() {
                                                 className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-md font-black text-[9px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed flex-1 min-w-[130px] border shadow-none ${isCancelAction
                                                     ? 'bg-white dark:bg-slate-900 text-rose-600 border-rose-100 dark:border-rose-900/40 hover:bg-rose-50'
                                                     : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent hover:opacity-90'
-                                                    } ${status === 'accepted' || status === 'preparing' || status === 'ready' || status === 'ready_for_pickup' || status === 'rider_assigned' || status === 'out_for_delivery' || status === 'delivered' ? 'bg-orange-600 text-white border-transparent' : ''}`}
+                                                    } ${status === 'accepted' || status === 'preparing' || status === 'ready' || status === 'ready_for_pickup' ? 'bg-orange-600 text-white border-transparent' : ''}`}
                                             >
                                                 {isUpdating ? (
                                                     <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -785,12 +773,6 @@ export default function VendorOrderDetailsPage() {
                                         </div>
                                     )}
 
-                                    {order.deliveryShare > 0 && (
-                                        <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
-                                            <span className="text-[10px] font-bold uppercase tracking-widest">Delivery Fee (Your Rider)</span>
-                                            <span className="text-[12px] font-black text-emerald-600">+ ₦{order.deliveryShare?.toLocaleString()}</span>
-                                        </div>
-                                    )}
                                 </div>
 
                                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -883,13 +865,13 @@ export default function VendorOrderDetailsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="bg-blue-600/5 rounded-md p-3 border border-blue-600/10 mt-4">
+                                    <div className="bg-orange-600/5 rounded-md p-3 border border-orange-600/10 mt-4">
                                         <div className="flex items-center gap-2 mb-1.5">
-                                            <Truck size={12} className="text-blue-600" />
-                                            <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Chain of Custody</p>
+                                            <Truck size={12} className="text-orange-600" />
+                                            <p className="text-[9px] font-black text-orange-600 uppercase tracking-widest">Chain of Custody</p>
                                         </div>
                                         <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none">
-                                            Assigned courier will execute pickup at designated loading zone.
+                                            MelaChow logistics will execute pickup at designated loading zone.
                                         </p>
                                     </div>
                                 </div>
@@ -979,28 +961,6 @@ export default function VendorOrderDetailsPage() {
                 )}
             </AnimatePresence>
 
-            <RiderAssignmentModal
-                isOpen={assignmentModal.isOpen}
-                onClose={() => setAssignmentModal({ isOpen: false, orderId: null })}
-                orderId={assignmentModal.orderId}
-                vendorId={vendorDetails?.vendor?._id || vendorDetails?.vendor?.id}
-                onAssigned={() => {
-                    const fetchOrder = async () => {
-                        try {
-                            if (!id) return;
-                            setIsLoading(true);
-                            const res = await getVendorOrderById(id);
-                            const data = res.data || res;
-                            setOrder(data);
-                        } catch (err) {
-                            console.error("Failed to fetch order details:", err);
-                        } finally {
-                            setIsLoading(false);
-                        }
-                    };
-                    fetchOrder();
-                }}
-            />
         </div>
     );
 }

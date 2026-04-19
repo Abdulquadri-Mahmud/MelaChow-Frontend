@@ -27,45 +27,25 @@ import {
     getRiderBankAccount,
     saveRiderBankAccount,
     resolveRiderAccountName,
-    initiateWithdrawal,
     getRiderWithdrawalHistory,
     getBankList,
 } from "@/app/lib/riderApi";
 import toast from "react-hot-toast";
 
 // ── Payout Sheet ──────────────────────────────────────────────────────────────
-function PayoutSheet({ riderId, walletBalance, onClose, onSuccess }) {
-    const [step, setStep] = useState("loading");
-    const [bankAccount, setBankAccount] = useState(null);
-
+// ── Payout Details Modal ───────────────────────────────────────────────────
+function PayoutSettingsModal({ riderId, onClose, onSaved, existingDetails }) {
     const [banks, setBanks] = useState([]);
     const [loadingBanks, setLoadingBanks] = useState(false);
-    const [accountNumber, setAccountNumber] = useState("");
-    const [selectedBank, setSelectedBank] = useState("");
+    const [accountNumber, setAccountNumber] = useState(existingDetails?.accountNumber || "");
+    const [selectedBank, setSelectedBank] = useState(existingDetails?.bankCode || "");
     const [resolving, setResolving] = useState(false);
     const [resolvedName, setResolvedName] = useState("");
     const [saving, setSaving] = useState(false);
 
-    const [amount, setAmount] = useState("");
-    const [withdrawing, setWithdrawing] = useState(false);
-
     const resolveTimeout = useRef(null);
 
     useEffect(() => {
-        const load = async () => {
-            try {
-                const res = await getRiderBankAccount(riderId);
-                const account = res?.data;
-                if (account?.payoutEnabled && account?.accountNumber) {
-                    setBankAccount(account);
-                    setStep("withdraw");
-                } else {
-                    setStep("setup");
-                }
-            } catch {
-                setStep("setup");
-            }
-        };
         const fetchBanks = async () => {
             setLoadingBanks(true);
             try {
@@ -83,9 +63,8 @@ function PayoutSheet({ riderId, walletBalance, onClose, onSuccess }) {
                 setLoadingBanks(false);
             }
         };
-        load();
         fetchBanks();
-    }, [riderId]);
+    }, []);
 
     useEffect(() => {
         if (accountNumber.length !== 10 || !selectedBank) {
@@ -100,15 +79,15 @@ function PayoutSheet({ riderId, walletBalance, onClose, onSuccess }) {
                 setResolvedName(res?.data?.accountName || "");
             } catch {
                 setResolvedName("");
-                toast.error("Could not verify account. Check the number and try again.");
+                toast.error("Could not verify account.");
             } finally {
                 setResolving(false);
             }
         }, 600);
         return () => clearTimeout(resolveTimeout.current);
-    }, [accountNumber, selectedBank]);
+    }, [accountNumber, selectedBank, riderId]);
 
-    const handleSaveBankAccount = async () => {
+    const handleSave = async () => {
         if (!resolvedName || !selectedBank || accountNumber.length !== 10) return;
         const bankObj = banks.find(b => b.code === selectedBank);
         setSaving(true);
@@ -119,273 +98,117 @@ function PayoutSheet({ riderId, walletBalance, onClose, onSuccess }) {
                 bankName: bankObj?.name || "",
             });
             toast.success("Bank account saved!");
-            setBankAccount({ bankName: bankObj?.name || "", accountNumber, accountName: resolvedName, payoutEnabled: true });
-            setStep("withdraw");
+            onSaved();
+            onClose();
         } catch (err) {
-            toast.error(err?.response?.data?.message || "Failed to save bank account. Try again.");
+            toast.error(err?.response?.data?.message || "Failed to save bank account.");
         } finally {
             setSaving(false);
         }
     };
 
-    const handleWithdraw = async () => {
-        const numAmount = Number(amount);
-        if (!numAmount || numAmount < 1000) { toast.error("Minimum withdrawal is ₦1,000"); return; }
-        if (numAmount > walletBalance) { toast.error("Amount exceeds your available balance"); return; }
-        setWithdrawing(true);
-        setStep("processing");
-        try {
-            await initiateWithdrawal(riderId, numAmount);
-            setStep("done");
-            onSuccess?.();
-        } catch (err) {
-            toast.error(err?.response?.data?.message || "Withdrawal failed. Your balance was not charged.");
-            setStep("withdraw");
-        } finally {
-            setWithdrawing(false);
-        }
-    };
-
-    const numAmount = Number(amount) || 0;
-    let transferFee = 50;
-    if (numAmount > 0 && numAmount <= 5000) transferFee = 10;
-    else if (numAmount > 5000 && numAmount <= 50000) transferFee = 25;
-    const netAmount = Math.max(0, numAmount - transferFee);
-
     return (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 onClick={onClose}
-                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             <motion.div
-                initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-                transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                className="relative w-full h-full bg-white dark:bg-[#111318] px-4 pt-3 pb-6 shadow-xl overflow-y-auto flex flex-col"
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="relative w-full max-w-sm bg-white dark:bg-[#111318] rounded-2xl p-6 shadow-2xl border border-white/5"
             >
-                <div className="flex items-center justify-between mb-5 sticky top-0 bg-white dark:bg-[#111318] py-2 z-10">
-                    <h2 className="text-base font-black text-gray-900 dark:text-white uppercase tracking-widest">Payout</h2>
-                    <button
-                        onClick={onClose}
-                        className="w-8 h-8 rounded-lg bg-black/5 dark:bg-white/5 flex items-center justify-center text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
-                    >
-                        <X size={16} />
-                    </button>
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight">Bank Details</h3>
+                    <button onClick={onClose} className="p-2 text-gray-400 hover:text-white"><X size={20} /></button>
                 </div>
 
-                <AnimatePresence mode="wait">
-                    {step === "loading" && (
-                        <motion.div key="loading" className="flex flex-col items-center py-10 gap-3">
-                            <Loader2 className="animate-spin text-orange-500" size={24} />
-                            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Loading...</p>
-                        </motion.div>
-                    )}
+                <div className="space-y-4">
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Account Number</label>
+                        <input
+                            type="tel"
+                            maxLength={10}
+                            value={accountNumber}
+                            onChange={e => setAccountNumber(e.target.value.replace(/\D/g, ""))}
+                            className="w-full h-12 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 px-4 text-base font-black tracking-widest"
+                            placeholder="0123456789"
+                        />
+                    </div>
 
-                    {step === "setup" && (
-                        <motion.div key="setup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Bank</label>
+                        <select
+                            value={selectedBank}
+                            onChange={e => setSelectedBank(e.target.value)}
+                            className="w-full h-12 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 px-4 text-xs font-black uppercase tracking-widest"
+                        >
+                            <option value="">Choose Bank</option>
+                            {banks.map(b => <option key={b.code} value={b.code}>{b.name}</option>)}
+                        </select>
+                    </div>
 
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Account Number</label>
-                                <input
-                                    type="tel"
-                                    inputMode="numeric"
-                                    maxLength={10}
-                                    value={accountNumber}
-                                    onChange={e => setAccountNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                                    placeholder="0123456789"
-                                    className="w-full h-11 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 px-3 text-base font-black tracking-widest text-gray-900 dark:text-white placeholder:text-gray-300 dark:placeholder:text-white/20 focus:outline-none focus:border-orange-500 transition-colors"
-                                />
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Select Bank</label>
-                                <div className="relative">
-                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                                        <Building2 size={14} />
-                                    </div>
-                                    <select
-                                        value={selectedBank}
-                                        onChange={e => { setSelectedBank(e.target.value); setResolvedName(""); }}
-                                        disabled={loadingBanks}
-                                        className="w-full h-11 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 pl-9 pr-3 text-xs font-black text-gray-900 dark:text-white focus:outline-none focus:border-orange-500 transition-colors appearance-none disabled:opacity-50"
-                                    >
-                                        <option value="">Choose a bank...</option>
-                                        {banks.map(bank => (
-                                            <option key={bank.code} value={bank.code}>{bank.name}</option>
-                                        ))}
-                                    </select>
-                                    {loadingBanks && (
-                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                                            <Loader2 size={13} className="animate-spin text-orange-500" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <AnimatePresence>
-                                {(resolving || resolvedName) && (
-                                    <motion.div
-                                        initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                                        className={`rounded-lg p-3 flex items-center gap-2 ${resolvedName
-                                            ? "bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20"
-                                            : "bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10"
-                                            }`}
-                                    >
-                                        {resolving
-                                            ? <Loader2 size={14} className="animate-spin text-gray-400 shrink-0" />
-                                            : <CheckCircle2 size={14} className="text-green-500 shrink-0" />
-                                        }
-                                        <div>
-                                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">
-                                                {resolving ? "Verifying..." : "Account verified"}
-                                            </p>
-                                            {resolvedName && (
-                                                <p className="text-sm font-black text-gray-900 dark:text-white">{resolvedName}</p>
-                                            )}
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-
-                            <button
-                                onClick={handleSaveBankAccount}
-                                disabled={!resolvedName || saving}
-                                className="w-full h-11 rounded-lg bg-orange-600 text-white font-black text-sm disabled:opacity-40 active:scale-95 transition-all flex items-center justify-center gap-2"
-                            >
-                                {saving ? <Loader2 size={16} className="animate-spin" /> : <><Building2 size={15} /> Save Bank Account</>}
-                            </button>
-                        </motion.div>
-                    )}
-
-                    {step === "withdraw" && (
-                        <motion.div key="withdraw" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-
-                            {bankAccount && (
-                                <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-3 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
-                                            <Building2 size={14} className="text-orange-500" />
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{bankAccount.bankName}</p>
-                                            <p className="text-sm font-black text-gray-900 dark:text-white">{bankAccount.accountNumber}</p>
-                                            <p className="text-[10px] text-gray-500 font-medium">{bankAccount.accountName}</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => { setAccountNumber(""); setSelectedBank(""); setResolvedName(""); setStep("setup"); }}
-                                        className="text-[10px] font-black text-orange-500 uppercase tracking-widest hover:text-orange-600 transition-colors"
-                                    >
-                                        Change
-                                    </button>
-                                </div>
-                            )}
-
-                            <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-lg p-3">
-                                <p className="text-[9px] font-black text-orange-600/70 dark:text-orange-400/70 uppercase tracking-widest">Available</p>
-                                <p className="text-2xl font-black text-orange-600 dark:text-orange-400">₦{walletBalance.toLocaleString()}</p>
-                            </div>
-
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</label>
-                                <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base font-black text-gray-400">₦</span>
-                                    <input
-                                        type="tel"
-                                        inputMode="numeric"
-                                        value={amount}
-                                        onChange={e => setAmount(e.target.value.replace(/\D/g, ""))}
-                                        placeholder="1000"
-                                        className="w-full h-12 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 pl-8 pr-3 text-xl font-black text-gray-900 dark:text-white placeholder:text-gray-300 dark:placeholder:text-white/20 focus:outline-none focus:border-orange-500 transition-colors"
-                                    />
-                                </div>
-                                <div className="flex gap-1.5">
-                                    {[1000, 2000, 5000].map(preset => (
-                                        <button
-                                            key={preset}
-                                            onClick={() => setAmount(String(Math.min(preset, walletBalance)))}
-                                            className="flex-1 py-1.5 rounded-lg bg-gray-100 dark:bg-white/5 text-[10px] font-black text-gray-600 dark:text-gray-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600 transition-colors"
-                                        >
-                                            ₦{preset.toLocaleString()}
-                                        </button>
-                                    ))}
-                                    <button
-                                        onClick={() => setAmount(String(walletBalance))}
-                                        className="flex-1 py-1.5 rounded-lg bg-gray-100 dark:bg-white/5 text-[10px] font-black text-gray-600 dark:text-gray-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600 transition-colors"
-                                    >
-                                        All
-                                    </button>
-                                </div>
-                            </div>
-
-                            {numAmount >= 1000 && (
-                                <motion.div
-                                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
-                                    className="bg-gray-50 dark:bg-white/5 rounded-lg p-3 space-y-1.5"
-                                >
-                                    {[
-                                        { label: "Requested", value: `₦${numAmount.toLocaleString()}` },
-                                        { label: "Transfer fee", value: `-₦${transferFee}`, muted: true },
-                                    ].map(row => (
-                                        <div key={row.label} className="flex justify-between items-center">
-                                            <span className="text-xs font-medium text-gray-500">{row.label}</span>
-                                            <span className={`text-xs font-black ${row.muted ? "text-gray-400" : "text-gray-900 dark:text-white"}`}>{row.value}</span>
-                                        </div>
-                                    ))}
-                                    <div className="border-t border-gray-200 dark:border-white/10 pt-1.5 flex justify-between items-center">
-                                        <span className="text-[10px] font-black text-gray-700 dark:text-white uppercase tracking-widest">You receive</span>
-                                        <span className="text-sm font-black text-green-500">₦{netAmount.toLocaleString()}</span>
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            <button
-                                onClick={handleWithdraw}
-                                disabled={numAmount < 1000 || numAmount > walletBalance}
-                                className="w-full h-11 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-black font-black text-sm disabled:opacity-40 active:scale-95 transition-all flex items-center justify-center gap-2"
-                            >
-                                <Send size={15} />
-                                Withdraw ₦{numAmount > 0 ? numAmount.toLocaleString() : "—"}
-                            </button>
-
-                            <p className="text-center text-[10px] text-gray-400 font-medium">
-                                Transfers arrive within 1–2 business hours.
-                            </p>
-                        </motion.div>
-                    )}
-
-                    {step === "processing" && (
-                        <motion.div key="processing" className="flex flex-col items-center py-10 gap-3">
-                            <Loader2 className="animate-spin text-orange-500" size={28} />
-                            <div className="text-center">
-                                <p className="text-sm font-black text-gray-900 dark:text-white">Processing Transfer</p>
-                                <p className="text-xs text-gray-500 font-medium mt-0.5">Sending earnings to your bank...</p>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {step === "done" && (
-                        <motion.div key="done" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center py-8 gap-4 text-center">
-                            <div className="w-14 h-14 rounded-xl bg-green-500/10 flex items-center justify-center">
-                                <CheckCircle2 size={28} className="text-green-500" />
-                            </div>
-                            <div>
-                                <h3 className="text-base font-black text-gray-900 dark:text-white">Transfer Initiated!</h3>
-                                <p className="text-gray-500 text-xs font-medium mt-1 max-w-[220px] mx-auto leading-relaxed">
-                                    ₦{netAmount.toLocaleString()} is on its way to {bankAccount?.bankName}. Expect it within 1–2 hrs.
+                    <AnimatePresence>
+                        {(resolving || resolvedName) && (
+                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-3 bg-green-500/10 border border-green-500/20 rounded-xl">
+                                <p className="text-[10px] font-black text-green-500 uppercase tracking-widest leading-none mb-1">
+                                    {resolving ? "Verifying..." : "Account Name"}
                                 </p>
-                            </div>
-                            <button
-                                onClick={onClose}
-                                className="h-10 px-6 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-black font-black text-sm active:scale-95 transition-all"
-                            >
-                                Done
-                            </button>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                <p className="text-sm font-black text-gray-900 dark:text-white">{resolvedName || "..."}</p>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    <button
+                        onClick={handleSave}
+                        disabled={!resolvedName || saving}
+                        className="w-full h-12 rounded-xl bg-orange-600 text-white font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2"
+                    >
+                        {saving ? <Loader2 className="animate-spin" size={16} /> : "Save Settings"}
+                    </button>
+                </div>
             </motion.div>
+        </div>
+    );
+}
+
+function PayoutScheduleInfo({ balance, bankAccount }) {
+    const now = new Date();
+    const isAfter8PM = now.getHours() >= 20;
+    const scheduledDay = isAfter8PM ? "Tomorrow" : "Today";
+
+    return (
+        <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                <h4 className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Automatic Payout Scheduled</h4>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <p className="text-[9px] font-black text-blue-500/60 uppercase tracking-widest">Time</p>
+                    <p className="text-xs font-black text-gray-900 dark:text-white uppercase">{scheduledDay} @ 8:00 PM</p>
+                </div>
+                <div>
+                    <p className="text-[9px] font-black text-blue-500/60 uppercase tracking-widest">Amount</p>
+                    <p className="text-xs font-black text-gray-900 dark:text-white">₦{balance.toLocaleString()}</p>
+                </div>
+            </div>
+
+            {bankAccount ? (
+                <div className="pt-2 border-t border-blue-500/10 flex items-center gap-2">
+                    <Building2 size={12} className="text-blue-500" />
+                    <p className="text-[10px] font-bold text-gray-500">
+                        Settling to {bankAccount.bankName} (***{bankAccount.accountNumber.slice(-4)})
+                    </p>
+                </div>
+            ) : (
+                <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">
+                    Link a bank account below to receive payouts.
+                </p>
+            )}
         </div>
     );
 }
@@ -397,10 +220,8 @@ export default function RiderWalletPage() {
     const [wallet, setWallet] = useState(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [showPayout, setShowPayout] = useState(false);
-    const [withdrawals, setWithdrawals] = useState([]);
-    const [loadingWithdrawals, setLoadingWithdrawals] = useState(false);
-    const [showWithdrawalHistory, setShowWithdrawalHistory] = useState(false);
+    const [showPayoutSettings, setShowPayoutSettings] = useState(false);
+    const [bankAccount, setBankAccount] = useState(null);
 
     const riderId = rider?._id || rider?.id;
 
@@ -419,19 +240,18 @@ export default function RiderWalletPage() {
         }
     };
 
-    const fetchWithdrawalHistory = async () => {
+    const fetchPayoutDetails = async () => {
         if (!riderId) return;
-        setLoadingWithdrawals(true);
         try {
-            const res = await getRiderWithdrawalHistory(riderId);
-            setWithdrawals(res?.data || []);
-        } catch { } finally {
-            setLoadingWithdrawals(false);
-        }
+            const res = await getRiderBankAccount(riderId);
+            if (res?.data?.payoutEnabled) {
+                setBankAccount(res.data);
+            }
+        } catch { }
     };
 
     useEffect(() => {
-        if (riderId) { fetchWallet(); fetchWithdrawalHistory(); }
+        if (riderId) { fetchWallet(); fetchPayoutDetails(); }
     }, [riderId]);
 
     const transactions = wallet?.transactions || [];
@@ -512,79 +332,18 @@ export default function RiderWalletPage() {
                     </div>
                 </motion.div>
 
-                {/* Cash Out Button */}
+                <PayoutScheduleInfo
+                    balance={balance}
+                    bankAccount={bankAccount}
+                />
+
                 <button
-                    onClick={() => setShowPayout(true)}
-                    disabled={balance < 1000}
-                    className="w-full bg-gray-900 dark:bg-white text-white dark:text-black font-black py-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed text-sm"
+                    onClick={() => setShowPayoutSettings(true)}
+                    className="w-full bg-gray-900 dark:bg-white text-white dark:text-black font-black py-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all text-sm"
                 >
-                    <ArrowUpRight size={17} />
-                    {balance < 1000 ? "Min. ₦1,000 to withdraw" : "Cash Out Earnings"}
+                    <Building2 size={17} />
+                    {bankAccount ? "Bank Settings" : "Link Bank Account"}
                 </button>
-
-                {/* Withdrawal History */}
-                {withdrawals.length > 0 && (
-                    <div className="space-y-2">
-                        <button
-                            onClick={() => setShowWithdrawalHistory(v => !v)}
-                            className="w-full flex items-center justify-between"
-                        >
-                            <h2 className="text-sm font-black text-gray-900 dark:text-white flex items-center gap-1.5">
-                                <History className="text-orange-500" size={15} />
-                                Withdrawal History
-                            </h2>
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{withdrawals.length} record(s)</span>
-                                <ChevronDown size={14} className={`text-gray-400 transition-transform ${showWithdrawalHistory ? "rotate-180" : ""}`} />
-                            </div>
-                        </button>
-
-                        <AnimatePresence>
-                            {showWithdrawalHistory && (
-                                <motion.div
-                                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                                    className="space-y-2 overflow-hidden"
-                                >
-                                    {loadingWithdrawals ? (
-                                        <div className="flex justify-center py-4">
-                                            <Loader2 className="animate-spin text-orange-500" size={20} />
-                                        </div>
-                                    ) : (
-                                        withdrawals.map((wd, idx) => {
-                                            const s = withdrawalStatusStyle(wd.status);
-                                            return (
-                                                <motion.div
-                                                    key={wd._id || idx}
-                                                    initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: idx * 0.04 }}
-                                                    className="bg-white dark:bg-[#1A1D23] border border-gray-100 dark:border-white/5 rounded-xl p-3 flex items-center justify-between"
-                                                >
-                                                    <div className="flex items-center gap-2.5">
-                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${s.bg}`}>
-                                                            <Send size={14} className={s.text} />
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-xs font-bold text-gray-900 dark:text-white">{wd.bankName}</p>
-                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                                                                {new Date(wd.createdAt).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="text-xs font-black text-gray-900 dark:text-white">-₦{wd.requestedAmount.toLocaleString()}</p>
-                                                        <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full ${s.bg} ${s.text}`}>
-                                                            {s.label}
-                                                        </span>
-                                                    </div>
-                                                </motion.div>
-                                            );
-                                        })
-                                    )}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                )}
 
                 {/* Transaction History */}
                 <div className="space-y-3">
@@ -659,18 +418,18 @@ export default function RiderWalletPage() {
                         <h4 className="font-black text-xs uppercase tracking-widest">Wallet Policy</h4>
                     </div>
                     <p className="text-gray-500 text-xs font-medium leading-relaxed">
-                        Earnings credit instantly after delivery. Minimum withdrawal is ₦1,000. A transfer fee (₦10–₦50) applies per payout.
+                        Earnings credit instantly after delivery. Payouts are made automatically every day at 8:00 PM (minimum balance of ₦1,500).
                     </p>
                 </div>
             </div>
 
             <AnimatePresence>
-                {showPayout && (
-                    <PayoutSheet
+                {showPayoutSettings && (
+                    <PayoutSettingsModal
                         riderId={riderId}
-                        walletBalance={balance}
-                        onClose={() => setShowPayout(false)}
-                        onSuccess={() => { fetchWallet(); fetchWithdrawalHistory(); }}
+                        existingDetails={bankAccount}
+                        onClose={() => setShowPayoutSettings(false)}
+                        onSaved={fetchPayoutDetails}
                     />
                 )}
             </AnimatePresence>

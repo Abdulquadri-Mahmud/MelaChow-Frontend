@@ -754,59 +754,17 @@ export default function VendorRegisterPage() {
                   <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
                     <h3 className="text-sm font-black uppercase italic tracking-widest text-slate-900 dark:text-white">Delivery Configuration</h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setField("deliveryManagedBy", "vendor");
-                        }}
-                        className={`flex flex-col items-start p-4 rounded-2xl border-2 transition-all text-left ${payload.deliveryManagedBy === "vendor" ? "border-orange-600 bg-orange-50 dark:bg-orange-500/10" : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900"}`}
-                      >
-                        <div className="flex items-center justify-between w-full mb-2">
-                          <User className={payload.deliveryManagedBy === "vendor" ? "text-orange-600" : "text-slate-400"} size={20} />
-                          {payload.deliveryManagedBy === "vendor" && <CheckCircle2 className="text-orange-600" size={16} />}
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white">I'll manage delivery</p>
-                        <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tight">I have my own riders</p>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setField("deliveryManagedBy", "admin");
-                          setField("flatRateDeliveryFee", 0);
-                        }}
-                        className={`flex flex-col items-start p-4 rounded-2xl border-2 transition-all text-left ${payload.deliveryManagedBy === "admin" ? "border-orange-600 bg-orange-50 dark:bg-orange-500/10" : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900"}`}
-                      >
-                        <div className="flex items-center justify-between w-full mb-2">
-                          <Store className={payload.deliveryManagedBy === "admin" ? "text-orange-600" : "text-slate-400"} size={20} />
-                          {payload.deliveryManagedBy === "admin" && <CheckCircle2 className="text-orange-600" size={16} />}
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white">Use platform delivery</p>
-                        <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tight">MelaChow handles delivery</p>
-                      </button>
+                    <div className="bg-orange-50 dark:bg-orange-500/5 p-6 rounded-[32px] border-2 border-orange-100 dark:border-orange-500/20 flex flex-col md:flex-row items-center gap-6">
+                      <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-orange-600 shadow-sm shrink-0 border border-orange-100 dark:border-orange-500/20">
+                        <MapPin size={32} />
+                      </div>
+                      <div className="flex-1 text-center md:text-left">
+                        <p className="text-[12px] font-black uppercase tracking-widest text-slate-900 dark:text-white">Standard Platform Logistics</p>
+                        <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest leading-relaxed">
+                          To maintain quality, MelaChow centrally manages all delivery logistics. Our platform riders will automatically be dispatched to your store when orders are marked as ready.
+                        </p>
+                      </div>
                     </div>
-
-                    <AnimatePresence>
-                      {payload.deliveryManagedBy === "vendor" && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <TextInput
-                            path="flatRateDeliveryFee"
-                            placeholder="Flat Rate Delivery Fee (₦)"
-                            icon={CreditCard}
-                            type="number"
-                            error={errors.flatRateDeliveryFee}
-                            payload={payload}
-                            setField={setField}
-                          />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
                   </div>
 
 

@@ -46,11 +46,6 @@ const navItems = [
     href: "/vendors/order",
   },
   {
-    name: "Riders",
-    icon: Bike,
-    href: "/vendors/riders",
-  },
-  {
     name: "Notifications",
     icon: Bell,
     href: "/vendors/notifications",
