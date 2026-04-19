@@ -23,6 +23,7 @@ import {
 import Logo from "../../logo/Logo";
 import { useApi } from "@/app/context/ApiContext";
 import PermanentInstallButton from "@/app/components/PermanentInstallButton";
+import { useVendorStorage } from "@/app/hooks/vendorStorage";
 
 const navItems = [
   {
@@ -90,6 +91,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
   const { baseUrl } = useApi();
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const { logout } = useVendorStorage();
 
   // Check active path
   const isSegmentActive = (href) => pathname?.includes(href);
@@ -108,15 +110,8 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
   const handleLogout = async () => {
     try {
       setLogoutLoading(true);
-      const res = await fetch(`${baseUrl}/vendor/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (data.success) {
-        // localStorage.removeItem("vendorToken"); // Removed
-        router.push("/vendors/auth/login");
-      }
+      await logout();
+      setShowLogoutModal(false);
     } catch (err) {
       console.error("Logout error:", err);
     } finally {

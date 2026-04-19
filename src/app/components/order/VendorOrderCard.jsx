@@ -2,7 +2,8 @@ import Link from "next/link";
 import { 
   User, MapPin, Phone, ChevronRight, ShoppingBag, 
   Hash, CalendarDays, Clock, Zap, TrendingUp,
-  MoreVertical, CheckCircle2, Loader2, Play, PackageCheck
+  MoreVertical, CheckCircle2, Loader2, Play, PackageCheck,
+  Bike
 } from "lucide-react";
 import { useVendorProfile } from "@/app/context/VendorProfileContext";
 import { motion, AnimatePresence } from "framer-motion";

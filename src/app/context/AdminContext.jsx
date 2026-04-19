@@ -75,6 +75,12 @@ export const AdminProvider = ({ children }) => {
             setAdmin(null);
             TokenManager.clearToken('admin'); // ✅ Clear fallback token
             sessionStorage.removeItem("splashShown");
+            
+            if (typeof window !== 'undefined') {
+                setTimeout(() => {
+                    window.location.href = '/admin/auth/login';
+                }, 100);
+            }
         }
     };
 
