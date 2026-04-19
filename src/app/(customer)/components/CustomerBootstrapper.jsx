@@ -7,9 +7,10 @@ import { motion } from "framer-motion";
 import CustomerLogoutHandler from "./CustomerLogoutHandler";
 
 // Routes that should be accessible to guests (no auth required)
+// NOTE: /home is intentionally NOT here — it requires authentication.
+// Unauthenticated users (expired token) must be redirected to /auth/signin.
 const GUEST_ALLOWED_ROUTES = [
     "/",
-    "/home",
     "/all-restaurants",
     "/all-foods",
     "/search",
