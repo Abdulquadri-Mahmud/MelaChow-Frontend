@@ -48,9 +48,9 @@ const VendorCard = ({ _id, storeName, city, image, status, isOpen, rating, ratin
     const [liked, setLiked] = useState(false);
 
     return (
-        <div
-            onClick={() => router.push(`/restaurants/${_id}`)}
-            className={`flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 ${!isOpen ? '' : ''}`}
+        <Link
+            href={`/restaurants/${_id}`}
+            className={`flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 block ${!isOpen ? '' : ''}`}
             style={{
                 width: "72vw", maxWidth: "280px",
                 boxShadow: ""
@@ -141,7 +141,7 @@ const VendorCard = ({ _id, storeName, city, image, status, isOpen, rating, ratin
                     )}
                 </div>
             </div>
-        </div>
+        </Link>
     );
 };
 

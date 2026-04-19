@@ -30,11 +30,21 @@ export default function CustomerLayout({ children }) {
     const isAuthRoute = isMounted && pathname?.startsWith("/auth/");
 
     // ✅ Show loading state during SSR to prevent hydration mismatch
+    // CRITICAL SEO FIX: We MUST render the children and Footer so Googlebot
+    // actually receives the HTML. We only delay purely client-side features.
     if (!isMounted) {
         return (
             <ProfileProvider>
                 <CartProvider>
-                    <div className="h-screen w-full bg-white dark:bg-zinc-950" />
+                    {isAuthRoute ? (
+                        <>
+                            {children}
+                        </>
+                    ) : (
+                        <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen">
+                            {children}
+                        </div>
+                    )}
                 </CartProvider>
             </ProfileProvider>
         );
