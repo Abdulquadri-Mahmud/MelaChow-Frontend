@@ -233,6 +233,10 @@ class AdminAPI {
         return this.handleResponse(api.get("/api/admin/get-all"));
     }
 
+    async getMe() {
+        return this.handleResponse(api.get("/api/admin/me"));
+    }
+
     async deleteAdmin(adminId) {
         return this.handleResponse(
             api.delete(`/api/admin/delete/${adminId}`)

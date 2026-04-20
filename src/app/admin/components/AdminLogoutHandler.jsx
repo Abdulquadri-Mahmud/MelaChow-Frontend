@@ -18,12 +18,12 @@ export default function AdminLogoutHandler() {
         const handleUnauthorized = () => {
             console.log("[AdminLogoutHandler] Admin logout triggered (unauthorized)");
 
-            if (logout) logout();
-            TokenManager.clearToken();
-            sessionStorage.removeItem("splashShown");
-
-            // Only redirect if not already on login page
+            // Only clear state and redirect if not already on login page
             if (!pathname.includes("/admin/auth/login")) {
+                if (logout) logout();
+                TokenManager.clearToken('admin');
+                sessionStorage.removeItem("splashShown");
+                
                 toast.error("Session expired. Please login again.");
                 router.replace("/admin/auth/login");
             }
