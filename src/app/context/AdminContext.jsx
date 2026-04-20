@@ -18,16 +18,18 @@ export const AdminProvider = ({ children }) => {
     }, []);
 
     const checkAdminSession = async () => {
+        // Skip check if we're on the login page to avoid infinite loops
+        if (typeof window !== 'undefined' && window.location.pathname === '/admin/auth/login') {
+            setIsLoading(false);
+            return;
+        }
+
         try {
             // Try to fetch admin data - if this succeeds, we're authenticated
-            const response = await adminAPI.getAllAdmins();
-
-            console.log(response)
+            const response = await adminAPI.getMe();
 
             if (response.success) {
-                // We're authenticated - set a placeholder admin object
-                // The actual admin data will be set during login
-                setAdmin({ authenticated: true });
+                setAdmin(response.admin);
             }
         } catch (error) {
             // Not authenticated - silent fail is expected
@@ -76,10 +78,11 @@ export const AdminProvider = ({ children }) => {
             TokenManager.clearToken('admin'); // ✅ Clear fallback token
             sessionStorage.removeItem("splashShown");
             
+            // Avoid hard reload if already on login page OR using router
             if (typeof window !== 'undefined') {
-                setTimeout(() => {
-                    window.location.href = '/admin/auth/login';
-                }, 100);
+                if (window.location.pathname !== '/admin/auth/login') {
+                    router.push('/admin/auth/login');
+                }
             }
         }
     };
