@@ -20,11 +20,18 @@ export const getFoodsByLocation = async ({ city, state }) => {
     params: { city, state },
   });
   return res.data;
-  // Shape returned:
-  // {
-  //   success: true,
-  //   location: { city, state },
-  //   count: number,
-  //   foods: Food[]
-  // }
+};
+
+/**
+ * Fetch active vendors near a given city/state.
+ *
+ * @param {Object} params
+ * @param {string} params.city
+ * @param {string} params.state
+ */
+export const getNearbyVendors = async ({ city, state, cuisine }) => {
+  const res = await getUserAxios().get("/user/vendors/nearby", {
+    params: { city, state, cuisine },
+  });
+  return res.data;
 };

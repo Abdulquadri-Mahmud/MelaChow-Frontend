@@ -16,14 +16,14 @@
  */
 
 import { useMemo, useState, useEffect } from "react";
-import { Store, MapPin, Star, BadgeCheck, Heart, Globe, Bike, Gift, Utensils, Sparkles } from "lucide-react";
+import { Store, MapPin, Star, BadgeCheck, Heart, Globe, Bike, Gift, Utensils, Sparkles, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { isVendorOpen } from "@/app/lib/utils";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
-import { getFoodsByLocation } from "@/app/lib/userApi";
+import { getNearbyVendors } from "@/app/lib/userApi";
 import { useLocationStore } from "@/app/store/userLocationStore";
 
 const VendorCardSkeleton = () => (
@@ -50,95 +50,82 @@ const VendorCard = ({ _id, storeName, city, image, status, isOpen, rating, ratin
     return (
         <Link
             href={`/restaurants/${_id}`}
-            className={`flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 block ${!isOpen ? '' : ''}`}
-            style={{
-                width: "72vw", maxWidth: "280px",
-                boxShadow: ""
-            }}
+            className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[24px] overflow-hidden cursor-pointer snap-start transition-all duration-300 block border border-zinc-100 dark:border-zinc-800 hover:shadow-xl`}
+            style={{ width: "58vw", maxWidth: "240px" }}
         >
             {/* Image Block */}
-            <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+            <div className="relative h-[120px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                 {image ? (
-                    <img src={image} alt={storeName} className="w-full h-full object-cover" />
+                    <img src={image} alt={storeName} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-800">
                         <Utensils className="text-zinc-300 dark:text-zinc-600" size={40} />
                     </div>
                 )}
 
+                {/* Rating - Floating Badge */}
+                <div className="absolute top-2 left-2 bg-white/90 dark:bg-zinc-900/90 px-2 py-1 rounded-xl flex items-center gap-1 shadow-sm border border-white/20">
+                    <Star size={12} className="fill-orange-500 text-orange-500" />
+                    <span className="text-[11px] font-black text-zinc-900 dark:text-white">
+                        {Number(rating || 0).toFixed(1)}
+                    </span>
+                    {ratingCount > 0 && (
+                      <span className="text-[8px] font-bold text-zinc-400">
+                        ({ratingCount.toLocaleString()})
+                      </span>
+                    )}
+                </div>
+
+                {/* Status Overlay */}
+                <div className="absolute top-2 right-2">
+                    <span className={`${isOpen ? 'bg-emerald-500' : 'bg-rose-500'} text-white text-[8px] font-black px-2 py-1 rounded-lg shadow-lg uppercase tracking-widest`}>
+                        {isOpen ? "Open" : "Closed"}
+                    </span>
+                </div>
+
                 {/* Badge Overlay */}
                 {badge && (
-                    <div className="absolute bottom-[10px] left-[10px] bg-white dark:bg-zinc-800 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 max-w-[90%]">
-                        <Gift size={12} className="text-orange-500" />
-                        <span className="text-[11px] font-semibold text-gray-900 dark:text-white truncate">{badge}</span>
+                    <div className="absolute bottom-2 left-2 bg-white/90 dark:bg-zinc-800/90 px-2 py-1 rounded-lg shadow-sm backdrop-blur-md max-w-[90%]">
+                        <span className="text-[9px] font-black text-zinc-900 dark:text-white truncate uppercase tracking-widest leading-none flex items-center gap-1">
+                          <Gift size={10} className="text-orange-500" /> {badge}
+                        </span>
                     </div>
                 )}
             </div>
 
             {/* Info Block */}
-            <div className="px-3 pt-2.5 pb-3">
-                {/* Row 1 */}
-                <div className="flex justify-between items-center gap-2">
-                    <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[calc(100%-28px)]">
-                        {storeName}
-                        <span className="text-[11px] font-normal text-gray-500 dark:text-zinc-400 ml-1.5">{" \u2022 "} {city || "Nearby"}</span>
-                    </h3>
+            <div className="px-3 pt-3 pb-3.5">
+                <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-black text-zinc-900 dark:text-white truncate uppercase tracking-tight italic leading-tight">
+                            {storeName}
+                        </h3>
+                        <div className="flex items-center gap-1 mt-1 font-bold text-zinc-400 text-[9px] uppercase tracking-widest">
+                            <MapPin size={10} className="text-orange-500" />
+                            <span className="truncate">{city || "Nearby"}</span>
+                        </div>
+                    </div>
                     <button
-                        onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
-                        className="transition-colors"
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); setLiked(!liked); }}
+                        className="transition-colors mt-0.5"
                     >
                         <Heart
                             size={18}
-                            className={liked ? "fill-red-500 text-red-500" : "text-gray-400"}
-                            strokeWidth={liked ? 0 : 1.5}
+                            className={liked ? "fill-red-500 text-red-500" : "text-zinc-200 dark:text-zinc-800"}
+                            strokeWidth={liked ? 0 : 2}
                         />
                     </button>
                 </div>
 
-                {/* Row 2: Metadata Line */}
-                <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
-                    <Globe size={14} className="text-gray-400 dark:text-zinc-500" />
-                    
-                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
-
-                    {/* Delivery */}
-                    <div className="flex items-center gap-1 whitespace-nowrap">
-                        <span className="text-[13px]">🛵</span>
-                        {(() => {
-                            const isFree = !deliveryFee || deliveryFee === 0;
-                            const deliveryText = isFree ? "Free" : `From ₦${deliveryFee.toLocaleString()}`;
-                            return (
-                                <span className={`text-[12px] ${isFree ? "font-bold text-gray-900 dark:text-white" : "font-normal text-gray-500 dark:text-zinc-400"}`}>
-                                    {deliveryText}
-                                </span>
-                            );
-                        })()}
+                <div className="mt-3 flex items-center justify-between bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
+                    <div className="flex items-center gap-1.5 text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tighter italic">
+                        <Bike size={14} className="text-orange-600" />
+                        <span>{(!deliveryFee || deliveryFee === 0) ? "Free Delivery" : `₦${deliveryFee.toLocaleString()} Fee`}</span>
                     </div>
-
-                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
-
-                    {/* Status */}
-                    <span className={`text-[10px] font-semibold uppercase italic whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {status}
-                    </span>
-
-                    {/* Rating — only render if rating data exists */}
-                    {rating != null && rating > 0 && (
-                        <>
-                            <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
-                            <div className="flex items-center gap-1 whitespace-nowrap">
-                                <span className="text-[13px]">⭐</span>
-                                <span className="text-[12px] font-bold text-gray-900 dark:text-white">
-                                    {rating.toFixed(1)}
-                                </span>
-                                {ratingCount != null && (
-                                    <span className="text-[11px] text-gray-400">
-                                        ({ratingCount.toLocaleString()})
-                                    </span>
-                                )}
-                            </div>
-                        </>
-                    )}
+                    <div className="flex items-center gap-1 text-[9px] font-black text-zinc-900 dark:text-white uppercase tracking-tighter italic">
+                        <Clock size={12} className="text-orange-500" />
+                        <span>15-25 min</span>
+                    </div>
                 </div>
             </div>
         </Link>
@@ -149,16 +136,9 @@ export default function VendorList({ user }) {
     const router = useRouter();
 
     const { userLocation, syncWithUserAddress } = useLocationStore();
-
-    useEffect(() => {
-        if (user) {
-            syncWithUserAddress(user);
-        }
-    }, [user, syncWithUserAddress]);
-
     const { data: responseData, isLoading, isError } = useQuery({
-        queryKey: ["foods-by-location", userLocation?.city, userLocation?.state],
-        queryFn: () => getFoodsByLocation({
+        queryKey: ["vendors-nearby", userLocation?.city, userLocation?.state],
+        queryFn: () => getNearbyVendors({
             city: userLocation.city,
             state: userLocation.state,
         }),
@@ -166,40 +146,24 @@ export default function VendorList({ user }) {
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 
-    // console.log(responseData);
-
-    const foods = responseData?.foods || [];
+    const vendors = responseData?.vendors || [];
 
     const uniqueVendors = useMemo(() => {
-        const seen = new Set();
-        const result = [];
-
-        for (const food of (foods || [])) {
-            const vendor = food.restaurant || food.vendor;
-            const id = vendor?._id?.toString();
-            if (!id || seen.has(id)) continue;
-            seen.add(id);
-
-            result.push({
-                _id: vendor._id,
-                storeName: vendor.storeName,
-                city: vendor.city,
-                // Use logo as card image — no coverImage in this payload
-                image: vendor.logo || null,
-                isOpen: getVendorOpenAndCloseStatus(vendor.openingHours).startsWith("Open now"),
-                status: getVendorOpenAndCloseStatus(vendor.openingHours),
-                // deliveryFee is on the food item, not the restaurant
-                deliveryFee: food.deliveryFee ?? vendor.deliveryFee ?? vendor.flatRateDeliveryFee ?? null,
-                // rating/ratingCount NOT in this payload
-                // render conditionally — show nothing if 0
-                rating: vendor.rating || null,
-                ratingCount: vendor.ratingCount || null,
-                badge: null,
-            });
-        }
-
-        return result;
-    }, [foods]);
+        return vendors.map(v => ({
+            _id: v._id,
+            storeName: v.storeName,
+            city: v.address?.city,
+            // Use logo as card image — no coverImage in this payload
+            image: v.logo || null,
+            isOpen: getVendorOpenAndCloseStatus(v.openingHours).startsWith("Open now"),
+            status: getVendorOpenAndCloseStatus(v.openingHours),
+            // deliveryFee is resolved in the backend for nearby vendors
+            deliveryFee: v.deliveryFee ?? 0,
+            rating: v.rating || null,
+            ratingCount: v.ratingCount || null,
+            badge: null,
+        }));
+    }, [vendors]);
 
     const featuredVendors = uniqueVendors.slice(0, 6);
     const handpickedVendors = uniqueVendors.slice(6, 12);

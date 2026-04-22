@@ -6,7 +6,7 @@ import {
     Search, SlidersHorizontal, AlertCircle, RefreshCw, X, Utensils,
     StarHalf, Star as StarEmpty
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/app/context/ApiContext";
@@ -14,6 +14,7 @@ import { fetchUser } from "@/app/lib/api";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import axios from "axios";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+import { getNearbyVendors } from "@/app/lib/userApi";
 
 const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
     <div
@@ -26,6 +27,9 @@ const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
 
 export default function AllRestaurants() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const categoryQuery = searchParams.get("category") || "";
+
     const { baseUrl } = useApi();
     const [imgLoaded, setImgLoaded] = useState({});
     const [isSearching, setIsSearching] = useState(false);
@@ -36,34 +40,29 @@ export default function AllRestaurants() {
 
     const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
 
-    const { data: vendors = [], isLoading, isError, error, refetch } = useQuery({
-        queryKey: ["all-vendors", defaultAddr?.city, defaultAddr?.state],
-        queryFn: async () => {
-            if (!defaultAddr?.city || !defaultAddr?.state) {
-                const err = new Error("Missing location");
-                err.response = { data: { message: "Please provide both city and state query parameters." } };
-                throw err;
-            }
-            const res = await axios.get(`${baseUrl}/user/vendors/nearby`, {
-                params: {
-                    city: defaultAddr.city,
-                    state: defaultAddr.state,
-                },
-                withCredentials: true, // Use cookies for authentication
-            });
-            return res.data.vendors || [];
-        },
+    const { data: responseData, isLoading, isError, error, refetch } = useQuery({
+        queryKey: ["vendors-nearby", defaultAddr?.city, defaultAddr?.state, categoryQuery],
+        queryFn: () => getNearbyVendors({
+            city: defaultAddr.city,
+            state: defaultAddr.state,
+            cuisine: categoryQuery,
+        }),
         enabled: !!defaultAddr && !isUserLoading,
     });
+
+    const vendors = responseData?.vendors || [];
 
     console.log(vendors)
 
     const filteredVendors = useMemo(() => {
-        if (!searchQuery) return vendors;
-        return vendors.filter(v =>
-            v.storeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            v.address?.city?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        let result = vendors;
+        if (searchQuery) {
+            result = result.filter(v =>
+                v.storeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                v.address?.city?.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
+        return result;
     }, [vendors, searchQuery]);
 
     const getStatusInfo = (vendor) => {
