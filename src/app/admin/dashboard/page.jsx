@@ -116,7 +116,7 @@ export default function AdminDashboardPage() {
                     adminApi.getOperationalVelocity()
                 ]);
 
-                const pending = vendorsData.vendors?.filter(v => !v.verified) || [];
+                const pending = vendorsData.vendors?.filter(v => !v.isApproved) || [];
                 setStats({
                     users: userStats.stats?.totalUsers || 0,
                     vendors: vendorsData.vendors?.length || 0,
