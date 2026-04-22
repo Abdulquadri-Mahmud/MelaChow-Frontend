@@ -6,7 +6,7 @@ import {
     Search, SlidersHorizontal, AlertCircle, RefreshCw, X, Utensils,
     StarHalf, Star as StarEmpty
 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/app/context/ApiContext";
@@ -27,9 +27,6 @@ const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
 
 export default function AllRestaurants() {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const categoryQuery = searchParams.get("category") || "";
-
     const { baseUrl } = useApi();
     const [imgLoaded, setImgLoaded] = useState({});
     const [isSearching, setIsSearching] = useState(false);
@@ -41,11 +38,10 @@ export default function AllRestaurants() {
     const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
 
     const { data: responseData, isLoading, isError, error, refetch } = useQuery({
-        queryKey: ["vendors-nearby", defaultAddr?.city, defaultAddr?.state, categoryQuery],
+        queryKey: ["vendors-nearby", defaultAddr?.city, defaultAddr?.state],
         queryFn: () => getNearbyVendors({
             city: defaultAddr.city,
             state: defaultAddr.state,
-            cuisine: categoryQuery,
         }),
         enabled: !!defaultAddr && !isUserLoading,
     });
@@ -55,14 +51,11 @@ export default function AllRestaurants() {
     console.log(vendors)
 
     const filteredVendors = useMemo(() => {
-        let result = vendors;
-        if (searchQuery) {
-            result = result.filter(v =>
-                v.storeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                v.address?.city?.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-        return result;
+        if (!searchQuery) return vendors;
+        return vendors.filter(v =>
+            v.storeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            v.address?.city?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
     }, [vendors, searchQuery]);
 
     const getStatusInfo = (vendor) => {

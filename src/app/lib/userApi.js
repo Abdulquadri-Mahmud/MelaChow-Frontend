@@ -29,9 +29,9 @@ export const getFoodsByLocation = async ({ city, state }) => {
  * @param {string} params.city
  * @param {string} params.state
  */
-export const getNearbyVendors = async ({ city, state, cuisine }) => {
+export const getNearbyVendors = async ({ city, state }) => {
   const res = await getUserAxios().get("/user/vendors/nearby", {
-    params: { city, state, cuisine },
+    params: { city, state },
   });
   return res.data;
 };

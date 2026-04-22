@@ -21,9 +21,9 @@ export default function CategoryList() {
 
     const handleCategoryClick = (category) => {
         setActiveCategory(category.name);
-        // Navigate to All Restaurants with category filter
+        // Prefer slug for URL, fallback to name
         const query = category.name;
-        router.push(`/all-restaurants?category=${encodeURIComponent(query)}`);
+        router.push(`/search?category=${encodeURIComponent(query)}`);
     };
 
     // Skeleton loader component
