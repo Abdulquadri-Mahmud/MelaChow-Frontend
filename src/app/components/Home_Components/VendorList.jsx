@@ -17,10 +17,10 @@
  *   /restaurants/${vendor._id}
  */
 
-import { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   Utensils, Star, Heart, MapPin, Bike, Clock,
-  Sparkles, Gift, ChevronRight, Dot, Moon, ChefHat, Pizza, Coffee
+  Sparkles, Gift, ChevronRight, Dot, Moon, ChefHat, Pizza, Coffee, Globe
 } from "lucide-react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -33,14 +33,16 @@ import { useLocationStore } from "@/app/store/userLocationStore";
 // ─────────────────────────────────────────────────────────────────────────────
 const VendorCardSkeleton = () => (
   <div
-    className="flex-shrink-0 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900"
-    style={{ width: "58vw", maxWidth: "240px" }}
+    className="flex-shrink-0 rounded-[20px] overflow-hidden bg-white dark:bg-zinc-900"
+    style={{ width: "75vw", maxWidth: "300px" }}
   >
-    <div className="w-full h-[120px] bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
-    <div className="px-3 pt-3 pb-4 space-y-2">
-      <div className="h-3 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-full w-4/5" />
-      <div className="h-3 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-full w-3/5" />
-      <div className="h-8 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-xl w-full mt-3" />
+    <div className="w-full h-[160px] bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+    <div className="px-1 pt-3 pb-4 space-y-3">
+      <div className="flex justify-between items-center px-1">
+        <div className="h-4 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-full w-3/4" />
+        <div className="h-5 w-5 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-full" />
+      </div>
+      <div className="h-3 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-full w-1/2 mx-1" />
     </div>
   </div>
 );
@@ -54,24 +56,22 @@ const ChipSkeleton = () => (
 // VENDOR CARD
 // ─────────────────────────────────────────────────────────────────────────────
 const VendorCard = ({ vendor }) => {
-  const [liked, setLiked] = useState(false);
   const status = getVendorOpenAndCloseStatus(vendor.openingHours);
   const isOpen = status.startsWith("Open now");
 
   return (
     <Link
       href={`/restaurants/${vendor._id}`}
-      className="group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 block"
-        style={{ width: "72vw", maxWidth: "250px" }}
-
+      className="group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[20px] overflow-hidden cursor-pointer snap-start transition-all duration-300 block"
+      style={{ width: "75vw", maxWidth: "280px" }}
     >
-      {/* Image */}
+      {/* Image Container */}
       <div className="relative h-[120px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
         {vendor.image ? (
           <img
             src={vendor.image}
             alt={vendor.storeName}
-            className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${
+            className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
               !isOpen ? "grayscale-[30%]" : ""
             }`}
           />
@@ -81,82 +81,61 @@ const VendorCard = ({ vendor }) => {
           </div>
         )}
 
-        {/* Rating badge */}
-        <div className="absolute top-2 left-2 bg-white/90 dark:bg-zinc-900/90 px-2 py-1 rounded-xl flex items-center gap-1 shadow-sm border border-white/20">
-          <Star size={12} className="fill-orange-500 text-orange-500" />
-          <span className="text-[11px] font-black text-zinc-900 dark:text-white uppercase tracking-tighter">
-            {Number(vendor.rating || 0) === 0 ? "New" : Number(vendor.rating).toFixed(1)}
-          </span>
-          {vendor.ratingCount > 0 && Number(vendor.rating || 0) > 0 && (
-            <span className="text-[8px] font-bold text-zinc-400">
-              ({vendor.ratingCount.toLocaleString()})
-            </span>
-          )}
-        </div>
-
-        {/* Open / Closed badge */}
-        <div className="absolute top-2 right-2">
-          <span
-            className={`text-white text-[8px] font-black px-2 py-1 rounded-lg shadow-lg uppercase tracking-widest ${
-              isOpen ? "bg-emerald-500" : "bg-zinc-400 dark:bg-zinc-600"
-            }`}
-          >
-            {isOpen ? "Open" : "Closed"}
-          </span>
-        </div>
-
-        {/* Promo badge */}
-        {vendor.badge && (
-          <div className="absolute bottom-2 left-2 bg-white/90 dark:bg-zinc-800/90 px-2 py-1 rounded-lg shadow-sm backdrop-blur-md max-w-[90%]">
-            <span className="text-[9px] font-black text-zinc-900 dark:text-white truncate uppercase tracking-widest leading-none flex items-center gap-1">
-              <Gift size={10} className="text-orange-500" /> {vendor.badge}
+        {/* Floating Promo Badge - Conditionally shown if delivery is free */}
+        {(!vendor.deliveryFee || vendor.deliveryFee === 0) && (
+          <div className="absolute bottom-3 right-3 bg-[#FFF9E5] border border-black/10 px-3 py-1.5 rounded-[12px] shadow-sm flex items-center gap-2">
+            <Gift size={14} className="text-orange-500" />
+            <span className="text-[10px] font-bold text-zinc-800 tracking-tight">
+              Free delivery on all orders
             </span>
           </div>
         )}
       </div>
 
-      {/* Info */}
-      <div className="px-3 pt-3 pb-3.5">
-        <div className="flex justify-between items-start gap-2">
-          <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-black text-zinc-900 dark:text-white truncate uppercase tracking-tight italic leading-tight">
-              {vendor.storeName}
-            </h3>
-            <div className="flex items-center gap-1.5 mt-1.5 font-bold text-zinc-400 text-[9px] uppercase tracking-[0.1em]">
-              <MapPin size={10} className="text-orange-500" />
-              <span className="truncate">{vendor.city || "Nearby"}</span>
-            </div>
-          </div>
-
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setLiked(!liked);
-            }}
-            className="transition-colors mt-0.5"
-          >
-            <Heart
-              size={18}
-              className={liked ? "fill-red-500 text-red-500" : "text-zinc-200 dark:text-zinc-800"}
-              strokeWidth={liked ? 0 : 2}
-            />
-          </button>
+      {/* Info Section */}
+      <div className="px-1 pt-3 pb-4">
+        {/* Title Row */}
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-[15px] font-bold text-zinc-900 dark:text-white truncate">
+            {vendor.storeName} - {vendor.city}
+          </h3>
         </div>
 
-        {/* Delivery + ETA row */}
-        <div className="mt-3 flex items-center justify-between bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
-          <div className="flex items-center gap-1.5 text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tighter italic">
-            <Bike size={14} className="text-orange-600" />
-            <span>
-              {!vendor.deliveryFee || vendor.deliveryFee === 0
-                ? "Free Delivery"
-                : `₦${vendor.deliveryFee.toLocaleString()} Fee`}
+        {/* Metadata Row */}
+        <div className="flex items-center justify-between text-[11px] font-medium">
+          <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+            {/* Payment/Offer Icon */}
+            <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+              <Globe size={10} className="text-indigo-600 dark:text-indigo-400" />
+            </div>
+
+            <span className="text-zinc-300">|</span>
+
+            {/* Delivery */}
+            <div className="flex items-center gap-1">
+              <Bike size={14} className="text-zinc-800 dark:text-zinc-200" />
+              <span className="text-zinc-800 dark:text-zinc-200">
+                From {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free" : `₦${vendor.deliveryFee}`}
+              </span>
+            </div>
+
+            <span className="text-zinc-300">|</span>
+
+            {/* Status */}
+            <span className={isOpen ? "text-emerald-600 font-bold" : "text-rose-500 font-bold"}>
+              {isOpen ? "Open now" : "Closed"}
             </span>
           </div>
-          <div className="flex items-center gap-1 text-[9px] font-black text-zinc-900 dark:text-white uppercase tracking-tighter italic">
-            <Clock size={12} className="text-orange-500" />
-            <span>15–25 min</span>
+
+          {/* Rating */}
+          <div className="flex items-center gap-1">
+            <Star size={14} className="fill-yellow-400 text-yellow-400" />
+            <span className="text-zinc-900 dark:text-white font-bold">
+              {Number(vendor.rating || 0) === 0 ? "New" : Number(vendor.rating).toFixed(1)}
+            </span>
+            {vendor.ratingCount > 0 && (
+              <span className="text-zinc-400 text-[10px]">({vendor.ratingCount})</span>
+            )}
           </div>
         </div>
       </div>
@@ -247,6 +226,10 @@ const EmptyState = ({ city, selectedCuisine, onClear }) => (
 // MAIN EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function VendorList() {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { userLocation } = useLocationStore();
 
@@ -254,7 +237,7 @@ export default function VendorList() {
     queryKey: ["vendors-nearby", userLocation?.city, userLocation?.state],
     queryFn: () =>
       getNearbyVendors({ city: userLocation.city, state: userLocation.state }),
-    enabled: !!userLocation?.city && !!userLocation?.state,
+    enabled: !!userLocation?.city && !!userLocation?.state && mounted,
     staleTime: 1000 * 60 * 5,
   });
 
@@ -305,7 +288,7 @@ export default function VendorList() {
   }, [allVendors]);
 
   // ── Loading ────────────────────────────────────────────────────────────────
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
       <div className="space-y-6 pb-4">
         {/* Chip skeletons */}

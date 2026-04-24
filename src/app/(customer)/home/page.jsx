@@ -32,7 +32,7 @@ export default function HomePage() {
         <SearchBar />
         <CategoryList />
         <VendorList user={user} />
-        <TrendingFoods user={user} />
+        {/* <TrendingFoods user={user} /> */}
         <div className="space-y-4">
           {/* <SmartRecommendations /> */}
           {/* <FoodList user={user} /> */}
