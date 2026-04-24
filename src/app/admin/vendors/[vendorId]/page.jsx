@@ -12,7 +12,7 @@ import {
     ShieldCheck, Truck, Utensils, CheckCircle2, Clock,
     Banknote, ChevronDown, ChevronUp, Search, Star,
     Package, Tag, Percent, Zap, Calendar, Users, X,
-    Mail, Phone, Building2, CreditCard, Activity, Link, Info, Loader2
+    Mail, Phone, Building2, CreditCard, Activity, Link, Info
 } from "lucide-react";
 import axios from "axios";
 import { useApi } from "@/app/context/ApiContext";

@@ -146,12 +146,12 @@ export default function SplashScreen({ user, vendorDetails }) {
                 {/* Typography: Modern & Refined */}
                 <motion.div variants={itemVariants} className="text-center space-y-4">
                     <h1 className="text-6xl font-black italic uppercase tracking-tighter text-white leading-none">
-                        Grub<span className="text-orange-500">Dash</span>
+                        Mela<span className="text-orange-500">Chow</span>
                     </h1>
                     <div className="flex items-center justify-center gap-3">
                         <div className="h-[1px] w-6 bg-orange-500/30" />
                         <p className="text-[11px] font-black uppercase tracking-[0.5em] text-orange-400 text-center">
-                            Local Food Delivery
+                            Premium Food Experience
                         </p>
                         <div className="h-[1px] w-6 bg-orange-500/30" />
                     </div>
