@@ -444,7 +444,7 @@ export default function VendorProfilePage({ vendor }) {
                   <p className="text-[10px] font-black uppercase tracking-widest">Loading categories...</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid lg:grid-cols-4 grid-cols-3 gap-3">
                   {platformCategories.map((group) => {
                     const isSelected = cuisineTypes.includes(group.name);
                     return (

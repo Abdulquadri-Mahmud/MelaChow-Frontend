@@ -20,7 +20,7 @@
 import { useMemo, useState } from "react";
 import {
   Utensils, Star, Heart, MapPin, Bike, Clock,
-  Sparkles, Gift, ChevronRight, Dot,
+  Sparkles, Gift, ChevronRight, Dot, Moon, ChefHat, Pizza, Coffee
 } from "lucide-react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
@@ -49,21 +49,6 @@ const ChipSkeleton = () => (
   <div className="h-8 w-20 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-full flex-shrink-0" />
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CUISINE FILTER CHIP
-// ─────────────────────────────────────────────────────────────────────────────
-const CuisineChip = ({ label, active, onClick }) => (
-  <button
-    onClick={onClick}
-    className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all duration-200 ${
-      active
-        ? "bg-orange-600 text-white shadow-md shadow-orange-600/30"
-        : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
-    }`}
-  >
-    {label}
-  </button>
-);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // VENDOR CARD
@@ -76,7 +61,7 @@ const VendorCard = ({ vendor }) => {
   return (
     <Link
       href={`/restaurants/${vendor._id}`}
-      className="group pb-2 flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 block"
+      className="group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 block"
         style={{ width: "72vw", maxWidth: "250px" }}
 
     >
@@ -99,10 +84,10 @@ const VendorCard = ({ vendor }) => {
         {/* Rating badge */}
         <div className="absolute top-2 left-2 bg-white/90 dark:bg-zinc-900/90 px-2 py-1 rounded-xl flex items-center gap-1 shadow-sm border border-white/20">
           <Star size={12} className="fill-orange-500 text-orange-500" />
-          <span className="text-[11px] font-black text-zinc-900 dark:text-white">
-            {Number(vendor.rating || 0).toFixed(1)}
+          <span className="text-[11px] font-black text-zinc-900 dark:text-white uppercase tracking-tighter">
+            {Number(vendor.rating || 0) === 0 ? "New" : Number(vendor.rating).toFixed(1)}
           </span>
-          {vendor.ratingCount > 0 && (
+          {vendor.ratingCount > 0 && Number(vendor.rating || 0) > 0 && (
             <span className="text-[8px] font-bold text-zinc-400">
               ({vendor.ratingCount.toLocaleString()})
             </span>
@@ -137,14 +122,8 @@ const VendorCard = ({ vendor }) => {
             <h3 className="text-sm font-black text-zinc-900 dark:text-white truncate uppercase tracking-tight italic leading-tight">
               {vendor.storeName}
             </h3>
-            {/* Cuisine types */}
-            {vendor.cuisineTypes?.length > 0 && (
-              <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest truncate mt-0.5">
-                {vendor.cuisineTypes.slice(0, 2).join(" · ")}
-              </p>
-            )}
-            <div className="flex items-center gap-1 mt-1 font-bold text-zinc-400 text-[9px] uppercase tracking-widest">
-              <MapPin size={9} className="text-orange-500" />
+            <div className="flex items-center gap-1.5 mt-1.5 font-bold text-zinc-400 text-[9px] uppercase tracking-[0.1em]">
+              <MapPin size={10} className="text-orange-500" />
               <span className="truncate">{vendor.city || "Nearby"}</span>
             </div>
           </div>
@@ -189,7 +168,7 @@ const VendorCard = ({ vendor }) => {
 // SECTION HEADER
 // ─────────────────────────────────────────────────────────────────────────────
 const SectionHeader = ({ title, subtitle, href, hrefLabel = "View all" }) => (
-  <div className="flex items-center justify-between px-4 mb-3.5">
+  <div className="flex items-center justify-between px-2 mb-3.5">
     <div>
       <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">
         {title}
@@ -217,7 +196,7 @@ const SectionHeader = ({ title, subtitle, href, hrefLabel = "View all" }) => (
 // ─────────────────────────────────────────────────────────────────────────────
 const VendorRow = ({ vendors }) => (
   <div
-    className="flex overflow-x-auto scroll gap-3 px-4 pb-3 scrollbar-hide no-scrollbar"
+    className="flex overflow-x-auto scroll gap-3 pb-3 scrollbar-hide no-scrollbar"
     style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
   >
     {vendors.map((v) => (
@@ -268,7 +247,6 @@ const EmptyState = ({ city, selectedCuisine, onClear }) => (
 // MAIN EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
 export default function VendorList() {
-  const [selectedCuisine, setSelectedCuisine] = useState(null);
 
   const { userLocation } = useLocationStore();
 
@@ -293,6 +271,7 @@ export default function VendorList() {
       ratingCount:  v.ratingCount || 0,
       openingHours: v.openingHours,
       cuisineTypes: v.cuisineTypes || [],
+      locationStatus: v.locationStatus || 'approved', // Default to approved if missing for safety
       badge:        null,
       // Compute open status once here so sort and render share same value
       isOpen: getVendorOpenAndCloseStatus(v.openingHours).startsWith("Open now"),
@@ -314,37 +293,29 @@ export default function VendorList() {
       .map(([name]) => name);
   }, [allVendors]);
 
-  // ── Apply cuisine filter ───────────────────────────────────────────────────
-  const filteredVendors = useMemo(() => {
-    if (!selectedCuisine) return allVendors;
-    return allVendors.filter((v) =>
-      v.cuisineTypes.some(
-        (c) => c.trim().toLowerCase() === selectedCuisine.toLowerCase()
-      )
-    );
-  }, [allVendors, selectedCuisine]);
 
-  // ── Split open vs closed, sort each by rating desc ────────────────────────
-  const { openVendors, closedVendors } = useMemo(() => {
+  const { openVendors, closedVendors, topRatedVendors } = useMemo(() => {
     const byRating = (a, b) => b.rating - a.rating;
+    const open = allVendors.filter((v) => v.isOpen).sort(byRating);
     return {
-      openVendors:   filteredVendors.filter((v) =>  v.isOpen).sort(byRating),
-      closedVendors: filteredVendors.filter((v) => !v.isOpen).sort(byRating),
+      openVendors:   open,
+      closedVendors: allVendors.filter((v) => !v.isOpen).sort(byRating),
+      topRatedVendors: open.filter((v) => v.rating >= 4.0).slice(0, 10), // Top 10 open vendors with 4+ stars
     };
-  }, [filteredVendors]);
+  }, [allVendors]);
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="space-y-6 pb-4">
         {/* Chip skeletons */}
-        <div className="flex gap-2 px-4 overflow-x-auto scrollbar-hide no-scrollbar">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide no-scrollbar">
           {[1, 2, 3, 4].map((n) => <ChipSkeleton key={n} />)}
         </div>
         {/* Card skeletons */}
         <div>
           <div className="h-5 w-40 bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-md mb-4 mx-4" />
-          <div className="flex gap-3 px-4 overflow-x-auto scrollbar-hide no-scrollbar">
+          <div className="flex gap-3 overflow-x-auto scrollbar-hide no-scrollbar">
             {[1, 2, 3].map((n) => <VendorCardSkeleton key={n} />)}
           </div>
         </div>
@@ -379,38 +350,6 @@ export default function VendorList() {
   return (
     <div className="space-y-8 pb-4">
 
-      {/* ── Cuisine Filter Chips ─────────────────────────────────────────── */}
-      {cuisineOptions.length > 0 && (
-        <div
-          className="flex gap-2 px-4 scroll overflow-x-auto scrollbar-hide no-scrollbar"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
-          <CuisineChip
-            label="All"
-            active={!selectedCuisine}
-            onClick={() => setSelectedCuisine(null)}
-          />
-          {cuisineOptions.map((c) => (
-            <CuisineChip
-              key={c}
-              label={c}
-              active={selectedCuisine === c}
-              onClick={() =>
-                setSelectedCuisine((prev) => (prev === c ? null : c))
-              }
-            />
-          ))}
-        </div>
-      )}
-
-      {/* ── No results for selected cuisine ─────────────────────────────── */}
-      {filteredVendors.length === 0 && selectedCuisine && (
-        <EmptyState
-          city={userLocation?.city}
-          selectedCuisine={selectedCuisine}
-          onClear={() => setSelectedCuisine(null)}
-        />
-      )}
 
       {/* ── Open Now ─────────────────────────────────────────────────────── */}
       {openVendors.length > 0 && (
@@ -418,6 +357,7 @@ export default function VendorList() {
           <SectionHeader
             title={
               <span className="flex items-center gap-2">
+                <Clock size={18} className="text-emerald-500" />
                 Open Now
                 {/* Live dot */}
                 <span className="relative flex h-2 w-2">
@@ -434,11 +374,64 @@ export default function VendorList() {
         </div>
       )}
 
+      {/* ── Top Rated ────────────────────────────────────────────────────── */}
+      {topRatedVendors.length > 0 && (
+        <div>
+          <SectionHeader
+            title={
+              <span className="flex items-center gap-2">
+                <Star size={18} className="text-orange-500 fill-orange-500" />
+                Top Rated
+              </span>
+            }
+            subtitle="Highly recommended by local foodies"
+            href="/search?sort=rating"
+            hrefLabel="Explore"
+          />
+          <VendorRow vendors={topRatedVendors} />
+        </div>
+      )}
+
+      {/* ── Categorized Cuisines Rows ───────────────────────────────────── */}
+      {cuisineOptions.map((cuisine) => {
+        const cuisineVendors = allVendors.filter(v => 
+          v.cuisineTypes?.some(t => t.trim() === cuisine) && 
+          v.isOpen
+        );
+
+        if (cuisineVendors.length === 0) return null;
+
+        // Sort to put open ones first
+        const sortedCuisineVendors = [...cuisineVendors].sort((a, b) => (b.isOpen === a.isOpen) ? 0 : b.isOpen ? 1 : -1);
+
+        return (
+          <div key={cuisine}>
+            <SectionHeader
+              title={
+                <span className="flex items-center gap-2">
+                  <ChefHat size={18} className="text-orange-500" />
+                  {cuisine} Specials
+                </span>
+              }
+              subtitle={`Popular ${cuisine.toLowerCase()} spots near you`}
+              href={`/search?cuisine=${cuisine}`}
+              hrefLabel="View more"
+            />
+            <VendorRow vendors={sortedCuisineVendors} />
+          </div>
+        );
+      })}
+
       {/* ── Closed / Coming Back Soon ────────────────────────────────────── */}
       {closedVendors.length > 0 && (
         <div>
           <SectionHeader
-            title="Coming Back Soon"
+            title={
+              <span className="flex items-center gap-2">
+                <Moon size={18} className="text-slate-400" />
+                Coming Back Soon
+              </span>
+            }
             subtitle="Check their hours before ordering"
           />
           <VendorRow vendors={closedVendors} />
