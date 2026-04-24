@@ -23,7 +23,8 @@ export default function ConditionalBottomNav() {
     "/vendors/auth",
     "/admin/auth",
     "/combo-details",
-    "/food-details"
+    "/food-details",
+    "/"
   ];
 
   // ✅ First, set mounted state to prevent hydration mismatch
@@ -35,11 +36,11 @@ export default function ConditionalBottomNav() {
   useEffect(() => {
     if (!isMounted) return;
 
-    // Check if current route is in hide list
-    const shouldHide = hideOnRoutes.some(route => pathname?.startsWith(route));
+    // Check if current route is in hide list or is the root splash page
+    const isRoot = pathname === "/";
+    const isAuth = hideOnRoutes.some(route => pathname?.startsWith(route));
+    const shouldHide = isRoot || isAuth;
 
-    // ✅ IMPORTANT: Show bottom nav on "/" root route for logged-in users
-    // Only hide on auth routes
     setShouldShow(!shouldHide);
 
     if (process.env.NODE_ENV === 'development') {
