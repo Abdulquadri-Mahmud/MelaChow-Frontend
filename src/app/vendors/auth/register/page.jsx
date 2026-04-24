@@ -217,7 +217,7 @@ export default function VendorRegisterPage() {
   const fetchPlatformCategories = async () => {
     try {
       setIsLoadingCategories(true);
-      const res = await axios.get(`${baseUrl}/category/platform-categories`);
+      const res = await axios.get(`${baseUrl}/categories/platform-categories`);
       if (res.data?.success) {
         setPlatformCategories(res.data.data);
       }

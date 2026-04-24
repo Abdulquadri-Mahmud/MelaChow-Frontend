@@ -172,7 +172,7 @@ export default function VendorProfilePage({ vendor }) {
     const fetchCategories = async () => {
       try {
         setIsLoadingCategories(true);
-        const res = await axios.get(`${baseUrl}/category/platform-categories`);
+        const res = await axios.get(`${baseUrl}/categories/platform-categories`);
         if (res.data?.success) {
           setPlatformCategories(res.data.data);
         }
@@ -444,7 +444,7 @@ export default function VendorProfilePage({ vendor }) {
                   <p className="text-[10px] font-black uppercase tracking-widest">Loading categories...</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid lg:grid-cols-4 grid-cols-3 gap-3">
                   {platformCategories.map((group) => {
                     const isSelected = cuisineTypes.includes(group.name);
                     return (
@@ -457,7 +457,7 @@ export default function VendorProfilePage({ vendor }) {
                             : "bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-orange-500"
                         } ${!group.isActive ? "opacity-50 grayscale" : ""}`}
                       >
-                        {group.image && <img src={group.image} className="w-6 h-6 object-contain" />}
+                        {group.image && <img src={group.image} className="w-12 h-12 p-1 object-contain bg-white rounded-full" />}
                         <span className="block">{group.name}</span>
                         {group.description && (
                           <p className={`text-[8px] font-medium normal-case tracking-normal opacity-70 line-clamp-2 px-2 ${isSelected ? "text-orange-50" : "text-slate-400"}`}>
