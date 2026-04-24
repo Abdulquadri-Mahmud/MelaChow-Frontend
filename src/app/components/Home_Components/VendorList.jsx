@@ -105,8 +105,8 @@ const VendorCard = ({ vendor }) => {
         <div className="flex items-center justify-between text-[11px] font-medium">
           <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
             {/* Payment/Offer Icon */}
-            <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-              <Globe size={10} className="text-indigo-600 dark:text-indigo-400" />
+            <div className="w-5 h-5 rounded-full bg-orange-100 dark:bg-indigo-900/30 flex items-center justify-center">
+              <Globe size={10} className="text-orange-600 dark:text-indigo-400" />
             </div>
 
             <span className="text-zinc-300">|</span>
