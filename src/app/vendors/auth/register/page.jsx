@@ -14,7 +14,19 @@ import {
 /**
  * Cuisine & Tag Options
  */
-const CUISINES = ["Rice", "Swallow", "Peppered Chicken Fries", "Pasta", "Snacks", "Drinks"];
+const CUISINE_GROUPS = {
+  "Staples": ["Rice", "Swallow", "Beans", "Yam", "Plantain"],
+  "Nigerian Dishes": ["Jollof Rice", "Fried Rice", "Ofada Rice", "Egusi", "Ogbono", "Afang", "Efo Riro", "Okra Soup", "Banga Soup"],
+  "Proteins": ["Chicken", "Turkey", "Beef", "Goat Meat", "Fish", "Suya", "Peppered Chicken", "Asun"],
+  "Fast Food": ["Fries", "Burger", "Hot Dog", "Shawarma", "Small Chops", "Pizza"],
+  "International": ["Pasta", "Noodles", "Chinese", "Indian", "Continental"],
+  "Snacks": ["Snacks", "Chin Chin", "Puff Puff", "Meat Pie", "Sausage Roll"],
+  "Drinks": ["Drinks", "Smoothies", "Juice", "Milkshake", "Soft Drinks", "Alcohol"],
+  "Lifestyle": ["Vegan", "Vegetarian", "Gluten Free", "Low Carb", "Healthy"],
+  "Experience": ["Breakfast", "Lunch", "Dinner", "Dessert", "Spicy", "Grilled"]
+};
+
+const CUISINES = Object.values(CUISINE_GROUPS).flat();
 
 const LogoImage = () => (
   <div className="relative group mx-auto mb-2">
@@ -111,7 +123,7 @@ const StepHeader = ({ title, desc }) => (
 export default function VendorRegisterPage() {
   const router = useRouter();
   const { baseUrl } = useApi();
-  const TOTAL_STEPS = 5;
+  const TOTAL_STEPS = 6;
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [modal, setModal] = useState({ open: false, title: "", message: "", type: "info" });
@@ -127,6 +139,9 @@ export default function VendorRegisterPage() {
   const [previews, setPreviews] = useState({
     logo: null,
   });
+
+  const [platformCategories, setPlatformCategories] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
   const [files, setFiles] = useState({
     logo: null,
@@ -196,6 +211,20 @@ export default function VendorRegisterPage() {
       setLocationError("Error loading locations. Please refresh.");
     } finally {
       setIsLoadingLocations(false);
+    }
+  };
+
+  const fetchPlatformCategories = async () => {
+    try {
+      setIsLoadingCategories(true);
+      const res = await axios.get(`${baseUrl}/category/platform-categories`);
+      if (res.data?.success) {
+        setPlatformCategories(res.data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch platform categories:", err);
+    } finally {
+      setIsLoadingCategories(false);
     }
   };
 
@@ -270,6 +299,7 @@ export default function VendorRegisterPage() {
 
   useEffect(() => {
     fetchLocations();
+    fetchPlatformCategories();
     // Pre-fetch banks for Step 5
     fetchBanks();
   }, []);
@@ -339,19 +369,22 @@ export default function VendorRegisterPage() {
       if (!files.logo && !payload.logo) e.logo = "Store logo required";
     }
     if (s === 3) {
+      if (!payload.cuisineTypes || payload.cuisineTypes.length === 0) e.cuisineTypes = "At least one item required";
+    }
+    if (s === 4) {
       if (!payload.address.street) e["address.street"] = "Street required";
       if (!payload.address.city) e["address.city"] = "City required";
       if (!payload.address.state) e["address.state"] = "State required";
       // if (!payload.address.postalCode) e["address.postalCode"] = "Postal required";
     }
-    if (s === 4) {
+    if (s === 5) {
       // Operations step - simplified
       Object.keys(payload.openingHours).forEach((d) => {
         const day = payload.openingHours[d];
         if (!day.closed && (!day.open || !day.close)) e[`openingHours.${d}`] = "Required";
       });
     }
-    if (s === 5) {
+    if (s === 6) {
       if (!payload.payoutDetails.bankName) e["payoutDetails.bankName"] = "Bank name required";
       if (!payload.payoutDetails.accountName) e["payoutDetails.accountName"] = "Account name required";
       if (!payload.payoutDetails.accountNumber) e["payoutDetails.accountNumber"] = "Account number required";
@@ -584,6 +617,70 @@ export default function VendorRegisterPage() {
 
               {step === 3 && (
                 <div className="space-y-6">
+                  <StepHeader title="What do you sell?" desc="Choose the items and cuisines you offer" />
+                  
+                  <div className="space-y-6">
+                    <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                      {payload.cuisineTypes.length === 0 && (
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center px-2">Choose what you sell from the list below...</p>
+                      )}
+                      {payload.cuisineTypes.map((type) => (
+                        <motion.span
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          key={type}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white text-[10px] font-black uppercase italic tracking-widest rounded-xl shadow-lg shadow-orange-500/20"
+                        >
+                          {type}
+                          <button type="button" onClick={() => toggleArrayValue("cuisineTypes", type)} className="hover:text-slate-200 transition-colors">
+                            <X size={12} />
+                          </button>
+                        </motion.span>
+                      ))}
+                    </div>
+
+                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar p-1">
+                      {isLoadingCategories ? (
+                        <div className="flex flex-col items-center justify-center py-10 opacity-50">
+                          <Loader2 className="animate-spin mb-2" />
+                          <p className="text-[10px] font-black uppercase tracking-widest">Loading categories...</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          {platformCategories.map((group) => {
+                            const isSelected = payload.cuisineTypes.includes(group.name);
+                            return (
+                              <button
+                                key={group._id}
+                                type="button"
+                                onClick={() => toggleArrayValue("cuisineTypes", group.name)}
+                                className={`px-4 py-4 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all border-2 text-center flex flex-col items-center justify-center gap-2 ${
+                                  isSelected 
+                                    ? "bg-orange-500 border-orange-500 text-white shadow-xl shadow-orange-500/30 scale-[1.02]" 
+                                    : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-orange-500/50"
+                                } ${!group.isActive ? "opacity-70 grayscale-[0.5]" : ""}`}
+                              >
+                                {group.image && <img src={group.image} className="w-8 h-8 object-contain mb-1" />}
+                                <span className="block">{group.name}</span>
+                                {group.description && (
+                                  <span className={`text-[8px] font-medium normal-case tracking-normal opacity-70 line-clamp-2 px-2 ${isSelected ? "text-orange-50" : "text-slate-400"}`}>
+                                    {group.description}
+                                  </span>
+                                )}
+                                {!group.isActive && <span className="text-[7px] text-rose-500">(Inactive)</span>}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                    {errors.cuisineTypes && <p className="text-[10px] font-bold text-rose-500 uppercase tracking-tight ml-2">{errors.cuisineTypes}</p>}
+                  </div>
+                </div>
+              )}
+
+              {step === 4 && (
+                <div className="space-y-6">
                   <StepHeader title="Business Location" desc="Where do we send the orders?" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Dynamic State Selection */}
@@ -651,7 +748,7 @@ export default function VendorRegisterPage() {
                 </div>
               )}
 
-              {step === 4 && (
+              {step === 5 && (
                 <div className="space-y-8">
                   <StepHeader title="Operations" desc="Define your working hours" />
 
@@ -684,7 +781,7 @@ export default function VendorRegisterPage() {
                 </div>
               )}
 
-              {step === 5 && (
+              {step === 6 && (
                 <div className="space-y-8">
                   <StepHeader title="Payout & Delivery" desc="Final details before we launch your store" />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
