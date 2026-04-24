@@ -12,7 +12,7 @@
  * item.ratingCount
  */
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Flame, Star, Store, MapPin, Heart, Globe, Bike, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -32,23 +32,25 @@ const DIETARY_COLORS = {
 
 const TrendingCard = ({ item }) => {
     const router = useRouter();
-    const [liked, setLiked] = useState(false);
     const vendor = item.restaurant || item.vendor;
     const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
     const isOpen = status.startsWith("Open now");
 
+    const fee = item.deliveryFee ?? vendor?.deliveryFee ?? vendor?.flatRateDeliveryFee;
+    const isFreeDelivery = !fee || fee === 0;
+
     return (
         <div
             onClick={() => router.push(`/food-details/${item._id}`)}
-            className={`group shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl`}
-            style={{ width: "72vw", maxWidth: "250px" }}
+            className={`group shrink-0 bg-white dark:bg-zinc-900 rounded-[20px] overflow-hidden cursor-pointer snap-start transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl`}
+            style={{ width: "75vw", maxWidth: "280px" }}
         >
             {/* Image Container */}
             <div className="relative h-[140px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
                 <img
                     src={item.image || "/placeholder.jpg"}
                     alt={item.name}
-                    className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${!isOpen ? 'grayscale' : ''}`}
+                    className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!isOpen ? 'grayscale' : ''}`}
                 />
                 
                 {/* Hot Badge */}
@@ -58,12 +60,22 @@ const TrendingCard = ({ item }) => {
                     </span>
                 </div>
 
-                {/* Price Badge */}
-                <div className="absolute bottom-2 right-2 bg-white/95 dark:bg-zinc-900/95 px-2 py-1 rounded-xl shadow-lg border border-white/20 backdrop-blur-sm">
+                {/* Price Badge - Moved to top-right to avoid collision */}
+                <div className="absolute top-2 right-2 bg-white/95 dark:bg-zinc-900/95 px-2 py-1 rounded-xl shadow-lg border border-white/20 backdrop-blur-sm z-10">
                     <span className="text-[11px] font-black text-zinc-900 dark:text-white italic">
                         ₦{item.price?.toLocaleString()}
                     </span>
                 </div>
+
+                {/* Floating Promo Badge - Conditionally shown if delivery is free */}
+                {isFreeDelivery && (
+                  <div className="absolute bottom-3 right-3 bg-[#FFF9E5] border border-black/10 px-3 py-1.5 rounded-[12px] shadow-sm flex items-center gap-2">
+                    <Gift size={14} className="text-orange-500" />
+                    <span className="text-[10px] font-bold text-zinc-800 tracking-tight">
+                      Free delivery
+                    </span>
+                  </div>
+                )}
 
                 {/* Closed Overlay */}
                 {!isOpen && (
@@ -75,46 +87,50 @@ const TrendingCard = ({ item }) => {
                 )}
             </div>
 
-            {/* Info Block */}
-            <div className="px-3 pt-3 pb-3">
-                <div className="flex justify-between items-start mb-1">
-                    <div className="flex-1 min-w-0">
-                        <h3 className="text-[13px] font-black text-zinc-900 dark:text-white truncate uppercase tracking-tight italic leading-tight">
-                            {item.name}
-                        </h3>
-                        <div className="flex items-center gap-1 mt-1 font-bold text-zinc-400 text-[9px] uppercase tracking-widest">
-                             <Store size={9} className="text-orange-500" />
-                             <span className="truncate">{item.restaurant?.storeName}</span>
-                        </div>
+            {/* Info Section */}
+            <div className="px-1 pt-3 pb-4">
+                {/* Title Row */}
+                <div className="mb-2">
+                    <h3 className="text-[15px] font-bold text-zinc-900 dark:text-white truncate">
+                        {item.name}
+                    </h3>
+                    <div className="flex items-center gap-1.5 mt-1 text-zinc-400 text-[10px] font-medium uppercase tracking-wider">
+                         <Store size={10} className="text-orange-500" />
+                         <span className="truncate">{vendor?.storeName} - {vendor?.city}</span>
                     </div>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
-                        className="transition-colors mt-0.5"
-                    >
-                        <Heart
-                            size={18}
-                            className={liked ? "fill-red-500 text-red-500" : "text-zinc-200 dark:text-zinc-800"}
-                            strokeWidth={liked ? 0 : 2}
-                        />
-                    </button>
                 </div>
 
-                <div className="mt-3 flex items-center justify-between bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded-xl border border-zinc-100 dark:border-zinc-800/50">
-                    <div className="flex items-center gap-1.5 text-[9px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tighter italic">
-                        <Star size={12} className="fill-orange-500 text-orange-500" />
-                        <span>
-                            {Number(item.rating || 0) === 0 
-                                ? "New" 
-                                : `${Number(item.rating).toFixed(1)} (${item.ratingCount || 0})`}
+                {/* Metadata Row */}
+                <div className="flex items-center justify-between text-[11px] font-medium mt-3 pt-3 border-t border-zinc-50 dark:border-zinc-800/50">
+                    <div className="flex items-center gap-2 text-zinc-500">
+                        {/* Global Icon */}
+                        <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                            <Globe size={10} className="text-indigo-600 dark:text-indigo-400" />
+                        </div>
+
+                        <span className="text-zinc-200">|</span>
+
+                        {/* Delivery */}
+                        <div className="flex items-center gap-1">
+                            <Bike size={14} className="text-zinc-800 dark:text-zinc-200" />
+                            <span className="text-zinc-800 dark:text-zinc-200">
+                                From {isFreeDelivery ? "Free" : `₦${fee}`}
+                            </span>
+                        </div>
+
+                        <span className="text-zinc-200">|</span>
+
+                        {/* Status */}
+                        <span className={isOpen ? "text-emerald-600 font-bold" : "text-rose-500 font-bold"}>
+                            {isOpen ? "Open" : "Closed"}
                         </span>
                     </div>
-                    <div className="flex items-center gap-1 text-[9px] font-black text-zinc-900 dark:text-white uppercase tracking-tighter italic">
-                        <Bike size={12} className="text-orange-600" />
-                        <span>
-                            {(() => {
-                                const fee = item.deliveryFee ?? item.restaurant?.deliveryFee ?? item.restaurant?.flatRateDeliveryFee;
-                                return (!fee || fee === 0) ? "Free Delivery" : `₦${fee.toLocaleString()} Fee`;
-                            })()}
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-1">
+                        <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                        <span className="text-zinc-900 dark:text-white font-bold">
+                            {Number(item.rating || 0) === 0 ? "New" : Number(item.rating).toFixed(1)}
                         </span>
                     </div>
                 </div>
@@ -129,6 +145,11 @@ export default function TrendingFoods({ user }) {
 
     const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
 
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const { data: trendingFoods = [], isLoading, isError } = useQuery({
         queryKey: ["trendingFoods", defaultAddr?.city, defaultAddr?.state],
         queryFn: async () => {
@@ -141,11 +162,11 @@ export default function TrendingFoods({ user }) {
             });
             return res?.data?.trending || [];
         },
-        enabled: !!baseUrl && !!defaultAddr?.city && !!defaultAddr?.state,
+        enabled: !!baseUrl && !!defaultAddr?.city && !!defaultAddr?.state && mounted,
         staleTime: 1000 * 60 * 5,
     });
 
-    if (isLoading) return (
+    if (!mounted || isLoading) return (
         <div className="mt-8 px-4">
             <div className="flex items-center gap-2 mb-4">
                 <Flame className="text-orange-600 fill-orange-600" size={20} />

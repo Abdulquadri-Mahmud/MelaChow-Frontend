@@ -16,6 +16,11 @@ import {
 
 export default function CategoryList() {
     const router = useRouter();
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const { data: categories = [], isLoading: loading } = useCategories();
     const [activeCategory, setActiveCategory] = useState(null);
 
@@ -27,7 +32,7 @@ export default function CategoryList() {
     };
 
     // Skeleton loader component
-    if (loading) {
+    if (!mounted || loading) {
         return (
             <div className="mt-6">
                 <div className="flex items-center justify-between mb-4 px-1">
