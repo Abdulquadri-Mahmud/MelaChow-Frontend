@@ -12,9 +12,10 @@ import {
     ShieldCheck, Truck, Utensils, CheckCircle2, Clock,
     Banknote, ChevronDown, ChevronUp, Search, Star,
     Package, Tag, Percent, Zap, Calendar, Users, X,
-    Globe, TriangleAlert, CircleCheck, XCircle, Info, Eye, Image as ImageIcon, TrendingUp, Box, ExternalLink,
-    Mail, Phone, Building2, CreditCard, Activity, Link
+    Mail, Phone, Building2, CreditCard, Activity, Link, Info, Loader2
 } from "lucide-react";
+import axios from "axios";
+import { useApi } from "@/app/context/ApiContext";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const fmt = (n) => n?.toLocaleString?.() ?? n ?? "—";
@@ -336,6 +337,9 @@ export default function VendorDetailPage() {
     const [foodSearch, setFoodSearch] = useState("");
     const [foodFilter, setFoodFilter] = useState("all");
     const [selectedFoodDetails, setSelectedFoodDetails] = useState(null);
+    const [platformCategories, setPlatformCategories] = useState([]);
+    const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+    const { baseUrl } = useApi();
 
     useEffect(() => {
         const load = async () => {
@@ -351,6 +355,23 @@ export default function VendorDetailPage() {
         };
         if (vendorId) load();
     }, [vendorId]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                setIsLoadingCategories(true);
+                const res = await axios.get(`${baseUrl}/categories/platform-categories`);
+                if (res.data?.success) {
+                    setPlatformCategories(res.data.data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch platform categories:", err);
+            } finally {
+                setIsLoadingCategories(false);
+            }
+        };
+        fetchCategories();
+    }, [baseUrl]);
 
     console.log(vendor);
 
@@ -495,7 +516,50 @@ export default function VendorDetailPage() {
                     </motion.div>
 
                     {/* Information Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+
+                        {/* Cuisines & Tags */}
+                        <div className="bg-white border border-slate-200 rounded-xl p-5">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Utensils size={14} className="text-slate-400" />
+                                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cuisines & Tags</h3>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {vendor.cuisineTypes && vendor.cuisineTypes.length > 0 ? (
+                                    vendor.cuisineTypes.map((cuisine) => {
+                                        const category = platformCategories.find(c => c.name === cuisine);
+                                        const isActive = category ? category.isActive : true; 
+                                        
+                                        return (
+                                            <div key={cuisine} className="group relative">
+                                                <div className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest border transition-all ${
+                                                    isActive 
+                                                        ? "bg-orange-50 border-orange-100 text-orange-600" 
+                                                        : "bg-rose-50 border-rose-100 text-rose-600 animate-pulse"
+                                                }`}>
+                                                    {cuisine}
+                                                    {!isActive && <span className="ml-1 text-[8px] font-bold">(INACTIVE)</span>}
+                                                </div>
+                                                {!isActive && (
+                                                    <div className="absolute bottom-full left-0 mb-2 w-48 p-2 bg-slate-900 text-white text-[8px] rounded hidden group-hover:block z-50 font-bold uppercase leading-relaxed shadow-xl border border-slate-800">
+                                                        <TriangleAlert size={10} className="text-rose-400 mb-1" />
+                                                        This category is currently inactive. It won't show on the customer home page. Please activate it in the Categories section.
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <p className="text-[10px] font-bold text-slate-400 italic">No cuisines listed</p>
+                                )}
+                            </div>
+                            {vendor.cuisineTypes?.some(c => platformCategories.find(pc => pc.name === c && !pc.isActive)) && (
+                                <div className="mt-4 p-2 bg-rose-50 border border-rose-100 rounded-lg flex items-center gap-2">
+                                    <TriangleAlert size={14} className="text-rose-500 shrink-0" />
+                                    <p className="text-[9px] font-black text-rose-600 uppercase tracking-tighter leading-none">Attention: Inactive categories detected</p>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Business Details */}
                         <div className="bg-white border border-slate-200 rounded-xl p-5">
