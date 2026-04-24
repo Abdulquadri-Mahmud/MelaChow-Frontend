@@ -18,15 +18,25 @@ import {
   ChevronDown,
   ChevronUp,
   CreditCard,
-  Truck
+  Truck,
+  X,
+  CheckCircle2,
+  Plus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { updateVendor } from "@/app/lib/vendorProfileApi";
 import { useQueryClient } from "@tanstack/react-query";
 import PermanentInstallButton from "@/app/components/PermanentInstallButton";
+import { useApi } from "@/app/context/ApiContext";
+import axios from "axios";
+import { Loader2 } from "lucide-react";
 
 const CLOUDINARY_PRESET = "GrubDash";
 const CLOUDINARY_HOST = "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload";
+
+const CUISINE_GROUPS = {}; // Removed hardcoded groups
+
+const CUISINES = []; // Removed hardcoded flat list
 
 const uploadToCloudinary = async (file) => {
   const formData = new FormData();
@@ -119,8 +129,12 @@ export default function VendorProfilePage({ vendor }) {
     accountNumber: "",
   });
   const [logo, setLogo] = useState("");
+  const [coverImage, setCoverImage] = useState("");
+  const [platformCategories, setPlatformCategories] = useState([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
   const [openSections, setOpenSections] = useState({ basicInfo: true }); // Default open first section
   const [loadingSection, setLoadingSection] = useState("");
+  const { baseUrl } = useApi();
 
   useEffect(() => {
     if (vendor) {
@@ -150,8 +164,26 @@ export default function VendorProfilePage({ vendor }) {
         accountNumber: vendor.payoutDetails?.accountNumber || "",
       });
       setLogo(vendor.logo || "");
+      setCoverImage(vendor.coverImage || "");
     }
   }, [vendor]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setIsLoadingCategories(true);
+        const res = await axios.get(`${baseUrl}/category/platform-categories`);
+        if (res.data?.success) {
+          setPlatformCategories(res.data.data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch platform categories:", err);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, [baseUrl]);
 
   const toggleSection = (section) => {
     setOpenSections(prev => ({
@@ -197,6 +229,8 @@ export default function VendorProfilePage({ vendor }) {
         };
       } else if (section === "logo") {
         payload = { logo: data };
+      } else if (section === "coverImage") {
+        payload = { coverImage: data };
       }
 
       await updateVendor({ id: vendor._id, data: payload });
@@ -231,13 +265,27 @@ export default function VendorProfilePage({ vendor }) {
     }
   };
 
-  const handleCuisineChange = (index, value) => {
-    const newArr = [...cuisineTypes];
-    newArr[index] = value;
-    setCuisineTypes(newArr);
+  const handleCoverChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const toastId = toast.loading("Uploading cover image...");
+    const url = await uploadToCloudinary(file);
+    if (url) {
+      setCoverImage(url);
+      await updateSection("coverImage", url);
+      toast.success("Cover image updated!", { id: toastId });
+    } else {
+      toast.dismiss(toastId);
+    }
   };
-  const handleAddCuisine = () => setCuisineTypes([...cuisineTypes, ""]);
-  const handleRemoveCuisine = (index) => setCuisineTypes(cuisineTypes.filter((_, i) => i !== index));
+
+  const toggleCuisine = (value) => {
+    if (cuisineTypes.includes(value)) {
+      setCuisineTypes(cuisineTypes.filter(c => c !== value));
+    } else {
+      setCuisineTypes([...cuisineTypes, value]);
+    }
+  };
 
   const handleOpeningHoursChange = (day, key, value) => {
     setOpeningHours({ ...openingHours, [day]: { ...openingHours[day], [key]: value } });
@@ -254,12 +302,18 @@ export default function VendorProfilePage({ vendor }) {
           {/* Background Image (Blurred Logo/Cover) */}
           <div className="absolute inset-0 bg-gray-900">
             <img
-              src={logo || "/placeholder.jpg"}
+              src={coverImage || logo || "/placeholder.jpg"}
               alt="Cover Background"
-              className="w-full h-full object-cover opacity-70 blur-md scale-110"
+              className="w-full h-full object-cover opacity-70 blur-sm scale-110"
             />
           </div>
           <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
+          
+          {/* Cover Update Button */}
+          <label className="absolute bottom-4 right-4 bg-white/20 hover:bg-white/40 backdrop-blur-md text-white px-4 py-2 rounded-md cursor-pointer transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest border border-white/30 group-hover:scale-105 active:scale-95">
+            <Camera size={14} /> Update Cover
+            <input type="file" className="hidden" onChange={handleCoverChange} accept="image/*" />
+          </label>
         </div>
         <div className="px-6 pb-6 flex flex-col md:flex-row gap-5 -mt-10 relative z-10">
           <div className="relative group">
@@ -368,21 +422,54 @@ export default function VendorProfilePage({ vendor }) {
           isOpen={openSections.cuisineTypes}
           onToggle={() => toggleSection('cuisineTypes')}
         >
-          <div className="space-y-4">
-            <div className="flex flex-wrap gap-2">
-              {cuisineTypes.map((cuisine, idx) => (
-                <div key={idx} className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 pl-3 pr-2 py-1.5 rounded-md group hover:border-orange-500 transition-colors">
-                    <input
-                      className="bg-transparent outline-none text-xs font-black uppercase tracking-tight w-20 text-slate-700 dark:text-slate-300"
-                      value={cuisine}
-                      onChange={(e) => handleCuisineChange(idx, e.target.value)}
-                    />
-                    <button onClick={() => handleRemoveCuisine(idx)} className="w-5 h-5 rounded-md bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-rose-500 hover:text-white transition-colors text-xs font-black">×</button>
-                  </div>
+          <div className="space-y-6">
+            <div className="flex flex-wrap gap-2 mb-6">
+              {cuisineTypes.length === 0 && (
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center px-2">No categories selected...</p>
+              )}
+              {cuisineTypes.map((cuisine) => (
+                <div key={cuisine} className="flex items-center gap-2 bg-orange-600 text-white px-3 py-1.5 rounded-md font-black uppercase text-[10px] tracking-widest">
+                  {cuisine}
+                  <button onClick={() => toggleCuisine(cuisine)} className="hover:text-orange-200 transition-colors">
+                    <X size={12} />
+                  </button>
+                </div>
               ))}
-              <button onClick={handleAddCuisine} className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-300 dark:border-slate-700 rounded-md text-slate-500 hover:text-orange-600 hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all font-black uppercase text-[9px] tracking-widest">
-                + Add Cuisine
-              </button>
+            </div>
+
+            <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+              {isLoadingCategories ? (
+                <div className="flex flex-col items-center justify-center py-10 opacity-50">
+                  <Loader2 className="animate-spin mb-2" />
+                  <p className="text-[10px] font-black uppercase tracking-widest">Loading categories...</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {platformCategories.map((group) => {
+                    const isSelected = cuisineTypes.includes(group.name);
+                    return (
+                      <button
+                        key={group._id}
+                        onClick={() => toggleCuisine(group.name)}
+                        className={`p-4 border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-center flex flex-col items-center gap-2 ${
+                          isSelected
+                            ? "bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-600/20"
+                            : "bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-orange-500"
+                        } ${!group.isActive ? "opacity-50 grayscale" : ""}`}
+                      >
+                        {group.image && <img src={group.image} className="w-6 h-6 object-contain" />}
+                        <span className="block">{group.name}</span>
+                        {group.description && (
+                          <p className={`text-[8px] font-medium normal-case tracking-normal opacity-70 line-clamp-2 px-2 ${isSelected ? "text-orange-50" : "text-slate-400"}`}>
+                            {group.description}
+                          </p>
+                        )}
+                        {!group.isActive && <span className="text-[7px] text-rose-500">(Inactive)</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex justify-end mt-6">

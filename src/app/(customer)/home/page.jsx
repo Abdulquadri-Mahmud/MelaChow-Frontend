@@ -35,12 +35,8 @@ export default function HomePage() {
         <div className="space-y-4">
           <SmartRecommendations />
           <TrendingFoods user={user} />
-          <FoodList user={user} />
+          {/* <FoodList user={user} /> */}
         </div>
-        {/* <PromoBanner /> */}
-
-        <div className="" />
-        {/* <FeatureSlider /> */}
       </div>
 
       {/* Address Modal */}
