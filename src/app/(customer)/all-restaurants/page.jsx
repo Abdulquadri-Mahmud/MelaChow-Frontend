@@ -14,6 +14,7 @@ import { fetchUser } from "@/app/lib/api";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import axios from "axios";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+import { getNearbyVendors } from "@/app/lib/userApi";
 
 const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
     <div
@@ -36,25 +37,16 @@ export default function AllRestaurants() {
 
     const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
 
-    const { data: vendors = [], isLoading, isError, error, refetch } = useQuery({
-        queryKey: ["all-vendors", defaultAddr?.city, defaultAddr?.state],
-        queryFn: async () => {
-            if (!defaultAddr?.city || !defaultAddr?.state) {
-                const err = new Error("Missing location");
-                err.response = { data: { message: "Please provide both city and state query parameters." } };
-                throw err;
-            }
-            const res = await axios.get(`${baseUrl}/user/vendors/nearby`, {
-                params: {
-                    city: defaultAddr.city,
-                    state: defaultAddr.state,
-                },
-                withCredentials: true, // Use cookies for authentication
-            });
-            return res.data.vendors || [];
-        },
+    const { data: responseData, isLoading, isError, error, refetch } = useQuery({
+        queryKey: ["vendors-nearby", defaultAddr?.city, defaultAddr?.state],
+        queryFn: () => getNearbyVendors({
+            city: defaultAddr.city,
+            state: defaultAddr.state,
+        }),
         enabled: !!defaultAddr && !isUserLoading,
     });
+
+    const vendors = responseData?.vendors || [];
 
     console.log(vendors)
 

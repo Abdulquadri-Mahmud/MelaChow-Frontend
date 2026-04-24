@@ -23,7 +23,7 @@ import { useQuery } from "@tanstack/react-query";
 import { isVendorOpen } from "@/app/lib/utils";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
-import { getFoodsByLocation } from "@/app/lib/userApi";
+import { getNearbyVendors } from "@/app/lib/userApi";
 import { useLocationStore } from "@/app/store/userLocationStore";
 
 const VendorCardSkeleton = () => (
@@ -149,16 +149,9 @@ export default function VendorList({ user }) {
     const router = useRouter();
 
     const { userLocation, syncWithUserAddress } = useLocationStore();
-
-    useEffect(() => {
-        if (user) {
-            syncWithUserAddress(user);
-        }
-    }, [user, syncWithUserAddress]);
-
     const { data: responseData, isLoading, isError } = useQuery({
-        queryKey: ["foods-by-location", userLocation?.city, userLocation?.state],
-        queryFn: () => getFoodsByLocation({
+        queryKey: ["vendors-nearby", userLocation?.city, userLocation?.state],
+        queryFn: () => getNearbyVendors({
             city: userLocation.city,
             state: userLocation.state,
         }),
@@ -166,40 +159,24 @@ export default function VendorList({ user }) {
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 
-    // console.log(responseData);
-
-    const foods = responseData?.foods || [];
+    const vendors = responseData?.vendors || [];
 
     const uniqueVendors = useMemo(() => {
-        const seen = new Set();
-        const result = [];
-
-        for (const food of (foods || [])) {
-            const vendor = food.restaurant || food.vendor;
-            const id = vendor?._id?.toString();
-            if (!id || seen.has(id)) continue;
-            seen.add(id);
-
-            result.push({
-                _id: vendor._id,
-                storeName: vendor.storeName,
-                city: vendor.city,
-                // Use logo as card image — no coverImage in this payload
-                image: vendor.logo || null,
-                isOpen: getVendorOpenAndCloseStatus(vendor.openingHours).startsWith("Open now"),
-                status: getVendorOpenAndCloseStatus(vendor.openingHours),
-                // deliveryFee is on the food item, not the restaurant
-                deliveryFee: food.deliveryFee ?? vendor.deliveryFee ?? vendor.flatRateDeliveryFee ?? null,
-                // rating/ratingCount NOT in this payload
-                // render conditionally — show nothing if 0
-                rating: vendor.rating || null,
-                ratingCount: vendor.ratingCount || null,
-                badge: null,
-            });
-        }
-
-        return result;
-    }, [foods]);
+        return vendors.map(v => ({
+            _id: v._id,
+            storeName: v.storeName,
+            city: v.address?.city,
+            // Use logo as card image — no coverImage in this payload
+            image: v.logo || null,
+            isOpen: getVendorOpenAndCloseStatus(v.openingHours).startsWith("Open now"),
+            status: getVendorOpenAndCloseStatus(v.openingHours),
+            // deliveryFee is resolved in the backend for nearby vendors
+            deliveryFee: v.deliveryFee ?? 0,
+            rating: v.rating || null,
+            ratingCount: v.ratingCount || null,
+            badge: null,
+        }));
+    }, [vendors]);
 
     const featuredVendors = uniqueVendors.slice(0, 6);
     const handpickedVendors = uniqueVendors.slice(6, 12);
