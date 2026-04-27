@@ -11,6 +11,7 @@ import { useApi } from "@/app/context/ApiContext";
 import { fetchUser } from "@/app/lib/api";
 import axios from "axios";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+import { useFoodModalStore } from "@/app/store/foodModalStore";
 
 const Skeleton = () => (
     <div className="flex flex-col gap-3 rounded-[32px] bg-white dark:bg-zinc-900 p-2 shadow-sm border border-zinc-100 dark:border-zinc-800">
@@ -33,6 +34,7 @@ export default function AllFoods() {
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const token = typeof window !== "undefined" ? localStorage.getItem("userToken") : null;
+    const openFoodModal = useFoodModalStore(state => state.openFoodModal);
 
     const { data: userData } = useQuery({
         queryKey: ["userProfile", token],
@@ -205,7 +207,7 @@ export default function AllFoods() {
                             return (
                                 <div
                                     key={food._id}
-                                    onClick={() => router.push(`/food-details/${food._id}`)}
+                                    onClick={() => openFoodModal(food._id, { food })}
                                     className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100/50 dark:border-zinc-800 shadow-sm hover:shadow-2xl hover:shadow-zinc-200/40 dark:hover:shadow-none hover:border-orange-600/10 transition-all duration-500 cursor-pointer group hover:-translate-y-1 active:scale-[0.98]"
                                 >
                                     {/* Image Section */}

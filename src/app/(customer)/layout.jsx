@@ -12,6 +12,7 @@ import PushNotificationPrompt from "@/app/components/notifications/PushNotificat
 import RealtimeNotificationListener from "@/app/components/notifications/RealtimeNotificationListener";
 import { registerServiceWorker } from "@/app/lib/pwa-utils";
 import { TokenManager } from "@/app/lib/auth-token";
+import GlobalFoodModal from "@/app/components/modals/GlobalFoodModal";
 
 export default function CustomerLayout({ children }) {
     const pathname = usePathname();
@@ -45,6 +46,7 @@ export default function CustomerLayout({ children }) {
                             {children}
                         </div>
                     )}
+                    <GlobalFoodModal />
                 </CartProvider>
             </ProfileProvider>
         );
@@ -73,6 +75,7 @@ export default function CustomerLayout({ children }) {
                         <RealtimeNotificationListener />
                     </CustomerBootstrapper>
                 )}
+                <GlobalFoodModal />
             </CartProvider>
         </ProfileProvider>
     );

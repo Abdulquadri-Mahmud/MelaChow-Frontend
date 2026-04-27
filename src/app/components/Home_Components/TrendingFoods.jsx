@@ -21,6 +21,7 @@ import axios from "axios";
 import { useApi } from "@/app/context/ApiContext";
 import { isVendorOpen } from "@/app/lib/utils";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+import { useFoodModalStore } from "@/app/store/foodModalStore";
 
 const DIETARY_COLORS = {
   veg: "bg-green-100 text-green-700",
@@ -35,13 +36,14 @@ const TrendingCard = ({ item }) => {
     const vendor = item.restaurant || item.vendor;
     const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
     const isOpen = status.startsWith("Open now");
+    const openFoodModal = useFoodModalStore(state => state.openFoodModal);
 
     const fee = item.deliveryFee ?? vendor?.deliveryFee ?? vendor?.flatRateDeliveryFee;
     const isFreeDelivery = !fee || fee === 0;
 
     return (
         <div
-            onClick={() => router.push(`/food-details/${item._id}`)}
+            onClick={() => openFoodModal(item._id, { food: item })}
             className={`group shrink-0 bg-white dark:bg-zinc-900 rounded-[20px] overflow-hidden cursor-pointer snap-start transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl`}
             style={{ width: "75vw", maxWidth: "280px" }}
         >

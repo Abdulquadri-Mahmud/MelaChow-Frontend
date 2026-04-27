@@ -508,6 +508,32 @@ class AdminAPI {
         const query = new URLSearchParams(params).toString();
         return this.handleResponse(api.get(`/api/admin/finance/payout-history?${query}`));
     }
+
+    // ==================== PROMO MANAGEMENT ====================
+
+    async getVendorDeliveryPromos() {
+        return this.handleResponse(api.get("/api/admin/promos/vendor-delivery"));
+    }
+
+    async createVendorDeliveryPromo(payload) {
+        return this.handleResponse(api.post("/api/admin/promos/vendor-delivery", payload));
+    }
+
+    async deactivateVendorDeliveryPromo(promoId) {
+        return this.handleResponse(api.patch(`/api/admin/promos/vendor-delivery/${promoId}/deactivate`));
+    }
+
+    async getPlatformDeliveryPromos() {
+        return this.handleResponse(api.get("/api/admin/promos/platform-delivery"));
+    }
+
+    async createPlatformDeliveryPromo(payload) {
+        return this.handleResponse(api.post("/api/admin/promos/platform-delivery", payload));
+    }
+
+    async deactivatePlatformDeliveryPromo(promoId) {
+        return this.handleResponse(api.patch(`/api/admin/promos/platform-delivery/${promoId}/deactivate`));
+    }
 }
 
 export default new AdminAPI();

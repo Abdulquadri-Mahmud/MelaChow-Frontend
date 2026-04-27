@@ -24,9 +24,10 @@ import { isVendorOpen as isVendorOpenFn } from "@/app/lib/utils";
 import { getPublicFoodDetail } from "@/app/lib/menuApi";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
+import FoodDetailsSkeleton from "@/app/skeleton/FoodDetailsSkeleton";
 import { Package, MessageSquare, Loader2, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
 
-export default function FoodDetails({ initialData, foodId: propFoodId }) {
+export default function FoodDetails({ initialData, foodId: propFoodId, isModal, onClose }) {
   const router = useRouter();
   const params = useParams();
   const foodId = propFoodId || params.foodId;
@@ -65,15 +66,20 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
   const [reviewsPage, setReviewsPage] = useState(1);
   const [ratingFilter, setRatingFilter] = useState(null);
 
-  // Reset base customizer when food fetches
-  useEffect(() => {
+  const resetSelections = () => {
     if (food) {
-        const defaultPortion = food?.portions?.find(p => p.is_default) || food?.portions?.[0] || null;
+        const portions = Array.isArray(food?.portions) ? food.portions : [];
+        const defaultPortion = portions.find(p => p.is_default) || portions[0] || null;
         setSelectedPortion(defaultPortion);
         setSelections({});
         setQuantity(1);
         setPortionQuantity(1);
     }
+  };
+
+  // Reset base customizer when food fetches
+  useEffect(() => {
+    resetSelections();
   }, [food]);
 
   // Initialize Client
@@ -84,8 +90,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
   // Fetch Food (only if initialData is missing)
   useEffect(() => {
     const fetchFood = async () => {
-      // Only skip if we already have the food object populated with actual data
-      if (food && food.name) return;
+      // Only skip if we already have the full food object (portions AND choiceGroups check)
+      if (food && food.portions !== undefined && (food.choiceGroups !== undefined || food.choice_groups !== undefined)) return;
       
       try {
         setIsLoading(true);
@@ -161,6 +167,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
   const handleAddToCart = (payload) => {
     addToCart(payload);
     toast.success("Added to Order!");
+    resetSelections();
   };
 
   // Base Item Customizer Logic
@@ -311,7 +318,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
           vendorId:     food.vendor?._id,
           storeName:    food.vendor?.storeName || "",
           name:         food.name,
-          image_url:    food.image_url || "",
+          image_url:    food.image || food.image_url || "",
           portion_label: selectedPortion?.label,
           portion_quantity: portionQuantity,
           price_naira:  totalUnit,
@@ -330,8 +337,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
 
       addToCart(payload);
       toast.success("Added to Order!");
-      
-      router.push('/orders?activeTab=cart');
+      resetSelections();
   };
 
   const checkAvailability = () => {
@@ -365,13 +371,16 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
     ? Math.min(...food.portions.map(p => p.price_naira))
     : null;
 
-  return (
+  const content = (
     <>
       {/* 🧭 Header */}
       <header className="flex items-center justify-between px-4 py-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.back()}
+            onClick={() => {
+              if (onClose) onClose();
+              else router.back();
+            }}
             className="p-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600 dark:text-zinc-400 transition-all active:scale-90"
             aria-label="Go back"
           >
@@ -392,7 +401,12 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
           </div>
         </div>
 
-        <Link href={'/orders?activeTab=cart'}>
+        <button 
+          onClick={() => {
+            if (isModal && onClose) onClose();
+            router.push('/orders?activeTab=cart');
+          }}
+        >
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-zinc-900 dark:bg-zinc-100 p-2.5 rounded-2xl">
             <BiCartAdd className="text-white dark:text-zinc-900" size={24} />
             {totalItems > 0 && (
@@ -401,11 +415,11 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
               </span>
             )}
           </motion.div>
-        </Link>
+        </button>
       </header>
 
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
-      <div className="max-w-4xl mx-auto pb-20">
+      <div className=" bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
+      <div className="max-w-4xl mx-auto pb-4">
         {isLoading ? (
           <div className="p-2"><FoodDetailsSkeleton /></div>
         ) : isError ? (
@@ -456,23 +470,23 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
             >
               {/* SLIDE 1: DETAILS */}
               <SwiperSlide>
-                <div className="space-y-6 pb-24">
+                <div className="space-y-4 pb-8">
                   {/* Main Info Card */}
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-1 pt-2">
                     <div className="bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-sm">
                       {/* Image Section */}
-                      <div className="relative w-full bg-zinc-100 dark:bg-zinc-800 p-2">
-                        <div className="w-full h-[250px] md:h-[300px] rounded-[32px] overflow-hidden relative">
+                      <div className="relative w-full bg-zinc-100 dark:bg-zinc-800 p-1.5">
+                        <div className="w-full h-[180px] md:h-[220px] rounded-[24px] overflow-hidden relative">
                           <img
-                            src={food?.image_url || "/placeholder.jpg"}
+                            src={food?.image || food?.image_url || "/placeholder.jpg"}
                             alt={food?.name}
                             className="w-full h-full object-cover"
                           />
                           {/* Unavailability badge overlay */}
                           {!itemAvailability.available && (
-                            <div className="absolute top-3 right-3 z-10">
+                            <div className="absolute top-2.5 right-2.5 z-10">
                               <div className="bg-black/80 backdrop-blur-md
-                                text-white text-[10px] font-bold px-3 py-1
+                                text-white text-[9px] font-bold px-2 py-0.5
                                 rounded-full uppercase tracking-widest
                                 border border-white/20">
                                 {itemAvailability.reason}
@@ -480,17 +494,17 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
                             </div>
                           )}
 
-                          <div className="absolute top-3 left-3 pr-6 flex flex-wrap gap-2 z-10">
+                          <div className="absolute top-2.5 left-2.5 pr-4 flex flex-wrap gap-1.5 z-10">
                             {/* Item type badge */}
                             {food.item_type && (
-                              <div className="bg-orange-500 text-white text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20">
+                              <div className="bg-orange-500 text-white text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20">
                                 {food.item_type}
                               </div>
                             )}
 
                             {/* Platform category badge */}
                             {food.platform_category && (
-                              <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-zinc-800 dark:text-zinc-200 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-zinc-100 dark:border-zinc-800 shadow-sm">
+                              <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-zinc-800 dark:text-zinc-200 text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-widest border border-zinc-100 dark:border-zinc-800 shadow-sm">
                                 {food.platform_category.parent?.name && (
                                   <span className="text-zinc-400 dark:text-zinc-500">
                                     {food.platform_category.parent.name} ·{" "}
@@ -519,18 +533,18 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
                       </div>
 
                       {/* Text Content */}
-                      <div className="md:p-5 p-2 pb-4">
-                        <h3 className="text-2xl font-bold text-zinc-900 dark:text-white leading-tight tracking-tight uppercase mb-1">
+                      <div className="md:p-4 p-2 pb-3">
+                        <h3 className="text-lg font-bold text-zinc-900 dark:text-white leading-tight tracking-tight uppercase mb-1">
                           {food?.name}
                         </h3>
-                        <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed italic font-medium">
+                        <p className="text-zinc-500 dark:text-zinc-400 text-xs leading-relaxed italic font-medium">
                           "{food?.description || "A masterfully crafted dish prepared with the finest ingredients."}"
                         </p>
 
-                        <div className="flex flex-wrap gap-2 mt-4">
+                        <div className="flex flex-wrap gap-2 mt-3">
                           {/* Rating Pill */}
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-900 dark:text-white bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                            <Star size={12} className="text-orange-500 fill-orange-500" />
+                          <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-900 dark:text-white bg-zinc-50 dark:bg-zinc-800 px-2.5 py-1 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                            <Star size={10} className="text-orange-500 fill-orange-500" />
                             <span>{food.rating > 0 ? food.rating.toFixed(1) : "New"}</span>
                             <span className="text-zinc-300 dark:text-zinc-700">|</span>
                             <span className="text-zinc-500 dark:text-zinc-400">{food.totalReviews || food.ratingCount || 0} reviews</span>
@@ -538,22 +552,22 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
                         </div>
 
                         {/* Quick Stats */}
-                        <div className="grid grid-cols-2 gap-3 mt-6">
+                        <div className="grid grid-cols-2 gap-2 mt-4">
                           {/* Time Stat */}
-                          <div className="flex items-center gap-3 p-3 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-2xl border border-zinc-100/80 dark:border-zinc-700/80 backdrop-blur-sm">
-                            <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800"><Clock size={18} /></div>
+                          <div className="flex items-center gap-2 p-2 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-xl border border-zinc-100/80 dark:border-zinc-700/80 backdrop-blur-sm">
+                            <div className="p-1.5 bg-white dark:bg-zinc-900 rounded-lg text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800"><Clock size={16} /></div>
                             <div>
-                              <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Est. Time</p>
-                              <p className="text-sm font-black text-zinc-900 dark:text-white leading-none">{food?.prep_time_minutes ? `${food.prep_time_minutes} min` : `25 min`}</p>
+                              <p className="text-[8px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Time</p>
+                              <p className="text-xs font-black text-zinc-900 dark:text-white leading-none">{food?.prep_time_minutes ? `${food.prep_time_minutes}m` : `25m`}</p>
                             </div>
                           </div>
 
                           {/* Delivery */}
-                          <div className="flex items-center gap-3 p-3 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-2xl border border-zinc-100/80 dark:border-zinc-700/80 backdrop-blur-sm">
-                            <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800"><Truck size={18} /></div>
+                          <div className="flex items-center gap-2 p-2 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-xl border border-zinc-100/80 dark:border-zinc-700/80 backdrop-blur-sm">
+                            <div className="p-1.5 bg-white dark:bg-zinc-900 rounded-lg text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800"><Truck size={16} /></div>
                             <div>
-                              <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Delivery</p>
-                              <p className="text-sm font-black text-zinc-900 dark:text-white leading-none">
+                              <p className="text-[8px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Delivery</p>
+                              <p className="text-xs font-black text-zinc-900 dark:text-white leading-none">
                                 {food?.deliveryFee ? `₦${food.deliveryFee.toLocaleString()}` : "Free"}
                               </p>
                             </div>
@@ -567,7 +581,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
 
               {/* Combos Grid (unchanged) */}
               {food.combos?.length > 0 && (
-                <div className="mb-8">
+                <div className="mb-4">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
                     <h3 className="text-lg font-black italic text-zinc-900 dark:text-white uppercase tracking-tight">
@@ -698,70 +712,70 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
 
               {/* Choice Groups */}
               {(food.choiceGroups?.length > 0 || food.choice_groups?.length > 0) && (
-                <div className="space-y-4 mb-8">
+                <div className="space-y-3 mb-4">
                   {(food.choiceGroups || food.choice_groups).map((group, gIdx) => (
-                    <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[32px] p-4 border border-zinc-100 dark:border-zinc-800 shadow-sm flex flex-col">
+                    <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[24px] p-3 border border-zinc-100 dark:border-zinc-800 shadow-sm flex flex-col">
                       <div className="flex items-center gap-2 mb-1">
-                        <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
-                        <h4 className="text-[15px] font-black italic text-zinc-900 dark:text-white uppercase tracking-tight">
+                        <div className="w-1 h-5 bg-orange-500 rounded-full" />
+                        <h4 className="text-[13px] font-black italic text-zinc-900 dark:text-white uppercase tracking-tight">
                           {group.name}
                         </h4>
                         {group.is_required && (
-                          <span className="text-[9px] font-bold text-rose-500 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full ml-auto">
+                          <span className="text-[8px] font-bold text-rose-500 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-full ml-auto uppercase tracking-widest">
                             REQUIRED
                           </span>
                         )}
                         {!group.is_required && (
-                          <span className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 px-2.5 py-1 rounded-full ml-auto uppercase tracking-wider">
+                          <span className="text-[8px] font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 px-2 py-0.5 rounded-full ml-auto uppercase tracking-widest">
                             OPTIONAL
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-widest mb-4">
+                      <p className="text-[9px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-[0.15em] mb-3">
                         {group.max_selections > 1 ? `Select up to ${group.max_selections}` : "Select one"}
                       </p>
 
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {group.options.filter(o => o.is_available).map(option => {
                           const isSelected = isOptionSelected(gIdx, option.label);
                           return (
                             <div key={option._id}
                                  onClick={() => itemAvailability.available && toggleChoice(gIdx, group, option)}
-                                 className={`flex items-center gap-4 p-3 rounded-[20px] border-2 cursor-pointer transition-all ${
-                                   isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10 shadow-lg shadow-orange-500/5 rotate-1 scal-[1.02]" : "border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-orange-200 dark:hover:border-orange-500/30"
+                                 className={`flex items-center gap-3 p-2.5 rounded-[16px] border-2 cursor-pointer transition-all ${
+                                   isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10 shadow-md" : "border-zinc-50 dark:border-zinc-800 bg-white dark:bg-zinc-900"
                                  } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}>
                               {/* Option Image */}
-                              <div className="w-12 h-12 rounded-[14px] bg-zinc-50 dark:bg-zinc-800 overflow-hidden shrink-0 shadow-inner">
+                              <div className="w-10 h-10 rounded-[10px] bg-zinc-50 dark:bg-zinc-800 overflow-hidden shrink-0 shadow-inner">
                                 {option.image_url ? (
                                   <img src={option.image_url} alt={option.label} className="w-full h-full object-cover" />
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-[20px] opacity-50">🍽️</div>
+                                  <div className="w-full h-full flex items-center justify-center text-[18px] opacity-50">🍽️</div>
                                 )}
                               </div>
                               {/* Details */}
                               <div className="flex-1 min-w-0">
-                                <p className="font-bold text-[13px] text-zinc-900 dark:text-white truncate tracking-tight uppercase italic">{option.label}</p>
+                                <p className="font-bold text-[11px] text-zinc-900 dark:text-white truncate uppercase italic">{option.label}</p>
                                 {option.price_modifier_naira > 0 ? (
-                                  <p className="text-[11px] font-black text-orange-500">+₦{option.price_modifier_naira.toLocaleString()}</p>
+                                  <p className="text-[10px] font-black text-orange-500">+₦{option.price_modifier_naira.toLocaleString()}</p>
                                 ) : (
-                                  <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mt-0.5">Free</p>
+                                  <p className="text-[8px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mt-0.5">Free</p>
                                 )}
                               </div>
                               {/* Selection Indicator */}
                               {isSelected ? (
-                                <div className="flex items-center gap-2.5 bg-white dark:bg-zinc-800 rounded-xl p-1 shadow-sm border border-zinc-100 dark:border-zinc-700" onClick={e => e.stopPropagation()}>
-                                  <button onClick={() => updateOptionQuantity(gIdx, option.label, -1, group)} disabled={!itemAvailability.available} className="w-[26px] h-[26px] flex items-center justify-center rounded-[8px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900">
-                                    <Minus size={14} strokeWidth={3} />
+                                <div className="flex items-center gap-2 bg-white dark:bg-zinc-800 rounded-lg p-0.5 shadow-sm border border-zinc-100 dark:border-zinc-700" onClick={e => e.stopPropagation()}>
+                                  <button onClick={() => updateOptionQuantity(gIdx, option.label, -1, group)} disabled={!itemAvailability.available} className="w-[22px] h-[22px] flex items-center justify-center rounded-[6px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900">
+                                    <Minus size={12} strokeWidth={3} />
                                   </button>
-                                  <span className="text-[13px] font-black text-zinc-900 dark:text-white min-w-[12px] text-center">
+                                  <span className="text-[11px] font-black text-zinc-900 dark:text-white min-w-[10px] text-center">
                                     {Array.isArray(selections[gIdx]) ? selections[gIdx].find(i => i.label === option.label)?.selectionQuantity || 1 : selections[gIdx]?.selectionQuantity || 1}
                                   </span>
-                                  <button onClick={() => updateOptionQuantity(gIdx, option.label, 1, group)} disabled={!itemAvailability.available} className="w-[26px] h-[26px] flex items-center justify-center rounded-[8px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900">
-                                    <Plus size={14} strokeWidth={3} />
+                                  <button onClick={() => updateOptionQuantity(gIdx, option.label, 1, group)} disabled={!itemAvailability.available} className="w-[22px] h-[22px] flex items-center justify-center rounded-[6px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900">
+                                    <Plus size={12} strokeWidth={3} />
                                   </button>
                                 </div>
                               ) : (
-                                <div className="w-[22px] h-[22px] rounded-full border-2 border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900" />
+                                <div className="w-[18px] h-[18px] rounded-full border-2 border-zinc-100 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900" />
                               )}
                             </div>
                           );
@@ -984,4 +998,20 @@ export default function FoodDetails({ initialData, foodId: propFoodId }) {
       </div>
     </>
   );
+
+  if (isModal) {
+    return (
+      <motion.div
+        initial={{ y: "100%", opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: "100%", opacity: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        className="fixed inset-0 z-[9999] bg-zinc-50 dark:bg-zinc-950 overflow-y-auto no-scrollbar w-full h-full"
+      >
+        {content}
+      </motion.div>
+    );
+  }
+
+  return content;
 }
