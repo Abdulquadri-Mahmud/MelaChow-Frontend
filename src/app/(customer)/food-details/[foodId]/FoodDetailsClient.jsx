@@ -66,8 +66,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   const [reviewsPage, setReviewsPage] = useState(1);
   const [ratingFilter, setRatingFilter] = useState(null);
 
-  // Reset base customizer when food fetches
-  useEffect(() => {
+  const resetSelections = () => {
     if (food) {
         const portions = Array.isArray(food?.portions) ? food.portions : [];
         const defaultPortion = portions.find(p => p.is_default) || portions[0] || null;
@@ -76,6 +75,11 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
         setQuantity(1);
         setPortionQuantity(1);
     }
+  };
+
+  // Reset base customizer when food fetches
+  useEffect(() => {
+    resetSelections();
   }, [food]);
 
   // Initialize Client
@@ -163,7 +167,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   const handleAddToCart = (payload) => {
     addToCart(payload);
     toast.success("Added to Order!");
-    if (isModal && onClose) onClose();
+    resetSelections();
   };
 
   // Base Item Customizer Logic
@@ -333,8 +337,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
       addToCart(payload);
       toast.success("Added to Order!");
-      
-      if (isModal && onClose) onClose();
+      resetSelections();
   };
 
   const checkAvailability = () => {
@@ -415,8 +418,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
         </button>
       </header>
 
-      <div className="bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
-      <div className="max-w-4xl mx-auto pb-12">
+      <div className=" bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
+      <div className="max-w-4xl mx-auto pb-4">
         {isLoading ? (
           <div className="p-2"><FoodDetailsSkeleton /></div>
         ) : isError ? (

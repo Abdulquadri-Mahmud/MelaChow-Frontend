@@ -113,9 +113,6 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const { addToCart } = useCart();
     const sectionRefs = useRef({});
     const openFoodModal = useFoodModalStore(state => state.openFoodModal);
-
-    const [modalOpen, setModalOpen] = useState(false);
-    const [fullItem, setFullItem] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeSectionId, setActiveSectionId] = useState("all");
     const [activeTab, setActiveTab] = useState("menu");
@@ -174,8 +171,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
     const handleItemTap = (item) => {
         if (!item.is_available || !item.is_in_stock) return;
-        setFullItem(item);
-        setModalOpen(true);
+        openFoodModal(item._id, { food: item });
     };
 
     const handleShare = async () => {
@@ -197,7 +193,6 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
     const onAddSuccess = () => {
         toast.success("Added to Order!");
-        setModalOpen(false);
     };
 
     const [scrollY, setScrollY] = useState(0);
@@ -268,7 +263,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const isScrolled = scrollY > 120;
 
     return (
-        <div className="min-h-screen bg-white dark:bg-zinc-950 pb-20">
+        <div className="min-h-screen scroll bg-white dark:bg-zinc-950 pb-20">
             <div className="relative h-[180px] w-full overflow-hidden">
                 <motion.div 
                     style={{ scale: 1 + scrollY * 0.001, y: scrollY * 0.4 }}
@@ -589,15 +584,6 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                 </Swiper>
             </div>
 
-            <FoodCustomizationModal 
-                food={fullItem}
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                onAdd={(payload) => {
-                    addToCart(payload);
-                    onAddSuccess();
-                }}
-            />
         </div>
     );
 }
