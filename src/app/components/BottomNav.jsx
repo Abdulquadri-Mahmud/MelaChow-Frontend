@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import { useUserStorage } from "../hooks/useUserStorage";
+import { useFoodModalStore } from "../store/foodModalStore";
 
 const navItems = [
   { name: "Home", href: "/home", icon: Home },
@@ -19,6 +20,7 @@ export default function BottomBar() {
   const pathname = usePathname();
   const { cart, isModalOpen } = useCart();
   const { user, isLoading } = useUserStorage();
+  const { isOpen: isFoodModalOpen } = useFoodModalStore();
 
   // Hide the bottom nav when the customization modal is open, 
   // or on specific pages (Restaurant Storefront, Food Details, Checkout)
@@ -28,7 +30,7 @@ export default function BottomBar() {
   // Also hide if logged in but no addresses (mandatory address modal state)
   const isNoAddress = !isLoading && user && user?.addresses?.length === 0;
 
-  if (isModalOpen || isFoodDetailsPage || isCheckoutPage || isNoAddress) return null;
+  if (isModalOpen || isFoodModalOpen || isFoodDetailsPage || isCheckoutPage || isNoAddress) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 px-0 md:max-w-md md:mx-auto z-[9999]">

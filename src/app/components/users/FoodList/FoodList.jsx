@@ -7,6 +7,7 @@ import { Star, Utensils, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
 import { useApi } from "@/app/context/ApiContext";
+import { useFoodModalStore } from "@/app/store/foodModalStore";
 
 export default function FoodList() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function FoodList() {
   const [width, setWidth] = useState(0);
   const scrollRef = useRef(null);
   const { baseUrl } = useApi();
+  const openFoodModal = useFoodModalStore(state => state.openFoodModal);
 
   // ✅ Fetch foods from API
   useEffect(() => {
@@ -90,7 +92,7 @@ export default function FoodList() {
                   }}
                   transition={{ duration: 0.25 }}
                   className="bg-white dark:bg-slate-800 p-2 rounded-md shadow-md min-w-[250px] cursor-pointer snap-start border border-gray-50 dark:border-slate-700"
-                  onClick={() => router.push(`/food-details/${food._id}`)}
+                  onClick={() => openFoodModal(food._id, { food })}
                 >
                   {/* Image */}
                   <div className="relative rounded-md overflow-hidden">

@@ -23,6 +23,7 @@ import {
   Sparkles, Gift, ChevronRight, Dot, Moon, ChefHat, Pizza, Coffee, Globe
 } from "lucide-react";
 import Link from "next/link";
+import FreeDeliveryBadge from "@/components/ui/FreeDeliveryBadge";
 import { useQuery } from "@tanstack/react-query";
 import { getNearbyVendors } from "@/app/lib/userApi";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
@@ -82,14 +83,18 @@ const VendorCard = ({ vendor }) => {
         )}
 
         {/* Floating Promo Badge - Conditionally shown if delivery is free */}
-        {(!vendor.deliveryFee || vendor.deliveryFee === 0) && (
+        {vendor.hasActiveDeliveryPromo ? (
+          <div className="absolute bottom-3 right-3 shadow-sm flex items-center">
+            <FreeDeliveryBadge type="vendor" />
+          </div>
+        ) : (!vendor.deliveryFee || vendor.deliveryFee === 0) ? (
           <div className="absolute bottom-3 right-3 bg-[#FFF9E5] border border-black/10 px-3 py-1.5 rounded-[12px] shadow-sm flex items-center gap-2">
             <Gift size={14} className="text-orange-500" />
             <span className="text-[10px] font-bold text-zinc-800 tracking-tight">
               Free delivery on all orders
             </span>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Info Section */}
@@ -225,13 +230,19 @@ const EmptyState = ({ city, selectedCuisine, onClear }) => (
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN EXPORT
 // ─────────────────────────────────────────────────────────────────────────────
-export default function VendorList() {
+export default function VendorList({ user }) {
   const [mounted, setMounted] = React.useState(false);
+  const { userLocation, syncWithUserAddress } = useLocationStore();
+
   React.useEffect(() => {
     setMounted(true);
   }, []);
 
-  const { userLocation } = useLocationStore();
+  React.useEffect(() => {
+    if (user) {
+      syncWithUserAddress(user);
+    }
+  }, [user, syncWithUserAddress]);
 
   const { data: responseData, isLoading, isError } = useQuery({
     queryKey: ["vendors-nearby", userLocation?.city, userLocation?.state],
@@ -255,6 +266,7 @@ export default function VendorList() {
       openingHours: v.openingHours,
       cuisineTypes: v.cuisineTypes || [],
       locationStatus: v.locationStatus || 'approved', // Default to approved if missing for safety
+      hasActiveDeliveryPromo: v.hasActiveDeliveryPromo || false,
       badge:        null,
       // Compute open status once here so sort and render share same value
       isOpen: getVendorOpenAndCloseStatus(v.openingHours).startsWith("Open now"),
@@ -307,7 +319,8 @@ export default function VendorList() {
   }
 
   if (isError) return null;
-  if (!userLocation) return null;
+  // if (!userLocation) return null; // Remove this to allow rendering even without location (it will hit empty state or skeleton)
+
 
   // ── Empty state (no vendors at all in this city) ───────────────────────────
   if (allVendors.length === 0) {

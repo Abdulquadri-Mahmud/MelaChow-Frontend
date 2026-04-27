@@ -20,6 +20,7 @@ import {
 import { getRecommendations } from "@/app/lib/api";
 import { isVendorOpen } from "@/app/lib/utils";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+import { useFoodModalStore } from "@/app/store/foodModalStore";
 
 const DIETARY_COLORS = {
   veg: "bg-green-100 text-green-700",
@@ -29,16 +30,16 @@ const DIETARY_COLORS = {
   "non-veg": "bg-red-100 text-red-700",
 };
 
-// --- Sub-Component: Food Card (Simplified Premium Style) ---
 const RecommendationCard = ({ food, router }) => {
     const [liked, setLiked] = useState(false);
     const vendor = food.restaurant || food.vendor;
     const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
     const isOpen = status.startsWith("Open now");
+    const openFoodModal = useFoodModalStore(state => state.openFoodModal);
 
     return (
         <div
-            onClick={() => router.push(`/food-details/${food._id}`)}
+            onClick={() => openFoodModal(food._id, { food })}
             className={`group shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-center sm:snap-start transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl ${!isOpen ? '' : ''}`}
             style={{ width: "72vw", maxWidth: "280px" }}
         >

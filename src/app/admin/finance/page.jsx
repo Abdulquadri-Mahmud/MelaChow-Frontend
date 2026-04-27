@@ -37,16 +37,24 @@ import Link from "next/link";
 // ── Shared UI Components ───────────────────────────────────────────────────────
 
 const StatCard = ({ title, value, icon: Icon, iconColor, subtitle }) => (
-    <div className="bg-white rounded-xl border border-slate-200 p-4 transition-all hover:border-slate-300">
-        <div className="flex items-start justify-between mb-3">
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-slate-50 border border-slate-100`}>
-                <Icon size={16} className={iconColor} />
+    <div className="bg-white rounded-2xl border border-slate-200 p-5 transition-all hover:border-orange-500/30 hover:shadow-xl hover:shadow-slate-200/50 group">
+        <div className="flex items-start justify-between mb-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-slate-50 border border-slate-100 group-hover:bg-orange-50 group-hover:border-orange-100 transition-colors`}>
+                <Icon size={20} className={`${iconColor} group-hover:text-orange-600 transition-colors`} />
             </div>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider text-right">{title}</p>
+            <div className="text-right">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">{title}</p>
+                <div className="h-1 w-8 bg-orange-500 rounded-full ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
         </div>
         <div>
-            <h3 className="text-lg font-bold text-slate-900 leading-tight">₦{value?.toLocaleString() ?? 0}</h3>
-            {subtitle && <p className="text-[10px] text-slate-500 font-medium mt-1">{subtitle}</p>}
+            <h3 className="text-2xl font-black text-slate-900 leading-tight tracking-tight">₦{value?.toLocaleString() ?? 0}</h3>
+            {subtitle && (
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-2 flex items-center gap-1.5 opacity-70 group-hover:opacity-100 transition-opacity">
+                    <span className="w-1 h-1 rounded-full bg-slate-300 group-hover:bg-orange-400" />
+                    {subtitle}
+                </p>
+            )}
         </div>
     </div>
 );

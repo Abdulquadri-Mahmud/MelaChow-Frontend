@@ -33,6 +33,8 @@ import {
     ChevronUp,
     Download,
     CheckCircle2,
+    Zap,
+    Gift,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import NotificationBell from "@/app/components/NotificationBell";
@@ -69,6 +71,13 @@ const navigation = [
             { icon: BarChart3, label: "Finance Hub",      href: "/admin/finance" },
             { icon: TrendingUp, label: "Platform Revenue", href: "/admin/payments" },
             { icon: Percent,   label: "Revenue Ledger",    href: "/admin/orders/commission" },
+        ],
+    },
+    {
+        title: "Marketing",
+        items: [
+            { icon: Zap,  label: "Platform Delivery", href: "/admin/promos/platform-delivery" },
+            { icon: Gift, label: "Vendor Sponsored",   href: "/admin/promos/vendor-delivery" },
         ],
     },
     {
@@ -155,25 +164,49 @@ function SidebarContent({ pathname, router, onNavigate, onLogout, installOpen, s
                                         key={item.href}
                                         onClick={() => { router.push(item.href); onNavigate?.(); }}
                                         className={`
-                                            w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium
-                                            transition-all duration-150 relative group
+                                            w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-[13px] font-bold
+                                            transition-all duration-300 relative group overflow-hidden
                                             ${isActive
-                                                ? "bg-gradient-to-r from-orange-500/20 to-amber-400/10 text-white border border-orange-500/25 shadow-sm"
-                                                : "text-slate-400 hover:bg-white/[0.06] hover:text-slate-200 border border-transparent"
+                                                ? "text-white shadow-[0_8px_20px_-6px_rgba(249,115,22,0.3)]"
+                                                : "text-slate-400 hover:text-slate-200"
                                             }
                                         `}
+                                        style={isActive ? {
+                                            background: "rgba(249, 115, 22, 0.1)",
+                                            border: "1px solid rgba(249, 115, 22, 0.2)",
+                                            backdropFilter: "blur(10px)"
+                                        } : {
+                                            border: "1px solid transparent"
+                                        }}
                                     >
+                                        {/* Active background highlight */}
+                                        {isActive && (
+                                            <motion.div 
+                                                layoutId="active-pill"
+                                                className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-orange-500/5 to-transparent pointer-events-none"
+                                                initial={false}
+                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                            />
+                                        )}
+                                        
                                         {/* Active glow bar */}
                                         {isActive && (
-                                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 bg-gradient-to-b from-orange-400 to-amber-400 rounded-full shadow-[0_0_10px_rgba(251,146,60,0.85)]" />
+                                            <span className="absolute left-0 top-1/4 bottom-1/4 w-[3px] bg-gradient-to-b from-orange-400 to-amber-500 rounded-full shadow-[0_0_12px_rgba(251,146,60,0.9)]" />
                                         )}
+                                        
                                         <item.icon
-                                            size={15}
-                                            className={isActive ? "text-orange-400 shrink-0" : "text-slate-500 shrink-0 group-hover:text-slate-400 transition-colors"}
+                                            size={16}
+                                            strokeWidth={isActive ? 2.5 : 2}
+                                            className={isActive ? "text-orange-400 shrink-0 relative z-10" : "text-slate-500 shrink-0 group-hover:text-slate-300 transition-colors relative z-10"}
                                         />
-                                        <span className={isActive ? "font-bold" : ""}>{item.label}</span>
+                                        <span className={`relative z-10 uppercase tracking-wide text-[11px] ${isActive ? "text-white" : ""}`}>{item.label}</span>
+                                        
                                         {isActive && (
-                                            <span className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-400 shadow-[0_0_6px_rgba(251,146,60,0.9)] shrink-0" />
+                                            <motion.span 
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)] shrink-0 relative z-10" 
+                                            />
                                         )}
                                     </button>
                                 );

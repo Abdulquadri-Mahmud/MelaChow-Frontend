@@ -7,6 +7,33 @@ import showAnimatedToast from "../components/toast/showAnimatedToast";
 const CartContext = createContext();
 export const useCart = () => useContext(CartContext);
 
+// Helper to compare if two items are functionally identical
+const isSameItem = (a, b) => {
+  if (!a || !b) return false;
+  if (a.type !== b.type) return false;
+  
+  if (a.type === "combo") {
+    return (a.comboId || a.variantId) === (b.comboId || b.variantId);
+  }
+
+  if (a.foodId !== b.foodId || a.portionId !== b.portionId) return false;
+
+  const optA = a.selected_options || [];
+  const optB = b.selected_options || [];
+  if (optA.length !== optB.length) return false;
+
+  // Compare options (order doesn't matter, so we sort or check existence)
+  const sortedA = [...optA].sort((x, y) => (x.option_id || "").localeCompare(y.option_id || ""));
+  const sortedB = [...optB].sort((x, y) => (x.option_id || "").localeCompare(y.option_id || ""));
+
+  for (let i = 0; i < sortedA.length; i++) {
+    if (sortedA[i].option_id !== sortedB[i].option_id) return false;
+    if (sortedA[i].quantity !== sortedB[i].quantity) return false;
+  }
+
+  return true;
+};
+
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -14,7 +41,19 @@ export const CartProvider = ({ children }) => {
   // Load cart from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem("melachowCart");
-    if (stored) setCart(JSON.parse(stored));
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        // Ensure all items have a cartId for backward compatibility
+        const withIds = parsed.map(item => ({
+          ...item,
+          cartId: item.cartId || `${Date.now()}-${Math.random()}`
+        }));
+        setCart(withIds);
+      } catch (e) {
+        setCart([]);
+      }
+    }
   }, []);
 
   // Store cart to localStorage
@@ -24,17 +63,22 @@ export const CartProvider = ({ children }) => {
 
   // Add item
   const addToCart = (item) => {
-    const exists = cart.some(
-      (c) => c.foodId === item.foodId && c.portionId === item.portionId
-    );
+    setCart((prev) => {
+      const existingIndex = prev.findIndex(c => isSameItem(c, item));
 
-    if (exists) {
-      showAnimatedToast("error", "Item already exists in your cart", "cart-exists");
-      return;
-    }
+      if (existingIndex > -1) {
+        const newCart = [...prev];
+        newCart[existingIndex] = {
+          ...newCart[existingIndex],
+          quantity: newCart[existingIndex].quantity + (item.quantity || 1)
+        };
+        showAnimatedToast("success", "Item quantity updated", "cart-qty-inc");
+        return newCart;
+      }
 
-    setCart((prev) => [...prev, item]);
-    showAnimatedToast("success", "Item added to cart", "cart-add");
+      showAnimatedToast("success", "Item added to cart", "cart-add");
+      return [...prev, { ...item, cartId: `${Date.now()}-${Math.random()}` }];
+    });
   };
 
   // Add Combo
@@ -43,18 +87,21 @@ export const CartProvider = ({ children }) => {
         ...comboItem,
         type:     "combo",
         quantity: comboItem.quantity || 1,
+        cartId:   `${Date.now()}-${Math.random()}`
     };
     setCart(prev => [...prev, newItem]);
     showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo");
   };
 
   // Increase Quantity
-  const increaseQuantity = (foodId, portionId, comboId) => {
+  const increaseQuantity = (foodId, portionId, comboId, cartId) => {
     setCart((prev) =>
       prev.map((item) => {
-        const isMatch = item.type === "combo"
-          ? (item.comboId === comboId || item.variantId === comboId)
-          : item.foodId === foodId && item.portionId === portionId;
+        const isMatch = cartId 
+          ? item.cartId === cartId 
+          : item.type === "combo"
+            ? (item.comboId === comboId || item.variantId === comboId)
+            : item.foodId === foodId && item.portionId === portionId;
 
         return isMatch ? { ...item, quantity: item.quantity + 1 } : item;
       })
@@ -63,41 +110,41 @@ export const CartProvider = ({ children }) => {
   };
 
   // Decrease Quantity
-  const decreaseQuantity = (foodId, portionId, comboId) => {
-    const item = cart.find(i => 
-      i.type === "combo"
-        ? (i.comboId === comboId || i.variantId === comboId)
-        : i.foodId === foodId && i.portionId === portionId
-    );
-
-    if (!item) return;
-
-    if (item.quantity > 1) {
-      showAnimatedToast("success", "Quantity decreased", "cart-qty-dec");
-    } else {
-      showAnimatedToast("error", "Item removed from cart", "cart-remove");
-    }
-
-    setCart((prev) =>
-      prev
-        .map((item) => {
-          const isMatch = item.type === "combo"
+  const decreaseQuantity = (foodId, portionId, comboId, cartId) => {
+    setCart((prev) => {
+      const itemToUpdate = prev.find(item => 
+        cartId 
+          ? item.cartId === cartId 
+          : item.type === "combo"
             ? (item.comboId === comboId || item.variantId === comboId)
-            : item.foodId === foodId && item.portionId === portionId;
-          
-          return isMatch ? { ...item, quantity: Math.max(0, item.quantity - 1) } : item;
-        })
-        .filter((item) => item.quantity > 0)
-    );
+            : item.foodId === foodId && item.portionId === portionId
+      );
+
+      if (!itemToUpdate) return prev;
+
+      if (itemToUpdate.quantity > 1) {
+        showAnimatedToast("success", "Quantity decreased", "cart-qty-dec");
+        return prev.map(item => 
+          item.cartId === itemToUpdate.cartId 
+            ? { ...item, quantity: item.quantity - 1 } 
+            : item
+        );
+      } else {
+        showAnimatedToast("error", "Item removed from cart", "cart-remove");
+        return prev.filter(item => item.cartId !== itemToUpdate.cartId);
+      }
+    });
   };
 
   // Remove item
-  const removeFromCart = (foodId, portionId, comboId) => {
+  const removeFromCart = (foodId, portionId, comboId, cartId) => {
     setCart((prev) =>
       prev.filter((item) => {
-        const isMatch = item.type === "combo"
-          ? (item.comboId === comboId || item.variantId === comboId)
-          : item.foodId === foodId && item.portionId === portionId;
+        const isMatch = cartId 
+          ? item.cartId === cartId
+          : item.type === "combo"
+            ? (item.comboId === comboId || item.variantId === comboId)
+            : item.foodId === foodId && item.portionId === portionId;
         return !isMatch;
       })
     );
@@ -105,27 +152,25 @@ export const CartProvider = ({ children }) => {
   };
 
   // Update item (for editing options)
-  const updateCartItem = (foodId, portionId, updatedItem) => {
+  const updateCartItem = (foodId, portionId, updatedItem, cartId) => {
     setCart((prev) => {
-      // 1. Remove the old item
-      const filtered = prev.filter(c => !(c.foodId === foodId && c.portionId === portionId));
+      // 1. Remove the old item by its unique cartId
+      const filtered = prev.filter(c => c.cartId !== cartId);
 
-      // 2. Check if the updated item already exists in the remaining items
-      const existingIndex = filtered.findIndex(c =>
-        c.foodId === updatedItem.foodId && c.portionId === updatedItem.portionId
-      );
+      // 2. Check if the updated item (with its new options) already exists elsewhere in the cart
+      const existingIndex = filtered.findIndex(c => isSameItem(c, updatedItem));
 
       if (existingIndex > -1) {
-        // Merge quantities
+        // Merge quantities if an identical item exists
         const newCart = [...filtered];
         newCart[existingIndex] = {
           ...newCart[existingIndex],
-          quantity: newCart[existingIndex].quantity + updatedItem.quantity
+          quantity: newCart[existingIndex].quantity + (updatedItem.quantity || 1)
         };
         return newCart;
       } else {
-        // Add updated item
-        return [...filtered, updatedItem];
+        // Otherwise add the updated item as a new entry (reusing the same cartId is fine)
+        return [...filtered, { ...updatedItem, cartId: cartId || `${Date.now()}-${Math.random()}` }];
       }
     });
     showAnimatedToast("success", "Cart updated", "cart-update");
@@ -156,5 +201,6 @@ export const CartProvider = ({ children }) => {
     </CartContext.Provider>
   );
 };
+
 
 

@@ -6,132 +6,63 @@ import { getVendorStorefront, getMenuItemDetail } from "@/app/lib/menuApi";
 import { useState, useRef, useMemo, useEffect, useCallback } from "react";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
+import { AnimatePresence, motion } from "framer-motion";
 
-import Header2 from "@/app/components/App_Header/Header2";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
-import { MapPin, Clock, Star, ChevronRight, ShoppingCart, Check, Search, Info, Package, Sparkles, Store, X, Plus, Heart, Globe, Bike, Flame, Truck, MessageSquare, ThumbsUp, ChevronLeft, ChevronRight as ChevronRightIcon, Loader2 } from "lucide-react";
-
-
-const DIETARY_COLORS = {
-    veg: "bg-green-100 text-green-700",
-    vegan: "bg-emerald-100 text-emerald-700",
-    halal: "bg-teal-100 text-teal-700",
-    kosher: "bg-blue-100 text-blue-700",
-    "non-veg": "bg-red-100 text-red-700",
-};
+import { MapPin, Clock, Star, Search, X, Plus, Share2, Flame, MessageSquare, ChevronLeft, Loader2 } from "lucide-react";
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
-import { isVendorOpen } from "@/app/lib/utils";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import ViewVendorSkeleton from "@/app/skeleton/ViewVendorSkeleton";
+import { useFoodModalStore } from "@/app/store/foodModalStore";
 
-const FoodCard = ({ item, vendor, onSelect }) => {
+const FoodItemRow = ({ item, onSelect }) => {
     const isUnavailable = !item.is_available || !item.is_in_stock;
-    const [liked, setLiked] = useState(false);
-    const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
-    const isOpen = status.startsWith("Open now");
+    const price = item.portions?.min_price_naira || item.portions?.default_price_naira || item.price || 0;
+    const oldPrice = item.old_price || (price * 1.2); 
 
-    // console.log(item)
-    // console.log(vendor)
     return (
-        <div
+        <div 
             onClick={() => !isUnavailable && onSelect(item)}
-            className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl snap-start ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
-            style={{ width: "72vw", maxWidth: "280px" }}
+            className={`group flex items-center gap-3 py-3 border-b border-zinc-100/80 dark:border-zinc-800/80 last:border-0 cursor-pointer active:scale-[0.98] transition-all duration-200 ${isUnavailable ? 'opacity-50 grayscale' : ''}`}
         >
-            {/* Image Container */}
-            <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                <img
-                    src={item.image_url || item.image || "/placeholder.jpg"}
-                    alt={item.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-
-                {/* HOT Badge - Top Right */}
-                <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-0.5 rounded-lg z-10">
-                    <span className="text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <Flame size={8} fill="currentColor" /> HOT
-                    </span>
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                    <h3 className="text-[14px] font-black text-zinc-900 dark:text-white uppercase italic tracking-tight truncate group-hover:text-orange-600 transition-colors">{item.name}</h3>
+                    {item.is_featured && <Flame size={12} className="text-orange-500 animate-pulse" />}
                 </div>
-
-                {/* Dietary Badge - Bottom Left */}
-                {item.dietary_type && item.dietary_type !== "mixed" && (
-                    <div className="absolute bottom-2 left-2 z-10">
-                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${DIETARY_COLORS[item.dietary_type] || "bg-zinc-100 text-zinc-500"}`}>
-                            {item.dietary_type}
-                        </span>
-                    </div>
-                )}
-
-                {/* Unavailability Overlay */}
-                {isUnavailable && (
-                    <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-[2px] flex items-center justify-center z-20">
-                        <span className="bg-white/95 text-zinc-900 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg">
-                            {!item.is_available ? "Unavailable" : "Sold Out"}
-                        </span>
-                    </div>
-                )}
+                <p className="text-[11px] font-bold text-zinc-400 line-clamp-2 leading-relaxed mb-2 uppercase tracking-wide">
+                    {item.description || "Freshly prepared with the finest ingredients from our kitchen to your doorstep."}
+                </p>
+                <div className="flex items-center gap-3">
+                    <span className="text-[14px] font-black text-orange-600">₦{price.toLocaleString()}</span>
+                    {oldPrice > price && (
+                        <span className="text-[11px] text-zinc-400 line-through font-bold">₦{oldPrice.toLocaleString()}</span>
+                    )}
+                </div>
             </div>
 
-            {/* Info Block */}
-            <div className="px-3 pt-2.5 pb-3">
-                {/* Row 1: Name + Price + Heart */}
-                <div className="flex justify-between items-start gap-2">
-                    <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                            {item.name}
-                        </h3>
-                        <p className="text-xs font-black text-slate-900 dark:text-white mt-0.5">
-                            ₦{(item.portions?.min_price_naira || item.portions?.default_price_naira || 0).toLocaleString()}
-                        </p>
+            <div className="relative w-16 h-16 rounded-[20px] overflow-hidden shrink-0 shadow-lg shadow-black/5 group-hover:shadow-orange-500/10 transition-all duration-500">
+                <img 
+                    src={item.image_url || item.image || "/placeholder.jpg"} 
+                    alt={item.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                
+                {/* Modern Add Button */}
+                <div className="absolute bottom-1 right-1 flex items-center justify-center">
+                    <div className="w-6 h-6 bg-white dark:bg-zinc-900 shadow-xl rounded-lg flex items-center justify-center text-orange-600 border border-zinc-100 dark:border-zinc-800 group-active:scale-90 transition-transform">
+                        <Plus size={14} strokeWidth={3} />
                     </div>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
-                        className="transition-colors shrink-0 pt-0.5"
-                    >
-                        <Heart
-                            size={16}
-                            className={liked ? "fill-red-500 text-red-500" : "text-gray-400"}
-                            strokeWidth={liked ? 0 : 1.5}
-                        />
-                    </button>
                 </div>
 
-                {/* Row 2: Category Name */}
-                <p className="text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-500 truncate mt-1">
-                    {item.platform_category?.name || "Member Special"}
-                </p>
-
-                {/* Row 3: Metadata Line: Delivery | Status | Rating */}
-                <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
-
-                    {/* Delivery */}
-                    <div className="flex items-center gap-1 whitespace-nowrap">
-                        <Bike size={14} className="text-gray-400 dark:text-zinc-500" />
-                        {(!vendor?.deliveryFee || vendor?.deliveryFee === 0) ? (
-                            <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
-                        ) : (
-                            <span className="text-xs text-gray-500 dark:text-zinc-400">₦{vendor.deliveryFee.toLocaleString()}</span>
-                        )}
-                    </div>
-
-                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
-
-                    {/* Status */}
-                    <span className={`text-[10px] font-black uppercase italic whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {status}
-                    </span>
-
-                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
-
-                    {/* Rating */}
-                    <div className="flex items-center gap-0.5 whitespace-nowrap">
-                        <Star size={10} className="fill-orange-500 text-orange-500" />
-                        <span className="text-[11px] font-bold text-gray-900 dark:text-white">
-                            {Number(vendor?.rating || 0).toFixed(1)}
+                {isUnavailable && (
+                    <div className="absolute inset-0 bg-zinc-900/60 backdrop-blur-[2px] flex items-center justify-center">
+                        <span className="bg-white/90 backdrop-blur-md px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-[0.1em] text-zinc-900 shadow-xl">
+                            Sold Out
                         </span>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );
@@ -139,90 +70,26 @@ const FoodCard = ({ item, vendor, onSelect }) => {
 
 const ComboCard = ({ combo, vendor, onSelect }) => {
     const isUnavailable = !combo.is_available;
-    const [liked, setLiked] = useState(false);
-    const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
-    const isOpen = status.startsWith("Open now");
+    const price = combo.price_naira || 0;
     
     return (
         <div
             onClick={() => !isUnavailable && onSelect(combo)}
-            className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl snap-start ${isUnavailable ? 'opacity-60 grayscale-[0.5]' : ''}`}
-            style={{ width: "72vw", maxWidth: "280px" }}
+            className={`flex-shrink-0 w-[240px] bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-black/[0.03] cursor-pointer active:scale-95 transition-all duration-300 group ${isUnavailable ? 'opacity-50 grayscale' : ''}`}
         >
-            {/* Image Block */}
-            <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                <img
-                    src={combo.image_url || "/placeholder.jpg"}
-                    alt={combo.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                <span className="absolute top-2 left-2 bg-orange-500 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full z-10">
-                    Deal
-                </span>
-                {isUnavailable && (
-                    <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-[2px] flex items-center justify-center">
-                        <span className="bg-white/95 text-zinc-900 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg">
-                            Unavailable
-                        </span>
-                    </div>
-                )}
-            </div>
-
-            {/* Info Block */}
-            <div className="px-3 pt-2.5 pb-3">
-                {/* Row 1: Name + Price + Heart */}
-                <div className="flex justify-between items-start gap-2">
-                    <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                            {combo.name}
-                        </h3>
-                        <p className="text-xs font-black text-slate-900 dark:text-white mt-0.5">
-                            ₦{(combo.price_naira || 0).toLocaleString()}
-                        </p>
-                    </div>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
-                        className="transition-colors shrink-0 pt-0.5"
-                    >
-                        <Heart
-                            size={16}
-                            className={liked ? "fill-red-500 text-red-500" : "text-gray-400"}
-                            strokeWidth={liked ? 0 : 1.5}
-                        />
-                    </button>
+            <div className="relative h-40 w-full overflow-hidden">
+                <img src={combo.image_url || "/placeholder.jpg"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={combo.name} />
+                <div className="absolute top-3 left-3 bg-zinc-900/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-xl border border-white/10">
+                    Combo Deal
                 </div>
-
-                {/* Row 2: Category Name */}
-                <p className="text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-500 truncate mt-1">
-                    {combo.platform_category?.name || "Combo Bundle"}
-                </p>
-
-                {/* Row 3: Metadata Line: Delivery | Status | Rating */}
-                <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
-
-                    {/* Delivery */}
-                    <div className="flex items-center gap-1 whitespace-nowrap">
-                        <Bike size={14} className="text-gray-400 dark:text-zinc-500" />
-                        {(!vendor?.deliveryFee || vendor?.deliveryFee === 0) ? (
-                            <span className="text-xs font-bold text-gray-900 dark:text-white">Free</span>
-                        ) : (
-                            <span className="text-xs text-gray-500 dark:text-zinc-400">₦{vendor.deliveryFee.toLocaleString()}</span>
-                        )}
-                    </div>
-
-                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
-
-                    {/* Status */}
-                    <span className={`text-[10px] font-black uppercase italic whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {status}
-                    </span>
-
-                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
-
-                    {/* Rating */}
-                    <div className="flex items-center gap-0.5 whitespace-nowrap">
-                        <Star size={10} className="fill-orange-500 text-orange-500" />
-                        <span className="text-[11px] font-bold text-gray-900 dark:text-white">{Number(vendor?.rating || 0).toFixed(1)}</span>
+                <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+            </div>
+            <div className="p-4 space-y-2">
+                <h4 className="text-[14px] font-black text-zinc-900 dark:text-white truncate uppercase italic tracking-tight">{combo.name}</h4>
+                <div className="flex items-center justify-between">
+                    <span className="text-[16px] font-black text-orange-500">₦{price.toLocaleString()}</span>
+                    <div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+                        <Plus size={16} strokeWidth={3} />
                     </div>
                 </div>
             </div>
@@ -230,32 +97,32 @@ const ComboCard = ({ combo, vendor, onSelect }) => {
     );
 };
 
-
 export default function StorefrontPage({ initialData, vendorId: propVendorId }) {
     const params = useParams();
     const vendorId = propVendorId || params.vendorId;
     const router = useRouter();
     const { addToCart } = useCart();
     const sectionRefs = useRef({});
+    const openFoodModal = useFoodModalStore(state => state.openFoodModal);
 
-    const [selectedItemId, setSelectedItemId] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [fullItem, setFullItem] = useState(null);
-    const [loadingItem, setLoadingItem] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    const [activeSectionId, setActiveSectionId] = useState(null);
-    const [activeTab, setActiveTab] = useState("menu"); // "menu" | "reviews"
-    const [swiperInstance, setSwiperInstance] = useState(null);
+    const [activeSectionId, setActiveSectionId] = useState("all");
+    const [activeTab, setActiveTab] = useState("menu");
+    const [mainSwiper, setMainSwiper] = useState(null);
+    const [menuSwiper, setMenuSwiper] = useState(null);
     const [reviewsData, setReviewsData] = useState(null);
     const [reviewsLoading, setReviewsLoading] = useState(false);
     const [reviewsPage, setReviewsPage] = useState(1);
-    const [ratingFilter, setRatingFilter] = useState(null); // null = all
+    const [ratingFilter, setRatingFilter] = useState(null);
+    const [isSearchActive, setIsSearchActive] = useState(false);
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ["vendor-storefront", vendorId],
         queryFn: () => getVendorStorefront(vendorId),
         enabled: !!vendorId,
-        staleTime: 1000 * 60 * 5, // 5 min
+        staleTime: 0,
         initialData: initialData,
     });
 
@@ -264,7 +131,6 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const unsectioned = data?.unsectioned || [];
     const combos      = data?.combos || [];
 
-    // Fetch reviews when tab switches to reviews
     const fetchReviews = useCallback(async (page = 1, rating = null) => {
         if (!vendorId) return;
         setReviewsLoading(true);
@@ -287,42 +153,58 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         }
     }, [activeTab]);
 
-    const handleRatingFilter = (star) => {
-        const newFilter = ratingFilter === star ? null : star;
-        setRatingFilter(newFilter);
-        setReviewsPage(1);
-        fetchReviews(1, newFilter);
+    const scrollToSection = (id) => {
+        const index = allSections.findIndex(s => s._id === id);
+        if (index !== -1) menuSwiper?.slideTo(index);
     };
 
-    const handleReviewsPage = (newPage) => {
-        setReviewsPage(newPage);
-        fetchReviews(newPage, ratingFilter);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    const handleComboTap = (combo) => {
+        if (!combo.is_available) return;
+        router.push(`/combo-details/${combo._id}?vendorId=${vendorId}`);
     };
 
-    // console.log('[StorefrontPage] 🍱 sections:', sections);
-    // console.log('[StorefrontPage] 📦 unsectioned:', unsectioned);
-    // console.log('[StorefrontPage] 🎁 combos:', combos);
-    // console.log('[StorefrontPage] 🏷️ sample platform_category (first unsectioned):', unsectioned[0]?.platform_category);
+    const handleItemTap = (item) => {
+        if (!item.is_available || !item.is_in_stock) return;
+        setFullItem(item);
+        setModalOpen(true);
+    };
+
+    const handleShare = async () => {
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `${vendor.storeName} on MelaChow`,
+                    text: `Check out ${vendor.storeName} in ${vendor.address?.city} on MelaChow!`,
+                    url: window.location.href,
+                });
+            } catch (err) {
+                console.error("Error sharing:", err);
+            }
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            toast.success("Link copied to clipboard!");
+        }
+    };
+
+    const onAddSuccess = () => {
+        toast.success("Added to Order!");
+        setModalOpen(false);
+    };
+
+    const [scrollY, setScrollY] = useState(0);
+
+    useEffect(() => {
+        const handleScroll = () => setScrollY(window.scrollY);
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     const allSections = useMemo(() => {
-        // Combo section stays at top as-is
         const comboSection = combos.length > 0
-            ? [{
-                _id:   "combos",
-                name:  "Deals & Combos",
-                items: combos,
-                type:  "combo",
-              }]
+            ? [{ _id: "combos", name: "Deals & Combos", items: combos, type: "combo" }]
             : [];
 
-        // Flatten all food items from sections + unsectioned
-        const allItems = [
-            ...sections.flatMap(s => s.items || []),
-            ...unsectioned,
-        ];
-
-        // Group by platform category — handles both string (old) and object (new) formats
+        const allItems = [...sections.flatMap(s => s.items || []), ...unsectioned];
         const grouped = {};
         for (const item of allItems) {
             const cat = item.platform_category;
@@ -339,519 +221,364 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
             items,
         }));
 
-        const combined = [...comboSection, ...foodSections];
+        const combinedCategories = [...comboSection, ...foodSections];
+        const allItemsList = combinedCategories.flatMap(s => s.items);
 
-        if (!searchQuery.trim()) return combined;
+        const finalSections = [
+            { _id: "all", name: "All", items: allItemsList },
+            ...combinedCategories
+        ];
+
+        if (!searchQuery.trim()) return finalSections;
 
         const lowerQuery = searchQuery.toLowerCase();
-        return combined.map(section => ({
+        return finalSections.map(section => ({
             ...section,
             items: section.items.filter(item =>
                 (item.name || "").toLowerCase().includes(lowerQuery) ||
-                (item.description && item.description.toLowerCase().includes(lowerQuery)) ||
-                (item.tags && item.tags.some(tag => tag.toLowerCase().includes(lowerQuery))) ||
-                (item.platform_category?.name && item.platform_category.name.toLowerCase().includes(lowerQuery)) ||
-                (item.platform_category?.parent?.name && item.platform_category.parent.name.toLowerCase().includes(lowerQuery))
+                (item.description && item.description.toLowerCase().includes(lowerQuery))
             )
         })).filter(section => section.items.length > 0);
-
     }, [sections, unsectioned, combos, searchQuery]);
 
-    const scrollToSection = (sectionId) => {
-        setActiveSectionId(sectionId);
-        sectionRefs.current[sectionId]?.scrollIntoView({
-            behavior: "smooth", block: "start"
-        });
-    };
-
-    const handleComboTap = (combo) => {
-        if (!combo.is_available) return;
-        router.push(`/combo-details/${combo._id}?vendorId=${vendorId}`);
-    };
-
-    const handleItemTap = (item) => {
-        if (!item.is_available || !item.is_in_stock) return;
-        router.push(`/food-details/${item._id}`);
-    };
-
-    const onAddSuccess = () => {
-        toast.success("Added to Order!");
-        router.push('/orders?activeTab=cart');
-    };
-
-    if (isLoading) {
-        return <ViewVendorSkeleton />;
-    }
+    if (isLoading) return <ViewVendorSkeleton />;
 
     if (isError || !vendor) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-6">
-                <div className="text-center p-8 bg-white dark:bg-slate-900 rounded-[32px] shadow-xl border border-slate-100 dark:border-slate-800 max-w-sm w-full">
-                    <Store size={48} className="mx-auto text-slate-300 mb-4" />
-                    <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Menu Unavailable</h2>
-                    <p className="text-slate-500 text-sm mb-6">We couldn't load the menu for this restaurant right now. Please try again later.</p>
-                    <button onClick={() => router.back()} className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 h-12 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all">Go Back</button>
+            <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-950 px-6">
+                <div className="text-center p-8 bg-zinc-50 dark:bg-zinc-900 rounded-[32px] border border-zinc-100 dark:border-zinc-800 max-w-sm w-full">
+                    <Store size={48} className="mx-auto text-zinc-300 mb-4" />
+                    <h2 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight mb-2">Menu Unavailable</h2>
+                    <p className="text-zinc-500 text-sm mb-6">We couldn't load the menu for this restaurant right now.</p>
+                    <button onClick={() => router.back()} className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 h-12 rounded-2xl font-black uppercase tracking-widest text-xs">Go Back</button>
                 </div>
             </div>
         );
     }
 
-    const totalItems = allSections.reduce((acc, curr) => acc + (curr.items?.length || 0), 0);
+    const isScrolled = scrollY > 120;
 
     return (
-        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
-            <Header2 
-                title={vendor.address?.city || vendor.storeName} 
-                subtitle="Food Menu" 
-            />
-
-            {/* ✨ Premium Floating Restaurant Header (Animated & Textured) */}
-            <div className="relative group overflow-hidden">
-                <style jsx>{`
-                    @keyframes pan {
-                        0% { transform: scale(1.1) translateX(0); }
-                        50% { transform: scale(1.15) translateX(-2%); }
-                        100% { transform: scale(1.1) translateX(0); }
-                    }
-                    @keyframes mesh {
-                        0% { transform: translate(0, 0) rotate(0deg); }
-                        50% { transform: translate(10%, 10%) rotate(180deg); }
-                        100% { transform: translate(0, 0) rotate(360deg); }
-                    }
-                    .mesh-orb {
-                        animation: mesh 25s infinite linear;
-                    }
-                    .float-logo {
-                        animation: float 6s ease-in-out infinite;
-                    }
-                    @keyframes float {
-                        0%, 100% { transform: translateY(0); }
-                        50% { transform: translateY(-10px); }
-                    }
-                `}</style>
-
-                {/* 🏮 Cinematic Animated Cover Image */}
-                <div className="relative h-[200px] sm:h-[260px] lg:h-[320px] w-full overflow-hidden isolate">
-                    <img 
-                        src={vendor.logo || "/placeholder-cover.jpg"} 
-                        className="w-full h-full object-cover animate-[pan_40s_ease-in-out_infinite]" 
-                        alt={`${vendor.storeName} cover`} 
-                    />
-                    
-                    {/* 🌈 Luxury Mesh Orbs (Animated) */}
-                    <div className="absolute inset-0 overflow-hidden opacity-30 mix-blend-soft-light dark:opacity-20 pointer-events-none">
-                        <div className="mesh-orb absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-orange-400/40 rounded-full blur-[120px]" />
-                        <div className="mesh-orb absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-amber-300/40 rounded-full blur-[100px]" style={{ animationDirection: 'reverse', animationDuration: '35s' }} />
+        <div className="min-h-screen bg-white dark:bg-zinc-950 pb-20">
+            <div className="relative h-[180px] w-full overflow-hidden">
+                <motion.div 
+                    style={{ scale: 1 + scrollY * 0.001, y: scrollY * 0.4 }}
+                    className="absolute inset-0 w-full h-full"
+                >
+                    <img src={vendor.logo || "/placeholder.jpg"} alt={vendor.storeName} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                </motion.div>
+                {!isScrolled && (
+                    <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between">
+                        <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white">
+                            <ChevronLeft size={24} />
+                        </button>
                     </div>
+                )}
+            </div>
 
-                    {/* Grain Texture for Premium Look */}
-                    <div className="absolute inset-x-0 inset-y-0 opacity-[0.05] pointer-events-none mix-blend-overlay" 
-                         style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/carbon-fibre.png")' }} />
+            {/* 🏰 Sticky Glass Header */}
+            <AnimatePresence>
+                {isScrolled && (
+                    <motion.div 
+                        initial={{ y: -72, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -72, opacity: 0 }}
+                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                        className="fixed top-0 inset-x-0 z-[60] bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-100 dark:border-zinc-800 px-4 h-14 flex items-center justify-between"
+                    >
+                        <AnimatePresence mode="wait">
+                            {!isSearchActive ? (
+                                <motion.div 
+                                    key="info"
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 10 }}
+                                    className="flex items-center justify-between w-full"
+                                >
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-8 h-8 rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-800 shrink-0">
+                                            <img src={vendor.logo || "/placeholder.jpg"} className="w-full h-full object-cover" alt={vendor.storeName} />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <h2 className="text-[12px] font-black text-zinc-900 dark:text-white truncate uppercase italic tracking-tight">{vendor.storeName}</h2>
+                                            <div className="flex items-center gap-1.5 text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                                                <Star size={8} className="text-amber-400 fill-amber-400" />
+                                                <span>{vendor.rating ? Number(vendor.rating).toFixed(1) : "NEW"}</span>
+                                                <span className="w-0.5 h-0.5 bg-zinc-300 rounded-full" />
+                                                <span>{vendor.estimatedDeliveryTime || "25"} MIN</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <button onClick={() => setIsSearchActive(true)} className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 transition-colors">
+                                            <Search size={14} className="text-zinc-600 dark:text-zinc-400" />
+                                        </button>
+                                        <button onClick={handleShare} className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 transition-colors">
+                                            <Share2 size={14} className="text-zinc-600 dark:text-zinc-400" />
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <motion.div 
+                                    key="search"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    className="flex items-center gap-3 w-full"
+                                >
+                                    <div className="relative flex-1">
+                                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
+                                        <input 
+                                            autoFocus
+                                            type="text"
+                                            placeholder="Search menu..."
+                                            className="w-full h-9 bg-zinc-100 dark:bg-zinc-900 rounded-lg pl-9 pr-3 text-[12px] font-black text-zinc-900 dark:text-white outline-none ring-offset-2 focus:ring-2 ring-orange-500/20"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                    </div>
+                                    <button onClick={() => { setIsSearchActive(false); setSearchQuery(""); }} className="text-[11px] font-black uppercase text-orange-600 tracking-widest px-1">Cancel</button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                    {/* Gradient Shields */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-50 dark:from-zinc-950 via-zinc-900/40 to-transparent dark:via-zinc-950/60" />
-                    <div className="absolute inset-0 bg-black/5 dark:bg-transparent" />
-                </div>
-                
-                {/* 🏰 Floating Info Panel */}
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="relative -mt-16 sm:-mt-20 lg:-mt-24 z-20">
-                        {/* Status Badge - Floating Top Right */}
-                        <div className="absolute -top-4 right-4 animate-in fade-in slide-in-from-bottom-2 duration-700">
-                            <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest backdrop-blur-xl border shadow-xl transition-all hover:scale-105 ${
-                                getVendorOpenAndCloseStatus(vendor.openingHours).startsWith("Open now") 
-                                ? "bg-emerald-500/90 text-white border-emerald-400/50" 
-                                : "bg-rose-500/90 text-white border-rose-400/50"
-                            }`}>
-                                <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            {/* 🏛️ Store Identity Card (Smaller) */}
+            <div className="relative max-w-2xl mx-auto px-4 -mt-10 z-20">
+                <div className="bg-white dark:bg-zinc-900 rounded-[28px] p-3 shadow-2xl shadow-black/5 dark:shadow-none border border-zinc-100 dark:border-zinc-800">
+                    <div className="flex flex-col items-center text-center">
+                        <div className="w-14 h-14 rounded-[16px] bg-white dark:bg-zinc-950 p-1 shadow-xl -mt-8 mb-2 border border-zinc-50 dark:border-zinc-800">
+                            <img 
+                                src={vendor.logo || "/placeholder.jpg"} 
+                                alt={vendor.storeName} 
+                                className="w-full h-full object-cover rounded-[12px]"
+                            />
+                        </div>
+                        
+                        <div className="space-y-0.5 mb-3">
+                            <h1 className="text-lg font-black text-zinc-900 dark:text-white tracking-tight italic uppercase">
+                                {vendor.storeName}
+                            </h1>
+                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] flex items-center justify-center gap-1.5">
+                                <MapPin size={9} className="text-orange-500" />
+                                {vendor.address?.city || "Restaurant"}
+                            </p>
+                        </div>
+
+                        {/* Stats Row */}
+                        <div className="flex items-center gap-3 w-full justify-center">
+                            <div className="text-center space-y-0.5">
+                                <div className="flex items-center gap-1 justify-center">
+                                    <Star size={10} className="text-amber-400 fill-amber-400" />
+                                    <span className="text-[12px] font-black text-zinc-900 dark:text-white">{vendor.rating ? Number(vendor.rating).toFixed(1) : "NEW"}</span>
+                                </div>
+                                <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">({vendor.ratingCount || 0}) Reviews</p>
+                            </div>
+                            <div className="w-px h-5 bg-zinc-100 dark:bg-zinc-800" />
+                            <div className="text-center space-y-0.5">
+                                <div className="flex items-center gap-1 justify-center">
+                                    <Clock size={10} className="text-orange-500" />
+                                    <span className="text-[12px] font-black text-zinc-900 dark:text-white">{vendor.estimatedDeliveryTime || "25"}</span>
+                                </div>
+                                <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">Mins</p>
+                            </div>
+                            <div className="w-px h-5 bg-zinc-100 dark:bg-zinc-800" />
+                            <div className="text-center space-y-0.5">
+                                <div className="flex items-center gap-1 justify-center text-orange-500 font-black text-[12px]">
+                                    ₦{vendor.deliveryFee?.toLocaleString() || "FREE"}
+                                </div>
+                                <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest">Delivery</p>
+                            </div>
+                        </div>
+
+                        {/* Status Badge */}
+                        <div className="mt-4 flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-500/10 rounded-xl border border-orange-100 dark:border-orange-500/20">
+                            <div className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
+                            <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">
                                 {getVendorOpenAndCloseStatus(vendor.openingHours)}
                             </span>
                         </div>
-
-                        <div className="flex flex-col lg:flex-row items-end gap-5 sm:gap-6">
-                            {/* Logo with Ring & Float Animation */}
-                            <div className="relative shrink-0 mx-auto lg:mx-0 float-logo">
-                                <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 rounded-3xl sm:rounded-[40px] overflow-hidden border-[4px] border-zinc-50 dark:border-zinc-950 bg-white dark:bg-zinc-900 shadow-2xl transition-transform hover:rotate-2">
-                                    <img 
-                                        src={vendor.logo || "/placeholder-logo.jpg"} 
-                                        className="w-full h-full object-cover" 
-                                        alt={`${vendor.storeName} logo`} 
-                                    />
-                                </div>
-                                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center text-white shadow-xl rotate-12 border-[3px] border-zinc-50 dark:border-zinc-950">
-                                    <Sparkles size={14} fill="white" />
-                                </div>
-                            </div>
-
-                            {/* Name & Quick Stats */}
-                            <div className="flex-1 pb-1 sm:pb-3 text-center lg:text-left">
-                                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1.5 mb-2">
-                                    {vendor.cuisineTypes?.slice(0, 3).map((cuisine, idx) => (
-                                        <span key={idx} className="text-[9px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-500/10 px-2.5 py-1 rounded-lg border border-orange-200/50 dark:border-orange-500/20">
-                                            {cuisine}
-                                        </span>
-                                    ))}
-                                    {vendor.is_new !== false && (
-                                        <span className="text-[9px] font-black uppercase tracking-wider text-white bg-slate-900 dark:bg-zinc-100 dark:text-zinc-900 px-2.5 py-1 rounded-lg shadow-md">
-                                            New
-                                        </span>
-                                    )}
-                                </div>
-
-                                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-zinc-950 dark:text-white tracking-tighter mb-3 italic uppercase leading-[0.85] mix-blend-multiply dark:mix-blend-normal">
-                                    {vendor.storeName}
-                                </h1>
-
-                                {/* Horizontal Stats Bar (Compact) */}
-                                <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-y-3 gap-x-6 px-6 py-3.5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl rounded-3xl border border-white dark:border-zinc-800 shadow-xl shadow-black/5">
-                                    {/* Rating */}
-                                    <div className="flex items-center gap-2 text-orange-600">
-                                        <Star size={14} fill="currentColor" />
-                                        <span className="text-sm font-black tracking-tighter">{vendor.rating ? Number(vendor.rating).toFixed(1) : "New"}</span>
-                                    </div>
-
-                                    <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800" />
-
-                                    {/* Time */}
-                                    <div className="flex items-center gap-2 text-zinc-900 dark:text-white">
-                                        <Clock size={14} className="text-orange-500" strokeWidth={2.5} />
-                                        <span className="text-sm font-black tracking-tighter">{vendor.estimatedDeliveryTime || 30}m</span>
-                                    </div>
-
-                                    <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800" />
-
-                                    {/* Fee */}
-                                    <div className="flex items-center gap-2 text-zinc-900 dark:text-white">
-                                        <Truck size={14} className="text-orange-500" strokeWidth={2.5} />
-                                        <span className="text-sm font-black tracking-tighter">₦{vendor.deliveryFee?.toLocaleString() || 0}</span>
-                                    </div>
-
-                                    <div className="hidden lg:block w-px h-4 bg-zinc-200 dark:bg-zinc-800" />
-
-                                    {/* Location */}
-                                    <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
-                                        <MapPin size={14} className="text-zinc-400" />
-                                        <span className="text-xs font-bold tracking-tight">{vendor.address?.city || vendor.address?.state || "Nearby"}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Search & Navigation Bar */}
-            <div className="sticky top-[64px] z-30 bg-zinc-50/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-zinc-200/50 dark:border-zinc-800/50 pt-4 pb-4 transform-gpu transition-all">
-                <div className="max-w-7xl mx-auto px-4 space-y-3">
+            <div className="max-w-2xl mx-auto px-4 mt-3 space-y-3">
+                <div className="flex bg-zinc-100/50 dark:bg-zinc-900/50 backdrop-blur-md p-0.5 rounded-[16px] w-full border border-zinc-100 dark:border-zinc-800">
+                    <button 
+                        onClick={() => { setActiveTab("menu"); mainSwiper?.slideTo(0); }}
+                        className={`flex-1 py-2 rounded-[14px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'menu' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-black/5 dark:shadow-none' : 'text-zinc-400'}`}
+                    >
+                        Menu Items
+                    </button>
+                    <button 
+                        onClick={() => { setActiveTab("reviews"); mainSwiper?.slideTo(1); }}
+                        className={`flex-1 py-2 rounded-[14px] text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'reviews' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-black/5 dark:shadow-none' : 'text-zinc-400'}`}
+                    >
+                        Reviews ({vendor.ratingCount || 0})
+                    </button>
+                </div>
 
-                    {/* Menu / Reviews Tab Toggle */}
-                    <div className="flex gap-2 w-full max-w-md lg:max-w-none">
-                        {[
-                            { id: 'menu', label: 'Menu', icon: Package },
-                            { id: 'reviews', label: `Reviews${vendor?.ratingCount ? ` (${vendor.ratingCount})` : ''}`, icon: Star },
-                        ].map(tab => (
+                {activeTab === 'menu' && (
+                    <div className="flex gap-4 overflow-x-auto pb-0 scrollbar-none sticky top-14 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl z-40 -mx-4 px-6 border-b border-zinc-100 dark:border-zinc-800 shadow-sm transition-all duration-300">
+                        {allSections.map((section) => (
                             <button
-                                key={tab.id}
-                                onClick={() => {
-                                    setActiveTab(tab.id);
-                                    swiperInstance?.slideTo(tab.id === 'menu' ? 0 : 1);
-                                }}
-                                className={`flex-1 flex items-center justify-center gap-2 h-11 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border ${
-                                    activeTab === tab.id
-                                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-lg'
-                                    : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300'
-                                }`}
+                                key={section._id}
+                                onClick={() => scrollToSection(section._id)}
+                                className={`py-3 text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap border-b-2 transition-all ${activeSectionId === section._id ? 'border-orange-500 text-orange-600' : 'border-transparent text-zinc-400'}`}
                             >
-                                <tab.icon size={12} />
-                                {tab.label}
+                                {section.name}
                             </button>
                         ))}
                     </div>
+                )}
 
-                    {/* Search Bar — only in menu tab */}
-                    {activeTab === 'menu' && (
-                    <div className="relative group max-w-md mx-auto lg:mx-0">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors" size={18} />
-                        <input
-                            type="text"
-                            placeholder={`Search ${vendor.storeName}'s menu...`}
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full h-12 pl-12 pr-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all outline-none font-medium text-sm text-slate-900 dark:text-white placeholder:text-slate-400"
-                        />
-                        {searchQuery && (
-                            <button 
-                                onClick={() => setSearchQuery('')}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 bg-slate-100 p-1 rounded-full"
-                            >
-                                <X size={14} />
-                            </button>
-                        )}
-                    </div>
-                    )}
-                    
-                    {/* Category Nav - Only show if not heavily searching and on menu tab */}
-                    {!searchQuery && activeTab === 'menu' && (
-                        <div className="flex gap-2 sm:gap-3 scroll overflow-x-auto pb-2 scrollbar-none snap-x mask-fade-edges">
-                            {allSections.map(section => (
-                                <button
-                                    key={section._id}
-                                    onClick={() => scrollToSection(section._id)}
-                                    className={`shrink-0 snap-start h-10 px-5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 border ${
-                                        activeSectionId === section._id 
-                                        ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent"
-                                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 hover:text-slate-900"
-                                    }`}
-                                >
-                                    {section.name}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
+                <Swiper
+                    onSwiper={setMainSwiper}
+                    onSlideChange={(swiper) => setActiveTab(swiper.activeIndex === 0 ? 'menu' : 'reviews')}
+                    initialSlide={0}
+                    speed={500}
+                    autoHeight={true}
+                    className="w-full"
+                >
+                    <SwiperSlide>
+                        <Swiper
+                            onSwiper={setMenuSwiper}
+                            onSlideChange={(swiper) => setActiveSectionId(allSections[swiper.activeIndex]?._id)}
+                            speed={300}
+                            autoHeight={true}
+                            className="w-full"
+                        >
+                            {allSections.length > 0 ? (
+                                allSections.map((section) => (
+                                    <SwiperSlide key={section._id}>
+                                        <div className="pb-3 space-y-1 pt-1 min-h-[40vh]">
+                                            {section.type === 'combo' ? (
+                                                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none snap-x px-1">
+                                                    {section.items.map(combo => (
+                                                        <ComboCard key={combo._id} combo={combo} vendor={vendor} onSelect={handleComboTap} />
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-0">
+                                                    {section.items.map(item => (
+                                                        <FoodItemRow key={item._id} item={item} onSelect={handleItemTap} />
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </SwiperSlide>
+                                ))
+                            ) : (
+                                <SwiperSlide>
+                                    <div className="flex flex-col items-center justify-center py-20 px-10 text-center space-y-4">
+                                        <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-900 rounded-[32px] flex items-center justify-center border border-zinc-100 dark:border-zinc-800">
+                                            <Search size={32} className="text-zinc-300" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[16px] font-black text-zinc-900 dark:text-white uppercase italic tracking-tight">No Items Found</p>
+                                            <p className="text-[12px] font-bold text-zinc-400 uppercase tracking-widest leading-relaxed">
+                                                We couldn't find anything matching "{searchQuery}". <br/> Try searching for something else.
+                                            </p>
+                                        </div>
+                                        <button 
+                                            onClick={() => { setSearchQuery(""); setIsSearchActive(false); }}
+                                            className="text-orange-500 text-[11px] font-black uppercase tracking-[0.2em] pt-2"
+                                        >
+                                            Clear Search
+                                        </button>
+                                    </div>
+                                </SwiperSlide>
+                            )}
+                        </Swiper>
+                    </SwiperSlide>
 
-            <Swiper
-                onSwiper={setSwiperInstance}
-                onSlideChange={(swiper) => {
-                    setActiveTab(swiper.activeIndex === 0 ? 'menu' : 'reviews');
-                }}
-                initialSlide={activeTab === 'reviews' ? 1 : 0}
-                speed={400}
-                simulateTouch={true}
-                touchRatio={1}
-                autoHeight={true}
-                className="w-full mt-4"
-            >
-                {/* SLIDE 1: MENU */}
-                <SwiperSlide>
-                    <div className="pb-10">
-                        {searchQuery && totalItems === 0 ? (
-                            <div className="text-center py-20 px-4">
-                                <div className="w-20 h-20 bg-slate-100 dark:bg-slate-900 rounded-[2rem] flex items-center justify-center mx-auto mb-6 text-slate-400">
-                                    <Search size={32} />
+                    <SwiperSlide>
+                        <div className="pb-0 space-y-4 pt-6">
+                            {reviewsLoading ? (
+                                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                                    <Loader2 size={32} className="animate-spin text-orange-500" />
+                                    <p className="text-[12px] font-black uppercase tracking-widest text-zinc-400">Loading Reviews...</p>
                                 </div>
-                                <h3 className="text-xl font-black text-slate-900 dark:text-white capitalize tracking-tight mb-2">No items found</h3>
-                                <p className="text-slate-500 text-sm">We couldn't find anything matching &quot;{searchQuery}&quot;.</p>
-                                <button 
-                                    onClick={() => setSearchQuery('')}
-                                    className="mt-6 text-orange-600 font-bold text-sm bg-orange-50 px-6 py-2.5 rounded-xl hover:bg-orange-100 transition-colors"
-                                >
-                                    Clear Search
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="space-y-8">
-                                {allSections.map((section) => (
-                                    <div
-                                        key={section._id}
-                                        ref={el => sectionRefs.current[section._id] = el}
-                                        className="scroll-mt-48"
-                                    >
-                                        <div className="flex items-center gap-2 px-4 mb-4">
-                                            <div className="w-1 h-5 bg-orange-500 rounded-full"></div>
-                                            <h2 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight capitalize">
-                                                {section.name}
-                                            </h2>
-                                            <span className="ml-auto text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 px-3 py-1 rounded-full">
-                                                {section.items?.length || 0}
-                                            </span>
-                                        </div>
-
-                                        {section.type === 'combo' ? (
-                                            <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
-                                                {section.items.map(combo => (
-                                                    <ComboCard
-                                                        key={combo._id}
-                                                        combo={combo}
-                                                        vendor={vendor}
-                                                        onSelect={handleComboTap}
-                                                    />
-                                                ))}
+                            ) : reviewsData ? (
+                                <>
+                                    <div className="bg-white dark:bg-zinc-900 rounded-[40px] p-8 border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-black/[0.02]">
+                                        <div className="flex flex-col sm:flex-row items-center gap-8">
+                                            <div className="text-center shrink-0">
+                                                <p className="text-7xl font-black text-zinc-900 dark:text-white leading-none mb-3 italic">
+                                                    {reviewsData.restaurant.averageRating || '—'}
+                                                </p>
+                                                <div className="flex justify-center gap-1">
+                                                    {[1,2,3,4,5].map(s => (
+                                                        <Star key={s} size={16} className={s <= Math.round(reviewsData.restaurant.averageRating) ? 'fill-amber-400 text-amber-400' : 'text-zinc-100 dark:text-zinc-800'} />
+                                                    ))}
+                                                </div>
+                                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mt-3">Overall Rating</p>
                                             </div>
-                                        ) : (
-                                            <div className="flex gap-4 scroll overflow-x-auto px-4 pb-4 snap-x snap-mandatory no-scrollbar">
-                                                {section.items?.map(item => (
-                                                    <FoodCard
-                                                        key={item._id}
-                                                        item={item}
-                                                        vendor={vendor}
-                                                        onSelect={handleItemTap}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </SwiperSlide>
-
-                {/* SLIDE 2: REVIEWS */}
-                <SwiperSlide>
-                    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6 pb-20">
-                        {reviewsLoading ? (
-                            <div className="flex flex-col items-center justify-center py-24 gap-4">
-                                <Loader2 size={32} className="animate-spin text-orange-500" />
-                                <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Loading Reviews...</p>
-                            </div>
-                        ) : reviewsData ? (
-                            <>
-                                <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm">
-                                    <div className="flex flex-col sm:flex-row items-center gap-6">
-                                        <div className="text-center shrink-0">
-                                            <p className="text-7xl font-black text-zinc-900 dark:text-white leading-none">
-                                                {reviewsData.restaurant.averageRating || '—'}
-                                            </p>
-                                            <div className="flex justify-center gap-0.5 mt-2">
-                                                {[1,2,3,4,5].map(s => (
-                                                    <Star key={s} size={16}
-                                                        className={s <= Math.round(reviewsData.restaurant.averageRating) ? 'fill-orange-500 text-orange-500' : 'text-zinc-200 dark:text-zinc-700'}
-                                                    />
-                                                ))}
-                                            </div>
-                                            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-1">
-                                                {reviewsData.restaurant.totalReviews} review{reviewsData.restaurant.totalReviews !== 1 ? 's' : ''}
-                                            </p>
-                                        </div>
-
-                                        <div className="flex-1 w-full space-y-2">
-                                            {[5,4,3,2,1].map(star => {
-                                                const pct = reviewsData.ratingPercentages?.[star] || 0;
-                                                const count = reviewsData.ratingDistribution?.[star] || 0;
-                                                return (
-                                                    <button
-                                                        key={star}
-                                                        onClick={() => handleRatingFilter(star)}
-                                                        className={`w-full flex items-center gap-3 group transition-opacity ${
-                                                            ratingFilter && ratingFilter !== star ? 'opacity-40' : 'opacity-100'
-                                                        }`}
-                                                    >
-                                                        <span className="text-[11px] font-black text-zinc-500 w-4 shrink-0">{star}</span>
-                                                        <Star size={10} className="fill-orange-400 text-orange-400 shrink-0" />
-                                                        <div className="flex-1 h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                                                            <div
-                                                                className="h-full bg-orange-500 rounded-full transition-all duration-500"
-                                                                style={{ width: `${pct}%` }}
-                                                            />
-                                                        </div>
-                                                        <span className="text-[10px] font-black text-zinc-400 w-6 text-right shrink-0">{count}</span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                    {ratingFilter && (
-                                        <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-                                            <p className="text-[10px] font-black text-orange-600 uppercase tracking-widest">
-                                                Showing {ratingFilter}-star reviews only
-                                            </p>
-                                            <button
-                                                onClick={() => handleRatingFilter(ratingFilter)}
-                                                className="text-[10px] font-black text-zinc-400 uppercase tracking-widest hover:text-zinc-700"
-                                            >
-                                                Clear filter ×
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {reviewsData.reviews.length === 0 ? (
-                                    <div className="text-center py-20 bg-white dark:bg-zinc-900 rounded-[40px] border border-dashed border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden relative group">
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        <div className="w-24 h-24 bg-zinc-50 dark:bg-zinc-800/50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 transform rotate-3 group-hover:rotate-6 transition-transform">
-                                            <MessageSquare size={40} className="text-zinc-300 dark:text-zinc-600" strokeWidth={1.5} />
-                                        </div>
-                                        <h3 className="text-xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white mb-2">No feedback yet</h3>
-                                        <p className="text-zinc-500 dark:text-zinc-400 text-xs max-w-[200px] mx-auto font-medium leading-relaxed uppercase tracking-widest opacity-80">
-                                            Be the first to share your experience with this shop!
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {reviewsData.reviews.map((review, idx) => {
-                                            const user = review.userId;
-                                            const food = review.foodId;
-                                            const initials = user ? `${user.firstname?.[0] || ''}${user.lastname?.[0] || ''}`.toUpperCase() : '?';
-                                            const date = new Date(review.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-                                            return (
-                                                <div key={review._id || idx} className="bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-zinc-100 dark:border-zinc-800 space-y-3">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-2xl overflow-hidden bg-gradient-to-br from-orange-400 to-amber-500 flex items-center justify-center text-white font-black text-sm shrink-0">
-                                                            {user?.avatar ? (
-                                                                <img src={user.avatar} alt={initials} className="w-full h-full object-cover" />
-                                                            ) : initials}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-[13px] font-black text-zinc-900 dark:text-white truncate">
-                                                                {user ? `${user.firstname} ${user.lastname}` : 'Anonymous'}
-                                                            </p>
-                                                            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{date}</p>
-                                                        </div>
-                                                        <div className="flex items-center gap-0.5 shrink-0">
-                                                            {[1,2,3,4,5].map(s => (
-                                                                <Star key={s} size={12}
-                                                                    className={s <= review.rating ? 'fill-orange-500 text-orange-500' : 'text-zinc-200 dark:text-zinc-700'}
+                                            <div className="flex-1 w-full space-y-3">
+                                                {[5,4,3,2,1].map(star => {
+                                                    const pct = reviewsData.ratingPercentages?.[star] || 0;
+                                                    return (
+                                                        <div key={star} className="flex items-center gap-4">
+                                                            <span className="text-[10px] font-black text-zinc-400 w-2">{star}</span>
+                                                            <div className="flex-1 h-2.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-full overflow-hidden">
+                                                                <motion.div 
+                                                                    initial={{ width: 0 }}
+                                                                    animate={{ width: `${pct}%` }}
+                                                                    transition={{ duration: 1, ease: "easeOut" }}
+                                                                    className="h-full bg-orange-500 rounded-full" 
                                                                 />
-                                                            ))}
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-zinc-900 dark:text-white w-8 text-right">{pct}%</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 pt-4">
+                                        {reviewsData.reviews.map((review, idx) => (
+                                            <div key={idx} className="bg-white dark:bg-zinc-900 rounded-[32px] p-6 border border-zinc-100/80 dark:border-zinc-800/80 space-y-4 shadow-sm group hover:border-orange-500/20 transition-colors">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 rounded-2xl bg-orange-500 flex items-center justify-center font-black text-white text-lg shadow-lg shadow-orange-500/20">
+                                                            {review.userId?.firstname?.[0]}{review.userId?.lastname?.[0]}
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <p className="text-[15px] font-black text-zinc-900 dark:text-white leading-tight uppercase italic">
+                                                                {review.userId?.firstname} {review.userId?.lastname}
+                                                            </p>
+                                                            <div className="flex gap-0.5">
+                                                                {[1,2,3,4,5].map(s => (
+                                                                    <Star key={s} size={10} className={s <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-zinc-100 dark:text-zinc-800'} />
+                                                                ))}
+                                                            </div>
                                                         </div>
                                                     </div>
-
-                                                    {food && (
-                                                        <div className="flex items-center gap-2">
-                                                            {food.image_url && (
-                                                                <div className="w-7 h-7 rounded-lg overflow-hidden shrink-0">
-                                                                    <img src={food.image_url} alt={food.name} className="w-full h-full object-cover" />
-                                                                </div>
-                                                            )}
-                                                            <span className="text-[10px] font-black text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded-lg uppercase tracking-widest">
-                                                                {food.name}
-                                                            </span>
-                                                        </div>
-                                                    )}
-
-                                                    <p className="text-sm text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                                                    <div className="text-right">
+                                                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                                            {new Date(review.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="relative">
+                                                    <p className="text-[14px] text-zinc-600 dark:text-zinc-400 leading-relaxed italic pr-6 font-medium">
                                                         "{review.comment}"
                                                     </p>
+                                                    <MessageSquare size={16} className="absolute top-0 right-0 text-zinc-100 dark:text-zinc-800" />
                                                 </div>
-                                            );
-                                        })}
+                                            </div>
+                                        ))}
                                     </div>
-                                )}
-
-                                {reviewsData.pagination?.totalPages > 1 && (
-                                    <div className="flex items-center justify-between pt-4">
-                                        <button
-                                            onClick={() => handleReviewsPage(reviewsPage - 1)}
-                                            disabled={!reviewsData.pagination.hasPrev}
-                                            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-[11px] font-black uppercase tracking-widest text-zinc-600 disabled:opacity-30 hover:border-zinc-400 transition-colors"
-                                        >
-                                            <ChevronLeft size={14} /> Prev
-                                        </button>
-                                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                                            Page {reviewsPage} of {reviewsData.pagination.totalPages}
-                                        </span>
-                                        <button
-                                            onClick={() => handleReviewsPage(reviewsPage + 1)}
-                                            disabled={!reviewsData.pagination.hasNext}
-                                            className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-[11px] font-black uppercase tracking-widest text-zinc-600 disabled:opacity-30 hover:border-zinc-400 transition-colors"
-                                        >
-                                            Next <ChevronRightIcon size={14} />
-                                        </button>
-                                    </div>
-                                )}
-                            </>
-                        ) : (
-                            <div className="text-center py-16">
-                                <p className="text-sm text-zinc-400">Could not load reviews. Try again.</p>
-                            </div>
-                        )}
-                    </div>
-                </SwiperSlide>
-            </Swiper>
-
-            {/* Removed Floating Cart per Request */}
+                                </>
+                            ) : null}
+                        </div>
+                    </SwiperSlide>
+                </Swiper>
+            </div>
 
             <FoodCustomizationModal 
                 food={fullItem}
@@ -862,15 +589,6 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                     onAddSuccess();
                 }}
             />
-
-            {loadingItem && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl flex flex-col items-center gap-4 animate-in zoom-in-95 duration-200">
-                        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-xs font-black uppercase tracking-widest text-slate-500">Preparing...</span>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

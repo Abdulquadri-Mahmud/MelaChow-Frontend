@@ -62,7 +62,7 @@ function OrdersContent() {
 
   const handleUpdateOrder = (foodId, portionId, payload) => {
     if (editingItem) {
-      updateCartItem(foodId, portionId, payload);
+      updateCartItem(foodId, portionId, payload, editingItem.cartId);
     }
     setEditModalOpen(false);
     setEditingItem(null);
@@ -104,7 +104,7 @@ function OrdersContent() {
 
       <main className="flex-1 max-w-4xl w-full mx-auto px-2 md:p-4">
         {/* Custom Tabs */}
-        <div className="flex bg-zinc-200/50 dark:bg-zinc-800/50 p-1 rounded-xl w-full max-w-md mb-6 sticky top-[72px] z-20 backdrop-blur-md">
+        <div className="flex bg-zinc-200/50 dark:bg-zinc-800/50 p-1 rounded-xl w-full max-w-md mx-auto mb-6 sticky top-[72px] z-20 backdrop-blur-md">
           <button
             onClick={() => {
               setActiveTab("cart");
@@ -191,9 +191,7 @@ function OrdersContent() {
 
                            <div className="space-y-4">
                              {group.items.map((item, index) => {
-                               const itemKey = item.type === 'combo' 
-                                 ? `combo-${item.comboId || item.variantId}-${index}` 
-                                 : `item-${item.foodId}-${item.portionId}-${index}`;
+                               const itemKey = item.cartId || index;
 
                                return (
                                  <div key={itemKey} className="flex gap-4 group">
@@ -245,21 +243,21 @@ function OrdersContent() {
 
                                          <div className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-1 border border-zinc-100 dark:border-zinc-800 shadow-inner">
                                            <button
-                                             onClick={() => decreaseQuantity(item.foodId, item.portionId, item.variantId)}
+                                             onClick={() => decreaseQuantity(item.foodId, item.portionId, item.variantId, item.cartId)}
                                              className="w-7 h-7 flex items-center justify-center rounded-lg bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 shadow-sm hover:text-orange-600 transition-all border border-zinc-100 dark:border-zinc-700"
                                            >
                                              <Minus size={12} strokeWidth={3} />
                                            </button>
                                            <span className="w-6 text-center text-[11px] font-black text-zinc-900 dark:text-white tabular-nums">{item.quantity}</span>
                                            <button
-                                             onClick={() => increaseQuantity(item.foodId, item.portionId, item.variantId)}
+                                             onClick={() => increaseQuantity(item.foodId, item.portionId, item.variantId, item.cartId)}
                                              className="w-7 h-7 flex items-center justify-center rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all"
                                            >
                                              <Plus size={12} strokeWidth={3} />
                                            </button>
                                          </div>
                                          <button
-                                           onClick={() => removeFromCart(item.foodId, item.portionId, item.variantId)}
+                                           onClick={() => removeFromCart(item.foodId, item.portionId, item.variantId, item.cartId)}
                                            className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all active:scale-90 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 shadow-sm"
                                          >
                                            <Trash2 size={14} />
@@ -275,7 +273,7 @@ function OrdersContent() {
                        ))}
 
                        {/* Summary Section */}
-                       <div className="mt-6 space-y-4">
+                       <div className="mt-6 mb-18 space-y-4">
                          <div className="bg-white dark:bg-zinc-900 rounded-[32px] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm">
                            <div className="flex justify-between items-center mb-6">
                              <div className="flex items-center gap-2">
@@ -432,7 +430,7 @@ function OrdersContent() {
       {/* Bottom Fixed Checkout Button - Moved Outside Swiper */}
       <AnimatePresence>
         {activeTab === "cart" && cart.length > 0 && (
-          <div className="fixed bottom-20 left-0 right-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 p-2 z-[100]">
+          <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 p-2 z-[100]">
             <motion.button
               initial={{ y: 80, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}

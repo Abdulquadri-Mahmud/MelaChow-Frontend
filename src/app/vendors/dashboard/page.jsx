@@ -25,6 +25,7 @@ import { ConfigureBankModal } from "../transactions/components/PayoutModals";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import { useVendorMenu } from "@/app/hooks/useMenu";
 import VendorDashboardSkeleton from "@/app/skeleton/VendorDashboardSkeleton";
+import VendorPromoStatus from "@/components/vendor/VendorPromoStatus";
 
 export default function VendorDashboard() {
   const [vendorData, setVendorData] = useState(null);
@@ -296,6 +297,8 @@ export default function VendorDashboard() {
     <div className="font-sans text-slate-900 dark:text-white min-h-screen bg-slate-50 dark:bg-slate-900">
 
       <div className="space-y-4">
+        
+        <VendorPromoStatus />
 
         {/* TOP METRICS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

@@ -22,6 +22,7 @@ import { getFoodsByLocation } from "@/app/lib/userApi";
 import { isVendorOpen } from "@/app/lib/utils";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import { useLocationStore } from "@/app/store/userLocationStore";
+import { useFoodModalStore } from "@/app/store/foodModalStore";
 
 const DIETARY_COLORS = {
   veg: "bg-green-100 text-green-700",
@@ -37,12 +38,13 @@ const FoodCard = ({ food }) => {
     const vendor = food.restaurant || food.vendor;
     const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
     const isOpen = status.startsWith("Open now");
+    const openFoodModal = useFoodModalStore(state => state.openFoodModal);
 
     // console.log(food);
     
     return (
-        <Link
-            href={`/food-details/${food._id}`}
+        <div
+            onClick={() => openFoodModal(food._id, { food })}
             className={`group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-start transition-all duration-300 block ${!isOpen ? '' : ''}`}
             style={{ width: "72vw", maxWidth: "280px" }}
         >
@@ -132,7 +134,7 @@ const FoodCard = ({ food }) => {
                     </div>
                 </div>
             </div>
-        </Link>
+        </div>
     );
 };
 

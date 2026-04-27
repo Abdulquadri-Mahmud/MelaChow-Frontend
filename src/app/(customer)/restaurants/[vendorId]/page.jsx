@@ -5,7 +5,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://grubdash-api.onrende
 async function getFullMenu(vendorId) {
   try {
     const res = await fetch(`${API_URL}/v1/vendors/${vendorId}/menu`, {
-      next: { revalidate: 3600 },
+      cache: 'no-store',
     });
 
     console.log(res);
