@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, Sparkles, ChevronRight, Bike, Zap, Star } from "lucide-react";
+import { Gift, Sparkles, ChevronRight, Bike, Zap, Star, LayoutGrid } from "lucide-react";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
 import Link from "next/link";
 
