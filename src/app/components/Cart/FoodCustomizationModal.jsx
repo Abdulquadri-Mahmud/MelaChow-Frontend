@@ -253,12 +253,12 @@ export default function FoodCustomizationModal({
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center p-0 sm:p-0">
+            <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center p-0 sm:p-4">
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="absolute inset-0 bg-black/60 backdrop-blur-md"
+                    className="absolute inset-0 bg-black/40 backdrop-blur-sm"
                     onClick={onClose}
                 />
 
@@ -267,10 +267,10 @@ export default function FoodCustomizationModal({
                     animate={{ y: 0 }}
                     exit={{ y: "100%" }}
                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    className="relative w-full sm:max-w-lg bg-white dark:bg-zinc-900 rounded-none sm:rounded-[0px] overflow-hidden flex flex-col h-full sm:h-screen border-none"
+                    className="relative w-full sm:max-w-md bg-white dark:bg-zinc-900 rounded-t-[24px] sm:rounded-[32px] overflow-hidden flex flex-col max-h-[90vh] shadow-2xl border border-zinc-100 dark:border-zinc-800"
                 >
                     {/* Header Image */}
-                    <div className="relative h-[200px] shrink-0">
+                    <div className="relative h-[140px] shrink-0">
                         <motion.img
                             initial={{ scale: 1.1 }}
                             animate={{ scale: 1 }}
@@ -279,35 +279,35 @@ export default function FoodCustomizationModal({
                             alt={food.name}
                             className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/20 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
                         
-                        <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-                           <div className="bg-orange-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-xl shadow-orange-500/20 italic border border-white/20">
+                        <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+                           <div className="bg-orange-500 text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-orange-500/20 italic">
                                 {initialEditItem ? "Edit Item" : "Personalize"}
                            </div>
                            <button
                                 onClick={onClose}
-                                className="w-9 h-9 flex items-center justify-center bg-black/40 backdrop-blur-xl rounded-full text-white hover:bg-black/60 transition-all border border-white/10"
+                                className="w-8 h-8 flex items-center justify-center bg-black/20 backdrop-blur-md rounded-full text-white hover:bg-black/40 transition-all border border-white/10"
                             >
-                                <X size={20} />
+                                <X size={16} />
                             </button>
                         </div>
 
-                        <div className="absolute bottom-6 left-6 right-6">
+                        <div className="absolute bottom-4 left-4 right-4">
                            <motion.h3 
-                                initial={{ y: 20, opacity: 0 }}
+                                initial={{ y: 10, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.2 }}
-                                className="text-2xl font-black text-white italic uppercase tracking-tight leading-none drop-shadow-2xl"
+                                transition={{ delay: 0.1 }}
+                                className="text-lg font-black text-white italic uppercase tracking-tight leading-none"
                             >
                                 {food.name}
                             </motion.h3>
                             {food.description && (
                                 <motion.p 
-                                    initial={{ y: 20, opacity: 0 }}
+                                    initial={{ y: 10, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    transition={{ delay: 0.3 }}
-                                    className="text-[11px] text-zinc-100/80 mt-2 line-clamp-2 italic font-bold leading-relaxed tracking-tight"
+                                    transition={{ delay: 0.2 }}
+                                    className="text-[10px] text-zinc-100/90 mt-1 line-clamp-1 italic font-medium leading-relaxed tracking-tight"
                                 >
                                     {food.description}
                                 </motion.p>
@@ -315,17 +315,17 @@ export default function FoodCustomizationModal({
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto scrollbar-none pb-24 px-3 pt-4 space-y-3">
+                    <div className="flex-1 overflow-y-auto scrollbar-none pb-24 px-4 pt-4 space-y-4">
                         {/* Portion Selector */}
                         {food.portions?.length > 1 && (
-                            <div className="bg-white dark:bg-zinc-900/50 rounded-[32px] p-5 border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-black/[0.02]">
-                                <div className="flex items-center gap-3 mb-5">
-                                   <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
-                                   <p className="text-[12px] font-black uppercase tracking-[0.2em] text-zinc-400 italic">
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-2 mb-1 px-1">
+                                   <div className="w-1 h-4 bg-orange-500 rounded-full" />
+                                   <p className="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 italic">
                                        Step 1: Choose Size
                                    </p>
                                 </div>
-                                <div className="space-y-2">
+                                <div className="grid grid-cols-1 gap-2">
                                     {food.portions.map(portion => {
                                         const isSelected = selectedPortion?._id === portion._id;
                                         return (
@@ -337,21 +337,21 @@ export default function FoodCustomizationModal({
                                                         setPortionQuantity(1);
                                                     }
                                                 }}
-                                                className={`flex items-center justify-between p-4 rounded-[24px] border-2 transition-all duration-300 cursor-pointer ${
+                                                className={`flex items-center justify-between p-3 rounded-[18px] border-2 transition-all duration-300 cursor-pointer ${
                                                     isSelected
-                                                        ? "bg-orange-500/5 dark:bg-orange-500/10 border-orange-500 shadow-lg shadow-orange-500/5"
-                                                        : "bg-zinc-50 dark:bg-zinc-900/50 border-transparent text-zinc-600 dark:text-zinc-400 hover:border-zinc-200"
+                                                        ? "bg-orange-50 dark:bg-orange-500/5 border-orange-500"
+                                                        : "bg-zinc-50 dark:bg-zinc-800/50 border-transparent hover:border-zinc-200 dark:hover:border-zinc-700"
                                                 }`}
                                             >
-                                                <div className="flex items-center gap-4">
-                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-zinc-200 dark:border-zinc-700'}`}>
-                                                        {isSelected && <Check size={14} className="text-white" strokeWidth={4} />}
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-zinc-200 dark:border-zinc-700'}`}>
+                                                        {isSelected && <Check size={12} className="text-white" strokeWidth={4} />}
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className={`text-[14px] font-black uppercase tracking-tight italic ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>
+                                                        <span className={`text-[13px] font-bold uppercase tracking-tight italic ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>
                                                             {portion.label}
                                                         </span>
-                                                        <span className="text-[11px] font-black text-orange-500 mt-0.5">
+                                                        <span className="text-[10px] font-bold text-orange-500">
                                                             ₦{portion.price_naira?.toLocaleString()}
                                                         </span>
                                                     </div>
@@ -359,16 +359,16 @@ export default function FoodCustomizationModal({
  
                                                 {isSelected && (
                                                     <div 
-                                                      className="flex items-center gap-2 bg-white dark:bg-zinc-800 rounded-[14px] p-1 shadow-2xl border border-zinc-100 dark:border-zinc-700"
+                                                      className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-[12px] p-0.5 border border-zinc-100 dark:border-zinc-700"
                                                       onClick={(e) => e.stopPropagation()}
                                                     >
                                                       <button 
                                                         onClick={() => setPortionQuantity(Math.max(1, portionQuantity - 1))}
-                                                        className="w-8 h-8 flex items-center justify-center rounded-[10px] hover:bg-zinc-100 dark:hover:bg-zinc-700 text-orange-600 transition-colors"
+                                                        className="w-7 h-7 flex items-center justify-center rounded-[10px] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-orange-600 transition-colors"
                                                       >
-                                                        <Minus size={14} strokeWidth={3} />
+                                                        <Minus size={12} strokeWidth={3} />
                                                       </button>
-                                                      <span className="text-[14px] font-black text-zinc-900 dark:text-white min-w-[20px] text-center tabular-nums">
+                                                      <span className="text-[13px] font-black text-zinc-900 dark:text-white min-w-[16px] text-center tabular-nums">
                                                         {portionQuantity}
                                                       </span>
                                                       <button 
@@ -379,9 +379,9 @@ export default function FoodCustomizationModal({
                                                             setPortionQuantity(portionQuantity + 1);
                                                           }
                                                         }}
-                                                        className="w-8 h-8 flex items-center justify-center rounded-[10px] hover:bg-zinc-100 dark:hover:bg-zinc-700 text-orange-600 transition-colors"
+                                                        className="w-7 h-7 flex items-center justify-center rounded-[10px] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-orange-600 transition-colors"
                                                       >
-                                                        <Plus size={14} strokeWidth={3} />
+                                                        <Plus size={12} strokeWidth={3} />
                                                       </button>
                                                     </div>
                                                 )}
@@ -393,31 +393,27 @@ export default function FoodCustomizationModal({
                         )}
                         {/* Choice Groups */}
                         {choiceGroups.map((group, gIdx) => (
-                            <div key={group._id} className="bg-white dark:bg-zinc-900/50 rounded-[32px] p-5 border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-black/[0.02]">
-                                <div className="flex items-center justify-between gap-2 mb-2">
-                                    <div className="flex items-center gap-3">
-                                       <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
-                                       <h4 className="font-black text-zinc-900 dark:text-white text-[15px] uppercase italic tracking-tight">
+                            <div key={group._id} className="space-y-3">
+                                <div className="flex items-center justify-between gap-2 px-1">
+                                    <div className="flex items-center gap-2">
+                                       <div className="w-1 h-4 bg-orange-500 rounded-full" />
+                                       <h4 className="font-black text-zinc-900 dark:text-white text-[13px] uppercase italic tracking-tight">
                                            {group.name}
                                        </h4>
                                     </div>
                                     {group.is_required ? (
-                                        <div className="bg-rose-500/10 border border-rose-500/20 px-3 py-1 rounded-full">
-                                            <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest">Required</span>
-                                        </div>
+                                        <span className="text-[8px] font-black text-rose-500 uppercase tracking-widest bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 rounded-md">Required</span>
                                     ) : (
-                                        <div className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full border border-zinc-200 dark:border-zinc-700">
-                                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Optional</span>
-                                        </div>
+                                        <span className="text-[8px] font-black text-zinc-400 uppercase tracking-widest bg-zinc-50 dark:bg-zinc-800 px-2 py-0.5 rounded-md">Optional</span>
                                     )}
                                 </div>
-                                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.2em] mb-5 pl-4">
+                                <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-[0.15em] px-4">
                                     {group.max_selections > 1
                                         ? `Limit: ${group.max_selections} items`
                                         : "Choice: select one"}
                                 </p>
  
-                                <div className="space-y-2">
+                                <div className="grid grid-cols-1 gap-2">
                                     {group.options
                                         .filter(o => o.is_available)
                                         .map(option => {
@@ -425,52 +421,52 @@ export default function FoodCustomizationModal({
                                             return (
                                                 <div key={option._id}
                                                      onClick={() => toggleChoice(gIdx, group, option)}
-                                                     className={`flex items-center gap-4 p-3 rounded-[24px] border-2 cursor-pointer transition-all duration-300 ${
+                                                     className={`flex items-center gap-3 p-2.5 rounded-[18px] border-2 cursor-pointer transition-all duration-300 ${
                                                          isSelected
-                                                             ? "border-orange-500 bg-orange-500/5 dark:bg-orange-500/10 shadow-lg shadow-orange-500/5"
-                                                             : "border-transparent bg-zinc-50 dark:bg-zinc-900/50 hover:border-zinc-200"
+                                                             ? "border-orange-500 bg-orange-50 dark:bg-orange-500/5"
+                                                             : "border-transparent bg-zinc-50 dark:bg-zinc-800/50 hover:border-zinc-200 dark:hover:border-zinc-700"
                                                      }`}>
-                                                    <div className="w-14 h-14 rounded-[18px] overflow-hidden bg-white dark:bg-zinc-800 shrink-0 shadow-lg shadow-black/[0.03] border border-zinc-100 dark:border-zinc-700">
+                                                    <div className="w-10 h-10 rounded-[12px] overflow-hidden bg-white dark:bg-zinc-800 shrink-0 border border-zinc-100 dark:border-zinc-700">
                                                         {option.image_url ? (
                                                             <img src={option.image_url}
                                                                  alt={option.label}
                                                                  className="w-full h-full object-cover" />
                                                         ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-xl bg-zinc-50 dark:bg-zinc-950 opacity-40">🍽️</div>
+                                                            <div className="w-full h-full flex items-center justify-center text-sm bg-zinc-50 dark:bg-zinc-950 opacity-40">🍽️</div>
                                                         )}
                                                     </div>
  
                                                     <div className="flex-1 min-w-0">
-                                                        <p className={`font-black text-[13px] uppercase italic tracking-tight ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>
+                                                        <p className={`font-bold text-[12px] uppercase italic tracking-tight ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>
                                                             {option.label}
                                                         </p>
-                                                        <p className="text-[11px] font-black text-orange-500 mt-1">
+                                                        <p className="text-[10px] font-bold text-orange-500">
                                                             {option.price_modifier_naira > 0 ? `+₦${option.price_modifier_naira.toLocaleString()}` : 'FREE'}
                                                         </p>
                                                     </div>
  
                                                      {isSelected ? (
-                                                         <div className="flex items-center gap-2 bg-white dark:bg-zinc-800 rounded-[14px] p-1 shadow-2xl border border-zinc-100 dark:border-zinc-700" onClick={e => e.stopPropagation()}>
+                                                         <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-[10px] p-0.5 border border-zinc-100 dark:border-zinc-700" onClick={e => e.stopPropagation()}>
                                                              <button 
                                                                  onClick={() => updateOptionQuantity(gIdx, option.label, -1, group)}
-                                                                 className="w-8 h-8 flex items-center justify-center rounded-[10px] hover:bg-zinc-100 dark:hover:bg-zinc-700 text-orange-600 transition-colors"
+                                                                 className="w-7 h-7 flex items-center justify-center rounded-[8px] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-orange-600 transition-colors"
                                                              >
-                                                                 <Minus size={14} strokeWidth={3} />
+                                                                 <Minus size={12} strokeWidth={3} />
                                                              </button>
-                                                             <span className="text-[14px] font-black text-zinc-900 dark:text-white min-w-[20px] text-center tabular-nums">
+                                                             <span className="text-[12px] font-black text-zinc-900 dark:text-white min-w-[16px] text-center tabular-nums">
                                                                  {Array.isArray(selections[gIdx]) 
                                                                      ? selections[gIdx].find(i => i.label === option.label)?.selectionQuantity || 1
                                                                      : selections[gIdx]?.selectionQuantity || 1}
                                                              </span>
                                                              <button 
                                                                  onClick={() => updateOptionQuantity(gIdx, option.label, 1, group)}
-                                                                 className="w-8 h-8 flex items-center justify-center rounded-[10px] hover:bg-zinc-100 dark:hover:bg-zinc-700 text-orange-600 transition-colors"
+                                                                 className="w-7 h-7 flex items-center justify-center rounded-[8px] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-orange-600 transition-colors"
                                                              >
-                                                                 <Plus size={14} strokeWidth={3} />
+                                                                 <Plus size={12} strokeWidth={3} />
                                                              </button>
                                                          </div>
                                                      ) : (
-                                                        <div className="w-6 h-6 rounded-full border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950" />
+                                                        <div className="w-5 h-5 rounded-full border-2 border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950" />
                                                      )}
                                                  </div>
                                              );
@@ -481,16 +477,16 @@ export default function FoodCustomizationModal({
                     </div>
 
                     {/* Footer */}
-                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl border-t border-zinc-100 dark:border-zinc-800 z-50 pb-safe shadow-2xl">
-                        <div className="max-w-xl mx-auto flex items-center gap-4">
-                            <div className="flex items-center gap-3 bg-zinc-100 dark:bg-zinc-800 rounded-[28px] p-1.5 h-[64px] shadow-inner shrink-0">
+                    <div className="p-4 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 shadow-2xl">
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-[20px] p-1 h-[48px] shadow-inner shrink-0">
                                 <button
                                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="w-[44px] h-full flex items-center justify-center rounded-[20px] bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all text-zinc-600 dark:text-zinc-400 shadow-sm active:scale-90"
+                                    className="w-9 h-full flex items-center justify-center rounded-[16px] bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 shadow-sm active:scale-90"
                                 >
-                                    <Minus size={20} strokeWidth={4} />
+                                    <Minus size={14} strokeWidth={4} />
                                 </button>
-                                <span className="w-10 text-center font-black text-zinc-900 dark:text-white text-[18px] tabular-nums italic">
+                                <span className="w-6 text-center font-black text-zinc-900 dark:text-white text-[16px] tabular-nums italic">
                                     {quantity}
                                 </span>
                                 <button
@@ -501,23 +497,23 @@ export default function FoodCustomizationModal({
                                             setQuantity(quantity + 1);
                                         }
                                     }}
-                                    className="w-[44px] h-full flex items-center justify-center rounded-[20px] bg-orange-500 text-white shadow-xl shadow-orange-500/30 active:scale-95 transition-all"
+                                    className="w-9 h-full flex items-center justify-center rounded-[16px] bg-orange-500 text-white shadow-lg active:scale-95 transition-all"
                                 >
-                                    <Plus size={20} strokeWidth={4} />
+                                    <Plus size={14} strokeWidth={4} />
                                 </button>
                             </div>
 
                             <button
                                 onClick={handleConfirm}
-                                className="flex-1 h-[64px] bg-zinc-900 dark:bg-white hover:bg-black dark:hover:bg-zinc-100 text-white dark:text-zinc-900 rounded-[28px] font-black text-sm uppercase tracking-[0.2em] italic flex items-center justify-between px-8 transition-all active:scale-[0.98] shadow-2xl"
+                                className="flex-1 h-[48px] bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-[20px] font-black text-xs uppercase tracking-widest italic flex items-center justify-between px-6 transition-all active:scale-[0.98] shadow-lg"
                             >
-                                <div className="flex items-center gap-3">
-                                    <ShoppingCart size={20} strokeWidth={3} />
+                                <div className="flex items-center gap-2">
+                                    <ShoppingCart size={16} strokeWidth={3} />
                                     <span>{initialEditItem ? "Update" : "Add to Order"}</span>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                   <div className="w-px h-6 bg-white/20 dark:bg-zinc-300" />
-                                   <span className="text-orange-500 tabular-nums text-lg">
+                                <div className="flex items-center gap-3">
+                                   <div className="w-px h-4 bg-white/20 dark:bg-zinc-300" />
+                                   <span className="text-orange-500 tabular-nums text-base">
                                        ₦{total.toLocaleString()}
                                    </span>
                                 </div>
