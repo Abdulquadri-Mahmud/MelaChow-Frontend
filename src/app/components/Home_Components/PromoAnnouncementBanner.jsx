@@ -144,11 +144,11 @@ export default function PromoAnnouncementBanner() {
                 onClick={handleCta}
                 className="group/btn relative h-11 px-6 rounded-xl bg-white overflow-hidden transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] active:scale-95"
               >
-                <div className="relative z-20 flex items-center gap-2.5">
-                  <span className="text-zinc-950 font-black text-[11px] uppercase tracking-widest">
-                    {showPlatform ? "Browse restaurants" : "See free delivery"}
+                <div className="relative z-20 flex items-center justify-center gap-2">
+                  <span className="text-zinc-950 font-black text-[11px] uppercase tracking-widest whitespace-nowrap">
+                    Get Started
                   </span>
-                  <div className="w-5 h-5 rounded-lg bg-zinc-950 flex items-center justify-center transition-transform duration-500 group-hover/btn:translate-x-0.5">
+                  <div className="w-5 h-5 rounded-lg bg-zinc-950 flex items-center justify-center shrink-0 transition-transform duration-500 group-hover/btn:translate-x-0.5">
                     <ChevronRight size={14} className="text-white" strokeWidth={3} />
                   </div>
                 </div>
