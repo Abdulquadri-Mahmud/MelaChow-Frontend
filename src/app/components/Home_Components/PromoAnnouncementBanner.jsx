@@ -50,18 +50,18 @@ export default function PromoAnnouncementBanner() {
           className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-transparent via-white/[0.03] to-transparent skew-x-12"
         />
 
-        {/* Content Layout */}
-        <div className="relative z-20 px-5 py-4 md:px-10 md:py-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        {/* Content Layout - Compacted */}
+        <div className="relative z-20 px-5 py-4 md:px-8 md:py-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
             
             {/* Left: Discovery Message */}
-            <div className="flex items-center gap-5">
-              {/* Animated Icon Box */}
+            <div className="flex items-center gap-4">
+              {/* Animated Icon Box - Scaled Down */}
               <motion.div
                 whileHover={{ scale: 1.05, rotate: 2 }}
-                className="relative shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-[22px] bg-gradient-to-br from-[#f48525] to-[#c2611a] p-[1.5px] shadow-2xl shadow-[#f48525]/30"
+                className="relative shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[#f48525] to-[#c2611a] p-[1.5px] shadow-2xl shadow-[#f48525]/30"
               >
-                <div className="w-full h-full rounded-[21px] bg-zinc-950/40 backdrop-blur-xl flex items-center justify-center">
+                <div className="w-full h-full rounded-[15px] bg-zinc-950/40 backdrop-blur-xl flex items-center justify-center">
                   <AnimatePresence mode="wait">
                     {showPlatform ? (
                       <motion.div
@@ -70,7 +70,7 @@ export default function PromoAnnouncementBanner() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.5 }}
                       >
-                        <Gift size={30} className="text-white" strokeWidth={2.5} />
+                        <Gift size={24} className="text-white" strokeWidth={2.5} />
                       </motion.div>
                     ) : (
                       <motion.div
@@ -79,89 +79,88 @@ export default function PromoAnnouncementBanner() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.5 }}
                       >
-                        <Bike size={30} className="text-white" strokeWidth={2.5} />
+                        <Bike size={24} className="text-white" strokeWidth={2.5} />
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
                 {/* Floating Badge */}
                 <motion.div
-                  animate={{ y: [0, -4, 0] }}
+                  animate={{ y: [0, -3, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg border-2 border-zinc-950"
+                  className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg border-2 border-zinc-950"
                 >
-                  <Star size={14} className="text-zinc-950 fill-zinc-950" />
+                  <Star size={12} className="text-zinc-950 fill-zinc-950" />
                 </motion.div>
               </motion.div>
 
-              {/* Textual Narrative */}
-              <div className="space-y-1">
+              {/* Textual Narrative - Scaled Down */}
+              <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#f48525]/10 border border-[#f48525]/20 text-[10px] font-black text-[#f48525] uppercase tracking-[0.2em]">
-                    <Zap size={10} fill="currentColor" />
-                    Premium Offer
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#f48525]/10 border border-[#f48525]/20 text-[9px] font-black text-[#f48525] uppercase tracking-[0.2em]">
+                    <Zap size={9} fill="currentColor" />
+                    Premium
                   </span>
                   {showPlatform && (
                     <motion.span 
                       animate={{ opacity: [1, 0.6, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
-                      className="text-zinc-500 text-[10px] font-black uppercase tracking-widest"
+                      className="text-zinc-500 text-[9px] font-black uppercase tracking-widest"
                     >
-                      {platformPromo.slotsRemaining} Slots Remaining
+                      {platformPromo.slotsRemaining} Left
                     </motion.span>
                   )}
                 </div>
 
-                <h2 className="text-2xl md:text-4xl font-black text-white leading-none tracking-tighter uppercase italic">
+                <h2 className="text-xl md:text-2xl font-black text-white leading-none tracking-tighter uppercase italic">
                   {showPlatform ? (
                     <>Unlock <span className="text-[#f48525]">Free</span> Delivery</>
                   ) : (
-                    <><span className="text-[#f48525]">{vendorPromoCount}</span> Shops Near You</>
+                    <><span className="text-[#f48525]">{vendorPromoCount}</span> Shops Nearby</>
                   )}
                 </h2>
                 
-                <p className="text-xs md:text-sm font-bold text-zinc-400 max-w-[320px] leading-snug tracking-tight">
+                <p className="text-[11px] md:text-xs font-bold text-zinc-400 max-w-[280px] leading-tight tracking-tight">
                   {showPlatform 
-                    ? "Welcome to MelaChow! Your very first order is on the house. Fast, hot, and free."
-                    : "Exclusive restaurants in your area are currently offering free delivery for all customers."
+                    ? "Welcome to MelaChow! Your first order is on us."
+                    : "Top-rated restaurants near you offer free delivery."
                   }
                 </p>
               </div>
             </div>
 
-            {/* Right: CTA */}
+            {/* Right: CTA - Scaled Down */}
             <div className="flex items-center">
               <Link
                 href="/search"
-                className="group/btn relative h-14 px-8 rounded-2xl bg-white overflow-hidden transition-all duration-500 hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] active:scale-95"
+                className="group/btn relative h-11 px-6 rounded-xl bg-white overflow-hidden transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] active:scale-95"
               >
-                <div className="relative z-20 flex items-center gap-3">
-                  <span className="text-zinc-950 font-black text-sm uppercase tracking-widest">Get Started</span>
-                  <div className="w-6 h-6 rounded-lg bg-zinc-950 flex items-center justify-center transition-transform duration-500 group-hover/btn:translate-x-1">
-                    <ChevronRight size={16} className="text-white" strokeWidth={3} />
+                <div className="relative z-20 flex items-center gap-2.5">
+                  <span className="text-zinc-950 font-black text-[11px] uppercase tracking-widest">Get Started</span>
+                  <div className="w-5 h-5 rounded-lg bg-zinc-950 flex items-center justify-center transition-transform duration-500 group-hover/btn:translate-x-0.5">
+                    <ChevronRight size={14} className="text-white" strokeWidth={3} />
                   </div>
                 </div>
-                {/* Internal hover shimmer */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#f48525]/10 to-transparent -translate-x-full group-hover/btn:animate-shimmer" />
               </Link>
             </div>
           </div>
 
-          {/* Dynamic Footer for Platform Promo */}
+          {/* Dynamic Footer - Slimmer */}
           {showPlatform && (
-            <div className="mt-6 flex flex-col gap-2">
-              <div className="flex justify-between items-end">
-                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em]">Campaign Progress</p>
-                 <p className="text-[10px] font-black text-white italic">
+            <div className="mt-4 flex flex-col gap-1.5">
+              <div className="flex justify-between items-center">
+                 <p className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.3em]">Live Slots</p>
+                 <p className="text-[9px] font-black text-[#f48525] italic uppercase tracking-widest">
                    {Math.round((platformPromo.slotsRemaining / platformPromo.totalSlots) * 100)}% Available
                  </p>
               </div>
-              <div className="h-[2px] w-full bg-zinc-900 rounded-full overflow-hidden">
+              <div className="h-[1.5px] w-full bg-zinc-900 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${(platformPromo.slotsRemaining / platformPromo.totalSlots) * 100}%` }}
                   transition={{ duration: 2, ease: "circOut" }}
-                  className="h-full bg-gradient-to-r from-[#f48525] to-[#ffb36d]"
+                  className="h-full bg-[#f48525]"
                 />
               </div>
             </div>
