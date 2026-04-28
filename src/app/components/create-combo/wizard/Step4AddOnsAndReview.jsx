@@ -119,15 +119,15 @@ export default function Step4AddOns() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* LEFT: PRESETS */}
-        <div className="lg:col-span-4 space-y-5 border-r border-slate-100 dark:border-slate-800/50 pr-5">
+        <div className="lg:col-span-4 space-y-5 border-r border-zinc-100 dark:border-zinc-800/50 pr-5">
             <div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Add Step or Section</h3>
-                <p className="text-[11px] font-medium text-slate-500 mt-1">Select a preset to quickly build your combo structure.</p>
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-white tracking-tight">Add Step or Section</h3>
+                <p className="text-[11px] font-medium text-zinc-500 mt-1">Select a preset to quickly build your combo structure.</p>
             </div>
 
             <div className="space-y-4">
                 <div className="relative">
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 pl-1">Choose Template</label>
+                    <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2 pl-1">Choose Template</label>
                     <select
                         onChange={(e) => {
                             if (e.target.value) {
@@ -135,11 +135,11 @@ export default function Step4AddOns() {
                                 e.target.value = ""; // Reset to placeholder
                             }
                         }}
-                        className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-200 ring-offset-white focus:ring-2 focus:ring-orange-500/20 outline-none transition-all cursor-pointer appearance-none"
+                        className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm font-semibold text-zinc-700 dark:text-zinc-200 ring-offset-white focus:ring-2 focus:ring-orange-500/20 outline-none transition-all cursor-pointer appearance-none"
                     >
                         <option value="">-- Choose a standard preset --</option>
                         {Object.entries(GROUP_TITLE_PRESETS).map(([category, presets]) => (
-                            <optgroup key={category} label={category} className="text-xs font-bold text-slate-400 py-2">
+                            <optgroup key={category} label={category} className="text-xs font-bold text-zinc-400 py-2">
                                 {presets.map(item => (
                                     <option key={item} value={item} className="text-sm font-medium py-1">
                                         {item}
@@ -148,7 +148,7 @@ export default function Step4AddOns() {
                             </optgroup>
                         ))}
                     </select>
-                    <div className="absolute right-4 bottom-[14px] pointer-events-none text-slate-400">
+                    <div className="absolute right-4 bottom-[14px] pointer-events-none text-zinc-400">
                         <ChevronDown size={14} />
                     </div>
                 </div>
@@ -156,7 +156,7 @@ export default function Step4AddOns() {
                 <div className="p-4 bg-blue-50/50 dark:bg-blue-500/5 border border-blue-100 dark:border-blue-500/10 rounded-xl">
                     <div className="flex gap-3">
                         <Info size={14} className="text-blue-500 shrink-0 mt-0.5" />
-                        <p className="text-[11px] font-medium text-slate-600 dark:text-slate-400 leading-relaxed">
+                        <p className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400 leading-relaxed">
                             Presets automatically include logical rules (e.g. "Select 1"). You can customize prices and quantities after adding.
                         </p>
                     </div>
@@ -167,7 +167,7 @@ export default function Step4AddOns() {
         {/* RIGHT: BUILDER */}
         <div className="lg:col-span-8 space-y-3">
             <div className="flex items-center justify-between px-1">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Sections ({store.choice_groups.length})</h3>
+                <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Active Sections ({store.choice_groups.length})</h3>
                 <button 
                     onClick={() => handleOpenGroupForm()}
                     className="text-[10px] font-black text-orange-600 uppercase tracking-widest hover:text-orange-700 underline underline-offset-4"
@@ -194,12 +194,12 @@ export default function Step4AddOns() {
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">{group.name}</span>
+                            <span className="text-[11px] font-black text-zinc-900 dark:text-white uppercase tracking-tight leading-none">{group.name}</span>
                             {group.is_required && (
                                 <span className="text-[7px] font-black bg-orange-600 text-white px-1.5 py-0.5 rounded uppercase tracking-wider">Mandatory</span>
                             )}
                         </div>
-                        <p className="text-[8px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-1">
+                        <p className="text-[8px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-1">
                             {group.options.length} item{group.options.length !== 1 ? 's' : ''} • Pick {group.min_selections == group.max_selections ? group.min_selections : `${group.min_selections}-${group.max_selections}`}
                         </p>
                       </div>
@@ -212,7 +212,7 @@ export default function Step4AddOns() {
                         <div className="flex items-center gap-1.5">
                             <button
                                 onClick={(e) => { e.stopPropagation(); store.removeChoiceGroup(group.tempId); }}
-                                className="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all flex items-center justify-center"
+                                className="w-7 h-7 rounded-lg text-zinc-400 hover:text-rose-600 hover:bg-rose-50 transition-all flex items-center justify-center"
                             >
                                 <Trash2 size={12} />
                             </button>
@@ -236,10 +236,10 @@ export default function Step4AddOns() {
                         >
                           {/* Active Options */}
                           <div>
-                            <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 pl-1">Created Items ({group.options.length})</h4>
+                            <h4 className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-3 pl-1">Created Items ({group.options.length})</h4>
                             {group.options.length === 0 ? (
                                 <div className="py-8 text-center border border-dashed border-orange-200 dark:border-orange-500/20 rounded-xl bg-orange-500/5">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">No options created yet</p>
+                                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">No options created yet</p>
                                 </div>
                             ) : group.options.length > 1 ? (
                                 <div className="flex overflow-x-auto gap-3 pb-4 scrollbar-none snap-x mask-fade-right">
@@ -249,11 +249,11 @@ export default function Step4AddOns() {
                                         key={opt.tempId}
                                         className="flex-none w-44 snap-start group/item"
                                     >
-                                        <div className="relative aspect-square rounded-2xl overflow-hidden border border-orange-200 dark:border-orange-500/10 shadow-sm bg-white dark:bg-slate-900 group-hover/item:border-orange-400 transition-all">
+                                        <div className="relative aspect-square rounded-2xl overflow-hidden border border-orange-200 dark:border-orange-500/10 shadow-sm bg-white dark:bg-zinc-900 group-hover/item:border-orange-400 transition-all">
                                             {opt.image_url ? (
                                                 <img src={opt.image_url} alt="" className="w-full h-full object-cover transition-transform group-hover/item:scale-110" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-orange-50 dark:bg-slate-950">
+                                                <div className="w-full h-full flex items-center justify-center bg-orange-50 dark:bg-zinc-950">
                                                     <span className="text-[9px] font-black text-orange-200 uppercase tracking-widest">Graphic</span>
                                                 </div>
                                             )}
@@ -280,26 +280,26 @@ export default function Step4AddOns() {
                                         <motion.div 
                                             layout
                                             key={opt.tempId}
-                                            className="flex items-center gap-4 p-3 rounded-2xl bg-white dark:bg-slate-900 border border-orange-200/50 dark:border-orange-500/10 group/item hover:border-orange-400 transition-all"
+                                            className="flex items-center gap-4 p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-orange-200/50 dark:border-orange-500/10 group/item hover:border-orange-400 transition-all"
                                         >
                                             <div className="w-16 h-16 rounded-xl overflow-hidden border border-orange-200/30 shrink-0">
                                                 {opt.image_url ? (
                                                     <img src={opt.image_url} alt="" className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <div className="w-full h-full bg-orange-50 dark:bg-slate-950 flex items-center justify-center">
+                                                    <div className="w-full h-full bg-orange-50 dark:bg-zinc-950 flex items-center justify-center">
                                                         <span className="text-[8px] font-black text-orange-200 uppercase">IMG</span>
                                                     </div>
                                                 )}
                                             </div>
                                             <div className="flex-1">
-                                                <div className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{opt.label}</div>
+                                                <div className="text-[11px] font-black text-zinc-900 dark:text-white uppercase tracking-tight">{opt.label}</div>
                                                 <div className="text-[10px] font-bold text-orange-600 tabular-nums">
                                                     {opt.price_modifier_naira > 0 ? `+ ₦${opt.price_modifier_naira.toLocaleString()}` : "Included"}
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={() => store.removeChoiceOption(group.tempId, opt.tempId)}
-                                                className="w-8 h-8 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all flex items-center justify-center opacity-0 group-hover/item:opacity-100"
+                                                className="w-8 h-8 rounded-lg text-zinc-300 hover:text-rose-600 hover:bg-rose-50 transition-all flex items-center justify-center opacity-0 group-hover/item:opacity-100"
                                             >
                                                 <Trash2 size={14} />
                                             </button>
@@ -317,30 +317,30 @@ export default function Step4AddOns() {
                             </h4>
                                 <div className="flex gap-2">
                                     <div className="flex-[2] space-y-1">
-                                        <label className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">Item Name</label>
+                                        <label className="text-[8px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest pl-1">Item Name</label>
                                         <input 
                                             type="text" 
                                             placeholder="EX. Jollof Rice" 
                                             value={optionInputs[group.tempId]?.name || ""}
                                             onChange={e => setOptionInputs(prev => ({ ...prev, [group.tempId]: { ...prev[group.tempId], name: e.target.value } }))}
-                                            className="w-full h-10 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-black uppercase outline-none focus:border-orange-500 shadow-sm"
+                                            className="w-full h-10 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-[10px] font-black uppercase outline-none focus:border-orange-500 shadow-sm"
                                         />
                                     </div>
                                     <div className="flex-1 space-y-1">
-                                        <label className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest pl-1">Price (₦)</label>
+                                        <label className="text-[8px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest pl-1">Price (₦)</label>
                                         <input 
                                             type="number" 
                                             placeholder="0" 
                                             value={optionInputs[group.tempId]?.price || ""}
                                             onChange={e => setOptionInputs(prev => ({ ...prev, [group.tempId]: { ...prev[group.tempId], price: e.target.value } }))}
-                                            className="w-full h-10 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-[10px] font-bold text-orange-600 outline-none focus:border-orange-500 tabular-nums shadow-sm"
+                                            className="w-full h-10 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-[10px] font-bold text-orange-600 outline-none focus:border-orange-500 tabular-nums shadow-sm"
                                         />
                                     </div>
                                     <div className="flex items-end">
                                         <button
                                             onClick={() => handleAddOption(group.tempId)}
                                             disabled={!optionInputs[group.tempId]?.name?.trim()}
-                                            className="h-10 px-6 bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-lg text-[10px] font-black uppercase tracking-widest active:scale-95 disabled:opacity-30 whitespace-nowrap shadow-lg"
+                                            className="h-10 px-6 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-lg text-[10px] font-black uppercase tracking-widest active:scale-95 disabled:opacity-30 whitespace-nowrap shadow-lg"
                                         >
                                             Add Item
                                         </button>
@@ -356,10 +356,10 @@ export default function Step4AddOns() {
             </div>
 
             {store.choice_groups.length === 0 && (
-                <div className="py-12 bg-slate-50 dark:bg-slate-900/30 border border-dashed border-slate-100 dark:border-slate-800 rounded-xl flex flex-col items-center justify-center text-center px-6">
-                    <LayoutGrid size={24} className="text-slate-300 mb-2 truncate" strokeWidth={1} />
-                    <h4 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest">Static Bundle</h4>
-                    <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest mt-1">Add sections to allow item swaps or extras</p>
+                <div className="py-12 bg-zinc-50 dark:bg-zinc-900/30 border border-dashed border-zinc-100 dark:border-zinc-800 rounded-xl flex flex-col items-center justify-center text-center px-6">
+                    <LayoutGrid size={24} className="text-zinc-300 mb-2 truncate" strokeWidth={1} />
+                    <h4 className="text-[10px] font-black text-zinc-900 dark:text-white uppercase tracking-widest">Static Bundle</h4>
+                    <p className="text-[9px] font-medium text-zinc-400 uppercase tracking-widest mt-1">Add sections to allow item swaps or extras</p>
                 </div>
             )}
         </div>
@@ -376,24 +376,24 @@ export default function Step4AddOns() {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={() => setShowGroupForm(false)}
-                    className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+                    className="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm"
                 />
                 
                 <motion.div
                     initial={{ opacity: 0, scale: 0.98, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.98, y: 10 }}
-                    className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-xl border border-slate-100 dark:border-slate-800"
+                    className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-xl border border-zinc-100 dark:border-zinc-800"
                 >
                     <div className="p-6 space-y-5">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Settings</h4>
-                                <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Section Config</h3>
+                                <h4 className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Settings</h4>
+                                <h3 className="text-lg font-black text-zinc-900 dark:text-white uppercase tracking-tight">Section Config</h3>
                             </div>
                             <button 
                                 onClick={() => setShowGroupForm(false)}
-                                className="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                                className="w-8 h-8 rounded-full bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
                             >
                                 <X size={16} />
                             </button>
@@ -401,16 +401,16 @@ export default function Step4AddOns() {
 
                         <div className="space-y-4">
                             <div className="space-y-1.5">
-                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest pl-1">Section Title</label>
+                                <label className="text-[9px] font-black text-zinc-400 uppercase tracking-widest pl-1">Section Title</label>
                                 <div className="relative">
                                     <select
                                         value={groupName}
                                         onChange={e => setGroupName(e.target.value)}
-                                        className="w-full h-11 px-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-[12px] font-black uppercase tracking-wide text-slate-900 dark:text-white outline-none focus:border-orange-500 appearance-none cursor-pointer"
+                                        className="w-full h-11 px-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-[12px] font-black uppercase tracking-wide text-zinc-900 dark:text-white outline-none focus:border-orange-500 appearance-none cursor-pointer"
                                     >
                                         <option value="">-- SELECT HEADER NAME --</option>
                                         {Object.entries(GROUP_TITLE_PRESETS).map(([category, presets]) => (
-                                            <optgroup key={category} label={category.toUpperCase()} className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                            <optgroup key={category} label={category.toUpperCase()} className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
                                                 {presets.map(item => (
                                                     <option key={item} value={item} className="text-xs">
                                                         {item.toUpperCase()}
@@ -420,21 +420,21 @@ export default function Step4AddOns() {
                                         ))}
                                         <option value="Custom Section">CUSTOM SECTION</option>
                                     </select>
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
                                         <ChevronDown size={14} />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-100 dark:border-slate-800 space-y-4">
+                            <div className="p-4 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-100 dark:border-zinc-800 space-y-4">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-0.5">
-                                        <p className="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-widest">Required Section?</p>
-                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none">Mandatory for checkout</p>
+                                        <p className="text-[11px] font-black text-zinc-800 dark:text-white uppercase tracking-widest">Required Section?</p>
+                                        <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest leading-none">Mandatory for checkout</p>
                                     </div>
                                     <button 
                                         onClick={() => setIsRequired(!isRequired)}
-                                        className={`w-10 h-5 rounded-full p-1 transition-all ${isRequired ? 'bg-orange-600' : 'bg-slate-200 dark:bg-slate-800'}`}
+                                        className={`w-10 h-5 rounded-full p-1 transition-all ${isRequired ? 'bg-orange-600' : 'bg-zinc-200 dark:bg-zinc-800'}`}
                                     >
                                         <div className={`w-3 h-3 bg-white rounded-full shadow-sm transform transition-all ${isRequired ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </button>
@@ -442,12 +442,12 @@ export default function Step4AddOns() {
 
                                 <div className="grid grid-cols-2 gap-4 pb-1">
                                     <div className="space-y-1.5">
-                                        <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Min Picks</label>
-                                        <input type="number" min="0" value={minSelections} onChange={e => setMinSelections(e.target.value)} className="w-full h-10 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-black tabular-nums outline-none focus:border-orange-500" />
+                                        <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Min Picks</label>
+                                        <input type="number" min="0" value={minSelections} onChange={e => setMinSelections(e.target.value)} className="w-full h-10 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-black tabular-nums outline-none focus:border-orange-500" />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Max Picks</label>
-                                        <input type="number" min="1" value={maxSelections} onChange={e => setMaxSelections(e.target.value)} className="w-full h-10 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-black tabular-nums outline-none focus:border-orange-500" />
+                                        <label className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Max Picks</label>
+                                        <input type="number" min="1" value={maxSelections} onChange={e => setMaxSelections(e.target.value)} className="w-full h-10 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-black tabular-nums outline-none focus:border-orange-500" />
                                     </div>
                                 </div>
                             </div>
@@ -455,7 +455,7 @@ export default function Step4AddOns() {
 
                         <button 
                             onClick={handleSaveGroup}
-                            className="w-full h-12 bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-[0.98] transition-all"
+                            className="w-full h-12 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-[0.98] transition-all"
                         >
                             {editingGroupId ? 'Update Section' : 'Add Section'}
                         </button>
@@ -471,7 +471,7 @@ export default function Step4AddOns() {
 function SummaryItem({ label, value, isBadge }) {
     return (
         <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-            <span className="text-slate-500">{label}:</span>
+            <span className="text-zinc-500">{label}:</span>
             {isBadge ? (
                 <span className="bg-orange-500/20 text-orange-500 px-2 py-0.5 rounded italic">{value}</span>
             ) : (

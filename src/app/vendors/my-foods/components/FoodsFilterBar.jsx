@@ -23,7 +23,7 @@ export default function FoodsFilterBar({
                     {
                         label: "Total Foods",
                         value: stats?.total ?? 0,
-                        color: "text-slate-900 dark:text-white"
+                        color: "text-zinc-900 dark:text-white"
                     },
                     {
                         label: "Active",
@@ -33,7 +33,7 @@ export default function FoodsFilterBar({
                     {
                         label: "Archived",
                         value: stats?.archived ?? 0,
-                        color: "text-slate-400 dark:text-slate-500"
+                        color: "text-zinc-400 dark:text-zinc-500"
                     },
                     {
                         label: "Out of Stock",
@@ -43,12 +43,12 @@ export default function FoodsFilterBar({
                 ].map(s => (
                     <div
                         key={s.label}
-                        className="p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-md"
+                        className="p-3 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-md"
                     >
                         <div className={`text-xl font-black tracking-tight ${s.color}`}>
                             {s.value}
                         </div>
-                        <div className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mt-0.5">
+                        <div className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mt-0.5">
                             {s.label}
                         </div>
                     </div>
@@ -59,19 +59,19 @@ export default function FoodsFilterBar({
             <div className="relative">
                 <Search
                     size={16}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 pointer-events-none"
                 />
                 <input
                     type="text"
                     value={search}
                     onChange={e => onSearch(e.target.value)}
                     placeholder="Search menu..."
-                    className="w-full h-10 pl-9 pr-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all"
+                    className="w-full h-10 pl-9 pr-10 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500 focus:ring-2 focus:ring-orange-500/10 transition-all"
                 />
                 {search && (
                     <button
                         onClick={() => onSearch("")}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition-colors"
                     >
                         <X size={15} />
                     </button>
@@ -79,14 +79,14 @@ export default function FoodsFilterBar({
             </div>
 
             {/* Status Tabs */}
-            <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800/50 rounded-md w-fit">
+            <div className="flex gap-1 p-1 bg-zinc-100 dark:bg-zinc-800/50 rounded-md w-fit">
                 {STATUS_TABS.map(tab => (
                     <button
                         key={tab.value}
                         onClick={() => onStatus(tab.value)}
                         className={`h-8 px-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${status === tab.value
-                                ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                                ? "bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white"
+                                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                             }`}
                     >
                         {tab.label}
@@ -100,8 +100,8 @@ export default function FoodsFilterBar({
                     <button
                         onClick={() => onSection(null)}
                         className={`shrink-0 h-7 px-3 rounded-md text-[10px] font-black uppercase tracking-widest border transition-all ${!activeSection
-                                ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white"
-                                : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-400"
+                                ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white"
+                                : "bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
                             }`}
                     >
                         All
@@ -113,8 +113,8 @@ export default function FoodsFilterBar({
                                 activeSection === sec._id ? null : sec._id
                             )}
                             className={`shrink-0 h-7 px-3 rounded-md text-[10px] font-black uppercase tracking-widest border transition-all ${activeSection === sec._id
-                                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white"
-                                    : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-400"
+                                    ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white"
+                                    : "bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:border-zinc-400"
                                 }`}
                         >
                             {sec.name}

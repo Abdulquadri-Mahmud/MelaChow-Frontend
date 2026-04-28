@@ -44,10 +44,6 @@ const DIETARY_OPTIONS = [
     { label: "🥣 Mixed", value: "mixed" },
 ];
 
-const SUGGESTED_MULTIPLIERS = [
-    "SPICY", "HEALTHY", "TRADITIONAL", "STREET FOOD", "FAST DELIVERY", "BESTSELLER", "GOURMET", "ORGANIC", "CHEF'S CHOICE"
-];
-
 export default function Step1BasicInfo() {
     const store = useCreateFoodStore();
     const [uploading, setUploading] = useState(false);
@@ -69,9 +65,8 @@ export default function Step1BasicInfo() {
     };
 
     const handleAddTag = (tag) => {
-        const normalized = tag.trim().toUpperCase();
-        if (normalized && !(store.tags || []).includes(normalized) && (store.tags || []).length < 6) {
-            store.addTag(normalized);
+        if (tag.trim() && store.tags.length < 6) {
+            store.addTag(tag.trim());
         }
     };
 
@@ -79,7 +74,7 @@ export default function Step1BasicInfo() {
         <motion.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-6 pb-20"
+            className="space-y-6"
         >
             {/* Dish Name */}
             <div className="group">
@@ -155,7 +150,7 @@ export default function Step1BasicInfo() {
                             Classification *
                         </label>
                         <div className="relative group">
-                            <select
+                            <select 
                                 value={store.item_type}
                                 onChange={(e) => store.setField("item_type", e.target.value)}
                                 className="w-full h-12 px-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-[11px] font-black uppercase tracking-widest text-zinc-700 dark:text-white appearance-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none shadow-sm"
@@ -176,7 +171,7 @@ export default function Step1BasicInfo() {
                             Dietary Profile *
                         </label>
                         <div className="relative group">
-                            <select
+                            <select 
                                 value={store.dietary_type}
                                 onChange={(e) => store.setField("dietary_type", e.target.value)}
                                 className="w-full h-12 px-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-[11px] font-black uppercase tracking-widest text-zinc-700 dark:text-white appearance-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none shadow-sm"
@@ -236,39 +231,21 @@ export default function Step1BasicInfo() {
                         {(store.tags || []).length < 5 && (
                             <input
                                 type="text"
-                                placeholder="TYPE OR SELECT..."
+                                placeholder="..."
                                 onKeyPress={(e) => {
                                     if (e.key === "Enter") {
                                         e.preventDefault();
-                                        handleAddTag(e.currentTarget.value);
+                                        handleAddTag(e.currentTarget.value.toUpperCase());
                                         e.currentTarget.value = "";
                                     }
                                 }}
-                                className="flex-1 min-w-[120px] bg-transparent text-[10px] font-black uppercase text-zinc-900 dark:text-white outline-none"
+                                className="flex-1 min-w-[60px] bg-transparent text-[10px] font-black uppercase text-zinc-900 dark:text-white outline-none"
                             />
                         )}
                     </div>
-
-                    {/* Suggested Pills */}
-                    {(store.tags || []).length < 5 && (
-                        <div className="flex flex-wrap gap-1.5 pl-1 pt-1">
-                            {SUGGESTED_MULTIPLIERS
-                                .filter(s => !(store.tags || []).includes(s))
-                                .map(suggestion => (
-                                    <button
-                                        key={suggestion}
-                                        type="button"
-                                        onClick={() => handleAddTag(suggestion)}
-                                        className="px-2 py-1 rounded-md border border-zinc-200 dark:border-zinc-800 text-[8px] font-black text-zinc-400 dark:text-zinc-600 hover:border-orange-500 hover:text-orange-500 transition-all uppercase tracking-widest bg-white dark:bg-zinc-900"
-                                    >
-                                        + {suggestion}
-                                    </button>
-                                ))
-                            }
-                        </div>
-                    )}
                 </div>
             </div>
         </motion.div>
     );
 }
+

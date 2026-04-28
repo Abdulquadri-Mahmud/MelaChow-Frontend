@@ -27,7 +27,7 @@ export default function DetailsSection({
     };
 
     return (
-        <div className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-[#1E293B] rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
             <SectionHeader
                 title="Item Details & Operations"
                 subtitle="Preparation time, nutrition, and instructions"

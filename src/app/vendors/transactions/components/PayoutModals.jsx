@@ -143,21 +143,21 @@ export function ConfigureBankModal({ isOpen, onClose, onSaved, existingDetails }
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onClose}
-                    className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                    className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm"
                 />
                 
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden"
+                    className="relative w-full max-w-md bg-white dark:bg-zinc-900 rounded-md border border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-hidden"
                 >
-                    <div className="p-6 border-b border-slate-50 dark:border-slate-800/50 flex items-center justify-between">
+                    <div className="p-6 border-b border-zinc-50 dark:border-zinc-800/50 flex items-center justify-between">
                         <div>
-                            <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Setup Bank Payout</h2>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-0.5 uppercase tracking-widest">Register your local bank for withdrawals.</p>
+                            <h2 className="text-lg font-black text-zinc-900 dark:text-white uppercase tracking-tight">Setup Bank Payout</h2>
+                            <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-0.5 uppercase tracking-widest">Register your local bank for withdrawals.</p>
                         </div>
-                        <button onClick={onClose} className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md text-slate-400 transition-all">
+                        <button onClick={onClose} className="p-2 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-md text-zinc-400 transition-all">
                             <X size={20} />
                         </button>
                     </div>
@@ -173,9 +173,9 @@ export function ConfigureBankModal({ isOpen, onClose, onSaved, existingDetails }
                         <div className="space-y-4">
                             {/* Bank Selection */}
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Bank</label>
+                                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Select Bank</label>
                                 <div className="relative">
-                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
                                         <Building2 size={16} />
                                     </div>
                                     <select
@@ -185,7 +185,7 @@ export function ConfigureBankModal({ isOpen, onClose, onSaved, existingDetails }
                                             setAccountName("");
                                         }}
                                         disabled={isLoadingBanks}
-                                        className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md text-xs font-black text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 appearance-none uppercase tracking-tight"
+                                        className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-md text-xs font-black text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500 appearance-none uppercase tracking-tight"
                                     >
                                         <option value="">Choose a bank...</option>
                                         {banks.map((bank) => (
@@ -202,9 +202,9 @@ export function ConfigureBankModal({ isOpen, onClose, onSaved, existingDetails }
 
                             {/* Account Number */}
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Account Number</label>
+                                <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Account Number</label>
                                 <div className="relative">
-                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
                                         <Hash size={16} />
                                     </div>
                                     <input
@@ -217,7 +217,7 @@ export function ConfigureBankModal({ isOpen, onClose, onSaved, existingDetails }
                                             setAccountNumber(val);
                                             if (val.length !== 10) setAccountName("");
                                         }}
-                                        className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 tracking-[0.2em] placeholder:tracking-normal"
+                                        className="w-full pl-10 pr-4 py-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-md text-sm font-black text-zinc-900 dark:text-white focus:outline-none focus:border-orange-500 tracking-[0.2em] placeholder:tracking-normal"
                                     />
                                     {isResolving && (
                                         <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -254,10 +254,10 @@ export function ConfigureBankModal({ isOpen, onClose, onSaved, existingDetails }
                         </div>
                     </div>
 
-                    <div className="p-6 bg-slate-50 dark:bg-slate-900/50 flex gap-3">
+                    <div className="p-6 bg-zinc-50 dark:bg-zinc-900/50 flex gap-3">
                         <button
                             onClick={onClose}
-                            className="flex-1 px-4 py-3 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-all active:scale-95"
+                            className="flex-1 px-4 py-3 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-[10px] font-black uppercase tracking-widest rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all active:scale-95"
                         >
                             Cancel
                         </button>

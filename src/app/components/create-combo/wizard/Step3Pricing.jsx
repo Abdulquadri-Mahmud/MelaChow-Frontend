@@ -26,14 +26,14 @@ export default function Step3Pricing() {
       className="space-y-5"
     >
       {/* Combo Price */}
-      <div className="bg-slate-50/50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-        <label className="block text-[11px] font-black uppercase tracking-widest mb-3 text-slate-500 dark:text-slate-400 pl-1">
+      <div className="bg-zinc-50/50 dark:bg-zinc-950/50 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800">
+        <label className="block text-[11px] font-black uppercase tracking-widest mb-3 text-zinc-500 dark:text-zinc-400 pl-1">
           Base Combo Pricing *
         </label>
         <div className="relative">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
-            <span className="text-xl font-black text-slate-900 dark:text-white leading-none">₦</span>
-            <div className="w-[1px] h-4 bg-slate-200 dark:bg-slate-800" />
+            <span className="text-xl font-black text-zinc-900 dark:text-white leading-none">₦</span>
+            <div className="w-[1px] h-4 bg-zinc-200 dark:bg-zinc-800" />
           </div>
           <input
             type="number"
@@ -42,26 +42,26 @@ export default function Step3Pricing() {
             value={store.price_naira}
             onChange={(e) => store.setField('price_naira', e.target.value)}
             placeholder="0.00"
-            className="w-full pl-12 pr-4 h-14 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-900 dark:text-white placeholder-slate-300 focus:border-orange-500 outline-none text-xl font-black tabular-nums transition-colors shadow-sm"
+            className="w-full pl-12 pr-4 h-14 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white placeholder-zinc-300 focus:border-orange-500 outline-none text-xl font-black tabular-nums transition-colors shadow-sm"
           />
         </div>
-        <p className="mt-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest pl-1 leading-normal">
+        <p className="mt-2 text-[9px] font-bold text-zinc-400 uppercase tracking-widest pl-1 leading-normal">
           This is the primary price. Extra fees from choices will be added on top.
         </p>
       </div>
 
       {/* Contents List */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-50 dark:border-slate-800/50">
-        <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-slate-500 dark:text-slate-400 pl-1">
+      <div className="bg-white dark:bg-zinc-900 p-4 rounded-xl border border-zinc-50 dark:border-zinc-800/50">
+        <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-zinc-500 dark:text-zinc-400 pl-1">
           Combo Components
         </label>
-        <p className="text-[10px] font-medium text-slate-400 mb-4 pl-1">
+        <p className="text-[10px] font-medium text-zinc-400 mb-4 pl-1">
           Briefly list what's static in this bundle (e.g. 1X COKE, 2X JELLOF).
         </p>
         
         <div className="flex flex-wrap gap-1.5 mb-4 min-h-[40px]">
           {store.contents.length === 0 && (
-             <span className="text-[10px] font-black text-slate-200 uppercase tracking-widest mt-2 italic">Nothing listed yet</span>
+             <span className="text-[10px] font-black text-zinc-200 uppercase tracking-widest mt-2 italic">Nothing listed yet</span>
           )}
           {store.contents.map((item) => (
             <motion.div
@@ -81,7 +81,7 @@ export default function Step3Pricing() {
           ))}
         </div>
 
-        <div className="flex gap-2 p-2 bg-slate-50/50 dark:bg-slate-950/50 rounded-lg border border-slate-100 dark:border-slate-800">
+        <div className="flex gap-2 p-2 bg-zinc-50/50 dark:bg-zinc-950/50 rounded-lg border border-zinc-100 dark:border-zinc-800">
           <input
             type="text"
             value={contentInput}
@@ -93,13 +93,13 @@ export default function Step3Pricing() {
                 handleAddContent();
               }
             }}
-            className="flex-1 px-3 h-10 bg-white dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-md text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white placeholder-slate-300 outline-none focus:border-orange-400"
+            className="flex-1 px-3 h-10 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-md text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-white placeholder-zinc-300 outline-none focus:border-orange-400"
           />
           <button
             type="button"
             onClick={handleAddContent}
             disabled={!contentInput.trim()}
-            className="px-4 h-10 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-md text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-30"
+            className="px-4 h-10 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-md text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-30"
           >
             Add
           </button>

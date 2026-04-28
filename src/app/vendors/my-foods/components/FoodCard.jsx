@@ -29,13 +29,13 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
             : `₦${item.portions.min_price_naira?.toLocaleString()} – ₦${item.portions.max_price_naira?.toLocaleString()}`;
 
     return (
-        <div className={`group relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-md overflow-hidden transition-all hover:border-orange-500/30 ${item.is_archived
+        <div className={`group relative bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-md overflow-hidden transition-all hover:border-orange-500/30 ${item.is_archived
             ? "opacity-60"
             : ""
             }`}>
 
             {/* Image */}
-            <div className="relative h-40 bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="relative h-40 bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
                 {item.image_url ? (
                     <img
                         src={item.image_url}
@@ -51,7 +51,7 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                 {/* Status badges top-left */}
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
                     {item.is_archived && (
-                        <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-slate-900/80 text-white backdrop-blur-sm">
+                        <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-zinc-900/80 text-white backdrop-blur-sm">
                             Archived
                         </span>
                     )}
@@ -75,7 +75,7 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                 
                 {/* Name + location */}
                 <div>
-                    <h3 className="font-black text-slate-900 dark:text-white text-sm tracking-tight leading-tight line-clamp-1">
+                    <h3 className="font-black text-zinc-900 dark:text-white text-sm tracking-tight leading-tight line-clamp-1">
                         {item.name}
                     </h3>
                     <div className="flex flex-col gap-1 mt-1">
@@ -93,24 +93,24 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                 {/* Price + Metadata */}
                 <div className="flex items-center justify-between">
                     <span className={`font-black text-sm tracking-tight ${item.portions.count === 0
-                        ? "text-slate-300 dark:text-slate-600"
-                        : "text-slate-900 dark:text-white"
+                        ? "text-zinc-300 dark:text-zinc-600"
+                        : "text-zinc-900 dark:text-white"
                         }`}>
                         {priceDisplay}
                     </span>
                     {item.prep_time_minutes && (
-                        <span className="flex items-center gap-1 text-[9px] font-black uppercase text-slate-400 bg-slate-50 dark:bg-slate-800/50 px-1.5 py-0.5 rounded border border-slate-100 dark:border-slate-800">
+                        <span className="flex items-center gap-1 text-[9px] font-black uppercase text-zinc-400 bg-zinc-50 dark:bg-zinc-800/50 px-1.5 py-0.5 rounded border border-zinc-100 dark:border-zinc-800">
                              {item.prep_time_minutes}m
                         </span>
                     )}
                 </div>
 
                 {/* ACTION BAR — Persistent (No longer on hover) */}
-                <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                <div className="pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
                         <button
                             onClick={() => onEdit(item._id)}
-                            className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all active:scale-90"
+                            className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 flex items-center justify-center hover:bg-orange-500 hover:text-white transition-all active:scale-90"
                             title="Edit Details"
                         >
                             <Edit2 size={14} />
@@ -119,7 +119,7 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                             onClick={() => onToggleAvailability(item._id)}
                             className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90 ${item.is_available 
                                 ? 'bg-orange-50 text-orange-500 hover:bg-orange-500 hover:text-white' 
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}
+                                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400'}`}
                             title={item.is_available ? "Hide content" : "Show content"}
                         >
                             {item.is_available ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
@@ -129,7 +129,7 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                             disabled={item.combos?.length > 0 && !item.is_archived}
                             className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90 ${item.is_archived
                                 ? 'bg-indigo-50 text-indigo-500 hover:bg-indigo-500 hover:text-white'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-slate-900 dark:hover:bg-white hover:text-white dark:hover:text-slate-900 disabled:opacity-30'}`}
+                                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 hover:bg-zinc-900 dark:hover:bg-white hover:text-white dark:hover:text-zinc-900 disabled:opacity-30'}`}
                             title={item.is_archived ? "Restore" : "Archive Item"}
                         >
                             {item.is_archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
@@ -137,7 +137,7 @@ export default function FoodCard({ item, onToggleAvailability, onArchive, onEdit
                         {(!item.combos || item.combos.length === 0) && (
                             <button
                                 onClick={() => onDelete(item._id, item.name)}
-                                className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800/50 text-rose-400 hover:bg-rose-500 hover:text-white transition-all active:scale-90"
+                                className="w-8 h-8 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 text-rose-400 hover:bg-rose-500 hover:text-white transition-all active:scale-90"
                                 title="Delete Forever"
                             >
                                 <Trash2 size={14} />

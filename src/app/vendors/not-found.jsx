@@ -6,7 +6,7 @@ import { Store, ArrowLeft, AlertCircle, ShoppingBag, Utensils } from "lucide-rea
 
 export default function VendorNotFound() {
     return (
-        <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm mx-auto max-w-4xl py-12">
+        <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 shadow-sm mx-auto max-w-4xl py-12">
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -31,23 +31,23 @@ export default function VendorNotFound() {
                 </Link>
                 <button
                     onClick={() => window.history.back()}
-                    className="flex-1 sm:flex-none items-center justify-center gap-2 h-14 px-10 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-slate-700 transition-all shadow-sm flex"
+                    className="flex-1 sm:flex-none items-center justify-center gap-2 h-14 px-10 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-gray-200 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all shadow-sm flex"
                 >
                     <ArrowLeft size={18} />
                     Previous Station
                 </button>
             </div>
 
-            <div className="mt-16 pt-8 border-t border-gray-100 dark:border-slate-800 w-full grid grid-cols-1 sm:grid-cols-3 gap-6 opacity-60">
-                <Link href="/vendors/order" className="p-4 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-2xl transition-all group flex flex-col items-center">
+            <div className="mt-16 pt-8 border-t border-gray-100 dark:border-zinc-800 w-full grid grid-cols-1 sm:grid-cols-3 gap-6 opacity-60">
+                <Link href="/vendors/order" className="p-4 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-2xl transition-all group flex flex-col items-center">
                     <ShoppingBag size={20} className="mb-2 text-gray-400 group-hover:text-orange-500 transition-colors" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Order History</span>
                 </Link>
-                <Link href="/vendors/menu" className="p-4 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-2xl transition-all group flex flex-col items-center">
+                <Link href="/vendors/menu" className="p-4 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-2xl transition-all group flex flex-col items-center">
                     <Utensils size={20} className="mb-2 text-gray-400 group-hover:text-orange-500 transition-colors" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">My Menu</span>
                 </Link>
-                <Link href="/vendors/settings" className="p-4 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-2xl transition-all group flex flex-col items-center">
+                <Link href="/vendors/settings" className="p-4 hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-2xl transition-all group flex flex-col items-center">
                     <AlertCircle size={20} className="mb-2 text-gray-400 group-hover:text-orange-500 transition-colors" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Support Desk</span>
                 </Link>

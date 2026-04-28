@@ -178,10 +178,10 @@ export default function VendorOrderDetailsPage() {
 
     if (isLoading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+            <div className="flex h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950">
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-10 h-10 border-[3px] border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Syncing Transaction Records...</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Syncing Transaction Records...</p>
                 </div>
             </div>
         );
@@ -189,15 +189,15 @@ export default function VendorOrderDetailsPage() {
 
     if (!order) {
         return (
-            <div className="flex flex-col h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 gap-4">
-                <div className="p-5 bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800 border-dashed">
-                    <AlertOctagon size={48} className="text-slate-300" />
+            <div className="flex flex-col h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950 gap-4">
+                <div className="p-5 bg-white dark:bg-zinc-900 rounded-md border border-zinc-100 dark:border-zinc-800 border-dashed">
+                    <AlertOctagon size={48} className="text-zinc-300" />
                 </div>
-                <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Record Access Denied</h2>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest max-w-[280px] text-center">Unauthorized entry or non-existent log entry detected.</p>
+                <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Record Access Denied</h2>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest max-w-[280px] text-center">Unauthorized entry or non-existent log entry detected.</p>
                 <button
                     onClick={() => router.back()}
-                    className="mt-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-md hover:opacity-90 transition-all active:scale-95 shadow-none"
+                    className="mt-2 px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-black uppercase tracking-widest rounded-md hover:opacity-90 transition-all active:scale-95 shadow-none"
                 >
                     RETURN TO LOGS
                 </button>
@@ -263,7 +263,7 @@ export default function VendorOrderDetailsPage() {
             case 'refunded':
                 return { color: "bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-400", icon: CreditCard, label: "Refunded" };
             default:
-                return { color: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400", icon: Clock, label: status || "Unknown" };
+                return { color: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400", icon: Clock, label: status || "Unknown" };
         }
     };
 
@@ -275,31 +275,31 @@ export default function VendorOrderDetailsPage() {
     const lockedPlatformStatuses = ["out_for_delivery", "delivered", "completed"];
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans">
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 font-sans">
 
             {/* Global Executive Summary Modal */}
             <AnimatePresence>
                 {isSummaryModalOpen && order && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm">
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0, y: 20 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            className="bg-white dark:bg-slate-900 rounded-md w-full max-w-lg border border-slate-100 dark:border-slate-800 shadow-2xl overflow-hidden"
+                            className="bg-white dark:bg-zinc-900 rounded-md w-full max-w-lg border border-zinc-100 dark:border-zinc-800 shadow-2xl overflow-hidden"
                         >
-                            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900">
+                            <div className="p-5 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2 bg-orange-600/10 rounded-md text-orange-600 border border-orange-600/20">
                                         <Package size={16} />
                                     </div>
                                     <div>
-                                        <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tight text-[14px]">Executive Order Summary</h3>
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Automated Directive Briefing</p>
+                                        <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-tight text-[14px]">Executive Order Summary</h3>
+                                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Automated Directive Briefing</p>
                                     </div>
                                 </div>
                                 <button 
                                     onClick={() => setIsSummaryModalOpen(false)}
-                                    className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-md text-slate-400 transition-colors cursor-pointer"
+                                    className="p-1.5 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-md text-zinc-400 transition-colors cursor-pointer"
                                 >
                                     <X size={16} />
                                 </button>
@@ -322,7 +322,7 @@ export default function VendorOrderDetailsPage() {
 
                                 {/* Directives */}
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Kitchen Directives ({detailedItems.length})</p>
+                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3">Kitchen Directives ({detailedItems.length})</p>
                                     <div className="space-y-3">
                                         {detailedItems.map((item, idx) => {
                                             const itemName = item.name || item.variant?.name || "Unknown Item";
@@ -351,9 +351,9 @@ export default function VendorOrderDetailsPage() {
                                             fullSentence += ".";
 
                                             return (
-                                                <div key={idx} className="flex gap-3 bg-slate-900 text-white p-3.5 rounded-md border border-slate-800 relative overflow-hidden">
+                                                <div key={idx} className="flex gap-3 bg-zinc-900 text-white p-3.5 rounded-md border border-zinc-800 relative overflow-hidden">
                                                     <div className="absolute top-0 right-0 w-24 h-24 bg-orange-600/10 rounded-full blur-2xl -mr-12 -mt-12" />
-                                                    <div className="p-2 bg-slate-800 rounded-md shrink-0 relative z-10 self-start">
+                                                    <div className="p-2 bg-zinc-800 rounded-md shrink-0 relative z-10 self-start">
                                                         <Hash size={12} className="text-orange-500" />
                                                     </div>
                                                     <p className="text-[12px] font-black uppercase tracking-wide leading-tight relative z-10 mt-0.5">{fullSentence}</p>
@@ -364,7 +364,7 @@ export default function VendorOrderDetailsPage() {
                                 </div>
                             </div>
 
-                            <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50">
+                            <div className="p-5 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
                                 <button 
                                     onClick={() => setIsSummaryModalOpen(false)}
                                     className="w-full py-3 bg-orange-600 text-white text-[11px] font-black uppercase tracking-widest rounded-md hover:opacity-90 transition-opacity active:scale-95 shadow-none"
@@ -383,14 +383,14 @@ export default function VendorOrderDetailsPage() {
                         initial={{ opacity: 0, y: -20, x: 20 }}
                         animate={{ opacity: 1, y: 0, x: 0 }}
                         exit={{ opacity: 0, y: -20, x: 20 }}
-                        className="fixed top-6 right-6 z-[100] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-4 rounded-md shadow-2xl flex items-center gap-4 min-w-[320px]"
+                        className="fixed top-6 right-6 z-[100] bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-4 rounded-md shadow-2xl flex items-center gap-4 min-w-[320px]"
                     >
                         <div className="p-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-md">
                             <Check size={20} className="text-emerald-600" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">STATUS SYNCHRONIZED</p>
-                            <p className="text-[9px] font-bold uppercase text-slate-400 tracking-widest mt-0.5">Manifest updated successfully.</p>
+                            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-900 dark:text-white">STATUS SYNCHRONIZED</p>
+                            <p className="text-[9px] font-bold uppercase text-zinc-400 tracking-widest mt-0.5">Manifest updated successfully.</p>
                         </div>
                     </motion.div>
                 )}
@@ -403,20 +403,20 @@ export default function VendorOrderDetailsPage() {
                         initial={{ opacity: 0, y: -20, x: 20 }}
                         animate={{ opacity: 1, y: 0, x: 0 }}
                         exit={{ opacity: 0, y: -20, x: 20 }}
-                        className="fixed top-6 right-6 z-[100] bg-white dark:bg-slate-900 border border-rose-100 dark:border-rose-900/30 p-4 rounded-md shadow-2xl flex items-center gap-4 max-w-md min-w-[320px]"
+                        className="fixed top-6 right-6 z-[100] bg-white dark:bg-zinc-900 border border-rose-100 dark:border-rose-900/30 p-4 rounded-md shadow-2xl flex items-center gap-4 max-w-md min-w-[320px]"
                     >
                          <div className="p-2 bg-rose-50 dark:bg-rose-500/10 rounded-md">
                             <X size={20} className="text-rose-600" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white leading-none mb-1">OPERATION FAILED</p>
+                            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-900 dark:text-white leading-none mb-1">OPERATION FAILED</p>
                             <p className="text-[9px] font-bold uppercase text-rose-500 tracking-widest line-clamp-2">{errorMessage}</p>
                         </div>
                         <button
                             onClick={() => setErrorMessage(null)}
-                            className="p-1 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md transition-colors"
+                            className="p-1 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-md transition-colors"
                         >
-                            <X size={14} className="text-slate-400" />
+                            <X size={14} className="text-zinc-400" />
                         </button>
                     </motion.div>
                 )}
@@ -428,35 +428,35 @@ export default function VendorOrderDetailsPage() {
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white dark:bg-slate-900 rounded-md p-4 border border-slate-100 dark:border-slate-800 shadow-none"
+                    className="bg-white dark:bg-zinc-900 rounded-md p-4 border border-zinc-100 dark:border-zinc-800 shadow-none"
                 >
                     <div className="flex flex-col lg:flex-row justify-between gap-6">
                         <div className="flex-1">
                             <div className="flex flex-wrap items-center gap-4 mb-4">
                                 <button onClick={() => router.back()}
-                                    className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all active:scale-90 border border-slate-100 dark:border-slate-700">
+                                    className="p-2 bg-zinc-50 dark:bg-zinc-800 rounded-md text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all active:scale-90 border border-zinc-100 dark:border-zinc-700">
                                     <ChevronLeft size={16} />
                                 </button>
                                 <div>
-                                    <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none mb-2">Order Manifest</h1>
+                                    <h1 className="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight leading-none mb-2">Order Manifest</h1>
                                     <div className="flex flex-wrap items-center gap-2">
                                         <div className={`flex items-center gap-2 px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border ${statusConfig.color}`}>
                                             <StatusIcon size={12} strokeWidth={3} />
                                             <span>{statusConfig.label}</span>
                                         </div>
-                                        <div className="flex items-center gap-1.5 px-2 bg-slate-50 dark:bg-slate-800/50 rounded-md border border-slate-100 dark:border-slate-800 h-[22px]">
-                                            <Hash size={10} className="text-slate-400" />
-                                            <span className="text-[9px] font-black text-slate-400 leading-none">{(order._id?.$oid || order._id || "").toString().slice(-6).toUpperCase()}</span>
+                                        <div className="flex items-center gap-1.5 px-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-md border border-zinc-100 dark:border-zinc-800 h-[22px]">
+                                            <Hash size={10} className="text-zinc-400" />
+                                            <span className="text-[9px] font-black text-zinc-400 leading-none">{(order._id?.$oid || order._id || "").toString().slice(-6).toUpperCase()}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div className="flex flex-wrap items-center gap-4">
-                                <div className="flex items-center gap-2 text-slate-400 py-1.5 px-3 bg-slate-50 dark:bg-slate-800/20 rounded-md border border-slate-100/50 dark:border-slate-800/50">
+                                <div className="flex items-center gap-2 text-zinc-400 py-1.5 px-3 bg-zinc-50 dark:bg-zinc-800/20 rounded-md border border-zinc-100/50 dark:border-zinc-800/50">
                                     <Clock size={12} />
                                     <span className="text-[10px] font-black uppercase tracking-widest">{dateStr} — {timeStr}</span>
                                 </div>
-                                <div className="flex items-center gap-2 text-slate-400 py-1.5 px-3 bg-slate-50 dark:bg-slate-800/20 rounded-md border border-slate-100/50 dark:border-slate-800/50">
+                                <div className="flex items-center gap-2 text-zinc-400 py-1.5 px-3 bg-zinc-50 dark:bg-zinc-800/20 rounded-md border border-zinc-100/50 dark:border-zinc-800/50">
                                     <ShoppingBag size={12} />
                                     <span className="text-[10px] font-black uppercase tracking-widest">{detailedItems.length} SKU POSITIONS</span>
                                 </div>
@@ -466,11 +466,11 @@ export default function VendorOrderDetailsPage() {
                         {/* Quick Actions */}
                         {availableActions.length > 0 && (
                             <div className="flex flex-col gap-3 min-w-[280px]">
-                                <div className="flex items-center gap-2 leading-none border-b border-slate-100 dark:border-slate-800 pb-2 mb-1">
+                                <div className="flex items-center gap-2 leading-none border-b border-zinc-100 dark:border-zinc-800 pb-2 mb-1">
                                     <div className="p-1 bg-orange-600/10 rounded-md">
                                         <Layers size={10} className="text-orange-600" />
                                     </div>
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Lifecycle Control</p>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Lifecycle Control</p>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {availableActions.map((status) => {
@@ -499,8 +499,8 @@ export default function VendorOrderDetailsPage() {
                                                 onClick={() => handleStatusUpdate(status)}
                                                 disabled={isUpdating || isLockedPlatformAction}
                                                 className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-md font-black text-[9px] uppercase tracking-widest transition-all active:scale-95 disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed flex-1 min-w-[130px] border shadow-none ${isCancelAction
-                                                    ? 'bg-white dark:bg-slate-900 text-rose-600 border-rose-100 dark:border-rose-900/40 hover:bg-rose-50'
-                                                    : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent hover:opacity-90'
+                                                    ? 'bg-white dark:bg-zinc-900 text-rose-600 border-rose-100 dark:border-rose-900/40 hover:bg-rose-50'
+                                                    : 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-transparent hover:opacity-90'
                                                     } ${status === 'accepted' || status === 'preparing' || status === 'ready' || status === 'ready_for_pickup' ? 'bg-orange-600 text-white border-transparent' : ''}`}
                                             >
                                                 {isUpdating ? (
@@ -518,7 +518,7 @@ export default function VendorOrderDetailsPage() {
                     </div>
 
                     {/* Progress Timeline */}
-                    <div className="mt-6 pt-6 border-t border-slate-50 dark:border-slate-800/50">
+                    <div className="mt-6 pt-6 border-t border-zinc-50 dark:border-zinc-800/50">
                         {isPlatformDelivery && (order.orderStatus === 'ready_for_pickup' || order.orderStatus === 'ready') && (
                             <div className="mb-6 bg-blue-50/50 dark:bg-blue-600/10 border border-blue-100 dark:border-blue-700/30 p-4 rounded-md flex items-start sm:items-center gap-3 text-blue-800 dark:text-blue-300 shadow-none">
                                 <AlertCircle className="shrink-0 text-blue-500" size={16} strokeWidth={3} />
@@ -538,18 +538,18 @@ export default function VendorOrderDetailsPage() {
                                             <div
                                                 className={`w-8 h-8 rounded-md flex items-center justify-center border transition-all ${isCompleted
                                                     ? 'border-transparent bg-orange-600 text-white'
-                                                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-300'
-                                                    } ${isCurrent ? 'ring-2 ring-orange-500 ring-offset-2 dark:ring-offset-slate-950 scale-110' : ''}`}
+                                                    : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-300'
+                                                    } ${isCurrent ? 'ring-2 ring-orange-500 ring-offset-2 dark:ring-offset-zinc-950 scale-110' : ''}`}
                                             >
                                                 {isCompleted ? <Check size={14} strokeWidth={4} /> : <span className="text-[9px] font-black">{idx + 1}</span>}
                                             </div>
-                                            <span className={`text-[8px] font-black uppercase tracking-widest text-center ${isCurrent ? 'text-orange-600' : isCompleted ? 'text-slate-900 dark:text-white' : 'text-slate-400'
+                                            <span className={`text-[8px] font-black uppercase tracking-widest text-center ${isCurrent ? 'text-orange-600' : isCompleted ? 'text-zinc-900 dark:text-white' : 'text-zinc-400'
                                                 }`}>
                                                 {step}
                                             </span>
                                         </div>
                                         {idx < 5 && (
-                                            <div className={`h-[1px] flex-1 min-w-[20px] mx-2 transition-all ${idx < Math.min(currentStatusIndex, 5) ? 'bg-orange-600' : 'bg-slate-100 dark:bg-slate-800'
+                                            <div className={`h-[1px] flex-1 min-w-[20px] mx-2 transition-all ${idx < Math.min(currentStatusIndex, 5) ? 'bg-orange-600' : 'bg-zinc-100 dark:bg-zinc-800'
                                                 }`} />
                                         )}
                                     </div>
@@ -567,16 +567,16 @@ export default function VendorOrderDetailsPage() {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800 overflow-hidden shadow-none"
+                            className="bg-white dark:bg-zinc-900 rounded-md border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-none"
                         >
-                            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                            <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md text-slate-400">
+                                    <div className="p-2 bg-zinc-50 dark:bg-zinc-800 rounded-md text-zinc-400">
                                         <ShoppingBag size={14} strokeWidth={3} />
                                     </div>
                                     <div>
-                                        <h3 className="font-black text-[12px] text-slate-900 dark:text-white uppercase tracking-widest">Items Manifest</h3>
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Extraction Protocol: Preparation Required</p>
+                                        <h3 className="font-black text-[12px] text-zinc-900 dark:text-white uppercase tracking-widest">Items Manifest</h3>
+                                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Extraction Protocol: Preparation Required</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -586,7 +586,7 @@ export default function VendorOrderDetailsPage() {
                                 </div>
                             </div>
 
-                            <div className="divide-y divide-slate-50 dark:divide-slate-800/10">
+                            <div className="divide-y divide-zinc-50 dark:divide-zinc-800/10">
                                 {detailedItems.map((item, idx) => {
                                     const itemName = item.name || item.variant?.name || "Unknown Item";
                                     const itemImage = item.image_url || item.variant?.image || null;
@@ -630,19 +630,19 @@ export default function VendorOrderDetailsPage() {
                                             initial={{ opacity: 0, x: -10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: idx * 0.05 + 0.2 }}
-                                            className="p-4 flex flex-col gap-4 hover:bg-slate-50/30 dark:hover:bg-slate-800/10 transition-all group"
+                                            className="p-4 flex flex-col gap-4 hover:bg-zinc-50/30 dark:hover:bg-zinc-800/10 transition-all group"
                                         >
                                             <div className="flex flex-col sm:flex-row gap-5">
                                                 {/* Image & Quantity */}
-                                                <div className="w-20 h-20 rounded-md bg-slate-50 dark:bg-slate-950 overflow-hidden flex-shrink-0 relative border border-slate-100 dark:border-slate-800">
+                                                <div className="w-20 h-20 rounded-md bg-zinc-50 dark:bg-zinc-950 overflow-hidden flex-shrink-0 relative border border-zinc-100 dark:border-zinc-800">
                                                     {itemImage ? (
                                                         <img src={itemImage} alt={itemName} className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all" />
                                                     ) : (
-                                                        <div className="flex items-center justify-center w-full h-full text-slate-100">
+                                                        <div className="flex items-center justify-center w-full h-full text-zinc-100">
                                                             <ShoppingBag size={20} />
                                                         </div>
                                                     )}
-                                                    <div className="absolute top-1 left-1 bg-slate-900 border border-slate-800 text-white min-w-[20px] h-5 px-1.5 rounded-md flex items-center justify-center font-black text-[9px] uppercase tracking-tighter">
+                                                    <div className="absolute top-1 left-1 bg-zinc-900 border border-zinc-800 text-white min-w-[20px] h-5 px-1.5 rounded-md flex items-center justify-center font-black text-[9px] uppercase tracking-tighter">
                                                         {quantity}X
                                                     </div>
                                                 </div>
@@ -651,46 +651,46 @@ export default function VendorOrderDetailsPage() {
                                                     {/* Header & Pricing */}
                                                     <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
                                                         <div>
-                                                            <h4 className="font-black text-slate-900 dark:text-white text-[13px] uppercase tracking-tight leading-none mb-1.5 group-hover:text-orange-600 transition-colors">
+                                                            <h4 className="font-black text-zinc-900 dark:text-white text-[13px] uppercase tracking-tight leading-none mb-1.5 group-hover:text-orange-600 transition-colors">
                                                                 {itemName}
                                                             </h4>
                                                             <div className="flex flex-wrap items-center gap-1.5">
                                                                 {itemType && (
-                                                                    <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-500 dark:bg-slate-800/50 dark:text-slate-400 border border-slate-200/50 dark:border-slate-700/50">{itemType}</span>
+                                                                    <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-zinc-100 text-zinc-500 dark:bg-zinc-800/50 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-700/50">{itemType}</span>
                                                                 )}
                                                                 {dietaryType && (
                                                                     <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md border ${
                                                                         dietaryType.toLowerCase().includes('halal') ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' :
                                                                         dietaryType.toLowerCase().includes('veg') ? 'bg-green-50 text-green-600 border-green-100 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/20' : 
                                                                         dietaryType.toLowerCase().includes('non') ? 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' : 
-                                                                        'bg-slate-50 text-slate-500 border-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                                                                        'bg-zinc-50 text-zinc-500 border-zinc-100 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700'
                                                                     }`}>{dietaryType}</span>
                                                                 )}
                                                             </div>
                                                         </div>
                                                         <div className="text-right">
-                                                            <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">₦{lineTotal.toLocaleString()}</p>
-                                                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">₦{unitPrice.toLocaleString()} / UNIT</p>
+                                                            <p className="text-[11px] font-black text-zinc-900 dark:text-white uppercase tracking-tight">₦{lineTotal.toLocaleString()}</p>
+                                                            <p className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest">₦{unitPrice.toLocaleString()} / UNIT</p>
                                                         </div>
                                                     </div>
 
                                                     {/* Instruction Manifest */}
-                                                    <div className="bg-slate-50/50 dark:bg-slate-950/30 rounded-md p-3 border border-slate-100 dark:border-slate-800/50">
+                                                    <div className="bg-zinc-50/50 dark:bg-zinc-950/30 rounded-md p-3 border border-zinc-100 dark:border-zinc-800/50">
                                                         <div className="flex items-center gap-2 mb-2 leading-none">
-                                                            <Package size={10} className="text-slate-400" />
-                                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">PREPARATION MANIFEST</p>
+                                                            <Package size={10} className="text-zinc-400" />
+                                                            <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">PREPARATION MANIFEST</p>
                                                         </div>
                                                         
                                                         <div className="space-y-2">
-                                                            <p className="text-[10px] font-black text-slate-700 dark:text-slate-200 flex items-center gap-2 uppercase tracking-wide leading-none">
+                                                            <p className="text-[10px] font-black text-zinc-700 dark:text-zinc-200 flex items-center gap-2 uppercase tracking-wide leading-none">
                                                                 <span className="w-1.5 h-1.5 bg-orange-600 rounded-full" />
                                                                 EXTRACT {totalPortions} {portionText.toUpperCase()}
                                                             </p>
                                                             
                                                             {options.length > 0 && (
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 pl-3.5 border-l border-slate-200 dark:border-slate-800">
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 pl-3.5 border-l border-zinc-200 dark:border-zinc-800">
                                                                     {options.map((opt, oIdx) => (
-                                                                        <p key={oIdx} className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2 leading-none">
+                                                                        <p key={oIdx} className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2 leading-none">
                                                                             <span className="text-orange-600">{(Number(opt.quantity) || 1) * quantity}X</span> {opt.label}
                                                                         </p>
                                                                     ))}
@@ -713,7 +713,7 @@ export default function VendorOrderDetailsPage() {
                                                             </div>
                                                             <div className="flex-1">
                                                                 <p className="text-[8px] font-black uppercase tracking-widest text-amber-600 mb-0.5">KITCHEN NOTE</p>
-                                                                <p className="text-[11px] font-bold italic text-slate-700 dark:text-slate-300">"{note}"</p>
+                                                                <p className="text-[11px] font-bold italic text-zinc-700 dark:text-zinc-300">"{note}"</p>
                                                             </div>
                                                         </div>
                                                     )}
@@ -721,13 +721,13 @@ export default function VendorOrderDetailsPage() {
                                             </div>
 
                                             {/* Summary Banner */}
-                                            <div className="flex items-center gap-3 bg-slate-900 text-white p-3 rounded-md border border-slate-800 overflow-hidden relative">
+                                            <div className="flex items-center gap-3 bg-zinc-900 text-white p-3 rounded-md border border-zinc-800 overflow-hidden relative">
                                                 <div className="absolute top-0 right-0 w-24 h-24 bg-orange-600/10 rounded-full blur-2xl -mr-12 -mt-12" />
-                                                <div className="p-2 bg-slate-800 rounded-md relative z-10 shrink-0">
+                                                <div className="p-2 bg-zinc-800 rounded-md relative z-10 shrink-0">
                                                     <Hash size={14} className="text-orange-600" />
                                                 </div>
                                                 <div className="flex-1 relative z-10">
-                                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-0.5">DIRECTIVE SUMMARY</p>
+                                                    <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">DIRECTIVE SUMMARY</p>
                                                     <p className="text-[11px] font-black uppercase tracking-wide leading-tight">{fullSentence}</p>
                                                 </div>
                                             </div>
@@ -742,31 +742,31 @@ export default function VendorOrderDetailsPage() {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800 overflow-hidden shadow-none"
+                            className="bg-white dark:bg-zinc-900 rounded-md border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-none"
                         >
-                            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
-                                <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-md text-emerald-600">
+                            <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-3">
+                                <div className="p-2 bg-zinc-50 dark:bg-zinc-800 rounded-md text-emerald-600">
                                     <Receipt size={14} strokeWidth={3} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-[12px] text-slate-900 dark:text-white uppercase tracking-widest">Earnings Breakdown</h3>
-                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Escrow Payout Reconciliation</p>
+                                    <h3 className="font-black text-[12px] text-zinc-900 dark:text-white uppercase tracking-widest">Earnings Breakdown</h3>
+                                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Escrow Payout Reconciliation</p>
                                 </div>
                             </div>
 
                             <div className="p-5 space-y-4">
                                 <div className="space-y-3">
-                                    <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
+                                    <div className="flex justify-between items-center text-zinc-500 dark:text-zinc-400">
                                         <span className="text-[10px] font-bold uppercase tracking-widest">Food Subtotal</span>
-                                        <span className="text-[12px] font-black text-slate-900 dark:text-white">₦{(order.vendorTotal + (order.commission || 0)).toLocaleString()}</span>
+                                        <span className="text-[12px] font-black text-zinc-900 dark:text-white">₦{(order.vendorTotal + (order.commission || 0)).toLocaleString()}</span>
                                     </div>
 
                                     {order.commission > 0 && (
-                                        <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
+                                        <div className="flex justify-between items-center text-zinc-500 dark:text-zinc-400">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-[10px] font-bold uppercase tracking-widest">Platform Commission</span>
-                                                <div className="p-1 bg-slate-50 dark:bg-slate-800 rounded-md">
-                                                    <Info size={10} className="text-slate-400" />
+                                                <div className="p-1 bg-zinc-50 dark:bg-zinc-800 rounded-md">
+                                                    <Info size={10} className="text-zinc-400" />
                                                 </div>
                                             </div>
                                             <span className="text-[12px] font-black text-rose-600">- ₦{order.commission.toLocaleString()}</span>
@@ -775,13 +775,13 @@ export default function VendorOrderDetailsPage() {
 
                                 </div>
 
-                                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                                    <div className="flex justify-between items-end bg-slate-50 dark:bg-slate-950 p-4 rounded-md border border-slate-100 dark:border-slate-800">
+                                <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                                    <div className="flex justify-between items-end bg-zinc-50 dark:bg-zinc-950 p-4 rounded-md border border-zinc-100 dark:border-zinc-800">
                                         <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Projected Net Payout</span>
-                                            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Released to wallet on delivery</span>
+                                            <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Released to wallet on delivery</span>
                                         </div>
-                                        <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
+                                        <span className="text-2xl font-black text-zinc-900 dark:text-white tracking-tighter">
                                             ₦{((order.vendorTotal || 0) + (order.deliveryShare || 0)).toLocaleString()}
                                         </span>
                                     </div>
@@ -804,31 +804,31 @@ export default function VendorOrderDetailsPage() {
                             initial={{ opacity: 0, x: 10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800 overflow-hidden shadow-none"
+                            className="bg-white dark:bg-zinc-900 rounded-md border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-none"
                         >
-                            <div className="p-5 flex flex-col items-center text-center border-b border-slate-100 dark:border-slate-800 bg-slate-50/30">
+                            <div className="p-5 flex flex-col items-center text-center border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/30">
                                 <div className="relative mb-3">
-                                    <div className="w-20 h-20 rounded-md bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700">
+                                    <div className="w-20 h-20 rounded-md bg-zinc-100 dark:bg-zinc-800 overflow-hidden border border-zinc-200 dark:border-zinc-700">
                                         {user?.avatar ? (
                                             <img src={user.avatar} alt={user.firstname} className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-slate-300">
+                                            <div className="w-full h-full flex items-center justify-center text-zinc-300">
                                                 <User size={32} strokeWidth={3} />
                                             </div>
                                         )}
                                     </div>
-                                    <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white p-1.5 rounded-md border-2 border-white dark:border-slate-900">
+                                    <div className="absolute -bottom-2 -right-2 bg-emerald-600 text-white p-1.5 rounded-md border-2 border-white dark:border-zinc-900">
                                         <CheckCircle2 size={12} />
                                     </div>
                                 </div>
-                                <h3 className="font-black text-[14px] text-slate-900 dark:text-white uppercase tracking-tight">{user ? `${user.firstname} ${user.lastname}` : "SECURE GUEST"}</h3>
+                                <h3 className="font-black text-[14px] text-zinc-900 dark:text-white uppercase tracking-tight">{user ? `${user.firstname} ${user.lastname}` : "SECURE GUEST"}</h3>
                                 <p className="text-[9px] font-black text-orange-600 uppercase tracking-widest mt-1">Verified Logistics Client</p>
                             </div>
 
                             <div className="p-4">
                                 <a
                                     href={`tel:${user?.phone || userOrderId?.phone}`}
-                                    className="w-full bg-slate-900 dark:bg-slate-800 text-white py-3 rounded-md flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-widest transition-all active:scale-95 border border-slate-800"
+                                    className="w-full bg-zinc-900 dark:bg-zinc-800 text-white py-3 rounded-md flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-widest transition-all active:scale-95 border border-zinc-800"
                                 >
                                     <Phone size={14} />
                                     <span>Initiate Communication</span>
@@ -842,11 +842,11 @@ export default function VendorOrderDetailsPage() {
                                 initial={{ opacity: 0, x: 10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.2 }}
-                                className="bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800 overflow-hidden shadow-none"
+                                className="bg-white dark:bg-zinc-900 rounded-md border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-none"
                             >
-                                <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
+                                <div className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-3">
                                     <MapPin size={14} className="text-blue-600" strokeWidth={3} />
-                                    <h4 className="font-black text-[11px] text-slate-900 dark:text-white uppercase tracking-widest">Drop-Off Point</h4>
+                                    <h4 className="font-black text-[11px] text-zinc-900 dark:text-white uppercase tracking-widest">Drop-Off Point</h4>
                                 </div>
                                 <div className="p-5">
                                     <div className="flex gap-4">
@@ -854,14 +854,14 @@ export default function VendorOrderDetailsPage() {
                                             <div className="w-8 h-8 rounded-md bg-blue-600/10 flex items-center justify-center text-blue-600 border border-blue-600/20">
                                                 <Navigation size={14} />
                                             </div>
-                                            <div className="w-px flex-1 bg-slate-100 dark:bg-slate-800 my-2" />
+                                            <div className="w-px flex-1 bg-zinc-100 dark:bg-zinc-800 my-2" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">{address.label || "TARGET DESTINATION"}</p>
-                                            <p className="text-[12px] font-black text-slate-900 dark:text-white leading-tight uppercase tracking-tight truncate">
+                                            <p className="text-[9px] font-black uppercase text-zinc-400 tracking-widest mb-1">{address.label || "TARGET DESTINATION"}</p>
+                                            <p className="text-[12px] font-black text-zinc-900 dark:text-white leading-tight uppercase tracking-tight truncate">
                                                 {address.addressLine}
                                             </p>
-                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">{address.city}, {address.state}</p>
+                                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-1">{address.city}, {address.state}</p>
                                         </div>
                                     </div>
 
@@ -870,7 +870,7 @@ export default function VendorOrderDetailsPage() {
                                             <Truck size={12} className="text-orange-600" />
                                             <p className="text-[9px] font-black text-orange-600 uppercase tracking-widest">Chain of Custody</p>
                                         </div>
-                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none">
+                                        <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest leading-none">
                                             MelaChow logistics will execute pickup at designated loading zone.
                                         </p>
                                     </div>
@@ -883,7 +883,7 @@ export default function VendorOrderDetailsPage() {
                             initial={{ opacity: 0, x: 10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="bg-white dark:bg-slate-900 rounded-md border border-slate-100 dark:border-slate-800 overflow-hidden shadow-none p-5"
+                            className="bg-white dark:bg-zinc-900 rounded-md border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-none p-5"
                         >
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
@@ -891,8 +891,8 @@ export default function VendorOrderDetailsPage() {
                                         <CreditCard size={16} />
                                     </div>
                                     <div>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Transaction State</p>
-                                        <p className="font-black text-slate-900 dark:text-white text-[13px] uppercase tracking-tight mt-0.5">
+                                        <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Transaction State</p>
+                                        <p className="font-black text-zinc-900 dark:text-white text-[13px] uppercase tracking-tight mt-0.5">
                                             {userOrderId?.paymentStatus === 'paid' ? 'Asset Secured' : 'Pending Verification'}
                                         </p>
                                     </div>
@@ -911,22 +911,22 @@ export default function VendorOrderDetailsPage() {
             {/* Termination Protocol Modal */}
             <AnimatePresence>
                 {isCancelModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm">
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}
-                            className="bg-white dark:bg-slate-900 p-6 rounded-md max-w-sm w-full border border-slate-100 dark:border-slate-800 shadow-none"
+                            className="bg-white dark:bg-zinc-900 p-6 rounded-md max-w-sm w-full border border-zinc-100 dark:border-zinc-800 shadow-none"
                         >
                             <div className="flex flex-col items-center text-center gap-5">
                                 <div className="p-3 bg-rose-600/10 rounded-md text-rose-600 border border-rose-600/20">
                                     <AlertTriangle size={24} />
                                 </div>
                                 <div>
-                                    <h3 className="text-[16px] font-black text-slate-900 dark:text-white uppercase tracking-tight">Terminate Order?</h3>
+                                    <h3 className="text-[16px] font-black text-zinc-900 dark:text-white uppercase tracking-tight">Terminate Order?</h3>
                                     
                                     {['accepted', 'preparing', 'ready_for_pickup'].includes(order?.orderStatus) ? (
-                                        <div className="text-slate-600 dark:text-slate-400 mt-4 text-[11px] font-bold text-left bg-rose-600/5 p-4 rounded-md border border-rose-600/10 uppercase tracking-widest space-y-2">
+                                        <div className="text-zinc-600 dark:text-zinc-400 mt-4 text-[11px] font-bold text-left bg-rose-600/5 p-4 rounded-md border border-rose-600/10 uppercase tracking-widest space-y-2">
                                             <p className="text-rose-600 font-black">ALERT: Active Protocol Interruption</p>
                                             <div className="space-y-1 mt-2">
                                                 <p>• Automated customer refund will initiate.</p>
@@ -935,7 +935,7 @@ export default function VendorOrderDetailsPage() {
                                             </div>
                                         </div>
                                     ) : (
-                                        <p className="text-slate-500 dark:text-slate-400 mt-3 text-[11px] font-bold uppercase tracking-widest">
+                                        <p className="text-zinc-500 dark:text-zinc-400 mt-3 text-[11px] font-bold uppercase tracking-widest">
                                             Authorize order declination? Refund will be processed immediately.
                                         </p>
                                     )}
@@ -944,7 +944,7 @@ export default function VendorOrderDetailsPage() {
                                 <div className="flex gap-3 w-full mt-2">
                                     <button
                                         onClick={() => setIsCancelModalOpen(false)}
-                                        className="flex-1 py-3 rounded-md font-black text-[11px] uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 active:scale-95 transition-all"
+                                        className="flex-1 py-3 rounded-md font-black text-[11px] uppercase tracking-widest bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 active:scale-95 transition-all"
                                     >
                                         ABORT
                                     </button>

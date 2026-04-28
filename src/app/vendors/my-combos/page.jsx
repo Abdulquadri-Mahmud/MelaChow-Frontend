@@ -40,10 +40,10 @@ export default function MyCombosPage() {
   // Hydration and Loading Guard
   if (!mounted || (isProfileLoading && !vendorId)) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center p-6">
         <div className="flex flex-col items-center gap-4">
            <Loader2 className="animate-spin text-orange-500 w-12 h-12" />
-           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading Dashboard...</p>
+           <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Loading Dashboard...</p>
         </div>
       </div>
     );
@@ -93,16 +93,16 @@ export default function MyCombosPage() {
   const isFiltered = status !== 'all' || search;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-3 rounded-md">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-3 rounded-md">
       <div className="max-w-6xl mx-auto space-y-4">
         {/* Page Header */}
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="max-w-2xl">
-              <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+              <h1 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">
                 🍱 Combo Bundles
               </h1>
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed uppercase tracking-widest">
+              <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed uppercase tracking-widest">
                 Create value bundles with fixed pricing and add-on options.
               </p>
             </div>
@@ -112,7 +112,7 @@ export default function MyCombosPage() {
               <button
                 onClick={handleRefresh}
                 disabled={isFetching}
-                className={`h-10 w-10 flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 transition-all ${
+                className={`h-10 w-10 flex items-center justify-center rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 hover:text-orange-500 dark:hover:text-orange-400 transition-all ${
                   isFetching ? 'opacity-50' : 'active:scale-95'
                 }`}
                 title="Refresh list"
@@ -132,7 +132,7 @@ export default function MyCombosPage() {
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-3 space-y-3">
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 space-y-3">
           <div className="flex gap-2 flex-wrap">
             <input
               type="text"
@@ -142,7 +142,7 @@ export default function MyCombosPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white placeholder-gray-500"
+              className="flex-1 min-w-[200px] px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-500"
             />
             <select
               value={status}
@@ -150,7 +150,7 @@ export default function MyCombosPage() {
                 setStatus(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+              className="px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
             >
               <option value="all">Active Combos</option>
               <option value="available">Available Only</option>
@@ -163,7 +163,7 @@ export default function MyCombosPage() {
         {/* Results count */}
         {!isLoading && combos.length > 0 && (
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+            <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
               {pagination.total || combos.length} {pagination.total === 1 ? 'combo' : 'combos'}
               {isFiltered && ' matching filters'}
               {isFetching && ' · Updating...'}
@@ -174,13 +174,13 @@ export default function MyCombosPage() {
         {/* Grid */}
         {isError ? (
           <div className="py-20">
-            <div className="bg-white dark:bg-slate-900 border border-red-200 dark:border-red-900/30 rounded-lg p-8 max-w-md mx-auto text-center space-y-4">
+            <div className="bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/30 rounded-lg p-8 max-w-md mx-auto text-center space-y-4">
               <div className="text-5xl">⚠️</div>
               <div>
-                <h3 className="text-lg font-black text-slate-900 dark:text-white mb-1">
+                <h3 className="text-lg font-black text-zinc-900 dark:text-white mb-1">
                   Unable to Load Combos
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   We encountered an issue while fetching your combo bundles. Please check your connection and try again.
                 </p>
               </div>
@@ -227,17 +227,17 @@ export default function MyCombosPage() {
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="h-10 px-5 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 dark:text-slate-400 disabled:opacity-40 hover:border-slate-400 transition-all"
+              className="h-10 px-5 rounded-md border border-zinc-200 dark:border-zinc-700 text-xs font-black text-zinc-500 dark:text-zinc-400 disabled:opacity-40 hover:border-zinc-400 transition-all"
             >
               Previous
             </button>
-            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 px-3">
+            <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500 px-3">
               Page {page} of {pagination.pages}
             </span>
             <button
               onClick={() => setPage((p) => p + 1)}
               disabled={!pagination.hasMore}
-              className="h-10 px-5 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 dark:text-slate-400 disabled:opacity-40 hover:border-slate-400 transition-all"
+              className="h-10 px-5 rounded-md border border-zinc-200 dark:border-zinc-700 text-xs font-black text-zinc-500 dark:text-zinc-400 disabled:opacity-40 hover:border-zinc-400 transition-all"
             >
               Next
             </button>

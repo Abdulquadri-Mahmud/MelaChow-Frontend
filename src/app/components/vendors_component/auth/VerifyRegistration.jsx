@@ -148,7 +148,7 @@ export default function VendorVerifyRegistration() {
     };
 
     return (
-        <div className="h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden p-4">
+        <div className="h-screen w-full bg-white dark:bg-zinc-900 flex items-center justify-center overflow-hidden p-4">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -160,17 +160,17 @@ export default function VendorVerifyRegistration() {
                         <ShieldCheck size={36} />
                     </div>
 
-                    <h1 className="text-3xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-3">
+                    <h1 className="text-3xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white mb-3">
                         Vendor <span className="text-orange-600">Verification</span>
                     </h1>
-                    <p className="text-xs font-semibold text-slate-500 mb-4">
+                    <p className="text-xs font-semibold text-zinc-500 mb-4">
                         A 6-digit code has been sent to<br />
-                        <span className="text-slate-700 dark:text-slate-300 font-bold">{email}</span>
+                        <span className="text-zinc-700 dark:text-zinc-300 font-bold">{email}</span>
                     </p>
 
-                    <div className="flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 py-2 px-4 rounded-full w-fit mx-auto">
+                    <div className="flex items-center justify-center gap-2 bg-zinc-50 dark:bg-zinc-800 py-2 px-4 rounded-full w-fit mx-auto">
                         <Clock size={14} className="text-orange-500" />
-                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                        <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">
                             Expires in {formatTime(timeLeft)}
                         </span>
                     </div>
@@ -189,7 +189,7 @@ export default function VendorVerifyRegistration() {
                             onChange={(e) => handleChange(e.target.value, index)}
                             onKeyDown={(e) => handleKeyDown(e, index)}
                             onPaste={index === 0 ? handlePaste : undefined}
-                            className="w-12 h-12 text-center bg-slate-50 dark:bg-slate-800 rounded-xl text-2xl font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                            className="w-12 h-12 text-center bg-zinc-50 dark:bg-zinc-800 rounded-xl text-2xl font-bold text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         />
                     ))}
                 </div>
@@ -218,8 +218,8 @@ export default function VendorVerifyRegistration() {
                         onClick={handleResend}
                         disabled={resending || timeLeft > 0}
                         className={`w-full py-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all ${resending || timeLeft > 0
-                            ? "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed"
-                            : "bg-slate-100 dark:bg-slate-800 text-orange-600 hover:bg-slate-200 dark:hover:bg-slate-700"
+                            ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 cursor-not-allowed"
+                            : "bg-zinc-100 dark:bg-zinc-800 text-orange-600 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                             }`}
                     >
                         {resending ? (

@@ -143,10 +143,10 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
           : { x: 0, width: open ? 310 : 80 }
         }
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className={`fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-[60] flex flex-col`}
+        className={`fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col z-[60]`}
       >
         {/* Header */}
-        <div className="h-16 flex items-center justify-between px-3 border-b border-slate-100 dark:border-slate-800/50">
+        <div className="h-16 flex items-center justify-between px-3 border-b border-zinc-100 dark:border-zinc-800/50">
           <AnimatePresence mode="wait">
             {(open || isMobile) ? (
               <motion.div
@@ -159,7 +159,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
                   <Logo />
                 </div>
                 <div className="flex flex-col -ml-4">
-                  <span className="font-bold text-slate-800 dark:text-white text-xl leading-tight">Premium Eats</span>
+                  <span className="font-bold text-zinc-800 dark:text-white text-xl leading-tight">Premium Eats</span>
                   <span className="text-[10px] font-bold text-orange-500 tracking-wider uppercase">VENDOR PRO</span>
                 </div>
               </motion.div>
@@ -177,7 +177,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
           {!isMobile && open && (
             <button
               onClick={() => setOpen(false)}
-              className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
             >
               <ChevronLeft size={18} />
             </button>
@@ -187,7 +187,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
           {isMobile && (
             <button
               onClick={() => setMobileOpen(false)}
-              className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
             >
               <ChevronLeft size={18} />
             </button>
@@ -198,7 +198,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
           <div className="flex justify-center mt-4">
             <button
               onClick={() => setOpen(true)}
-              className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
             >
               <ChevronRight size={18} />
             </button>
@@ -221,13 +221,13 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
                 <div
                   className={`relative flex items-center gap-3 px-3 py-3 rounded-md transition-all duration-200 ${active
                     ? "bg-orange-500 text-white"
-                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/30 hover:text-slate-900 dark:hover:text-white"
+                    : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 hover:text-zinc-900 dark:hover:text-white"
                     }`}
                 >
                   <Icon
                     size={18}
                     strokeWidth={active ? 2.5 : 2}
-                    className={`flex-shrink-0 transition-colors duration-200 ${active ? "text-white" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"}`}
+                    className={`flex-shrink-0 transition-colors duration-200 ${active ? "text-white" : "text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300"}`}
                   />
 
                   <AnimatePresence>
@@ -245,7 +245,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
 
                   {/* Collapsed Tooltip Indicator - Optional polish */}
                   {!open && !active && !isMobile && (
-                    <div className="absolute left-full ml-4 px-2 py-1 bg-slate-800 text-white text-xs rounded opacity-0 -translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all pointer-events-none z-50 whitespace-nowrap hidden md:block">
+                    <div className="absolute left-full ml-4 px-2 py-1 bg-zinc-800 text-white text-xs rounded opacity-0 -translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all pointer-events-none z-50 whitespace-nowrap hidden md:block">
                       {item.name}
                     </div>
                   )}
@@ -256,14 +256,14 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
         </nav>
 
         {/* Footer / Logout */}
-        <div className="p-2 border-t border-slate-100 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-900 space-y-3">
+        <div className="p-2 border-t border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/50 dark:bg-zinc-900 space-y-3">
           {(open || isMobile) && <PermanentInstallButton />}
           <button
             onClick={() => setShowLogoutModal(true)}
             disabled={logoutLoading}
             className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all group ${open || isMobile
-              ? "hover:bg-red-50 dark:hover:bg-red-500/10 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400"
-              : "justify-center text-slate-500 hover:text-red-500"
+              ? "hover:bg-red-50 dark:hover:bg-red-500/10 text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
+              : "justify-center text-zinc-500 hover:text-red-500"
               } ${logoutLoading ? "cursor-not-allowed opacity-70" : ""}`}
           >
             {logoutLoading ? (
@@ -290,27 +290,27 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowLogoutModal(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm"
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden"
+              className="relative w-full max-w-sm bg-white dark:bg-zinc-950 rounded-md border border-zinc-200 dark:border-zinc-800 overflow-hidden"
             >
               <div className="p-6">
                 <div className="size-12 rounded-md bg-red-100 dark:bg-red-500/10 flex items-center justify-center text-red-600 mb-4">
                   <LogOut size={24} />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Confirm Logout</h3>
-                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-widest leading-relaxed">
+                <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Confirm Logout</h3>
+                <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mt-2 uppercase tracking-widest leading-relaxed">
                   Are you sure you want to exit the dashboard? You will need to sign in again to manage your store.
                 </p>
 
                 <div className="grid grid-cols-2 gap-3 mt-8">
                   <button
                     onClick={() => setShowLogoutModal(false)}
-                    className="h-10 px-4 rounded-md border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-bold"
+                    className="h-10 px-4 rounded-md border border-zinc-200 dark:border-zinc-700 text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-bold"
                   >
                     Cancel
                   </button>

@@ -78,10 +78,10 @@ export default function Step5Review() {
       className="max-w-4xl mx-auto space-y-6 pb-12"
     >
       {/* HEADER SECTION */}
-      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 mb-2">
+      <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4 mb-2">
           <div>
-            <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Review Details</h2>
-            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Verify bundle accuracy before publishing</p>
+            <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Review Details</h2>
+            <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-1">Verify bundle accuracy before publishing</p>
           </div>
           <div className="flex h-8 px-4 bg-green-500/10 text-green-600 rounded-lg items-center gap-2 border border-green-500/10 shrink-0">
               <CheckCircle2 size={12} />
@@ -93,9 +93,9 @@ export default function Step5Review() {
           
           {/* LEFT: Visual Preview & Basic Info */}
           <div className="lg:col-span-5 space-y-4">
-              <div className="aspect-[4/3] rounded-xl overflow-hidden border border-slate-100 dark:border-slate-800 shadow-sm relative group bg-slate-50 dark:bg-slate-900">
+              <div className="aspect-[4/3] rounded-xl overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-sm relative group bg-zinc-50 dark:bg-zinc-900">
                   <img src={store.image_url} alt={store.name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/70 via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-4 right-4">
                       <div className="flex items-center gap-1.5 mb-1.5">
                         <span className="px-2 py-0.5 bg-orange-600 text-white text-[8px] font-black uppercase rounded shadow-sm">{store.dietary_type}</span>
@@ -107,22 +107,22 @@ export default function Step5Review() {
                   </div>
               </div>
 
-              <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 space-y-4">
+              <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800 space-y-4">
                   <div className="grid grid-cols-2 gap-2">
                       <DataCard label="Category" value={store.platform_category_label} />
                       <DataCard label="Section" value={store.vendor_section_label || 'Default'} />
                   </div>
 
                   {store.description && (
-                  <div className="p-3 bg-slate-50 dark:bg-slate-950 rounded-lg border border-slate-100 dark:border-slate-800">
-                    <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">Description</p>
-                    <p className="text-[10px] font-medium text-slate-600 dark:text-slate-300 leading-normal line-clamp-3 italic">"{store.description}"</p>
+                  <div className="p-3 bg-zinc-50 dark:bg-zinc-950 rounded-lg border border-zinc-100 dark:border-zinc-800">
+                    <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-1 leading-none">Description</p>
+                    <p className="text-[10px] font-medium text-zinc-600 dark:text-zinc-300 leading-normal line-clamp-3 italic">"{store.description}"</p>
                   </div>
                   )}
 
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800/50">
+                  <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/50">
                       <div className="flex items-center justify-between px-1">
-                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Store Price</span>
+                          <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Store Price</span>
                           <span className="text-xl font-black text-orange-600 tabular-nums">₦{Number(store.price_naira).toLocaleString()}</span>
                       </div>
                   </div>
@@ -131,28 +131,28 @@ export default function Step5Review() {
 
           {/* RIGHT: Contents & Add-ons */}
           <div className="lg:col-span-7 space-y-4">
-              <div className="p-5 bg-slate-950 rounded-xl border border-slate-800 shadow-sm h-full flex flex-col">
+              <div className="p-5 bg-zinc-950 rounded-xl border border-zinc-800 shadow-sm h-full flex flex-col">
                   
                   <div className="space-y-6 flex-1">
                       <div>
                           <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-widest">What's Included</h4>
-                              <div className="h-px bg-slate-800 flex-1 ml-4" />
+                              <h4 className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">What's Included</h4>
+                              <div className="h-px bg-zinc-800 flex-1 ml-4" />
                           </div>
                           <div className="flex flex-wrap gap-1.5">
                               {store.contents?.map(c => (
                                   <span key={c} className="px-3 py-1.5 bg-white/5 border border-white/5 rounded-lg text-[9px] font-black text-white uppercase tracking-widest shadow-sm">{c}</span>
                               ))}
                               {(!store.contents || store.contents.length === 0) && (
-                                  <span className="text-[9px] text-slate-600 font-bold uppercase tracking-widest italic bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">Default Combo Set</span>
+                                  <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest italic bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">Default Combo Set</span>
                               )}
                           </div>
                       </div>
 
                       <div>
                           <div className="flex items-center justify-between mb-3">
-                              <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Configuration</h4>
-                              <div className="h-px bg-slate-800 flex-1 ml-4" />
+                              <h4 className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">Configuration</h4>
+                              <div className="h-px bg-zinc-800 flex-1 ml-4" />
                           </div>
                           <div className="space-y-2">
                               {store.choice_groups.map(group => (
@@ -165,7 +165,7 @@ export default function Step5Review() {
                                       </div>
                                       <div className="flex flex-wrap gap-1 opacity-50">
                                           {group.options.map(opt => (
-                                              <span key={opt.tempId} className="text-[8px] font-bold text-slate-400 bg-white/10 px-1.5 py-0.5 rounded">
+                                              <span key={opt.tempId} className="text-[8px] font-bold text-zinc-400 bg-white/10 px-1.5 py-0.5 rounded">
                                                   {opt.label} {opt.price_modifier_naira > 0 ? `(+₦${opt.price_modifier_naira})` : ''}
                                               </span>
                                           ))}
@@ -174,21 +174,21 @@ export default function Step5Review() {
                               ))}
                               {store.choice_groups.length === 0 && (
                                   <div className="p-4 bg-white/5 rounded-xl border border-white/5 text-center">
-                                      <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic">Static bundle (one-click-buy)</p>
+                                      <p className="text-[9px] font-black text-zinc-600 uppercase tracking-widest italic">Static bundle (one-click-buy)</p>
                                   </div>
                               )}
                           </div>
                       </div>
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-slate-800">
+                  <div className="mt-6 pt-4 border-t border-zinc-800">
                         <div className="flex items-center gap-3 opacity-60">
                             <div className="w-8 h-8 rounded-lg bg-orange-600/20 text-orange-600 flex items-center justify-center shrink-0">
                                 <Rocket size={14} />
                             </div>
                             <div>
                                 <p className="text-[9px] font-black text-white uppercase tracking-widest">Sync Priority: High</p>
-                                <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Publishes immediately to menus</p>
+                                <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest">Publishes immediately to menus</p>
                             </div>
                         </div>
                   </div>
@@ -196,15 +196,15 @@ export default function Step5Review() {
           </div>
       </div>
 
-      <div className="flex flex-col items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-800/50">
+      <div className="flex flex-col items-center gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800/50">
           <button
             onClick={handleSubmit}
             disabled={store.isSubmitting}
-            className="w-full h-14 bg-slate-950 dark:bg-white text-white dark:text-slate-950 rounded-xl shadow-xl flex items-center justify-center gap-3 group transition-all duration-300 active:scale-95"
+            className="w-full h-14 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 rounded-xl shadow-xl flex items-center justify-center gap-3 group transition-all duration-300 active:scale-95"
           >
             {store.isSubmitting ? (
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-slate-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin" />
                 <span className="text-xs font-black uppercase tracking-[0.2em] italic">Saving...</span>
               </div>
             ) : (
@@ -213,7 +213,7 @@ export default function Step5Review() {
               </>
             )}
           </button>
-          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest italic">Confirming updates your live restaurant menu</p>
+          <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest italic">Confirming updates your live restaurant menu</p>
       </div>
 
       {/* HIDDEN SUBMIT BUTTON FOR WIZARD FOOTER TRIGGER */}
@@ -224,9 +224,9 @@ export default function Step5Review() {
 
 function DataCard({ label, value }) {
     return (
-        <div className="p-3 bg-slate-50 dark:bg-slate-950 rounded-lg border border-slate-100 dark:border-slate-800">
-            <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-none">{label}</p>
-            <p className="text-[9px] font-black text-slate-900 dark:text-white uppercase truncate leading-none">{value || 'N/A'}</p>
+        <div className="p-3 bg-zinc-50 dark:bg-zinc-950 rounded-lg border border-zinc-100 dark:border-zinc-800">
+            <p className="text-[7px] font-black text-zinc-400 uppercase tracking-widest mb-1 leading-none">{label}</p>
+            <p className="text-[9px] font-black text-zinc-900 dark:text-white uppercase truncate leading-none">{value || 'N/A'}</p>
         </div>
     );
 }

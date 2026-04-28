@@ -89,10 +89,10 @@ export default function ComboStep3Swaps({ onBack }) {
             </div>
 
             <div>
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-1">
+                <h2 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight mb-1">
                     Swap Configuration
                 </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium">
                     Give customers flexibility. Toggle which items can be swapped and set price modifiers.
                 </p>
             </div>
@@ -100,7 +100,7 @@ export default function ComboStep3Swaps({ onBack }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                 {/* LEFT: COMPONENT LIST */}
                 <div className="lg:col-span-4 space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-1">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 px-1">
                         Select Component
                     </label>
                     <div className="space-y-3">
@@ -114,21 +114,21 @@ export default function ComboStep3Swaps({ onBack }) {
                                     onClick={() => setActiveCompId(comp.tempId)}
                                     className={`w-full p-4 rounded-2xl border transition-all flex items-center gap-4 text-left group ${
                                         isActive 
-                                            ? "bg-white dark:bg-slate-900 border-orange-500 shadow-lg shadow-orange-500/5 translate-x-1" 
-                                            : "bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 hover:bg-white dark:hover:bg-slate-900"
+                                            ? "bg-white dark:bg-zinc-900 border-orange-500 shadow-lg shadow-orange-500/5 translate-x-1" 
+                                            : "bg-zinc-50/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 hover:bg-white dark:hover:bg-zinc-900"
                                     }`}
                                 >
-                                    <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0 overflow-hidden shadow-inner">
+                                    <div className="w-12 h-12 rounded-xl bg-zinc-100 dark:bg-zinc-800 shrink-0 overflow-hidden shadow-inner">
                                         {comp.menu_item_image ? (
                                             <img src={comp.menu_item_image} alt="" className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center font-black text-slate-400 text-xs">
+                                            <div className="w-full h-full flex items-center justify-center font-black text-zinc-400 text-xs">
                                                 {comp.menu_item_name.charAt(0).toUpperCase()}
                                             </div>
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className={`font-bold text-sm truncate tracking-tight transition-colors ${isActive ? "text-orange-600 dark:text-orange-400" : "text-slate-900 dark:text-white"}`}>
+                                        <h4 className={`font-bold text-sm truncate tracking-tight transition-colors ${isActive ? "text-orange-600 dark:text-orange-400" : "text-zinc-900 dark:text-white"}`}>
                                             {comp.menu_item_name}
                                         </h4>
                                         <div className="flex items-center gap-2 mt-0.5">
@@ -138,7 +138,7 @@ export default function ComboStep3Swaps({ onBack }) {
                                                     Swappable
                                                 </span>
                                             ) : (
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Fixed</span>
+                                                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest">Fixed</span>
                                             )}
                                         </div>
                                     </div>
@@ -154,15 +154,15 @@ export default function ComboStep3Swaps({ onBack }) {
                 {/* RIGHT: CONFIGURATION WORKSPACE */}
                 <div className="lg:col-span-8">
                     {activeComp ? (
-                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] overflow-hidden shadow-sm animate-in fade-in zoom-in-95 duration-300">
+                        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2rem] overflow-hidden shadow-sm animate-in fade-in zoom-in-95 duration-300">
                             {/* Workspace Header */}
-                            <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-50/30 dark:bg-slate-950/20">
+                            <div className="p-8 border-b border-zinc-100 dark:border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-zinc-50/30 dark:bg-zinc-950/20">
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2 mb-1">
                                         <div className="w-1 h-1 rounded-full bg-orange-500" />
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Swap Hub</p>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Swap Hub</p>
                                     </div>
-                                    <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                    <h3 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">
                                         {activeComp.menu_item_name}
                                     </h3>
                                 </div>
@@ -172,7 +172,7 @@ export default function ComboStep3Swaps({ onBack }) {
                                     className={`flex items-center gap-3 px-5 py-3 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest ${
                                         activeGroup
                                             ? "bg-emerald-500 text-white shadow-xl shadow-emerald-500/20"
-                                            : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                                            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
                                     }`}
                                 >
                                     {activeGroup ? (
@@ -188,7 +188,7 @@ export default function ComboStep3Swaps({ onBack }) {
                                 {activeGroup ? (
                                     <div className="space-y-8">
                                         <div className="space-y-3">
-                                            <label className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-300">
+                                            <label className="text-[11px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-300">
                                                 Customer Choice Label
                                             </label>
                                             <input
@@ -196,46 +196,46 @@ export default function ComboStep3Swaps({ onBack }) {
                                                 value={activeGroup.label}
                                                 placeholder="e.g. Choose your Protein swap"
                                                 onChange={(e) => store.updateSwapGroup(activeGroup.tempId, { label: e.target.value })}
-                                                className="w-full h-14 px-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 focus:border-orange-500 dark:focus:border-orange-500 transition-all font-bold text-slate-900 dark:text-white outline-none"
+                                                className="w-full h-14 px-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 focus:bg-white dark:focus:bg-zinc-900 focus:border-orange-500 dark:focus:border-orange-500 transition-all font-bold text-zinc-900 dark:text-white outline-none"
                                             />
-                                            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 px-1">
+                                            <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 px-1">
                                                 This is the heading customers will see in the ordering flow.
                                             </p>
                                         </div>
 
                                         <div className="space-y-4">
-                                            <label className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-slate-300">
+                                            <label className="text-[11px] font-black uppercase tracking-widest text-zinc-900 dark:text-zinc-300">
                                                 Swap Options
                                             </label>
                                             
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                                                 {activeGroup.options.length > 0 ? (
                                                     activeGroup.options.map(opt => (
-                                                        <div key={opt.tempId} className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl group/opt animate-in slide-in-from-top-2">
+                                                        <div key={opt.tempId} className="flex items-center justify-between p-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl group/opt animate-in slide-in-from-top-2">
                                                             <div className="min-w-0">
-                                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{opt.label}</p>
+                                                                <p className="text-sm font-bold text-zinc-900 dark:text-white truncate">{opt.label}</p>
                                                                 <p className={`text-[10px] font-black mt-0.5 ${
-                                                                    opt.price_modifier_naira > 0 ? "text-orange-500" : opt.price_modifier_naira < 0 ? "text-emerald-500" : "text-slate-400"
+                                                                    opt.price_modifier_naira > 0 ? "text-orange-500" : opt.price_modifier_naira < 0 ? "text-emerald-500" : "text-zinc-400"
                                                                 }`}>
                                                                     {opt.price_modifier_naira > 0 ? `+₦${opt.price_modifier_naira.toLocaleString()}` : opt.price_modifier_naira < 0 ? `-₦${Math.abs(opt.price_modifier_naira).toLocaleString()}` : 'FREE SWAP'}
                                                                 </p>
                                                             </div>
                                                             <button
                                                                 onClick={() => store.removeSwapOption(activeGroup.tempId, opt.tempId)}
-                                                                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
+                                                                className="w-8 h-8 rounded-lg flex items-center justify-center text-zinc-300 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all"
                                                             ><X size={14} strokeWidth={3} /></button>
                                                         </div>
                                                     ))
                                                 ) : (
-                                                    <div className="md:col-span-2 p-8 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-[2rem] text-center">
-                                                        <p className="text-xs font-bold text-slate-400">No swap options added yet.</p>
+                                                    <div className="md:col-span-2 p-8 border-2 border-dashed border-zinc-100 dark:border-zinc-800 rounded-[2rem] text-center">
+                                                        <p className="text-xs font-bold text-zinc-400">No swap options added yet.</p>
                                                     </div>
                                                 )}
                                             </div>
 
                                             {/* Add Form */}
-                                            <div className="bg-slate-50 dark:bg-slate-950/50 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Add Alternative Option</p>
+                                            <div className="bg-zinc-50 dark:bg-zinc-950/50 p-6 rounded-[2rem] border border-zinc-100 dark:border-zinc-800">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-4">Add Alternative Option</p>
                                                 <div className="flex flex-col sm:flex-row items-center gap-3">
                                                     <div className="flex-1 w-full relative">
                                                         <input
@@ -246,11 +246,11 @@ export default function ComboStep3Swaps({ onBack }) {
                                                                 ...prev,
                                                                 [activeGroup.tempId]: { ...prev[activeGroup.tempId], name: e.target.value }
                                                             }))}
-                                                            className="w-full h-12 px-4 text-xs font-bold text-slate-900 bg-white dark:bg-slate-900 dark:text-white rounded-xl border border-slate-200 dark:border-slate-800 outline-none focus:border-orange-500 transition-all"
+                                                            className="w-full h-12 px-4 text-xs font-bold text-zinc-900 bg-white dark:bg-zinc-900 dark:text-white rounded-xl border border-zinc-200 dark:border-zinc-800 outline-none focus:border-orange-500 transition-all"
                                                         />
                                                     </div>
                                                     <div className="w-full sm:w-32 relative">
-                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 pointer-events-none">₦</span>
+                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-zinc-400 pointer-events-none">₦</span>
                                                         <input
                                                             type="number"
                                                             placeholder="0"
@@ -259,7 +259,7 @@ export default function ComboStep3Swaps({ onBack }) {
                                                                 ...prev,
                                                                 [activeGroup.tempId]: { ...prev[activeGroup.tempId], price: e.target.value }
                                                             }))}
-                                                            className="w-full h-12 pl-7 pr-3 text-xs font-black text-slate-900 bg-white dark:bg-slate-900 dark:text-white rounded-xl border border-slate-200 dark:border-slate-800 outline-none focus:border-orange-500 transition-all"
+                                                            className="w-full h-12 pl-7 pr-3 text-xs font-black text-zinc-900 bg-white dark:bg-zinc-900 dark:text-white rounded-xl border border-zinc-200 dark:border-zinc-800 outline-none focus:border-orange-500 transition-all"
                                                         />
                                                     </div>
                                                     <button
@@ -270,7 +270,7 @@ export default function ComboStep3Swaps({ onBack }) {
                                                         <Plus size={20} strokeWidth={3} />
                                                     </button>
                                                 </div>
-                                                <p className="mt-3 text-[9px] font-bold text-slate-400 flex items-center gap-2">
+                                                <p className="mt-3 text-[9px] font-bold text-zinc-400 flex items-center gap-2">
                                                     <Info size={10} />
                                                     Use negative modifiers (e.g. -200) if the alternative is cheaper than the original.
                                                 </p>
@@ -279,12 +279,12 @@ export default function ComboStep3Swaps({ onBack }) {
                                     </div>
                                 ) : (
                                     <div className="py-20 text-center space-y-4">
-                                        <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] flex items-center justify-center mx-auto text-slate-300 dark:text-slate-700 border-2 border-dashed border-slate-200 dark:border-slate-800">
+                                        <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-800/50 rounded-[2rem] flex items-center justify-center mx-auto text-zinc-300 dark:text-zinc-700 border-2 border-dashed border-zinc-200 dark:border-zinc-800">
                                             <RotateCcw size={32} />
                                         </div>
                                         <div>
-                                            <p className="text-base font-black text-slate-900 dark:text-white tracking-tight">Fixed Component</p>
-                                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1 max-w-[250px] mx-auto leading-relaxed">
+                                            <p className="text-base font-black text-zinc-900 dark:text-white tracking-tight">Fixed Component</p>
+                                            <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 mt-1 max-w-[250px] mx-auto leading-relaxed">
                                                 This item is currently locked. Toggle <strong>"Allow Swaps"</strong> to enable custom alternatives.
                                             </p>
                                         </div>
@@ -293,8 +293,8 @@ export default function ComboStep3Swaps({ onBack }) {
                             </div>
                         </div>
                     ) : (
-                        <div className="p-20 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[2.5rem]">
-                            <p className="text-sm font-bold text-slate-400">Select an item on the left to configure swaps.</p>
+                        <div className="p-20 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-[2.5rem]">
+                            <p className="text-sm font-bold text-zinc-400">Select an item on the left to configure swaps.</p>
                         </div>
                     )}
                 </div>

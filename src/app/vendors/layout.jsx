@@ -33,7 +33,7 @@ export default function VendorLayout({ children }) {
   if (!isMounted) {
     return (
       <VendorProfileProvider>
-        <div className="h-screen w-full bg-white dark:bg-slate-900" />
+        <div className="h-screen w-full bg-white dark:bg-zinc-900" />
       </VendorProfileProvider>
     );
   }

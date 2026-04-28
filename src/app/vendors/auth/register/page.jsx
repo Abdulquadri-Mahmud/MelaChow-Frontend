@@ -64,9 +64,9 @@ const uploadToCloudinary = async (file) => {
 // Helper Components - Defined outside to prevent re-creation on every render
 const InputWrap = ({ label, icon: Icon, error, children }) => (
   <div className="space-y-1.5 group">
-    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">{label}</label>
+    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">{label}</label>
     <div className="relative">
-      {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />}
+      {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 group-focus-within:text-orange-500 transition-colors" />}
       {children}
     </div>
     {error && <p className="text-[9px] font-bold text-rose-500 uppercase tracking-tight ml-1">{error}</p>}
@@ -81,7 +81,7 @@ const TextInput = ({ path, placeholder, type = "text", icon, error, payload, set
       value={path.split('.').reduce((o, i) => o[i], payload)}
       onChange={(e) => setField(path, e.target.value)}
       readOnly={readOnly}
-      className={`w-full bg-slate-50 dark:bg-slate-800/50  p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white ${readOnly ? 'opacity-70 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : ''}`}
+      className={`w-full bg-zinc-50 dark:bg-zinc-800/50  p-3.5 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white ${readOnly ? 'opacity-70 cursor-not-allowed bg-zinc-100 dark:bg-zinc-800' : ''}`}
     />
   </InputWrap>
 );
@@ -95,7 +95,7 @@ const SelectInput = ({ path, label, options, icon, error, payload, setField, onC
           setField(path, e.target.value);
           if (onChange) onChange(e.target.value);
         }}
-        className="w-full bg-slate-50 dark:bg-slate-800/50  p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none"
+        className="w-full bg-zinc-50 dark:bg-zinc-800/50  p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none"
       >
         <option value="">Select {label}</option>
         {options.map((opt) => (
@@ -104,17 +104,17 @@ const SelectInput = ({ path, label, options, icon, error, payload, setField, onC
           </option>
         ))}
       </select>
-      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 pointer-events-none" />
     </div>
   </InputWrap>
 );
 
 const StepHeader = ({ title, desc }) => (
   <div className="text-center space-y-2 mb-8 mt-2">
-    <h2 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
+    <h2 className="text-3xl font-black italic uppercase tracking-tighter text-zinc-900 dark:text-white leading-none">
       {title.split(' ')[0]} <span className="text-orange-600">{title.split(' ').slice(1).join(' ')}</span>
     </h2>
-    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">
       {desc}
     </p>
   </div>
@@ -535,16 +535,16 @@ export default function VendorRegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900 flex flex-col items-center justify-center p-2 overflow-x-hidden relative">
+    <div className="min-h-screen bg-white dark:bg-zinc-900 flex flex-col items-center justify-center p-2 overflow-x-hidden relative">
       <div className="w-full max-w-4xl relative z-10 my-8">
         {/* Visual Progress Bar */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 mb-8 md:flex items-center gap-8 hidden">
+        <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 mb-8 md:flex items-center gap-8 hidden">
           <div className="flex-1">
             <div className="flex justify-between items-center mb-3 px-1">
-              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Registration Progress</span>
+              <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Registration Progress</span>
               <span className="text-xs font-bold text-orange-600">Step {step} of {TOTAL_STEPS}</span>
             </div>
-            <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full p-0.5">
+            <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-2.5 rounded-full p-0.5">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
@@ -556,10 +556,10 @@ export default function VendorRegisterPage() {
 
         <motion.div
           layout
-          className="bg-white dark:bg-slate-900 rounded-3xl p-2 md:p-12"
+          className="bg-white dark:bg-zinc-900 rounded-3xl p-2 md:p-12"
         >
           <div className="flex flex-col md:hidden items-center mb-8">
-            <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full">
+            <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-full">
               <div className="h-full bg-orange-500 rounded-full" style={{ width: `${(step / TOTAL_STEPS) * 100}%` }} />
             </div>
           </div>
@@ -594,21 +594,21 @@ export default function VendorRegisterPage() {
                         value={payload.storeDescription}
                         onChange={(e) => setField("storeDescription", e.target.value)}
                         rows={3}
-                        className="w-full bg-slate-50 dark:bg-slate-800/50  p-4 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
+                        className="w-full bg-zinc-50 dark:bg-zinc-800/50  p-4 pl-11 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white"
                       />
                     </InputWrap>
 
-                    <div className="flex flex-col md:flex-row gap-6 p-6 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-[32px] hover:border-orange-500/30 transition-colors">
+                    <div className="flex flex-col md:flex-row gap-6 p-6 border-2 border-dashed border-zinc-100 dark:border-zinc-800 rounded-[32px] hover:border-orange-500/30 transition-colors">
                       <div className="flex-1 space-y-2">
-                        <h3 className="text-sm font-black uppercase italic tracking-widest text-slate-900 dark:text-white">Store Logo</h3>
-                        <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-widest">Recommended: 512x512px, transparent BG</p>
+                        <h3 className="text-sm font-black uppercase italic tracking-widest text-zinc-900 dark:text-white">Store Logo</h3>
+                        <p className="text-[10px] font-bold text-zinc-400 leading-relaxed uppercase tracking-widest">Recommended: 512x512px, transparent BG</p>
                         <input type="file" accept="image/*" id="logo-up" className="hidden" onChange={(e) => handleFileSelect("logo", e.target.files[0])} />
-                        <label htmlFor="logo-up" className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[10px] font-black uppercase italic tracking-widest cursor-pointer hover:bg-orange-600 transition-colors">
+                        <label htmlFor="logo-up" className="inline-flex items-center gap-2 px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl text-[10px] font-black uppercase italic tracking-widest cursor-pointer hover:bg-orange-600 transition-colors">
                           <Upload size={14} /> Upload Image
                         </label>
                       </div>
-                      <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-3xl flex items-center justify-center border border-slate-100 dark:border-slate-700 overflow-hidden shadow-inner">
-                        {previews.logo ? <img src={previews.logo} className="w-full h-full object-cover" /> : <Store className="text-slate-300" size={32} />}
+                      <div className="w-24 h-24 bg-zinc-50 dark:bg-zinc-800 rounded-3xl flex items-center justify-center border border-zinc-100 dark:border-zinc-700 overflow-hidden shadow-inner">
+                        {previews.logo ? <img src={previews.logo} className="w-full h-full object-cover" /> : <Store className="text-zinc-300" size={32} />}
                       </div>
                     </div>
                   </div>
@@ -620,9 +620,9 @@ export default function VendorRegisterPage() {
                   <StepHeader title="What do you sell?" desc="Choose the items and cuisines you offer" />
                   
                   <div className="space-y-6">
-                    <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <div className="flex flex-wrap gap-2 min-h-[40px] p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800">
                       {payload.cuisineTypes.length === 0 && (
-                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center px-2">Choose what you sell from the list below...</p>
+                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest flex items-center px-2">Choose what you sell from the list below...</p>
                       )}
                       {payload.cuisineTypes.map((type) => (
                         <motion.span
@@ -632,7 +632,7 @@ export default function VendorRegisterPage() {
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white text-[10px] font-black uppercase italic tracking-widest rounded-xl shadow-lg shadow-orange-500/20"
                         >
                           {type}
-                          <button type="button" onClick={() => toggleArrayValue("cuisineTypes", type)} className="hover:text-slate-200 transition-colors">
+                          <button type="button" onClick={() => toggleArrayValue("cuisineTypes", type)} className="hover:text-zinc-200 transition-colors">
                             <X size={12} />
                           </button>
                         </motion.span>
@@ -657,13 +657,13 @@ export default function VendorRegisterPage() {
                                 className={`px-4 py-4 text-[11px] font-black uppercase tracking-widest rounded-2xl transition-all border-2 text-center flex flex-col items-center justify-center gap-2 ${
                                   isSelected 
                                     ? "bg-orange-500 border-orange-500 text-white shadow-xl shadow-orange-500/30 scale-[1.02]" 
-                                    : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-orange-500/50"
+                                    : "bg-white dark:bg-zinc-800 border-zinc-100 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:border-orange-500/50"
                                 } ${!group.isActive ? "opacity-70 grayscale-[0.5]" : ""}`}
                               >
                                 {group.image && <img src={group.image} className="w-8 h-8 object-contain mb-1" />}
                                 <span className="block">{group.name}</span>
                                 {group.description && (
-                                  <span className={`text-[8px] font-medium normal-case tracking-normal opacity-70 line-clamp-2 px-2 ${isSelected ? "text-orange-50" : "text-slate-400"}`}>
+                                  <span className={`text-[8px] font-medium normal-case tracking-normal opacity-70 line-clamp-2 px-2 ${isSelected ? "text-orange-50" : "text-zinc-400"}`}>
                                     {group.description}
                                   </span>
                                 )}
@@ -687,9 +687,9 @@ export default function VendorRegisterPage() {
                     <InputWrap label="State" icon={MapPin} error={errors["address.state"]}>
                       <div className="relative">
                         {isLoadingLocations ? (
-                          <div className="w-full bg-slate-50 dark:bg-slate-800/50  p-3.5 pl-11 rounded-2xl flex items-center">
+                          <div className="w-full bg-zinc-50 dark:bg-zinc-800/50  p-3.5 pl-11 rounded-2xl flex items-center">
                             <Loader2 className="w-4 h-4 animate-spin text-orange-500 mr-2" />
-                            <span className="text-sm text-slate-400">Loading locations...</span>
+                            <span className="text-sm text-zinc-400">Loading locations...</span>
                           </div>
                         ) : locationError ? (
                           <div className="w-full bg-red-50 border border-red-200 p-3.5 pl-11 rounded-2xl flex items-center justify-between">
@@ -705,7 +705,7 @@ export default function VendorRegisterPage() {
                           <select
                             value={selectedStateId}
                             onChange={(e) => handleStateChange(e.target.value)}
-                            className="w-full bg-slate-50 dark:bg-slate-800/50  p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none"
+                            className="w-full bg-zinc-50 dark:bg-zinc-800/50  p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none"
                           >
                             <option value="">Select State</option>
                             {locations.map((location) => (
@@ -715,7 +715,7 @@ export default function VendorRegisterPage() {
                             ))}
                           </select>
                         )}
-                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 pointer-events-none" />
                       </div>
                     </InputWrap>
 
@@ -726,7 +726,7 @@ export default function VendorRegisterPage() {
                           value={selectedCityId}
                           onChange={(e) => handleCityChange(e.target.value)}
                           disabled={!selectedStateId}
-                          className="w-full bg-slate-50 dark:bg-slate-800/50  p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full bg-zinc-50 dark:bg-zinc-800/50  p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <option value="">
                             {!selectedStateId ? 'Select state first' : 'Select City'}
@@ -737,7 +737,7 @@ export default function VendorRegisterPage() {
                             </option>
                           ))}
                         </select>
-                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 pointer-events-none" />
                       </div>
                     </InputWrap>
 
@@ -753,23 +753,23 @@ export default function VendorRegisterPage() {
                   <StepHeader title="Operations" desc="Define your working hours" />
 
                   <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Weekly Operating Schedule</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Weekly Operating Schedule</label>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {Object.keys(payload.openingHours).map((day) => {
                         const d = payload.openingHours[day];
                         return (
-                          <div key={day} className={`flex items-center gap-3 p-4 rounded-2xl border transition-colors ${d.closed ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 opacity-60' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-sm'}`}>
-                            <div className="w-16 capitalize text-[10px] font-black uppercase italic tracking-widest text-slate-900 dark:text-white flex items-center gap-2">
+                          <div key={day} className={`flex items-center gap-3 p-4 rounded-2xl border transition-colors ${d.closed ? 'bg-zinc-50 dark:bg-zinc-800/40 border-zinc-100 dark:border-zinc-800 opacity-60' : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 shadow-sm'}`}>
+                            <div className="w-16 capitalize text-[10px] font-black uppercase italic tracking-widest text-zinc-900 dark:text-white flex items-center gap-2">
                               <Clock size={12} className="text-orange-500" /> {day.slice(0, 3)}
                             </div>
                             <div className="flex flex-1 items-center gap-2">
-                              <input type="time" disabled={d.closed} value={d.open} onChange={(e) => setField(`openingHours.${day}.open`, e.target.value)} className="bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg text-[10px] font-bold outline-none border border-slate-100 dark:border-slate-700" />
-                              <span className="text-slate-300 dark:text-slate-600">-</span>
-                              <input type="time" disabled={d.closed} value={d.close} onChange={(e) => setField(`openingHours.${day}.close`, e.target.value)} className="bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg text-[10px] font-bold outline-none border border-slate-100 dark:border-slate-700" />
+                              <input type="time" disabled={d.closed} value={d.open} onChange={(e) => setField(`openingHours.${day}.open`, e.target.value)} className="bg-zinc-50 dark:bg-zinc-800 p-1.5 rounded-lg text-[10px] font-bold outline-none border border-zinc-100 dark:border-zinc-700" />
+                              <span className="text-zinc-300 dark:text-zinc-600">-</span>
+                              <input type="time" disabled={d.closed} value={d.close} onChange={(e) => setField(`openingHours.${day}.close`, e.target.value)} className="bg-zinc-50 dark:bg-zinc-800 p-1.5 rounded-lg text-[10px] font-bold outline-none border border-zinc-100 dark:border-zinc-700" />
                             </div>
                             <label className="flex items-center gap-2 cursor-pointer">
                               <input type="checkbox" className="hidden" checked={d.closed} onChange={(e) => setField(`openingHours.${day}.closed`, e.target.checked)} />
-                              <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${d.closed ? 'bg-orange-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                              <div className={`w-8 h-4 rounded-full p-0.5 transition-colors ${d.closed ? 'bg-orange-500' : 'bg-zinc-200 dark:bg-zinc-700'}`}>
                                 <div className={`w-3 h-3 bg-white rounded-full transition-transform ${d.closed ? 'translate-x-4' : ''}`} />
                               </div>
                             </label>
@@ -796,7 +796,7 @@ export default function VendorRegisterPage() {
                             setField("payoutDetails.bankName", selectedBank ? selectedBank.name : "");
                             setBankVerified(false);
                           }}
-                          className="w-full bg-slate-50 dark:bg-slate-800/50  p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none disabled:opacity-60"
+                          className="w-full bg-zinc-50 dark:bg-zinc-800/50  p-3.5 pl-11 pr-8 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/10 transition-all text-sm font-medium dark:text-white appearance-none disabled:opacity-60"
                         >
                           <option value="">Choose your bank</option>
                           {banks.map((bank) => (
@@ -805,7 +805,7 @@ export default function VendorRegisterPage() {
                             </option>
                           ))}
                         </select>
-                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 w-4 h-4 pointer-events-none" />
                       </div>
                     </InputWrap>
 
@@ -837,7 +837,7 @@ export default function VendorRegisterPage() {
                         type="button"
                         onClick={handleVerifyBank}
                         disabled={isVerifyingBank}
-                        className="absolute right-2 top-[30px] px-4 py-2 bg-slate-900 dark:bg-orange-600 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all disabled:opacity-50"
+                        className="absolute right-2 top-[30px] px-4 py-2 bg-zinc-900 dark:bg-orange-600 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all disabled:opacity-50"
                       >
                         {isVerifyingBank ? <Loader2 className="animate-spin" size={12} /> : "Verify Account"}
                       </button>
@@ -848,16 +848,16 @@ export default function VendorRegisterPage() {
                     )}
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                    <h3 className="text-sm font-black uppercase italic tracking-widest text-slate-900 dark:text-white">Delivery Configuration</h3>
+                  <div className="space-y-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                    <h3 className="text-sm font-black uppercase italic tracking-widest text-zinc-900 dark:text-white">Delivery Configuration</h3>
 
                     <div className="bg-orange-50 dark:bg-orange-500/5 p-6 rounded-[32px] border-2 border-orange-100 dark:border-orange-500/20 flex flex-col md:flex-row items-center gap-6">
-                      <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-orange-600 shadow-sm shrink-0 border border-orange-100 dark:border-orange-500/20">
+                      <div className="w-16 h-16 bg-white dark:bg-zinc-800 rounded-2xl flex items-center justify-center text-orange-600 shadow-sm shrink-0 border border-orange-100 dark:border-orange-500/20">
                         <MapPin size={32} />
                       </div>
                       <div className="flex-1 text-center md:text-left">
-                        <p className="text-[12px] font-black uppercase tracking-widest text-slate-900 dark:text-white">Standard Platform Logistics</p>
-                        <p className="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest leading-relaxed">
+                        <p className="text-[12px] font-black uppercase tracking-widest text-zinc-900 dark:text-white">Standard Platform Logistics</p>
+                        <p className="text-[10px] font-bold text-zinc-500 mt-1 uppercase tracking-widest leading-relaxed">
                           To maintain quality, MelaChow centrally manages all delivery logistics. Our platform riders will automatically be dispatched to your store when orders are marked as ready.
                         </p>
                       </div>
@@ -871,13 +871,13 @@ export default function VendorRegisterPage() {
           </AnimatePresence>
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-50 dark:border-slate-800">
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-zinc-50 dark:border-zinc-800">
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={goBack}
               disabled={step === 1}
               className={`flex items-center gap-2 px-6 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest transition-all
-                                ${step === 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400"}`}
+                                ${step === 1 ? "opacity-30 cursor-not-allowed" : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400"}`}
             >
               <ChevronLeft size={16} /> Back
             </motion.button>
@@ -902,9 +902,9 @@ export default function VendorRegisterPage() {
           <div className="text-center mt-8 pt-4">
             <Link 
               href="/vendors/auth/login" 
-              className="inline-flex items-center gap-2 px-8 py-3 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all group"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-2xl transition-all group"
             >
-              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400">
+              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-400">
                 Already a Partner?
               </span>
               <span className="text-[10px] font-black uppercase italic tracking-widest text-orange-600 group-hover:translate-x-1 transition-transform">
@@ -930,25 +930,25 @@ export default function VendorRegisterPage() {
                 initial={{ scale: 0.9, opacity: 0, y: 20 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                className="bg-white dark:bg-slate-900 rounded-[40px] p-8 md:p-12 w-full max-w-lg text-center shadow-2xl relative "
+                className="bg-white dark:bg-zinc-900 rounded-[40px] p-8 md:p-12 w-full max-w-lg text-center shadow-2xl relative "
               >
                 {modal.type === 'loading' ? (
                   <div className="flex flex-col items-center py-6">
                     <div className="w-24 h-24 relative mb-8">
-                      <div className="absolute inset-0 border-4 border-slate-100 dark:border-slate-800 rounded-full"></div>
+                      <div className="absolute inset-0 border-4 border-zinc-100 dark:border-zinc-800 rounded-full"></div>
                       <div className="absolute inset-0 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
                       <Store className="absolute inset-0 m-auto text-orange-500 animate-pulse" size={32} />
                     </div>
-                    <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2 text-slate-900 dark:text-white animate-pulse">
+                    <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-2 text-zinc-900 dark:text-white animate-pulse">
                       {modal.title}
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest leading-relaxed">{modal.message}</p>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed">{modal.message}</p>
                   </div>
                 ) : (
                   <>
                     <button
                       onClick={() => setModal({ ...modal, open: false })}
-                      className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+                      className="absolute top-6 right-6 text-zinc-400 hover:text-zinc-600 dark:hover:text-white transition-colors"
                     >
                       <X size={24} />
                     </button>
@@ -962,14 +962,14 @@ export default function VendorRegisterPage() {
 
                     <h2 className={`text-2xl font-black uppercase italic tracking-tighter mb-4 ${modal.type === 'success' ? "text-emerald-600" : "text-rose-500"
                       }`}>
-                      {modal.title.split(' ')[0]} <span className={modal.type === 'success' ? 'text-slate-900 dark:text-white' : ''}>{modal.title.split(' ').slice(1).join(' ')}</span>
+                      {modal.title.split(' ')[0]} <span className={modal.type === 'success' ? 'text-zinc-900 dark:text-white' : ''}>{modal.title.split(' ').slice(1).join(' ')}</span>
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest leading-relaxed mb-8">{modal.message}</p>
+                    <p className="text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase tracking-widest leading-relaxed mb-8">{modal.message}</p>
 
                     <div className="flex gap-3">
                       <button
                         onClick={() => setModal({ ...modal, open: false })}
-                        className="w-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:bg-slate-200 transition-all"
+                        className="w-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 py-4 rounded-2xl text-[10px] font-black uppercase italic tracking-widest hover:bg-zinc-200 transition-all"
                       >
                         Review Details
                       </button>

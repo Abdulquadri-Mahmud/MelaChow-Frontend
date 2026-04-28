@@ -66,7 +66,7 @@ export default function EditFoodPage() {
     if (isError) {
         return (
             <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center gap-4">
-                <p className="text-slate-500 font-bold">
+                <p className="text-zinc-500 font-bold">
                     Failed to load this food item.
                 </p>
                 <button
@@ -123,7 +123,7 @@ export default function EditFoodPage() {
         return (
             <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center">
                 <Loader2 className="animate-spin text-orange-500 mb-4" size={40} />
-                <p className="text-slate-500 font-bold">Loading Food Item...</p>
+                <p className="text-zinc-500 font-bold">Loading Food Item...</p>
             </div>
         );
     }
@@ -149,16 +149,16 @@ export default function EditFoodPage() {
     const handleDeleteGroup = (groupId, groupName) => {
         toast((t) => (
             <div className="flex flex-col gap-3 min-w-[240px]">
-                <p className="text-sm font-black text-slate-900 dark:text-white">
+                <p className="text-sm font-black text-zinc-900 dark:text-white">
                     Delete &ldquo;{groupName}&rdquo;?
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                     Removes the group and all its options.
                 </p>
                 <div className="flex gap-2">
                     <button
                         onClick={() => toast.dismiss(t.id)}
-                        className="flex-1 h-8 rounded-lg border border-slate-200 text-xs font-black text-slate-500 hover:bg-slate-50 transition-colors"
+                        className="flex-1 h-8 rounded-lg border border-zinc-200 text-xs font-black text-zinc-500 hover:bg-zinc-50 transition-colors"
                     >
                         Cancel
                     </button>
@@ -301,7 +301,7 @@ export default function EditFoodPage() {
         }
     };
     return (
-        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 pb-10 transition-colors">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-zinc-950 pb-10 transition-colors">
             <div className="max-w-xl mx-auto pt-6 px-4 md:px-8">
                 <div className="flex items-center justify-between mb-8">
                     <BackButton label="Back to Menu" className="py-2" />
@@ -314,7 +314,7 @@ export default function EditFoodPage() {
                 <div className="mb-12">
                     <div className="flex items-center justify-between relative">
                         {/* Background Track */}
-                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-full z-0" />
+                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-zinc-200 dark:bg-zinc-800 rounded-full z-0" />
 
                         {/* Progress Fill */}
                         <div
@@ -336,12 +336,12 @@ export default function EditFoodPage() {
                                     className={`relative z-10 flex flex-col items-center group ${isFuture ? "cursor-not-allowed" : "cursor-pointer"}`}
                                 >
                                     <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-black text-xs md:text-sm transition-all duration-500 border-2 ${isPast ? "bg-orange-500 border-orange-500 text-white" :
-                                        isCurrent ? "bg-white dark:bg-slate-900 border-orange-500 text-orange-600 dark:text-orange-500 shadow-md shadow-orange-500/20" :
-                                            "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500"
+                                        isCurrent ? "bg-white dark:bg-zinc-900 border-orange-500 text-orange-600 dark:text-orange-500 shadow-md shadow-orange-500/20" :
+                                            "bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500"
                                         }`}>
                                         {isPast ? "✓" : step.id}
                                     </div>
-                                    <span className={`absolute -bottom-6 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors hidden md:block ${isCurrent ? "text-orange-600 dark:text-orange-500" : isPast ? "text-slate-600 dark:text-slate-300" : "text-slate-400 dark:text-slate-600"
+                                    <span className={`absolute -bottom-6 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors hidden md:block ${isCurrent ? "text-orange-600 dark:text-orange-500" : isPast ? "text-zinc-600 dark:text-zinc-300" : "text-zinc-400 dark:text-zinc-600"
                                         }`}>
                                         {step.title}
                                     </span>
@@ -352,7 +352,7 @@ export default function EditFoodPage() {
                 </div>
 
                 {/* Step Content */}
-                <div className="bg-white dark:bg-slate-900 rounded-[1.5rem] shadow-sm border border-slate-200 dark:border-slate-800 p-3 min-h-[500px] transition-colors">
+                <div className="bg-white dark:bg-zinc-900 rounded-[1.5rem] shadow-sm border border-zinc-200 dark:border-zinc-800 p-3 min-h-[500px] transition-colors">
                     {store.currentStep === 1 && <Step1BasicInfo onNext={handleNext} />}
                     {store.currentStep === 2 && <Step2Categories onNext={handleNext} onBack={handleBack} />}
                     {store.currentStep === 3 && <Step3Portions onNext={handleNext} onBack={handleBack} onDeletePortion={handleDeletePortion} />}

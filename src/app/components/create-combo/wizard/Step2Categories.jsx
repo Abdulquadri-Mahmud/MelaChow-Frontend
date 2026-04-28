@@ -138,16 +138,16 @@ export default function Step2Categories() {
     >
       {/* Platform Category Selection */}
       <div>
-        <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-slate-500 dark:text-slate-400 pl-1">
+        <label className="block text-[11px] font-black uppercase tracking-widest mb-1.5 text-zinc-500 dark:text-zinc-400 pl-1">
           Platform Category *
         </label>
         {loading ? (
-          <div className="flex items-center justify-center py-12 text-slate-300">
+          <div className="flex items-center justify-center py-12 text-zinc-300">
             <Loader2 className="animate-spin mr-2" size={16} />
             <span className="text-[10px] font-black uppercase tracking-widest">Loading...</span>
           </div>
         ) : (
-          <div className="space-y-1 max-h-72 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-2 bg-slate-50/30 dark:bg-slate-950/30">
+          <div className="space-y-1 max-h-72 overflow-y-auto border border-zinc-200 dark:border-zinc-800 rounded-xl p-2 bg-zinc-50/30 dark:bg-zinc-950/30">
             {categories.map((category) => (
               <motion.button
                 key={category._id}
@@ -158,8 +158,8 @@ export default function Step2Categories() {
                 }}
                 className={`w-full text-left px-3 py-2 rounded-lg transition-all border ${
                   store.platform_category_id === category._id
-                    ? 'border-orange-500 bg-white dark:bg-slate-900 text-orange-600 shadow-sm'
-                    : 'border-transparent hover:bg-white dark:hover:bg-slate-900 text-slate-600 dark:text-slate-400'
+                    ? 'border-orange-500 bg-white dark:bg-zinc-900 text-orange-600 shadow-sm'
+                    : 'border-transparent hover:bg-white dark:hover:bg-zinc-900 text-zinc-600 dark:text-zinc-400'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -182,13 +182,13 @@ export default function Step2Categories() {
       </div>
 
       {/* Vendor Section Selection */}
-      <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-        <label className="block text-[11px] font-black uppercase tracking-widest mb-3 text-slate-500 dark:text-slate-400 pl-1">
+      <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
+        <label className="block text-[11px] font-black uppercase tracking-widest mb-3 text-zinc-500 dark:text-zinc-400 pl-1">
           Store Menu Section (Optional)
         </label>
 
         <div className="space-y-3">
-            <div className="flex flex-wrap gap-1.5 p-2 bg-slate-50/50 dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800 rounded-xl">
+            <div className="flex flex-wrap gap-1.5 p-2 bg-zinc-50/50 dark:bg-zinc-950/50 border border-zinc-100 dark:border-zinc-800 rounded-xl">
                 <button
                     onClick={() => {
                         store.setField('vendor_section_id', null);
@@ -196,8 +196,8 @@ export default function Step2Categories() {
                     }}
                     className={`h-8 px-4 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
                         !store.vendor_section_id
-                        ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg'
-                        : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                        ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg'
+                        : 'text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300'
                     }`}
                 >
                     Default
@@ -215,7 +215,7 @@ export default function Step2Categories() {
                             className={`h-8 px-4 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${
                                 isSelected
                                 ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-500/20'
-                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-orange-200'
+                                : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-200'
                             }`}
                         >
                             {section.name}
@@ -239,7 +239,7 @@ export default function Step2Categories() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.98 }}
                     >
-                        <div className="flex gap-2 p-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-sm">
+                        <div className="flex gap-2 p-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl shadow-sm">
                             <input
                                 type="text"
                                 autoFocus
@@ -247,12 +247,12 @@ export default function Step2Categories() {
                                 onChange={(e) => setNewSectionName(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleCreateSection()}
                                 placeholder="E.G. LUNCH DEALS..."
-                                className="flex-1 h-9 px-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-lg text-[10px] font-black uppercase tracking-widest outline-none focus:border-orange-600 transition-colors"
+                                className="flex-1 h-9 px-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-lg text-[10px] font-black uppercase tracking-widest outline-none focus:border-orange-600 transition-colors"
                             />
                             <button
                                 onClick={handleCreateSection}
                                 disabled={isSavingSection || !newSectionName.trim()}
-                                className="h-9 px-4 bg-slate-950 dark:bg-white text-white dark:text-slate-950 font-black text-[9px] uppercase tracking-widest rounded-lg disabled:opacity-30 active:scale-95 transition-all"
+                                className="h-9 px-4 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-black text-[9px] uppercase tracking-widest rounded-lg disabled:opacity-30 active:scale-95 transition-all"
                             >
                                 {isSavingSection ? <Loader2 size={12} className="animate-spin" /> : 'Create'}
                             </button>

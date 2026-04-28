@@ -50,12 +50,12 @@ export default function ComboCard({
 
   return (
     <div
-      className={`group relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-md overflow-hidden transition-all hover:border-orange-500/30 ${
+      className={`group relative bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-md overflow-hidden transition-all hover:border-orange-500/30 ${
         combo.is_archived ? 'opacity-60' : ''
       }`}
     >
       {/* Image */}
-      <div className="relative h-40 bg-slate-100 dark:bg-slate-800 overflow-hidden">
+      <div className="relative h-40 bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
         {combo.image_url ? (
           <img
             src={combo.image_url}
@@ -71,7 +71,7 @@ export default function ComboCard({
         {/* Status badges top-left */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {combo.is_archived && (
-            <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-slate-900/80 text-white backdrop-blur-sm">
+            <span className="text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-zinc-900/80 text-white backdrop-blur-sm">
               Archived
             </span>
           )}
@@ -92,17 +92,17 @@ export default function ComboCard({
         )}
 
         {/* Hover action overlay */}
-        <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+        <div className="absolute inset-0 bg-zinc-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           <button
             onClick={() => onEdit(combo._id)}
-            className="w-8 h-8 rounded-md bg-white text-slate-900 flex items-center justify-center hover:bg-orange-600 hover:text-white transition-all"
+            className="w-8 h-8 rounded-md bg-white text-zinc-900 flex items-center justify-center hover:bg-orange-600 hover:text-white transition-all"
             title="Edit combo"
           >
             <Edit2 size={12} />
           </button>
           <button
             onClick={() => onToggleAvailability(combo._id)}
-            className="w-8 h-8 rounded-md bg-white text-slate-900 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all"
+            className="w-8 h-8 rounded-md bg-white text-zinc-900 flex items-center justify-center hover:bg-amber-500 hover:text-white transition-all"
             title={combo.is_available ? 'Hide from menu' : 'Show on menu'}
           >
             {combo.is_available ? (
@@ -113,7 +113,7 @@ export default function ComboCard({
           </button>
           <button
             onClick={() => onArchive(combo._id)}
-            className="w-8 h-8 rounded-md bg-white text-slate-900 flex items-center justify-center hover:bg-slate-700 hover:text-white transition-all"
+            className="w-8 h-8 rounded-md bg-white text-zinc-900 flex items-center justify-center hover:bg-zinc-700 hover:text-white transition-all"
             title={combo.is_archived ? 'Restore' : 'Archive'}
           >
             {combo.is_archived ? (
@@ -129,7 +129,7 @@ export default function ComboCard({
       <div className="p-3 space-y-2.5">
         {/* Name + category */}
         <div>
-          <h3 className="font-black text-slate-900 dark:text-white text-base tracking-tight leading-tight line-clamp-1">
+          <h3 className="font-black text-zinc-900 dark:text-white text-base tracking-tight leading-tight line-clamp-1">
             {combo.name}
           </h3>
           <div className="flex flex-col gap-1 mt-1">
@@ -139,7 +139,7 @@ export default function ComboCard({
               </p>
             )}
             {combo.description && (
-              <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 line-clamp-2 leading-normal">
+              <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-normal">
                 {combo.description}
               </p>
             )}
@@ -148,11 +148,11 @@ export default function ComboCard({
 
         {/* Price + prep time */}
         <div className="flex items-center justify-between">
-          <span className="font-black text-base tracking-tight text-slate-900 dark:text-white">
+          <span className="font-black text-base tracking-tight text-zinc-900 dark:text-white">
             {priceDisplay}
           </span>
           {combo.prep_time_minutes && (
-            <span className="flex items-center gap-1 text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/50 px-1.5 py-0.5 rounded border border-slate-100 dark:border-slate-800 leading-none">
+            <span className="flex items-center gap-1 text-[10px] font-black uppercase text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-800/50 px-1.5 py-0.5 rounded border border-zinc-100 dark:border-zinc-800 leading-none">
               <Clock size={10} className="text-orange-500" />
               {combo.prep_time_minutes}m
             </span>
@@ -162,14 +162,14 @@ export default function ComboCard({
         {/* Metadata chips */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {combo.choice_groups && combo.choice_groups.length > 0 && (
-            <span className="flex items-center gap-1.5 text-[9px] font-black uppercase text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 px-2 py-1 rounded-md">
-              <span className="w-1 h-1 rounded-full bg-slate-400" />
+            <span className="flex items-center gap-1.5 text-[9px] font-black uppercase text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-800 px-2 py-1 rounded-md">
+              <span className="w-1 h-1 rounded-full bg-zinc-400" />
               {combo.choice_groups.length} Options
             </span>
           )}
           {combo.tags && combo.tags.length > 0 && (
-            <span className="flex items-center gap-1 text-[9px] font-black uppercase text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 px-2 py-1 rounded-md">
-              <Tag size={9} className="text-slate-400" />
+            <span className="flex items-center gap-1 text-[9px] font-black uppercase text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-800 px-2 py-1 rounded-md">
+              <Tag size={9} className="text-zinc-400" />
               {combo.tags.length}
             </span>
           )}
@@ -184,8 +184,8 @@ export default function ComboCard({
         </div>
 
         {/* Bottom actions row */}
-        <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        <div className="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800">
+          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
             {combo.choice_groups?.length || 0} {combo.choice_groups?.length === 1 ? 'add-on' : 'add-ons'}
           </span>
           <button

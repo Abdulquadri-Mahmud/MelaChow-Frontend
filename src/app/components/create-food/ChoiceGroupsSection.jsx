@@ -85,7 +85,7 @@ export default function ChoiceGroupsSection({
     };
 
     return (
-        <div className="bg-white dark:bg-[#1E293B] rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-[#1E293B] rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
             <SectionHeader
                 title="Choice Groups"
                 subtitle={`${choiceGroups.length} group${choiceGroups.length !== 1 ? "s" : ""} configured`}
@@ -196,7 +196,7 @@ export default function ChoiceGroupsSection({
                                                         <label className="text-xs font-bold text-gray-500 mb-2 block">
                                                             Is this required?
                                                         </label>
-                                                        <div className="flex bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                                                        <div className="flex bg-zinc-100 dark:bg-zinc-700 rounded-lg p-1">
                                                             <button
                                                                 type="button"
                                                                 onClick={() => updateChoiceGroup(groupIndex, "minSelect", 0)}
@@ -226,7 +226,7 @@ export default function ChoiceGroupsSection({
                                                             Selection Type
                                                         </label>
                                                         <div className="flex gap-2">
-                                                            <div className="flex flex-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                                                            <div className="flex flex-1 bg-zinc-100 dark:bg-zinc-700 rounded-lg p-1">
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => updateChoiceGroup(groupIndex, "maxSelect", 1)}
