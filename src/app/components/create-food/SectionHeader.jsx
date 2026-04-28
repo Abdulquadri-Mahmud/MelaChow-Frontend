@@ -53,9 +53,9 @@ export default function SectionHeader({
     return (
         <div
             id={`section-${section}`}
-            className={`group relative overflow-hidden rounded-t-3xl border-b border-slate-100 dark:border-slate-800 transition-all duration-300 scroll-mt-32 ${isExpanded
+            className={`group relative overflow-hidden rounded-t-3xl border-b border-zinc-100 dark:border-zinc-800 transition-all duration-300 scroll-mt-32 ${isExpanded
                 ? "bg-white dark:bg-[#1E293B]"
-                : "bg-white dark:bg-[#1E293B] hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                : "bg-white dark:bg-[#1E293B] hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                 }`}
         >
             <button
@@ -86,7 +86,7 @@ export default function SectionHeader({
                         <div
                             className={`hidden sm:flex px-3 py-1 rounded-full text-xs font-bold items-center gap-1.5 transition-colors ${isValid
                                 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
-                                : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                                : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
                                 }`}
                         >
                             {isValid ? (
@@ -98,7 +98,7 @@ export default function SectionHeader({
                         </div>
                     )}
                     <div
-                        className={`p-2 rounded-full transition-transform duration-300 ${isExpanded ? "rotate-180 bg-slate-100 dark:bg-slate-800" : ""
+                        className={`p-2 rounded-full transition-transform duration-300 ${isExpanded ? "rotate-180 bg-zinc-100 dark:bg-zinc-800" : ""
                             }`}
                     >
                         <ChevronDown size={20} className="text-gray-400" />
@@ -108,7 +108,7 @@ export default function SectionHeader({
             {/* Progress Line for collapsed state */}
             {!isExpanded && isValid !== undefined && (
                 <div
-                    className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ${isValid ? "w-full bg-emerald-500" : "w-0.5 bg-slate-200 dark:bg-slate-700"
+                    className={`absolute bottom-0 left-0 h-1 transition-all duration-500 ${isValid ? "w-full bg-emerald-500" : "w-0.5 bg-zinc-200 dark:bg-zinc-700"
                         }`}
                 />
             )}

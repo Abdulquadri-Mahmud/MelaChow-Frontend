@@ -99,27 +99,41 @@ export default function CreateFoodWizardPage() {
   const previewPrice = defaultPortion?.price_naira || 0;
 
   return (
-    <div className="min-h-screen dark:p-3 p-0 bg-slate-50 dark:bg-slate-950 pb-32 transition-colors">
-      <div className="lg:max-w-6xl mx-auto">
+    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors relative">
+      <div className="flex-1 lg:max-w-6xl mx-auto w-full p-4 lg:p-0 pb-10">
         
         {/* Header Strip */}
-        <div className="mb-6 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
-          <div>
-            <div className="flex gap-3 items-center mb-2">
-                <BackButton label="" className="h-9 w-9 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-orange-600 transition-colors" />
-                <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
-                {store._id ? 'Edit Dish' : 'Add New Dish'}
-                </h1>
+        <div className="mb-6 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 md:p-4 p-3 rounded-3xl border border-white/5 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden group">
+          {/* Brand Accent Glow */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-orange-600/10 blur-[100px] -mr-32 -mt-32 transition-opacity group-hover:opacity-100 opacity-50" />
+          
+          <div className="relative z-10">
+            <div className="flex gap-4 items-center mb-3">
+                <BackButton label="" className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 text-zinc-400 hover:text-orange-500 hover:bg-white/10 transition-all border border-white/5" />
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase leading-none">
+                  {store._id ? 'Edit Dish' : 'Add New Dish'}
+                  </h1>
+                </div>
             </div>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
+            <p className="text-[11px] md:text-xs font-bold text-zinc-400 max-w-xl leading-relaxed uppercase tracking-wider opacity-80">
                 Tell us about your next great dish! Add a name, photo, price, and options.
             </p>
           </div>
 
           {store.isDirty && (
-            <div className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)]" /> 
-              Draft Saved
+            <div className="relative z-10 shrink-0 self-end md:self-center">
+              <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-inner">
+                <div className="relative">
+                  <span className="flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)]"></span>
+                  </span>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">
+                  Draft Saved
+                </span>
+              </div>
             </div>
           )}
         </div>
@@ -127,7 +141,7 @@ export default function CreateFoodWizardPage() {
         {/* Wizard Progress Bar */}
         <div className="mb-10 px-4 md:px-12 max-w-3xl mx-auto">
           <div className="flex items-center justify-between relative">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[2px] bg-slate-200 dark:bg-slate-800 rounded-full z-0" />
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[2px] bg-zinc-200 dark:bg-zinc-800 rounded-full z-0" />
             <div
               className="absolute left-0 top-1/2 -translate-y-1/2 h-[2px] bg-orange-600 rounded-full z-0 transition-all duration-700 ease-out"
               style={{ width: `${((store.currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
@@ -146,15 +160,15 @@ export default function CreateFoodWizardPage() {
                 >
                   <div className={`w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center font-black text-[10px] md:text-sm transition-all duration-500 border ${
                     isPast ? "bg-orange-600 border-orange-600 text-white" :
-                    isCurrent ? "bg-white dark:bg-slate-900 border-orange-600 text-orange-600 dark:text-orange-500" :
-                    "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500"
+                    isCurrent ? "bg-white dark:bg-zinc-900 border-orange-600 text-orange-600 dark:text-orange-500" :
+                    "bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500"
                   }`}>
                     {isPast ? "✓" : step.id}
                   </div>
                   <span className={`absolute -bottom-6 text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 ${
                     isCurrent ? "text-orange-600 dark:text-orange-500 opacity-100 translate-y-0" : 
-                    isPast ? "text-slate-600 dark:text-slate-300 opacity-0 md:opacity-100" : 
-                    "text-slate-400 dark:text-slate-600 opacity-0 -translate-y-1"
+                    isPast ? "text-zinc-600 dark:text-zinc-300 opacity-0 md:opacity-100" : 
+                    "text-zinc-400 dark:text-zinc-600 opacity-0 -translate-y-1"
                   }`}>
                     {step.title}
                   </span>
@@ -169,7 +183,7 @@ export default function CreateFoodWizardPage() {
           
           {/* Main Form Content */}
           <div className={`${isLastStep ? 'col-span-full' : 'lg:col-span-8'} space-y-4`}>
-            <div className={`bg-white dark:bg-slate-900 ${isLastStep ? 'rounded-2xl p-3 lg:p-5' : 'rounded-2xl p-4 lg:p-5'} border border-slate-100 dark:border-slate-800 min-h-[450px] relative overflow-hidden transition-colors`}>
+            <div className={`bg-white dark:bg-zinc-900/50 backdrop-blur-xl ${isLastStep ? 'rounded-3xl p-3 lg:p-6' : 'rounded-3xl p-5 lg:p-8'} border border-zinc-100 dark:border-white/5 min-h-[500px] relative overflow-hidden transition-all shadow-xl shadow-black/5`}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={store.currentStep}
@@ -211,31 +225,31 @@ export default function CreateFoodWizardPage() {
                       <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-600/20">
                           <Info size={16} />
                       </div>
-                      <h3 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest">
+                      <h3 className="text-[10px] font-black text-zinc-900 dark:text-white uppercase tracking-widest">
                         Pro Tip
                       </h3>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
+                      <p className="text-[11px] text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
                           Clear names and great photos perform 40% better than generic ones.
                       </p>
                     </div>
                 </div>
 
                 {/* Live Preview Card Mockup */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-5">
+                    <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                       Live Preview
                     </h3>
-                    <div className="rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 p-3 aspect-video flex flex-col justify-end relative overflow-hidden ring-1 ring-slate-100">
+                    <div className="rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 p-3 aspect-video flex flex-col justify-end relative overflow-hidden ring-1 ring-zinc-100">
                     {store.image_url ? (
                         <img src={store.image_url} alt="Preview" className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000" />
                     ) : (
-                        <div className="absolute inset-0 bg-slate-50 dark:bg-slate-800 flex items-center justify-center uppercase tracking-widest text-[9px] font-black text-slate-300">
+                        <div className="absolute inset-0 bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center uppercase tracking-widest text-[9px] font-black text-zinc-300">
                           Waiting...
                         </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-zinc-950/10 to-transparent" />
                     <div className="relative z-10">
                         <h4 className="text-lg font-black text-white uppercase truncate tracking-tight">
                         {store.name || "UNNAMED DISH"}
@@ -255,15 +269,15 @@ export default function CreateFoodWizardPage() {
         </div>
       </div>
 
-      {/* FIXED FOOTER */}
-      <div className="fixed bottom-0 left-0 right-0 z-[60] p-3 lg:p-4 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800">
+      {/* STICKY FOOTER */}
+      <div className="sticky bottom-0 z-40 w-full p-3 lg:p-4 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 mt-auto">
          <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
             <div className="flex-1">
                {store.currentStep > 1 && (
                   <button 
                     onClick={handleBack} 
                     disabled={store.isSubmitting}
-                    className="h-11 px-6 flex items-center text-slate-600 dark:text-slate-300 hover:text-orange-600 font-black uppercase tracking-widest gap-2 active:scale-95 text-[10px] transition-all border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900"
+                    className="h-11 px-6 flex items-center text-zinc-600 dark:text-zinc-300 hover:text-orange-600 font-black uppercase tracking-widest gap-2 active:scale-95 text-[10px] transition-all border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900"
                   >
                     <ArrowLeft size={14} strokeWidth={3} /> 
                     <span className="hidden sm:inline">Back</span>
@@ -273,8 +287,8 @@ export default function CreateFoodWizardPage() {
 
             <div className="flex-none flex items-center gap-4">
                <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Step {store.currentStep} of {STEPS.length}</span>
-                  <span className="text-[11px] font-black text-slate-950 dark:text-white uppercase tracking-widest italic">{STEPS[store.currentStep-1].title}</span>
+                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-0.5">Step {store.currentStep} of {STEPS.length}</span>
+                  <span className="text-[11px] font-black text-zinc-950 dark:text-white uppercase tracking-widest italic">{STEPS[store.currentStep-1].title}</span>
                </div>
 
                <button 
@@ -282,7 +296,7 @@ export default function CreateFoodWizardPage() {
                   disabled={store.isSubmitting}
                   className={`h-11 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 flex items-center gap-3 disabled:opacity-50 shadow-lg ${
                     store.currentStep === STEPS.length 
-                    ? "bg-slate-950 dark:bg-white text-white dark:text-slate-950" 
+                    ? "bg-zinc-950 dark:bg-white text-white dark:text-zinc-950" 
                     : "bg-orange-600 text-white hover:bg-orange-700"
                   }`}
                >

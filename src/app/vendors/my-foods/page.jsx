@@ -112,10 +112,10 @@ export default function MyFoodsPage() {
     toast((t) => (
       <div className="flex flex-col gap-3 min-w-[260px]">
         <div>
-          <p className="font-black text-sm text-slate-900 dark:text-white">
+          <p className="font-black text-sm text-zinc-900 dark:text-white">
             Delete &ldquo;{itemName}&rdquo;?
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 leading-relaxed">
             Permanently removes this item, all its sizes, choices, and options.
             This cannot be undone.
           </p>
@@ -123,7 +123,7 @@ export default function MyFoodsPage() {
         <div className="flex gap-2">
           <button
             onClick={() => toast.dismiss(t.id)}
-            className="flex-1 h-8 rounded-md border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            className="flex-1 h-8 rounded-md border border-zinc-200 dark:border-zinc-700 text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
           >
             Cancel
           </button>
@@ -164,17 +164,17 @@ export default function MyFoodsPage() {
   const isFiltered = !!(debouncedSearch || status !== "all" || activeSection);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-3 rounded-md">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-3 rounded-md">
       <div className="max-w-6xl mx-auto space-y-4">
 
         {/* Page Header */}
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="max-w-2xl">
-              <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+              <h1 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">
                 Menu Hub
               </h1>
-              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed uppercase tracking-widest">
+              <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-1.5 leading-relaxed uppercase tracking-widest">
                 Manage your culinary offerings, pricing, and storefront organization.
               </p>
             </div>
@@ -184,7 +184,7 @@ export default function MyFoodsPage() {
               <button
                 onClick={invalidate}
                 disabled={isFetching}
-                className={`h-10 w-10 flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 transition-all ${isFetching ? "opacity-50" : "active:scale-95"}`}
+                className={`h-10 w-10 flex items-center justify-center rounded-md border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 hover:text-orange-500 dark:hover:text-orange-400 transition-all ${isFetching ? "opacity-50" : "active:scale-95"}`}
                 title="Refresh list"
               >
                 <RotateCw size={16} className={isFetching ? "animate-spin" : ""} />
@@ -194,7 +194,7 @@ export default function MyFoodsPage() {
               <button
                 onClick={() => router.push("/vendors/menu/create-combo")}
                 disabled={stats.total < 2}
-                className="h-10 px-4 rounded-md border border-slate-200 dark:border-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 bg-white dark:bg-slate-900"
+                className="h-10 px-4 rounded-md border border-zinc-200 dark:border-zinc-700 text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300 hover:border-zinc-400 dark:hover:border-zinc-500 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2 bg-white dark:bg-zinc-900"
               >
                 🍱 Combo
               </button>
@@ -210,39 +210,39 @@ export default function MyFoodsPage() {
           </div>
 
           {/* Marquee Tips Bar */}
-          <div className="relative h-10 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden flex items-center">
-             <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white dark:from-slate-900 to-transparent z-10 pointer-events-none" />
-             <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white dark:from-slate-900 to-transparent z-10 pointer-events-none" />
+          <div className="relative h-10 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden flex items-center">
+             <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-white dark:from-zinc-900 to-transparent z-10 pointer-events-none" />
+             <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-white dark:from-zinc-900 to-transparent z-10 pointer-events-none" />
              
-             <div className="flex items-center gap-2 px-4 h-full bg-slate-50/50 dark:bg-slate-800/50 border-r border-slate-100 dark:border-slate-800 shrink-0 z-20">
+             <div className="flex items-center gap-2 px-4 h-full bg-zinc-50/50 dark:bg-zinc-800/50 border-r border-zinc-100 dark:border-zinc-800 shrink-0 z-20">
                 <span className="text-xl">🚀</span>
                 <span className="text-[10px] font-black uppercase tracking-widest text-orange-500">Menu Pro Tips:</span>
              </div>
 
              <div className="flex-1 overflow-hidden relative group">
                 <div className="animate-marquee whitespace-nowrap flex gap-12 items-center px-6">
-                   <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300">
+                   <div className="flex items-center gap-2 text-sm font-bold text-zinc-600 dark:text-zinc-300">
                       <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                       Add multiple Portions to offer small, medium, and large sizes of the same dish!
                    </div>
-                   <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300">
+                   <div className="flex items-center gap-2 text-sm font-bold text-zinc-600 dark:text-zinc-300">
                       <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                       Create Combo Bundles to increase order value — e.g. Burger + Fries + Drink deals!
                    </div>
-                   <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300">
+                   <div className="flex items-center gap-2 text-sm font-bold text-zinc-600 dark:text-zinc-300">
                       <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                       Use Custom Choices to allow customers to add extra toppings, protein, or sides!
                    </div>
-                   <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300">
+                   <div className="flex items-center gap-2 text-sm font-bold text-zinc-600 dark:text-zinc-300">
                       <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                       Variations help you manage complex food items like different sizes or addon combinations efficiently.
                    </div>
                    {/* Duplicate for seamless loop */}
-                   <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300">
+                   <div className="flex items-center gap-2 text-sm font-bold text-zinc-600 dark:text-zinc-300">
                       <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                       Add multiple Portions to offer small, medium, and large sizes of the same dish!
                    </div>
-                   <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300">
+                   <div className="flex items-center gap-2 text-sm font-bold text-zinc-600 dark:text-zinc-300">
                       <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                       Create Combo Bundles to increase order value — e.g. Burger + Fries + Drink deals!
                    </div>
@@ -281,7 +281,7 @@ export default function MyFoodsPage() {
         {/* Results count */}
         {!isLoading && items.length > 0 && (
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+            <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
               {pagination.total} {pagination.total === 1 ? "food" : "foods"}
               {isFiltered && " matching filters"}
               {isFetching && " · Updating..."}
@@ -292,7 +292,7 @@ export default function MyFoodsPage() {
         {/* Grid */}
         {isError ? (
           <div className="py-20 text-center">
-            <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
+            <p className="text-sm font-bold text-zinc-400 dark:text-zinc-500">
               Failed to load your foods.
             </p>
             <button
@@ -334,17 +334,17 @@ export default function MyFoodsPage() {
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="h-10 px-5 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 dark:text-slate-400 disabled:opacity-40 hover:border-slate-400 transition-all"
+              className="h-10 px-5 rounded-md border border-zinc-200 dark:border-zinc-700 text-xs font-black text-zinc-500 dark:text-zinc-400 disabled:opacity-40 hover:border-zinc-400 transition-all"
             >
               Previous
             </button>
-            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 px-3">
+            <span className="text-xs font-bold text-zinc-400 dark:text-zinc-500 px-3">
               Page {page} of {pagination.pages}
             </span>
             <button
               onClick={() => setPage(p => p + 1)}
               disabled={!pagination.hasMore}
-              className="h-10 px-5 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-500 dark:text-slate-400 disabled:opacity-40 hover:border-slate-400 transition-all"
+              className="h-10 px-5 rounded-md border border-zinc-200 dark:border-zinc-700 text-xs font-black text-zinc-500 dark:text-zinc-400 disabled:opacity-40 hover:border-zinc-400 transition-all"
             >
               Next
             </button>

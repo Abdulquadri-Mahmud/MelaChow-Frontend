@@ -54,7 +54,7 @@ export default function VendorForgotPassword() {
     };
 
     return (
-        <div className="h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden p-4">
+        <div className="h-screen w-full bg-white dark:bg-zinc-900 flex items-center justify-center overflow-hidden p-4">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -65,26 +65,26 @@ export default function VendorForgotPassword() {
                     <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
                         <Store size={36} />
                     </div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-2">
+                    <h1 className="text-3xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white mb-2">
                         Reset <span className="text-orange-600">Password</span>
                     </h1>
-                    <p className="text-xs font-semibold text-slate-500">
+                    <p className="text-xs font-semibold text-zinc-500">
                         Enter your vendor email to receive reset instructions
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Email Address</label>
+                        <label className="text-xs font-bold text-zinc-600 dark:text-zinc-400">Email Address</label>
                         <div className="relative">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={20} />
                             <input
                                 type="email"
                                 placeholder="vendor@restaurant.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
-                                className="w-full bg-slate-50 dark:bg-slate-800 p-4 pl-12 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                                className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 pl-12 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                             />
                         </div>
                     </div>
@@ -119,7 +119,7 @@ export default function VendorForgotPassword() {
                 </form>
 
                 <div className="mt-8 text-center">
-                    <Link href="/vendors/auth/login" className="text-xs font-bold text-slate-400 hover:text-orange-600 transition-colors uppercase tracking-widest">
+                    <Link href="/vendors/auth/login" className="text-xs font-bold text-zinc-400 hover:text-orange-600 transition-colors uppercase tracking-widest">
                         Back to Login
                     </Link>
                 </div>

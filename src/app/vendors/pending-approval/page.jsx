@@ -20,7 +20,7 @@ export default function PendingApproval() {
     }, [hasCheckedSession, vendorDetails, router]);
 
     return (
-        <div className="w-full bg-white dark:bg-slate-900 flex items-center justify-center p-4">
+        <div className="w-full bg-white dark:bg-zinc-900 flex items-center justify-center p-4">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -45,44 +45,44 @@ export default function PendingApproval() {
                 </div>
 
                 <div className="space-y-4">
-                    <h1 className="text-4xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white">
+                    <h1 className="text-4xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white">
                         Under <span className="text-orange-600">Review</span>
                     </h1>
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
+                    <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-sm mx-auto">
                         Your vendor account is successfully verified and is now currently
-                        <span className="text-slate-900 dark:text-white font-bold italic"> pending administrative approval.</span>
+                        <span className="text-zinc-900 dark:text-white font-bold italic"> pending administrative approval.</span>
                     </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 text-left">
-                        <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm mb-4">
+                    <div className="bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-[2rem] border border-zinc-100 dark:border-zinc-800 text-left">
+                        <div className="w-10 h-10 bg-white dark:bg-zinc-800 rounded-2xl flex items-center justify-center shadow-sm mb-4">
                             <Clock className="text-orange-600" size={20} />
                         </div>
-                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white mb-1">Timeline</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Reviews typically take 24-48 hours.</p>
+                        <h3 className="text-xs font-black uppercase tracking-widest text-zinc-900 dark:text-white mb-1">Timeline</h3>
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">Reviews typically take 24-48 hours.</p>
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-800 text-left">
-                        <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm mb-4">
+                    <div className="bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-[2rem] border border-zinc-100 dark:border-zinc-800 text-left">
+                        <div className="w-10 h-10 bg-white dark:bg-zinc-800 rounded-2xl flex items-center justify-center shadow-sm mb-4">
                             <Mail className="text-orange-600" size={20} />
                         </div>
-                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white mb-1">Notification</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">We'll email you at your registered address.</p>
+                        <h3 className="text-xs font-black uppercase tracking-widest text-zinc-900 dark:text-white mb-1">Notification</h3>
+                        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-tight">We'll email you at your registered address.</p>
                     </div>
                 </div>
 
                 <div className="pt-8">
                     <Link
                         href="/vendors/auth/login"
-                        className="inline-flex items-center gap-2 group text-xs font-black uppercase italic tracking-widest text-slate-400 hover:text-orange-600 transition-colors"
+                        className="inline-flex items-center gap-2 group text-xs font-black uppercase italic tracking-widest text-zinc-400 hover:text-orange-600 transition-colors"
                     >
                         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                         Back to Login
                     </Link>
                 </div>
 
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 dark:text-slate-700">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300 dark:text-zinc-700">
                     MelaChow Partner Network
                 </p>
             </motion.div>

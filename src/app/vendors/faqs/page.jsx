@@ -131,15 +131,15 @@ export default function VendorFAQs() {
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8 w-full max-w-5xl mx-auto space-y-8">
       {/* Header Area */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative overflow-hidden">
         {/* Decorative background */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
         
         <div className="relative z-10">
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight italic mb-2">
+          <h1 className="text-3xl font-black text-zinc-900 dark:text-white uppercase tracking-tight italic mb-2">
             Vendor <span className="text-orange-500">Help Center</span>
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 font-medium max-w-md text-sm leading-relaxed">
+          <p className="text-zinc-500 dark:text-zinc-400 font-medium max-w-md text-sm leading-relaxed">
             Everything you need to know about operating your store, managing orders, and understanding how our secure Escrow payouts work.
           </p>
         </div>
@@ -147,14 +147,14 @@ export default function VendorFAQs() {
         {/* Search */}
         <div className="relative w-full md:w-72 z-10 filter drop-shadow-sm">
           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-            <Search size={18} className="text-slate-400" />
+            <Search size={18} className="text-zinc-400" />
           </div>
           <input
             type="text"
             placeholder="Search FAQs..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 dark:bg-slate-800 text-sm font-medium border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 pl-11 pr-4 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
+            className="w-full bg-zinc-50 dark:bg-zinc-800 text-sm font-medium border border-zinc-200 dark:border-zinc-700 rounded-2xl py-3.5 pl-11 pr-4 focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all text-zinc-900 dark:text-white placeholder:text-zinc-400"
           />
         </div>
       </div>
@@ -171,12 +171,12 @@ export default function VendorFAQs() {
               className={`
                 flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border
                 ${isActive
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-md cursor-default'
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                  ? 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-md cursor-default'
+                  : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
                 }
               `}
             >
-              <Icon size={16} className={isActive ? (isActive ? '' : 'text-slate-400') : 'text-slate-400'} />
+              <Icon size={16} className={isActive ? (isActive ? '' : 'text-zinc-400') : 'text-zinc-400'} />
               {cat.label}
             </button>
           )
@@ -198,10 +198,10 @@ export default function VendorFAQs() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 className={`
-                  bg-white dark:bg-slate-900 rounded-2xl border transition-all overflow-hidden
+                  bg-white dark:bg-zinc-900 rounded-2xl border transition-all overflow-hidden
                   ${isOpen
-                    ? isEscrow ? 'border-orange-500 shadow-md ring-4 ring-orange-500/10' : 'border-slate-300 dark:border-slate-600 shadow-sm'
-                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                    ? isEscrow ? 'border-orange-500 shadow-md ring-4 ring-orange-500/10' : 'border-zinc-300 dark:border-zinc-600 shadow-sm'
+                    : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
                   }
                 `}
               >
@@ -215,15 +215,15 @@ export default function VendorFAQs() {
                         <Wallet size={16} />
                       </div>
                     )}
-                    <span className={`font-bold text-sm md:text-[15px] transition-colors ${isOpen ? (isEscrow ? 'text-orange-600' : 'text-slate-900 dark:text-white') : 'text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white'}`}>
+                    <span className={`font-bold text-sm md:text-[15px] transition-colors ${isOpen ? (isEscrow ? 'text-orange-600' : 'text-zinc-900 dark:text-white') : 'text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white'}`}>
                       {item.question}
                     </span>
                   </div>
                   <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center transition-all bg-slate-50 dark:bg-slate-800 flex-shrink-0
-                    ${isOpen ? (isEscrow ? 'bg-orange-50 dark:bg-orange-900/40 rotate-180' : 'bg-slate-100 dark:bg-slate-700 rotate-180') : 'group-hover:bg-slate-100 dark:group-hover:bg-slate-700'}
+                    w-8 h-8 rounded-full flex items-center justify-center transition-all bg-zinc-50 dark:bg-zinc-800 flex-shrink-0
+                    ${isOpen ? (isEscrow ? 'bg-orange-50 dark:bg-orange-900/40 rotate-180' : 'bg-zinc-100 dark:bg-zinc-700 rotate-180') : 'group-hover:bg-zinc-100 dark:group-hover:bg-zinc-700'}
                   `}>
-                    <ChevronDown size={16} className={isOpen ? (isEscrow ? 'text-orange-600' : 'text-slate-900 dark:text-white') : 'text-slate-400'} />
+                    <ChevronDown size={16} className={isOpen ? (isEscrow ? 'text-orange-600' : 'text-zinc-900 dark:text-white') : 'text-zinc-400'} />
                   </div>
                 </button>
 
@@ -237,7 +237,7 @@ export default function VendorFAQs() {
                     >
                       <div className="px-5 pb-5 pt-0">
                         <div className="pl-0 sm:pl-[42px]">
-                           <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed border-t border-dashed border-slate-200 dark:border-slate-700 pt-4">
+                           <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed border-t border-dashed border-zinc-200 dark:border-zinc-700 pt-4">
                              {item.answer}
                            </p>
                         </div>
@@ -249,18 +249,18 @@ export default function VendorFAQs() {
             )
           })
         ) : (
-          <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
-            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+          <div className="text-center py-20 bg-white dark:bg-zinc-900 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800">
+            <div className="w-16 h-16 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4 text-zinc-400">
               <Search size={24} />
             </div>
-            <p className="text-slate-900 dark:text-white font-bold mb-1">No FAQs matched</p>
-            <p className="text-slate-500 text-sm">Try using different keywords.</p>
+            <p className="text-zinc-900 dark:text-white font-bold mb-1">No FAQs matched</p>
+            <p className="text-zinc-500 text-sm">Try using different keywords.</p>
           </div>
         )}
       </div>
 
       {/* Support CTA */}
-      <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
+      <div className="bg-zinc-900 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px]" />
         
         <div className="flex items-center gap-5 relative z-10 w-full justify-center sm:justify-start">
@@ -269,16 +269,16 @@ export default function VendorFAQs() {
           </div>
           <div className="text-center sm:text-left">
             <h3 className="text-white font-bold text-lg">Need direct assistance?</h3>
-            <p className="text-slate-400 text-sm mt-1">Our vendor support team is ready to help you thrive.</p>
+            <p className="text-zinc-400 text-sm mt-1">Our vendor support team is ready to help you thrive.</p>
           </div>
         </div>
 
         <Link
           href="mailto:vendorsupport@melachow.com"
-          className="relative z-10 shrink-0 w-full sm:w-auto text-center bg-white hover:bg-slate-100 text-slate-900 px-6 py-3 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 group"
+          className="relative z-10 shrink-0 w-full sm:w-auto text-center bg-white hover:bg-zinc-100 text-zinc-900 px-6 py-3 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 group"
         >
           Contact Support
-          <ArrowRight size={16} className="text-slate-400 group-hover:text-slate-900 transition-colors" />
+          <ArrowRight size={16} className="text-zinc-400 group-hover:text-zinc-900 transition-colors" />
         </Link>
       </div>
 

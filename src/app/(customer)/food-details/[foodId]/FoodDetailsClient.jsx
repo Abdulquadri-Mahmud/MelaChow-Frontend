@@ -757,12 +757,9 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                    isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10 shadow-md" : "border-zinc-50 dark:border-zinc-800 bg-white dark:bg-zinc-900"
                                  } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}>
                               {/* Option Image */}
-                              <div className="w-10 h-10 rounded-[10px] bg-zinc-50 dark:bg-zinc-800 overflow-hidden shrink-0 shadow-inner">
-                                {option.image_url ? (
-                                  <img src={option.image_url} alt={option.label} className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-[18px] opacity-50">🍽️</div>
-                                )}
+                              {/* Selection Indicator Circle */}
+                              <div className="w-8 h-8 rounded-full bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
+                                <Plus size={12} strokeWidth={4} />
                               </div>
                               {/* Details */}
                               <div className="flex-1 min-w-0">

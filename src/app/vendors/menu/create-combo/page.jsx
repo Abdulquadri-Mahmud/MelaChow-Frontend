@@ -167,22 +167,22 @@ export default function CreateComboPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 pb-24 transition-colors">
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-24 transition-colors">
             {/* Header Strip */}
             <div className="max-w-[1400px] mx-auto p-6 md:p-8 flex items-center justify-between">
-                <BackButton label="Exit Studio" className="py-2.5 px-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm hover:border-orange-200 transition-all active:scale-95" />
+                <BackButton label="Exit Studio" className="py-2.5 px-4 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm hover:border-orange-200 transition-all active:scale-95" />
                 
                 <div className="flex items-center gap-6">
                     {isDirty && (
-                        <div className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-full shadow-sm">
+                        <div className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-4 py-2 rounded-full shadow-sm">
                             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" /> Draft in Progress
                         </div>
                     )}
                     <div className="flex items-center gap-2">
                          <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20 font-black text-xs">CS</div>
                          <div className="hidden sm:block">
-                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Operating Studio</p>
-                              <p className="text-xs font-bold text-slate-900 dark:text-white leading-none">Combo Builder v2.4</p>
+                              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 leading-none mb-1">Operating Studio</p>
+                              <p className="text-xs font-bold text-zinc-900 dark:text-white leading-none">Combo Builder v2.4</p>
                          </div>
                     </div>
                 </div>
@@ -193,12 +193,12 @@ export default function CreateComboPage() {
                 <div className="mb-12">
                     <div className="flex items-center gap-3 mb-2">
                          <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
-                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Creation Environment</span>
+                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Creation Environment</span>
                     </div>
-                    <h1 className="text-4xl md:text-5xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[0.9] mb-4">
+                    <h1 className="text-4xl md:text-5xl lg:text-5xl font-black text-zinc-900 dark:text-white tracking-tight leading-[0.9] mb-4">
                         Combo <span className="text-orange-500">Studio</span>
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium text-lg leading-relaxed flex items-start gap-2 max-w-2xl">
+                    <p className="text-zinc-500 dark:text-zinc-400 font-medium text-lg leading-relaxed flex items-start gap-2 max-w-2xl">
                         <Sparkles size={20} className="text-orange-500 shrink-0 mt-1" />
                         Bundle your best-selling items into high-value deals. Curate the perfect mix and set your own rules.
                     </p>
@@ -206,7 +206,7 @@ export default function CreateComboPage() {
 
                 {/* PROGRESS TRACKER */}
                 <div className="mb-14 relative px-4">
-                    <div className="absolute top-7 left-10 right-10 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div className="absolute top-7 left-10 right-10 h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                         <div 
                             className="h-full bg-orange-500 transition-all duration-700 ease-in-out"
                             style={{ width: `${((step - 1) / (STEPS.length - 1)) * 100}%` }}
@@ -218,10 +218,10 @@ export default function CreateComboPage() {
                             <div key={s.id} className="flex flex-col items-center gap-3">
                                 <div className={`w-14 h-14 rounded-[1.4rem] flex items-center justify-center text-xl transition-all duration-500 border-2 ${
                                     step === s.id 
-                                        ? "bg-white dark:bg-slate-900 border-orange-500 text-white shadow-xl shadow-orange-500/10 scale-110" 
+                                        ? "bg-white dark:bg-zinc-900 border-orange-500 text-white shadow-xl shadow-orange-500/10 scale-110" 
                                         : step > s.id 
-                                            ? "bg-slate-900 border-slate-900 text-white" 
-                                            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400"
+                                            ? "bg-zinc-900 border-zinc-900 text-white" 
+                                            : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-400"
                                 }`}>
                                     {step > s.id ? (
                                         <ShieldCheck size={24} className="text-emerald-500" />
@@ -230,7 +230,7 @@ export default function CreateComboPage() {
                                     )}
                                 </div>
                                 <span className={`text-[11px] font-black uppercase tracking-[0.2em] transition-colors ${
-                                    step === s.id ? "text-orange-500" : "text-slate-400"
+                                    step === s.id ? "text-orange-500" : "text-zinc-400"
                                 }`}>
                                     {s.label}
                                 </span>
@@ -240,33 +240,33 @@ export default function CreateComboPage() {
                 </div>
 
                 {/* STEP CONTENT CONTAINER */}
-                <div className="bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-200 dark:border-slate-800 shadow-[0_40px_80px_-12px_rgba(0,0,0,0.06)] dark:shadow-none min-h-[500px] overflow-hidden transition-all duration-500">
+                <div className="bg-white dark:bg-zinc-900 rounded-[3rem] border border-zinc-200 dark:border-zinc-800 shadow-[0_40px_80px_-12px_rgba(0,0,0,0.06)] dark:shadow-none min-h-[500px] overflow-hidden transition-all duration-500">
                     {step === 1 && <ComboStep1Basics onNext={handleNext} />}
                     {step === 2 && <ComboStep2Components onNext={handleNext} onBack={handleBack} />}
                     {step === 3 && <ComboStep3Swaps onBack={handleBack} />}
                 </div>
 
                 {/* Information Card */}
-                <div className="mt-12 flex items-center gap-4 p-6 rounded-[2rem] bg-slate-900 text-white shadow-2xl">
-                     <div className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center shrink-0">
+                <div className="mt-12 flex items-center gap-4 p-6 rounded-[2rem] bg-zinc-900 text-white shadow-2xl">
+                     <div className="w-12 h-12 rounded-2xl bg-zinc-800 flex items-center justify-center shrink-0">
                           <Info size={24} className="text-orange-500" />
                      </div>
                      <div className="flex-1">
                           <p className="text-xs font-black uppercase tracking-widest text-orange-500 mb-1">Operational Tip</p>
-                          <p className="text-sm font-medium text-slate-300">Your combo Deal will be marked as "Active" immediately after publishing. You can toggle availability anytime from the Menu Manager.</p>
+                          <p className="text-sm font-medium text-zinc-300">Your combo Deal will be marked as "Active" immediately after publishing. You can toggle availability anytime from the Menu Manager.</p>
                      </div>
                 </div>
             </div>
 
             {/* FIXED FOOTER */}
             <div className="fixed -bottom-5 left-0 md:left-[265px] right-0 z-50 flex justify-center p-4 pointer-events-none transition-all duration-500 animate-in slide-in-from-bottom-full">
-                <div className="w-full max-w-[950px] p-6 rounded-t-[2.5rem] bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-b-0 border-slate-200 dark:border-slate-800 pointer-events-auto shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.05)] transition-all">
+                <div className="w-full max-w-[950px] p-6 rounded-t-[2.5rem] bg-white/80 dark:bg-zinc-900/80 backdrop-blur-2xl border border-b-0 border-zinc-200 dark:border-zinc-800 pointer-events-auto shadow-[0_-20px_50px_-12px_rgba(0,0,0,0.05)] transition-all">
                     <div className="flex items-center justify-between gap-6">
                         <div className="flex-1">
                             <button 
                                 onClick={handleBack}
                                 disabled={store.isSubmitting}
-                                className="h-14 px-8 rounded-2xl font-black uppercase tracking-widest text-[10px] text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all flex items-center gap-3 disabled:opacity-30 active:scale-95"
+                                className="h-14 px-8 rounded-2xl font-black uppercase tracking-widest text-[10px] text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all flex items-center gap-3 disabled:opacity-30 active:scale-95"
                             >
                                 <ArrowLeft size={16} strokeWidth={3} /> Previous Step
                             </button>
@@ -274,8 +274,8 @@ export default function CreateComboPage() {
 
                         <div className="flex-none flex items-center gap-8">
                             <div className="hidden md:flex flex-col items-end">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Deployment Module</span>
-                                <span className="text-xs font-black text-slate-900 dark:text-white uppercase">Phase {step} of 3</span>
+                                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mb-1">Deployment Module</span>
+                                <span className="text-xs font-black text-zinc-900 dark:text-white uppercase">Phase {step} of 3</span>
                             </div>
 
                             <button 
@@ -284,7 +284,7 @@ export default function CreateComboPage() {
                                 className={`h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 flex items-center justify-center gap-3 shadow-2xl ${
                                     step === 3 
                                         ? 'bg-orange-500 text-white shadow-orange-500/20' 
-                                        : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
+                                        : 'bg-zinc-900 dark:bg-white text-white dark:text-zinc-900'
                                 }`}
                             >
                                 {store.isSubmitting ? (

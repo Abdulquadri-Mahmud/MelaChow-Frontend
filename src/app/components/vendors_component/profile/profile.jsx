@@ -65,17 +65,17 @@ const uploadToCloudinary = async (file) => {
 const Section = ({ title, icon: Icon, children, isOpen, onToggle, loading }) => (
   <motion.div
     initial={false}
-    className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 overflow-hidden rounded-md"
+    className="bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-800 overflow-hidden rounded-md"
   >
     <button
       onClick={onToggle}
-      className="w-full flex items-center justify-between p-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
+      className="w-full flex items-center justify-between p-4 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
     >
       <div className="flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-md bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-600 dark:text-orange-400">
           <Icon size={16} />
         </div>
-        <h3 className="font-black text-slate-900 dark:text-white text-base tracking-tight uppercase leading-none">{title}</h3>
+        <h3 className="font-black text-zinc-900 dark:text-white text-base tracking-tight uppercase leading-none">{title}</h3>
       </div>
       <div className={`text-gray-400 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}>
         <ChevronDown size={20} />
@@ -90,7 +90,7 @@ const Section = ({ title, icon: Icon, children, isOpen, onToggle, loading }) => 
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
         >
-          <div className="p-4 pt-0 border-t border-slate-50 dark:border-slate-800/50">
+          <div className="p-4 pt-0 border-t border-zinc-50 dark:border-zinc-800/50">
             {children}
           </div>
         </motion.div>
@@ -101,12 +101,12 @@ const Section = ({ title, icon: Icon, children, isOpen, onToggle, loading }) => 
 
 const InputGroup = ({ label, icon: Icon, ...props }) => (
   <div className="space-y-2">
-    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+    <label className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest flex items-center gap-2">
       {Icon && <Icon size={12} />} {label}
     </label>
     <div className="relative group">
       <input
-        className={`w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-xs font-bold uppercase tracking-tight rounded-md focus:ring-1 focus:ring-orange-600 focus:border-orange-600 block p-3 transition-all outline-none ${props.disabled ? 'opacity-60 cursor-not-allowed' : 'hover:border-slate-300 dark:hover:border-slate-700'}`}
+        className={`w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white text-xs font-bold uppercase tracking-tight rounded-md focus:ring-1 focus:ring-orange-600 focus:border-orange-600 block p-3 transition-all outline-none ${props.disabled ? 'opacity-60 cursor-not-allowed' : 'hover:border-zinc-300 dark:hover:border-zinc-700'}`}
         {...props}
       />
     </div>
@@ -297,7 +297,7 @@ export default function VendorProfilePage({ vendor }) {
     <div className="max-w-7xl mx-auto space-y-4">
 
       {/* Hero Banner */}
-      <div className="relative rounded-md overflow-hidden bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-800 group">
+      <div className="relative rounded-md overflow-hidden bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-800 group">
         <div className="h-40 w-full relative overflow-hidden">
           {/* Background Image (Blurred Logo/Cover) */}
           <div className="absolute inset-0 bg-gray-900">
@@ -317,10 +317,10 @@ export default function VendorProfilePage({ vendor }) {
         </div>
         <div className="px-6 pb-6 flex flex-col md:flex-row gap-5 -mt-10 relative z-10">
           <div className="relative group">
-            <div className="w-24 h-24 rounded-md border-4 border-white dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-800">
+            <div className="w-24 h-24 rounded-md border-4 border-white dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-800">
               <img src={logo || "/placeholder.jpg"} alt="Logo" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
             </div>
-            <label className="absolute bottom-1 right-1 bg-slate-900 dark:bg-white text-white dark:text-slate-900 p-1.5 rounded-md cursor-pointer hover:bg-orange-600 hover:text-white transition-colors">
+            <label className="absolute bottom-1 right-1 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 p-1.5 rounded-md cursor-pointer hover:bg-orange-600 hover:text-white transition-colors">
               <Camera size={14} />
               <input type="file" className="hidden" onChange={handleLogoChange} accept="image/*" />
             </label>
@@ -340,21 +340,21 @@ export default function VendorProfilePage({ vendor }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-6 mt-5 pt-5 border-t border-slate-100 dark:border-slate-800/50">
+            <div className="flex items-center gap-6 mt-5 pt-5 border-t border-zinc-100 dark:border-zinc-800/50">
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Total Sales</p>
-                <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight">₦{vendor.totalSales?.toLocaleString() ?? "0"}</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1.5">Total Sales</p>
+                <p className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">₦{vendor.totalSales?.toLocaleString() ?? "0"}</p>
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Rating</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1.5">Rating</p>
                 <div className="flex items-center gap-1">
-                  <span className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{vendor.ratings?.toFixed(1) ?? "New"}</span>
+                  <span className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">{vendor.ratings?.toFixed(1) ?? "New"}</span>
                   <span className="text-orange-600">★</span>
                 </div>
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Joined</p>
-                <p className="text-sm font-black text-slate-900 dark:text-white tracking-tight">{vendor.createdAt ? new Date(vendor.createdAt).toLocaleDateString() : 'N/A'}</p>
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1.5">Joined</p>
+                <p className="text-sm font-black text-zinc-900 dark:text-white tracking-tight">{vendor.createdAt ? new Date(vendor.createdAt).toLocaleDateString() : 'N/A'}</p>
               </div>
             </div>
           </div>
@@ -379,7 +379,7 @@ export default function VendorProfilePage({ vendor }) {
                 <FileText size={12} /> Description
               </label>
               <textarea
-                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-[11px] font-bold uppercase tracking-tight rounded-md focus:ring-1 focus:ring-orange-600 focus:border-orange-600 block p-3 transition-all outline-none h-24 resize-none hover:border-slate-300 dark:hover:border-slate-700"
+                className="w-full bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white text-[11px] font-bold uppercase tracking-tight rounded-md focus:ring-1 focus:ring-orange-600 focus:border-orange-600 block p-3 transition-all outline-none h-24 resize-none hover:border-zinc-300 dark:hover:border-zinc-700"
                 value={basicInfo.storeDescription}
                 onChange={(e) => setBasicInfo({ ...basicInfo, storeDescription: e.target.value })}
               />
@@ -425,7 +425,7 @@ export default function VendorProfilePage({ vendor }) {
           <div className="space-y-6">
             <div className="flex flex-wrap gap-2 mb-6">
               {cuisineTypes.length === 0 && (
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center px-2">No categories selected...</p>
+                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest flex items-center px-2">No categories selected...</p>
               )}
               {cuisineTypes.map((cuisine) => (
                 <div key={cuisine} className="flex items-center gap-2 bg-orange-600 text-white px-3 py-1.5 rounded-md font-black uppercase text-[10px] tracking-widest">
@@ -454,13 +454,13 @@ export default function VendorProfilePage({ vendor }) {
                         className={`p-4 border rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-center flex flex-col items-center gap-2 ${
                           isSelected
                             ? "bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-600/20"
-                            : "bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-orange-500"
+                            : "bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-500"
                         } ${!group.isActive ? "opacity-50 grayscale" : ""}`}
                       >
                         {group.image && <img src={group.image} className="w-12 h-12 p-1 object-contain bg-white rounded-full" />}
                         <span className="block">{group.name}</span>
                         {group.description && (
-                          <p className={`text-[8px] font-medium normal-case tracking-normal opacity-70 line-clamp-2 px-2 ${isSelected ? "text-orange-50" : "text-slate-400"}`}>
+                          <p className={`text-[8px] font-medium normal-case tracking-normal opacity-70 line-clamp-2 px-2 ${isSelected ? "text-orange-50" : "text-zinc-400"}`}>
                             {group.description}
                           </p>
                         )}
@@ -488,18 +488,18 @@ export default function VendorProfilePage({ vendor }) {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => (
-              <div key={day} className="border border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/40 p-4 rounded-xl space-y-3">
+              <div key={day} className="border border-zinc-100 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/40 p-4 rounded-xl space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="capitalize font-black text-[11px] uppercase tracking-wider text-slate-900 dark:text-white">{day}</span>
+                  <span className="capitalize font-black text-[11px] uppercase tracking-wider text-zinc-900 dark:text-white">{day}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1 d-block">Open</label>
-                    <input type="time" value={openingHours[day]?.open || ""} onChange={(e) => handleOpeningHoursChange(day, "open", e.target.value)} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-md p-2 text-xs outline-none focus:border-orange-500 transition-all font-bold" />
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1 d-block">Open</label>
+                    <input type="time" value={openingHours[day]?.open || ""} onChange={(e) => handleOpeningHoursChange(day, "open", e.target.value)} className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-md p-2 text-xs outline-none focus:border-orange-500 transition-all font-bold" />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1 d-block">Close</label>
-                    <input type="time" value={openingHours[day]?.close || ""} onChange={(e) => handleOpeningHoursChange(day, "close", e.target.value)} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-md p-2 text-xs outline-none focus:border-orange-500 transition-all font-bold" />
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest leading-none mb-1 d-block">Close</label>
+                    <input type="time" value={openingHours[day]?.close || ""} onChange={(e) => handleOpeningHoursChange(day, "close", e.target.value)} className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-white rounded-md p-2 text-xs outline-none focus:border-orange-500 transition-all font-bold" />
                   </div>
                 </div>
               </div>
@@ -520,12 +520,12 @@ export default function VendorProfilePage({ vendor }) {
           isOpen={openSections.payoutDetails}
           onToggle={() => toggleSection('payoutDetails')}
         >
-          <div className="p-8 flex flex-col items-center justify-center text-center bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 rounded-xl">
+          <div className="p-8 flex flex-col items-center justify-center text-center bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-100 dark:border-zinc-800 rounded-xl">
             <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center text-orange-500 mb-4">
               <CreditCard size={32} />
             </div>
-            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">High Security Notice</h3>
-            <p className="text-[10px] text-slate-500 max-w-sm font-black uppercase tracking-widest mb-6 leading-relaxed">
+            <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-tight mb-2">High Security Notice</h3>
+            <p className="text-[10px] text-zinc-500 max-w-sm font-black uppercase tracking-widest mb-6 leading-relaxed">
               Financial details have been migrated to the secure Paystack verification system. Direct profile overrides are disabled to protect your revenue.
             </p>
             <button 
@@ -539,7 +539,7 @@ export default function VendorProfilePage({ vendor }) {
 
         {/* PWA Install Section */}
         <div className="mt-8 mb-10">
-          <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-4 text-center">Take your store on the go</p>
+          <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] mb-4 text-center">Take your store on the go</p>
           <PermanentInstallButton />
         </div>
 

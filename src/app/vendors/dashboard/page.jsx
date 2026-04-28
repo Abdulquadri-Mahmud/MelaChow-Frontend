@@ -178,7 +178,7 @@ export default function VendorDashboard() {
       .slice(0, 5) // Recent 5
       .map(order => {
         // Determine status color
-        let statusConfig = { status: order.orderStatus, color: "text-slate-500", bgColor: "bg-slate-100", barColor: "bg-slate-300", progress: 0 };
+        let statusConfig = { status: order.orderStatus, color: "text-zinc-500", bgColor: "bg-zinc-100", barColor: "bg-zinc-300", progress: 0 };
 
         switch (order.orderStatus) {
           case 'pending':
@@ -235,7 +235,7 @@ export default function VendorDashboard() {
     // 5. Customer Sentiment Calculation
     const sentimentPercentage = rating > 0 ? Math.round((rating / 5) * 100) : 0;
     let sentimentLabel = "No Reviews Yet";
-    let sentimentColor = "border-slate-300";
+    let sentimentColor = "border-zinc-300";
 
     if (sentimentPercentage >= 90) {
       sentimentLabel = "Highly Positive";
@@ -290,11 +290,11 @@ export default function VendorDashboard() {
   } = calculations || {
     walletBalance: 0, totalSales: 0, totalOrders: 0, rating: 0, ratingCount: 0,
     isVerified: false, chartData: [], topItems: [], recentOrders: [],
-    sentimentPercentage: 0, sentimentLabel: "No Reviews Yet", sentimentColor: "border-slate-300"
+    sentimentPercentage: 0, sentimentLabel: "No Reviews Yet", sentimentColor: "border-zinc-300"
   };
 
   return (
-    <div className="font-sans text-slate-900 dark:text-white min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="font-sans text-zinc-900 dark:text-white min-h-screen bg-zinc-50 dark:bg-zinc-900">
 
       <div className="space-y-4">
         
@@ -308,9 +308,9 @@ export default function VendorDashboard() {
             trend="+12.4%" // Keep mock trend for now or calculate if history available
             sub="All time revenue"
           />
-          <div className="bg-white dark:bg-slate-800 p-2.5 rounded-md border border-slate-200 dark:border-slate-700 flex flex-col gap-1">
+          <div className="bg-white dark:bg-zinc-800 p-2.5 rounded-md border border-zinc-200 dark:border-zinc-700 flex flex-col gap-1">
             <div className="flex justify-between items-start">
-              <p className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-wider">Total Orders</p>
+              <p className="text-zinc-500 dark:text-zinc-400 text-[10px] font-black uppercase tracking-wider">Total Orders</p>
               <span className="text-blue-500 text-[9px] font-black uppercase tracking-widest bg-blue-500/10 px-1.5 py-0.5 rounded">High Volume</span>
             </div>
             <h3 className="text-xl font-black tracking-tight">{totalOrders}</h3>
@@ -320,9 +320,9 @@ export default function VendorDashboard() {
               <div className="h-0.5 flex-1 bg-orange-500/20 rounded-full"></div>
             </div>
           </div>
-          <div className="bg-white dark:bg-slate-800 p-2.5 rounded-md border border-slate-200 dark:border-slate-700 flex flex-col gap-1">
+          <div className="bg-white dark:bg-zinc-800 p-2.5 rounded-md border border-zinc-200 dark:border-zinc-700 flex flex-col gap-1">
             <div className="flex justify-between items-start">
-              <p className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-wider">Rating</p>
+              <p className="text-zinc-500 dark:text-zinc-400 text-[10px] font-black uppercase tracking-wider">Rating</p>
               <span className="text-orange-500 text-[9px] font-black uppercase tracking-widest bg-orange-500/10 px-1.5 py-0.5 rounded">
                 {isVerified ? "Verified" : "Unverified"}
               </span>
@@ -330,28 +330,28 @@ export default function VendorDashboard() {
             <h3 className="text-xl font-black tracking-tight">{rating.toFixed(1)}</h3>
             <div className="flex gap-0.5 mt-0.5 text-orange-500">
               {[1, 2, 3, 4, 5].map((s) => (
-                <Star key={s} size={12} fill={s <= Math.round(rating) ? "currentColor" : "none"} className={s <= Math.round(rating) ? "text-orange-500" : "text-slate-300 dark:text-slate-700"} />
+                <Star key={s} size={12} fill={s <= Math.round(rating) ? "currentColor" : "none"} className={s <= Math.round(rating) ? "text-orange-500" : "text-zinc-300 dark:text-zinc-700"} />
               ))}
             </div>
           </div>
         </div>
 
         {/* REVENUE COMMAND */}
-        <div className="relative overflow-hidden bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 p-3 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="relative overflow-hidden bg-white dark:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 p-3 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-orange-500/10 to-transparent opacity-50 pointer-events-none"></div>
           <div className="z-10 w-full md:w-auto">
-            <h2 className="text-lg font-black mb-0.5 text-slate-900 dark:text-white uppercase tracking-tight">Revenue Hub</h2>
-            <p className="text-slate-500 dark:text-slate-400 max-w-md text-[10px] font-bold uppercase tracking-widest">Automatic Daily Payouts @ 8:00 PM</p>
+            <h2 className="text-lg font-black mb-0.5 text-zinc-900 dark:text-white uppercase tracking-tight">Revenue Hub</h2>
+            <p className="text-zinc-500 dark:text-zinc-400 max-w-md text-[10px] font-bold uppercase tracking-widest">Automatic Daily Payouts @ 8:00 PM</p>
 
             <div className="flex items-center gap-3 mt-4">
               <div>
-                <p className="text-[10px] uppercase text-slate-500 font-black tracking-widest mb-0.5">Available Balance</p>
+                <p className="text-[10px] uppercase text-zinc-500 font-black tracking-widest mb-0.5">Available Balance</p>
                 <p className="text-2xl font-black text-orange-500">₦{liveWalletBalance.toLocaleString()}</p>
               </div>
-              <div className="h-8 w-px bg-slate-200 dark:bg-white/10"></div>
+              <div className="h-8 w-px bg-zinc-200 dark:bg-white/10"></div>
               <div>
-                <p className="text-[10px] uppercase text-slate-500 font-black tracking-widest mb-0.5">Pending</p>
-                <p className="text-2xl font-black text-slate-400">₦{livePendingBalance.toLocaleString()}</p>
+                <p className="text-[10px] uppercase text-zinc-500 font-black tracking-widest mb-0.5">Pending</p>
+                <p className="text-2xl font-black text-zinc-400">₦{livePendingBalance.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -363,7 +363,7 @@ export default function VendorDashboard() {
               <CreditCard size={14} />
               {payoutDetails?.payoutEnabled ? "Bank Settings" : "Link Bank Account"}
             </button>
-            <Link href="/vendors/transactions" className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-white font-black uppercase text-[10px] tracking-widest h-10 px-6 rounded-md hover:bg-slate-200 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+            <Link href="/vendors/transactions" className="w-full bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 text-zinc-700 dark:text-white font-black uppercase text-[10px] tracking-widest h-10 px-6 rounded-md hover:bg-zinc-200 dark:hover:bg-white/10 transition-all flex items-center justify-center gap-2">
               History
             </Link>
           </div>
@@ -373,9 +373,9 @@ export default function VendorDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
 
           {/* LEFT: LIVE ORDERS */}
-          <div className="lg:col-span-4 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-[550px]">
-            <div className="p-4 border-b border-slate-200 dark:border-white/5 flex items-center justify-between">
-              <h3 className="font-black uppercase tracking-tight text-xs text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="lg:col-span-4 bg-white dark:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 overflow-hidden flex flex-col h-[550px]">
+            <div className="p-4 border-b border-zinc-200 dark:border-white/5 flex items-center justify-between">
+              <h3 className="font-black uppercase tracking-tight text-xs text-zinc-900 dark:text-white flex items-center gap-2">
                 <span className="size-1.5 bg-orange-500 rounded-full animate-pulse"></span>
                 Live Order Flow
               </h3>
@@ -398,7 +398,7 @@ export default function VendorDashboard() {
                   />
                 ))
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                <div className="flex flex-col items-center justify-center h-full text-zinc-400">
                   <Package size={40} className="mb-2 opacity-50" />
                   <p className="text-sm">No recent orders</p>
                 </div>
@@ -410,16 +410,16 @@ export default function VendorDashboard() {
           <div className="lg:col-span-8 flex flex-col gap-8">
 
             {/* CHART */}
-            <div className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 md:p-4 p-3 flex flex-col h-[320px]">
+            <div className="bg-white dark:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 md:p-4 p-3 flex flex-col h-[320px]">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="font-black text-xs uppercase tracking-tight text-slate-900 dark:text-white">Sales Performance</h3>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Last 7 Days trend</p>
+                  <h3 className="font-black text-xs uppercase tracking-tight text-zinc-900 dark:text-white">Sales Performance</h3>
+                  <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-0.5">Last 7 Days trend</p>
                 </div>
-                <div className="flex bg-slate-100 dark:bg-white/5 rounded-md p-0.5">
+                <div className="flex bg-zinc-100 dark:bg-white/5 rounded-md p-0.5">
                   <button className="px-3 py-1 text-[10px] font-black uppercase rounded bg-white dark:bg-white/10 text-orange-500">7D</button>
-                  <button className="px-3 py-1 text-[10px] font-black uppercase rounded text-slate-500 dark:text-slate-400">1M</button>
-                  <button className="px-3 py-1 text-[10px] font-black uppercase rounded text-slate-500 dark:text-slate-400">3M</button>
+                  <button className="px-3 py-1 text-[10px] font-black uppercase rounded text-zinc-500 dark:text-zinc-400">1M</button>
+                  <button className="px-3 py-1 text-[10px] font-black uppercase rounded text-zinc-500 dark:text-zinc-400">3M</button>
                 </div>
               </div>
               <div className="flex-1 w-full h-full">
@@ -452,8 +452,8 @@ export default function VendorDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 
               {/* TOP ITEMS */}
-              <div className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 p-3">
-                <h3 className="font-black uppercase tracking-tight text-[10px] text-slate-500 mb-3">Top Performance</h3>
+              <div className="bg-white dark:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 p-3">
+                <h3 className="font-black uppercase tracking-tight text-[10px] text-zinc-500 mb-3">Top Performance</h3>
                 <div className="space-y-2.5">
                   {topItems.length > 0 ? topItems.map((item, i) => (
                     <TopItem
@@ -464,20 +464,20 @@ export default function VendorDashboard() {
                       image={item.image}
                     />
                   )) : (
-                    <p className="text-xs text-slate-400">No sales data yet.</p>
+                    <p className="text-xs text-zinc-400">No sales data yet.</p>
                   )}
                 </div>
               </div>
 
               {/* SENTIMENT */}
-              <div className="bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700 p-3 flex flex-col">
-                <h3 className="font-black uppercase tracking-tight text-[10px] text-slate-500 mb-3">Sentiment</h3>
+              <div className="bg-white dark:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 p-3 flex flex-col">
+                <h3 className="font-black uppercase tracking-tight text-[10px] text-zinc-500 mb-3">Sentiment</h3>
                 <div className="flex-1 flex flex-col justify-center items-center text-center">
                   <div className={`size-14 rounded-full border-2 ${sentimentColor} flex items-center justify-center mb-2`}>
-                    <span className="text-sm font-black text-slate-900 dark:text-white">{sentimentPercentage}%</span>
+                    <span className="text-sm font-black text-zinc-900 dark:text-white">{sentimentPercentage}%</span>
                   </div>
-                  <p className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-tight">{sentimentLabel}</p>
-                  <p className="text-[10px] text-slate-500 mt-1 max-w-[150px]">
+                  <p className="font-black text-xs text-zinc-900 dark:text-white uppercase tracking-tight">{sentimentLabel}</p>
+                  <p className="text-[10px] text-zinc-500 mt-1 max-w-[150px]">
                     {ratingCount > 0
                       ? `Based on ${ratingCount} review${ratingCount !== 1 ? 's' : ''}.`
                       : "No reviews yet."
@@ -515,47 +515,47 @@ export default function VendorDashboard() {
 // --- SUB COMPONENTS ---
 
 const MetricCard = ({ title, value, trend, sub }) => (
-  <div className="bg-white dark:bg-slate-800 p-2.5 rounded-md border border-slate-200 dark:border-white/5 flex flex-col gap-1 transition-all">
+  <div className="bg-white dark:bg-zinc-800 p-2.5 rounded-md border border-zinc-200 dark:border-white/5 flex flex-col gap-1 transition-all">
     <div className="flex justify-between items-start">
-      <p className="text-slate-500 dark:text-slate-400 text-[10px] uppercase font-black tracking-widest leading-none">{title}</p>
+      <p className="text-zinc-500 dark:text-zinc-400 text-[10px] uppercase font-black tracking-widest leading-none">{title}</p>
       <span className="text-orange-500 text-[9px] font-black bg-orange-500/10 px-1.5 py-0.5 rounded leading-none">{trend}</span>
     </div>
-    <h3 className="text-xl font-black tracking-tighter text-slate-900 dark:text-white leading-tight">{value}</h3>
-    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter leading-none opacity-60">{sub}</p>
+    <h3 className="text-xl font-black tracking-tighter text-zinc-900 dark:text-white leading-tight">{value}</h3>
+    <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-tighter leading-none opacity-60">{sub}</p>
   </div>
 );
 
 const OrderCard = ({ id, name, items, status, progress, color, bgColor, barColor, note, opacity = "" }) => (
-  <div className={`p-2.5 rounded-md bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 transition-all hover:border-orange-500/20 ${opacity}`}>
+  <div className={`p-2.5 rounded-md bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/5 transition-all hover:border-orange-500/20 ${opacity}`}>
     <div className="flex justify-between items-start mb-2">
       <div>
-        <p className="font-black text-xs text-slate-900 dark:text-white leading-none">#{id}</p>
-        <p className="text-[11px] font-medium text-slate-500 mt-1">{name} • {items}</p>
+        <p className="font-black text-xs text-zinc-900 dark:text-white leading-none">#{id}</p>
+        <p className="text-[11px] font-medium text-zinc-500 mt-1">{name} • {items}</p>
       </div>
       <span className={`text-[9px] font-black ${bgColor} ${color} px-1.5 py-0.5 rounded uppercase tracking-tighter`}>{status}</span>
     </div>
     <div className="space-y-1.5">
-      <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-slate-400 leading-none">
+      <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-zinc-400 leading-none">
         <span>Status</span>
         <span>{progress}%</span>
       </div>
-      <div className="h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+      <div className="h-1 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
         <div className={`h-full ${barColor} transition-all duration-500`} style={{ width: `${progress}%` }}></div>
       </div>
-      <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-tight">{note}</p>
+      <p className="text-[9px] font-semibold text-zinc-400 uppercase tracking-tight">{note}</p>
     </div>
   </div>
 );
 
 const TopItem = ({ name, sold, percent, image }) => (
   <div className="flex items-center gap-3 group">
-    <div className="size-8 rounded-md bg-slate-200 dark:bg-slate-700 bg-cover bg-center" style={{ backgroundImage: `url('${image}')` }}></div>
+    <div className="size-8 rounded-md bg-zinc-200 dark:bg-zinc-700 bg-cover bg-center" style={{ backgroundImage: `url('${image}')` }}></div>
     <div className="flex-1">
       <div className="flex justify-between mb-1 items-end">
-        <span className="text-[11px] font-black tracking-tight text-slate-800 dark:text-slate-200 uppercase leading-none">{name}</span>
-        <span className="text-[10px] font-medium text-slate-500 leading-none">{sold} sold</span>
+        <span className="text-[11px] font-black tracking-tight text-zinc-800 dark:text-zinc-200 uppercase leading-none">{name}</span>
+        <span className="text-[10px] font-medium text-zinc-500 leading-none">{sold} sold</span>
       </div>
-      <div className="h-1.5 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+      <div className="h-1.5 w-full bg-zinc-100 dark:bg-white/5 rounded-full overflow-hidden">
         <div 
           className="h-full bg-orange-500 transition-all duration-1000" 
           style={{ width: `${percent.replace('w-[', '').replace('%]', '')}%` }}

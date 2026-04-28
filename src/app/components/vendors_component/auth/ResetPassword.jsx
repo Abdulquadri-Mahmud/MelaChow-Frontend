@@ -94,7 +94,7 @@ export default function VendorResetPassword() {
     };
 
     return (
-        <div className="h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden p-4">
+        <div className="h-screen w-full bg-white dark:bg-zinc-900 flex items-center justify-center overflow-hidden p-4">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -105,10 +105,10 @@ export default function VendorResetPassword() {
                     <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
                         <Lock size={36} />
                     </div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-2">
+                    <h1 className="text-3xl font-black italic uppercase tracking-tight text-zinc-900 dark:text-white mb-2">
                         Vendor <span className="text-orange-600">Reset</span>
                     </h1>
-                    <p className="text-xs font-semibold text-slate-500">
+                    <p className="text-xs font-semibold text-zinc-500">
                         Enter OTP and new password for {email}
                     </p>
                 </div>
@@ -125,7 +125,7 @@ export default function VendorResetPassword() {
                             onChange={(e) => handleChange(e.target.value, index)}
                             onKeyDown={(e) => handleKeyDown(e, index)}
                             onPaste={index === 0 ? handlePaste : undefined}
-                            className="w-12 h-12 text-center bg-slate-50 dark:bg-slate-800 rounded-xl text-2xl font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                            className="w-12 h-12 text-center bg-zinc-50 dark:bg-zinc-800 rounded-xl text-2xl font-bold text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                         />
                     ))}
                 </div>
@@ -136,7 +136,7 @@ export default function VendorResetPassword() {
                         placeholder="New Password (min 8 chars)"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                        className="w-full bg-zinc-50 dark:bg-zinc-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all"
                     />
                 </div>
 

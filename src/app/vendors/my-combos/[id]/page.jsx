@@ -148,7 +148,7 @@ export default function ComboDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center">
         <Loader2 className="animate-spin text-orange-500" />
       </div>
     );
@@ -156,11 +156,11 @@ export default function ComboDetailPage() {
 
   if (isError || !combo) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-3">
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center p-3">
         <div className="text-center space-y-4">
           <AlertTriangle size={48} className="mx-auto text-rose-500" />
-          <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Combo Not Found</h2>
-          <button onClick={() => router.push('/vendors/my-combos')} className="px-6 h-10 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-lg">Back to List</button>
+          <h2 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Combo Not Found</h2>
+          <button onClick={() => router.push('/vendors/my-combos')} className="px-6 h-10 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-black uppercase tracking-widest rounded-lg">Back to List</button>
         </div>
       </div>
     );
@@ -169,30 +169,30 @@ export default function ComboDetailPage() {
   // --- RENDERING WIZARD VIEW ---
   if (isEditing) {
     return (
-      <div className="min-h-screen dark:p-3 p-0 bg-slate-50 dark:bg-slate-950 pb-32 transition-colors">
-        <div className="lg:max-w-6xl mx-auto">
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors flex flex-col">
+        <div className="lg:max-w-6xl mx-auto w-full flex-1 p-4 lg:p-0">
           
           {/* Header Area */}
-          <div className="mb-6 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
+          <div className="mb-6 bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-start justify-between gap-4">
             <div>
               <div className="flex gap-3 items-center mb-2">
                   <button 
                     onClick={stopEditing}
-                    className="h-9 w-9 flex items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-orange-600 transition-all"
+                    className="h-9 w-9 flex items-center justify-center rounded-lg bg-zinc-50 dark:bg-zinc-800 text-zinc-400 hover:text-orange-600 transition-all"
                   >
                     <ArrowLeft size={16} strokeWidth={3} />
                   </button>
-                  <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+                  <h1 className="text-2xl md:text-3xl font-black text-zinc-900 dark:text-white tracking-tight uppercase">
                     Edit Bundle
                   </h1>
               </div>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 max-w-2xl">
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400 max-w-2xl">
                   Updating <span className="font-bold underline">{combo.name}</span>. Changes sync instantly.
               </p>
             </div>
 
             {store.isDirty && (
-              <div className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-2">
+              <div className="shrink-0 text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 px-3 py-1.5 rounded-lg flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)]" /> 
                 Draft Ready
               </div>
@@ -202,7 +202,7 @@ export default function ComboDetailPage() {
           {/* Progress Bar */}
           <div className="mb-10 px-4 md:px-12 max-w-3xl mx-auto">
             <div className="flex items-center justify-between relative">
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[2px] bg-slate-200 dark:bg-slate-800 rounded-full z-0" />
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[2px] bg-zinc-200 dark:bg-zinc-800 rounded-full z-0" />
               <div
                 className="absolute left-0 top-1/2 -translate-y-1/2 h-[2px] bg-orange-600 rounded-full z-0 transition-all duration-700 ease-out"
                 style={{ width: `${((store.currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
@@ -221,8 +221,8 @@ export default function ComboDetailPage() {
                   >
                     <div className={`w-8 h-8 md:w-9 md:h-9 rounded-lg flex items-center justify-center font-black text-[10px] md:text-sm transition-all duration-500 border ${
                       isPast ? "bg-orange-600 border-orange-600 text-white" :
-                      isCurrent ? "bg-white dark:bg-slate-900 border-orange-600 text-orange-600 dark:text-orange-500" :
-                      "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500"
+                      isCurrent ? "bg-white dark:bg-zinc-900 border-orange-600 text-orange-600 dark:text-orange-500" :
+                      "bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500"
                     }`}>
                       {isPast ? "✓" : step.id}
                     </div>
@@ -234,7 +234,7 @@ export default function ComboDetailPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Step Content */}
-            <div className={`${store.currentStep === 5 ? 'lg:col-span-12' : 'lg:col-span-8'} bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-3 min-h-[450px]`}>
+            <div className={`${store.currentStep === 5 ? 'lg:col-span-12' : 'lg:col-span-8'} bg-white dark:bg-zinc-900/50 backdrop-blur-xl rounded-3xl border border-zinc-100 dark:border-white/5 p-4 lg:p-6 min-h-[500px] shadow-xl shadow-black/5`}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={store.currentStep}
@@ -256,17 +256,17 @@ export default function ComboDetailPage() {
             {store.currentStep < 5 && (
               <div className="lg:col-span-4 space-y-6 sticky top-6">
                  {/* Live Preview Card */}
-                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                 <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-4">
+                    <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                        <LayoutGrid size={12} /> Sync Preview
                     </h3>
-                    <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800">
+                    <div className="relative aspect-[16/10] rounded-xl overflow-hidden bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800">
                       {store.image_url ? (
                         <img src={store.image_url} alt="" className="w-full h-full object-cover grayscale-[0.1]" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-300 uppercase text-[9px] font-black">Missing Asset</div>
+                        <div className="w-full h-full flex items-center justify-center text-zinc-300 uppercase text-[9px] font-black">Missing Asset</div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80" />
                       <div className="absolute bottom-3 left-3 right-3">
                         <h4 className="text-white font-black text-sm uppercase truncate leading-none">{store.name || 'UPDATING...'}</h4>
                         <p className="text-[10px] font-black text-orange-500 mt-1 tabular-nums">₦{Number(store.price_naira).toLocaleString()}</p>
@@ -290,14 +290,14 @@ export default function ComboDetailPage() {
           </div>
         </div>
 
-        {/* Footer Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 py-4">
+        {/* STICKY FOOTER */}
+        <div className="sticky bottom-0 z-40 w-full p-4 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 mt-auto">
           <div className="max-w-4xl mx-auto flex items-center justify-between px-6 gap-4">
             <div className="flex-1">
               {store.currentStep > 1 && (
                 <button 
                   onClick={handleBack} 
-                  className="h-12 px-6 flex items-center text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white font-black uppercase tracking-widest gap-2 active:scale-95 text-[10px] transition-all border border-slate-100 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950"
+                  className="h-12 px-6 flex items-center text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white font-black uppercase tracking-widest gap-2 active:scale-95 text-[10px] transition-all border border-zinc-100 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-950"
                 >
                   <ArrowLeft size={16} /> Back
                 </button>
@@ -306,8 +306,8 @@ export default function ComboDetailPage() {
 
             <div className="flex items-center gap-6">
                <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">Step {store.currentStep} of 5</span>
-                  <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest mt-1">{STEPS[store.currentStep-1].short}</span>
+                  <span className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.2em] leading-none">Step {store.currentStep} of 5</span>
+                  <span className="text-[10px] font-black text-zinc-900 dark:text-white uppercase tracking-widest mt-1">{STEPS[store.currentStep-1].short}</span>
                </div>
                
                <button 
@@ -315,7 +315,7 @@ export default function ComboDetailPage() {
                 disabled={store.isSubmitting}
                 className={`h-12 px-8 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 flex items-center gap-3 ${
                   store.currentStep === 5 
-                  ? 'bg-slate-950 dark:bg-white text-white dark:text-slate-950 font-black' 
+                  ? 'bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-black' 
                   : 'bg-orange-600 text-white hover:bg-orange-700'
                 }`}
               >
@@ -336,22 +336,22 @@ export default function ComboDetailPage() {
     : 'No price';
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-3 rounded-md transition-colors">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-3 rounded-md transition-colors">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="mb-6 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 flex-wrap">
+        <div className="mb-6 bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.back()}
-              className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-orange-600 transition-all border border-slate-100 dark:border-slate-800"
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-zinc-50 dark:bg-zinc-800 text-zinc-400 hover:text-orange-600 transition-all border border-zinc-100 dark:border-zinc-800"
             >
               <ArrowLeft size={18} strokeWidth={3} />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+              <h1 className="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">
                 {combo.name}
               </h1>
-              <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
+              <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mt-0.5">
                 Manage your combo bundle
               </p>
             </div>
@@ -367,14 +367,14 @@ export default function ComboDetailPage() {
               Edit Bundle
             </button>
             
-            <div className="w-[1px] h-6 bg-slate-200 dark:bg-slate-800 mx-1" />
+            <div className="w-[1px] h-6 bg-zinc-200 dark:bg-zinc-800 mx-1" />
 
             <button
               onClick={handleToggleAvailability}
               className={`w-10 h-10 flex items-center justify-center rounded-xl border transition-all ${
                 combo.is_available
                   ? 'border-orange-200/50 bg-orange-50/50 text-orange-600'
-                  : 'border-slate-200 bg-slate-100 text-slate-400 font-bold'
+                  : 'border-zinc-200 bg-zinc-100 text-zinc-400 font-bold'
               }`}
               title={combo.is_available ? 'Hide combo' : 'Show combo'}
             >
@@ -382,7 +382,7 @@ export default function ComboDetailPage() {
             </button>
             <button
               onClick={handleArchive}
-              className="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-rose-600 transition-all"
+              className="w-10 h-10 flex items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 dark:bg-zinc-800 text-zinc-400 hover:text-rose-600 transition-all"
               title={combo.is_archived ? 'Restore combo' : 'Archive combo'}
             >
               {combo.is_archived ? <ArchiveRestore size={20} /> : <Archive size={20} />}
@@ -396,13 +396,13 @@ export default function ComboDetailPage() {
           {/* Main Display Area */}
           <div className="lg:col-span-8 space-y-6">
             {/* Visual Header */}
-            <div className="relative aspect-[16/8] rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 group">
+            <div className="relative aspect-[16/8] rounded-3xl overflow-hidden border border-zinc-100 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 group">
               {combo.image_url ? (
                 <img src={combo.image_url} alt={combo.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-8xl">🍱</div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-70" />
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-70" />
               <div className="absolute bottom-6 left-6 right-6">
                 <div className="flex gap-2 items-center mb-3">
                    {dietary && (
@@ -424,24 +424,24 @@ export default function ComboDetailPage() {
             {/* Choice Groups */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between px-2">
-                  <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Add-On Sections ({combo.choice_groups?.length || 0})</h3>
-                  {!combo.choice_groups?.length && <span className="text-[9px] font-bold text-slate-400 uppercase italic">This is a static bundle</span>}
+                  <h3 className="text-[11px] font-black text-zinc-500 uppercase tracking-widest">Add-On Sections ({combo.choice_groups?.length || 0})</h3>
+                  {!combo.choice_groups?.length && <span className="text-[9px] font-bold text-zinc-400 uppercase italic">This is a static bundle</span>}
                 </div>
                 <div className="grid gap-4">
                   {combo.choice_groups?.map((group) => (
-                    <div key={group._id} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden">
-                      <div className="px-5 py-4 bg-slate-50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div key={group._id} className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl overflow-hidden">
+                      <div className="px-5 py-4 bg-zinc-50 dark:bg-zinc-800/40 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
                         <div>
-                          <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{group.name}</h4>
-                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic leading-none">
+                          <h4 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-tight">{group.name}</h4>
+                          <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1 italic leading-none">
                             {group.is_required ? 'Mandatory' : 'Optional'} · Pick up to {group.max_selections}
                           </p>
                         </div>
                       </div>
                       <div className="p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                         {group.options.map((opt) => (
-                          <div key={opt._id} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50/50 dark:bg-slate-800/20 border border-slate-100/50 dark:border-slate-800/50">
-                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase truncate pr-2">{opt.label}</span>
+                          <div key={opt._id} className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50/50 dark:bg-zinc-800/20 border border-zinc-100/50 dark:border-zinc-800/50">
+                            <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase truncate pr-2">{opt.label}</span>
                             {opt.price_modifier_naira > 0 && (
                               <span className="text-[10px] font-black text-orange-600 tabular-nums shrink-0">+₦{opt.price_modifier_naira}</span>
                             )}
@@ -457,31 +457,31 @@ export default function ComboDetailPage() {
           {/* Sidebar Area */}
           <div className="lg:col-span-4 space-y-6">
             {/* Price Detail Card */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-3">
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Base Bundle Price</p>
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl p-3">
+               <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-2 px-1">Base Bundle Price</p>
                <div className="flex items-baseline gap-2 mb-6 px-1">
-                  <span className="text-4xl font-black text-slate-950 dark:text-white tabular-nums">{priceDisplay}</span>
-                  <span className="text-xs font-bold text-slate-400 uppercase italic">Per Serve</span>
+                  <span className="text-4xl font-black text-zinc-950 dark:text-white tabular-nums">{priceDisplay}</span>
+                  <span className="text-xs font-bold text-zinc-400 uppercase italic">Per Serve</span>
                </div>
                
-               <div className="space-y-4 pt-6 border-t border-slate-100 dark:border-slate-800">
+               <div className="space-y-4 pt-6 border-t border-zinc-100 dark:border-zinc-800">
                   <div className="space-y-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">What's Inside</p>
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-1">What's Inside</p>
                     <div className="flex flex-wrap gap-1.5 px-1">
                       {combo.contents?.map(c => (
                         <span key={c} className="px-3 py-1.5 bg-orange-500/5 dark:bg-orange-600/10 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-900/30 text-[10px] font-black uppercase tracking-tight rounded-lg">
                           {c}
                         </span>
                       ))}
-                      {!combo.contents?.length && <span className="text-[10px] font-bold text-slate-300 uppercase italic">Default set</span>}
+                      {!combo.contents?.length && <span className="text-[10px] font-bold text-zinc-300 uppercase italic">Default set</span>}
                     </div>
                   </div>
 
                   <div className="space-y-3 pt-2">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Search Tags</p>
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest px-1">Search Tags</p>
                     <div className="flex flex-wrap gap-1.5 px-1">
                       {combo.tags?.map(t => (
-                        <span key={t} className="px-2.5 py-1 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md text-[9px] font-bold uppercase tracking-widest border border-slate-200 dark:border-slate-700">
+                        <span key={t} className="px-2.5 py-1 bg-zinc-50 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-md text-[9px] font-bold uppercase tracking-widest border border-zinc-200 dark:border-zinc-700">
                           #{t}
                         </span>
                       ))}
@@ -492,14 +492,14 @@ export default function ComboDetailPage() {
 
             {/* Quick Status Stats */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 text-center">
-                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 text-center">
+                 <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Status</p>
                  <p className={`text-[11px] font-black uppercase ${combo.is_available ? 'text-green-600' : 'text-amber-500'}`}>
                     {combo.is_available ? 'Live' : 'Hidden'}
                  </p>
               </div>
-              <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 text-center">
-                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Visibility</p>
+              <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 text-center">
+                 <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Visibility</p>
                  <p className={`text-[11px] font-black uppercase ${combo.is_archived ? 'text-rose-600' : 'text-sky-600'}`}>
                     {combo.is_archived ? 'Archived' : 'Public'}
                  </p>

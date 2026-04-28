@@ -105,17 +105,17 @@ export default function VendorOrdersPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">
+      <div className="flex h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-[3px] border-orange-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Syncing Transaction Logs...</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Syncing Transaction Logs...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 p-2 rounded-md dark:bg-slate-950 font-sans">
+    <div className="min-h-screen bg-zinc-100 p-2 rounded-md dark:bg-zinc-950 font-sans">
       <div className="max-w-7xl mx-auto space-y-4">
 
         {/* Hero Header Section */}
@@ -123,7 +123,7 @@ export default function VendorOrdersPage() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-800"
+          className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800"
         >
           {/* Top Row: Back Button & Title & Refresh */}
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
@@ -132,12 +132,12 @@ export default function VendorOrdersPage() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => router.back()}
-                className="p-2.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500 hover:text-orange-600 dark:hover:text-orange-500 transition-all border border-slate-200 dark:border-slate-700 active:scale-90 shrink-0"
+                className="p-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-500 hover:text-orange-600 dark:hover:text-orange-500 transition-all border border-zinc-200 dark:border-zinc-700 active:scale-90 shrink-0"
               >
                 <ChevronLeft size={18} />
               </motion.button>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">
+                <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white uppercase tracking-tight leading-none">
                   Order Logs
                 </h1>
               </div>
@@ -158,26 +158,26 @@ export default function VendorOrdersPage() {
 
           {/* Second Row: Subtitle & Search */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
               Real-time transaction manifest & operational history
             </p>
 
             {/* Search Bar */}
             <div className="relative w-full sm:max-w-sm">
-              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
               <motion.input 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 placeholder="Search by ID or name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold uppercase tracking-wider outline-none focus:border-orange-600 dark:focus:border-orange-500 transition-colors text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+                className="w-full pl-11 pr-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-bold uppercase tracking-wider outline-none focus:border-orange-600 dark:focus:border-orange-500 transition-colors text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500"
               />
             </div>
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-200 dark:border-slate-800">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
             {[
               { label: "Total Orders", value: stats.total, icon: Package, gradient: "from-blue-500 to-blue-600", light: "text-blue-600", lightBg: "bg-blue-50 dark:bg-blue-500/10" },
               { label: "Awaiting", value: stats.pending, icon: Clock, gradient: "from-amber-500 to-amber-600", light: "text-amber-600", lightBg: "bg-amber-50 dark:bg-amber-500/10" },
@@ -189,7 +189,7 @@ export default function VendorOrdersPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className={`p-3 rounded-lg ${s.lightBg} border border-slate-200 dark:border-slate-700`}
+                className={`p-3 rounded-lg ${s.lightBg} border border-zinc-200 dark:border-zinc-700`}
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -213,12 +213,12 @@ export default function VendorOrdersPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-800"
+          className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800"
         >
           <div className="flex items-center gap-2 mb-4 px-1">
             <Filter size={14} className="text-orange-600" />
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">Filter by status</p>
-            <div className="ml-auto text-[9px] font-bold text-slate-400 dark:text-slate-500">
+            <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300">Filter by status</p>
+            <div className="ml-auto text-[9px] font-bold text-zinc-400 dark:text-zinc-500">
               {filteredOrders.length} results
             </div>
           </div>
@@ -238,7 +238,7 @@ export default function VendorOrdersPage() {
                   className={`shrink-0 px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 border font-black text-[10px] uppercase tracking-wider whitespace-nowrap ${
                     isActive
                       ? "bg-linear-to-r from-orange-600 to-orange-700 text-white border-transparent"
-                      : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-orange-400 dark:hover:border-orange-500"
+                      : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:border-orange-400 dark:hover:border-orange-500"
                   }`}
                 >
                   <tab.icon size={13} strokeWidth={2.5} />
@@ -247,7 +247,7 @@ export default function VendorOrdersPage() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     className={`px-2 py-0.5 rounded-md text-[8px] font-black ${
-                      isActive ? "bg-orange-900 text-white" : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                      isActive ? "bg-orange-900 text-white" : "bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
                     }`}
                   >
                     {count}
@@ -291,14 +291,14 @@ export default function VendorOrdersPage() {
                 <motion.div 
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-slate-900 p-5 rounded-lg border border-slate-200 dark:border-slate-800"
+                  className="bg-white dark:bg-zinc-900 p-5 rounded-lg border border-zinc-200 dark:border-zinc-800"
                 >
                   <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
                     
                     {/* Result Counter */}
                     <div className="text-center sm:text-left">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
-                        Showing <span className="text-orange-600 dark:text-orange-500">{indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredOrders.length)}</span> of <span className="font-black text-slate-900 dark:text-white">{filteredOrders.length}</span>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
+                        Showing <span className="text-orange-600 dark:text-orange-500">{indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredOrders.length)}</span> of <span className="font-black text-zinc-900 dark:text-white">{filteredOrders.length}</span>
                       </p>
                     </div>
 
@@ -309,7 +309,7 @@ export default function VendorOrdersPage() {
                         whileTap={{ scale: 0.95 }}
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
-                        className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-500 hover:border-orange-600 dark:hover:border-orange-500 disabled:opacity-25 disabled:cursor-not-allowed transition-all bg-white dark:bg-slate-800 font-bold"
+                        className="p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:text-orange-600 dark:hover:text-orange-500 hover:border-orange-600 dark:hover:border-orange-500 disabled:opacity-25 disabled:cursor-not-allowed transition-all bg-white dark:bg-zinc-800 font-bold"
                       >
                         <ChevronLeft size={16} />
                       </motion.button>
@@ -323,7 +323,7 @@ export default function VendorOrdersPage() {
                           if (!isVisible) return null;
 
                           if ((page === 2 && currentPage > 3) || (page === totalPages - 1 && currentPage < totalPages - 2)) {
-                            return <span key={`ellipsis-${page}`} className="px-1 text-slate-300">...</span>;
+                            return <span key={`ellipsis-${page}`} className="px-1 text-zinc-300">...</span>;
                           }
 
                           return (
@@ -335,7 +335,7 @@ export default function VendorOrdersPage() {
                               className={`w-9 h-9 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
                                 isCurrent
                                   ? "bg-linear-to-r from-orange-600 to-orange-700 text-white border-transparent"
-                                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-orange-500 dark:hover:border-orange-500"
+                                  : "bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-orange-500 dark:hover:border-orange-500"
                               }`}
                             >
                               {page}
@@ -349,7 +349,7 @@ export default function VendorOrdersPage() {
                         whileTap={{ scale: 0.95 }}
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        className="p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-500 hover:border-orange-600 dark:hover:border-orange-500 disabled:opacity-25 disabled:cursor-not-allowed transition-all bg-white dark:bg-slate-800 font-bold"
+                        className="p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:text-orange-600 dark:hover:text-orange-500 hover:border-orange-600 dark:hover:border-orange-500 disabled:opacity-25 disabled:cursor-not-allowed transition-all bg-white dark:bg-zinc-800 font-bold"
                       >
                         <ChevronRight size={16} />
                       </motion.button>
@@ -364,21 +364,21 @@ export default function VendorOrdersPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-900 rounded-lg border border-dashed border-slate-200 dark:border-slate-800 py-24 flex flex-col items-center justify-center text-center px-6"
+              className="bg-white dark:bg-zinc-900 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800 py-24 flex flex-col items-center justify-center text-center px-6"
             >
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring" }}
-                className="p-6 bg-slate-100 dark:bg-slate-800 rounded-full mb-6"
+                className="p-6 bg-zinc-100 dark:bg-zinc-800 rounded-full mb-6"
               >
-                <Package size={56} className="text-slate-300 dark:text-slate-600" strokeWidth={1} />
+                <Package size={56} className="text-zinc-300 dark:text-zinc-600" strokeWidth={1} />
               </motion.div>
               <motion.h3 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2"
+                className="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight mb-2"
               >
                 No Orders Found
               </motion.h3>
@@ -386,7 +386,7 @@ export default function VendorOrdersPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed"
+                className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 max-w-sm leading-relaxed"
               >
                 {searchQuery 
                   ? `No orders match your search for "${searchQuery}"` 

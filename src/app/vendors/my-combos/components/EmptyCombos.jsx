@@ -7,10 +7,10 @@ export default function EmptyCombos({ isFiltered, onClearFilters, onCreate }) {
     return (
       <div className="col-span-full py-16 text-center">
         <p className="text-4xl mb-3">🔍</p>
-        <p className="font-bold text-slate-600 dark:text-slate-300 mb-2">
+        <p className="font-bold text-zinc-600 dark:text-zinc-300 mb-2">
           No combos matching your filters
         </p>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">
           Try adjusting your search or filters
         </p>
         <button
@@ -26,10 +26,10 @@ export default function EmptyCombos({ isFiltered, onClearFilters, onCreate }) {
   return (
     <div className="col-span-full py-16 text-center">
       <p className="text-5xl mb-3">🍱</p>
-      <p className="font-bold text-slate-600 dark:text-slate-300 mb-2">
+      <p className="font-bold text-zinc-600 dark:text-zinc-300 mb-2">
         No combos yet
       </p>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+      <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
         Create value bundles to boost order value and customer satisfaction
       </p>
       <button
