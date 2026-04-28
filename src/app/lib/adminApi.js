@@ -538,6 +538,18 @@ class AdminAPI {
     async getPlatformPromoStats(promoId) {
         return this.handleResponse(api.get(`/api/admin/promos/platform-delivery/${promoId}/stats`));
     }
+
+    async updatePlatformDeliveryPromo(promoId, payload) {
+        return this.handleResponse(
+            api.patch(`/api/admin/promos/platform-delivery/${promoId}`, payload)
+        );
+    }
+
+    async reactivatePlatformDeliveryPromo(promoId) {
+        return this.handleResponse(
+            api.patch(`/api/admin/promos/platform-delivery/${promoId}/reactivate`)
+        );
+    }
 }
 
 export default new AdminAPI();

@@ -49,6 +49,17 @@ export default function PlatformDeliveryPromosPage() {
     const [showCreatePanel, setShowCreatePanel] = useState(false);
     const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
     
+    // Edit panel state
+    const [showEditPanel, setShowEditPanel] = useState(false);
+    const [editingPromo, setEditingPromo] = useState(null);
+    const [editForm, setEditForm] = useState({
+        totalSlots: "",
+        endsAt: "",
+        startsAt: "",
+        name: "",
+    });
+    const [editSubmitting, setEditSubmitting] = useState(false);
+    
     // Stats State
     const [stats, setStats] = useState(null);
     const [loadingStats, setLoadingStats] = useState(false);
@@ -140,6 +151,71 @@ export default function PlatformDeliveryPromosPage() {
         }
     };
 
+    const handleOpenEdit = (promo) => {
+        setEditingPromo(promo);
+        setEditForm({
+            totalSlots: String(promo.totalSlots),
+            endsAt: promo.endsAt
+                ? new Date(promo.endsAt).toISOString().slice(0, 10)
+                : "",
+            startsAt: promo.startsAt
+                ? new Date(promo.startsAt).toISOString().slice(0, 10)
+                : "",
+            name: promo.name || "",
+        });
+        setShowEditPanel(true);
+    };
+
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        if (!editingPromo) return;
+        setEditSubmitting(true);
+
+        try {
+            const payload = {};
+            if (editForm.totalSlots) payload.totalSlots = Number(editForm.totalSlots);
+            if (editForm.endsAt)     payload.endsAt     = editForm.endsAt;
+            if (editForm.startsAt)   payload.startsAt   = editForm.startsAt;
+            if (editForm.name)       payload.name       = editForm.name;
+
+            await adminApi.updatePlatformDeliveryPromo(editingPromo._id, payload);
+            toast.success("Promo updated successfully");
+
+            setShowEditPanel(false);
+            setEditingPromo(null);
+
+            const refreshed = await adminApi.getPlatformDeliveryPromos();
+            setPromos(refreshed.promos || []);
+
+            const active = refreshed.promos.find(p => p.isActive);
+            if (active) fetchStats(active._id);
+        } catch (err) {
+            toast.error(err.message || "Failed to update promo");
+        } finally {
+            setEditSubmitting(false);
+        }
+    };
+
+    const handleReactivate = async (promoId) => {
+        const confirmReactivate = window.confirm(
+            "Reactivate this promotion? A new active promo cannot exist if another is already running."
+        );
+        if (!confirmReactivate) return;
+
+        try {
+            await adminApi.reactivatePlatformDeliveryPromo(promoId);
+            toast.success("Promotion reactivated");
+
+            const refreshed = await adminApi.getPlatformDeliveryPromos();
+            setPromos(refreshed.promos || []);
+
+            const active = refreshed.promos.find(p => p.isActive);
+            if (active) fetchStats(active._id);
+        } catch (err) {
+            toast.error(err.message || "Failed to reactivate");
+        }
+    };
+
     const formatDate = (d) =>
         d ? new Date(d).toLocaleDateString("en-NG", { day: 'numeric', month: 'short' }) : "Unlimited";
 
@@ -179,19 +255,42 @@ export default function PlatformDeliveryPromosPage() {
                     {/* ── Top Level KPIs (Compact) ────────────────────── */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {[
-                            { label: "Active Campaign", value: activePromo ? "LIVE" : "NONE", icon: Activity, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+                            { 
+                                label: "Active Campaign", 
+                                value: activePromo ? "LIVE" : "NONE", 
+                                icon: Activity, 
+                                color: "text-emerald-500", 
+                                bg: "bg-emerald-500/10",
+                                custom: activePromo && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeactivate(activePromo._id);
+                                        }}
+                                        className="relative w-7 h-3.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.4)]"
+                                    >
+                                        <motion.div 
+                                            animate={{ x: 14 }}
+                                            className="absolute top-0.5 left-0.5 w-2.5 h-2.5 bg-white rounded-full"
+                                        />
+                                    </button>
+                                )
+                            },
                             { label: "Total Claims", value: stats?.totalClaims || 0, icon: UserCheck, color: "text-orange-500", bg: "bg-orange-500/10" },
                             { label: "Revenue Saved", value: `₦${(stats?.totalSavings || 0).toLocaleString()}`, icon: CreditCard, color: "text-blue-500", bg: "bg-blue-500/10" },
                             { label: "Slots Rem.", value: activePromo ? (activePromo.totalSlots - activePromo.usedSlots) : 0, icon: Users, color: "text-purple-500", bg: "bg-purple-500/10" },
                         ].map((kpi, idx) => (
-                            <div key={idx} className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center gap-3">
-                                <div className={`w-9 h-9 rounded-xl ${kpi.bg} ${kpi.color} flex items-center justify-center shrink-0`}>
-                                    <kpi.icon size={18} />
+                            <div key={idx} className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-9 h-9 rounded-xl ${kpi.bg} ${kpi.color} flex items-center justify-center shrink-0`}>
+                                        <kpi.icon size={18} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{kpi.label}</p>
+                                        <p className="text-sm font-black text-slate-900 dark:text-white truncate">{kpi.value}</p>
+                                    </div>
                                 </div>
-                                <div className="min-w-0">
-                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{kpi.label}</p>
-                                    <p className="text-sm font-black text-slate-900 dark:text-white truncate">{kpi.value}</p>
-                                </div>
+                                {kpi.custom}
                             </div>
                         ))}
                     </div>
@@ -316,11 +415,39 @@ export default function PlatformDeliveryPromosPage() {
                                                         {p.isActive ? 'ACTIVE' : 'EXPIRED'}
                                                     </span>
                                                 </div>
-                                                {p.isActive && (
-                                                    <button onClick={(e) => { e.stopPropagation(); handleDeactivate(p._id); }} className="p-2 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all">
-                                                        <Trash2 size={12} />
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleOpenEdit(p);
+                                                        }}
+                                                        className="p-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-orange-500 transition-all"
+                                                        title="Edit promo"
+                                                    >
+                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                                            stroke="currentColor" strokeWidth="2.5"
+                                                            strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                                        </svg>
                                                     </button>
-                                                )}
+
+                                                    {/* Unified Toggle Switch */}
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            p.isActive ? handleDeactivate(p._id) : handleReactivate(p._id);
+                                                        }}
+                                                        className={`relative w-8 h-4 rounded-full transition-all duration-300 ${p.isActive ? 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.4)]' : 'bg-slate-200 dark:bg-zinc-800'}`}
+                                                        title={p.isActive ? "Deactivate" : "Activate"}
+                                                    >
+                                                        <motion.div 
+                                                            animate={{ x: p.isActive ? 18 : 2 }}
+                                                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow-sm"
+                                                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                                        />
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div className="flex items-center justify-between mt-3 text-[8px] font-black text-slate-400 uppercase tracking-widest">
                                                 <span>{formatDate(p.startsAt)}</span>
@@ -499,6 +626,180 @@ export default function PlatformDeliveryPromosPage() {
                                             className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-950 rounded-2xl font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-2 hover:bg-orange-600 dark:hover:bg-orange-500 dark:hover:text-white transition-all shadow-xl active:scale-95 disabled:opacity-50"
                                         >
                                             {submitting ? <Loader2 className="animate-spin" size={18} /> : "Initiate Deployment"}
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
+
+                    <AnimatePresence>
+                        {showEditPanel && editingPromo && (
+                            <>
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    onClick={() => setShowEditPanel(false)}
+                                    className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[100]"
+                                />
+                                <motion.div
+                                    initial={{ x: "100%" }}
+                                    animate={{ x: 0 }}
+                                    exit={{ x: "100%" }}
+                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                    className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white dark:bg-slate-900 shadow-2xl z-[101] flex flex-col border-l border-slate-100 dark:border-white/5"
+                                >
+                                    <div className="p-6 border-b border-slate-50 dark:border-white/5 flex items-center justify-between">
+                                        <div className="space-y-1">
+                                            <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase italic tracking-tight">
+                                                Edit Campaign
+                                            </h2>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                                {editingPromo.name.replace(/_/g, " ")}
+                                                {" · "}
+                                                {editingPromo.usedSlots} of {editingPromo.totalSlots} slots used
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() => setShowEditPanel(false)}
+                                            className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-zinc-800 flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+
+                                    <form onSubmit={handleUpdate} className="flex-1 overflow-y-auto p-6 space-y-5">
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">
+                                                Campaign Name
+                                            </label>
+                                            <input
+                                                value={editForm.name}
+                                                onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))}
+                                                placeholder="e.g. first_order_free_delivery"
+                                                className="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 ring-orange-500/20"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between px-1">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                                    Total Slots
+                                                </label>
+                                                <span className="text-[9px] font-black text-orange-500 uppercase tracking-widest">
+                                                    Min: {editingPromo.usedSlots} (already claimed)
+                                                </span>
+                                            </div>
+                                            <div className="relative">
+                                                <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                                <input
+                                                    type="number"
+                                                    min={editingPromo.usedSlots}
+                                                    value={editForm.totalSlots}
+                                                    onChange={(e) => setEditForm(f => ({ ...f, totalSlots: e.target.value }))}
+                                                    className="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 ring-orange-500/20"
+                                                />
+                                            </div>
+                                            {editForm.totalSlots && Number(editForm.totalSlots) > editingPromo.totalSlots && (
+                                                <p className="text-[10px] font-bold text-emerald-500 px-1">
+                                                    +{Number(editForm.totalSlots) - editingPromo.totalSlots} additional slots
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">
+                                                    Start Date
+                                                </label>
+                                                <input
+                                                    type="date"
+                                                    value={editForm.startsAt}
+                                                    onChange={(e) => setEditForm(f => ({ ...f, startsAt: e.target.value }))}
+                                                    className="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 ring-orange-500/20"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">
+                                                    End Date
+                                                </label>
+                                                <input
+                                                    type="date"
+                                                    value={editForm.endsAt}
+                                                    onChange={(e) => setEditForm(f => ({ ...f, endsAt: e.target.value }))}
+                                                    className="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 ring-orange-500/20"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="p-4 rounded-[20px] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="space-y-0.5">
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                                        Campaign Status
+                                                    </p>
+                                                    <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase italic">
+                                                        {editingPromo.isActive ? "Live & Accepting Claims" : "Inactive / On Hold"}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        editingPromo.isActive ? handleDeactivate(editingPromo._id) : handleReactivate(editingPromo._id);
+                                                    }}
+                                                    className={`relative w-10 h-5 rounded-full transition-all duration-300 ${editingPromo.isActive ? 'bg-orange-500 shadow-[0_0_12px_rgba(249,115,22,0.5)]' : 'bg-slate-200 dark:bg-zinc-700'}`}
+                                                >
+                                                    <motion.div 
+                                                        animate={{ x: editingPromo.isActive ? 22 : 2 }}
+                                                        className="absolute top-1 w-3 h-3 bg-white rounded-full shadow-sm"
+                                                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                                    />
+                                                </button>
+                                            </div>
+
+                                            <div className="pt-2 border-t border-slate-100 dark:border-white/5">
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                                                    Slot Consumption
+                                                </p>
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="text-[11px] font-black text-slate-700 dark:text-slate-300">Total Utilized</span>
+                                                    <span className="text-[11px] font-black text-orange-500">
+                                                        {editingPromo.usedSlots} / {editForm.totalSlots || editingPromo.totalSlots}
+                                                    </span>
+                                                </div>
+                                                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-orange-500 rounded-full transition-all"
+                                                        style={{
+                                                            width: `${Math.min(
+                                                                100,
+                                                                (editingPromo.usedSlots /
+                                                                    (Number(editForm.totalSlots) || editingPromo.totalSlots)) * 100
+                                                            )}%`
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                            
+                                            <p className="text-[9px] text-slate-400 italic font-medium leading-relaxed">
+                                                Toggling the status above will immediately update the campaign's availability on the storefront.
+                                            </p>
+                                        </div>
+                                    </form>
+
+                                    <div className="p-6 border-t border-slate-50 dark:border-white/5 bg-slate-50/50 dark:bg-slate-800/50">
+                                        <button
+                                            onClick={handleUpdate}
+                                            disabled={editSubmitting}
+                                            className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-950 rounded-2xl font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-2 hover:bg-orange-600 dark:hover:bg-orange-500 dark:hover:text-white transition-all shadow-xl active:scale-95 disabled:opacity-50"
+                                        >
+                                            {editSubmitting
+                                                ? <Loader2 className="animate-spin" size={18} />
+                                                : "Save Changes"
+                                            }
                                         </button>
                                     </div>
                                 </motion.div>
