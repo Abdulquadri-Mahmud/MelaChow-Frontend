@@ -47,6 +47,7 @@ export default function PlatformDeliveryPromosPage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [showCreatePanel, setShowCreatePanel] = useState(false);
+    const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
     
     // Stats State
     const [stats, setStats] = useState(null);
@@ -393,24 +394,53 @@ export default function PlatformDeliveryPromosPage() {
 
                                     <form onSubmit={handleCreate} className="flex-1 overflow-y-auto p-6 space-y-6">
                                         <div className="space-y-4">
-                                            <div className="space-y-2">
+                                            <div className="space-y-2 relative">
                                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-1">Campaign Template</label>
                                                 <div className="relative">
                                                     <Gift className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                                     <input 
-                                                        list="campaign-templates"
                                                         value={form.name}
+                                                        onFocus={() => setShowTemplateDropdown(true)}
+                                                        onBlur={() => setTimeout(() => setShowTemplateDropdown(false), 200)}
                                                         onChange={(e) => setForm({...form, name: e.target.value})}
                                                         placeholder="e.g. holiday_special"
-                                                        className="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 ring-orange-500/20"
+                                                        className="w-full h-12 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl pl-12 pr-12 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 ring-orange-500/20"
                                                     />
-                                                    <datalist id="campaign-templates">
-                                                        <option value="first_order_free_delivery" />
-                                                        <option value="weekend_delivery_perk" />
-                                                        <option value="seasonal_delivery_promo" />
-                                                        <option value="loyalty_delivery_reward" />
-                                                    </datalist>
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                                                        <ChevronRight className={`rotate-90 transition-transform ${showTemplateDropdown ? 'rotate-[270deg]' : ''}`} size={14} />
+                                                    </div>
                                                 </div>
+
+                                                <AnimatePresence>
+                                                    {showTemplateDropdown && (
+                                                        <motion.div 
+                                                            initial={{ opacity: 0, y: -10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            exit={{ opacity: 0, y: -10 }}
+                                                            className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-100 dark:border-white/5 overflow-hidden z-[110] p-1"
+                                                        >
+                                                            {[
+                                                                "first_order_free_delivery",
+                                                                "weekend_delivery_perk",
+                                                                "seasonal_delivery_promo",
+                                                                "loyalty_delivery_reward"
+                                                            ].map((temp) => (
+                                                                <button
+                                                                    key={temp}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setForm({...form, name: temp});
+                                                                        setShowTemplateDropdown(false);
+                                                                    }}
+                                                                    className="w-full text-left px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-widest transition-colors flex items-center justify-between group"
+                                                                >
+                                                                    {temp.replace(/_/g, ' ')}
+                                                                    <Plus size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                                </button>
+                                                            ))}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
 
                                             <div className="space-y-2">
