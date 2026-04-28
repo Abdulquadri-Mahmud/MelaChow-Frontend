@@ -33,7 +33,9 @@ export default function HomePage() {
         <SearchBar />
         <CategoryList />
         <PromoAnnouncementBanner />
-        <VendorList user={user} />
+        <div id="vendor-list-anchor">
+          <VendorList user={user} />
+        </div>
         {/* <TrendingFoods user={user} /> */}
         <div className="space-y-4">
           {/* <SmartRecommendations /> */}

@@ -23,6 +23,7 @@ import {
   Sparkles, Gift, ChevronRight, Dot, Moon, ChefHat, Pizza, Coffee, Globe
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import FreeDeliveryBadge from "@/components/ui/FreeDeliveryBadge";
 import { useQuery } from "@tanstack/react-query";
 import { getNearbyVendors } from "@/app/lib/userApi";
@@ -233,6 +234,8 @@ const EmptyState = ({ city, selectedCuisine, onClear }) => (
 export default function VendorList({ user }) {
   const [mounted, setMounted] = React.useState(false);
   const { userLocation, syncWithUserAddress } = useLocationStore();
+  const searchParams = useSearchParams();
+  const filterFreeDelivery = searchParams.get("freeDelivery") === "true";
 
   React.useEffect(() => {
     setMounted(true);
@@ -252,26 +255,30 @@ export default function VendorList({ user }) {
     staleTime: 1000 * 60 * 5,
   });
 
-  // ── Shape vendor list ──────────────────────────────────────────────────────
   const allVendors = useMemo(() => {
     const raw = responseData?.vendors || [];
-    return raw.map((v) => ({
-      _id:          v._id,
-      storeName:    v.storeName,
-      city:         v.address?.city,
-      image:        v.logo || null,
-      deliveryFee:  v.deliveryFee ?? 0,
-      rating:       v.rating   || 0,
-      ratingCount:  v.ratingCount || 0,
+    const normalized = raw.map((v) => ({
+      _id: v._id,
+      storeName: v.storeName,
+      city: v.address?.city,
+      image: v.logo || null,
+      deliveryFee: v.deliveryFee ?? 0,
+      rating: v.rating || 0,
+      ratingCount: v.ratingCount || 0,
       openingHours: v.openingHours,
       cuisineTypes: v.cuisineTypes || [],
-      locationStatus: v.locationStatus || 'approved', // Default to approved if missing for safety
+      locationStatus: v.locationStatus || "approved",
       hasActiveDeliveryPromo: v.hasActiveDeliveryPromo || false,
-      badge:        null,
-      // Compute open status once here so sort and render share same value
+      badge: null,
       isOpen: getVendorOpenAndCloseStatus(v.openingHours).startsWith("Open now"),
     }));
-  }, [responseData]);
+
+    if (filterFreeDelivery) {
+      return normalized.filter((v) => v.hasActiveDeliveryPromo === true);
+    }
+
+    return normalized;
+  }, [responseData, filterFreeDelivery]);
 
   // ── Cuisine chips — deduplicated across all vendors ────────────────────────
   const cuisineOptions = useMemo(() => {
@@ -345,6 +352,19 @@ export default function VendorList({ user }) {
 
   return (
     <div className="space-y-8 pb-4">
+      {filterFreeDelivery && (
+        <div className="flex items-center justify-between px-3 py-2 mx-2 mb-1 bg-orange-50 dark:bg-orange-500/10 rounded-2xl border border-orange-100 dark:border-orange-500/20">
+          <p className="text-[11px] font-black text-orange-600 uppercase tracking-widest">
+            Showing free delivery restaurants only
+          </p>
+          <button
+            onClick={() => window.location.href = "/home"}
+            className="text-[10px] font-black text-orange-500 border border-orange-200 dark:border-orange-500/30 px-2 py-1 rounded-lg uppercase tracking-widest"
+          >
+            Clear
+          </button>
+        </div>
+      )}
 
 
       {/* ── Open Now ─────────────────────────────────────────────────────── */}

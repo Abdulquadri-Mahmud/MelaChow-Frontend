@@ -46,6 +46,8 @@ const FoodItemRow = ({ food }) => {
     const oldPrice = food.old_price || (price * 1.2);
     const openFoodModal = useFoodModalStore(state => state.openFoodModal);
 
+    console.log(food);
+
     return (
         <div 
             onClick={() => !isUnavailable && openFoodModal(food._id, { food })}
