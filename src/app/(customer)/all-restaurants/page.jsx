@@ -153,15 +153,15 @@ export default function AllRestaurants() {
 
             <main className="max-w-md mx-auto py-6 px-1">
                 {/* Hero Header */}
-                <div className="mb-10 px-4 space-y-2">
+                <div className="mb-10 px-2 space-y-2">
                     <div className="inline-flex items-center gap-2 bg-orange-50 dark:bg-orange-500/10 px-3 py-1 rounded-full border border-orange-100 dark:border-orange-500/20">
                         <Sparkles size={12} className="text-orange-500" />
                         <span className="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em]">Curated Selection</span>
                     </div>
                     <h1 className="text-3xl font-black text-zinc-900 dark:text-white uppercase italic tracking-tighter leading-none">
-                        Culinary <br /> Discovery
+                        Culinary Discovery
                     </h1>
-                    <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest leading-relaxed max-w-[280px]">
+                    <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest leading-relaxed max-w-[290px]">
                         Explore the finest kitchens and authentic flavors nearby.
                     </p>
                 </div>
@@ -256,8 +256,8 @@ export default function AllRestaurants() {
                                 <div key={cuisine}>
                                     <SectionHeader
                                         title={
-                                            <span className="flex items-center gap-2 text-orange-500">
-                                                <ChefHat size={18} />
+                                            <span className="flex items-center gap-2">
+                                                <ChefHat size={18} className="text-orange-500" />
                                                 {cuisine} Specials
                                             </span>
                                         }
@@ -290,7 +290,7 @@ const SectionHeader = ({ title, subtitle }) => (
 );
 
 const VendorRow = ({ vendors }) => (
-  <div className="flex gap-4 scroll overflow-x-auto px-4 pb-4 scrollbar-none snap-x snap-mandatory">
+  <div className="flex gap-4 scroll overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory">
     {vendors.map((vendor) => (
       <VendorCard key={vendor._id} vendor={vendor} />
     ))}
