@@ -418,7 +418,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
         </button>
       </header>
 
-      <div className=" bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
+      <div className="pb-5 bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
       <div className="max-w-4xl mx-auto pb-4">
         {isLoading ? (
           <div className="p-2"><FoodDetailsSkeleton /></div>
