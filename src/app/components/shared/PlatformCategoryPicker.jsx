@@ -21,11 +21,20 @@ import toast from "react-hot-toast";
 // ─────────────────────────────────────────────────────────────────────────────
 // Tree builder — includes ALL parents (even leaf-parents with no children)
 // ─────────────────────────────────────────────────────────────────────────────
-const buildCategoryTree = (flat) => {
+const buildCategoryTree = (data) => {
+    // If data is already a tree (has 'children' property), map it to subCategories
+    if (data.length > 0 && data[0].children) {
+        return data.map(cat => ({
+            ...cat,
+            subCategories: cat.children || []
+        }));
+    }
+
+    // Fallback for flat data
     const roots = [];
     const childrenMap = {};
 
-    flat.forEach((cat) => {
+    data.forEach((cat) => {
         const parentId = cat.parent?._id || cat.parent || null;
         if (!parentId) {
             roots.push({ ...cat, subCategories: [] });
@@ -55,8 +64,9 @@ export default function PlatformCategoryPicker({ value, onChange, className = ""
             setLoading(true);
             try {
                 const res = await getPlatformCategories();
-                const flat = res.categories || res.data || [];
-                const built = buildCategoryTree(flat);
+                // backend returns { success: true, data: tree }
+                const rawData = res.data || res.categories || [];
+                const built = buildCategoryTree(rawData);
                 setTree(built);
 
                 // Auto-expand all groups that have children
@@ -78,7 +88,17 @@ export default function PlatformCategoryPicker({ value, onChange, className = ""
     const toggleExpanded = (parentId) =>
         setExpandedParents((prev) => ({ ...prev, [parentId]: !prev[parentId] }));
 
-    const handleSelect = (id, name) => onChange(id, name);
+    const handleSelect = (cat) => {
+        // Validation: Must be a leaf node
+        if (cat.subCategories && cat.subCategories.length > 0) {
+            toast.error("Please select a specific sub-category", {
+                icon: "☝️",
+                style: { fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }
+            });
+            return;
+        }
+        onChange(cat._id, cat.name);
+    };
 
     if (loading) {
         return (
@@ -118,17 +138,17 @@ export default function PlatformCategoryPicker({ value, onChange, className = ""
                                     <div className="flex-shrink-0 w-6" />
                                 )}
 
-                                {/* Selectable parent card — always dark gradient */}
+                                {/* Parent card */}
                                 <motion.button
                                     type="button"
-                                    onClick={() => handleSelect(parent._id, parent.name)}
+                                    onClick={() => handleSelect(parent)}
                                     className={`flex-1 text-left px-4 py-3.5 rounded-xl transition-all border relative overflow-hidden ${
                                         isParentActive
                                             ? "border-orange-500/60 shadow-xl shadow-orange-500/20 scale-[1.01]"
                                             : "border-orange-900/30 hover:border-orange-500/40 hover:shadow-md hover:shadow-orange-500/10"
-                                    } bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-800`}
-                                    whileHover={!isParentActive ? { scale: 1.005 } : {}}
-                                    whileTap={{ scale: 0.99 }}
+                                    } ${hasChildren ? 'cursor-default' : 'cursor-pointer'} bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-800`}
+                                    whileHover={!isParentActive && !hasChildren ? { scale: 1.005 } : {}}
+                                    whileTap={!hasChildren ? { scale: 0.99 } : {}}
                                 >
                                     {/* Ambient glow — strengthens on active */}
                                     <div
@@ -152,7 +172,7 @@ export default function PlatformCategoryPicker({ value, onChange, className = ""
                                                         isParentActive ? "text-orange-400" : "text-orange-700/80"
                                                     }`}
                                                 >
-                                                    Category Group
+                                                    {hasChildren ? 'Category Group' : 'Direct Category'}
                                                 </span>
                                                 <span
                                                     className={`text-[13px] uppercase tracking-tight ${
@@ -164,24 +184,21 @@ export default function PlatformCategoryPicker({ value, onChange, className = ""
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            {hasChildren && (
+                                            {hasChildren ? (
                                                 <span
-                                                    className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full transition-colors ${
-                                                        isParentActive
-                                                            ? "bg-orange-500/20 text-orange-400 border border-orange-500/30"
-                                                            : "bg-white/5 text-zinc-500 border border-white/10"
-                                                    }`}
+                                                    className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/5 text-zinc-500 border border-white/10`}
                                                 >
                                                     {parent.subCategories.length} sub
                                                 </span>
+                                            ) : (
+                                                <div
+                                                    className={`transition-all duration-300 ${
+                                                        isParentActive ? "scale-100 opacity-100" : "scale-50 opacity-0"
+                                                    }`}
+                                                >
+                                                    <CheckCircle2 size={18} strokeWidth={3} className="text-orange-400" />
+                                                </div>
                                             )}
-                                            <div
-                                                className={`transition-all duration-300 ${
-                                                    isParentActive ? "scale-100 opacity-100" : "scale-50 opacity-0"
-                                                }`}
-                                            >
-                                                <CheckCircle2 size={18} strokeWidth={3} className="text-orange-400" />
-                                            </div>
                                         </div>
                                     </div>
                                 </motion.button>
@@ -199,11 +216,13 @@ export default function PlatformCategoryPicker({ value, onChange, className = ""
                                         <div className="ml-8 space-y-1 pl-3 border-l-2 border-zinc-100 dark:border-zinc-800">
                                             {parent.subCategories.map((child) => {
                                                 const isChildActive = value === child._id;
+                                                // If backend ever returns 3 levels, we'd need recursion here
+                                                // For now, children are assumed to be leaf nodes
                                                 return (
                                                     <motion.button
                                                         key={child._id}
                                                         type="button"
-                                                        onClick={() => handleSelect(child._id, child.name)}
+                                                        onClick={() => handleSelect(child)}
                                                         className={`w-full text-left px-4 py-2.5 rounded-xl transition-all border ${
                                                             isChildActive
                                                                 ? "border-orange-500 bg-white dark:bg-zinc-900 text-orange-600 shadow-lg shadow-orange-500/10 scale-[1.01]"

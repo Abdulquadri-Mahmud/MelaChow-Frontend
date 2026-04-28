@@ -18,68 +18,45 @@ import {
   Bell,
   Bike,
   HelpCircle,
-  Package
+  Package,
+  Store,
+  X,
+  Loader2
 } from "lucide-react";
-import Logo from "../../logo/Logo";
 import { useApi } from "@/app/context/ApiContext";
 import PermanentInstallButton from "@/app/components/PermanentInstallButton";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 
-const navItems = [
+const navigation = [
   {
-    name: "Dashboard",
-    icon: LayoutDashboard,
-    href: "/vendors/dashboard",
+    title: "Overview",
+    items: [
+      { icon: LayoutDashboard, label: "Dashboard",     href: "/vendors/dashboard" },
+      { icon: Wallet,          label: "Transactions",  href: "/vendors/transactions" },
+      { icon: ClipboardList,   label: "Orders",        href: "/vendors/order" },
+      { icon: Bell,            label: "Notifications", href: "/vendors/notifications" },
+    ],
   },
   {
-    name: "Transactions",
-    icon: Wallet,
-    href: "/vendors/transactions",
-  },
-  // {
-  //   name: "Coupons",
-  //   icon: TicketPercent,
-  //   href: "/vendors/coupons",
-  // },
-  {
-    name: "Orders",
-    icon: ClipboardList,
-    href: "/vendors/order",
+    title: "Inventory",
+    items: [
+      { icon: UtensilsCrossed, label: "My Foods",    href: "/vendors/my-foods" },
+      { icon: Package,         label: "My Combos",   href: "/vendors/my-combos" },
+      { icon: PlusCircle,      label: "Create Food", href: "/vendors/create-food" },
+    ],
   },
   {
-    name: "Notifications",
-    icon: Bell,
-    href: "/vendors/notifications",
+    title: "Engagement",
+    items: [
+      { icon: Star, label: "Reviews", href: "/vendors/reviews" },
+    ],
   },
   {
-    name: "My Foods",
-    icon: UtensilsCrossed,
-    href: "/vendors/my-foods",
-  },
-  {
-    name: "My Combos",
-    icon: Package,
-    href: "/vendors/my-combos",
-  },
-  {
-    name: "Create Food",
-    icon: PlusCircle,
-    href: "/vendors/create-food",
-  },
-  {
-    name: "Reviews",
-    icon: Star,
-    href: "/vendors/reviews",
-  },
-  {
-    name: "Profile",
-    icon: User,
-    href: "/vendors/profile",
-  },
-  {
-    name: "Help & FAQs",
-    icon: HelpCircle,
-    href: "/vendors/faqs",
+    title: "Settings",
+    items: [
+      { icon: User,       label: "Profile",     href: "/vendors/profile" },
+      { icon: HelpCircle, label: "Help & FAQs", href: "/vendors/faqs" },
+    ],
   },
 ];
 
@@ -88,21 +65,17 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { baseUrl } = useApi();
+  const { logout } = useVendorStorage();
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const { logout } = useVendorStorage();
 
   // Check active path
-  const isSegmentActive = (href) => pathname?.includes(href);
+  const isSegmentActive = (href) => pathname === href || pathname?.startsWith(href + '/');
 
   // Handle Resize for Mobile Check
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
-
-    // Initial check
     checkMobile();
-
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
@@ -111,6 +84,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
     try {
       setLogoutLoading(true);
       await logout();
+      router.push("/vendors/auth/login");
       setShowLogoutModal(false);
     } catch (err) {
       console.error("Logout error:", err);
@@ -118,6 +92,10 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       setLogoutLoading(false);
     }
   };
+
+  const sidebarBg = { background: "linear-gradient(180deg, #1c0e05 0%, #101828 55%, #080f1a 100%)" };
+  const sidebarWidth = 280;
+  const collapsedWidth = 80;
 
   return (
     <>
@@ -128,10 +106,8 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => {
-              if (setMobileOpen) setMobileOpen(false);
-            }}
-            className="md:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+            onClick={() => setMobileOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -139,149 +115,166 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
       <motion.aside
         initial={false}
         animate={isMobile
-          ? { x: mobileOpen ? 0 : "-100%", width: 310 }
-          : { x: 0, width: open ? 310 : 80 }
+          ? { x: mobileOpen ? 0 : "-100%", width: sidebarWidth }
+          : { x: 0, width: open ? sidebarWidth : collapsedWidth }
         }
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className={`fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col z-[60]`}
+        className="fixed md:sticky top-0 left-0 h-screen flex flex-col z-[60] border-r border-white/[0.06] overflow-hidden"
+        style={sidebarBg}
       >
-        {/* Header */}
-        <div className="h-16 flex items-center justify-between px-3 border-b border-zinc-100 dark:border-zinc-800/50">
+        {/* Brand Edge Accent */}
+        <div className="absolute inset-y-0 left-0 w-0.5 bg-orange-500/30 pointer-events-none" />
+
+        {/* ── Header ─────────────────────────────────────────────────── */}
+        <div className="h-16 flex items-center gap-3 px-5 border-b border-white/[0.06] shrink-0 relative">
+          <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/20">
+            <Store size={15} className="text-white" strokeWidth={2.5} />
+          </div>
           <AnimatePresence mode="wait">
-            {(open || isMobile) ? (
+            {(open || isMobile) && (
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                className="flex items-center gap-3 w-full"
+                className="flex flex-col overflow-hidden"
               >
-                <div className="scale-75 origin-left">
-                  <Logo />
-                </div>
-                <div className="flex flex-col -ml-4">
-                  <span className="font-bold text-zinc-800 dark:text-white text-xl leading-tight">Premium Eats</span>
-                  <span className="text-[10px] font-bold text-orange-500 tracking-wider uppercase">VENDOR PRO</span>
-                </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-md flex items-center justify-center text-white font-bold text-lg mx-auto"
-              >
-                G
+                <span className="font-bold text-white text-sm leading-tight tracking-tight whitespace-nowrap">MelaChow</span>
+                <span className="text-[9px] font-black text-orange-500 tracking-widest uppercase">Vendor Command</span>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {!isMobile && open && (
+          {!isMobile && (
             <button
-              onClick={() => setOpen(false)}
-              className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
+              onClick={() => setOpen(!open)}
+              className="ml-auto p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-all"
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft size={16} className={`transition-transform duration-300 ${!open ? 'rotate-180' : ''}`} />
             </button>
           )}
 
-          {/* Close button for Mobile */}
           {isMobile && (
             <button
               onClick={() => setMobileOpen(false)}
-              className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
+              className="ml-auto p-1.5 rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-all"
             >
-              <ChevronLeft size={18} />
+              <X size={16} />
             </button>
           )}
         </div>
 
-        {!open && !isMobile && (
-          <div className="flex justify-center mt-4">
-            <button
-              onClick={() => setOpen(true)}
-              className="p-1.5 rounded-lg text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-200 transition-colors"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-        )}
+        {/* ── Navigation ───────────────────────────────────────────── */}
+        <nav className="flex-1 px-3 py-6 overflow-y-auto space-y-6 scrollbar-hide custom-scrollbar">
+          {navigation.map((section) => (
+            <div key={section.title} className="space-y-1">
+              <AnimatePresence mode="wait">
+                {(open || isMobile) && (
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="px-3 text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-2"
+                  >
+                    {section.title}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const isActive = isSegmentActive(item.href);
+                  const Icon = item.icon;
 
-        {/* Navigation */}
-        <nav className="flex-1 md:px-4 px-2 mt-6 space-y-2 overflow-y-auto custom-scrollbar">
-          {navItems.map((item) => {
-            const active = isSegmentActive(item.href);
-            const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.href}
+                      onClick={() => { router.push(item.href); isMobile && setMobileOpen(false); }}
+                      className={`
+                        w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-[13px] font-bold
+                        transition-all duration-300 relative group overflow-hidden
+                        ${isActive
+                          ? "text-white shadow-[0_8px_20px_-6px_rgba(249,115,22,0.3)]"
+                          : "text-slate-400 hover:text-slate-200"
+                        }
+                      `}
+                      style={isActive ? {
+                        background: "rgba(249, 115, 22, 0.1)",
+                        border: "1px solid rgba(249, 115, 22, 0.2)",
+                        backdropFilter: "blur(10px)"
+                      } : {
+                        border: "1px solid transparent"
+                      }}
+                    >
+                      {/* Active background highlight */}
+                      {isActive && (
+                        <motion.div
+                          layoutId="vendor-active-pill"
+                          className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-orange-500/5 to-transparent pointer-events-none"
+                          initial={false}
+                          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+                      )}
 
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="block group"
-                onClick={() => isMobile && setMobileOpen(false)}
-              >
-                <div
-                  className={`relative flex items-center gap-3 px-3 py-3 rounded-md transition-all duration-200 ${active
-                    ? "bg-orange-500 text-white"
-                    : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 hover:text-zinc-900 dark:hover:text-white"
-                    }`}
-                >
-                  <Icon
-                    size={18}
-                    strokeWidth={active ? 2.5 : 2}
-                    className={`flex-shrink-0 transition-colors duration-200 ${active ? "text-white" : "text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300"}`}
-                  />
+                      {/* Active glow bar */}
+                      {isActive && (
+                        <span className="absolute left-0 top-1/4 bottom-1/4 w-[3px] bg-gradient-to-b from-orange-400 to-amber-500 rounded-full shadow-[0_0_12px_rgba(251,146,60,0.9)]" />
+                      )}
 
-                  <AnimatePresence>
-                    {(open || isMobile) && (
-                      <motion.span
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -10 }}
-                        className={`font-medium text-sm whitespace-nowrap ${active ? 'font-semibold' : ''}`}
-                      >
-                        {item.name}
-                      </motion.span>
-                    )}
-                  </AnimatePresence>
+                      <Icon
+                        size={open || isMobile ? 16 : 20}
+                        strokeWidth={isActive ? 2.5 : 2}
+                        className={`${isActive ? "text-orange-400" : "text-slate-500 group-hover:text-slate-300"} shrink-0 relative z-10 transition-colors`}
+                      />
 
-                  {/* Collapsed Tooltip Indicator - Optional polish */}
-                  {!open && !active && !isMobile && (
-                    <div className="absolute left-full ml-4 px-2 py-1 bg-zinc-800 text-white text-xs rounded opacity-0 -translate-x-2 group-hover:translate-x-0 group-hover:opacity-100 transition-all pointer-events-none z-50 whitespace-nowrap hidden md:block">
-                      {item.name}
-                    </div>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
+                      <AnimatePresence>
+                        {(open || isMobile) && (
+                          <motion.span
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -10 }}
+                            className="relative z-10 uppercase tracking-wide text-[11px] whitespace-nowrap"
+                          >
+                            {item.label}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+
+                      {isActive && (open || isMobile) && (
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="ml-auto w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)] shrink-0 relative z-10"
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        {/* Footer / Logout */}
-        <div className="p-2 border-t border-zinc-100 dark:border-zinc-800/50 bg-zinc-50/50 dark:bg-zinc-900 space-y-3">
+        {/* ── Footer ───────────────────────────────────────────────── */}
+        <div className="shrink-0 border-t border-white/[0.06] px-3 pt-2 pb-4 space-y-2 bg-black/20">
           {(open || isMobile) && <PermanentInstallButton />}
+
           <button
             onClick={() => setShowLogoutModal(true)}
-            disabled={logoutLoading}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all group ${open || isMobile
-              ? "hover:bg-red-50 dark:hover:bg-red-500/10 text-zinc-500 dark:text-zinc-400 hover:text-red-600 dark:hover:text-red-400"
-              : "justify-center text-zinc-500 hover:text-red-500"
-              } ${logoutLoading ? "cursor-not-allowed opacity-70" : ""}`}
+            className={`
+              w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[13px] font-medium
+              transition-all border border-transparent
+              ${open || isMobile
+                ? "text-slate-500 hover:bg-rose-500/10 hover:text-rose-400 hover:border-rose-500/20"
+                : "justify-center text-slate-500 hover:text-rose-500"
+              }
+            `}
           >
-            {logoutLoading ? (
-              <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin flex-shrink-0" />
-            ) : (
-              <LogOut size={18} className="flex-shrink-0 transition-transform group-hover:-translate-x-1" />
-            )}
-
-            {(open || isMobile) && (
-              <span className="font-semibold text-sm">
-                Sign Out
-              </span>
-            )}
+            <LogOut size={open || isMobile ? 15 : 20} className="shrink-0" />
+            {(open || isMobile) && <span className="uppercase tracking-wide text-[11px] font-bold">Sign Out</span>}
           </button>
         </div>
       </motion.aside>
 
-      {/* Logout Confirmation Modal */}
+      {/* ── Logout Modal ─────────────────────────────────────────────── */}
       <AnimatePresence>
         {showLogoutModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -290,40 +283,37 @@ export default function Sidebar({ mobileOpen, setMobileOpen }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowLogoutModal(false)}
-              className="absolute inset-0 bg-zinc-900/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-sm bg-white dark:bg-zinc-950 rounded-md border border-zinc-200 dark:border-zinc-800 overflow-hidden"
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              className="relative w-full max-w-sm bg-white dark:bg-zinc-950 rounded-2xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800"
             >
-              <div className="p-6">
-                <div className="size-12 rounded-md bg-red-100 dark:bg-red-500/10 flex items-center justify-center text-red-600 mb-4">
-                  <LogOut size={24} />
+              <div className="h-1 bg-gradient-to-r from-rose-500 to-rose-400" />
+              <div className="p-6 text-center">
+                <div className="w-11 h-11 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <LogOut size={18} className="text-red-500" />
                 </div>
-                <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase tracking-tight">Confirm Logout</h3>
-                <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400 mt-2 uppercase tracking-widest leading-relaxed">
-                  Are you sure you want to exit the dashboard? You will need to sign in again to manage your store.
+                <h3 className="text-base font-bold text-zinc-900 dark:text-white mb-1 uppercase tracking-tight">Sign out?</h3>
+                <p className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 max-w-[220px] mx-auto uppercase tracking-widest leading-relaxed">
+                  You'll need to log back in to access the vendor portal.
                 </p>
-
-                <div className="grid grid-cols-2 gap-3 mt-8">
+                <div className="mt-6 flex gap-2">
                   <button
-                    onClick={() => setShowLogoutModal(false)}
-                    className="h-10 px-4 rounded-md border border-zinc-200 dark:border-zinc-700 text-[10px] font-black uppercase tracking-widest text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all font-bold"
+                    onClick={() => !logoutLoading && setShowLogoutModal(false)}
+                    disabled={logoutLoading}
+                    className="flex-1 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleLogout}
                     disabled={logoutLoading}
-                    className="h-10 px-4 rounded-md bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all font-bold disabled:opacity-50"
+                    className="flex-1 py-2.5 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-red-500/20"
                   >
-                    {logoutLoading ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      "Sign Out Forever"
-                    )}
+                    {logoutLoading ? <Loader2 size={14} className="animate-spin" /> : "Sign Out"}
                   </button>
                 </div>
               </div>

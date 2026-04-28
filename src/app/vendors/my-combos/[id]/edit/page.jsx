@@ -107,37 +107,51 @@ export default function EditComboPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-zinc-950 pb-32 transition-colors">
-      <div className="lg:max-w-7xl mx-auto px-4 md:px-6">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors flex flex-col">
+      <div className="lg:max-w-7xl mx-auto w-full flex-1 p-4 lg:p-0 pb-10">
         
-        {/* Header Strip */}
-        <div className="flex items-center justify-end pt-4 pr-3">
+        {/* Header Strip — Command Center Style */}
+        <div className="mb-8 mt-4 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 p-4 md:p-6 rounded-[2rem] border border-white/5 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden group">
+          {/* Brand Accent Glow */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-orange-600/10 blur-[100px] -mr-32 -mt-32 transition-opacity group-hover:opacity-100 opacity-50" />
+          
+          <div className="relative z-10">
+            <div className="flex gap-4 items-center mb-3">
+                <BackButton label="" className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 text-zinc-400 hover:text-orange-500 hover:bg-white/10 transition-all border border-white/5" />
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase leading-none">
+                    Edit Bundle
+                  </h1>
+                </div>
+            </div>
+            <p className="text-[11px] md:text-xs font-bold text-zinc-400 max-w-xl leading-relaxed uppercase tracking-wider opacity-80">
+                Updating <span className="text-white underline">{data?.combo?.name}</span>. Changes sync immediately.
+            </p>
+          </div>
+
           {store.isDirty && (
-            <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 rounded-md flex items-center gap-2 shadow-sm">
-              <span className="w-1.5 h-1.5 bg-sky-500 rounded-md animate-pulse" /> Changes in Draft
+            <div className="relative z-10 shrink-0">
+              <div className="flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md shadow-inner">
+                <div className="relative">
+                  <span className="flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-500 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)]"></span>
+                  </span>
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">
+                  Draft Mode
+                </span>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Page Title */}
-        <div className="mb-8 mt-4">
-          <div className="flex gap-4 items-center mb-4">
-            <BackButton label="" className="h-10 w-10 flex items-center justify-center rounded-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm" />
-            <h1 className="text-3xl md:text-4xl font-black text-zinc-900 dark:text-white tracking-tight">
-              Edit Combo
-            </h1>
-          </div>
-          <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 max-w-2xl leading-relaxed">
-            Updating details for <span className="text-zinc-900 dark:text-white font-bold underline">{data?.combo?.name}</span>. Changes will be live immediately after saving.
-          </p>
-        </div>
-
-        {/* Wizard Progress Bar */}
-        <div className="mb-12 px-2 md:px-10">
+        {/* Wizard Progress Bar — Premium Style */}
+        <div className="mb-12 px-4 md:px-12 max-w-3xl mx-auto">
           <div className="flex items-center justify-between relative">
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[2px] bg-zinc-200 dark:bg-zinc-800 rounded-full z-0" />
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-[3px] bg-zinc-200 dark:bg-zinc-800 rounded-full z-0" />
             <div
-              className="absolute left-0 top-1/2 -translate-y-1/2 h-[2px] bg-orange-600 rounded-full z-0 transition-all duration-500"
+              className="absolute left-0 top-1/2 -translate-y-1/2 h-[3px] bg-gradient-to-r from-orange-600 to-amber-500 rounded-full z-0 transition-all duration-700 ease-out shadow-[0_0_12px_rgba(249,115,22,0.4)]"
               style={{ width: `${((store.currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
             />
             {STEPS.map((step) => {
@@ -152,17 +166,17 @@ export default function EditComboPage() {
                   onClick={() => handleJump(step.id)}
                   className={`relative z-10 flex flex-col items-center group ${isFuture ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
-                  <div className={`w-8 h-8 md:w-10 md:h-10 rounded-md flex items-center justify-center font-black text-xs md:text-sm transition-all duration-500 border-2 ${
-                    isPast ? "bg-orange-600 border-orange-600 text-white" :
-                    isCurrent ? "bg-white dark:bg-zinc-900 border-orange-600 text-orange-600 dark:text-orange-500 shadow-md" :
+                  <div className={`w-9 h-9 md:w-10 md:h-10 rounded-xl flex items-center justify-center font-black text-[10px] md:text-sm transition-all duration-500 border-2 ${
+                    isPast ? "bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-600/20" :
+                    isCurrent ? "bg-white dark:bg-zinc-900 border-orange-600 text-orange-600 dark:text-orange-500 shadow-xl" :
                     "bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-400 dark:text-zinc-500"
                   }`}>
                     {isPast ? "✓" : step.id}
                   </div>
-                  <span className={`absolute -bottom-7 text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-colors ${
-                    isCurrent ? "text-orange-600 dark:text-orange-500 opacity-100" : 
-                    isPast ? "text-zinc-600 dark:text-zinc-300 opacity-0 md:opacity-100" : 
-                    "text-zinc-400 dark:text-zinc-600 opacity-0"
+                  <span className={`absolute -bottom-8 text-[9px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 ${
+                    isCurrent ? "text-orange-600 dark:text-orange-500 opacity-100 translate-y-0" : 
+                    isPast ? "text-zinc-500 dark:text-zinc-400 opacity-0 md:opacity-100" : 
+                    "text-zinc-300 dark:text-zinc-600 opacity-0 -translate-y-1"
                   }`}>
                     {step.title}
                   </span>
@@ -177,7 +191,7 @@ export default function EditComboPage() {
           
           {/* Left Column: Form Content */}
           <div className="space-y-6">
-            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-3 min-h-[400px] shadow-sm relative overflow-hidden transition-colors">
+            <div className="bg-white dark:bg-zinc-900/50 backdrop-blur-xl rounded-3xl border border-zinc-200 dark:border-white/5 p-4 lg:p-6 min-h-[400px] shadow-xl shadow-black/5 relative overflow-hidden transition-all">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={store.currentStep}
@@ -262,8 +276,8 @@ export default function EditComboPage() {
         </div>
       </div>
 
-      {/* FIXED FOOTER */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 transition-all duration-500">
+      {/* STICKY FOOTER */}
+      <div className="sticky bottom-0 z-40 w-full p-4 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 mt-auto transition-all duration-500">
          <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
             <div className="flex-1">
                {store.currentStep > 1 && (

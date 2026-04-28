@@ -32,7 +32,7 @@ export default function Step3Pricing() {
         </label>
         <div className="relative">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
-            <span className="text-xl font-black text-zinc-900 dark:text-white leading-none">₦</span>
+            <span className="text-xl font-black text-orange-600 leading-none">₦</span>
             <div className="w-[1px] h-4 bg-zinc-200 dark:bg-zinc-800" />
           </div>
           <input
@@ -42,7 +42,7 @@ export default function Step3Pricing() {
             value={store.price_naira}
             onChange={(e) => store.setField('price_naira', e.target.value)}
             placeholder="0.00"
-            className="w-full pl-12 pr-4 h-14 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white placeholder-zinc-300 focus:border-orange-500 outline-none text-xl font-black tabular-nums transition-colors shadow-sm"
+            className="w-full pl-12 pr-4 h-14 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white placeholder-zinc-300 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none text-xl font-black tabular-nums transition-all shadow-sm"
           />
         </div>
         <p className="mt-2 text-[9px] font-bold text-zinc-400 uppercase tracking-widest pl-1 leading-normal">
@@ -81,7 +81,7 @@ export default function Step3Pricing() {
           ))}
         </div>
 
-        <div className="flex gap-2 p-2 bg-zinc-50/50 dark:bg-zinc-950/50 rounded-lg border border-zinc-100 dark:border-zinc-800">
+        <div className="flex gap-2 p-2 bg-zinc-50/50 dark:bg-zinc-950/50 rounded-lg border border-zinc-100 dark:border-zinc-800 focus-within:border-orange-500/50">
           <input
             type="text"
             value={contentInput}
@@ -93,13 +93,13 @@ export default function Step3Pricing() {
                 handleAddContent();
               }
             }}
-            className="flex-1 px-3 h-10 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-md text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-white placeholder-zinc-300 outline-none focus:border-orange-400"
+            className="flex-1 px-3 h-10 bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-md text-[10px] font-black uppercase tracking-widest text-zinc-900 dark:text-white placeholder-zinc-300 outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-500/10 transition-all"
           />
           <button
             type="button"
             onClick={handleAddContent}
             disabled={!contentInput.trim()}
-            className="px-4 h-10 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-md text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-30"
+            className="px-6 h-10 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-30 shadow-lg shadow-orange-600/20"
           >
             Add
           </button>

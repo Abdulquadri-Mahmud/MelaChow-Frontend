@@ -169,8 +169,8 @@ export default function ComboDetailPage() {
   // --- RENDERING WIZARD VIEW ---
   if (isEditing) {
     return (
-      <div className="min-h-screen dark:p-3 p-0 bg-zinc-50 dark:bg-zinc-950 pb-32 transition-colors">
-        <div className="lg:max-w-6xl mx-auto">
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors flex flex-col">
+        <div className="lg:max-w-6xl mx-auto w-full flex-1 p-4 lg:p-0">
           
           {/* Header Area */}
           <div className="mb-6 bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 flex items-start justify-between gap-4">
@@ -234,7 +234,7 @@ export default function ComboDetailPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Step Content */}
-            <div className={`${store.currentStep === 5 ? 'lg:col-span-12' : 'lg:col-span-8'} bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 p-3 min-h-[450px]`}>
+            <div className={`${store.currentStep === 5 ? 'lg:col-span-12' : 'lg:col-span-8'} bg-white dark:bg-zinc-900/50 backdrop-blur-xl rounded-3xl border border-zinc-100 dark:border-white/5 p-4 lg:p-6 min-h-[500px] shadow-xl shadow-black/5`}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={store.currentStep}
@@ -290,8 +290,8 @@ export default function ComboDetailPage() {
           </div>
         </div>
 
-        {/* Footer Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 py-4">
+        {/* STICKY FOOTER */}
+        <div className="sticky bottom-0 z-40 w-full p-4 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 mt-auto">
           <div className="max-w-4xl mx-auto flex items-center justify-between px-6 gap-4">
             <div className="flex-1">
               {store.currentStep > 1 && (

@@ -460,12 +460,9 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
                                                             }`}
                                                         >
                                                             {/* Option image */}
-                                                            <div className="w-12 h-12 rounded-[14px] bg-zinc-50 dark:bg-zinc-800 overflow-hidden shrink-0 shadow-inner">
-                                                                {option.image_url ? (
-                                                                    <img src={option.image_url} alt={option.label} className="w-full h-full object-cover" />
-                                                                ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center text-[20px] opacity-50">🍽️</div>
-                                                                )}
+                                                            {/* Selection Indicator Circle */}
+                                                            <div className="w-8 h-8 rounded-full bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
+                                                                <Plus size={12} strokeWidth={4} />
                                                             </div>
 
                                                             {/* Label & price */}

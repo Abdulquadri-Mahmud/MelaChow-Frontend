@@ -329,14 +329,10 @@ export default function Step4AddOns() {
                                                 key={opt.tempId}
                                                 className="flex items-center justify-between p-3.5 rounded-2xl bg-white dark:bg-zinc-950/20 border border-zinc-100 dark:border-zinc-800 group/item hover:border-orange-200 dark:hover:border-orange-900/50 transition-colors shadow-sm"
                                             >
-                                                <div className="flex items-center gap-4">
-                                                    {opt.image_url ? (
-                                                        <img src={opt.image_url} alt={opt.label} className="w-9 h-9 rounded-xl object-cover border border-orange-100 dark:border-zinc-700" />
-                                                    ) : (
-                                                        <div className="w-9 h-9 rounded-xl bg-orange-50 dark:bg-zinc-800 border border-orange-100 dark:border-zinc-700 flex items-center justify-center text-[11px] font-black text-orange-600">
-                                                            {opt.price_modifier_naira > 0 ? "+" : "✓"}
-                                                        </div>
-                                                    )}
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
+                                                        <Plus size={12} strokeWidth={4} />
+                                                    </div>
                                                     <div>
                                                         <div className="text-[11px] font-black text-zinc-900 dark:text-white uppercase tracking-widest">{opt.label}</div>
                                                         <div className="text-[10px] font-black text-orange-600 tabular-nums">
@@ -634,6 +630,7 @@ export default function Step4AddOns() {
                                         <p className="text-[8px] font-bold text-zinc-400 uppercase italic tracking-widest pl-4 mt-2">Leave 0 if free</p>
                                     </div>
                                     
+                                    {/* Choice Image Section Commented Out 
                                     <div className="space-y-1.5 relative group">
                                         <label className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] block mb-2 pl-1 group-focus-within:text-orange-600 transition-colors">Choice Image (Optional)</label>
                                         <div className="flex items-center gap-3">
@@ -655,6 +652,7 @@ export default function Step4AddOns() {
                                             )}
                                         </div>
                                     </div>
+                                    */}
                                 </div>
 
                                 <button 

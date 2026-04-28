@@ -160,9 +160,9 @@ export default function Step2Categories() {
                   <button
                     onClick={handleCreateSection}
                     disabled={isSavingSection || !newSectionName.trim()}
-                    className="h-12 px-6 bg-zinc-950 dark:bg-white text-white dark:text-zinc-950 font-black text-[10px] uppercase tracking-[0.15em] rounded-xl disabled:opacity-30 active:scale-95 transition-all shadow-xl shadow-zinc-950/20"
+                    className="h-12 px-8 bg-orange-600 hover:bg-orange-700 text-white font-black text-[10px] uppercase tracking-[0.2em] rounded-xl disabled:opacity-30 active:scale-95 transition-all shadow-xl shadow-orange-600/20"
                   >
-                    {isSavingSection ? <Loader2 size={16} className="animate-spin" /> : 'Create'}
+                    {isSavingSection ? <Loader2 size={16} className="animate-spin" /> : 'Create Section'}
                   </button>
                 </div>
               </motion.div>

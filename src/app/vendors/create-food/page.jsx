@@ -99,8 +99,8 @@ export default function CreateFoodWizardPage() {
   const previewPrice = defaultPortion?.price_naira || 0;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-80px)] bg-zinc-50 dark:bg-zinc-950 transition-colors relative">
-      <div className="flex-1 lg:max-w-6xl mx-auto w-full dark:pt-3 dark:px-3 pt-0 px-0 pb-10">
+    <div className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors relative">
+      <div className="flex-1 lg:max-w-6xl mx-auto w-full p-4 lg:p-0 pb-10">
         
         {/* Header Strip */}
         <div className="mb-6 bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 md:p-4 p-3 rounded-3xl border border-white/5 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden group">
@@ -183,7 +183,7 @@ export default function CreateFoodWizardPage() {
           
           {/* Main Form Content */}
           <div className={`${isLastStep ? 'col-span-full' : 'lg:col-span-8'} space-y-4`}>
-            <div className={`bg-white dark:bg-zinc-900 ${isLastStep ? 'rounded-2xl p-3 lg:p-5' : 'rounded-2xl p-4 lg:p-5'} border border-zinc-100 dark:border-zinc-800 min-h-[450px] relative overflow-hidden transition-colors`}>
+            <div className={`bg-white dark:bg-zinc-900/50 backdrop-blur-xl ${isLastStep ? 'rounded-3xl p-3 lg:p-6' : 'rounded-3xl p-5 lg:p-8'} border border-zinc-100 dark:border-white/5 min-h-[500px] relative overflow-hidden transition-all shadow-xl shadow-black/5`}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={store.currentStep}

@@ -142,7 +142,7 @@ export default function MyCombosPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="flex-1 min-w-[200px] px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-white placeholder-gray-500"
+              className="flex-1 min-w-[200px] px-4 py-2 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm bg-zinc-50 dark:bg-zinc-950 text-gray-900 dark:text-white placeholder-gray-500 outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
             />
             <select
               value={status}
@@ -150,7 +150,7 @@ export default function MyCombosPage() {
                 setStatus(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg text-sm bg-white dark:bg-zinc-800 text-gray-900 dark:text-white"
+              className="px-4 py-2 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-black uppercase tracking-widest bg-zinc-50 dark:bg-zinc-950 text-gray-900 dark:text-white outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all"
             >
               <option value="all">Active Combos</option>
               <option value="available">Available Only</option>
