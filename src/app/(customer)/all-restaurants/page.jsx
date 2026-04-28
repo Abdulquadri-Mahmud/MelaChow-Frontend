@@ -255,97 +255,131 @@ export default function AllRestaurants() {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-12 px-2">
-                        {filteredVendors.map(vendor => (
-                            <motion.div
-                                key={vendor._id}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="w-full"
-                            >
-                                <Link
-                                    href={`/restaurants/${vendor._id}`}
-                                    className="group w-full bg-white dark:bg-zinc-900 rounded-[20px] overflow-hidden cursor-pointer transition-all duration-300 block border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md"
-                                >
-                                    {/* Image Container */}
-                                    <div className="relative h-[160px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                                        {vendor.image ? (
-                                            <img
-                                                src={vendor.image}
-                                                alt={vendor.storeName}
-                                                className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!vendor.isOpen ? "grayscale-[30%]" : ""}`}
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-800">
-                                                <Utensils className="text-zinc-300 dark:text-zinc-600" size={40} />
-                                            </div>
-                                        )}
-
-                                        {/* Promo Badge */}
-                                        {vendor.hasActiveDeliveryPromo ? (
-                                            <div className="absolute bottom-3 right-3 shadow-sm flex items-center">
-                                                <FreeDeliveryBadge type="vendor" />
-                                            </div>
-                                        ) : (!vendor.deliveryFee || vendor.deliveryFee === 0) ? (
-                                            <div className="absolute bottom-3 right-3 bg-[#FFF9E5] border border-black/10 px-3 py-1.5 rounded-[12px] shadow-sm flex items-center gap-2">
-                                                <Gift size={14} className="text-orange-500" />
-                                                <span className="text-[10px] font-bold text-zinc-800 tracking-tight">
-                                                    Free delivery on all orders
-                                                </span>
-                                            </div>
-                                        ) : null}
+                    <div className="space-y-12 pb-24">
+                        {/* ── Open Now Section ────────────────────────────────────────── */}
+                        {filteredVendors.filter(v => v.isOpen).length > 0 && (
+                            <div>
+                                <div className="flex items-center gap-2 mb-4 px-2">
+                                    <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                                        <Clock size={16} className="text-emerald-600 dark:text-emerald-400" />
                                     </div>
+                                    <h2 className="text-[15px] font-black text-zinc-900 dark:text-white uppercase tracking-wider italic">
+                                        Open Now
+                                    </h2>
+                                    <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse ml-1" />
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2">
+                                    {filteredVendors.filter(v => v.isOpen).map(vendor => (
+                                        <VendorGridCard key={`open-${vendor._id}`} vendor={vendor} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
-                                    {/* Info Section */}
-                                    <div className="px-3 pt-3 pb-4">
-                                        {/* Title Row */}
-                                        <div className="flex justify-between items-center mb-2">
-                                            <h3 className="text-[16px] font-extrabold text-zinc-900 dark:text-white truncate uppercase italic tracking-tight">
-                                                {vendor.storeName} - {vendor.city}
-                                            </h3>
-                                        </div>
-
-                                        {/* Metadata Row */}
-                                        <div className="flex items-center justify-between text-[11px] font-medium">
-                                            <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
-                                                <div className="w-5 h-5 rounded-full bg-orange-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                                                    <Globe size={10} className="text-orange-600 dark:text-indigo-400" />
-                                                </div>
-
-                                                <span className="text-zinc-300">|</span>
-
-                                                <div className="flex items-center gap-1">
-                                                    <Bike size={14} className="text-zinc-800 dark:text-zinc-200" />
-                                                    <span className="text-zinc-800 dark:text-zinc-200">
-                                                        From {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free" : `₦${vendor.deliveryFee}`}
-                                                    </span>
-                                                </div>
-
-                                                <span className="text-zinc-300">|</span>
-
-                                                <span className={vendor.isOpen ? "text-emerald-600 font-bold" : "text-rose-500 font-bold"}>
-                                                    {vendor.isOpen ? "Open now" : "Closed"}
-                                                </span>
-                                            </div>
-
-                                            {/* Rating */}
-                                            <div className="flex items-center gap-1">
-                                                <Star size={14} className="fill-yellow-400 text-yellow-400" />
-                                                <span className="text-zinc-900 dark:text-white font-black">
-                                                    {Number(vendor.rating || 0) === 0 ? "New" : Number(vendor.rating).toFixed(1)}
-                                                </span>
-                                                {vendor.ratingCount > 0 && (
-                                                    <span className="text-zinc-400 text-[10px]">({vendor.ratingCount})</span>
-                                                )}
-                                            </div>
-                                        </div>
+                        {/* ── Top Rated Section ───────────────────────────────────────── */}
+                        {filteredVendors.filter(v => v.rating >= 4.5).length > 0 && (
+                            <div>
+                                <div className="flex items-center gap-2 mb-4 px-2">
+                                    <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                                        <Star size={16} className="text-orange-600 dark:text-orange-400 fill-orange-600" />
                                     </div>
-                                </Link>
-                            </motion.div>
-                        ))}
+                                    <h2 className="text-[15px] font-black text-zinc-900 dark:text-white uppercase tracking-wider italic">
+                                        Top Rated
+                                    </h2>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2">
+                                    {filteredVendors.filter(v => v.rating >= 4.5).map(vendor => (
+                                        <VendorGridCard key={`top-${vendor._id}`} vendor={vendor} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ── All Restaurants Section ─────────────────────────────────── */}
+                        <div>
+                            <div className="flex items-center gap-2 mb-4 px-2">
+                                <div className="p-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
+                                    <Utensils size={16} className="text-zinc-600 dark:text-zinc-400" />
+                                </div>
+                                <h2 className="text-[15px] font-black text-zinc-900 dark:text-white uppercase tracking-wider italic">
+                                    All Restaurants
+                                </h2>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2">
+                                {filteredVendors.map(vendor => (
+                                    <VendorGridCard key={`all-${vendor._id}`} vendor={vendor} />
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 )}
             </main>
         </div>
     );
 }
+
+// ── Reusable Grid Card Component ─────────────────────────────────────────────
+const VendorGridCard = ({ vendor }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full"
+    >
+        <Link
+            href={`/restaurants/${vendor._id}`}
+            className="group w-full bg-white dark:bg-zinc-900 rounded-[20px] overflow-hidden cursor-pointer transition-all duration-300 block border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md"
+        >
+            {/* Image Container */}
+            <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                {vendor.image ? (
+                    <img
+                        src={vendor.image}
+                        alt={vendor.storeName}
+                        className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!vendor.isOpen ? "grayscale-[30%]" : ""}`}
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-800">
+                        <Utensils className="text-zinc-300 dark:text-zinc-600" size={40} />
+                    </div>
+                )}
+
+                {/* Promo Badge */}
+                {vendor.hasActiveDeliveryPromo ? (
+                    <div className="absolute bottom-3 right-3 shadow-sm flex items-center">
+                        <FreeDeliveryBadge type="vendor" />
+                    </div>
+                ) : (!vendor.deliveryFee || vendor.deliveryFee === 0) ? (
+                    <div className="absolute bottom-3 right-3 bg-[#FFF9E5] border border-black/10 px-2 py-1 rounded-[10px] shadow-sm flex items-center gap-1.5">
+                        <Gift size={12} className="text-orange-500" />
+                        <span className="text-[9px] font-bold text-zinc-800 tracking-tight">
+                            Free delivery
+                        </span>
+                    </div>
+                ) : null}
+            </div>
+
+            {/* Info Section */}
+            <div className="px-3 pt-3 pb-4 space-y-2">
+                <h3 className="text-[13px] font-black text-zinc-900 dark:text-white truncate uppercase italic tracking-tight leading-none">
+                    {vendor.storeName}
+                </h3>
+
+                <div className="flex items-center justify-between text-[10px] font-bold">
+                    <div className="flex items-center gap-1 text-zinc-500 dark:text-zinc-400">
+                        <Bike size={12} className="text-zinc-800 dark:text-zinc-200" />
+                        <span className="text-zinc-800 dark:text-zinc-200">
+                            ₦{vendor.deliveryFee || 0}
+                        </span>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                        <Star size={12} className="fill-yellow-400 text-yellow-400" />
+                        <span className="text-zinc-900 dark:text-white">
+                            {Number(vendor.rating || 0).toFixed(1)}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </Link>
+    </motion.div>
+);
