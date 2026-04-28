@@ -4,9 +4,12 @@ import { useMemo, useState, useEffect } from "react";
 import {
     ArrowLeft, Store, Clock, MapPin, Truck, Plus, Star, Heart,
     Search, SlidersHorizontal, AlertCircle, RefreshCw, X, Utensils,
-    StarHalf, Star as StarEmpty
+    StarHalf, Star as StarEmpty,
+    Bike, Gift, Globe, Sparkles
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import FreeDeliveryBadge from "@/components/ui/FreeDeliveryBadge";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/app/context/ApiContext";
@@ -46,17 +49,31 @@ export default function AllRestaurants() {
         enabled: !!defaultAddr && !isUserLoading,
     });
 
-    const vendors = responseData?.vendors || [];
-
-    console.log(vendors)
+    const allVendors = useMemo(() => {
+        const raw = responseData?.vendors || [];
+        return raw.map((v) => ({
+            _id: v._id,
+            storeName: v.storeName,
+            city: v.address?.city,
+            image: v.logo || null,
+            deliveryFee: v.deliveryFee ?? 0,
+            rating: v.rating || 0,
+            ratingCount: v.ratingCount || 0,
+            openingHours: v.openingHours,
+            cuisineTypes: v.cuisineTypes || [],
+            locationStatus: v.locationStatus || "approved",
+            hasActiveDeliveryPromo: v.hasActiveDeliveryPromo || false,
+            isOpen: getVendorOpenAndCloseStatus(v.openingHours).startsWith("Open now"),
+        }));
+    }, [responseData]);
 
     const filteredVendors = useMemo(() => {
-        if (!searchQuery) return vendors;
-        return vendors.filter(v =>
+        if (!searchQuery) return allVendors;
+        return allVendors.filter(v =>
             v.storeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            v.address?.city?.toLowerCase().includes(searchQuery.toLowerCase())
+            v.city?.toLowerCase().includes(searchQuery.toLowerCase())
         );
-    }, [vendors, searchQuery]);
+    }, [allVendors, searchQuery]);
 
     const getStatusInfo = (vendor) => {
         const hours = vendor.openHours || vendor.openingHours || [];
@@ -238,77 +255,94 @@ export default function AllRestaurants() {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pb-12 px-1">
-                        {filteredVendors.map(vendor => {
-                            const { isOpen } = getStatusInfo(vendor);
-                            return (
-                                <motion.div
-                                    key={vendor._id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    whileHover={{ y: -2 }}
-                                    className="bg-white dark:bg-zinc-900 rounded-[24px] overflow-hidden shadow-sm border border-zinc-100 dark:border-zinc-800 transition-all duration-300 cursor-pointer group"
-                                    onClick={() => router.push(`/restaurants/${String(vendor._id)}`)}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-12 px-2">
+                        {filteredVendors.map(vendor => (
+                            <motion.div
+                                key={vendor._id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="w-full"
+                            >
+                                <Link
+                                    href={`/restaurants/${vendor._id}`}
+                                    className="group w-full bg-white dark:bg-zinc-900 rounded-[20px] overflow-hidden cursor-pointer transition-all duration-300 block border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md"
                                 >
-                                    {/* Image Section - Smaller */}
-                                    <div className="relative h-28 md:h-36 overflow-hidden">
-                                        {!imgLoaded[vendor._id] && (
-                                            <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
+                                    {/* Image Container */}
+                                    <div className="relative h-[160px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                                        {vendor.image ? (
+                                            <img
+                                                src={vendor.image}
+                                                alt={vendor.storeName}
+                                                className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!vendor.isOpen ? "grayscale-[30%]" : ""}`}
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-800">
+                                                <Utensils className="text-zinc-300 dark:text-zinc-600" size={40} />
+                                            </div>
                                         )}
-                                        <img
-                                            src={vendor.logo}
-                                            alt={vendor.storeName}
-                                            onLoad={() => setImgLoaded((prev) => ({ ...prev, [vendor._id]: true }))}
-                                            className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 ${imgLoaded[vendor._id] ? "opacity-100" : "opacity-0"}`}
-                                        />
 
-                                        {/* Status Badge - Compact */}
-                                        <div className="absolute top-2 left-2 flex gap-1">
-                                            {!isOpen && (
-                                                <span className="bg-zinc-950/80 backdrop-blur-md text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest">
-                                                    Closed
+                                        {/* Promo Badge */}
+                                        {vendor.hasActiveDeliveryPromo ? (
+                                            <div className="absolute bottom-3 right-3 shadow-sm flex items-center">
+                                                <FreeDeliveryBadge type="vendor" />
+                                            </div>
+                                        ) : (!vendor.deliveryFee || vendor.deliveryFee === 0) ? (
+                                            <div className="absolute bottom-3 right-3 bg-[#FFF9E5] border border-black/10 px-3 py-1.5 rounded-[12px] shadow-sm flex items-center gap-2">
+                                                <Gift size={14} className="text-orange-500" />
+                                                <span className="text-[10px] font-bold text-zinc-800 tracking-tight">
+                                                    Free delivery on all orders
                                                 </span>
-                                            )}
-                                            {vendor.metadata?.featured && (
-                                                <span className="bg-orange-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest">
-                                                    Hot
-                                                </span>
-                                            )}
+                                            </div>
+                                        ) : null}
+                                    </div>
+
+                                    {/* Info Section */}
+                                    <div className="px-3 pt-3 pb-4">
+                                        {/* Title Row */}
+                                        <div className="flex justify-between items-center mb-2">
+                                            <h3 className="text-[16px] font-extrabold text-zinc-900 dark:text-white truncate uppercase italic tracking-tight">
+                                                {vendor.storeName} - {vendor.city}
+                                            </h3>
                                         </div>
 
-                                        {/* Rating Overlay */}
-                                        <div className="absolute bottom-2 left-2">
-                                            <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-lg px-1.5 py-1 flex items-center gap-1 shadow-sm">
-                                                <Star size={8} className="text-orange-500 fill-orange-500" />
-                                                <span className="text-[10px] font-black text-zinc-900 dark:text-white">
-                                                    {Number(vendor.rating || 0).toFixed(1)}
+                                        {/* Metadata Row */}
+                                        <div className="flex items-center justify-between text-[11px] font-medium">
+                                            <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+                                                <div className="w-5 h-5 rounded-full bg-orange-100 dark:bg-indigo-900/30 flex items-center justify-center">
+                                                    <Globe size={10} className="text-orange-600 dark:text-indigo-400" />
+                                                </div>
+
+                                                <span className="text-zinc-300">|</span>
+
+                                                <div className="flex items-center gap-1">
+                                                    <Bike size={14} className="text-zinc-800 dark:text-zinc-200" />
+                                                    <span className="text-zinc-800 dark:text-zinc-200">
+                                                        From {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free" : `₦${vendor.deliveryFee}`}
+                                                    </span>
+                                                </div>
+
+                                                <span className="text-zinc-300">|</span>
+
+                                                <span className={vendor.isOpen ? "text-emerald-600 font-bold" : "text-rose-500 font-bold"}>
+                                                    {vendor.isOpen ? "Open now" : "Closed"}
                                                 </span>
+                                            </div>
+
+                                            {/* Rating */}
+                                            <div className="flex items-center gap-1">
+                                                <Star size={14} className="fill-yellow-400 text-yellow-400" />
+                                                <span className="text-zinc-900 dark:text-white font-black">
+                                                    {Number(vendor.rating || 0) === 0 ? "New" : Number(vendor.rating).toFixed(1)}
+                                                </span>
+                                                {vendor.ratingCount > 0 && (
+                                                    <span className="text-zinc-400 text-[10px]">({vendor.ratingCount})</span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
-
-                                    {/* Content Section - Very Compact */}
-                                    <div className="p-2.5 space-y-1.5">
-                                        <h3 className="text-[13px] font-black text-zinc-900 dark:text-white truncate tracking-tight leading-none">
-                                            {vendor.storeName}
-                                        </h3>
-                                        
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-1 text-zinc-400">
-                                                <Bike size={11} />
-                                                <span className="text-[9px] font-bold">
-                                                    {vendor.deliveryFee > 0 ? `₦${vendor.deliveryFee}` : "Free"}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-1 text-zinc-400">
-                                                <Clock size={11} />
-                                                <span className="text-[9px] font-bold italic">25m</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )
-                        })}
+                                </Link>
+                            </motion.div>
+                        ))}
                     </div>
                 )}
             </main>
