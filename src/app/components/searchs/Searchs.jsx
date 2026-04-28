@@ -40,13 +40,17 @@ const DIETARY_COLORS = {
 };
 
 const FoodItemRow = ({ food }) => {
-    const isUnavailable = !food.is_available || !food.is_in_stock;
+    // Explicitly handle undefined/null as true for availability to prevent false 'Sold Out' states
+    const isAvailable = food.is_available !== false;
+    const isInStock = food.is_in_stock !== false;
+    const isUnavailable = !isAvailable || !isInStock;
+
     const vendor = food.restaurant || food.vendor;
     const price = food.portions?.min_price_naira || food.portions?.default_price_naira || food.price || 0;
     const oldPrice = food.old_price || (price * 1.2);
     const openFoodModal = useFoodModalStore(state => state.openFoodModal);
 
-    console.log(food);
+    console.log('Food Item Data:', { name: food.name, is_available: food.is_available, is_in_stock: food.is_in_stock, isUnavailable });
 
     return (
         <div 
@@ -63,7 +67,7 @@ const FoodItemRow = ({ food }) => {
                 </div>
 
                 <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-black uppercase tracking-widest truncate mb-1">
-                    {vendor?.storeName} • {vendor?.address?.city || "Nearby"}
+                    {vendor?.storeName} • {vendor?.city || vendor?.address?.city || "Nearby"}
                 </p>
 
                 <p className="text-[12px] text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed font-medium">
