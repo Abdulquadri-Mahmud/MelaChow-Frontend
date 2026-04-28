@@ -136,16 +136,8 @@ export default function AllRestaurants() {
                 </div>
             </header>
 
-            <main className="max-w-md mx-auto px-2 pt-6">
-                {/* Intro */}
-                <div className="mb-6 px-1">
-                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white uppercase italic tracking-tight leading-none">
-                        {searchQuery ? `Search: ${searchQuery}` : "Global Kitchens"}
-                    </h2>
-                    <p className="text-zinc-500 dark:text-zinc-400 text-xs mt-1.5 font-bold uppercase tracking-widest">
-                        {filteredVendors.length} spots filtered near you
-                    </p>
-                </div>
+            <main className="max-w-md mx-auto px-2 pt-2">
+                {/* Intro Removed for compactness */}
 
                 {isLoading ? (
                     <div className="grid grid-cols-1 gap-4">
@@ -246,20 +238,20 @@ export default function AllRestaurants() {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-6 pb-12">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pb-12 px-1">
                         {filteredVendors.map(vendor => {
-                            const { isOpen, status } = getStatusInfo(vendor);
+                            const { isOpen } = getStatusInfo(vendor);
                             return (
                                 <motion.div
                                     key={vendor._id}
-                                    initial={{ opacity: 0, y: 20 }}
+                                    initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    whileHover={{ y: -4 }}
-                                    className="bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] border border-zinc-100 dark:border-zinc-800 transition-all duration-500 cursor-pointer group"
+                                    whileHover={{ y: -2 }}
+                                    className="bg-white dark:bg-zinc-900 rounded-[24px] overflow-hidden shadow-sm border border-zinc-100 dark:border-zinc-800 transition-all duration-300 cursor-pointer group"
                                     onClick={() => router.push(`/restaurants/${String(vendor._id)}`)}
                                 >
-                                    {/* Image Section */}
-                                    <div className="relative h-56 overflow-hidden">
+                                    {/* Image Section - Smaller */}
+                                    <div className="relative h-28 md:h-36 overflow-hidden">
                                         {!imgLoaded[vendor._id] && (
                                             <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
                                         )}
@@ -267,97 +259,50 @@ export default function AllRestaurants() {
                                             src={vendor.logo}
                                             alt={vendor.storeName}
                                             onLoad={() => setImgLoaded((prev) => ({ ...prev, [vendor._id]: true }))}
-                                            className={`h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110 ${imgLoaded[vendor._id] ? "opacity-100" : "opacity-0"}`}
+                                            className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 ${imgLoaded[vendor._id] ? "opacity-100" : "opacity-0"}`}
                                         />
 
-                                        {/* Overlay Gradient */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
-
-                                        {/* Status & Featured Badges */}
-                                        <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-                                            <div className="flex gap-2">
-                                                {isOpen ? (
-                                                    <span className="bg-emerald-500/90 backdrop-blur-md text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg uppercase tracking-wider">
-                                                        <Clock size={12} strokeWidth={3} /> Open Now
-                                                    </span>
-                                                ) : (
-                                                    <span className="bg-zinc-950/80 backdrop-blur-md text-zinc-400 text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg uppercase tracking-wider">
-                                                        <Clock size={12} strokeWidth={3} /> Closed
-                                                    </span>
-                                                )}
-                                                {vendor.metadata?.featured && (
-                                                    <span className="bg-orange-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg uppercase tracking-wider">
-                                                        <Sparkles size={12} strokeWidth={3} /> Featured
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <button className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 backdrop-blur-md flex items-center justify-center transition-colors">
-                                                <Heart size={20} className="text-white" />
-                                            </button>
+                                        {/* Status Badge - Compact */}
+                                        <div className="absolute top-2 left-2 flex gap-1">
+                                            {!isOpen && (
+                                                <span className="bg-zinc-950/80 backdrop-blur-md text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest">
+                                                    Closed
+                                                </span>
+                                            )}
+                                            {vendor.metadata?.featured && (
+                                                <span className="bg-orange-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest">
+                                                    Hot
+                                                </span>
+                                            )}
                                         </div>
 
-                                        {/* Rating Display */}
-                                        <div className="absolute bottom-4 left-4 flex items-center gap-2">
-                                            <div className="bg-white dark:bg-zinc-900 rounded-2xl px-3 py-2 flex items-center gap-1.5 shadow-xl border border-white/50 dark:border-zinc-800">
-                                                <Star size={16} className="text-orange-500 fill-orange-500" />
-                                                <span className="text-sm font-black text-zinc-900 dark:text-white">
+                                        {/* Rating Overlay */}
+                                        <div className="absolute bottom-2 left-2">
+                                            <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-lg px-1.5 py-1 flex items-center gap-1 shadow-sm">
+                                                <Star size={8} className="text-orange-500 fill-orange-500" />
+                                                <span className="text-[10px] font-black text-zinc-900 dark:text-white">
                                                     {Number(vendor.rating || 0).toFixed(1)}
-                                                </span>
-                                                <span className="text-[10px] font-bold text-zinc-400">
-                                                    ({(vendor.ratingCount || 0).toLocaleString()}+)
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Content Section */}
-                                    <div className="p-2">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="text-2xl font-black text-zinc-900 dark:text-white truncate tracking-tight mb-1 group-hover:text-orange-600 transition-colors">
-                                                    {vendor.storeName}
-                                                </h3>
-                                                <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400 text-sm font-medium italic">
-                                                    <MapPin size={14} className="text-orange-500" />
-                                                    <span className="truncate">{vendor.fullAddress || `${vendor.address?.city}, ${vendor.address?.state}`}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex flex-wrap gap-2 mb-2">
-                                            {(vendor.cuisineTypes || []).slice(0, 3).map((cuisine, idx) => (
-                                                <span 
-                                                    key={idx}
-                                                    className="bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl border border-zinc-200/50 dark:border-zinc-700/50"
-                                                >
-                                                    {cuisine}
+                                    {/* Content Section - Very Compact */}
+                                    <div className="p-2.5 space-y-1.5">
+                                        <h3 className="text-[13px] font-black text-zinc-900 dark:text-white truncate tracking-tight leading-none">
+                                            {vendor.storeName}
+                                        </h3>
+                                        
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1 text-zinc-400">
+                                                <Bike size={11} />
+                                                <span className="text-[9px] font-bold">
+                                                    {vendor.deliveryFee > 0 ? `₦${vendor.deliveryFee}` : "Free"}
                                                 </span>
-                                            ))}
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-3 p-1">
-                                            <div className="bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl p-2 flex flex-col gap-1 border border-zinc-100 dark:border-zinc-800/50">
-                                                <div className="flex items-center gap-1.5 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
-                                                    <Truck size={14} /> Delivery
-                                                </div>
-                                                <div className="text-lg font-black text-zinc-900 dark:text-white flex items-baseline gap-1">
-                                                    {vendor.deliveryFee > 0 ? (
-                                                        <>
-                                                            <span className="text-xs uppercase opacity-30">₦</span>
-                                                            {vendor.deliveryFee.toLocaleString()}
-                                                        </>
-                                                    ) : (
-                                                        <span className="text-emerald-500 uppercase italic">Free</span>
-                                                    )}
-                                                </div>
                                             </div>
-                                            <div className="bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl p-2 flex flex-col gap-1 border border-zinc-100 dark:border-zinc-800/50">
-                                                <div className="flex items-center gap-1.5 text-zinc-400 text-[10px] font-black uppercase tracking-widest">
-                                                    <Clock size={14} /> Estimates
-                                                </div>
-                                                <div className="text-lg font-black text-zinc-900 dark:text-white flex items-baseline gap-1 italic">
-                                                    15-25 <span className="text-xs uppercase opacity-30 not-italic">min</span>
-                                                </div>
+                                            <div className="flex items-center gap-1 text-zinc-400">
+                                                <Clock size={11} />
+                                                <span className="text-[9px] font-bold italic">25m</span>
                                             </div>
                                         </div>
                                     </div>

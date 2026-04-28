@@ -17,11 +17,8 @@ export default function PromoAnnouncementBanner() {
 
   const handleCta = () => {
     if (showPlatform) {
-      // User is already on the home page — scroll to the vendor list below.
-      const anchor = document.getElementById("vendor-list-anchor");
-      if (anchor) {
-        anchor.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+      // Navigate to the all restaurants page.
+      window.location.href = "/all-restaurants";
     } else {
       // Vendor promo — navigate to a pre-filtered vendor view.
       window.location.href = "/home?freeDelivery=true";
@@ -134,7 +131,7 @@ export default function PromoAnnouncementBanner() {
                 
                 <p className="text-[11px] md:text-xs font-bold text-zinc-400 max-w-[280px] leading-tight tracking-tight">
                   {showPlatform 
-                    ? "Welcome to MelaChow! Your first order is on us."
+                    ? "Your first order from any restaurant is free delivery."
                     : "Top-rated restaurants near you offer free delivery."
                   }
                 </p>
