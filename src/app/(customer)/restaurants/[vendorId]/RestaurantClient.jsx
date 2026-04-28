@@ -392,9 +392,18 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                             <div className="w-px h-8 bg-zinc-100 dark:bg-zinc-800" />
                             <div className="text-center space-y-0.5">
                                 <div className="flex items-center gap-1 justify-center text-orange-500 font-black text-[15px]">
-                                    ₦{vendor.deliveryFee?.toLocaleString() || "FREE"}
+                                    {!vendor.deliveryFee || vendor.deliveryFee === 0 ? (
+                                        <span className="text-green-500">Free</span>
+                                    ) : (
+                                        `₦${vendor.deliveryFee.toLocaleString()}`
+                                    )}
                                 </div>
-                                <p className="text-[10px] font-semibold text-zinc-400">Delivery Fee</p>
+                                <p className="text-[10px] font-semibold text-zinc-400">Delivery</p>
+                                {vendor.hasActiveDeliveryPromo && (
+                                    <p className="text-[8px] font-black text-orange-500 uppercase tracking-widest">
+                                        Sponsored
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -405,6 +414,15 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                 {getVendorOpenAndCloseStatus(vendor.openingHours)}
                             </span>
                         </div>
+
+                        {vendor.hasActiveDeliveryPromo && (
+                            <div className="mt-3 flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-500/10 rounded-2xl border border-green-100 dark:border-green-500/20">
+                                <span className="text-base">🏪</span>
+                                <span className="text-[11px] font-black text-green-700 dark:text-green-400 uppercase tracking-widest">
+                                    Free delivery — sponsored by this restaurant
+                                </span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
