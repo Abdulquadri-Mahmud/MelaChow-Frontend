@@ -207,7 +207,7 @@ export default function AllRestaurants() {
                             Try Again
                         </button>
                     </div>
-                ) : vendors.length === 0 ? (
+                ) : allVendors.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-12 px-8 text-center bg-white dark:bg-zinc-900 rounded-[40px] shadow-xl shadow-zinc-200/50 dark:shadow-none border border-zinc-50 dark:border-zinc-800/50">
                         <div className="bg-orange-50 dark:bg-orange-950/20 p-8 rounded-full mb-6 animate-pulse">
                             <MapPin className="text-orange-600" size={48} />
