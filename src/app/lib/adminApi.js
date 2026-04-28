@@ -534,6 +534,10 @@ class AdminAPI {
     async deactivatePlatformDeliveryPromo(promoId) {
         return this.handleResponse(api.patch(`/api/admin/promos/platform-delivery/${promoId}/deactivate`));
     }
+
+    async getPlatformPromoStats(promoId) {
+        return this.handleResponse(api.get(`/api/admin/promos/platform-delivery/${promoId}/stats`));
+    }
 }
 
 export default new AdminAPI();
