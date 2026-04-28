@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Gift, Sparkles, ChevronRight, Bike, Zap, Star, LayoutGrid } from "lucide-react";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
-import Link from "next/link";
 
 /**
  * PromoAnnouncementBanner
@@ -13,10 +12,20 @@ import Link from "next/link";
 export default function PromoAnnouncementBanner() {
   const { platformPromo, vendorPromoCount, hasAnyPromo, isLoading } = useActivePromos();
 
-  if (isLoading || !hasAnyPromo) return null;
-
   const showPlatform = !!platformPromo;
   const showVendor = vendorPromoCount > 0;
+
+  const handleCta = () => {
+    if (showPlatform) {
+      // Navigate to the all restaurants page.
+      window.location.href = "/all-restaurants";
+    } else {
+      // Vendor promo — navigate to a pre-filtered vendor view.
+      window.location.href = "/home?freeDelivery=true";
+    }
+  };
+
+  if (isLoading || !hasAnyPromo) return null;
 
   return (
     <AnimatePresence>
@@ -122,7 +131,7 @@ export default function PromoAnnouncementBanner() {
                 
                 <p className="text-[11px] md:text-xs font-bold text-zinc-400 max-w-[280px] leading-tight tracking-tight">
                   {showPlatform 
-                    ? "Welcome to MelaChow! Your first order is on us."
+                    ? "Your first order from any restaurant is free delivery."
                     : "Top-rated restaurants near you offer free delivery."
                   }
                 </p>
@@ -131,18 +140,20 @@ export default function PromoAnnouncementBanner() {
 
             {/* Right: CTA - Scaled Down */}
             <div className="flex items-center">
-              <Link
-                href="/search"
+              <button
+                onClick={handleCta}
                 className="group/btn relative h-11 px-6 rounded-xl bg-white overflow-hidden transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] active:scale-95"
               >
-                <div className="relative z-20 flex items-center gap-2.5">
-                  <span className="text-zinc-950 font-black text-[11px] uppercase tracking-widest">Get Started</span>
-                  <div className="w-5 h-5 rounded-lg bg-zinc-950 flex items-center justify-center transition-transform duration-500 group-hover/btn:translate-x-0.5">
+                <div className="relative z-20 flex items-center justify-center gap-2">
+                  <span className="text-zinc-950 font-black text-[11px] uppercase tracking-widest whitespace-nowrap">
+                    Get Started
+                  </span>
+                  <div className="w-5 h-5 rounded-lg bg-zinc-950 flex items-center justify-center shrink-0 transition-transform duration-500 group-hover/btn:translate-x-0.5">
                     <ChevronRight size={14} className="text-white" strokeWidth={3} />
                   </div>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#f48525]/10 to-transparent -translate-x-full group-hover/btn:animate-shimmer" />
-              </Link>
+              </button>
             </div>
           </div>
 

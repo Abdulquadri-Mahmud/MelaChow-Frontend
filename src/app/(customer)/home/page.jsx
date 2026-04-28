@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import CategoryList from "@/app/components/Home_Components/Category";
 import FeatureSlider from "@/app/components/Home_Components/FeatureSlider";
 import FoodList from "@/app/components/Home_Components/FoodList";
@@ -33,7 +33,11 @@ export default function HomePage() {
         <SearchBar />
         <CategoryList />
         <PromoAnnouncementBanner />
-        <VendorList user={user} />
+        <div id="vendor-list-anchor">
+          <Suspense fallback={null}>
+            <VendorList user={user} />
+          </Suspense>
+        </div>
         {/* <TrendingFoods user={user} /> */}
         <div className="space-y-4">
           {/* <SmartRecommendations /> */}

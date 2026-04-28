@@ -39,105 +39,83 @@ const DIETARY_COLORS = {
   "non-veg": "bg-red-500 text-white shadow-lg shadow-red-500/20",
 };
 
-const FoodCard = ({ food }) => {
-    const router = useRouter();
-    const [liked, setLiked] = useState(false);
+const FoodItemRow = ({ food }) => {
+    // Explicitly handle undefined/null as true for availability to prevent false 'Sold Out' states
+    const isAvailable = food.is_available !== false;
+    const isInStock = food.is_in_stock !== false;
+    const isUnavailable = !isAvailable || !isInStock;
+
     const vendor = food.restaurant || food.vendor;
-    const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
-    const isOpen = status.startsWith("Open now");
+    const price = food.portions?.min_price_naira || food.portions?.default_price_naira || food.price || 0;
+    const oldPrice = food.old_price || (price * 1.2);
     const openFoodModal = useFoodModalStore(state => state.openFoodModal);
 
+    console.log('Food Item Data:', { name: food.name, is_available: food.is_available, is_in_stock: food.is_in_stock, isUnavailable });
+
     return (
-        <div
-            onClick={() => openFoodModal(food._id, { food })}
-            className="group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[24px] overflow-hidden cursor-pointer snap-start transition-all duration-500 hover:shadow-2xl hover:shadow-zinc-200/50 dark:hover:shadow-none border border-zinc-100 dark:border-zinc-800"
-            style={{ width: "72vw", maxWidth: "280px" }}
+        <div 
+            onClick={() => !isUnavailable && openFoodModal(food._id, { food })}
+            className={`group flex items-center gap-4 py-4 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer active:scale-[0.99] transition-all duration-200 ${isUnavailable ? 'opacity-50 grayscale pointer-events-none' : ''}`}
         >
-            {/* Image Container */}
-            <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                <img
-                    src={food.image || "/placeholder.jpg"}
-                    alt={food.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                
-                {/* Hot/New Badge */}
-                <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-0.5 rounded-lg">
-                    <span className="text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <Flame size={8} fill="currentColor" /> HOT
-                    </span>
-                </div>
-
-                {/* Dietary Badge - Bottom Left */}
-                {food.dietary_type && food.dietary_type !== "mixed" && (
-                    <div className="absolute bottom-2 left-2">
-                        <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${DIETARY_COLORS[food.dietary_type] || "bg-zinc-100 text-zinc-500"}`}>
-                            {food.dietary_type}
-                        </span>
-                    </div>
-                )}
-            </div>
-
-            {/* Info Block */}
-            <div className="px-3 pt-2.5 pb-3">
-                {/* Row 1: Name + Heart */}
-                <div className="flex justify-between items-center gap-2">
-                    <h3 className="text-sm font-black text-zinc-900 dark:text-white truncate max-w-[calc(100%-28px)] uppercase italic tracking-tight">
+            {/* Text Content */}
+            <div className="flex-1 min-w-0 space-y-1">
+                <div className="flex items-center gap-2">
+                    <h3 className="text-[15px] font-extrabold text-zinc-900 dark:text-white tracking-tight truncate group-hover:text-orange-600 transition-colors duration-200 uppercase italic">
                         {food.name}
                     </h3>
-                    <button
-                        onClick={(e) => { e.stopPropagation(); setLiked(!liked); }}
-                        className="transition-colors"
-                    >
-                        <Heart
-                            size={18}
-                            className={liked ? "fill-red-500 text-red-500" : "text-zinc-300 dark:text-zinc-700"}
-                            strokeWidth={liked ? 0 : 2}
-                        />
-                    </button>
+                    {food.is_popular && <Flame size={13} className="text-orange-500 shrink-0 animate-pulse" />}
                 </div>
 
-                {/* Row 2: Vendor Name • Location */}
-                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate mt-1 font-bold uppercase tracking-widest">
-                    {vendor?.storeName} {" \u2022 "} {vendor?.city || "Nearby"}
+                <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-black uppercase tracking-widest truncate mb-1">
+                    {vendor?.storeName} • {vendor?.city || vendor?.address?.city || "Nearby"}
                 </p>
 
-                {/* Row 3: Metadata Line: Globe | Delivery | Status | Rating */}
-                <div className="mt-3 flex items-center gap-1.5 overflow-hidden border-t border-zinc-50 dark:border-zinc-800 pt-3">
-                    <Globe size={14} className="text-zinc-400 dark:text-zinc-600" />
-                    
-                    <span className="text-zinc-100 dark:text-zinc-800 text-xs">|</span>
+                <p className="text-[12px] text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed font-medium">
+                    {food?.description || "Freshly prepared with premium ingredients."}
+                </p>
 
-                    {/* Delivery */}
-                    <div className="flex items-center gap-1 whitespace-nowrap">
-                        <Bike size={14} className="text-orange-500" />
-                        {(() => {
-                            const fee = food.deliveryFee;
-                            return (!fee || fee === 0) ? (
-                                <span className="text-[10px] font-black text-zinc-900 dark:text-white uppercase">Free</span>
-                            ) : (
-                                <span className="text-[10px] font-black text-zinc-500 dark:text-zinc-400 uppercase tracking-tighter">₦{fee.toLocaleString()}</span>
-                            );
-                        })()}
+                <div className="flex items-center gap-3 pt-1">
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[14px] font-black text-orange-600">₦{price.toLocaleString()}</span>
+                        {oldPrice > price && (
+                            <span className="text-[11px] text-zinc-400 line-through font-medium">₦{Math.round(oldPrice).toLocaleString()}</span>
+                        )}
                     </div>
-
-                    <span className="text-zinc-100 dark:text-zinc-800 text-xs">|</span>
-
-                    {/* Status */}
-                    <span className={`text-[10px] font-black uppercase tracking-tighter whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {status}
-                    </span>
-
-                    <span className="text-zinc-100 dark:text-zinc-800 text-xs">|</span>
-
-                    {/* Rating */}
-                    <div className="flex items-center gap-0.5 whitespace-nowrap">
-                        <Star size={10} className="fill-orange-500 text-orange-500" />
-                        <span className="text-[10px] font-black text-zinc-900 dark:text-white tabular-nums">
+                    <div className="h-3 w-px bg-zinc-200 dark:bg-zinc-800" />
+                    <div className="flex items-center gap-1">
+                        <Star size={10} className="fill-amber-400 text-amber-400" />
+                        <span className="text-[11px] font-black text-zinc-600 dark:text-zinc-400">
                             {Number(food.rating || vendor?.rating || 0).toFixed(1)}
                         </span>
                     </div>
                 </div>
+            </div>
+
+            {/* Image + Add Button */}
+            <div className="relative w-[100px] h-[100px] rounded-2xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800 shadow-md group-hover:shadow-orange-200 dark:group-hover:shadow-orange-900/30 transition-shadow duration-300">
+                <img 
+                    src={food.image || "/placeholder.jpg"} 
+                    alt={food.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => { e.target.src = '/placeholder.jpg'; e.target.onerror = null; }}
+                />
+
+                {/* Add Button */}
+                {!isUnavailable && (
+                    <div className="absolute bottom-1.5 right-1.5">
+                        <div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-500/40 group-active:scale-90 transition-transform">
+                            <Plus size={16} strokeWidth={3} />
+                        </div>
+                    </div>
+                )}
+
+                {isUnavailable && (
+                    <div className="absolute inset-0 bg-zinc-900/50 backdrop-blur-[1px] flex items-center justify-center">
+                        <span className="bg-white/95 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest text-zinc-800">
+                            Sold Out
+                        </span>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -500,7 +478,7 @@ export default function FoodSearchMobile() {
             <NoFoodsFound />
           </div>
         ) : (
-          <div className="space-y-12 pb-24 pl-2 overflow-hidden">
+          <div className="space-y-4 pb-24 px-4 overflow-hidden">
             <AnimatePresence mode="popLayout">
                 {Object.entries(foodsByCategory).map(([category, categoryFoods], sectionIdx) => (
                 <motion.div 
@@ -509,30 +487,28 @@ export default function FoodSearchMobile() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: sectionIdx * 0.1 }}
-                    className="px-0 relative"
+                    className="relative"
                 >
                     {/* Floating Glow in Background */}
                     <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
                     
-                    <div className="flex items-center gap-3 px-6 mb-6">
+                    <div className="flex items-center gap-3 mb-4">
                         <div className="flex flex-col">
-                           <span className="text-[9px] font-black text-orange-500 uppercase tracking-[0.3em] leading-none mb-1 opacity-50 italic">Section</span>
                            <h2 className="text-2xl font-black text-zinc-950 dark:text-zinc-50 tracking-tighter uppercase italic leading-none">
                                 {category}
                             </h2>
                         </div>
                     </div>
 
-                    <div className="flex gap-5 scroll overflow-x-auto pb-4 snap-x snap-mandatory no-scrollbar">
+                    <div className="flex flex-col">
                     {categoryFoods.map((food, foodIdx) => (
                         <motion.div 
                             key={food._id} 
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: (sectionIdx * 0.1) + (foodIdx * 0.05) }}
-                            className="snap-start"
                         >
-                            <FoodCard food={food} />
+                            <FoodItemRow food={food} />
                         </motion.div>
                     ))}
                     </div>
