@@ -95,7 +95,7 @@ export default function Step5Review({ onBack, onComplete, onSetStep }) {
                     <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-md overflow-hidden">
                         <div className="relative aspect-video w-full bg-zinc-50 dark:bg-zinc-900 overflow-hidden">
                             {store.image_url ? (
-                                <img src={store.image_url} alt={store.name} className="w-full h-full object-cover grayscale opacity-80" />
+                                <img src={store.image_url} alt={store.name} className="w-full h-full object-cover" />
                             ) : (
                                 <div className="w-full h-full flex flex-col items-center justify-center text-zinc-300 gap-3">
                                     <ImageIcon size={32} strokeWidth={1} />
