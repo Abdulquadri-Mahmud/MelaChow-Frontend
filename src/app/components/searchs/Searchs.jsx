@@ -115,8 +115,6 @@ const FoodItemRow = ({ food }) => {
     );
 };
 
-};
-
 export default function FoodSearchMobile() {
   const { baseUrl } = useApi();
   const router = useRouter();
