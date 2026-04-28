@@ -1,148 +1,134 @@
 "use client";
 
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, Sparkles, X, ChevronRight, Bike } from "lucide-react";
+import { Gift, Sparkles, ChevronRight, Bike, Zap, Star } from "lucide-react";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
 import Link from "next/link";
 
 /**
  * PromoAnnouncementBanner
- * Renders on the home page when any promo is active.
- *
- * Platform promo → "Your first order ships free" (first-order eligible message)
- * Vendor promo   → "X restaurants are offering free delivery right now"
- * Both active    → Shows platform promo primary, vendor promo as secondary line
- *
- * Dismissible per session (sessionStorage).
+ * A premium, non-dismissible discovery surface for active platform and vendor promos.
  */
 export default function PromoAnnouncementBanner() {
-  const { platformPromo, vendorPromoCount, hasAnyPromo, isLoading } =
-    useActivePromos();
+  const { platformPromo, vendorPromoCount, hasAnyPromo, isLoading } = useActivePromos();
 
-  const [dismissed, setDismissed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return sessionStorage.getItem("promoBannerDismissed") === "true";
-  });
+  if (isLoading || !hasAnyPromo) return null;
 
-  const handleDismiss = () => {
-    sessionStorage.setItem("promoBannerDismissed", "true");
-    setDismissed(true);
-  };
-
-  if (isLoading || !hasAnyPromo || dismissed) return null;
-
-  // Decide which message to show
   const showPlatform = !!platformPromo;
-  const showVendor   = vendorPromoCount > 0;
+  const showVendor = vendorPromoCount > 0;
 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -12 }}
-        transition={{ type: "spring", damping: 20, stiffness: 300 }}
-        className="relative mx-2 rounded-[22px] overflow-hidden"
-        style={{
-          background: "linear-gradient(135deg, #f97316 0%, #ea580c 60%, #c2410c 100%)",
-        }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="relative mx-3 rounded-[28px] overflow-hidden shadow-2xl group border border-white/10"
       >
-        {/* Decorative background glows */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-6 -right-6 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
-          <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-white/10 rounded-full blur-xl" />
+        {/* Premium Gradient Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 transition-transform duration-700 group-hover:scale-110" />
+
+        {/* Animated Overlay Shapes */}
+        <div className="absolute inset-0 pointer-events-none">
+          <motion.div
+            animate={{
+              rotate: [0, 360],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            className="absolute -top-1/2 -left-1/2 w-full h-full bg-white/5 rounded-full blur-3xl"
+          />
+          <motion.div
+            animate={{
+              rotate: [360, 0],
+              scale: [1, 1.3, 1],
+            }}
+            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+            className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-indigo-400/10 rounded-full blur-3xl"
+          />
         </div>
 
-        <div className="relative px-5 py-4">
-          {/* Dismiss button */}
-          <button
-            onClick={handleDismiss}
-            className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
-            aria-label="Dismiss"
-          >
-            <X size={12} strokeWidth={3} />
-          </button>
-
-          {/* Platform promo — first-order message */}
-          {showPlatform && (
-            <div className="flex items-start gap-3 mb-2">
-              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0 mt-0.5">
-                <Gift size={18} className="text-white" />
-              </div>
-              <div className="flex-1 pr-6">
-                <p className="text-[11px] font-black text-white/70 uppercase tracking-[0.2em] leading-none mb-1">
-                  Limited Offer
-                </p>
-                <p className="text-[16px] font-black text-white leading-tight italic tracking-tight">
-                  Your first order ships free!
-                </p>
-                <p className="text-[11px] text-white/80 font-semibold mt-1">
-                  {platformPromo.slotsRemaining} of {platformPromo.totalSlots} spots remaining
-                  {platformPromo.endsAt &&
-                    ` · Ends ${new Date(platformPromo.endsAt).toLocaleDateString("en-NG", {
-                      day: "numeric",
-                      month: "short",
-                    })}`}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Vendor promo count — secondary line */}
-          {showVendor && (
-            <div
-              className={`flex items-center gap-2 ${
-                showPlatform
-                  ? "border-t border-white/20 pt-2 mt-1"
-                  : ""
-              }`}
-            >
-              {!showPlatform && (
-                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                  <Bike size={18} className="text-white" />
+        {/* Content Container */}
+        <div className="relative px-6 py-6 md:px-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            
+            {/* Left Section: Platform Promo */}
+            <div className="flex-1 space-y-4">
+              {showPlatform && (
+                <div className="flex items-start gap-4">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-white/20 blur-lg rounded-full" />
+                    <div className="relative w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                      <Gift size={24} className="text-white" strokeWidth={2.5} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-red-500/20 border border-red-500/30">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                        <span className="text-[9px] font-black text-red-200 uppercase tracking-widest">Live</span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full bg-white/10 text-white text-[10px] font-black uppercase tracking-widest border border-white/10">
+                        Limited Time
+                      </span>
+                      <motion.div
+                        animate={{ opacity: [1, 0.5, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className="flex items-center gap-1 text-white/80 text-[10px] font-bold"
+                      >
+                        <Zap size={10} fill="currentColor" />
+                        {platformPromo.slotsRemaining} left
+                      </motion.div>
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-black text-white leading-none tracking-tight">
+                      First Order <span className="text-yellow-300 italic">Ships Free</span>
+                    </h3>
+                  </div>
                 </div>
               )}
-              <div className="flex-1">
-                {!showPlatform && (
-                  <p className="text-[11px] font-black text-white/70 uppercase tracking-[0.2em] leading-none mb-1">
-                    Free Delivery
+
+              {/* Vendor Promo Line */}
+              {showVendor && (
+                <div className={`flex items-center gap-3 ${showPlatform ? "pt-2" : ""}`}>
+                  {!showPlatform && (
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center border border-white/20 shadow-lg">
+                      <Bike size={20} className="text-white" />
+                    </div>
+                  )}
+                  <p className="text-sm md:text-base font-bold text-white/90 flex items-center gap-2">
+                    <Star size={14} className="text-yellow-300 fill-yellow-300" />
+                    {vendorPromoCount} Top Restaurant{vendorPromoCount > 1 ? "s" : ""}
+                    <span className="text-white/60 font-medium">·</span>
+                    <span className="text-indigo-100 italic">Free Delivery Active</span>
                   </p>
-                )}
-                <p
-                  className={`font-bold text-white/90 ${
-                    showPlatform ? "text-[12px]" : "text-[15px] italic tracking-tight font-black"
-                  }`}
-                >
-                  <Sparkles
-                    size={12}
-                    className="inline mr-1 text-yellow-300"
-                    fill="currentColor"
-                  />
-                  {vendorPromoCount} restaurant
-                  {vendorPromoCount !== 1 ? "s" : ""} offering free delivery right now
-                </p>
-              </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Section: Action */}
+            <div className="flex items-center gap-4">
               <Link
                 href="/search"
-                className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-xl transition-colors whitespace-nowrap"
+                className="group/btn relative inline-flex items-center gap-3 bg-white text-indigo-600 px-6 py-3.5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all duration-300 hover:bg-indigo-50 hover:shadow-[0_0_40px_rgba(255,255,255,0.4)] active:scale-95"
               >
-                Explore
-                <ChevronRight size={12} strokeWidth={3} />
+                Claim Offer
+                <div className="relative w-5 h-5 flex items-center justify-center overflow-hidden">
+                  <ChevronRight size={18} className="transition-transform duration-300 group-hover/btn:translate-x-1" strokeWidth={3} />
+                </div>
               </Link>
             </div>
-          )}
 
-          {/* CTA when only platform promo is active (no vendor promos) */}
-          {showPlatform && !showVendor && (
-            <div className="mt-3">
-              <Link
-                href="/search"
-                className="inline-flex items-center gap-1.5 bg-white text-orange-600 text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-xl hover:bg-orange-50 transition-colors shadow-lg shadow-black/10"
-              >
-                Order Now
-                <ChevronRight size={12} strokeWidth={3} />
-              </Link>
+          </div>
+
+          {/* Progress Bar (Optional Visual Enhancement for Platform Promo) */}
+          {showPlatform && (
+            <div className="mt-5 h-1 w-full bg-white/10 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(platformPromo.slotsRemaining / platformPromo.totalSlots) * 100}%` }}
+                transition={{ duration: 1.5, ease: "circOut" }}
+                className="h-full bg-gradient-to-r from-yellow-300 to-white shadow-[0_0_10px_rgba(253,224,71,0.5)]"
+              />
             </div>
           )}
         </div>
