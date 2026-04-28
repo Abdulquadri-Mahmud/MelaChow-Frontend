@@ -18,6 +18,8 @@ import OrderErrorDisplay from "@/app/components/Checkout/OrderErrorDisplay";
 import OrderProcessingLoader from "@/app/components/Checkout/OrderProcessingLoader";
 import { useCartValidation, CartValidationErrors } from "@/app/components/Cart/CartValidator";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
+import { useActivePromos } from "@/app/hooks/useActivePromos";
+import { usePromoEligibility } from "@/app/hooks/usePromoEligibility";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -57,6 +59,9 @@ export default function CheckoutPage() {
     `order_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
   );
 
+  const { vendorPromoCount } = useActivePromos();
+  const { eligible: isPlatformPromoEligible, platformPromo } = usePromoEligibility();
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -78,9 +83,12 @@ export default function CheckoutPage() {
           try {
             const data = await getVendorById(id);
             const v = data.vendor || data;
-            const fee = v.deliveryManagedBy === "vendor"
-              ? (v.flatRateDeliveryFee || v.deliveryFee || 0)
-              : (v.cityId?.platformDeliveryFee ?? v.deliveryFee ?? 0);
+            // Vendor-sponsored promo zeroes the fee entirely
+            const fee = v.hasActiveDeliveryPromo === true
+              ? 0
+              : v.deliveryManagedBy === "vendor"
+                ? (v.flatRateDeliveryFee || v.deliveryFee || 0)
+                : (v.cityId?.platformDeliveryFee ?? v.deliveryFee ?? 0);
             fees[id] = fee;
           } catch (e) {
             console.error("Fee fetch error:", e);
@@ -102,7 +110,13 @@ export default function CheckoutPage() {
     }
   });
 
-  const deliveryFee = Object.values(restaurantDeliveryMap).reduce((sum, fee) => sum + fee, 0);
+  // If user is eligible for platform first-order promo, delivery is ₦0
+  // even before order creation. Backend will confirm and enforce this.
+  const rawDeliveryFee = Object.values(restaurantDeliveryMap).reduce(
+    (sum, fee) => sum + fee,
+    0
+  );
+  const deliveryFee = isPlatformPromoEligible ? 0 : rawDeliveryFee;
 
   // Calculate final total (UI ONLY - Backend re-validates)
   // If discount applied, use verified total, otherwise local calc
@@ -588,6 +602,41 @@ export default function CheckoutPage() {
           )}
         </div>
 
+        {/* Platform Promo Context */}
+        {isPlatformPromoEligible && platformPromo && (
+          <div className="flex items-start gap-3 p-3 rounded-2xl bg-green-500/10 border border-green-500/20">
+            <div className="w-8 h-8 rounded-xl bg-green-500/20 flex items-center justify-center shrink-0">
+              <span className="text-base">🎁</span>
+            </div>
+            <div>
+              <p className="text-[11px] font-black text-green-400 uppercase tracking-widest leading-none mb-0.5">
+                First Order Perk Applied
+              </p>
+              <p className="text-[11px] text-green-400/80 font-medium leading-snug">
+                Delivery is on us for your first order.{" "}
+                {platformPromo.slotsRemaining} of {platformPromo.totalSlots} spots remaining.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Vendor Promo Context — shown when a vendor is running sponsored free delivery */}
+        {!isPlatformPromoEligible && deliveryFee === 0 && rawDeliveryFee > 0 && (
+          <div className="flex items-start gap-3 p-3 rounded-2xl bg-orange-500/10 border border-orange-500/20">
+            <div className="w-8 h-8 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
+              <span className="text-base">🏪</span>
+            </div>
+            <div>
+              <p className="text-[11px] font-black text-orange-400 uppercase tracking-widest leading-none mb-0.5">
+                Sponsored Free Delivery
+              </p>
+              <p className="text-[11px] text-orange-400/80 font-medium leading-snug">
+                This restaurant is covering your delivery fee today.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Summary */}
         <div className="bg-zinc-900 dark:bg-zinc-800 rounded-2xl p-4 space-y-3 shadow-xl">
           <div className="flex justify-between items-center text-sm">
@@ -595,8 +644,31 @@ export default function CheckoutPage() {
             <span className="text-white font-medium">₦{subtotal.toLocaleString()}</span>
           </div>
           <div className="flex justify-between items-center text-sm">
-            <span className="flex items-center gap-1 font-semibold text-zinc-400 uppercase tracking-widest text-[10px]">Delivery Fee</span>
-            <span className="text-white font-medium">₦{deliveryFee.toLocaleString()}</span>
+            <span className="flex items-center gap-1.5 font-semibold text-zinc-400 uppercase tracking-widest text-[10px]">
+              Delivery Fee
+              {isPlatformPromoEligible && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-400 text-[8px] font-black uppercase tracking-widest">
+                  🎁 Promo
+                </span>
+              )}
+              {!isPlatformPromoEligible && Object.keys(restaurantDeliveryMap).some(
+                id => vendorFeesMap[id] === 0 && rawDeliveryFee > 0
+              ) && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[8px] font-black uppercase tracking-widest">
+                  🏪 Sponsored
+                </span>
+              )}
+            </span>
+            <div className="flex items-center gap-2">
+              {deliveryFee === 0 && rawDeliveryFee > 0 && (
+                <span className="text-zinc-500 line-through text-xs">
+                  ₦{rawDeliveryFee.toLocaleString()}
+                </span>
+              )}
+              <span className={`font-medium ${deliveryFee === 0 ? "text-green-400" : "text-white"}`}>
+                {deliveryFee === 0 ? "Free" : `₦${deliveryFee.toLocaleString()}`}
+              </span>
+            </div>
           </div>
           {appliedDiscount && (
             <div className="flex justify-between items-center text-sm">

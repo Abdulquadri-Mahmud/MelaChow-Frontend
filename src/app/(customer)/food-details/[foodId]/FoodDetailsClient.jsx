@@ -563,12 +563,24 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                           </div>
 
                           {/* Delivery */}
-                          <div className="flex items-center gap-2 p-2 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-xl border border-zinc-100/80 dark:border-zinc-700/80 backdrop-blur-sm">
-                            <div className="p-1.5 bg-white dark:bg-zinc-900 rounded-lg text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800"><Truck size={16} /></div>
+                          <div className={`flex items-center gap-2 p-2 rounded-xl border backdrop-blur-sm ${
+                            !food?.deliveryFee || food?.deliveryFee === 0
+                              ? "bg-green-50/80 dark:bg-green-500/10 border-green-100/80 dark:border-green-500/20"
+                              : "bg-zinc-50/80 dark:bg-zinc-800/80 border-zinc-100/80 dark:border-zinc-700/80"
+                          }`}>
+                            <div className={`p-1.5 bg-white dark:bg-zinc-900 rounded-lg shadow-sm ring-1 ${
+                              !food?.deliveryFee || food?.deliveryFee === 0
+                                ? "text-green-500 ring-green-100 dark:ring-green-500/20"
+                                : "text-orange-500 ring-zinc-100 dark:ring-zinc-800"
+                            }`}><Truck size={16} /></div>
                             <div>
                               <p className="text-[8px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Delivery</p>
-                              <p className="text-xs font-black text-zinc-900 dark:text-white leading-none">
-                                {food?.deliveryFee ? `₦${food.deliveryFee.toLocaleString()}` : "Free"}
+                              <p className={`text-xs font-black leading-none ${
+                                !food?.deliveryFee || food?.deliveryFee === 0
+                                  ? "text-green-500"
+                                  : "text-zinc-900 dark:text-white"
+                              }`}>
+                                {!food?.deliveryFee || food?.deliveryFee === 0 ? "Free" : `₦${food.deliveryFee.toLocaleString()}`}
                               </p>
                             </div>
                           </div>
