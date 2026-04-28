@@ -9,7 +9,7 @@ import 'swiper/css';
 import { AnimatePresence, motion } from "framer-motion";
 
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
-import { MapPin, Clock, Star, Search, X, Plus, Share2, Flame, MessageSquare, ChevronLeft, Loader2 } from "lucide-react";
+import { MapPin, Clock, Star, Search, X, Plus, Share2, Flame, MessageSquare, ChevronLeft, Loader2, Store } from "lucide-react";
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
