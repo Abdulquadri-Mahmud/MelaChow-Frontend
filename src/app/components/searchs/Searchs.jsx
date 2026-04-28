@@ -71,7 +71,7 @@ const FoodItemRow = ({ food }) => {
                 </p>
 
                 <p className="text-[12px] text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed font-medium">
-                    {food.description || "Freshly prepared with premium ingredients."}
+                    {food?.description || "Freshly prepared with premium ingredients."}
                 </p>
 
                 <div className="flex items-center gap-3 pt-1">
@@ -478,7 +478,7 @@ export default function FoodSearchMobile() {
             <NoFoodsFound />
           </div>
         ) : (
-          <div className="space-y-12 pb-24 px-4 overflow-hidden">
+          <div className="space-y-4 pb-24 px-4 overflow-hidden">
             <AnimatePresence mode="popLayout">
                 {Object.entries(foodsByCategory).map(([category, categoryFoods], sectionIdx) => (
                 <motion.div 
@@ -494,7 +494,6 @@ export default function FoodSearchMobile() {
                     
                     <div className="flex items-center gap-3 mb-4">
                         <div className="flex flex-col">
-                           <span className="text-[9px] font-black text-orange-500 uppercase tracking-[0.3em] leading-none mb-1 opacity-50 italic">Category</span>
                            <h2 className="text-2xl font-black text-zinc-950 dark:text-zinc-50 tracking-tighter uppercase italic leading-none">
                                 {category}
                             </h2>
