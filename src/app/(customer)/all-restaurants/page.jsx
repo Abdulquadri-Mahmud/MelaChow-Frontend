@@ -5,7 +5,7 @@ import {
     ArrowLeft, Store, Clock, MapPin, Truck, Plus, Star, Heart,
     Search, SlidersHorizontal, AlertCircle, RefreshCw, X, Utensils,
     StarHalf, Star as StarEmpty,
-    Bike, Gift, Globe, Sparkles
+    Bike, Gift, Globe, Sparkles, ChefHat
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -75,12 +75,10 @@ export default function AllRestaurants() {
         );
     }, [allVendors, searchQuery]);
 
-    const getStatusInfo = (vendor) => {
-        const hours = vendor.openHours || vendor.openingHours || [];
-        const status = getVendorOpenAndCloseStatus(hours);
-        const isOpen = status.startsWith("Open now");
-        return { isOpen, status };
-    };
+    const cuisineOptions = useMemo(() => {
+        const allCuisines = allVendors.flatMap(v => v.cuisineTypes || []);
+        return [...new Set(allCuisines.map(c => c.trim()))].sort();
+    }, [allVendors]);
 
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-display pb-24 transition-colors duration-300">
@@ -153,164 +151,122 @@ export default function AllRestaurants() {
                 </div>
             </header>
 
-            <main className="max-w-md mx-auto px-2 pt-2">
-                {/* Intro Removed for compactness */}
-
+            <main className="max-w-md mx-auto py-6 px-1">
+                {/* Hero Header */}
+                <div className="mb-10 px-4 space-y-2">
+                    <div className="inline-flex items-center gap-2 bg-orange-50 dark:bg-orange-500/10 px-3 py-1 rounded-full border border-orange-100 dark:border-orange-500/20">
+                        <Sparkles size={12} className="text-orange-500" />
+                        <span className="text-[10px] font-black text-orange-600 uppercase tracking-[0.2em]">Curated Selection</span>
+                    </div>
+                    <h1 className="text-3xl font-black text-zinc-900 dark:text-white uppercase italic tracking-tighter leading-none">
+                        Culinary <br /> Discovery
+                    </h1>
+                    <p className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest leading-relaxed max-w-[280px]">
+                        Explore the finest kitchens and authentic flavors nearby.
+                    </p>
+                </div>
                 {isLoading ? (
-                    <div className="grid grid-cols-1 gap-4">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="rounded-md overflow-hidden bg-white dark:bg-zinc-900 shadow-sm border border-zinc-100 dark:border-zinc-800">
-                                <Skeleton height={176} />
-                                <div className="p-2.5">
-                                    <div className="flex justify-between items-start">
-                                        <div className="space-y-2 flex-1">
-                                            <div className="flex items-center gap-1.5">
-                                                <Skeleton width={14} height={14} className="rounded-sm" />
-                                                <Skeleton width="60%" height={14} />
+                    <div className="space-y-8">
+                        {[1, 2].map((i) => (
+                            <div key={i} className="space-y-4">
+                                <div className="px-4 space-y-2">
+                                    <Skeleton width="40%" height={24} />
+                                    <Skeleton width="60%" height={14} />
+                                </div>
+                                <div className="flex gap-4 overflow-x-auto px-4 scrollbar-none">
+                                    {[1, 2].map((j) => (
+                                        <div key={j} className="flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[20px] overflow-hidden w-[280px]">
+                                            <Skeleton height={120} />
+                                            <div className="p-3 space-y-3">
+                                                <Skeleton width="80%" height={16} />
+                                                <div className="flex justify-between">
+                                                    <Skeleton width="40%" height={12} />
+                                                    <Skeleton width="20%" height={12} />
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <Skeleton width={12} height={12} className="rounded-sm" />
-                                                <Skeleton width="40%" height={10} />
-                                            </div>
                                         </div>
-                                        <Skeleton width={32} height={32} className="rounded-xl" />
-                                    </div>
-                                    <div className="mt-3 flex justify-between items-center bg-zinc-50 dark:bg-zinc-800/50 p-2 rounded-xl">
-                                        <div className="flex items-center gap-1">
-                                            <Skeleton width={10} height={10} />
-                                            <Skeleton width={40} height={10} />
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <Skeleton width={12} height={12} />
-                                            <Skeleton width={30} height={10} />
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : isError ? (
-                    <div className="p-6 bg-zinc-50 dark:bg-zinc-900/50 rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center space-y-4">
-                        <div className="bg-red-50 p-3 rounded-full w-fit mx-auto">
-                            <AlertCircle className="text-red-500" size={24} />
-                        </div>
-                        <div>
-                            <p className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-tight">Syncing problem</p>
-                            <p className="text-xs text-zinc-500 font-medium mt-1">
-                                {error?.response?.data?.message || "We couldn't reach the restaurants. Check your connection."}
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => refetch()}
-                            className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-[10px] font-black uppercase tracking-[0.2em] px-8 py-3 rounded-2xl shadow-xl shadow-zinc-200/50 dark:shadow-none active:scale-95 transition-all"
-                        >
-                            Try Again
-                        </button>
+                    <div className="px-6 py-12 text-center space-y-4">
+                        <AlertCircle className="mx-auto text-red-500" size={48} />
+                        <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">Error loading restaurants</p>
+                        <button onClick={() => refetch()} className="text-orange-600 font-black uppercase text-[10px] tracking-widest">Retry</button>
                     </div>
                 ) : allVendors.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 px-8 text-center bg-white dark:bg-zinc-900 rounded-[40px] shadow-xl shadow-zinc-200/50 dark:shadow-none border border-zinc-50 dark:border-zinc-800/50">
-                        <div className="bg-orange-50 dark:bg-orange-950/20 p-8 rounded-full mb-6 animate-pulse">
-                            <MapPin className="text-orange-600" size={48} />
-                        </div>
-                        <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase italic leading-tight mb-2">
-                            Coming Soon to {defaultAddr?.city}!
-                        </h3>
-                        <p className="text-zinc-500 text-sm font-medium leading-relaxed max-w-[280px] mx-auto text-center">
-                            We haven't launched in this area yet, but we're working on it. Check back later or try another location.
-                        </p>
-                        <button
-                            onClick={() => router.push('/profile/address')}
-                            className="mt-6 px-10 py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl active:scale-95 transition-all shadow-xl shadow-zinc-200 dark:shadow-none italic"
-                        >
-                            Change Location
-                        </button>
-                    </div>
-                ) : filteredVendors.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-12 px-8 text-center bg-white dark:bg-zinc-900 rounded-[40px] shadow-xl shadow-zinc-200/50 dark:shadow-none border border-zinc-50 dark:border-zinc-800/50">
-                        <div className="relative w-40 h-40 mb-8 flex items-center justify-center">
-                            <div className="absolute inset-0 bg-orange-600/5 rounded-full scale-125 blur-3xl animate-pulse" />
-                            <div className="bg-orange-50 dark:bg-orange-950/20 p-8 rounded-full">
-                                <Utensils className="text-orange-600 opacity-20" size={64} />
-                            </div>
-                            <div className="absolute -bottom-2 -right-2 bg-white dark:bg-zinc-800 p-3 rounded-2xl shadow-lg border border-zinc-50 dark:border-zinc-700">
-                                <Search size={24} className="text-orange-600 fill-orange-600/10" />
-                            </div>
-                        </div>
-
-                        <h3 className="text-xl font-black text-zinc-900 dark:text-white uppercase italic leading-tight">
-                            Kitchen is Empty
-                        </h3>
-                        <p className="text-zinc-500 text-sm mt-3 font-medium leading-relaxed max-w-[240px] mx-auto">
-                            No restaurants match "{searchQuery}" in your current area.
-                        </p>
-
-                        <button
-                            onClick={() => {
-                                setIsSearching(false);
-                                setSearchQuery("");
-                            }}
-                            className="mt-8 px-10 py-3.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-black uppercase tracking-widest text-[10px] rounded-2xl active:scale-95 transition-all"
-                        >
-                            Reset Search
-                        </button>
+                    <div className="py-20 text-center">
+                        <MapPin className="mx-auto text-zinc-300 mb-4" size={48} />
+                        <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">No restaurants in your area</p>
                     </div>
                 ) : (
-                    <div className="space-y-12 pb-24">
-                        {/* ── Open Now Section ────────────────────────────────────────── */}
+                    <div className="space-y-5">
+                        {/* ── Open Now ─────────────────────────────────────────────────────── */}
                         {filteredVendors.filter(v => v.isOpen).length > 0 && (
                             <div>
-                                <div className="flex items-center gap-2 mb-4 px-2">
-                                    <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
-                                        <Clock size={16} className="text-emerald-600 dark:text-emerald-400" />
-                                    </div>
-                                    <h2 className="text-[15px] font-black text-zinc-900 dark:text-white uppercase tracking-wider italic">
-                                        Open Now
-                                    </h2>
-                                    <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse ml-1" />
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2">
-                                    {filteredVendors.filter(v => v.isOpen).map(vendor => (
-                                        <VendorGridCard key={`open-${vendor._id}`} vendor={vendor} />
-                                    ))}
-                                </div>
+                                <SectionHeader
+                                    title={
+                                        <span className="flex items-center gap-2">
+                                            <Clock size={18} className="text-emerald-500" />
+                                            Open Now
+                                            <span className="relative flex h-2 w-2">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                            </span>
+                                        </span>
+                                    }
+                                    subtitle="Restaurants currently taking orders"
+                                />
+                                <VendorRow vendors={filteredVendors.filter(v => v.isOpen)} />
                             </div>
                         )}
 
-                        {/* ── Top Rated Section ───────────────────────────────────────── */}
+                        {/* ── Top Rated ────────────────────────────────────────────────────── */}
                         {filteredVendors.filter(v => v.rating >= 4.5).length > 0 && (
                             <div>
-                                <div className="flex items-center gap-2 mb-4 px-2">
-                                    <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                                        <Star size={16} className="text-orange-600 dark:text-orange-400 fill-orange-600" />
-                                    </div>
-                                    <h2 className="text-[15px] font-black text-zinc-900 dark:text-white uppercase tracking-wider italic">
-                                        Top Rated
-                                    </h2>
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2">
-                                    {filteredVendors.filter(v => v.rating >= 4.5).map(vendor => (
-                                        <VendorGridCard key={`top-${vendor._id}`} vendor={vendor} />
-                                    ))}
-                                </div>
+                                <SectionHeader
+                                    title={
+                                        <span className="flex items-center gap-2">
+                                            <Star size={18} className="text-orange-500 fill-orange-500" />
+                                            Top Rated
+                                        </span>
+                                    }
+                                    subtitle="Highly recommended by local foodies"
+                                />
+                                <VendorRow vendors={filteredVendors.filter(v => v.rating >= 4.5)} />
                             </div>
                         )}
 
-                        {/* ── All Restaurants Section ─────────────────────────────────── */}
-                        <div>
-                            <div className="flex items-center gap-2 mb-4 px-2">
-                                <div className="p-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
-                                    <Utensils size={16} className="text-zinc-600 dark:text-zinc-400" />
+                        {/* ── Cuisine Categories ────────────────────────────────────────── */}
+                        {cuisineOptions.map((cuisine) => {
+                            const cuisineVendors = filteredVendors.filter(v => 
+                                v.cuisineTypes?.some(t => t.trim() === cuisine)
+                            );
+
+                            if (cuisineVendors.length === 0) return null;
+
+                            // Sort to put open ones first
+                            const sortedCuisineVendors = [...cuisineVendors].sort((a, b) => 
+                                (b.isOpen === a.isOpen) ? 0 : b.isOpen ? 1 : -1
+                            );
+
+                            return (
+                                <div key={cuisine}>
+                                    <SectionHeader
+                                        title={
+                                            <span className="flex items-center gap-2 text-orange-500">
+                                                <ChefHat size={18} />
+                                                {cuisine} Specials
+                                            </span>
+                                        }
+                                        subtitle={`Popular ${cuisine.toLowerCase()} spots near you`}
+                                    />
+                                    <VendorRow vendors={sortedCuisineVendors} />
                                 </div>
-                                <h2 className="text-[15px] font-black text-zinc-900 dark:text-white uppercase tracking-wider italic">
-                                    All Restaurants
-                                </h2>
-                            </div>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-2">
-                                {filteredVendors.map(vendor => (
-                                    <VendorGridCard key={`all-${vendor._id}`} vendor={vendor} />
-                                ))}
-                            </div>
-                        </div>
+                            );
+                        })}
                     </div>
                 )}
             </main>
@@ -318,68 +274,96 @@ export default function AllRestaurants() {
     );
 }
 
-// ── Reusable Grid Card Component ─────────────────────────────────────────────
-const VendorGridCard = ({ vendor }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full"
-    >
-        <Link
-            href={`/restaurants/${vendor._id}`}
-            className="group w-full bg-white dark:bg-zinc-900 rounded-[20px] overflow-hidden cursor-pointer transition-all duration-300 block border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md"
-        >
-            {/* Image Container */}
-            <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                {vendor.image ? (
-                    <img
-                        src={vendor.image}
-                        alt={vendor.storeName}
-                        className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!vendor.isOpen ? "grayscale-[30%]" : ""}`}
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-800">
-                        <Utensils className="text-zinc-300 dark:text-zinc-600" size={40} />
-                    </div>
-                )}
+// ── Shared Layout Components ──────────────────────────────────────────────────
 
-                {/* Promo Badge */}
-                {vendor.hasActiveDeliveryPromo ? (
-                    <div className="absolute bottom-3 right-3 shadow-sm flex items-center">
-                        <FreeDeliveryBadge type="vendor" />
-                    </div>
-                ) : (!vendor.deliveryFee || vendor.deliveryFee === 0) ? (
-                    <div className="absolute bottom-3 right-3 bg-[#FFF9E5] border border-black/10 px-2 py-1 rounded-[10px] shadow-sm flex items-center gap-1.5">
-                        <Gift size={12} className="text-orange-500" />
-                        <span className="text-[9px] font-bold text-zinc-800 tracking-tight">
-                            Free delivery
-                        </span>
-                    </div>
-                ) : null}
-            </div>
-
-            {/* Info Section */}
-            <div className="px-3 pt-3 pb-4 space-y-2">
-                <h3 className="text-[13px] font-black text-zinc-900 dark:text-white truncate uppercase italic tracking-tight leading-none">
-                    {vendor.storeName}
-                </h3>
-
-                <div className="flex items-center justify-between text-[10px] font-bold">
-                    <div className="flex items-center gap-1 text-zinc-500 dark:text-zinc-400">
-                        <Bike size={12} className="text-zinc-800 dark:text-zinc-200" />
-                        <span className="text-zinc-800 dark:text-zinc-200">
-                            ₦{vendor.deliveryFee || 0}
-                        </span>
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                        <Star size={12} className="fill-yellow-400 text-yellow-400" />
-                        <span className="text-zinc-900 dark:text-white">
-                            {Number(vendor.rating || 0).toFixed(1)}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </Link>
-    </motion.div>
+const SectionHeader = ({ title, subtitle }) => (
+  <div className="flex items-end justify-between px-4 mb-5">
+    <div className="space-y-1">
+      <h2 className="text-[22px] font-black text-zinc-950 dark:text-zinc-50 tracking-tighter uppercase italic leading-none">
+        {title}
+      </h2>
+      <p className="text-[11px] font-bold text-zinc-400 uppercase tracking-widest leading-none">
+        {subtitle}
+      </p>
+    </div>
+  </div>
 );
+
+const VendorRow = ({ vendors }) => (
+  <div className="flex gap-4 scroll overflow-x-auto px-4 pb-4 scrollbar-none snap-x snap-mandatory">
+    {vendors.map((vendor) => (
+      <VendorCard key={vendor._id} vendor={vendor} />
+    ))}
+  </div>
+);
+
+const VendorCard = ({ vendor }) => {
+  return (
+    <Link
+      href={`/restaurants/${vendor._id}`}
+      className="group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[20px] scroll overflow-hidden cursor-pointer snap-start transition-all duration-300 block border border-zinc-100 dark:border-zinc-800/50 shadow-sm"
+      style={{ width: "75vw", maxWidth: "280px" }}
+    >
+      <div className="relative h-[120px] w-full scroll overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+        {vendor.image ? (
+          <img
+            src={vendor.image}
+            alt={vendor.storeName}
+            className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!vendor.isOpen ? "grayscale-[30%]" : ""}`}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-800">
+            <Utensils className="text-zinc-300 dark:text-zinc-600" size={40} />
+          </div>
+        )}
+
+        {vendor.hasActiveDeliveryPromo ? (
+          <div className="absolute bottom-3 right-3 shadow-sm flex items-center">
+            <FreeDeliveryBadge type="vendor" />
+          </div>
+        ) : (!vendor.deliveryFee || vendor.deliveryFee === 0) ? (
+          <div className="absolute bottom-3 right-3 bg-[#FFF9E5] border border-black/10 px-3 py-1.5 rounded-[12px] shadow-sm flex items-center gap-2">
+            <Gift size={14} className="text-orange-500" />
+            <span className="text-[10px] font-bold text-zinc-800 tracking-tight">
+              Free delivery
+            </span>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="px-3 pt-3 pb-4">
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-[15px] font-bold text-zinc-900 dark:text-white truncate uppercase italic tracking-tight">
+            {vendor.storeName} - {vendor.city}
+          </h3>
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] font-medium">
+          <div className="flex items-center gap-2 text-zinc-500 dark:text-zinc-400">
+            <div className="w-5 h-5 rounded-full bg-orange-100 dark:bg-indigo-900/30 flex items-center justify-center">
+              <Globe size={10} className="text-orange-600 dark:text-indigo-400" />
+            </div>
+            <span className="text-zinc-300">|</span>
+            <div className="flex items-center gap-1">
+              <Bike size={14} className="text-zinc-800 dark:text-zinc-200" />
+              <span className="text-zinc-800 dark:text-zinc-200">
+                {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free" : `₦${vendor.deliveryFee}`}
+              </span>
+            </div>
+            <span className="text-zinc-300">|</span>
+            <span className={vendor.isOpen ? "text-emerald-600 font-bold" : "text-rose-500 font-bold"}>
+              {vendor.isOpen ? "Open" : "Closed"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Star size={14} className="fill-yellow-400 text-yellow-400" />
+            <span className="text-zinc-900 dark:text-white font-black">
+              {Number(vendor.rating || 0) === 0 ? "New" : Number(vendor.rating).toFixed(1)}
+            </span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+};
