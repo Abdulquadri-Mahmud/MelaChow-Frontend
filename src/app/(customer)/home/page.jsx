@@ -31,8 +31,8 @@ export default function HomePage() {
       <HomeHeader />
       <div className="md:px-4 p-2 space-y-4">
         <SearchBar />
-        <PromoAnnouncementBanner />
         <CategoryList />
+        <PromoAnnouncementBanner />
         <VendorList user={user} />
         {/* <TrendingFoods user={user} /> */}
         <div className="space-y-4">
