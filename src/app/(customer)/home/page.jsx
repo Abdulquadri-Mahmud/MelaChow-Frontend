@@ -10,6 +10,7 @@ import SearchBar from "@/app/components/Home_Components/SearchBar";
 import SmartRecommendations from "@/app/components/Home_Components/SmartRecommendations";
 import TrendingFoods from "@/app/components/Home_Components/TrendingFoods";
 import VendorList from "@/app/components/Home_Components/VendorList";
+import PromoAnnouncementBanner from "@/app/components/Home_Components/PromoAnnouncementBanner";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import AddressModal from "@/app/modals/AddressModal";
 import NotificationPromptBanner from "@/app/components/notifications/NotificationPromptBanner";
@@ -30,6 +31,7 @@ export default function HomePage() {
       <HomeHeader />
       <div className="md:px-4 p-2 space-y-4">
         <SearchBar />
+        <PromoAnnouncementBanner />
         <CategoryList />
         <VendorList user={user} />
         {/* <TrendingFoods user={user} /> */}
