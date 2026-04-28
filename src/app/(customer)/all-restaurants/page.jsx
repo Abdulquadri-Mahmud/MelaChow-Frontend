@@ -21,7 +21,7 @@ import { getNearbyVendors } from "@/app/lib/userApi";
 
 const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
     <div
-        className={`relative overflow-hidden bg-zinc-200 dark:bg-zinc-800 rounded-xl ${className}`}
+        className={`relative scroll overflow-hidden bg-zinc-200 dark:bg-zinc-800 rounded-xl ${className}`}
         style={{ width, height }}
     >
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"></div>
@@ -173,9 +173,9 @@ export default function AllRestaurants() {
                                     <Skeleton width="40%" height={24} />
                                     <Skeleton width="60%" height={14} />
                                 </div>
-                                <div className="flex gap-4 overflow-x-auto px-4 scrollbar-none">
+                                <div className="flex gap-4 scroll overflow-x-auto px-4 scrollbar-none">
                                     {[1, 2].map((j) => (
-                                        <div key={j} className="flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[20px] overflow-hidden w-[280px]">
+                                        <div key={j} className="flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[20px] scroll overflow-hidden w-[280px]">
                                             <Skeleton height={120} />
                                             <div className="p-3 space-y-3">
                                                 <Skeleton width="80%" height={16} />
@@ -290,7 +290,7 @@ const SectionHeader = ({ title, subtitle }) => (
 );
 
 const VendorRow = ({ vendors }) => (
-  <div className="flex gap-4 scroll overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory">
+  <div className="flex gap-4 scroll scroll overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory">
     {vendors.map((vendor) => (
       <VendorCard key={vendor._id} vendor={vendor} />
     ))}
