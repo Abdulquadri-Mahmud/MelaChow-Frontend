@@ -7,7 +7,8 @@ import Link from "next/link";
 
 /**
  * PromoAnnouncementBanner
- * A premium, non-dismissible discovery surface for active platform and vendor promos.
+ * A master-level, brand-aligned discovery surface for MelaChow promotions.
+ * Uses the African pattern background and primary brand orange.
  */
 export default function PromoAnnouncementBanner() {
   const { platformPromo, vendorPromoCount, hasAnyPromo, isLoading } = useActivePromos();
@@ -20,99 +21,156 @@ export default function PromoAnnouncementBanner() {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="relative mx-3 rounded-3xl overflow-hidden shadow-xl group border border-white/10"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        className="relative mx-3 rounded-[32px] overflow-hidden group border border-white/5 shadow-[0_25px_60px_-15px_rgba(244,133,37,0.2)] bg-zinc-950"
       >
-        {/* Brand Color Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 transition-transform duration-700 group-hover:scale-105" />
-
-        {/* Animated Overlay Shapes */}
-        <div className="absolute inset-0 pointer-events-none">
+        {/* Dynamic Mesh Background with Brand Color */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#f48525]/20 via-transparent to-transparent" />
           <motion.div
-            animate={{
-              rotate: [0, 360],
-              scale: [1, 1.1, 1],
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.5, 0.3],
+              x: [-20, 20, -20]
             }}
-            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-1/2 -left-1/2 w-full h-full bg-white/10 rounded-full blur-3xl"
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-[-20%] right-[-10%] w-[80%] h-[150%] bg-[#f48525]/10 rounded-full blur-[120px]"
           />
+          {/* African Pattern Overlay */}
+          <div className="absolute inset-0 bg-african-pattern opacity-[0.15] mix-blend-overlay" />
         </div>
 
-        {/* Content Container - Reduced Padding */}
-        <div className="relative px-5 py-4 md:px-7 md:py-5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            
-            {/* Left Section: Platform Promo */}
-            <div className="flex-1 space-y-3">
-              {showPlatform && (
-                <div className="flex items-center gap-3.5">
-                  <div className="relative shrink-0">
-                    <div className="absolute inset-0 bg-white/20 blur-md rounded-full" />
-                    <div className="relative w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
-                      <Gift size={20} className="text-white" strokeWidth={2.5} />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-500/30 border border-white/10">
-                        <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
-                        <span className="text-[8px] font-black text-white uppercase tracking-widest">Live</span>
-                      </div>
-                      <span className="text-white/80 text-[9px] font-black uppercase tracking-[0.15em]">
-                        {platformPromo.slotsRemaining} Slots Left
-                      </span>
-                    </div>
-                    <h3 className="text-lg md:text-xl font-black text-white leading-tight tracking-tight">
-                      First Order <span className="text-white italic underline decoration-yellow-300 underline-offset-4">Ships Free</span>
-                    </h3>
-                  </div>
-                </div>
-              )}
+        {/* Premium Shimmer Sweep */}
+        <motion.div
+          initial={{ x: "-150%" }}
+          animate={{ x: "200%" }}
+          transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
+          className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-transparent via-white/[0.03] to-transparent skew-x-12"
+        />
 
-              {/* Vendor Promo Line */}
-              {showVendor && (
-                <div className={`flex items-center gap-2.5 ${showPlatform ? "pt-1" : ""}`}>
-                  {!showPlatform && (
-                    <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center border border-white/20 shadow-lg">
-                      <Bike size={18} className="text-white" />
-                    </div>
-                  )}
-                  <p className="text-xs md:text-sm font-bold text-white/90 flex items-center gap-1.5">
-                    <Sparkles size={12} className="text-yellow-300 fill-yellow-300" />
-                    {vendorPromoCount} Restaurant{vendorPromoCount > 1 ? "s" : ""} Near You
-                    <span className="text-white/60 font-medium">·</span>
-                    <span className="text-white font-black italic">Free Delivery</span>
-                  </p>
+        {/* Content Layout */}
+        <div className="relative z-20 px-5 py-4 md:px-10 md:py-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            
+            {/* Left: Discovery Message */}
+            <div className="flex items-center gap-5">
+              {/* Animated Icon Box */}
+              <motion.div
+                whileHover={{ scale: 1.05, rotate: 2 }}
+                className="relative shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-[22px] bg-gradient-to-br from-[#f48525] to-[#c2611a] p-[1.5px] shadow-2xl shadow-[#f48525]/30"
+              >
+                <div className="w-full h-full rounded-[21px] bg-zinc-950/40 backdrop-blur-xl flex items-center justify-center">
+                  <AnimatePresence mode="wait">
+                    {showPlatform ? (
+                      <motion.div
+                        key="gift"
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                      >
+                        <Gift size={30} className="text-white" strokeWidth={2.5} />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="bike"
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                      >
+                        <Bike size={30} className="text-white" strokeWidth={2.5} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              )}
+                {/* Floating Badge */}
+                <motion.div
+                  animate={{ y: [0, -4, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg border-2 border-zinc-950"
+                >
+                  <Star size={14} className="text-zinc-950 fill-zinc-950" />
+                </motion.div>
+              </motion.div>
+
+              {/* Textual Narrative */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#f48525]/10 border border-[#f48525]/20 text-[10px] font-black text-[#f48525] uppercase tracking-[0.2em]">
+                    <Zap size={10} fill="currentColor" />
+                    Premium Offer
+                  </span>
+                  {showPlatform && (
+                    <motion.span 
+                      animate={{ opacity: [1, 0.6, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="text-zinc-500 text-[10px] font-black uppercase tracking-widest"
+                    >
+                      {platformPromo.slotsRemaining} Slots Remaining
+                    </motion.span>
+                  )}
+                </div>
+
+                <h2 className="text-2xl md:text-4xl font-black text-white leading-none tracking-tighter uppercase italic">
+                  {showPlatform ? (
+                    <>Unlock <span className="text-[#f48525]">Free</span> Delivery</>
+                  ) : (
+                    <><span className="text-[#f48525]">{vendorPromoCount}</span> Shops Near You</>
+                  )}
+                </h2>
+                
+                <p className="text-xs md:text-sm font-bold text-zinc-400 max-w-[320px] leading-snug tracking-tight">
+                  {showPlatform 
+                    ? "Welcome to MelaChow! Your very first order is on the house. Fast, hot, and free."
+                    : "Exclusive restaurants in your area are currently offering free delivery for all customers."
+                  }
+                </p>
+              </div>
             </div>
 
-            {/* Right Section: Action - Smaller Button */}
+            {/* Right: CTA */}
             <div className="flex items-center">
               <Link
                 href="/search"
-                className="group/btn relative inline-flex items-center gap-2 bg-white text-orange-600 px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300 hover:shadow-lg hover:shadow-orange-950/20 active:scale-95"
+                className="group/btn relative h-14 px-8 rounded-2xl bg-white overflow-hidden transition-all duration-500 hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] active:scale-95"
               >
-                Claim Now
-                <ChevronRight size={14} className="transition-transform duration-300 group-hover/btn:translate-x-0.5" strokeWidth={3} />
+                <div className="relative z-20 flex items-center gap-3">
+                  <span className="text-zinc-950 font-black text-sm uppercase tracking-widest">Get Started</span>
+                  <div className="w-6 h-6 rounded-lg bg-zinc-950 flex items-center justify-center transition-transform duration-500 group-hover/btn:translate-x-1">
+                    <ChevronRight size={16} className="text-white" strokeWidth={3} />
+                  </div>
+                </div>
+                {/* Internal hover shimmer */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#f48525]/10 to-transparent -translate-x-full group-hover/btn:animate-shimmer" />
               </Link>
             </div>
-
           </div>
 
-          {/* Progress Bar - Thinner */}
+          {/* Dynamic Footer for Platform Promo */}
           {showPlatform && (
-            <div className="mt-4 h-0.5 w-full bg-white/20 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${(platformPromo.slotsRemaining / platformPromo.totalSlots) * 100}%` }}
-                transition={{ duration: 1.2, ease: "circOut" }}
-                className="h-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.6)]"
-              />
+            <div className="mt-6 flex flex-col gap-2">
+              <div className="flex justify-between items-end">
+                 <p className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.3em]">Campaign Progress</p>
+                 <p className="text-[10px] font-black text-white italic">
+                   {Math.round((platformPromo.slotsRemaining / platformPromo.totalSlots) * 100)}% Available
+                 </p>
+              </div>
+              <div className="h-[2px] w-full bg-zinc-900 rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(platformPromo.slotsRemaining / platformPromo.totalSlots) * 100}%` }}
+                  transition={{ duration: 2, ease: "circOut" }}
+                  className="h-full bg-gradient-to-r from-[#f48525] to-[#ffb36d]"
+                />
+              </div>
             </div>
           )}
+        </div>
+
+        {/* Subtle decorative background detail */}
+        <div className="absolute top-1/2 -right-10 -translate-y-1/2 opacity-[0.03] rotate-12 pointer-events-none">
+           <LayoutGrid size={240} className="text-white" />
         </div>
       </motion.div>
     </AnimatePresence>
