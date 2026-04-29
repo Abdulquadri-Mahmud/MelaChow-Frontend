@@ -22,6 +22,8 @@ import {
     ChevronDown,
     X,
     History,
+    CreditCard,
+    ShieldCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -162,7 +164,9 @@ export default function FinancePage() {
                 ...item,
                 date: item.date || item.label || item._id,
                 revenue: item.globalGMV || item.totalRevenue || 0,
+                platformRevenue: item.totalRevenue || 0,
                 deliveryRevenue: item.deliveryRevenue || 0,
+                serviceFeeRevenue: item.serviceFeeRevenue || 0,
             })));
         } catch (err) { console.error(err); }
     }, [chartPeriod]);
@@ -279,13 +283,34 @@ export default function FinancePage() {
                                     <StatCard title="Platform Balance" value={summary?.currentPlatformBalance} icon={Wallet} iconColor="text-blue-500" subtitle="Total holdings" />
                                     <StatCard title="Escrow Hold" value={summary?.totalEscrowHeld} icon={Lock} iconColor="text-amber-500" subtitle="Vendor reserve" />
                                     <StatCard title="Available Funds" value={summary?.availableBalance} icon={DollarSign} iconColor="text-emerald-500" subtitle="Ready for payout" />
-                                    <StatCard title="Delivery Spread" value={summary?.totalDeliverySpreadEarned} icon={TrendingUp} iconColor="text-orange-500" subtitle="Platform share" />
+                                    <StatCard title="Delivery Spread" value={summary?.totalDeliverySpreadEarned} icon={TrendingUp} iconColor="text-orange-500" subtitle="Logistics profit" />
                                 </div>
 
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                     <div className="space-y-3">
                                         <MiniMetric label="Marketplace GMV" value={summary?.totalOrderRevenue} icon={ShoppingBag} color="bg-slate-50" />
                                         <MiniMetric label="Logistics Fees" value={summary?.totalDeliveryFeesCollected} icon={Truck} color="bg-slate-50" />
+                                        <MiniMetric label="Service Fees" value={summary?.totalServiceFeeRevenue} icon={CreditCard} color="bg-emerald-50/50" />
+                                        <div className="p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <ShieldCheck size={14} className="text-orange-500" />
+                                                <p className="text-[10px] font-black text-slate-900 uppercase tracking-wider">Revenue Model</p>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <div className="flex justify-between text-[10px]">
+                                                    <span className="text-slate-400">Commission</span>
+                                                    <span className="font-bold text-slate-700">{summary?.revenueModel?.commissionRate}</span>
+                                                </div>
+                                                <div className="flex justify-between text-[10px]">
+                                                    <span className="text-slate-400">Service Fee</span>
+                                                    <span className="font-bold text-slate-700">{summary?.revenueModel?.serviceFee}</span>
+                                                </div>
+                                                <div className="flex justify-between text-[10px]">
+                                                    <span className="text-slate-400">Rider Payout</span>
+                                                    <span className="font-bold text-slate-700">{summary?.revenueModel?.riderPayout}</span>
+                                                </div>
+                                            </div>
+                                        </div>
                                         <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Notice</p>
                                             <p className="text-[11px] text-slate-600 leading-normal">
@@ -318,8 +343,9 @@ export default function FinancePage() {
                                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                                                     <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: "#94a3b8", fontWeight: 600 }} dy={10} />
                                                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: "#94a3b8", fontWeight: 600 }} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
-                                                    <Tooltip contentStyle={{ borderRadius: "8px", border: "none", fontSize: "10px", backgroundColor: "#1e293b", color: "#fff" }} />
+                                                    <Tooltip contentStyle={{ borderRadius: "12px", border: "none", fontSize: "10px", backgroundColor: "#1e293b", color: "#fff", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)" }} />
                                                     <Area type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} fill="url(#colorRev)" name="GMV" />
+                                                    <Area type="monotone" dataKey="platformRevenue" stroke="#10b981" strokeWidth={2} fill="none" name="Net Revenue" />
                                                 </AreaChart>
                                             </ResponsiveContainer>
                                         </div>
@@ -341,6 +367,7 @@ export default function FinancePage() {
                                             className="h-9 px-3 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold uppercase tracking-wider outline-none">
                                             <option value="all">All Types</option>
                                             <option value="delivery_fee">Delivery Fee</option>
+                                            <option value="service_fee">Service Fee</option>
                                             <option value="escrow_release">Escrow Release</option>
                                             <option value="rider_payout">Rider Payout</option>
                                         </select>

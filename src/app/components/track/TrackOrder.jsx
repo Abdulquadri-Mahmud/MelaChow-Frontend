@@ -192,7 +192,7 @@ export default function OrderTracking() {
   if (!orderData)
     return <div className="md:p-6 p-2 text-center text-zinc-600 dark:text-zinc-400 font-medium">No order found</div>;
 
-  const { items, deliveryAddress, subtotal, deliveryFee, total, orderStatus, userId } = orderData;
+  const { items, deliveryAddress, subtotal, deliveryFee, serviceFee, total, orderStatus, userId } = orderData;
   const currentStepIndex = statusSteps.findIndex((s) => s.key === orderStatus);
 
   // console.log(orderData);
@@ -646,6 +646,12 @@ export default function OrderTracking() {
                   <span>Delivery Service</span>
                   <span className="text-orange-600">+ ₦{deliveryFee.toLocaleString()}</span>
                 </div>
+                {serviceFee > 0 && (
+                  <div className="flex justify-between items-center text-zinc-400 text-[11px] font-black uppercase tracking-widest">
+                    <span>Service Fee</span>
+                    <span className="text-zinc-600 dark:text-zinc-300">+ ₦{serviceFee.toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-end pt-4">
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300 mb-1 leading-none">Total Payment</p>

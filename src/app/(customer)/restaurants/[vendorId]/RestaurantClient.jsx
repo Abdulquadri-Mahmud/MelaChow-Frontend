@@ -17,8 +17,8 @@ import ViewVendorSkeleton from "@/app/skeleton/ViewVendorSkeleton";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
 
 const FoodItemRow = ({ item, onSelect }) => {
-    const isUnavailable = !item.is_available || !item.is_in_stock;
-    const price = item.portions?.min_price_naira || item.portions?.default_price_naira || item.price || 0;
+    const isUnavailable = !item.is_available || item.is_in_stock === false;
+    const price = item.portions?.min_price_naira || item.portions?.default_price_naira || item.price_naira || item.price || 0;
     const oldPrice = item.old_price || (price * 1.2); 
 
     return (
@@ -77,34 +77,6 @@ const FoodItemRow = ({ item, onSelect }) => {
     );
 };
 
-const ComboCard = ({ combo, vendor, onSelect }) => {
-    const isUnavailable = !combo.is_available;
-    const price = combo.price_naira || 0;
-    
-    return (
-        <div
-            onClick={() => !isUnavailable && onSelect(combo)}
-            className={`flex-shrink-0 w-[240px] bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-black/[0.03] cursor-pointer active:scale-95 transition-all duration-300 group ${isUnavailable ? 'opacity-50 grayscale' : ''}`}
-        >
-            <div className="relative h-40 w-full overflow-hidden">
-                <img src={combo.image_url || "/placeholder.jpg"} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={combo.name} />
-                <div className="absolute top-3 left-3 bg-zinc-900/90 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-[0.15em] px-3 py-1.5 rounded-xl border border-white/10">
-                    Combo Deal
-                </div>
-                <div className="absolute bottom-0 inset-x-0 h-1/2 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
-            </div>
-            <div className="p-4 space-y-2">
-                <h4 className="text-[14px] font-black text-zinc-900 dark:text-white truncate uppercase italic tracking-tight">{combo.name}</h4>
-                <div className="flex items-center justify-between">
-                    <span className="text-[16px] font-black text-orange-500">₦{price.toLocaleString()}</span>
-                    <div className="w-8 h-8 bg-orange-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-                        <Plus size={16} strokeWidth={3} />
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 export default function StorefrontPage({ initialData, vendorId: propVendorId }) {
     const params = useParams();
@@ -226,11 +198,30 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         }));
 
         const combinedCategories = [...comboSection, ...foodSections];
-        const allItemsList = combinedCategories.flatMap(s => s.items);
+        
+        // Deduplicate items for the "All" tab
+        const allItemsListMap = new Map();
+        combinedCategories.flatMap(s => s.items).forEach(item => {
+            if (item && item._id) {
+                allItemsListMap.set(item._id, item);
+            }
+        });
+        const allItemsList = Array.from(allItemsListMap.values());
+
+        // Deduplicate items inside each category
+        const deduplicatedCategories = combinedCategories.map(cat => {
+            const catMap = new Map();
+            cat.items.forEach(item => {
+                if (item && item._id) {
+                    catMap.set(item._id, item);
+                }
+            });
+            return { ...cat, items: Array.from(catMap.values()) };
+        });
 
         const finalSections = [
             { _id: "all", name: "All", items: allItemsList },
-            ...combinedCategories
+            ...deduplicatedCategories
         ];
 
         if (!searchQuery.trim()) return finalSections;
@@ -264,7 +255,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
     return (
         <div className="min-h-screen scroll bg-white dark:bg-zinc-950 pb-20">
-            <div className="relative h-[180px] w-full overflow-hidden">
+            <div className="relative h-[120px] w-full overflow-hidden">
                 <motion.div 
                     style={{ scale: 1 + scrollY * 0.001, y: scrollY * 0.4 }}
                     className="absolute inset-0 w-full h-full"
@@ -273,17 +264,25 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                 </motion.div>
                 {!isScrolled && (
-                    <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between">
+                    <div className="absolute top-4 left-4 right-4 z-50 flex items-center justify-between">
                         <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white">
                             <ChevronLeft size={24} />
                         </button>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setIsSearchActive(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white transition-all active:scale-90">
+                                <Search size={20} />
+                            </button>
+                            <button onClick={handleShare} className="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white transition-all active:scale-90">
+                                <Share2 size={20} />
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
 
             {/* 🏰 Sticky Glass Header */}
             <AnimatePresence>
-                {isScrolled && (
+                {(isScrolled || isSearchActive) && (
                     <motion.div 
                         initial={{ y: -72, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
@@ -477,19 +476,15 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                 allSections.map((section) => (
                                     <SwiperSlide key={section._id}>
                                         <div className="pb-6 pt-2 min-h-[50vh]">
-                                            {section.type === 'combo' ? (
-                                                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-none snap-x px-1">
-                                                    {section.items.map(combo => (
-                                                        <ComboCard key={combo._id} combo={combo} vendor={vendor} onSelect={handleComboTap} />
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-0 px-2">
-                                                    {section.items.map(item => (
-                                                        <FoodItemRow key={item._id} item={item} onSelect={handleItemTap} />
-                                                    ))}
-                                                </div>
-                                            )}
+                                            <div className="space-y-0 px-2">
+                                                {section.items.map((item, index) => (
+                                                    <FoodItemRow 
+                                                        key={`${section._id}-${item._id}-${index}`} 
+                                                        item={item} 
+                                                        onSelect={section.type === 'combo' ? handleComboTap : handleItemTap} 
+                                                    />
+                                                ))}
+                                            </div>
                                         </div>
                                     </SwiperSlide>
                                 ))
