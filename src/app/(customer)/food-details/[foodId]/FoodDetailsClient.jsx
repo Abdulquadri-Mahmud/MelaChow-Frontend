@@ -13,7 +13,8 @@ import {
   Star,
   Plus,
   Minus,
-  ShoppingCart
+  ShoppingCart,
+  Package
 } from "lucide-react";
 import { BiCartAdd } from "react-icons/bi";
 import { Swiper, SwiperSlide } from 'swiper/react';
