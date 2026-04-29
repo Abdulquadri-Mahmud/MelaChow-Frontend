@@ -22,12 +22,12 @@ import { getVendorStorefront } from "@/app/lib/menuApi";
 
 import { useQuery } from "@tanstack/react-query";
 
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 // This page renders when the user taps a Combo on the restaurant storefront.
 // Route: /combo-details/[comboId]?vendorId=xxx
-// ─────────────────────────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
 
-export default function ComboDetailsPage({ initialData, comboId: propComboId }) {
+export default function ComboDetailsPage({ initialData, comboId: propComboId, isModal, onClose }) {
     const router = useRouter();
     const params = useParams();
     const comboId = propComboId || params.comboId;
@@ -40,9 +40,9 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
     useEffect(() => {
         if (typeof window !== "undefined") {
             const searchParams = new URLSearchParams(window.location.search);
-            setVendorId(searchParams.get("vendorId"));
+            setVendorId(searchParams.get("vendorId") || initialData?.vendor?._id || initialData?.combo?.vendor?._id);
         }
-    }, [isClient]);
+    }, [isClient, initialData]);
 
     const { addComboToCart, cart } = useCart();
 
@@ -86,7 +86,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
         }
     }, [combo?._id]);
 
-    // ── Pricing ──────────────────────────────────────────────────────────────
+    // -- Pricing --------------------------------------------------------------
     const addonsPrice = Object.values(selections).reduce((acc, sel) => {
         if (Array.isArray(sel)) {
             return acc + sel.reduce((s, o) => s + ((o.price_modifier_naira || 0) * (o.quantity || 1)), 0);
@@ -97,7 +97,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
     const totalUnit = (combo?.price_naira || 0) + addonsPrice;
     const total = totalUnit * quantity;
 
-    // ── Choice Group Logic ────────────────────────────────────────────────────
+    // -- Choice Group Logic ----------------------------------------------------
     const isOptionSelected = (groupKey, label) => {
         const sel = selections[groupKey];
         if (Array.isArray(sel)) return sel.some(i => i.label === label);
@@ -236,7 +236,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
         router.push("/orders?activeTab=cart");
     };
 
-    // ── Render ────────────────────────────────────────────────────────────────
+    // Render
     if (!isClient) return <div className="min-h-screen bg-white dark:bg-zinc-950" />;
 
     if (isLoading) {
@@ -268,13 +268,16 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
     const choiceGroups = combo.choice_groups || [];
     const totalItems = cart.length;
 
-    return (
-        <>
-            {/* ── Sticky Header ─────────────────────────────────────────── */}
-            <header className="flex items-center justify-between px-4 py-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800">
+    const mainContent = (
+        <div className={`min-h-screen ${isModal ? 'bg-zinc-50 dark:bg-zinc-950 rounded-t-[40px] overflow-hidden' : 'bg-zinc-50 dark:bg-zinc-950'}`}>
+            {/* Sticky Header */}
+            <header className="flex items-center justify-between px-4 py-4 bg-white bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800">
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={() => router.back()}
+                        onClick={() => {
+                            if (onClose) onClose();
+                            else router.back();
+                        }}
                         className="p-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600 dark:text-zinc-400 transition-all active:scale-90"
                         aria-label="Go back"
                     >
@@ -295,24 +298,26 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
                     </div>
                 </div>
 
-                <Link href="/orders?activeTab=cart">
-                    <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-zinc-900 dark:bg-zinc-100 p-2.5 rounded-2xl">
-                        <BiCartAdd className="text-white dark:text-zinc-900" size={24} />
-                        {totalItems > 0 && (
-                            <span className="absolute -top-1.5 -right-1.5 bg-orange-500 ring-4 ring-white dark:ring-zinc-900 text-white text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-black">
-                                {totalItems}
-                            </span>
-                        )}
-                    </motion.div>
-                </Link>
+                <div className="flex items-center gap-2">
+                    <Link href="/orders?activeTab=cart" onClick={() => isModal && onClose && onClose()}>
+                        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-zinc-900 dark:bg-zinc-100 p-2.5 rounded-2xl">
+                            <BiCartAdd className="text-white dark:text-zinc-900" size={24} />
+                            {totalItems > 0 && (
+                                <span className="absolute -top-1.5 -right-1.5 bg-orange-500 ring-4 ring-white dark:ring-zinc-900 text-white text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-black">
+                                    {totalItems}
+                                </span>
+                            )}
+                        </motion.div>
+                    </Link>
+                </div>
             </header>
 
-            {/* ── Page Body ─────────────────────────────────────────────── */}
-            <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
+            {/* Page Body */}
+            <div className="bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
                 <div className="max-w-4xl mx-auto pb-32">
                     <div className="space-y-6">
 
-                        {/* ── Hero Card ─────────────────────────────────── */}
+                        {/* Hero Card */}
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-1 pt-2">
                             <div className="bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-sm">
                                 {/* Image */}
@@ -389,7 +394,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
                             </div>
                         </motion.div>
 
-                        {/* ── What's Included ───────────────────────────── */}
+                        {/* What's Included */}
                         {combo.contents?.length > 0 && (
                             <div className="px-1">
                                 <div className="bg-white dark:bg-zinc-900 rounded-[32px] p-4 border border-zinc-100 dark:border-zinc-800 shadow-sm">
@@ -410,7 +415,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
                             </div>
                         )}
 
-                        {/* ── Choice Groups ─────────────────────────────── */}
+                        {/* Choice Groups */}
                         {choiceGroups.length > 0 && (
                             <div className="px-1 space-y-4">
                                 {choiceGroups.map(group => {
@@ -433,7 +438,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
                                                 </div>
                                                 {group.is_required ? (
                                                     <span className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border ${isMet ? "bg-green-500/10 border-green-500/20 text-green-500" : "bg-rose-500/10 border-rose-500/20 text-rose-500"}`}>
-                                                        {isMet ? "✓ Met" : "Required"}
+                                                        {isMet ? "Yes" : "Required"}
                                                     </span>
                                                 ) : (
                                                     <span className="text-[9px] font-black text-zinc-400 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 px-2.5 py-1 rounded-full uppercase tracking-widest">
@@ -459,7 +464,6 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
                                                                     : "border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-orange-200 dark:hover:border-orange-500/30"
                                                             }`}
                                                         >
-                                                            {/* Option image */}
                                                             {/* Selection Indicator Circle */}
                                                             <div className="w-8 h-8 rounded-full bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
                                                                 <Plus size={12} strokeWidth={4} />
@@ -472,7 +476,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
                                                                 </p>
                                                                 {option.price_modifier_naira > 0 ? (
                                                                     <p className="text-[11px] font-black text-orange-500">
-                                                                        +₦{option.price_modifier_naira.toLocaleString()}
+                                                                        +N{option.price_modifier_naira.toLocaleString()}
                                                                     </p>
                                                                 ) : (
                                                                     <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mt-0.5">
@@ -523,7 +527,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
                             <div className="px-1">
                                 <div className="py-12 flex flex-col items-center justify-center text-center opacity-50 italic bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-100 dark:border-zinc-800">
                                     <div className="text-4xl mb-4">⚡</div>
-                                    <p className="text-xs font-black uppercase tracking-widest">No customizations required for this bundle</p>
+                                    <p className="text-xs font-black uppercase tracking-widest">No customizations required</p>
                                 </div>
                             </div>
                         )}
@@ -532,22 +536,20 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
                 </div>
             </div>
 
-            {/* ── Fixed Bottom Bar ──────────────────────────────────────── */}
-            <div className="fixed bottom-0 left-0 right-0 p-2 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 pb-safe z-40">
-                <div className="max-w-2xl mx-auto flex items-center gap-2">
-
+            {/* Fixed Bottom Bar */}
+            <div className={`fixed bottom-0 left-0 right-0 p-2 bg-white bg-opacity-95 dark:bg-zinc-950 dark:bg-opacity-90 backdrop-blur-xl border-t border-zinc-100 border-opacity-50 dark:border-zinc-800 dark:border-opacity-80 pb-safe z-40 ${isModal ? 'rounded-b-[40px]' : ''}`}>
+                <div className="max-w-2xl mx-auto flex items-center gap-3 px-2">
                     {/* Quantity control */}
-                    <div className="flex items-center gap-1 bg-zinc-100/80 dark:bg-zinc-900/80 rounded-[21px] p-1 h-[48px] border border-zinc-200/50 dark:border-zinc-800/50 shadow-inner">
+                    <div className="flex items-center gap-1 bg-zinc-100 bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 rounded-[21px] p-1 h-[48px] border border-zinc-200 border-opacity-50 dark:border-zinc-800 dark:border-opacity-50 shadow-inner shrink-0">
                         <button
                             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                            className="w-[30px] h-[30px] flex items-center justify-center rounded-2xl bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
+                            className="w-[30px] h-[30px] flex items-center justify-center rounded-2xl bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500 dark:hover:bg-opacity-10 transition-all text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
                         >
                             <Minus size={18} strokeWidth={3} />
-
                         </button>
-                        <div className="w-10 flex flex-col items-center">
-                            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tighter leading-none mb-0.5">Qty</span>
-                            <span className="text-base font-black text-zinc-900 dark:text-white tabular-nums leading-none">{quantity}</span>
+                        <div className="w-8 flex flex-col items-center">
+                            <span className="text-[8px] font-black text-zinc-400 uppercase tracking-tighter leading-none mb-0.5">Qty</span>
+                            <span className="text-sm font-black text-zinc-900 dark:text-white tabular-nums leading-none">{quantity}</span>
                         </div>
                         <button
                             onClick={() => setQuantity(quantity + 1)}
@@ -561,9 +563,9 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
                     <button
                         onClick={handleAddToCart}
                         disabled={!combo.is_available}
-                        className="flex-1 h-[45px] py-1.5 bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[20px] font-black text-[12px] uppercase tracking-[0.05em] italic flex items-center justify-between px-2 transition-all active:scale-[0.98] dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50"
+                        className="flex-1 h-[48px] bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[20px] font-black text-[12px] uppercase tracking-[0.05em] italic flex items-center justify-between px-4 transition-all active:scale-[0.98] dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50 shadow-lg"
                     >
-                        <div className="flex items-center gap-1 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0">
                             <div className="p-1.5 rounded-xl bg-orange-500 text-white group-hover:rotate-12 transition-transform shrink-0">
                                 <ShoppingCart size={18} />
                             </div>
@@ -583,6 +585,31 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
                     </button>
                 </div>
             </div>
-        </>
+        </div>
     );
+
+    if (isModal) {
+        return (
+            <div className="fixed inset-0 z-[100] flex items-end justify-center">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onClose}
+                    className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                />
+                <motion.div
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    className="relative w-full max-w-2xl h-screen overflow-y-auto no-scrollbar"
+                >
+                    {mainContent}
+                </motion.div>
+            </div>
+        );
+    }
+
+    return mainContent;
 }

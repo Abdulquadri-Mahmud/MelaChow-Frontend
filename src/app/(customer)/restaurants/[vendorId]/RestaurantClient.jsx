@@ -15,6 +15,7 @@ import toast from "react-hot-toast";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import ViewVendorSkeleton from "@/app/skeleton/ViewVendorSkeleton";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
+import { useComboModalStore } from "@/app/store/comboModalStore";
 
 const FoodItemRow = ({ item, onSelect }) => {
     const isUnavailable = !item.is_available || item.is_in_stock === false;
@@ -85,6 +86,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const { addToCart } = useCart();
     const sectionRefs = useRef({});
     const openFoodModal = useFoodModalStore(state => state.openFoodModal);
+    const openComboModal = useComboModalStore(state => state.openComboModal);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeSectionId, setActiveSectionId] = useState("all");
     const [activeTab, setActiveTab] = useState("menu");
@@ -138,12 +140,16 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
     const handleComboTap = (combo) => {
         if (!combo.is_available) return;
-        router.push(`/combo-details/${combo._id}?vendorId=${vendorId}`);
+        openComboModal(combo._id, { combo });
     };
 
     const handleItemTap = (item) => {
         if (!item.is_available || !item.is_in_stock) return;
-        openFoodModal(item._id, { food: item });
+        if (item.type === 'combo') {
+            handleComboTap(item);
+        } else {
+            openFoodModal(item._id, { food: item });
+        }
     };
 
     const handleShare = async () => {
@@ -177,7 +183,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
     const allSections = useMemo(() => {
         const comboSection = combos.length > 0
-            ? [{ _id: "combos", name: "Deals & Combos", items: combos, type: "combo" }]
+            ? [{ _id: "combos", name: "Deals & Combos", items: combos.map(c => ({ ...c, type: 'combo' })), type: "combo" }]
             : [];
 
         const allItems = [...sections.flatMap(s => s.items || []), ...unsectioned];
@@ -199,13 +205,23 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
         const combinedCategories = [...comboSection, ...foodSections];
         
-        // Deduplicate items for the "All" tab
+        // Deduplicate items for the "All" tab and preserve their type
         const allItemsListMap = new Map();
-        combinedCategories.flatMap(s => s.items).forEach(item => {
+        
+        // 1. Process food items
+        [...sections.flatMap(s => s.items || []), ...unsectioned].forEach(item => {
             if (item && item._id) {
-                allItemsListMap.set(item._id, item);
+                allItemsListMap.set(item._id, { ...item, type: 'food' });
             }
         });
+
+        // 2. Process combo items (override if same ID exists, though unlikely)
+        combos.forEach(item => {
+            if (item && item._id) {
+                allItemsListMap.set(item._id, { ...item, type: 'combo' });
+            }
+        });
+
         const allItemsList = Array.from(allItemsListMap.values());
 
         // Deduplicate items inside each category

@@ -4,8 +4,33 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import showAnimatedToast from "../components/toast/showAnimatedToast";
 
-const CartContext = createContext();
-export const useCart = () => useContext(CartContext);
+const CartContext = createContext({
+  cart: [],
+  addToCart: () => {},
+  addComboToCart: () => {},
+  increaseQuantity: () => {},
+  decreaseQuantity: () => {},
+  removeFromCart: () => {},
+  updateCartItem: () => {},
+  clearCart: () => {},
+});
+
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (context === undefined) {
+    return {
+      cart: [],
+      addToCart: () => {},
+      addComboToCart: () => {},
+      increaseQuantity: () => {},
+      decreaseQuantity: () => {},
+      removeFromCart: () => {},
+      updateCartItem: () => {},
+      clearCart: () => {},
+    };
+  }
+  return context;
+};
 
 // Helper to compare if two items are functionally identical
 const isSameItem = (a, b) => {
