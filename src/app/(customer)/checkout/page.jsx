@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/app/context/CartContext";
 import { Loader2, Bike, MapPin, Clock, DollarSign, TicketPercent, Tag, Wallet, CreditCard } from "lucide-react";
-import { verifyDiscount, getVendorById, getWallet } from "@/app/lib/api";
+import { verifyDiscount, getVendorById, getWallet, getPlatformConfig } from "@/app/lib/api";
 import { createOrderV2 } from "@/app/lib/orderService";
 import { transformCartToOrderV2 } from "@/app/lib/orderTransformers";
 import Header2 from "@/app/components/App_Header/Header2";
@@ -38,6 +38,7 @@ export default function CheckoutPage() {
   const [couponCode, setCouponCode] = useState("");
   const [appliedDiscount, setAppliedDiscount] = useState(null);
   const [verifyingCode, setVerifyingCode] = useState(false);
+  const [platformConfig, setPlatformConfig] = useState(null);
 
   // Wallet State
   const [useWallet, setUseWallet] = useState(false);
@@ -64,6 +65,10 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    // Fetch platform configuration for service fees
+    getPlatformConfig().then(res => {
+      if (res.success) setPlatformConfig(res.data);
+    });
   }, []);
 
   const defaultAddress = userData?.addresses?.find(a => a.isDefault);
@@ -118,9 +123,21 @@ export default function CheckoutPage() {
   );
   const deliveryFee = isPlatformPromoEligible ? 0 : rawDeliveryFee;
 
+  // Service fee calculation
+  // Backend rule: Service fee is suppressed if ANY delivery promo is active
+  const anyDeliveryPromoActive = isPlatformPromoEligible || (deliveryFee === 0 && rawDeliveryFee > 0);
+
+  const serviceFee = appliedDiscount ? (appliedDiscount.serviceFee || 0) : (
+    platformConfig?.serviceFeeEnabled && !anyDeliveryPromoActive
+      ? (platformConfig.serviceFeeType === "fixed"
+          ? platformConfig.serviceFeeValue
+          : Math.min((subtotal * platformConfig.serviceFeeValue) / 100, platformConfig.serviceFeeCap || Infinity))
+      : 0
+  );
+
   // Calculate final total (UI ONLY - Backend re-validates)
   // If discount applied, use verified total, otherwise local calc
-  const finalTotal = appliedDiscount ? appliedDiscount.total : (subtotal + deliveryFee);
+  const finalTotal = appliedDiscount ? appliedDiscount.total : (subtotal + deliveryFee + serviceFee);
 
   // Group items by restaurant
   const groupedCart = cart.reduce((acc, item) => {
@@ -670,6 +687,12 @@ export default function CheckoutPage() {
               </span>
             </div>
           </div>
+          {serviceFee > 0 && (
+            <div className="flex justify-between items-center text-sm">
+              <span className="flex items-center gap-1 font-semibold text-zinc-400 uppercase tracking-widest text-[10px]">Service Fee</span>
+              <span className="text-white font-medium">₦{serviceFee.toLocaleString()}</span>
+            </div>
+          )}
           {appliedDiscount && (
             <div className="flex justify-between items-center text-sm">
               <span className="flex items-center gap-1 font-semibold text-green-400 uppercase tracking-widest text-[10px]">Discount</span>

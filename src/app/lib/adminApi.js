@@ -550,6 +550,16 @@ class AdminAPI {
             api.patch(`/api/admin/promos/platform-delivery/${promoId}/reactivate`)
         );
     }
+
+    // ==================== PLATFORM CONFIG ====================
+
+    async getPlatformConfig() {
+        return this.handleResponse(api.get("/api/admin/platform-config"));
+    }
+
+    async updatePlatformConfig(configData) {
+        return this.handleResponse(api.put("/api/admin/platform-config", configData));
+    }
 }
 
 export default new AdminAPI();

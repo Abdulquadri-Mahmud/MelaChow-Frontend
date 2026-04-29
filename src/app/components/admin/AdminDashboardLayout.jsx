@@ -83,9 +83,9 @@ const navigation = [
     {
         title: "Configuration",
         items: [
-            { icon: FolderTree, label: "Categories", href: "/admin/categories" },
-            { icon: MapPin,     label: "Locations",  href: "/admin/locations" },
-            { icon: Settings,   label: "Settings",   href: "/admin/settings" },
+            { icon: FolderTree, label: "Categories",      href: "/admin/categories" },
+            { icon: MapPin,     label: "Locations",       href: "/admin/locations" },
+            { icon: Settings,   label: "Platform Config", href: "/admin/settings/platform" },
         ],
     },
 ];
@@ -434,10 +434,10 @@ export default function AdminDashboardLayout({ children }) {
                                                 <p className="text-[10px] text-slate-400 mt-0.5">{admin?.email || ""}</p>
                                             </div>
                                             <button
-                                                onClick={() => { router.push("/admin/settings"); setProfileOpen(false); }}
+                                                onClick={() => { router.push("/admin/settings/platform"); setProfileOpen(false); }}
                                                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
                                             >
-                                                <Settings size={14} /> Settings
+                                                <Settings size={14} /> Platform Config
                                             </button>
                                             <div className="border-t border-slate-100 my-1" />
                                             <button

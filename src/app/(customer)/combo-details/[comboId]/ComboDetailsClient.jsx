@@ -32,6 +32,9 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
     const params = useParams();
     const comboId = propComboId || params.comboId;
 
+    const [isClient, setIsClient] = useState(false);
+    useEffect(() => { setIsClient(true); }, []);
+
     // vendorId is passed via query string from the storefront
     const [vendorId, setVendorId] = useState(null);
     useEffect(() => {
@@ -56,9 +59,6 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId }) 
     // Selections state
     const [selections, setSelections] = useState({});
     const [quantity, setQuantity] = useState(1);
-    const [isClient, setIsClient] = useState(false);
-
-    useEffect(() => { setIsClient(true); }, []);
 
     // Fetch vendor storefront to extract the specific combo (only if initialData is missing)
     const { data: storefrontData } = useQuery({
