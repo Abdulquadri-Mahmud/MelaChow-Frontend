@@ -13,7 +13,8 @@ import {
   Star,
   Plus,
   Minus,
-  ShoppingCart
+  ShoppingCart,
+  Package
 } from "lucide-react";
 import { BiCartAdd } from "react-icons/bi";
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -24,8 +25,9 @@ import { isVendorOpen as isVendorOpenFn } from "@/app/lib/utils";
 import { getPublicFoodDetail } from "@/app/lib/menuApi";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
+import { useFoodModalStore } from "@/app/store/foodModalStore";
+import { useComboModalStore } from "@/app/store/comboModalStore";
 import FoodDetailsSkeleton from "@/app/skeleton/FoodDetailsSkeleton";
-import { Package, MessageSquare, Loader2, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
 
 export default function FoodDetails({ initialData, foodId: propFoodId, isModal, onClose }) {
   const router = useRouter();
@@ -151,7 +153,9 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
     // Maybe scrollTo section?
   };
 
-  // Handlers
+    const openComboModal = useComboModalStore(state => state.openComboModal);
+
+    // Handlers
   const openModal = (variant = null, portion = null) => {
     setModalDetails({
       isOpen: true,
@@ -628,7 +632,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                           </p>
                         </div>
                         <button
-                          onClick={() => openModal(combo, null)}
+                          onClick={() => openComboModal(combo._id, { combo })}
                           disabled={!combo.is_available || !itemAvailability.available}
                           className={`w-auto px-4 py-2 shrink-0 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                             (!combo.is_available || !itemAvailability.available)
