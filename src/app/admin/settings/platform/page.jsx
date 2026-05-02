@@ -26,18 +26,24 @@ export default function PlatformSettingsPage() {
     const [config, setConfig] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [cities, setCities] = useState([]);
 
     useEffect(() => {
-        fetchConfig();
+        fetchInitialData();
     }, []);
 
-    const fetchConfig = async () => {
+    const fetchInitialData = async () => {
         setLoading(true);
         try {
-            const res = await adminApi.getPlatformConfig();
-            setConfig(res.data);
+            const [configRes, citiesRes] = await Promise.all([
+                adminApi.getPlatformConfig(),
+                adminApi.getAllCities()
+            ]);
+            setConfig(configRes.data);
+            // Filter out inactive cities if needed, but usually we want to guard all possible delivery zones
+            setCities(citiesRes.cities || []);
         } catch (err) {
-            toast.error("Failed to load platform settings");
+            toast.error("Failed to load platform data");
         } finally {
             setLoading(false);
         }
@@ -114,6 +120,29 @@ export default function PlatformSettingsPage() {
                                     </div>
                                     <h3 className="text-sm font-black text-zinc-900 dark:text-white uppercase tracking-widest italic">Rider Payout</h3>
                                 </div>
+
+                                {(() => {
+                                    const minCityFee = cities.length > 0 
+                                        ? Math.min(...cities.map(c => c.platformDeliveryFee || 0))
+                                        : null;
+                                    
+                                    if (minCityFee !== null && config.riderFixedPayout >= minCityFee) {
+                                        const problematicCities = cities.filter(c => (c.platformDeliveryFee || 0) <= config.riderFixedPayout);
+                                        return (
+                                            <div className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl flex gap-3 items-start">
+                                                <AlertCircle className="text-orange-500 shrink-0 mt-0.5" size={16} />
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black text-orange-600 dark:text-orange-400 uppercase tracking-widest">Negative Spread Risk</p>
+                                                    <p className="text-[11px] text-zinc-600 dark:text-zinc-400 font-medium leading-relaxed">
+                                                        Payout (₦{config.riderFixedPayout}) meets or exceeds the fee in {problematicCities.length} city/ies (min: ₦{minCityFee}). 
+                                                        Platform will lose money on these deliveries.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })()}
 
                                 <div className="space-y-4">
                                     <CompactInput 

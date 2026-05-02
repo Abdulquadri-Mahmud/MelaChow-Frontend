@@ -546,13 +546,9 @@ export const getVendorById = async (vendorId) => {
  * @returns {Object} - Sanitized config { serviceFeeEnabled, serviceFeeType, ... }
  */
 export const getPlatformConfig = async () => {
-  try {
-    const res = await axios.get("/api/user/platform-config", {
-      withCredentials: true,
-    });
-    return res.data;
-  } catch (error) {
-    console.error("Get Platform Config Error:", error);
-    return { success: false, data: { serviceFeeEnabled: false } };
-  }
+  const res = await fetch('/api/public/platform-config', {
+    credentials: 'include',
+  });
+  if (!res.ok) throw new Error('Failed to fetch platform config');
+  return res.json(); // { success, data: { serviceFeeEnabled, ... } }
 };

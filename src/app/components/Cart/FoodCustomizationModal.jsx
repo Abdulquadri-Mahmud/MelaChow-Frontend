@@ -35,6 +35,31 @@ export default function FoodCustomizationModal({
         };
     }, [isOpen, setIsModalOpen]);
 
+    // ── Hardware back-button support (Android + browser back gesture) ──────
+    useEffect(() => {
+      if (!isOpen) return; // only active while modal is open
+
+      // Push a shallow history entry so back button has somewhere to go
+      window.history.pushState({ melachowModal: 'food' }, '');
+
+      const handlePopState = (e) => {
+        // Back was pressed — close the modal instead of navigating away
+        // Don't call history.back() here — the pop already happened
+        onClose();
+      };
+
+      window.addEventListener('popstate', handlePopState);
+
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+        // If modal is closed via the UI button (not back), clean up the
+        // extra history entry to avoid a dangling back-step
+        if (window.history.state?.melachowModal === 'food') {
+          window.history.back();
+        }
+      };
+    }, [isOpen, onClose]);
+
     useEffect(() => {
         if (isOpen) {
             if (initialEditItem) {

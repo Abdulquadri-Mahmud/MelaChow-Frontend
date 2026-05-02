@@ -83,7 +83,14 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
         }
     }, [isClient]);
 
-    const { addComboToCart, cart } = useCart();
+    const { addComboToCart, cart, setIsModalOpen } = useCart();
+
+    useEffect(() => {
+        if (!isModal || !setIsModalOpen) return;
+
+        setIsModalOpen(true);
+        return () => setIsModalOpen(false);
+    }, [isModal, setIsModalOpen]);
 
     // Data State
     const initialCombo = initialData?.combo || (initialData?.success ? null : initialData);
