@@ -11,6 +11,7 @@ const CartContext = createContext({
   increaseQuantity: () => {},
   decreaseQuantity: () => {},
   removeFromCart: () => {},
+  removeRestaurantFromCart: () => {},
   updateCartItem: () => {},
   clearCart: () => {},
 });
@@ -25,6 +26,7 @@ export const useCart = () => {
       increaseQuantity: () => {},
       decreaseQuantity: () => {},
       removeFromCart: () => {},
+      removeRestaurantFromCart: () => {},
       updateCartItem: () => {},
       clearCart: () => {},
     };
@@ -176,6 +178,12 @@ export const CartProvider = ({ children }) => {
     showAnimatedToast("error", "Item removed from cart", "cart-remove");
   };
 
+  const removeRestaurantFromCart = (restaurantId) => {
+    setCart((prev) =>
+      prev.filter((item) => (item.vendorId || item.restaurantId) !== restaurantId)
+    );
+  };
+
   // Update item (for editing options)
   const updateCartItem = (foodId, portionId, updatedItem, cartId) => {
     setCart((prev) => {
@@ -218,6 +226,7 @@ export const CartProvider = ({ children }) => {
         increaseQuantity,
         decreaseQuantity,
         removeFromCart,
+        removeRestaurantFromCart,
         updateCartItem,
         clearCart,
       }}
