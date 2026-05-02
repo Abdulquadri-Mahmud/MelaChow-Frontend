@@ -18,6 +18,7 @@ export default function VerifyPayment() {
 
   const reference = searchParams.get("reference");
   const didVerify = useRef(false);
+  const formatMoney = (value) => `₦${Number(value || 0).toLocaleString()}`;
 
   useEffect(() => {
     // Prevent double verification
@@ -202,7 +203,7 @@ export default function VerifyPayment() {
                 {/* Amount */}
                 <div className="text-center py-4 bg-slate-50 dark:bg-zinc-800/50 rounded-2xl mb-6 border border-slate-100 dark:border-zinc-800">
                   <p className="text-sm font-medium text-slate-500 dark:text-zinc-400 mb-1">Total Amount Paid</p>
-                  <p className="text-3xl font-black text-slate-900 dark:text-zinc-100">₦{order.total.toLocaleString()}</p>
+                  <p className="text-3xl font-black text-slate-900 dark:text-zinc-100">{formatMoney(order.total)}</p>
                 </div>
 
                 {/* Details List */}
@@ -233,11 +234,40 @@ export default function VerifyPayment() {
                       <p className="font-bold text-slate-900 dark:text-zinc-200 text-sm">Payment Details</p>
                       <div className="flex justify-between text-sm mt-1">
                         <span className="text-slate-500 dark:text-zinc-400">Subtotal</span>
-                        <span className="font-medium text-slate-900 dark:text-zinc-200">₦{order.subtotal.toLocaleString()}</span>
+                        <span className="font-medium text-slate-900 dark:text-zinc-200">{formatMoney(order.subtotal)}</span>
                       </div>
                       <div className="flex justify-between text-sm mt-0.5">
                         <span className="text-slate-500 dark:text-zinc-400">Delivery Fee</span>
-                        <span className="font-medium text-slate-900 dark:text-zinc-200">₦{order.deliveryFee.toLocaleString()}</span>
+                        <span className={`font-medium ${Number(order.deliveryFee || 0) === 0 ? "text-green-600 dark:text-green-400" : "text-slate-900 dark:text-zinc-200"}`}>
+                          {Number(order.deliveryFee || 0) === 0 ? "Free" : formatMoney(order.deliveryFee)}
+                        </span>
+                      </div>
+                      
+                      {/* Promo Rejection Note */}
+                      {Number(order.deliveryFee || 0) > 0 && order.freeDeliveryPromo?.reason && (
+                        <div className="mt-1 p-2 bg-amber-50 dark:bg-amber-500/5 rounded-lg border border-amber-100 dark:border-amber-500/10">
+                          <p className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">
+                            <span className="font-bold uppercase mr-1">Note:</span>
+                            {order.freeDeliveryPromo.reason === 'ip_threshold_exceeded' 
+                              ? "Free delivery promo limit reached for this network/device." 
+                              : order.freeDeliveryPromo.reason === 'not_first_order'
+                              ? "This promo is only for your first order."
+                              : "Delivery promo could not be applied."}
+                          </p>
+                        </div>
+                      )}
+
+                      {Number(order.freeDeliveryPromo?.originalDeliveryFee || order.vendorDeliveryPromo?.originalDeliveryFee || 0) > 0 && Number(order.deliveryFee || 0) === 0 && (
+                        <div className="flex justify-between text-sm mt-0.5">
+                          <span className="text-green-600 dark:text-green-400">Delivery Promo Saved</span>
+                          <span className="font-medium text-green-600 dark:text-green-400">
+                            -{formatMoney(order.freeDeliveryPromo?.originalDeliveryFee || order.vendorDeliveryPromo?.originalDeliveryFee)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm mt-0.5">
+                        <span className="text-slate-500 dark:text-zinc-400">Service Fee</span>
+                        <span className="font-medium text-slate-900 dark:text-zinc-200">{formatMoney(order.serviceFee)}</span>
                       </div>
                     </div>
                   </div>
