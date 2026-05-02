@@ -111,6 +111,8 @@ const EmptyRow = ({ colSpan, icon: Icon, message }) => (
     </tr>
 );
 
+const money = (value) => `₦${Number(value || 0).toLocaleString()}`;
+
 const TABS = [
     { id: "overview",      label: "Overview",     icon: BarChart3  },
     { id: "transactions",  label: "Ledger",       icon: Activity   },
@@ -138,6 +140,8 @@ export default function FinancePage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [filters, setFilters] = useState({ startDate: "", endDate: "" });
+
+    const resetPage = () => setCurrentPage(1);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -173,29 +177,94 @@ export default function FinancePage() {
 
     const fetchTransactions = useCallback(async () => {
         try {
-            const queryParams = { page: currentPage, type: typeFilter !== "all" ? typeFilter : "", search: searchQuery };
+            const queryParams = {
+                page: currentPage,
+                type: typeFilter !== "all" ? typeFilter : "",
+                search: searchQuery,
+                ...filters,
+            };
             if (transactionTypeFilter !== "all") queryParams.transactionType = transactionTypeFilter;
             const res = await adminApi.getTransactions(queryParams);
-            setTransactions(res.data.transactions);
-            setTotalPages(res.data.pagination.totalPages);
+            setTransactions(res.data?.transactions || []);
+            setTotalPages(res.data?.pagination?.totalPages || 1);
         } catch (err) { console.error(err); }
-    }, [currentPage, typeFilter, transactionTypeFilter, searchQuery]);
+    }, [currentPage, typeFilter, transactionTypeFilter, searchQuery, filters]);
 
     const fetchEscrowList = useCallback(async () => {
         try {
-            const res = await adminApi.getUnreleasedEscrow({ page: currentPage, search: searchQuery });
+            const res = await adminApi.getUnreleasedEscrow({ page: currentPage, search: searchQuery, ...filters });
             setEscrowList(res.data.escrowOrders || []);
             setTotalPages(res.data.pagination?.totalPages || 1);
         } catch (err) { console.error(err); }
-    }, [currentPage, searchQuery]);
+    }, [currentPage, searchQuery, filters]);
 
     const fetchRefundList = useCallback(async () => {
         try {
-            const res = await adminApi.getRefundsList({ page: currentPage, search: searchQuery });
+            const res = await adminApi.getRefundsList({ page: currentPage, search: searchQuery, ...filters });
             setRefundList(res.data.refunds || []);
             setTotalPages(res.data.pagination?.totalPages || 1);
         } catch (err) { console.error(err); }
-    }, [currentPage, searchQuery]);
+    }, [currentPage, searchQuery, filters]);
+
+    const handleExport = () => {
+        const rowsByTab = {
+            transactions: transactions.map((tx) => ({
+                date: new Date(tx.date || tx.createdAt).toLocaleString(),
+                description: tx.description || "",
+                order: tx.order?.orderId || "",
+                type: tx.type || "",
+                amount: tx.amount || 0,
+                balance: tx.runningBalance || 0,
+            })),
+            vendors: vendorBreakdown.map((v) => ({
+                partner: v.storeName || "",
+                orders: v.orderCount || 0,
+                order_value: v.totalSubtotal || 0,
+                vendor_payout: v.vendorEarnings || 0,
+                platform_share: (v.commissionPaid || 0) + (v.deliveryShareGenerated || 0),
+            })),
+            payouts: payoutHistory.map((p) => ({
+                recipient: p.accountName || "",
+                bank: p.bankName || "",
+                status: p.status || "",
+                amount: p.requestedAmount || p.amount || 0,
+                type: p.actorType || "",
+            })),
+            escrow: escrowList.map((e) => ({
+                order: e.parentOrder?.orderId || "",
+                restaurant: e.vendorInfo?.storeName || "",
+                status: e.orderStatus || "",
+                amount: e.escrowAmount || 0,
+            })),
+            refunds: refundList.map((r) => ({
+                order: r.orderId?.orderId || "",
+                customer: `${r.userId?.firstname || ""} ${r.userId?.lastname || ""}`.trim(),
+                reason: r.reason || "",
+                status: r.status || "",
+                amount: r.amount || 0,
+            })),
+        };
+
+        const rows = rowsByTab[activeTab] || [];
+        if (!rows.length) {
+            toast.error("No rows to export");
+            return;
+        }
+
+        const headers = Object.keys(rows[0]);
+        const csv = [
+            headers.join(","),
+            ...rows.map((row) => headers.map((key) => `"${String(row[key] ?? "").replaceAll('"', '""')}"`).join(",")),
+        ].join("\n");
+
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `melachow-${activeTab}-${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+    };
 
     useEffect(() => { fetchData(); }, [fetchData]);
     useEffect(() => { fetchChartData(); }, [fetchChartData]);
@@ -205,12 +274,12 @@ export default function FinancePage() {
         if (activeTab === "refunds") fetchRefundList();
         if (activeTab === "payouts") {
             adminApi.getWalletBreakdown().then(res => setWalletBreakdown(res.data));
-            adminApi.getPayoutHistory({ page: currentPage, search: searchQuery }).then(res => {
+            adminApi.getPayoutHistory({ page: currentPage, search: searchQuery, ...filters }).then(res => {
                 setPayoutHistory(res.data.payouts || []);
                 setTotalPages(res.data.pagination?.totalPages || 1);
             });
         }
-    }, [activeTab, fetchTransactions, fetchEscrowList, fetchRefundList, currentPage, searchQuery]);
+    }, [activeTab, fetchTransactions, fetchEscrowList, fetchRefundList, currentPage, searchQuery, filters]);
 
     return (
         <AdminProtectedRoute>
@@ -224,8 +293,8 @@ export default function FinancePage() {
                                 <BarChart3 size={15} className="text-slate-600" />
                             </div>
                             <div>
-                                <h1 className="text-lg font-bold text-slate-900">Finance Hub</h1>
-                                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Settlements & accounting</p>
+                                <h1 className="text-lg font-bold text-slate-900">Finance</h1>
+                                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Money in, money out</p>
                             </div>
                         </div>
 
@@ -236,23 +305,27 @@ export default function FinancePage() {
                                     <input
                                         type="date"
                                         value={filters.startDate}
-                                        onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
+                                        onChange={(e) => { setFilters(prev => ({ ...prev, startDate: e.target.value })); resetPage(); }}
                                         className="h-8 text-[11px] font-bold bg-transparent outline-none w-28 text-slate-600"
                                     />
                                     <input
                                         type="date"
                                         value={filters.endDate}
-                                        onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
+                                        onChange={(e) => { setFilters(prev => ({ ...prev, endDate: e.target.value })); resetPage(); }}
                                         className="h-8 text-[11px] font-bold bg-transparent outline-none w-28 text-slate-600"
                                     />
                                 </div>
                                 {(filters.startDate || filters.endDate) && (
-                                    <button onClick={() => setFilters({ startDate: "", endDate: "" })} className="p-2 text-slate-400 hover:text-rose-500 border-l border-slate-100">
+                                    <button onClick={() => { setFilters({ startDate: "", endDate: "" }); resetPage(); }} className="p-2 text-slate-400 hover:text-rose-500 border-l border-slate-100">
                                         <X size={12} />
                                     </button>
                                 )}
                             </div>
-                            <button className="h-8 px-3 bg-slate-900 text-white rounded-lg flex items-center gap-2 font-bold text-[10px] uppercase">
+                            <button
+                                onClick={handleExport}
+                                disabled={activeTab === "overview"}
+                                className="h-8 px-3 bg-slate-900 text-white rounded-lg flex items-center gap-2 font-bold text-[10px] uppercase disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
                                 <Download size={12} /> Export
                             </button>
                         </div>
@@ -263,7 +336,11 @@ export default function FinancePage() {
                         {TABS.map((tab) => (
                             <button
                                 key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
+                                onClick={() => {
+                                    setActiveTab(tab.id);
+                                    setSearchQuery("");
+                                    resetPage();
+                                }}
                                 className={`h-8 px-4 flex items-center gap-2 text-[10px] font-bold uppercase transition-all rounded-md whitespace-nowrap ${
                                     activeTab === tab.id
                                         ? "bg-slate-100 text-slate-900 shadow-sm border border-slate-200"
@@ -283,13 +360,13 @@ export default function FinancePage() {
                                     <StatCard title="Platform Balance" value={summary?.currentPlatformBalance} icon={Wallet} iconColor="text-blue-500" subtitle="Total holdings" />
                                     <StatCard title="Escrow Hold" value={summary?.totalEscrowHeld} icon={Lock} iconColor="text-amber-500" subtitle="Vendor reserve" />
                                     <StatCard title="Available Funds" value={summary?.availableBalance} icon={DollarSign} iconColor="text-emerald-500" subtitle="Ready for payout" />
-                                    <StatCard title="Delivery Spread" value={summary?.totalDeliverySpreadEarned} icon={TrendingUp} iconColor="text-orange-500" subtitle="Logistics profit" />
+                                    <StatCard title="Delivery Profit" value={summary?.totalDeliverySpreadEarned} icon={TrendingUp} iconColor="text-orange-500" subtitle="Delivery fee left after rider pay" />
                                 </div>
 
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                     <div className="space-y-3">
-                                        <MiniMetric label="Marketplace GMV" value={summary?.totalOrderRevenue} icon={ShoppingBag} color="bg-slate-50" />
-                                        <MiniMetric label="Logistics Fees" value={summary?.totalDeliveryFeesCollected} icon={Truck} color="bg-slate-50" />
+                                        <MiniMetric label="Order Value" value={summary?.totalOrderRevenue} icon={ShoppingBag} color="bg-slate-50" />
+                                        <MiniMetric label="Delivery Fees" value={summary?.totalDeliveryFeesCollected} icon={Truck} color="bg-slate-50" />
                                         <MiniMetric label="Service Fees" value={summary?.totalServiceFeeRevenue} icon={CreditCard} color="bg-emerald-50/50" />
                                         <div className="p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
                                             <div className="flex items-center gap-2 mb-2">
@@ -314,7 +391,7 @@ export default function FinancePage() {
                                         <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl">
                                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Notice</p>
                                             <p className="text-[11px] text-slate-600 leading-normal">
-                                                Automated daily settlements trigger at 20:00. Use the Payouts tab to audit logs.
+                                                Daily payouts run at 8:00 PM. Use the Payouts tab to check them.
                                             </p>
                                         </div>
                                     </div>
@@ -344,8 +421,8 @@ export default function FinancePage() {
                                                     <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: "#94a3b8", fontWeight: 600 }} dy={10} />
                                                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: "#94a3b8", fontWeight: 600 }} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
                                                     <Tooltip contentStyle={{ borderRadius: "12px", border: "none", fontSize: "10px", backgroundColor: "#1e293b", color: "#fff", boxShadow: "0 10px 15px -3px rgba(0,0,0,0.1)" }} />
-                                                    <Area type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} fill="url(#colorRev)" name="GMV" />
-                                                    <Area type="monotone" dataKey="platformRevenue" stroke="#10b981" strokeWidth={2} fill="none" name="Net Revenue" />
+                                                    <Area type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} fill="url(#colorRev)" name="Order Value" />
+                                                    <Area type="monotone" dataKey="platformRevenue" stroke="#10b981" strokeWidth={2} fill="none" name="Platform Share" />
                                                 </AreaChart>
                                             </ResponsiveContainer>
                                         </div>
@@ -359,11 +436,11 @@ export default function FinancePage() {
                                 <div className="bg-white border border-slate-200 rounded-lg p-2.5 flex flex-col md:flex-row gap-2 items-center">
                                     <div className="relative flex-1 group w-full">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
-                                        <input type="text" placeholder="Search reference..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                                        <input type="text" placeholder="Search order or note..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); resetPage(); }}
                                             className="w-full h-9 pl-9 pr-3 bg-slate-50 border border-slate-200 rounded-lg outline-none text-xs" />
                                     </div>
                                     <div className="flex gap-2 w-full md:w-auto">
-                                        <select value={transactionTypeFilter} onChange={(e) => setTransactionTypeFilter(e.target.value)}
+                                        <select value={transactionTypeFilter} onChange={(e) => { setTransactionTypeFilter(e.target.value); resetPage(); }}
                                             className="h-9 px-3 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-bold uppercase tracking-wider outline-none">
                                             <option value="all">All Types</option>
                                             <option value="delivery_fee">Delivery Fee</option>
@@ -373,7 +450,7 @@ export default function FinancePage() {
                                         </select>
                                         <div className="flex bg-slate-50 border border-slate-200 p-0.5 rounded-lg">
                                             {["all", "credit", "debit"].map((t) => (
-                                                <button key={t} onClick={() => setTypeFilter(t)}
+                                                <button key={t} onClick={() => { setTypeFilter(t); resetPage(); }}
                                                     className={`px-3 py-1.5 rounded-md text-[9px] font-bold uppercase ${typeFilter === t ? "bg-white text-slate-900 shadow-sm" : "text-slate-400"}`}>{t}</button>
                                             ))}
                                         </div>
@@ -395,11 +472,14 @@ export default function FinancePage() {
                                                 <tr key={tx._id} className="hover:bg-slate-50 transition-colors">
                                                     <td className="px-4 py-2 text-[10px] font-medium text-slate-500">{new Date(tx.date || tx.createdAt).toLocaleDateString()}</td>
                                                     <td className="px-4 py-2 text-xs font-medium text-slate-700">{tx.description}</td>
-                                                    <td className="px-4 py-2 text-[10px] font-bold text-orange-500 uppercase">#{tx.orderId?.slice(-6)}</td>
-                                                    <td className={`px-4 py-2 text-xs font-bold ${tx.type === "credit" ? "text-emerald-500" : "text-rose-500"}`}>₦{tx.amount?.toLocaleString()}</td>
-                                                    <td className="px-4 py-2 text-right text-[10px] font-bold text-slate-800">₦{tx.runningBalance?.toLocaleString()}</td>
+                                                    <td className="px-4 py-2 text-[10px] font-bold text-orange-500 uppercase">{tx.order?.orderId || (tx.orderId ? `#${String(tx.orderId).slice(-6)}` : "No order")}</td>
+                                                    <td className={`px-4 py-2 text-xs font-bold ${tx.type === "credit" ? "text-emerald-500" : "text-rose-500"}`}>{money(tx.amount)}</td>
+                                                    <td className="px-4 py-2 text-right text-[10px] font-bold text-slate-800">{money(tx.runningBalance)}</td>
                                                 </tr>
                                             ))}
+                                            {transactions.length === 0 && (
+                                                <EmptyRow colSpan={5} icon={Activity} message="No ledger rows found" />
+                                            )}
                                         </tbody>
                                     </table>
                                 </TableCard>
@@ -414,8 +494,9 @@ export default function FinancePage() {
                                             <tr>
                                                 <Th>Partner</Th>
                                                 <Th>Orders</Th>
-                                                <Th>Volume</Th>
-                                                <Th right>Net Payable</Th>
+                                                <Th>Order Value</Th>
+                                                <Th>Platform Share</Th>
+                                                <Th right>Vendor Payout</Th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
@@ -423,10 +504,14 @@ export default function FinancePage() {
                                                 <tr key={i} className="hover:bg-slate-50 transition-colors">
                                                     <td className="px-4 py-3 font-bold text-slate-800">{v.storeName}</td>
                                                     <td className="px-4 py-3 font-medium text-slate-400">{v.orderCount}</td>
-                                                    <td className="px-4 py-3 font-bold text-slate-700">₦{v.totalSubtotal?.toLocaleString()}</td>
-                                                    <td className="px-4 py-3 text-right font-bold text-slate-900">₦{v.vendorEarnings?.toLocaleString()}</td>
+                                                    <td className="px-4 py-3 font-bold text-slate-700">{money(v.totalSubtotal)}</td>
+                                                    <td className="px-4 py-3 font-bold text-emerald-600">{money((v.commissionPaid || 0) + (v.deliveryShareGenerated || 0))}</td>
+                                                    <td className="px-4 py-3 text-right font-bold text-slate-900">{money(v.vendorEarnings)}</td>
                                                 </tr>
                                             ))}
+                                            {vendorBreakdown.length === 0 && (
+                                                <EmptyRow colSpan={5} icon={Store} message="No partner rows found" />
+                                            )}
                                         </tbody>
                                     </table>
                                 </TableCard>
@@ -438,15 +523,15 @@ export default function FinancePage() {
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <div className="bg-white border border-slate-200 rounded-xl p-4">
                                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Vendor Wallets</p>
-                                        <p className="text-lg font-bold text-slate-900">₦{walletBreakdown?.vendors?.totalBalance?.toLocaleString() || 0}</p>
+                                        <p className="text-lg font-bold text-slate-900">{money(walletBreakdown?.vendors?.totalBalance)}</p>
                                     </div>
                                     <div className="bg-white border border-slate-200 rounded-xl p-4">
                                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Rider Wallets</p>
-                                        <p className="text-lg font-bold text-slate-900">₦{walletBreakdown?.riders?.totalBalance?.toLocaleString() || 0}</p>
+                                        <p className="text-lg font-bold text-slate-900">{money(walletBreakdown?.riders?.totalBalance)}</p>
                                     </div>
                                     <div className="bg-slate-900 rounded-xl p-4 text-white">
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">System Liability</p>
-                                        <p className="text-lg font-bold">₦{((walletBreakdown?.vendors?.totalBalance || 0) + (walletBreakdown?.riders?.totalBalance || 0)).toLocaleString()}</p>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Owed</p>
+                                        <p className="text-lg font-bold">{money((walletBreakdown?.vendors?.totalBalance || 0) + (walletBreakdown?.riders?.totalBalance || 0))}</p>
                                     </div>
                                 </div>
                                 <TableCard footer={totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPrev={() => setCurrentPage(p => p - 1)} onNext={() => setCurrentPage(p => p + 1)} label="Page" />}>
@@ -463,16 +548,19 @@ export default function FinancePage() {
                                             {payoutHistory.map((p, i) => (
                                                 <tr key={i} className="hover:bg-slate-50 transition-colors">
                                                     <td className="px-4 py-2">
-                                                        <p className="text-xs font-bold text-slate-800">{p.accountName}</p>
-                                                        <p className="text-[9px] text-slate-400">{p.payoutType}</p>
+                                                        <p className="text-xs font-bold text-slate-800">{p.accountName || "Unnamed account"}</p>
+                                                        <p className="text-[9px] text-slate-400 uppercase">{p.actorType || p.payoutType || "payout"}</p>
                                                     </td>
                                                     <td className="px-4 py-2 text-[10px] font-medium text-slate-600">{p.bankName}</td>
                                                     <td className="px-4 py-2">
                                                         <span className="text-[9px] px-2 py-0.5 rounded-full border border-slate-100 bg-slate-50 text-slate-600 font-bold uppercase">{p.status}</span>
                                                     </td>
-                                                    <td className="px-4 py-2 text-right font-bold text-slate-900 text-xs">₦{p.amount?.toLocaleString()}</td>
+                                                    <td className="px-4 py-2 text-right font-bold text-slate-900 text-xs">{money(p.requestedAmount || p.amount)}</td>
                                                 </tr>
                                             ))}
+                                            {payoutHistory.length === 0 && (
+                                                <EmptyRow colSpan={4} icon={ArrowUpRight} message="No payout rows found" />
+                                            )}
                                         </tbody>
                                     </table>
                                 </TableCard>
@@ -487,6 +575,7 @@ export default function FinancePage() {
                                             <tr>
                                                 <Th>Order ID</Th>
                                                 <Th>Partner</Th>
+                                                <Th>Status</Th>
                                                 <Th right>Escrow Amount</Th>
                                             </tr>
                                         </thead>
@@ -495,9 +584,13 @@ export default function FinancePage() {
                                                 <tr key={i} className="hover:bg-slate-50">
                                                     <td className="px-4 py-2.5 text-[10px] font-bold text-orange-500 uppercase">#{e.parentOrder?.orderId?.slice(-6)}</td>
                                                     <td className="px-4 py-2.5 text-xs font-medium text-slate-700">{e.vendorInfo?.storeName}</td>
-                                                    <td className="px-4 py-2.5 text-right font-bold text-slate-900 text-xs">₦{e.escrowAmount?.toLocaleString()}</td>
+                                                    <td className="px-4 py-2.5 text-[10px] font-bold text-slate-500 uppercase">{e.orderStatus}</td>
+                                                    <td className="px-4 py-2.5 text-right font-bold text-slate-900 text-xs">{money(e.escrowAmount)}</td>
                                                 </tr>
                                             ))}
+                                            {escrowList.length === 0 && (
+                                                <EmptyRow colSpan={4} icon={Lock} message="No escrow rows found" />
+                                            )}
                                         </tbody>
                                     </table>
                                 </TableCard>
@@ -512,6 +605,7 @@ export default function FinancePage() {
                                             <tr>
                                                 <Th>Order ID</Th>
                                                 <Th>Reason</Th>
+                                                <Th>Status</Th>
                                                 <Th right>Amount</Th>
                                             </tr>
                                         </thead>
@@ -520,9 +614,13 @@ export default function FinancePage() {
                                                 <tr key={i} className="hover:bg-slate-50">
                                                     <td className="px-4 py-2.5 text-[10px] font-bold text-orange-500 uppercase">#{r.orderId?.orderId?.slice(-6)}</td>
                                                     <td className="px-4 py-2.5 text-xs font-medium text-slate-700">{r.reason}</td>
-                                                    <td className="px-4 py-2.5 text-right font-bold text-rose-500 text-xs">₦{r.amount?.toLocaleString()}</td>
+                                                    <td className="px-4 py-2.5 text-[10px] font-bold text-slate-500 uppercase">{r.status}</td>
+                                                    <td className="px-4 py-2.5 text-right font-bold text-rose-500 text-xs">{money(r.amount)}</td>
                                                 </tr>
                                             ))}
+                                            {refundList.length === 0 && (
+                                                <EmptyRow colSpan={4} icon={FileText} message="No refund rows found" />
+                                            )}
                                         </tbody>
                                     </table>
                                 </TableCard>
@@ -534,3 +632,4 @@ export default function FinancePage() {
         </AdminProtectedRoute>
     );
 }
+

@@ -96,9 +96,9 @@ export default function CommissionLedgerPage() {
         setIsRefreshing(true);
         try {
             await fetchLedger();
-            toast.success("Ledger synchronized");
+            toast.success("Ledger refreshed");
         } catch {
-            toast.error("Sync failed");
+            toast.error("Refresh failed");
         } finally {
             setIsRefreshing(false);
         }
@@ -125,14 +125,13 @@ export default function CommissionLedgerPage() {
                                     Revenue Ledger
                                 </h1>
                                 <span className="hidden md:inline text-[9px] font-extrabold px-2.5 py-1 bg-orange-50 text-orange-600 rounded-full border border-orange-200 uppercase tracking-widest">
-                                    Commission Center
+                                    Paid Orders
                                 </span>
                             </div>
                             <div className="flex items-center gap-2 ml-12">
                                 <div className="h-0.5 w-8 bg-gradient-to-r from-orange-500 to-amber-400 rounded-full" />
                                 <p className="text-xs text-slate-500 font-medium leading-snug">
-                                    Platform delivery spread &amp; order financial breakdown.
-                                    Commission is <span className="text-orange-500 font-bold">disabled</span> — revenue flows from delivery spread only.
+                                    See what each paid order brought in and what the platform kept.
                                 </p>
                             </div>
                         </div>
@@ -143,7 +142,7 @@ export default function CommissionLedgerPage() {
                             className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-amber-400 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md shadow-orange-200 hover:from-orange-600 hover:to-amber-500 transition-all disabled:opacity-60"
                         >
                             <RefreshCw size={13} className={isRefreshing ? "animate-spin" : ""} />
-                            {isRefreshing ? "Syncing…" : "Refresh Sync"}
+                            {isRefreshing ? "Refreshing..." : "Refresh"}
                         </button>
                     </div>
 
@@ -158,14 +157,14 @@ export default function CommissionLedgerPage() {
                         />
                         <StatCard
                             icon={TrendingUp}
-                            label="Delivery Fees Held"
-                            value={summary?.totalDeliveryFeesHeld}
+                            label="Delivery Profit"
+                            value={summary?.totalDeliverySpread}
                             variant="emerald"
                             loading={loading}
                         />
                         <StatCard
                             icon={DollarSign}
-                            label="Platform Revenue"
+                            label="Platform Share"
                             value={summary?.combinedPlatformRevenue}
                             variant="orange"
                             loading={loading}
@@ -174,7 +173,7 @@ export default function CommissionLedgerPage() {
 
                     {/* ── DATE FILTER BAR ──────────────────────────────────── */}
                     <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                        <p className="text-[9px] font-extrabold text-orange-500 uppercase tracking-[0.2em] mb-3">Filter by Date Range</p>
+                        <p className="text-[9px] font-extrabold text-orange-500 uppercase tracking-[0.2em] mb-3">Filter by date</p>
                         <div className="flex flex-col md:flex-row items-end gap-3">
                             {/* Start date */}
                             <div className="flex-1 w-full space-y-1">
@@ -258,7 +257,7 @@ export default function CommissionLedgerPage() {
                         <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <BarChart3 size={14} className="text-orange-500" />
-                                <p className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Commission Ledger</p>
+                                <p className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Order Money Log</p>
                                 {!loading && (
                                     <span className="text-[9px] font-extrabold bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full">
                                         {ledgerData.length} entries
@@ -277,7 +276,7 @@ export default function CommissionLedgerPage() {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="bg-slate-50/80 border-b border-slate-100">
-                                        {["Order Reference", "Date", "Involved Vendors", "Subtotal", "Commission", "Delivery (Held)", "Total Order"].map((h, i) => (
+                                        {["Order", "Date", "Restaurants", "Food Total", "Commission", "Delivery Profit", "Order Total"].map((h, i) => (
                                             <th key={h} className={`px-4 py-2.5 text-[9px] font-extrabold uppercase text-slate-400 tracking-[0.15em] ${i === 6 ? "text-right" : ""}`}>
                                                 {h}
                                             </th>
@@ -326,10 +325,10 @@ export default function CommissionLedgerPage() {
                                                 {/* Vendors */}
                                                 <td className="px-4 py-3">
                                                     <div className="flex flex-wrap gap-1 max-w-[200px]">
-                                                        {row.vendorOrders?.map((vo, idx) => (
+                                                        {(row.vendorNames || []).map((name, idx) => (
                                                             <span key={idx} className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-50 text-orange-700 border border-orange-200 rounded-full text-[9px] font-extrabold">
                                                                 <Store size={8} />
-                                                                {vo.restaurantId?.storeName || "Unknown"}
+                                                                {name || "Unknown"}
                                                             </span>
                                                         ))}
                                                     </div>
@@ -347,7 +346,7 @@ export default function CommissionLedgerPage() {
 
                                                 {/* Delivery held */}
                                                 <td className="px-4 py-3">
-                                                    <span className="text-sm font-bold text-indigo-600">{fmt(row.deliveryFeeHeld)}</span>
+                                                    <span className="text-sm font-bold text-indigo-600">{fmt(row.deliverySpread)}</span>
                                                 </td>
 
                                                 {/* Total */}
@@ -384,12 +383,12 @@ export default function CommissionLedgerPage() {
                                     </div>
                                     <div className="w-px h-4 bg-slate-200" />
                                     <div className="flex items-center gap-1.5">
-                                        <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Delivery Spread</span>
-                                        <span className="text-[11px] font-extrabold text-indigo-600">{fmt(summary.totalDeliveryFeesHeld)}</span>
+                                        <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Delivery Profit</span>
+                                        <span className="text-[11px] font-extrabold text-indigo-600">{fmt(summary.totalDeliverySpread)}</span>
                                     </div>
                                     <div className="w-px h-4 bg-slate-200" />
                                     <div className="flex items-center gap-1.5">
-                                        <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Platform Total</span>
+                                        <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">Platform Share</span>
                                         <span className="text-[11px] font-extrabold text-orange-600">{fmt(summary.combinedPlatformRevenue)}</span>
                                     </div>
                                 </div>

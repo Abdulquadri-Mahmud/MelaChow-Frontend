@@ -352,7 +352,7 @@ class AdminAPI {
     async getAvailableRiders(params = {}) {
         return this.handleResponse(
             api.get('/api/admin/riders', { 
-                params: { available: true, ...params } 
+                params: { available: true, managedBy: "admin", ...params }
             })
         );
     }

@@ -7,7 +7,6 @@ import {
     Plus,
     Edit2,
     Trash2,
-    Store,
     Phone,
     CheckCircle2,
     X,
@@ -40,7 +39,6 @@ const Th = ({ children, right }) => (
 
 export default function AdminRidersPage() {
     const [riders, setRiders] = useState([]);
-    const [vendors, setVendors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
@@ -59,7 +57,6 @@ export default function AdminRidersPage() {
         name: "",
         phone: "",
         password: "",
-        vendorId: "",
         payoutDetails: {
             bankCode: "",
             bankName: "",
@@ -81,28 +78,27 @@ export default function AdminRidersPage() {
         }
     };
 
-    const fetchVendors = async () => {
-        try {
-            const data = await adminApi.getAllVendors();
-            setVendors(data.vendors || []);
-        } catch (error) {
-            console.error("Failed to fetch vendors:", error);
-        }
-    };
-
     const fetchBanks = async () => {
         try {
             const data = await adminApi.getPublicBanks();
-            setBanks(data.data || []);
+            const bankList = Array.isArray(data?.banks)
+                ? data.banks
+                : Array.isArray(data?.data)
+                    ? data.data
+                    : Array.isArray(data)
+                        ? data
+                        : [];
+            setBanks(bankList);
         } catch (error) {
             console.error("Failed to load banks:", error);
+            toast.error("Could not load banks");
         }
     };
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
-            await Promise.all([fetchRiders(), fetchVendors()]);
+            await Promise.all([fetchRiders(), fetchBanks()]);
             toast.success("Rider fleet updated");
         } catch (error) {
             toast.error("Sync failed");
@@ -113,7 +109,6 @@ export default function AdminRidersPage() {
 
     useEffect(() => {
         fetchRiders();
-        fetchVendors();
         fetchBanks();
     }, []);
 
@@ -126,7 +121,6 @@ export default function AdminRidersPage() {
                 name: rider.name,
                 phone: rider.phone,
                 password: "",
-                vendorId: rider.vendorId?._id || rider.vendorId || "",
                 payoutDetails: {
                     bankCode: rider.payoutDetails?.bankCode || "",
                     bankName: rider.payoutDetails?.bankName || "",
@@ -141,7 +135,6 @@ export default function AdminRidersPage() {
                 name: "",
                 phone: "",
                 password: "",
-                vendorId: "",
                 payoutDetails: {
                     bankCode: "",
                     bankName: "",
@@ -190,11 +183,17 @@ export default function AdminRidersPage() {
         e.preventDefault();
         setIsSubmitting(true);
         try {
+            const payload = {
+                ...formData,
+                vendorId: null,
+                managedBy: "admin",
+            };
+
             if (modalMode === "create") {
-                await adminApi.createRider(formData.vendorId || null, formData);
+                await adminApi.createRider(null, payload);
                 toast.success("Rider added successfully");
             } else {
-                await adminApi.updateRider(selectedRider._id, formData);
+                await adminApi.updateRider(selectedRider._id, payload);
                 toast.success("Rider details updated");
             }
             fetchRiders();
@@ -241,7 +240,7 @@ export default function AdminRidersPage() {
                             <div className="flex items-center gap-2 ml-12">
                                 <div className="h-0.5 w-8 bg-gradient-to-r from-orange-500 to-amber-400 rounded-full" />
                                 <p className="text-xs text-slate-500 font-medium leading-snug">
-                                    Manage delivery personnel, vendor affiliations, and availability network status.
+                                    Manage platform delivery personnel, payout credentials, and availability status.
                                 </p>
                             </div>
                         </div>
@@ -295,7 +294,7 @@ export default function AdminRidersPage() {
                             <thead>
                                 <tr>
                                     <Th>Rider Identity</Th>
-                                    <Th>Affiliation</Th>
+                                    <Th>Network</Th>
                                     <Th>Status</Th>
                                     <Th right>Actions</Th>
                                 </tr>
@@ -329,16 +328,11 @@ export default function AdminRidersPage() {
                                                 </div>
                                             </td>
 
-                                            {/* Affiliate Vendor */}
+                                            {/* Network */}
                                             <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-6 h-6 rounded-md bg-slate-100 flex items-center justify-center shadow-sm">
-                                                        <Store size={11} className="text-slate-500" />
-                                                    </div>
-                                                    <span className="text-xs font-bold text-slate-700">
-                                                        {rider.vendorId?.storeName || rider.vendorId?.name || "Independent Network"}
-                                                    </span>
-                                                </div>
+                                                <span className="inline-flex items-center px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-[9px] font-extrabold uppercase tracking-widest">
+                                                    Platform Rider
+                                                </span>
                                             </td>
 
                                             {/* Network Status */}
@@ -479,7 +473,7 @@ export default function AdminRidersPage() {
                                                 >
                                                     <option value="">Select Bank...</option>
                                                     {banks.map(b => (
-                                                        <option key={b.code} value={b.code}>{b.name}</option>
+                                                        <option key={`${b.code}-${b.slug || b.name}`} value={b.code}>{b.name}</option>
                                                     ))}
                                                 </select>
                                                 <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -522,23 +516,6 @@ export default function AdminRidersPage() {
                                         )}
                                     </div>
                                     
-                                    <div className="space-y-1">
-                                        <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest pl-1">Vendor Affiliation</label>
-                                        <div className="relative">
-                                            <select
-                                                value={formData.vendorId}
-                                                onChange={(e) => setFormData({ ...formData, vendorId: e.target.value })}
-                                                className="w-full h-10 px-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-bold focus:ring-2 focus:ring-orange-400/30 focus:border-orange-400 transition-all appearance-none cursor-pointer pr-9 text-slate-700"
-                                            >
-                                                <option value="">Independent (Platform Managed)</option>
-                                                {vendors.map(v => (
-                                                    <option key={v._id} value={v._id}>{v.storeName || v.name}</option>
-                                                ))}
-                                            </select>
-                                            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                                        </div>
-                                    </div>
-
                                     <div className="space-y-1">
                                         <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest pl-1">
                                             Access Credential {modalMode === 'edit' && <span className="text-slate-300">(Optional)</span>}
