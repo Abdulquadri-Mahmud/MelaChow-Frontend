@@ -11,107 +11,157 @@ import {
   ArrowRight,
   ShoppingBag,
   CreditCard,
-  MapPin,
   User,
   Sparkles,
-  ShieldCheck,
-  Store
+  Store,
+  Wallet,
+  TicketPercent,
+  Truck,
+  Star
 } from "lucide-react";
 import Link from "next/link";
 import Header2 from "@/app/components/App_Header/Header2";
 
-// Comprehensive FAQ Data
 const FAQ_DATA = [
-  // General
   {
     category: "general",
     question: "What is MelaChow?",
-    answer: "MelaChow is your premium local food delivery companion. We connect you with the best restaurants, hidden gems, and local favorites in your city, delivering authentic flavors right to your doorstep with speed and care."
+    answer: "MelaChow helps customers discover restaurants, browse foods and combo deals, customize items, place orders, pay securely, track deliveries, and review meals after delivery."
   },
   {
     category: "general",
     question: "Where does MelaChow operate?",
-    answer: "We currently operate in major cities across the region. You can check if we deliver to your area by entering your delivery address on the home page."
+    answer: "Availability depends on your saved delivery address and the restaurants currently active in your area. Add or update your default address from Profile > Address so the app can show the most relevant restaurants and delivery fees."
   },
-
-  // Orders
   {
     category: "orders",
     question: "How do I place an order?",
-    answer: "Simply browse through our curated list of restaurants, select your favorite dishes, add them to your cart, and proceed to checkout. You'll need to create an account or log in to finalize your purchase."
+    answer: "Browse from Home, All Foods, All Restaurants, Search, or a restaurant details page. Choose a food or combo, select any required options, add it to your cart, then open Orders > Cart and checkout from the restaurant group you want to order from."
+  },
+  {
+    category: "orders",
+    question: "Can I add food from different restaurants to my cart?",
+    answer: "Yes. Your cart groups items by restaurant. Each restaurant group has its own Checkout button, so place separate orders for items from different restaurants."
+  },
+  {
+    category: "orders",
+    question: "Why do I need to checkout one restaurant at a time?",
+    answer: "Each order can only contain items from one restaurant. This keeps restaurant preparation, delivery fees, rider assignment, tracking, and refunds clear for each order."
+  },
+  {
+    category: "orders",
+    question: "Can I edit items in my cart?",
+    answer: "You can increase or reduce quantities, remove items, and edit customizable food items from the cart. Combo items can be removed or checked out, but their bundle structure is handled from the combo details flow."
+  },
+  {
+    category: "orders",
+    question: "Can I add a note for the restaurant?",
+    answer: "Yes. On the checkout page, each restaurant section includes a note box. Use it for preparation requests such as spice level, no onions, or delivery-related instructions the restaurant should see."
   },
   {
     category: "orders",
     question: "Can I cancel my order?",
-    answer: "Yes, you can cancel your order within the first 5 minutes of placing it without any charge. After the restaurant has started preparing your food, cancellation may be subject to a fee. Go to 'Orders' > 'Track Order' to see your options."
+    answer: "You can cancel while the order is still pending from the Track Order page. Once the restaurant accepts or starts preparing the order, cancellation may no longer be available. Cancelled order funds are returned to your MelaChow wallet when the cancellation succeeds."
   },
   {
     category: "orders",
     question: "What if something is missing from my order?",
-    answer: "We're sorry about that! Please go to your Orders page, select the specific order, and use the 'Get Help' button to report missing items. We will process a refund or credit for the missing items immediately."
+    answer: "Open Support or Get Help and include your order ID plus the missing item details. The support team can review the order and help with the right resolution."
   },
-  {
-    category: "orders",
-    question: "Can I schedule an order for later?",
-    answer: "Absolutely. At checkout, you can toggle 'Schedule for later' and select your preferred delivery date and time window."
-  },
-
-  // Payments
   {
     category: "payment",
     question: "What payment methods do you accept?",
-    answer: "We accept all major credit and debit cards (Visa, Mastercard, Verve), Paystack, Flutterwave, and direct bank transfers. We also offer a secure Digital Wallet for faster checkouts."
+    answer: "Checkout supports card or transfer payment through Paystack. If your MelaChow wallet balance can cover the full order total, you can also pay with wallet."
   },
   {
     category: "payment",
     question: "Is my payment information secure?",
-    answer: "Yes, 100%. We use industry-standard encryption and do not store your full card details. All transactions are processed through secure, PCI-DSS compliant payment gateways."
+    answer: "Yes. Card and transfer payments are handled by Paystack, and MelaChow does not ask you to type full card details directly into our own checkout form."
   },
   {
     category: "payment",
-    question: "Are my funds safe if the food doesn't arrive?",
-    answer: "Absolutely. We use a secure Escrow system. When you pay for an order, we hold the money securely and do not release it to the restaurant until you have successfully received your food. If the order gets cancelled before delivery, your funds are automatically refunded to your Wallet."
+    question: "What is the service fee?",
+    answer: "A service fee may appear at checkout when enabled by the platform. The exact amount is shown before you complete payment. Some platform promos may reduce or remove specific fees when you are eligible."
   },
   {
     category: "payment",
     question: "How do refunds work?",
-    answer: "Refunds are processed to your MelaChow Wallet instantly or to your original payment method within 3-5 business days, depending on your bank."
+    answer: "When an eligible cancellation or refund is processed, funds may be returned to your MelaChow wallet. For payment-gateway issues, support can help trace the transaction using your order or payment reference."
   },
-
-  // Delivery
+  {
+    category: "wallet",
+    question: "What can I use my wallet for?",
+    answer: "Your MelaChow wallet stores your balance and transaction history. You can fund it and use it to pay for checkout when the wallet balance is enough to cover the full order total."
+  },
+  {
+    category: "wallet",
+    question: "How do I fund my wallet?",
+    answer: "Go to Profile > Wallet, tap the fund wallet action, enter an amount or choose a preset amount, and complete the Paystack payment. Your wallet page also shows credit and debit transactions."
+  },
+  {
+    category: "promos",
+    question: "How do free delivery promos work?",
+    answer: "MelaChow can run platform free delivery promos with a limited number of slots. If you are eligible, checkout can apply free delivery while slots remain. Restaurants can also sponsor free delivery for their own store."
+  },
+  {
+    category: "promos",
+    question: "Why did a free delivery promo not apply to my order?",
+    answer: "A promo may not apply if it has ended, all slots have been used, you are not eligible, or the order does not meet the promo rules. Checkout always shows the final delivery fee before payment."
+  },
+  {
+    category: "promos",
+    question: "Can I use a coupon code?",
+    answer: "Yes. Enter your coupon code in the Promo Code section at checkout and apply it before completing payment. The order total updates after a valid code is verified."
+  },
   {
     category: "delivery",
     question: "How much is the delivery fee?",
-    answer: "Delivery fees vary based on the distance between you and the restaurant. You will always see the exact fee at checkout before you pay. We also offer free delivery promotions occasionally!"
+    answer: "Delivery fees depend on the restaurant, location, and delivery setup. You will see the fee for the restaurant at checkout before you pay. Vendor-sponsored or platform free delivery promos can reduce it to zero when active and eligible."
   },
   {
     category: "delivery",
-    question: "Can I track my rider?",
-    answer: "Yes! Once your order is picked up, you can track your rider in real-time on the map via the 'Track Order' page."
+    question: "How do I track my order?",
+    answer: "Go to Orders and open the order tracking page. You can follow status updates such as Order Placed, Confirmed, Preparing, Ready, Rider Assigned, On the way, Delivered, and Completed."
   },
   {
     category: "delivery",
-    question: "Do you offer contactless delivery?",
-    answer: "Yes. You can select 'Leave at door' instructions at checkout for a contactless experience. Our rider will drop off your food and notify you."
+    question: "Can I contact my rider?",
+    answer: "When a rider has been assigned and rider details are available, the tracking page can show rider information and contact options."
   },
-
-  // Account
   {
     category: "account",
     question: "How do I reset my password?",
-    answer: "Go to the Sign In page and click 'Forgot Password'. detailed instructions will be sent to your registered email address."
+    answer: "Go to the Sign In page, choose Forgot Password, enter your registered email, and follow the reset instructions sent to you."
   },
   {
     category: "account",
-    question: "Can I change my phone number?",
-    answer: "Yes, you can update your profile details including phone number and email address from the 'Profile' section in the app."
+    question: "How do I manage my delivery addresses?",
+    answer: "Open Profile > Address to add, edit, delete, or set a default delivery address. Checkout requires a default address before an order can be placed."
   },
-
-  // Vendors
+  {
+    category: "account",
+    question: "Can I update my profile details?",
+    answer: "Yes. Use the Profile and Edit Profile pages to update your customer information. Keeping your phone number and email current helps with delivery and support."
+  },
+  {
+    category: "account",
+    question: "How do notifications work?",
+    answer: "MelaChow can send real-time in-app and browser notifications for order updates and other activity. You can manage notification preferences from Profile > Notification Settings."
+  },
+  {
+    category: "reviews",
+    question: "Can I review my order?",
+    answer: "Yes. After an order is delivered or completed, the Track Order page lets you review the order or individual items. You may also see a review prompt shortly after delivery."
+  },
+  {
+    category: "reviews",
+    question: "Where can I see restaurant or food reviews?",
+    answer: "Restaurant and food detail pages include review sections where available. You can view ratings, feedback, and rating filters before choosing what to order."
+  },
   {
     category: "vendors",
     question: "How can I become a vendor partner?",
-    answer: "We'd love to have you! Click on 'Join as Vendor' in the footer or visit our Vendor Registration page to submit your application. Our team will review it within 48 hours."
+    answer: "Use the vendor registration flow from the partner or vendor auth pages to apply. After submission, the MelaChow team reviews vendor accounts before they can start selling."
   }
 ];
 
@@ -119,8 +169,11 @@ const CATEGORIES = [
   { id: 'all', label: 'All Questions', icon: Sparkles },
   { id: 'orders', label: 'Orders', icon: ShoppingBag },
   { id: 'payment', label: 'Payments', icon: CreditCard },
-  { id: 'delivery', label: 'Delivery', icon: MapPin },
+  { id: 'wallet', label: 'Wallet', icon: Wallet },
+  { id: 'promos', label: 'Promos', icon: TicketPercent },
+  { id: 'delivery', label: 'Delivery', icon: Truck },
   { id: 'account', label: 'Account', icon: User },
+  { id: 'reviews', label: 'Reviews', icon: Star },
   { id: 'vendors', label: 'Vendors', icon: Store },
 ];
 
@@ -296,7 +349,7 @@ export default function FAQs() {
             <div className="w-12 h-1 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full mb-4" />
             <h3 className="text-2xl font-black italic tracking-tight text-zinc-900 dark:text-white">Still have questions?</h3>
             <p className="text-zinc-500 text-sm mt-2 max-w-sm mx-auto">
-              Can't find the answer you're looking for? Please chat to our friendly team.
+              Can&apos;t find the answer you&apos;re looking for? Please chat to our friendly team.
             </p>
           </div>
 

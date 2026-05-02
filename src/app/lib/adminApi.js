@@ -539,6 +539,30 @@ class AdminAPI {
         return this.handleResponse(api.get(`/api/admin/promos/platform-delivery/${promoId}/stats`));
     }
 
+    async getDiscounts() {
+        return this.handleResponse(api.get("/api/admin/discounts"));
+    }
+
+    async createDiscount(payload) {
+        return this.handleResponse(api.post("/api/admin/discounts", payload));
+    }
+
+    async updateDiscount(discountId, payload) {
+        return this.handleResponse(api.patch(`/api/admin/discounts/${discountId}`, payload));
+    }
+
+    async activateDiscount(discountId) {
+        return this.handleResponse(api.patch(`/api/admin/discounts/${discountId}/activate`));
+    }
+
+    async deactivateDiscount(discountId) {
+        return this.handleResponse(api.patch(`/api/admin/discounts/${discountId}/deactivate`));
+    }
+
+    async deleteDiscount(discountId) {
+        return this.handleResponse(api.delete(`/api/admin/discounts/${discountId}`));
+    }
+
     async updatePlatformDeliveryPromo(promoId, payload) {
         return this.handleResponse(
             api.patch(`/api/admin/promos/platform-delivery/${promoId}`, payload)
