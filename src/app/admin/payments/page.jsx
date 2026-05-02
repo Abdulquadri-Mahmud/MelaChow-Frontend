@@ -96,8 +96,8 @@ export default function PlatformRevenuePage() {
             setChartData(rawData.map(item => ({
                 ...item,
                 date: item.date || item.label || item._id,
-                gmv: item.globalGMV || item.totalRevenue || 0,
-                revenue: (item.commission || 0) + (item.deliveryRevenue || 0),
+                orderValue: item.globalGMV || item.totalRevenue || 0,
+                revenue: (item.commission || 0) + (item.deliveryRevenue || 0) + (item.serviceFeeRevenue || 0),
             })));
         } catch (err) { console.error(err); }
     }, [chartPeriod]);
@@ -108,8 +108,9 @@ export default function PlatformRevenuePage() {
     const COLORS = ['#f97316', '#3b82f6'];
 
     const pieData = summary ? [
-        { name: 'Commissions', value: summary.totalCommissionEarned || 1 },
-        { name: 'Logistics', value: summary.totalDeliverySpreadEarned || 1 },
+        { name: 'Commission', value: summary.totalCommissionEarned || 0 },
+        { name: 'Delivery Profit', value: summary.totalDeliverySpreadEarned || 0 },
+        { name: 'Service Fees', value: summary.totalServiceFeeRevenue || 0 },
     ] : [];
 
     return (
@@ -162,27 +163,27 @@ export default function PlatformRevenuePage() {
                     {/* ── Key Metrics ─────────────────────────────────────────── */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <StatCard
-                            title="Gross GMV"
+                            title="Order Value"
                             value={summary?.totalOrderRevenue}
                             icon={ShoppingBag}
                             iconColor="text-blue-500"
-                            subtitle="Total marketplace volume"
+                            subtitle="All paid order totals"
                             trend={12}
                         />
                         <StatCard
-                            title="Net Revenue"
-                            value={(summary?.totalCommissionEarned || 0) + (summary?.totalDeliverySpreadEarned || 0)}
+                            title="Platform Share"
+                            value={summary?.combinedPlatformRevenue}
                             icon={DollarSign}
                             iconColor="text-orange-500"
-                            subtitle="Commissions + logistics"
+                            subtitle="Commission + fees"
                             trend={8}
                         />
                         <StatCard
-                            title="Logistics Spread"
+                            title="Delivery Profit"
                             value={summary?.totalDeliverySpreadEarned}
                             icon={Truck}
                             iconColor="text-emerald-500"
-                            subtitle="Fulfillment margin"
+                            subtitle="Delivery fee left after rider pay"
                             trend={15}
                         />
                         <StatCard
@@ -190,7 +191,7 @@ export default function PlatformRevenuePage() {
                             value={summary?.totalCommissionEarned}
                             icon={Percent}
                             iconColor="text-amber-500"
-                            subtitle="Partner marketplace fees"
+                            subtitle="Restaurant commission"
                             trend={5}
                         />
                     </div>
@@ -203,7 +204,7 @@ export default function PlatformRevenuePage() {
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                                 <SectionHeader 
                                     title="Revenue Trend" 
-                                    subtitle="Daily volume vs platform yield" 
+                                    subtitle="Order value and platform share" 
                                     icon={BarChart3} 
                                 />
                                 <div className="flex bg-slate-50 p-1 rounded-lg border border-slate-200 gap-1">
@@ -253,8 +254,8 @@ export default function PlatformRevenuePage() {
                                             contentStyle={{ backgroundColor: "#1e293b", border: "none", borderRadius: "8px", color: "#fff", fontSize: "10px" }}
                                             itemStyle={{ fontWeight: 600, padding: "2px 0" }}
                                         />
-                                        <Area type="monotone" dataKey="gmv" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorGMV)" name="GMV" />
-                                        <Area type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" name="Revenue" />
+                                        <Area type="monotone" dataKey="orderValue" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#colorGMV)" name="Order Value" />
+                                        <Area type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} fillOpacity={1} fill="url(#colorRev)" name="Platform Share" />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </div>
@@ -264,7 +265,7 @@ export default function PlatformRevenuePage() {
                         <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col">
                             <SectionHeader 
                                 title="Revenue Mix" 
-                                subtitle="Yield contribution breakdown" 
+                                subtitle="Where platform money came from" 
                                 icon={PieChartIcon} 
                             />
                             
@@ -301,7 +302,7 @@ export default function PlatformRevenuePage() {
                                                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{item.name}</span>
                                             </div>
                                             <span className="text-sm font-bold text-slate-900">
-                                                {summary ? Math.round((item.value / ((summary?.totalCommissionEarned || 0) + (summary?.totalDeliverySpreadEarned || 0) || 1)) * 100) : 0}%
+                                                {summary ? Math.round((item.value / (summary?.combinedPlatformRevenue || 1)) * 100) : 0}%
                                             </span>
                                         </div>
                                     ))}
@@ -316,8 +317,8 @@ export default function PlatformRevenuePage() {
                         {/* Top Revenue Partners */}
                         <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
                             <SectionHeader 
-                                title="Yield Leaders" 
-                                subtitle="Top performing marketplace partners" 
+                                title="Top Restaurants" 
+                                subtitle="Restaurants by order value" 
                                 icon={Store} 
                             />
                             
@@ -335,18 +336,18 @@ export default function PlatformRevenuePage() {
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[11px] font-bold text-slate-900">₦{vendor.vendorEarnings?.toLocaleString()}</p>
-                                            <p className="text-[9px] text-orange-500 font-bold uppercase mt-0.5">₦{(vendor.totalSubtotal - vendor.vendorEarnings)?.toLocaleString()} yield</p>
+                                            <p className="text-[9px] text-orange-500 font-bold uppercase mt-0.5">₦{((vendor.commissionPaid || 0) + (vendor.deliveryShareGenerated || 0)).toLocaleString()} platform share</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        {/* Fulfillment Summary */}
+                        {/* Delivery Summary */}
                         <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
                             <SectionHeader 
-                                title="Fulfillment Capture" 
-                                subtitle="Logistics spread by store" 
+                                title="Delivery Profit" 
+                                subtitle="Delivery profit by restaurant" 
                                 icon={Truck} 
                             />
                             
@@ -367,7 +368,7 @@ export default function PlatformRevenuePage() {
                                             contentStyle={{ borderRadius: "8px", border: "none" }}
                                             itemStyle={{ fontWeight: 600, fontSize: "10px" }}
                                         />
-                                        <Bar dataKey="deliveryShareGenerated" name="Spread" radius={[0, 4, 4, 0]} fill="#3b82f6" fillOpacity={0.8} />
+                                        <Bar dataKey="deliveryShareGenerated" name="Delivery Profit" radius={[0, 4, 4, 0]} fill="#3b82f6" fillOpacity={0.8} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
