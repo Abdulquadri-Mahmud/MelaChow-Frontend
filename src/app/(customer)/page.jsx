@@ -25,7 +25,12 @@ export default function RootPage() {
       const role = user.role?.toLowerCase();
 
       if (role === "admin" || role === "superadmin") {
-        router.push("/admin/dashboard");
+        const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL;
+        if (adminUrl) {
+          window.location.href = `${adminUrl.replace(/\/$/, "")}/admin/dashboard`;
+        } else {
+          router.push("/home");
+        }
       } else if (role === "vendor") {
         router.push("/vendors/dashboard");
       } else if (role === "rider") {
