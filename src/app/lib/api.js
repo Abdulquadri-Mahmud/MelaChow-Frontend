@@ -546,9 +546,18 @@ export const getVendorById = async (vendorId) => {
  * @returns {Object} - Sanitized config { serviceFeeEnabled, serviceFeeType, ... }
  */
 export const getPlatformConfig = async () => {
-  const res = await fetch('/api/public/platform-config', {
-    credentials: 'include',
-  });
-  if (!res.ok) throw new Error('Failed to fetch platform config');
-  return res.json(); // { success, data: { serviceFeeEnabled, ... } }
+  const fetchConfig = async (path) => {
+    const res = await fetch(path, {
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error(`Failed to fetch platform config from ${path}`);
+    return res.json();
+  };
+
+  try {
+    return await fetchConfig('/api/public/platform-config');
+  } catch (error) {
+    return fetchConfig('/api/user/platform-config');
+  }
 };

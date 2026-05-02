@@ -77,7 +77,7 @@ export default function PlatformSettingsPage() {
     return (
         <AdminProtectedRoute>
             <AdminDashboardLayout>
-                <div className="max-w-5xl mx-auto pb-20 px-4">
+                <div className="max-w-7xl mx-auto pb-20">
                     {/* Compact Header */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 bg-zinc-950 p-6 rounded-[32px] border border-zinc-800 shadow-xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-orange-600/5 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2" />
@@ -112,7 +112,7 @@ export default function PlatformSettingsPage() {
                             <motion.div 
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="bg-white dark:bg-zinc-900 rounded-[28px] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm"
+                                className="bg-white dark:bg-zinc-900 rounded-[10px] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm"
                             >
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500">
@@ -163,7 +163,7 @@ export default function PlatformSettingsPage() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.1 }}
-                                className="bg-white dark:bg-zinc-900 rounded-[28px] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm"
+                                className="bg-white dark:bg-zinc-900 rounded-[10px] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm"
                             >
                                 <div className="flex items-center justify-between mb-6">
                                     <div className="flex items-center gap-3">
@@ -194,7 +194,7 @@ export default function PlatformSettingsPage() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.2 }}
-                                className="bg-white dark:bg-zinc-900 rounded-[28px] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm"
+                                className="bg-white dark:bg-zinc-900 rounded-[10px] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm"
                             >
                                 <div className="flex items-center justify-between mb-6">
                                     <div className="flex items-center gap-3">

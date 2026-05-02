@@ -42,8 +42,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   const [isLoading, setIsLoading] = useState(!initialFood || Object.keys(initialFood).length === 0);
   const [isError, setIsError] = useState(false);
 
-  console.log('[FoodDetailsClient] 🥗 initialData:', initialData);
-  console.log('[FoodDetailsClient] 🥦 food state:', food);
+  // console.log('[FoodDetailsClient] 🥗 initialData:', initialData);
+  // console.log('[FoodDetailsClient] 🥦 food state:', food);
   const [isClient, setIsClient] = useState(false);
 
   // Default customization state for base item
