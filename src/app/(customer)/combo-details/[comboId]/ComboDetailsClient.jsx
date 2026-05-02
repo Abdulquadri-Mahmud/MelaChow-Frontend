@@ -18,7 +18,7 @@ import { BiCartAdd } from "react-icons/bi";
 
 import { useCart } from "@/app/context/CartContext";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
-import { getVendorStorefront } from "@/app/lib/menuApi";
+import { getStorefrontComboDetail, getVendorStorefront } from "@/app/lib/menuApi";
 
 import { useQuery } from "@tanstack/react-query";
 
@@ -35,14 +35,53 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     const [isClient, setIsClient] = useState(false);
     useEffect(() => { setIsClient(true); }, []);
 
-    // vendorId is passed via query string from the storefront
-    const [vendorId, setVendorId] = useState(null);
+    // ── Hardware back-button support (Android / browser back gesture) ──
     useEffect(() => {
+        if (!isModal || !onClose) return;
+
+        // Use a ref-style flag to prevent double-close when both
+        // popstate AND the cleanup function fire in the same tick
+        let closed = false;
+
+        window.history.pushState({ melachowModal: 'combo' }, '');
+
+        const handlePopState = () => {
+            if (closed) return;
+            closed = true;
+            onClose();
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+            // Only call history.back() if the UI button (not the back gesture)
+            // triggered the unmount. If popstate already fired, the state is
+            // already popped — calling back() again would navigate the page.
+            if (!closed && window.history.state?.melachowModal === 'combo') {
+                closed = true; // prevent the popstate handler from also firing
+                window.history.back();
+            }
+        };
+    }, [isModal, onClose]);
+
+    // Resolve vendorId: prefer initialData (modal flow), fallback to URL param (page flow)
+    const resolvedVendorId =
+        initialData?.vendor?._id?.toString() ||
+        initialData?.combo?.vendor_id?.toString() ||
+        initialData?.combo?.vendor?._id?.toString() ||
+        null;
+
+    const [vendorId, setVendorId] = useState(resolvedVendorId);
+
+    useEffect(() => {
+        if (vendorId) return; // already resolved from initialData
         if (typeof window !== "undefined") {
             const searchParams = new URLSearchParams(window.location.search);
-            setVendorId(searchParams.get("vendorId") || initialData?.vendor?._id || initialData?.combo?.vendor?._id);
+            const fromUrl = searchParams.get("vendorId");
+            if (fromUrl) setVendorId(fromUrl);
         }
-    }, [isClient, initialData]);
+    }, [isClient]);
 
     const { addComboToCart, cart } = useCart();
 
@@ -51,7 +90,13 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     const [combo, setCombo] = useState(initialCombo && Object.keys(initialCombo).length > 0 ? initialCombo : null);
     const [isLoading, setIsLoading] = useState(!initialCombo || Object.keys(initialCombo).length === 0);
     const [isError, setIsError] = useState(false);
-    const [vendor, setVendor] = useState(initialData?.vendor || initialCombo?.vendor || null);
+    // initialData.vendor is now always set when opened as a modal from storefront/food-details.
+    // initialCombo?.vendor covers the case where the combo document itself embeds vendor info.
+    const [vendor, setVendor] = useState(
+        initialData?.vendor ||
+        initialCombo?.vendor ||
+        null
+    );
 
     console.log('[ComboDetailsPage] 🍱 initialData:', initialData);
     console.log('[ComboDetailsPage] 🍕 combo state:', combo);
@@ -60,11 +105,34 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     const [selections, setSelections] = useState({});
     const [quantity, setQuantity] = useState(1);
 
-    // Fetch vendor storefront to extract the specific combo (only if initialData is missing)
+    const comboNeedsDetailFetch =
+        !!comboId &&
+        !!vendorId &&
+        (!combo || !Array.isArray(combo.choice_groups));
+
+    const { data: comboDetailData } = useQuery({
+        queryKey: ["storefront-combo-detail", vendorId, comboId],
+        queryFn: () => getStorefrontComboDetail(vendorId, comboId),
+        enabled: comboNeedsDetailFetch,
+        staleTime: 1000 * 60 * 5,
+    });
+
+    useEffect(() => {
+        if (!comboDetailData?.combo) return;
+        setCombo(comboDetailData.combo);
+        setVendor(current => comboDetailData.vendor || comboDetailData.combo.vendor || current || null);
+        setIsError(false);
+        setIsLoading(false);
+    }, [comboDetailData]);
+
+    // Only fetch the whole storefront if we still need vendor data and cannot
+    // fetch a precise combo detail yet.
+    const needsVendorFetch = !vendor && !!vendorId;
+
     const { data: storefrontData } = useQuery({
         queryKey: ["vendor-storefront", vendorId],
         queryFn: () => getVendorStorefront(vendorId),
-        enabled: !!vendorId && (!initialData || !vendor),
+        enabled: needsVendorFetch && !comboNeedsDetailFetch,
         staleTime: 1000 * 60 * 5,
     });
 
@@ -94,7 +162,13 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
         return acc + ((sel?.price_modifier_naira || 0) * (sel?.quantity || 1));
     }, 0);
 
-    const totalUnit = (combo?.price_naira || 0) + addonsPrice;
+    // ComboItem.price is stored in KOBO in the database.
+    // The storefront API may return it as price_naira (already converted)
+    // or as price (raw kobo). Normalise defensively.
+    const comboPriceNaira = combo?.price_naira
+        ?? (combo?.price != null ? combo.price / 100 : 0);
+
+    const totalUnit = comboPriceNaira + addonsPrice;
     const total = totalUnit * quantity;
 
     // -- Choice Group Logic ----------------------------------------------------
@@ -240,6 +314,18 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     if (!isClient) return <div className="min-h-screen bg-white dark:bg-zinc-950" />;
 
     if (isLoading) {
+        // Shown only in the full-page route while data is being fetched.
+        // As a modal, combo is always pre-loaded from initialData — this
+        // state should not trigger. If it somehow does, render minimally
+        // so the modal backdrop is still visible.
+        if (isModal) {
+            return (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+                    <div className="relative w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                </div>
+            );
+        }
         return (
             <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
@@ -251,25 +337,36 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     }
 
     if (isError || !combo) {
-        return (
+        const errorContent = (
             <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center px-6">
                 <div className="text-center p-8 bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-100 dark:border-zinc-800 max-w-sm w-full">
                     <Package size={48} className="mx-auto text-zinc-300 mb-4" />
                     <h2 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight mb-2">Bundle Unavailable</h2>
                     <p className="text-zinc-500 text-sm mb-6">We couldn't load this combo right now. Please try again.</p>
-                    <button onClick={() => router.back()} className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 h-12 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all">
+                    <button onClick={() => onClose ? onClose() : router.back()} className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 h-12 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all">
                         Go Back
                     </button>
                 </div>
             </div>
         );
+        if (isModal) {
+            return (
+                <div className="fixed inset-0 z-[9999] flex items-end justify-center">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+                    <div className="relative w-full max-w-2xl h-screen overflow-y-auto no-scrollbar bg-white dark:bg-zinc-950">
+                        {errorContent}
+                    </div>
+                </div>
+            );
+        }
+        return errorContent;
     }
 
     const choiceGroups = combo.choice_groups || [];
     const totalItems = cart.length;
 
     const mainContent = (
-        <div className={`min-h-screen ${isModal ? 'bg-zinc-50 dark:bg-zinc-950 rounded-t-[40px] overflow-hidden' : 'bg-zinc-50 dark:bg-zinc-950'}`}>
+        <div className={`min-h-screen ${isModal ? 'bg-zinc-50 dark:bg-zinc-950 overflow-hidden' : 'bg-zinc-50 dark:bg-zinc-950'}`}>
             {/* Sticky Header */}
             <header className="flex items-center justify-between px-4 py-4 bg-white bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800">
                 <div className="flex items-center gap-3">
@@ -590,7 +687,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
 
     if (isModal) {
         return (
-            <div className="fixed inset-0 z-[100] flex items-end justify-center">
+            <div className="fixed inset-0 z-[9999] flex items-end justify-center">
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

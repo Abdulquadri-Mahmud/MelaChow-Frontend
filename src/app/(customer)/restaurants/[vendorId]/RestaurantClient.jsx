@@ -8,14 +8,16 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import { AnimatePresence, motion } from "framer-motion";
 
-import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
+import ComboDetailsClient from "@/app/(customer)/combo-details/[comboId]/ComboDetailsClient";
 import { MapPin, Clock, Star, Search, X, Plus, Share2, Flame, MessageSquare, ChevronLeft, Loader2, Store } from "lucide-react";
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import ViewVendorSkeleton from "@/app/skeleton/ViewVendorSkeleton";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
-import { useComboModalStore } from "@/app/store/comboModalStore";
+
+const getItemId = (item) => item?._id || item?.id;
+const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
 
 const FoodItemRow = ({ item, onSelect }) => {
     const isUnavailable = !item.is_available || item.is_in_stock === false;
@@ -86,7 +88,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const { addToCart } = useCart();
     const sectionRefs = useRef({});
     const openFoodModal = useFoodModalStore(state => state.openFoodModal);
-    const openComboModal = useComboModalStore(state => state.openComboModal);
+    const [selectedCombo, setSelectedCombo] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeSectionId, setActiveSectionId] = useState("all");
     const [activeTab, setActiveTab] = useState("menu");
@@ -139,17 +141,25 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     };
 
     const handleComboTap = (combo) => {
-        if (!combo.is_available) return;
-        openComboModal(combo._id, { combo });
+        if (combo.is_available === false) return;
+        const selectedComboId = getItemId(combo);
+        if (!selectedComboId) return;
+        setSelectedCombo({ comboId: selectedComboId, combo });
     };
 
     const handleItemTap = (item) => {
-        if (!item.is_available || !item.is_in_stock) return;
-        if (item.type === 'combo') {
+        // Combo items use is_available only — they have no is_in_stock field.
+        // Regular food items check both.
+        if (isComboItem(item)) {
+            if (item.is_available === false) return;
             handleComboTap(item);
-        } else {
-            openFoodModal(item._id, { food: item });
+            return;
         }
+        // Regular food item
+        if (!item.is_available || item.is_in_stock === false) return;
+        const selectedFoodId = getItemId(item);
+        if (!selectedFoodId) return;
+        openFoodModal(selectedFoodId, { food: item });
     };
 
     const handleShare = async () => {
@@ -497,7 +507,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                                     <FoodItemRow 
                                                         key={`${section._id}-${item._id}-${index}`} 
                                                         item={item} 
-                                                        onSelect={section.type === 'combo' ? handleComboTap : handleItemTap} 
+                                                        onSelect={handleItemTap}
                                                     />
                                                 ))}
                                             </div>
@@ -612,6 +622,17 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                     </SwiperSlide>
                 </Swiper>
             </div>
+
+            <AnimatePresence>
+                {selectedCombo?.comboId && (
+                    <ComboDetailsClient
+                        isModal={true}
+                        onClose={() => setSelectedCombo(null)}
+                        comboId={selectedCombo.comboId}
+                        initialData={{ combo: selectedCombo.combo, vendor }}
+                    />
+                )}
+            </AnimatePresence>
 
         </div>
     );
