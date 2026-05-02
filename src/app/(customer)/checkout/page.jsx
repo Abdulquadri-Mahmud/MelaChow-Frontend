@@ -115,8 +115,10 @@ function CheckoutContent() {
           try {
             const data = await getVendorById(id);
             const v = data.vendor || data;
-            // Vendor-sponsored promo zeroes the fee entirely
-            const fee = v.hasActiveDeliveryPromo === true
+            const hasVerifiedVendorPromo = !!v.activeDeliveryPromo?.promoId;
+            // Vendor-sponsored promo zeroes the fee only when the backend
+            // confirms the promo is currently active and not exhausted.
+            const fee = hasVerifiedVendorPromo
               ? 0
               : v.deliveryManagedBy === "vendor"
                 ? (v.flatRateDeliveryFee || v.deliveryFee || 0)

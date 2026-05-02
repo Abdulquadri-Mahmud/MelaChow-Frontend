@@ -33,13 +33,19 @@ export const usePromoEligibility = () => {
     retry: false,
   });
 
-  const hasPriorPaidOrder = (ordersData?.orders || []).some(
-    (o) => o.paymentStatus === "paid"
+  const hasPriorPaidOrPromoOrder = (ordersData?.orders || []).some(
+    (o) =>
+      o.paymentStatus === "paid" ||
+      (
+        o.freeDeliveryPromo?.eligible &&
+        !["failed", "refunded"].includes(o.paymentStatus) &&
+        o.orderStatus !== "cancelled"
+      )
   );
 
   const eligible =
     !!platformPromo &&
-    !hasPriorPaidOrder &&
+    !hasPriorPaidOrPromoOrder &&
     (platformPromo.slotsRemaining || 0) > 0;
 
   return {
