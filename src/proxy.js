@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export function middleware(request) {
+export function proxy(request) {
   const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL;
 
   if (!adminUrl) {
