@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { Suspense, useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/app/context/CartContext";
 import { Loader2, Bike, MapPin, Clock, DollarSign, TicketPercent, Tag, Wallet, CreditCard } from "lucide-react";
@@ -10,7 +10,7 @@ import { transformCartToOrderV2 } from "@/app/lib/orderTransformers";
 import Header2 from "@/app/components/App_Header/Header2";
 import toast from "react-hot-toast";
 import CheckoutPageSkeleton from "@/app/components/skeleton/CheckoutPageSkeleton";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useApi } from "@/app/context/ApiContext";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
@@ -21,9 +21,11 @@ import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
 import { usePromoEligibility } from "@/app/hooks/usePromoEligibility";
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
-  const { cart, clearCart } = useCart();
+  const searchParams = useSearchParams();
+  const selectedRestaurantId = searchParams.get("restaurantId");
+  const { cart, clearCart, removeRestaurantFromCart } = useCart();
   const { user: userData, isLoading: isUserLoading } = useUserStorage();
   const [loadingInit, setLoadingInit] = useState(false);
   const [notes, setNotes] = useState({}); // notes per restaurant
@@ -51,7 +53,12 @@ export default function CheckoutPage() {
   const walletBalance = walletData?.wallet?.balance || 0;
 
   // Cart validation hook
-  const { validateCart, validationErrors, isValid } = useCartValidation(cart);
+  const checkoutCart = useMemo(() => {
+    if (!selectedRestaurantId) return cart;
+    return cart.filter((item) => (item.vendorId || item.restaurantId) === selectedRestaurantId);
+  }, [cart, selectedRestaurantId]);
+
+  const { validateCart, validationErrors, isValid } = useCartValidation(checkoutCart);
 
   // Generate ONCE per checkout session — does NOT regenerate
   // on re-renders or retries. Only resets if user navigates
@@ -74,17 +81,34 @@ export default function CheckoutPage() {
       .catch(() => { /* service fee unavailable — omit silently */ });
   }, []);
 
+  useEffect(() => {
+    if (!isMounted || !selectedRestaurantId) return;
+    if (cart.length > 0 && checkoutCart.length === 0) {
+      toast.error("That restaurant is no longer in your cart.");
+      router.replace("/orders?activeTab=cart");
+    }
+  }, [cart.length, checkoutCart.length, isMounted, router, selectedRestaurantId]);
+
+  useEffect(() => {
+    if (!isMounted || selectedRestaurantId || cart.length === 0) return;
+    const restaurantCount = new Set(cart.map((item) => item.vendorId || item.restaurantId)).size;
+    if (restaurantCount > 1) {
+      toast.error("Choose one restaurant to checkout.");
+      router.replace("/orders?activeTab=cart");
+    }
+  }, [cart, isMounted, router, selectedRestaurantId]);
+
   const defaultAddress = userData?.addresses?.find(a => a.isDefault);
 
   /* ---------------- CALCULATIONS ---------------- */
-  const subtotal = cart.reduce((sum, item) => sum + (item.price_naira || item.price || 0) * item.quantity, 0);
+  const subtotal = checkoutCart.reduce((sum, item) => sum + (item.price_naira || item.price || 0) * item.quantity, 0);
 
   // Resolution logic for delivery fees
   const [vendorFeesMap, setVendorFeesMap] = useState({});
 
   useEffect(() => {
-    if (cart.length > 0 && isMounted) {
-      const uniqueIds = Array.from(new Set(cart.map(item => item.vendorId || item.restaurantId)));
+    if (checkoutCart.length > 0 && isMounted) {
+      const uniqueIds = Array.from(new Set(checkoutCart.map(item => item.vendorId || item.restaurantId)));
       const fetchFees = async () => {
         const fees = {};
         await Promise.all(uniqueIds.map(async id => {
@@ -106,11 +130,11 @@ export default function CheckoutPage() {
       };
       fetchFees();
     }
-  }, [cart, isMounted]);
+  }, [checkoutCart, isMounted]);
 
   // One delivery fee per restaurant
   const restaurantDeliveryMap = {};
-  cart.forEach(item => {
+  checkoutCart.forEach(item => {
     const vId = item.vendorId || item.restaurantId;
     if (!restaurantDeliveryMap[vId]) {
       // Always prefer fresh API-resolved fee over stale cart item value.
@@ -152,7 +176,7 @@ export default function CheckoutPage() {
   const finalTotal = appliedDiscount ? appliedDiscount.total : (subtotal + deliveryFee + serviceFee);
 
   // Group items by restaurant
-  const groupedCart = cart.reduce((acc, item) => {
+  const groupedCart = checkoutCart.reduce((acc, item) => {
     const store = item.storeName || "Unknown Store";
     if (!acc[store]) acc[store] = [];
     acc[store].push(item);
@@ -176,7 +200,7 @@ export default function CheckoutPage() {
         code: couponCode,
         subtotal,
         deliveryFee,
-        items: cart.map(item => ({
+        items: checkoutCart.map(item => ({
           foodId: item.foodId,
           portionId: item.portionId || item.variantId,
           vendorId: item.vendorId || item.restaurantId,
@@ -211,7 +235,7 @@ export default function CheckoutPage() {
     }
 
     // 2. Validate cart is not empty
-    if (cart.length === 0) {
+    if (checkoutCart.length === 0) {
       toast.error("Your cart is empty.");
       return;
     }
@@ -268,7 +292,7 @@ export default function CheckoutPage() {
       setProcessingStep("calculating");
 
       // Use resolved fees for the payload
-      const resolvedCart = cart.map(item => ({
+      const resolvedCart = checkoutCart.map(item => ({
         ...item,
         deliveryFee: vendorFeesMap[item.vendorId || item.restaurantId] ?? item.deliveryFee
       }));
@@ -329,7 +353,8 @@ export default function CheckoutPage() {
 
       if (response?.paymentStatus === "paid" || (isSuccess && !response?.authorization_url)) {
         // Wallet / Immediate Payment Success
-        clearCart();
+        if (selectedRestaurantId && removeRestaurantFromCart) removeRestaurantFromCart(selectedRestaurantId);
+        else clearCart();
         toast.success("Order Placed Successfully! 🎉", { duration: 3000 });
 
         const paramOrderId = response.order?.orderId || response.orderId;
@@ -345,7 +370,8 @@ export default function CheckoutPage() {
           sessionStorage.setItem("pendingOrderId", response.orderId);
         }
 
-        clearCart();
+        if (selectedRestaurantId && removeRestaurantFromCart) removeRestaurantFromCart(selectedRestaurantId);
+        else clearCart();
 
         const msg = response.orderId
           ? `Processing Order #${response.orderId}... Redirecting!`
@@ -424,7 +450,7 @@ export default function CheckoutPage() {
         )}
 
         {/* Quick Notice */}
-        {cart.length > 0 && (
+        {checkoutCart.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -432,7 +458,7 @@ export default function CheckoutPage() {
           >
             <div className="w-1 h-full bg-orange-500 rounded-full" />
             <p>
-              You're ordering {cart.length} {cart.length > 1 ? "items" : "item"} from {Object.keys(groupedCart).length}{" "}
+              You're ordering {checkoutCart.length} {checkoutCart.length > 1 ? "items" : "item"} from {Object.keys(groupedCart).length}{" "}
               {Object.keys(groupedCart).length > 1 ? "restaurants" : "restaurant"}. Delivery fee is charged once per restaurant.
             </p>
           </motion.div>
@@ -722,7 +748,7 @@ export default function CheckoutPage() {
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={!defaultAddress ? () => router.push("/profile/address") : handleInitializePayment}
-            disabled={loadingInit || cart.length === 0 || isPromoLoading}
+            disabled={loadingInit || checkoutCart.length === 0 || isPromoLoading}
             className={`max-w-xl mx-auto w-full py-4 rounded-[2rem] font-black text-lg flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] ${!defaultAddress ? "bg-red-500 text-white shadow-red-200" : "bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white text-white dark:text-zinc-900"}`}
           >
             {loadingInit ? (
@@ -747,5 +773,13 @@ export default function CheckoutPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<CheckoutPageSkeleton />}>
+      <CheckoutContent />
+    </Suspense>
   );
 }

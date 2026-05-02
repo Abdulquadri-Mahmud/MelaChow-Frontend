@@ -86,9 +86,12 @@ function OrdersContent() {
 
   const orders = data?.orders || [];
 
+  const getRestaurantId = (item) => item.vendorId || item.restaurantId || "unknown";
+  const getItemPrice = (item) => item.price_naira || item.price || 0;
+
   // Group items by vendorId for Cart
   const groupedCart = cart.reduce((acc, item) => {
-    const key = item.vendorId || "unknown";
+    const key = getRestaurantId(item);
     if (!acc[key]) {
       acc[key] = { storeName: item.storeName, items: [] };
     }
@@ -96,7 +99,7 @@ function OrdersContent() {
     return acc;
   }, {});
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price_naira * item.quantity, 0);
+  const subtotal = cart.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col transition-colors duration-300">
@@ -176,7 +179,10 @@ function OrdersContent() {
                  ) : (
                    <>
                      <div className="space-y-4">
-                       {Object.entries(groupedCart).map(([vendorId, group]) => (
+                       {Object.entries(groupedCart).map(([vendorId, group]) => {
+                         const groupSubtotal = group.items.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0);
+
+                         return (
                          <div key={vendorId} className="bg-white dark:bg-zinc-900 rounded-[32px] p-4 border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden relative">
                            {/* Store Header */}
                            <div className="flex justify-between items-center mb-5 pb-3 border-b border-zinc-50 dark:border-zinc-800">
@@ -225,11 +231,11 @@ function OrdersContent() {
                                            )}
                                          </div>
                                        </div>
-                                       <p className="text-sm font-black text-zinc-900 dark:text-white tabular-nums">₦{(item.price_naira * item.quantity).toLocaleString()}</p>
+                                       <p className="text-sm font-black text-zinc-900 dark:text-white tabular-nums">₦{(getItemPrice(item) * item.quantity).toLocaleString()}</p>
                                      </div>
 
                                      <div className="flex items-end justify-between mt-auto pt-2">
-                                       <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-tighter self-center">₦{item.price_naira.toLocaleString()} / unit</p>
+                                       <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-tighter self-center">₦{getItemPrice(item).toLocaleString()} / unit</p>
 
                                        <div className="flex items-center gap-3">
                                          {item.type !== 'combo' && (
@@ -269,8 +275,22 @@ function OrdersContent() {
                                )
                              })}
                            </div>
+                           <div className="mt-5 pt-4 border-t border-zinc-50 dark:border-zinc-800 flex items-center justify-between gap-3">
+                             <div>
+                               <p className="text-[8px] font-black uppercase tracking-[0.2em] text-zinc-400">Restaurant Total</p>
+                               <p className="text-lg font-black italic text-zinc-900 dark:text-white">₦{groupSubtotal.toLocaleString()}</p>
+                             </div>
+                             <button
+                               onClick={() => router.push(`/checkout?restaurantId=${encodeURIComponent(vendorId)}`)}
+                               className="h-11 px-5 rounded-2xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 active:scale-95 transition-all shadow-lg dark:shadow-none"
+                             >
+                               Checkout
+                               <ArrowRight size={14} />
+                             </button>
+                           </div>
                          </div>
-                       ))}
+                         );
+                       })}
 
                        {/* Summary Section */}
                        <div className="mt-6 mb-18 space-y-4">
@@ -437,7 +457,14 @@ function OrdersContent() {
               exit={{ y: 80, opacity: 0 }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => router.push("/checkout")}
+              onClick={() => {
+                const vendorIds = Object.keys(groupedCart);
+                if (vendorIds.length === 1) {
+                  router.push(`/checkout?restaurantId=${encodeURIComponent(vendorIds[0])}`);
+                } else {
+                  toast("Choose a restaurant checkout button above.", { icon: "🛒" });
+                }
+              }}
               className="max-w-xl mx-auto w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] italic flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-xl dark:shadow-none group"
             >
               Checkout Now
