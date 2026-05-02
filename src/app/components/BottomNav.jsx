@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import { useUserStorage } from "../hooks/useUserStorage";
 import { useFoodModalStore } from "../store/foodModalStore";
+import { useComboModalStore } from "../store/comboModalStore";
 
 const navItems = [
   { name: "Home", href: "/home", icon: Home },
@@ -21,16 +22,26 @@ export default function BottomBar() {
   const { cart, isModalOpen } = useCart();
   const { user, isLoading } = useUserStorage();
   const { isOpen: isFoodModalOpen } = useFoodModalStore();
+  const { isOpen: isComboModalOpen } = useComboModalStore();
 
-  // Hide the bottom nav when the customization modal is open, 
-  // or on specific pages (Restaurant Storefront, Food Details, Checkout)
+  // Hide the bottom nav when the customization modal is open,
+  // or on specific pages (Restaurant Storefront, Food/Combo Details, Checkout)
   const isFoodDetailsPage = pathname.startsWith("/food-details/");
+  const isComboDetailsPage = pathname.startsWith("/combo-details/");
   const isCheckoutPage = pathname === "/checkout";
   
   // Also hide if logged in but no addresses (mandatory address modal state)
   const isNoAddress = !isLoading && user && user?.addresses?.length === 0;
 
-  if (isModalOpen || isFoodModalOpen || isFoodDetailsPage || isCheckoutPage || isNoAddress) return null;
+  if (
+    isModalOpen ||
+    isFoodModalOpen ||
+    isComboModalOpen ||
+    isFoodDetailsPage ||
+    isComboDetailsPage ||
+    isCheckoutPage ||
+    isNoAddress
+  ) return null;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 px-0 md:max-w-md md:mx-auto z-[9999]">

@@ -14,7 +14,8 @@ import {
   Plus,
   Minus,
   ShoppingCart,
-  Package
+  Package,
+  MessageSquare
 } from "lucide-react";
 import { BiCartAdd } from "react-icons/bi";
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -41,8 +42,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   const [isLoading, setIsLoading] = useState(!initialFood || Object.keys(initialFood).length === 0);
   const [isError, setIsError] = useState(false);
 
-  console.log('[FoodDetailsClient] 🥗 initialData:', initialData);
-  console.log('[FoodDetailsClient] 🥦 food state:', food);
+  // console.log('[FoodDetailsClient] 🥗 initialData:', initialData);
+  // console.log('[FoodDetailsClient] 🥦 food state:', food);
   const [isClient, setIsClient] = useState(false);
 
   // Default customization state for base item
@@ -632,7 +633,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                           </p>
                         </div>
                         <button
-                          onClick={() => openComboModal(combo._id, { combo })}
+                          onClick={() => openComboModal(combo._id, { combo, vendor: food?.vendor || null })}
                           disabled={!combo.is_available || !itemAvailability.available}
                           className={`w-auto px-4 py-2 shrink-0 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                             (!combo.is_available || !itemAvailability.available)

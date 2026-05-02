@@ -61,14 +61,17 @@ export default function CheckoutPage() {
   );
 
   const { vendorPromoCount } = useActivePromos();
-  const { eligible: isPlatformPromoEligible, platformPromo } = usePromoEligibility();
+  const {
+    eligible: isPlatformPromoEligible,
+    platformPromo,
+    isLoading: isPromoLoading,
+  } = usePromoEligibility();
 
   useEffect(() => {
     setIsMounted(true);
-    // Fetch platform configuration for service fees
-    getPlatformConfig().then(res => {
-      if (res.success) setPlatformConfig(res.data);
-    });
+    getPlatformConfig()
+      .then(res => { if (res?.success) setPlatformConfig(res.data); })
+      .catch(() => { /* service fee unavailable — omit silently */ });
   }, []);
 
   const defaultAddress = userData?.addresses?.find(a => a.isDefault);
@@ -110,8 +113,13 @@ export default function CheckoutPage() {
   cart.forEach(item => {
     const vId = item.vendorId || item.restaurantId;
     if (!restaurantDeliveryMap[vId]) {
-      // Prioritize the fee already stored in the cart item, fallback to resolved map
-      restaurantDeliveryMap[vId] = Number(item.deliveryFee || vendorFeesMap[vId] || 0);
+      // Always prefer fresh API-resolved fee over stale cart item value.
+      // Cart items store deliveryFee at add-time; vendor promos may have
+      // launched since then, making the stored value wrong.
+      const freshFee = vendorFeesMap[vId];
+      restaurantDeliveryMap[vId] = freshFee !== undefined
+        ? Number(freshFee)
+        : Number(item.deliveryFee || 0);
     }
   });
 
@@ -123,17 +131,21 @@ export default function CheckoutPage() {
   );
   const deliveryFee = isPlatformPromoEligible ? 0 : rawDeliveryFee;
 
-  // Service fee calculation
-  // Backend rule: Service fee is suppressed if ANY delivery promo is active
-  const anyDeliveryPromoActive = isPlatformPromoEligible || (deliveryFee === 0 && rawDeliveryFee > 0);
-
-  const serviceFee = appliedDiscount ? (appliedDiscount.serviceFee || 0) : (
-    platformConfig?.serviceFeeEnabled && !anyDeliveryPromoActive
-      ? (platformConfig.serviceFeeType === "fixed"
-          ? platformConfig.serviceFeeValue
-          : Math.min((subtotal * platformConfig.serviceFeeValue) / 100, platformConfig.serviceFeeCap || Infinity))
-      : 0
-  );
+  // Service fee is suppressed ONLY for the platform first-order promo.
+  // Vendor-sponsored free delivery (restaurant paying for logistics) does NOT
+  // suppress the service fee — vendor covers rider cost, not platform operations.
+  const serviceFee = (() => {
+    // If discount already computed service fee, use that snapshot
+    if (appliedDiscount?.serviceFee != null) return appliedDiscount.serviceFee;
+    // No config yet or fee disabled or platform promo active
+    if (!platformConfig?.serviceFeeEnabled) return 0;
+    if (platformConfig.serviceFeeType === 'fixed') {
+      return platformConfig.serviceFeeValue || 0;
+    }
+    const pctFee = (subtotal * (platformConfig.serviceFeeValue || 0)) / 100;
+    const cap = platformConfig.serviceFeeCap > 0 ? platformConfig.serviceFeeCap : Infinity;
+    return Number(Math.min(pctFee, cap).toFixed(2));
+  })();
 
   // Calculate final total (UI ONLY - Backend re-validates)
   // If discount applied, use verified total, otherwise local calc
@@ -574,7 +586,6 @@ export default function CheckoutPage() {
                 );
               })}
 
-
               {/* Notes */}
               <div className="pt-2">
                 <textarea
@@ -711,7 +722,7 @@ export default function CheckoutPage() {
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={!defaultAddress ? () => router.push("/profile/address") : handleInitializePayment}
-            disabled={loadingInit || cart.length === 0}
+            disabled={loadingInit || cart.length === 0 || isPromoLoading}
             className={`max-w-xl mx-auto w-full py-4 rounded-[2rem] font-black text-lg flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] ${!defaultAddress ? "bg-red-500 text-white shadow-red-200" : "bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white text-white dark:text-zinc-900"}`}
           >
             {loadingInit ? (
