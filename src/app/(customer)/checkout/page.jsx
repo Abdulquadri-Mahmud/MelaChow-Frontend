@@ -449,21 +449,6 @@ function CheckoutContent() {
           />
         )}
 
-        {/* Quick Notice */}
-        {checkoutCart.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-orange-50/40 dark:bg-orange-500/10 backdrop-blur-sm border border-orange-100 dark:border-orange-500/20 text-orange-700 dark:text-orange-400 text-[10px] p-2 rounded-xl flex items-center gap-2"
-          >
-            <div className="w-1 h-full bg-orange-500 rounded-full" />
-            <p>
-              You're ordering {checkoutCart.length} {checkoutCart.length > 1 ? "items" : "item"} from {Object.keys(groupedCart).length}{" "}
-              {Object.keys(groupedCart).length > 1 ? "restaurants" : "restaurant"}. Delivery fee is charged once per restaurant.
-            </p>
-          </motion.div>
-        )}
-
         {/* Address */}
         <div className={`bg-white dark:bg-zinc-900 rounded-2xl md:p-4 p-2 flex gap-3 border transition-all duration-300 ${!defaultAddress ? "border-red-200 dark:border-red-500/50 shadow-red-100 dark:shadow-red-900/10" : "border-zinc-50 dark:border-zinc-800 hover:border-orange-200 dark:hover:border-orange-500/30"}`}>
           <div className={`${!defaultAddress ? "bg-red-50 dark:bg-red-500/10" : "bg-orange-50 dark:bg-orange-500/10"} p-2 rounded-xl h-fit`}>
@@ -613,12 +598,16 @@ function CheckoutContent() {
               })}
 
               {/* Notes */}
-              <div className="pt-2">
+              <div className="pt-3">
+                <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
+                  Add a note for this restaurant
+                </label>
                 <textarea
-                  placeholder="Add a note for this restaurant (optional)"
+                  rows={4}
+                  placeholder="Example: please make it spicy, no onions, or call before delivery."
                   value={notes[storeName] || ""}
                   onChange={(e) => setNotes({ ...notes, [storeName]: e.target.value })}
-                  className="mt-2 w-full p-3 bg-zinc-50/50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-orange-400 focus:bg-white dark:focus:bg-zinc-800 transition-all placeholder:text-[10px] placeholder:font-black placeholder:uppercase placeholder:tracking-widest"
+                  className="w-full min-h-24 resize-none rounded-2xl border-2 border-orange-200 bg-orange-50/50 p-4 text-sm font-medium text-zinc-900 shadow-inner outline-none transition-all placeholder:text-zinc-500 focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-100 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-white dark:placeholder:text-zinc-400 dark:focus:bg-zinc-900 dark:focus:ring-orange-500/10"
                 />
               </div>
             </div>
@@ -664,11 +653,11 @@ function CheckoutContent() {
             </div>
             <div>
               <p className="text-[11px] font-black text-green-400 uppercase tracking-widest leading-none mb-0.5">
-                First Order Perk Applied
+                Free Delivery Slot Applied
               </p>
               <p className="text-[11px] text-green-400/80 font-medium leading-snug">
-                Delivery is on us for your first order.{" "}
-                {platformPromo.slotsRemaining} of {platformPromo.totalSlots} spots remaining.
+                Free delivery is available for the first {platformPromo.totalSlots?.toLocaleString()} eligible first orders.{" "}
+                {platformPromo.slotsRemaining?.toLocaleString()} spots remaining.
               </p>
             </div>
           </div>

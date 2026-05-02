@@ -14,6 +14,8 @@ export default function PromoAnnouncementBanner() {
 
   const showPlatform = !!platformPromo;
   const showVendor = vendorPromoCount > 0;
+  const totalSlots = platformPromo?.totalSlots || 0;
+  const slotsRemaining = platformPromo?.slotsRemaining || 0;
 
   const handleCta = () => {
     if (showPlatform) {
@@ -33,7 +35,7 @@ export default function PromoAnnouncementBanner() {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="relative mx-3 rounded-[32px] overflow-hidden group border border-white/5 shadow-[0_25px_60px_-15px_rgba(244,133,37,0.2)] bg-zinc-950"
+        className="relative rounded-[10px] overflow-hidden group border border-white/5 shadow-[0_25px_60px_-15px_rgba(244,133,37,0.2)] bg-zinc-950"
       >
         {/* Dynamic Mesh Background with Brand Color */}
         <div className="absolute inset-0 overflow-hidden">
@@ -116,14 +118,14 @@ export default function PromoAnnouncementBanner() {
                       transition={{ duration: 2, repeat: Infinity }}
                       className="text-zinc-500 text-[9px] font-black uppercase tracking-widest"
                     >
-                      {platformPromo.slotsRemaining} Left
+                      {slotsRemaining} Left
                     </motion.span>
                   )}
                 </div>
 
                 <h2 className="text-xl md:text-2xl font-black text-white leading-none tracking-tighter uppercase italic">
                   {showPlatform ? (
-                    <>Unlock <span className="text-[#f48525]">Free</span> Delivery</>
+                    <><span className="text-[#f48525]">Free</span> Delivery Slots</>
                   ) : (
                     <><span className="text-[#f48525]">{vendorPromoCount}</span> Shops Nearby</>
                   )}
@@ -131,7 +133,7 @@ export default function PromoAnnouncementBanner() {
                 
                 <p className="text-[11px] md:text-xs font-bold text-zinc-400 max-w-[280px] leading-tight tracking-tight">
                   {showPlatform 
-                    ? "Your first order from any restaurant is free delivery."
+                    ? `Free delivery for the first ${totalSlots.toLocaleString()} eligible first orders. ${slotsRemaining.toLocaleString()} spots left.`
                     : "Top-rated restaurants near you offer free delivery."
                   }
                 </p>
@@ -163,13 +165,13 @@ export default function PromoAnnouncementBanner() {
               <div className="flex justify-between items-center">
                  <p className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.3em]">Live Slots</p>
                  <p className="text-[9px] font-black text-[#f48525] italic uppercase tracking-widest">
-                   {Math.round((platformPromo.slotsRemaining / platformPromo.totalSlots) * 100)}% Available
+                   {totalSlots > 0 ? Math.round((slotsRemaining / totalSlots) * 100) : 0}% Available
                  </p>
               </div>
               <div className="h-[1.5px] w-full bg-zinc-900 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${(platformPromo.slotsRemaining / platformPromo.totalSlots) * 100}%` }}
+                  animate={{ width: `${totalSlots > 0 ? (slotsRemaining / totalSlots) * 100 : 0}%` }}
                   transition={{ duration: 2, ease: "circOut" }}
                   className="h-full bg-[#f48525]"
                 />
