@@ -11,7 +11,7 @@ import toast from "react-hot-toast";
 import { useApi } from "@/app/context/ApiContext";
 import axios from "axios";
 import { OrderCardSkeleton } from "@/app/components/skeleton/OrderCardSkeleton";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Pencil, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
 import Link from "next/link";
@@ -24,7 +24,7 @@ function OrdersContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("activeTab") || "cart";
 
-  const { cart, increaseQuantity, decreaseQuantity, removeFromCart, clearCart, updateCartItem } = useCart();
+  const { cart, increaseQuantity, decreaseQuantity, removeFromCart, updateCartItem } = useCart();
   const { user } = useUserStorage();
   const { baseUrl } = useApi();
    const [activeTab, setActiveTab] = useState(initialTab);
@@ -98,8 +98,6 @@ function OrdersContent() {
     acc[key].items.push(item);
     return acc;
   }, {});
-
-  const subtotal = cart.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col transition-colors duration-300">
@@ -291,44 +289,6 @@ function OrdersContent() {
                          </div>
                          );
                        })}
-
-                       {/* Summary Section */}
-                       <div className="mt-6 mb-18 space-y-4">
-                         <div className="bg-white dark:bg-zinc-900 rounded-[32px] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm">
-                           <div className="flex justify-between items-center mb-6">
-                             <div className="flex items-center gap-2">
-                               <div className="p-2 bg-orange-50 dark:bg-orange-500/10 rounded-xl">
-                                 <ShoppingBag size={18} className="text-orange-500" />
-                               </div>
-                               <h3 className="font-black text-zinc-900 dark:text-white text-[12px] uppercase tracking-widest italic">Order Summary</h3>
-                             </div>
-                           </div>
-
-                           <div className="space-y-3 pb-6 border-b border-zinc-50 dark:border-zinc-800">
-                             <div className="flex justify-between items-center">
-                               <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Subtotal</span>
-                               <span className="text-sm font-black text-zinc-900 dark:text-white italic">₦{subtotal.toLocaleString()}</span>
-                             </div>
-                             <div className="flex justify-between items-center">
-                               <span className="text-[10px] font-black uppercase text-zinc-400 tracking-widest">Delivery Fee</span>
-                               <span className="text-[9px] font-black text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded-lg uppercase">Calculated at Checkout</span>
-                             </div>
-                           </div>
-
-                           <div className="pt-4 flex justify-between items-end">
-                             <div>
-                               <p className="text-[9px] font-black uppercase text-zinc-300 tracking-[0.2em] mb-1">Estimated Total</p>
-                               <h4 className="text-3xl font-black text-zinc-900 dark:text-white italic tracking-tighter">₦{subtotal.toLocaleString()}</h4>
-                             </div>
-                             <button
-                               onClick={clearCart}
-                               className="text-[9px] font-black uppercase text-rose-500 hover:text-rose-600 transition-colors tracking-widest"
-                             >
-                               Clear All
-                             </button>
-                           </div>
-                         </div>
-                       </div>
                      </div>
                    </>
                  )}
@@ -446,36 +406,6 @@ function OrdersContent() {
         onUpdate={handleUpdateOrder}
         onAdd={() => { }}
       />
-
-      {/* Bottom Fixed Checkout Button - Moved Outside Swiper */}
-      <AnimatePresence>
-        {activeTab === "cart" && cart.length > 0 && (
-          <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 p-2 z-[100]">
-            <motion.button
-              initial={{ y: 80, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 80, opacity: 0 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => {
-                const vendorIds = Object.keys(groupedCart);
-                if (vendorIds.length === 1) {
-                  router.push(`/checkout?restaurantId=${encodeURIComponent(vendorIds[0])}`);
-                } else {
-                  toast("Choose a restaurant checkout button above.", { icon: "🛒" });
-                }
-              }}
-              className="max-w-xl mx-auto w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] italic flex items-center justify-center gap-3 active:scale-[0.98] transition-all shadow-xl dark:shadow-none group"
-            >
-              Checkout Now
-              <div className="flex items-center gap-1.5 border-l border-white/20 dark:border-zinc-200 pl-3 ml-2">
-                <span className="text-orange-500 font-bold">₦{subtotal.toLocaleString()}</span>
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </div>
-            </motion.button>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

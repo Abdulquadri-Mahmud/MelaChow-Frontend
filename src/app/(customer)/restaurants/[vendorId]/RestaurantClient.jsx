@@ -9,12 +9,13 @@ import 'swiper/css';
 import { AnimatePresence, motion } from "framer-motion";
 
 import ComboDetailsClient from "@/app/(customer)/combo-details/[comboId]/ComboDetailsClient";
-import { MapPin, Clock, Star, Search, X, Plus, Share2, Flame, MessageSquare, ChevronLeft, Loader2, Store } from "lucide-react";
+import { MapPin, Clock, Star, Search, X, Plus, Share2, Flame, MessageSquare, ChevronLeft, Loader2, Store, Gift } from "lucide-react";
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import ViewVendorSkeleton from "@/app/skeleton/ViewVendorSkeleton";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
+import { useActivePromos } from "@/app/hooks/useActivePromos";
 
 const getItemId = (item) => item?._id || item?.id;
 const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
@@ -99,6 +100,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const [reviewsPage, setReviewsPage] = useState(1);
     const [ratingFilter, setRatingFilter] = useState(null);
     const [isSearchActive, setIsSearchActive] = useState(false);
+    const { platformPromo } = useActivePromos();
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ["vendor-storefront", vendorId],
@@ -445,6 +447,15 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                 <span className="text-base">🏪</span>
                                 <span className="text-[11px] font-black text-green-700 dark:text-green-400 uppercase tracking-widest">
                                     Free delivery — sponsored by this restaurant
+                                </span>
+                            </div>
+                        )}
+
+                        {platformPromo && (
+                            <div className="mt-3 flex items-start gap-2 px-4 py-2 bg-orange-50 dark:bg-orange-500/10 rounded-2xl border border-orange-100 dark:border-orange-500/20">
+                                <Gift size={16} className="mt-0.5 shrink-0 text-orange-500" />
+                                <span className="text-[11px] font-black text-orange-700 dark:text-orange-400 uppercase tracking-widest leading-snug">
+                                    Free delivery for the first {platformPromo.totalSlots?.toLocaleString()} eligible first orders. {platformPromo.slotsRemaining?.toLocaleString()} spots left.
                                 </span>
                             </div>
                         )}
