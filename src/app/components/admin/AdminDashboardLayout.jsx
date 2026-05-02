@@ -78,6 +78,7 @@ const navigation = [
         items: [
             { icon: Zap,  label: "Platform Delivery", href: "/admin/promos/platform-delivery" },
             { icon: Gift, label: "Vendor Sponsored",   href: "/admin/promos/vendor-delivery" },
+            { icon: Percent, label: "Coupons",         href: "/admin/coupons" },
         ],
     },
     {
@@ -480,7 +481,7 @@ export default function AdminDashboardLayout({ children }) {
                                 </div>
                                 <h3 className="text-base font-bold text-slate-900 mb-1">Sign out?</h3>
                                 <p className="text-sm text-slate-500 max-w-[220px] mx-auto">
-                                    You'll need to log back in to access the admin portal.
+                                    You&apos;ll need to log back in to access the admin portal.
                                 </p>
                                 <div className="mt-5 flex gap-2">
                                     <button

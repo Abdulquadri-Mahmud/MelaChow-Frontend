@@ -200,6 +200,7 @@ function CheckoutContent() {
         code: couponCode,
         subtotal,
         deliveryFee,
+        vendorId: checkoutCart[0]?.vendorId || checkoutCart[0]?.restaurantId,
         items: checkoutCart.map(item => ({
           foodId: item.foodId,
           portionId: item.portionId || item.variantId,
@@ -210,8 +211,9 @@ function CheckoutContent() {
         }))
       };
       const res = await verifyDiscount(payload);
-      setAppliedDiscount(res);
-      toast.success(`Coupon Applied: ${res.appliedDiscount?.label || 'Success'}`);
+      const discountResult = res.data || res;
+      setAppliedDiscount(discountResult);
+      toast.success(`Coupon Applied: ${discountResult.appliedDiscount?.label || 'Success'}`);
     } catch (err) {
       toast.error(err.response?.data?.message || "Invalid Coupon Code");
       setAppliedDiscount(null);
