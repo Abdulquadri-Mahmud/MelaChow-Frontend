@@ -1,12 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { getPromoDeviceId } from "../lib/promoDevice";
 
 const fetchActivePromos = async () => {
+  const deviceId = getPromoDeviceId();
   const res = await axios.get("/api/promos/active", {
     withCredentials: true,
     timeout: 10000,
     headers: {
       "Cache-Control": "no-cache",
+      ...(deviceId ? { "X-MelaChow-Device-Id": deviceId } : {}),
     },
   });
   if (!res.data || !res.data.success) throw new Error("Failed to fetch promos");

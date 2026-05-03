@@ -207,6 +207,7 @@ function CheckoutContent() {
         code: couponCode,
         subtotal,
         deliveryFee,
+        phone: defaultAddress?.phone || userData?.phone || "",
         vendorId: checkoutCart[0]?.vendorId || checkoutCart[0]?.restaurantId,
         items: checkoutCart.map(item => ({
           foodId: item.foodId,

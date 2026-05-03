@@ -337,7 +337,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                                 <Star size={8} className="text-amber-400 fill-amber-400" />
                                                 <span>{vendor.rating ? Number(vendor.rating).toFixed(1) : "NEW"}</span>
                                                 <span className="w-0.5 h-0.5 bg-zinc-300 rounded-full" />
-                                                <span>{vendor.estimatedDeliveryTime || "25"} MIN</span>
+                                                <span>Delivery {vendor.estimatedDeliveryTime || "25"} min</span>
                                             </div>
                                         </div>
                                     </div>
@@ -412,9 +412,9 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                             <div className="text-center space-y-0.5">
                                 <div className="flex items-center gap-1 justify-center">
                                     <Clock size={13} className="text-orange-500" />
-                                    <span className="text-[15px] font-black text-zinc-900 dark:text-white">{vendor.estimatedDeliveryTime || "25"}</span>
+                                    <span className="text-[15px] font-black text-zinc-900 dark:text-white">{vendor.estimatedDeliveryTime || "25"} min</span>
                                 </div>
-                                <p className="text-[10px] font-semibold text-zinc-400">Min Delivery</p>
+                                <p className="text-[10px] font-semibold text-zinc-400">Est. delivery</p>
                             </div>
                             <div className="w-px h-8 bg-zinc-100 dark:bg-zinc-800" />
                             <div className="text-center space-y-0.5">
