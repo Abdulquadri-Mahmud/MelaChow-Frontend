@@ -165,6 +165,7 @@ function CheckoutContent() {
     if (appliedDiscount?.serviceFee != null) return appliedDiscount.serviceFee;
     // No config yet or fee disabled or platform promo active
     if (!platformConfig?.serviceFeeEnabled) return 0;
+    if (isPlatformPromoEligible) return 0;
     if (platformConfig.serviceFeeType === 'fixed') {
       return platformConfig.serviceFeeValue || 0;
     }
