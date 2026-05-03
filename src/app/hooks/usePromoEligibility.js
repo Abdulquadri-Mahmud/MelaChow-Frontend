@@ -30,7 +30,7 @@ export const usePromoEligibility = (originalDeliveryFee = 0) => {
   const { data, isLoading: eligibilityLoading } = useQuery({
     queryKey: ["free-delivery-eligibility", fee, platformPromo?.slotsRemaining],
     queryFn: () => fetchFreeDeliveryEligibility(fee),
-    enabled: !!platformPromo && fee > 0,
+    enabled: fee > 0,
     staleTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
@@ -38,15 +38,14 @@ export const usePromoEligibility = (originalDeliveryFee = 0) => {
   });
 
   const eligible =
-    !!platformPromo &&
     fee > 0 &&
     !!data?.eligible &&
-    (platformPromo.slotsRemaining || 0) > 0;
+    (!platformPromo || (platformPromo.slotsRemaining || 0) > 0);
 
   return {
     eligible,
     reason: data?.reason || null,
     platformPromo,
-    isLoading: promoLoading || (!!platformPromo && fee > 0 && eligibilityLoading),
+    isLoading: promoLoading || (fee > 0 && eligibilityLoading),
   };
 };

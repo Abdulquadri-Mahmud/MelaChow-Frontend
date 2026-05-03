@@ -100,17 +100,20 @@ function CheckoutContent() {
 
   // Resolution logic for delivery fees
   const [vendorFeesMap, setVendorFeesMap] = useState({});
+  const [vendorFreePromoMap, setVendorFreePromoMap] = useState({});
 
   useEffect(() => {
     if (checkoutCart.length > 0 && isMounted) {
       const uniqueIds = Array.from(new Set(checkoutCart.map(item => item.vendorId || item.restaurantId)));
       const fetchFees = async () => {
         const fees = {};
+        const freePromos = {};
         await Promise.all(uniqueIds.map(async id => {
           try {
             const data = await getVendorById(id);
             const v = data.vendor || data;
             const hasVerifiedVendorPromo = !!v.activeDeliveryPromo?.promoId;
+            freePromos[id] = hasVerifiedVendorPromo;
             // Vendor-sponsored promo zeroes the fee only when the backend
             // confirms the promo is currently active and not exhausted.
             const fee = hasVerifiedVendorPromo
@@ -124,6 +127,7 @@ function CheckoutContent() {
           }
         }));
         setVendorFeesMap(prev => ({ ...prev, ...fees }));
+        setVendorFreePromoMap(prev => ({ ...prev, ...freePromos }));
       };
       fetchFees();
     }
@@ -138,9 +142,12 @@ function CheckoutContent() {
       // Cart items store deliveryFee at add-time; vendor promos may have
       // launched since then, making the stored value wrong.
       const freshFee = vendorFeesMap[vId];
-      restaurantDeliveryMap[vId] = freshFee !== undefined
-        ? Number(freshFee)
-        : Number(item.deliveryFee || 0);
+      const cartFee = Number(item.deliveryFee || 0);
+      restaurantDeliveryMap[vId] = vendorFreePromoMap[vId]
+        ? 0
+        : freshFee !== undefined
+          ? (Number(freshFee) > 0 ? Number(freshFee) : cartFee)
+          : cartFee;
     }
   });
 
@@ -296,7 +303,7 @@ function CheckoutContent() {
       // Use resolved fees for the payload
       const resolvedCart = checkoutCart.map(item => ({
         ...item,
-        deliveryFee: vendorFeesMap[item.vendorId || item.restaurantId] ?? item.deliveryFee
+        deliveryFee: restaurantDeliveryMap[item.vendorId || item.restaurantId] ?? item.deliveryFee
       }));
 
       const deliveryAddress = {
@@ -697,7 +704,7 @@ function CheckoutContent() {
                 </span>
               )}
               {!isPlatformPromoEligible && Object.keys(restaurantDeliveryMap).some(
-                id => vendorFeesMap[id] === 0 && rawDeliveryFee > 0
+                id => vendorFreePromoMap[id]
               ) && (
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[8px] font-black uppercase tracking-widest">
                   🏪 Sponsored

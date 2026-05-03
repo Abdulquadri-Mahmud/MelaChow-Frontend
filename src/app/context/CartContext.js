@@ -16,6 +16,11 @@ const CartContext = createContext({
   clearCart: () => {},
 });
 
+const proceedToCartAction = {
+  label: "Proceed to cart / checkout",
+  href: "/orders?activeTab=cart",
+};
+
 export const useCart = () => {
   const context = useContext(CartContext);
   if (context === undefined) {
@@ -62,30 +67,29 @@ const isSameItem = (a, b) => {
 };
 
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cart, setCart] = useState(() => {
+    if (typeof window === "undefined") return [];
 
-  // Load cart from localStorage on mount
-  useEffect(() => {
     const stored = localStorage.getItem("melachowCart");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        // Ensure all items have a cartId for backward compatibility
-        const withIds = parsed.map(item => ({
-          ...item,
-          cartId: item.cartId || `${Date.now()}-${Math.random()}`
-        }));
-        setCart(withIds);
-      } catch (e) {
-        setCart([]);
-      }
+    if (!stored) return [];
+
+    try {
+      const parsed = JSON.parse(stored);
+      return parsed.map(item => ({
+        ...item,
+        cartId: item.cartId || `${Date.now()}-${Math.random()}`
+      }));
+    } catch {
+      return [];
     }
-  }, []);
+  });
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Store cart to localStorage
   useEffect(() => {
-    localStorage.setItem("melachowCart", JSON.stringify(cart));
+    if (typeof window !== "undefined") {
+      localStorage.setItem("melachowCart", JSON.stringify(cart));
+    }
   }, [cart]);
 
   // Add item
@@ -99,11 +103,11 @@ export const CartProvider = ({ children }) => {
           ...newCart[existingIndex],
           quantity: newCart[existingIndex].quantity + (item.quantity || 1)
         };
-        showAnimatedToast("success", "Item quantity updated", "cart-qty-inc");
+        showAnimatedToast("success", "Item quantity updated", "cart-qty-inc", proceedToCartAction);
         return newCart;
       }
 
-      showAnimatedToast("success", "Item added to cart", "cart-add");
+      showAnimatedToast("success", "Item added to cart", "cart-add", proceedToCartAction);
       return [...prev, { ...item, cartId: `${Date.now()}-${Math.random()}` }];
     });
   };
@@ -117,7 +121,7 @@ export const CartProvider = ({ children }) => {
         cartId:   `${Date.now()}-${Math.random()}`
     };
     setCart(prev => [...prev, newItem]);
-    showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo");
+    showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo", proceedToCartAction);
   };
 
   // Increase Quantity
