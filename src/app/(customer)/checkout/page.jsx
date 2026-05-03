@@ -157,15 +157,12 @@ function CheckoutContent() {
   );
   const deliveryFee = isPlatformPromoEligible ? 0 : rawDeliveryFee;
 
-  // Service fee is suppressed ONLY for the platform first-order promo.
-  // Vendor-sponsored free delivery (restaurant paying for logistics) does NOT
-  // suppress the service fee — vendor covers rider cost, not platform operations.
+  // Free delivery promos cover delivery only; service fee still applies when enabled.
   const serviceFee = (() => {
     // If discount already computed service fee, use that snapshot
     if (appliedDiscount?.serviceFee != null) return appliedDiscount.serviceFee;
-    // No config yet or fee disabled or platform promo active
+    // No config yet or fee disabled
     if (!platformConfig?.serviceFeeEnabled) return 0;
-    if (isPlatformPromoEligible) return 0;
     if (platformConfig.serviceFeeType === 'fixed') {
       return platformConfig.serviceFeeValue || 0;
     }

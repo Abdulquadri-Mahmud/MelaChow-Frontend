@@ -19,6 +19,9 @@ export default function VerifyPayment() {
   const reference = searchParams.get("reference");
   const didVerify = useRef(false);
   const formatMoney = (value) => `₦${Number(value || 0).toLocaleString()}`;
+  const promoWaivedDelivery =
+    Number(order?.deliveryFee || 0) === 0 &&
+    Number(order?.freeDeliveryPromo?.originalDeliveryFee || order?.vendorDeliveryPromo?.originalDeliveryFee || 0) > 0;
 
   useEffect(() => {
     // Prevent double verification
@@ -239,7 +242,7 @@ export default function VerifyPayment() {
                       <div className="flex justify-between text-sm mt-0.5">
                         <span className="text-slate-500 dark:text-zinc-400">Delivery Fee</span>
                         <span className={`font-medium ${Number(order.deliveryFee || 0) === 0 ? "text-green-600 dark:text-green-400" : "text-slate-900 dark:text-zinc-200"}`}>
-                          {Number(order.deliveryFee || 0) === 0 ? "Free" : formatMoney(order.deliveryFee)}
+                          {Number(order.deliveryFee || 0) === 0 ? (promoWaivedDelivery ? "Free (promo)" : "Free") : formatMoney(order.deliveryFee)}
                         </span>
                       </div>
                       
@@ -268,6 +271,10 @@ export default function VerifyPayment() {
                       <div className="flex justify-between text-sm mt-0.5">
                         <span className="text-slate-500 dark:text-zinc-400">Service Fee</span>
                         <span className="font-medium text-slate-900 dark:text-zinc-200">{formatMoney(order.serviceFee)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm mt-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
+                        <span className="font-bold text-slate-900 dark:text-zinc-200">Total Paid</span>
+                        <span className="font-bold text-slate-900 dark:text-zinc-100">{formatMoney(order.total)}</span>
                       </div>
                     </div>
                   </div>

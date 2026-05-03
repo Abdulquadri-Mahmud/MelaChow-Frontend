@@ -29,7 +29,9 @@ export const usePromoEligibility = () => {
     queryFn: fetchUserOrders,
     // Only fetch if promo is active — no point checking orders if no promo
     enabled: !!platformPromo,
-    staleTime: 1000 * 60 * 2, // 2 minutes — stale quickly, user may have just paid
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     retry: false,
   });
 
