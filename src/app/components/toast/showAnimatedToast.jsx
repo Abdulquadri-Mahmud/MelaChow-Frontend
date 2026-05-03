@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, X } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
-const showAnimatedToast = (type, message, id) => {
+const showAnimatedToast = (type, message, id, action = null) => {
   toast.custom(
     (t) => (
       <motion.div
@@ -20,6 +20,17 @@ const showAnimatedToast = (type, message, id) => {
         <div className="mt-0.5">{type === "success" ? <Check className="text-emerald-500" /> : <X className="text-rose-500" />}</div>
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-900">{message}</p>
+          {action && (
+            <button
+              onClick={() => {
+                toast.dismiss(t.id);
+                window.location.href = action.href;
+              }}
+              className="mt-2 rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-orange-600"
+            >
+              {action.label}
+            </button>
+          )}
         </div>
         <button
           onClick={() => toast.dismiss(t.id)}

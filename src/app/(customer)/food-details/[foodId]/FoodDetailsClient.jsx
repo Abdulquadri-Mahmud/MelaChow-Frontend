@@ -171,7 +171,6 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
   const handleAddToCart = (payload) => {
     addToCart(payload);
-    toast.success("Added to Order!");
     resetSelections();
   };
 
@@ -341,7 +340,6 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
       };
 
       addToCart(payload);
-      toast.success("Added to Order!");
       resetSelections();
   };
 

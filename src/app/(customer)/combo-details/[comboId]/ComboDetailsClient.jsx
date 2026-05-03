@@ -313,8 +313,6 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
             selected_options,
         });
 
-        toast.success("Bundle added to order!");
-        router.push("/orders?activeTab=cart");
     };
 
     // Render
