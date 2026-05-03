@@ -270,6 +270,10 @@ export default function VendorOrderDetailsPage() {
     const statusConfig = getStatusConfig(order.orderStatus);
     const StatusIcon = statusConfig.icon;
     const availableActions = getAvailableStatuses(order.orderStatus);
+    const formatMoney = (value) => `₦${Number(value || 0).toLocaleString()}`;
+    const customerFoodTotal = Number(order.vendorTotal || 0) + Number(order.commission || 0);
+    const vendorDeliveryShare = Number(order.deliveryShare || 0);
+    const vendorPayout = Number(order.vendorTotal || 0) + vendorDeliveryShare;
 
     const isPlatformDelivery = true; // All vendors are now platform managed
     const lockedPlatformStatuses = ["out_for_delivery", "delivered", "completed"];
@@ -713,7 +717,7 @@ export default function VendorOrderDetailsPage() {
                                                             </div>
                                                             <div className="flex-1">
                                                                 <p className="text-[8px] font-black uppercase tracking-widest text-amber-600 mb-0.5">KITCHEN NOTE</p>
-                                                                <p className="text-[11px] font-bold italic text-zinc-700 dark:text-zinc-300">"{note}"</p>
+                                                                <p className="text-[11px] font-bold italic text-zinc-700 dark:text-zinc-300">Customer note: {note}</p>
                                                             </div>
                                                         </div>
                                                     )}
@@ -749,40 +753,48 @@ export default function VendorOrderDetailsPage() {
                                     <Receipt size={14} strokeWidth={3} />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-[12px] text-zinc-900 dark:text-white uppercase tracking-widest">Earnings Breakdown</h3>
-                                    <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Escrow Payout Reconciliation</p>
+                                    <h3 className="font-black text-[12px] text-zinc-900 dark:text-white uppercase tracking-widest">Simple money breakdown</h3>
+                                    <p className="text-[10px] font-bold text-zinc-400 mt-0.5">Clear view of what the customer paid and what your store gets.</p>
                                 </div>
                             </div>
 
                             <div className="p-5 space-y-4">
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center text-zinc-500 dark:text-zinc-400">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest">Food Subtotal</span>
-                                        <span className="text-[12px] font-black text-zinc-900 dark:text-white">₦{(order.vendorTotal + (order.commission || 0)).toLocaleString()}</span>
+                                <div className="space-y-4">
+                                    <div className="flex justify-between gap-4">
+                                        <div>
+                                            <p className="text-sm font-bold text-zinc-700 dark:text-zinc-200">Food items</p>
+                                            <p className="text-[11px] text-zinc-400">Food price before MelaChow fee.</p>
+                                        </div>
+                                        <span className="text-sm font-black text-zinc-900 dark:text-white">{formatMoney(customerFoodTotal)}</span>
                                     </div>
 
-                                    {order.commission > 0 && (
-                                        <div className="flex justify-between items-center text-zinc-500 dark:text-zinc-400">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[10px] font-bold uppercase tracking-widest">Platform Commission</span>
-                                                <div className="p-1 bg-zinc-50 dark:bg-zinc-800 rounded-md">
-                                                    <Info size={10} className="text-zinc-400" />
-                                                </div>
+                                    {Number(order.commission || 0) > 0 && (
+                                        <div className="flex justify-between gap-4">
+                                            <div>
+                                                <p className="text-sm font-bold text-zinc-700 dark:text-zinc-200">MelaChow fee</p>
+                                                <p className="text-[11px] text-zinc-400">This is removed before your store payout.</p>
                                             </div>
-                                            <span className="text-[12px] font-black text-rose-600">- ₦{order.commission.toLocaleString()}</span>
+                                            <span className="text-sm font-black text-rose-600">-{formatMoney(order.commission)}</span>
                                         </div>
                                     )}
 
+                                    <div className="flex justify-between gap-4">
+                                        <div>
+                                            <p className="text-sm font-bold text-zinc-700 dark:text-zinc-200">Delivery share</p>
+                                            <p className="text-[11px] text-zinc-400">This is only added when delivery money belongs to the store.</p>
+                                        </div>
+                                        <span className="text-sm font-black text-zinc-900 dark:text-white">{formatMoney(vendorDeliveryShare)}</span>
+                                    </div>
                                 </div>
 
                                 <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">
                                     <div className="flex justify-between items-end bg-zinc-50 dark:bg-zinc-950 p-4 rounded-md border border-zinc-100 dark:border-zinc-800">
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Projected Net Payout</span>
-                                            <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Released to wallet on delivery</span>
+                                            <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">Store payout</span>
+                                            <span className="text-[10px] font-bold text-zinc-400 mt-0.5">This is what enters your wallet after delivery is confirmed.</span>
                                         </div>
                                         <span className="text-2xl font-black text-zinc-900 dark:text-white tracking-tighter">
-                                            ₦{((order.vendorTotal || 0) + (order.deliveryShare || 0)).toLocaleString()}
+                                            {formatMoney(vendorPayout)}
                                         </span>
                                     </div>
                                 </div>

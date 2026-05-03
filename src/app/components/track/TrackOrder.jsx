@@ -193,6 +193,13 @@ export default function OrderTracking() {
     return <div className="md:p-6 p-2 text-center text-zinc-600 dark:text-zinc-400 font-medium">No order found</div>;
 
   const { items, deliveryAddress, subtotal, deliveryFee, serviceFee, total, orderStatus, userId } = orderData;
+  const formatMoney = (value) => `₦${Number(value || 0).toLocaleString()}`;
+  const promoSaved = Number(
+    orderData.freeDeliveryPromo?.originalDeliveryFee ||
+    orderData.vendorDeliveryPromo?.originalDeliveryFee ||
+    0
+  );
+  const promoWaivedDelivery = Number(deliveryFee || 0) === 0 && promoSaved > 0;
   const currentStepIndex = statusSteps.findIndex((s) => s.key === orderStatus);
 
   // console.log(orderData);
@@ -617,7 +624,7 @@ export default function OrderTracking() {
                       <div className="flex items-start gap-2 px-3 py-2 bg-amber-50 dark:bg-amber-500/10 rounded-2xl border border-amber-100 dark:border-amber-500/20">
                         <span className="text-amber-500 text-[11px] mt-0.5 flex-shrink-0">📍</span>
                         <p className="text-[11px] font-bold text-amber-700 dark:text-amber-400 italic">
-                          "{item.note}"
+                          Customer note: {item.note}
                         </p>
                       </div>
                     )}
@@ -634,28 +641,43 @@ export default function OrderTracking() {
                     <p className="text-[10px] font-black uppercase tracking-widest text-orange-600">Order Directive Summary</p>
                   </div>
                   <p className="text-[14px] font-black text-zinc-900 dark:text-white leading-relaxed uppercase italic">
-                    {generateOrderItemsStatement(orderData, { prefix: "You ordered for" })}
+                    {generateOrderItemsStatement(orderData, { prefix: "You ordered" })}
                   </p>
                 </div>
 
-                <div className="flex justify-between items-center text-zinc-400 text-[11px] font-black uppercase tracking-widest">
-                  <span>Subtotal</span>
-                  <span className="text-zinc-900 dark:text-white">₦{subtotal.toLocaleString()}</span>
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-zinc-500 dark:text-zinc-400 font-medium">Food items</span>
+                    <span className="font-bold text-zinc-900 dark:text-white">{formatMoney(subtotal)}</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500">This is the price of the food before delivery and service fee.</p>
                 </div>
-                <div className="flex justify-between items-center text-zinc-400 text-[11px] font-black uppercase tracking-widest">
-                  <span>Delivery Service</span>
-                  <span className="text-orange-600">+ ₦{deliveryFee.toLocaleString()}</span>
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-zinc-500 dark:text-zinc-400 font-medium">Delivery</span>
+                    <span className={`font-bold ${Number(deliveryFee || 0) === 0 ? "text-green-600" : "text-zinc-900 dark:text-white"}`}>
+                      {Number(deliveryFee || 0) === 0 ? (promoWaivedDelivery ? "Free (promo)" : "Free") : formatMoney(deliveryFee)}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500">This is what was paid to bring the order to you.</p>
                 </div>
-                {serviceFee > 0 && (
-                  <div className="flex justify-between items-center text-zinc-400 text-[11px] font-black uppercase tracking-widest">
-                    <span>Service Fee</span>
-                    <span className="text-zinc-600 dark:text-zinc-300">+ ₦{serviceFee.toLocaleString()}</span>
+                {promoWaivedDelivery && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-green-600 font-medium">Delivery promo saved</span>
+                    <span className="font-bold text-green-600">-{formatMoney(promoSaved)}</span>
                   </div>
                 )}
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-zinc-500 dark:text-zinc-400 font-medium">Service fee</span>
+                    <span className="font-bold text-zinc-900 dark:text-white">{formatMoney(serviceFee)}</span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500">This small fee helps keep MelaChow running.</p>
+                </div>
                 <div className="flex justify-between items-end pt-4">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300 mb-1 leading-none">Total Payment</p>
-                    <h4 className="text-4xl font-black text-zinc-900 dark:text-white italic tracking-tighter leading-none">₦{total.toLocaleString()}</h4>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300 mb-1 leading-none">Total paid</p>
+                    <h4 className="text-4xl font-black text-zinc-900 dark:text-white italic tracking-tighter leading-none">{formatMoney(total)}</h4>
                   </div>
                   <div className="text-right">
                     <span className={`text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest ${

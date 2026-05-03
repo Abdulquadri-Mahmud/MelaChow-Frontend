@@ -233,10 +233,19 @@ export default function VendorProfilePage({ vendor }) {
         payload = { coverImage: data };
       }
 
-      await updateVendor({ id: vendor._id, data: payload });
+      const response = await updateVendor({ id: vendor._id, data: payload });
+      const updatedVendor = response?.data || response?.vendor || response || {};
+      const nextVendor = { ...vendor, ...payload, ...updatedVendor };
 
-      // âœ… Invalidate vendor profile query
-      queryClient.invalidateQueries({ queryKey: ["vendors"] });
+      queryClient.setQueryData(["vendors"], (old) => ({
+        ...(old || vendor || {}),
+        ...payload,
+        ...updatedVendor,
+      }));
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("melachow_vendor_cache", JSON.stringify(nextVendor));
+      }
 
       toast.success(`${section.replace(/([A-Z])/g, ' $1').trim()} updated successfully!`, {
         icon: '✅',
