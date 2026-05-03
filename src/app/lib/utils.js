@@ -41,16 +41,14 @@ export function generateOrderItemsStatement(order, { includeCustomerName = false
     const totalPortions = portionQuantity * quantity;
 
     const cleanPortionLabel = (portionLabel || "").trim();
-    let portionText = cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion");
+    const portionText = cleanPortionLabel || (totalPortions > 1 ? "servings" : "serving");
 
-    // "X unit(s) of [Item] (Y portions total)"
-    let statement = `${quantity} ${quantity > 1 ? "units" : "unit"} of ${itemName}`;
+    let statement = `${quantity} ${quantity > 1 ? "packs" : "pack"} of ${itemName}`;
     if (portionQuantity > 0) {
-      statement += ` (${totalPortions} ${portionText})`;
+      statement += `, making ${totalPortions} ${portionText}`;
     }
 
     if (options.length > 0) {
-      // List options per unit (e.g. "3 Beef" instead of "6 Beef" for 2 units)
       const optionsTextList = options.map((opt) => `${opt.quantity || 1} ${opt.label}`);
       const optionsSentence = optionsTextList.length === 1 
         ? optionsTextList[0] 
@@ -58,7 +56,7 @@ export function generateOrderItemsStatement(order, { includeCustomerName = false
           ? optionsTextList.join(" and ") 
           : optionsTextList.slice(0, -1).join(", ") + ", and " + optionsTextList.slice(-1);
       
-      statement += `, each with ${optionsSentence}`;
+      statement += `, with ${optionsSentence}`;
     }
     return statement;
   });
@@ -71,8 +69,8 @@ export function generateOrderItemsStatement(order, { includeCustomerName = false
 
   if (includeCustomerName) {
     const user = order.userId || order.userOrderId?.userId;
-    const name = user ? `${user.firstname} ${user.lastname}` : "This customer";
-    return `This customer (${name}) ordered for ${fullList}.`;
+    const name = user ? `${user.firstname || ""} ${user.lastname || ""}`.trim() : "";
+    return `${name || "This customer"} ordered ${fullList}.`;
   }
 
   if (prefix) {
