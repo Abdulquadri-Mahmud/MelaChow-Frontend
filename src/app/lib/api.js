@@ -1,5 +1,6 @@
 import axios from "axios";
 import { TokenManager } from "./auth-token";
+import { getPromoDeviceId } from "./promoDevice";
 
 // Initialize token from storage
 TokenManager.initialize();
@@ -472,8 +473,12 @@ export const getRecommendations = async (weather = null) => {
  */
 export const verifyDiscount = async (data) => {
   try {
-    const res = await axios.post("/api/discounts/verify", data, {
+    const deviceId = getPromoDeviceId();
+    const res = await axios.post("/api/discounts/verify", { ...data, deviceId }, {
       withCredentials: true,
+      headers: {
+        ...(deviceId ? { "X-MelaChow-Device-Id": deviceId } : {}),
+      },
     });
     return res.data;
   } catch (error) {
@@ -528,8 +533,12 @@ export const getDiscounts = async () => {
  */
 export const getVendorById = async (vendorId) => {
   try {
+    const deviceId = getPromoDeviceId();
     const res = await axios.get(`/api/user/vendors/${vendorId}`, {
       withCredentials: true,
+      headers: {
+        ...(deviceId ? { "X-MelaChow-Device-Id": deviceId } : {}),
+      },
     });
     return res.data;
   } catch (error) {

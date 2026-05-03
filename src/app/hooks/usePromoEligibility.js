@@ -3,15 +3,20 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useActivePromos } from "./useActivePromos";
+import { getPromoDeviceId } from "../lib/promoDevice";
 
 const fetchFreeDeliveryEligibility = async (originalDeliveryFee) => {
+  const deviceId = getPromoDeviceId();
   const res = await axios.post(
     "/api/orders/v2/free-delivery-eligibility",
-    { originalDeliveryFee },
+    { originalDeliveryFee, deviceId },
     {
       withCredentials: true,
       timeout: 10000,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(deviceId ? { "X-MelaChow-Device-Id": deviceId } : {}),
+      },
     }
   );
 

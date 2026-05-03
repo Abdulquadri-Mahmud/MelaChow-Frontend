@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getPromoDeviceId } from "./promoDevice";
 
 // Helper to dispatch unauthorized event
 const dispatchUserUnauthorized = () => {
@@ -27,13 +28,15 @@ const dispatchUserUnauthorized = () => {
  */
 export const createOrderV2 = async (orderData) => {
     try {
+        const deviceId = getPromoDeviceId();
         const response = await axios.post(
             "/api/orders/v2/create",
-            orderData,
+            { ...orderData, deviceId },
             {
                 withCredentials: true, // ✅ Send cookies for authentication
                 headers: {
                     "Content-Type": "application/json",
+                    ...(deviceId ? { "X-MelaChow-Device-Id": deviceId } : {}),
                 },
             }
         );

@@ -1,9 +1,11 @@
 import axios from "axios";
 import { TokenManager } from "./auth-token";
+import { getPromoDeviceId } from "./promoDevice";
 
 // menuApi.js — change this one line
 export const getMenuAxios = () => {
     const token = TokenManager.getToken('vendor');
+    const deviceId = getPromoDeviceId();
 
     return axios.create({
         baseURL: "", // Hit the Next.js API proxy instead of absolute URL to fix 401s and CORS issues
@@ -11,6 +13,7 @@ export const getMenuAxios = () => {
         headers: {
             'Content-Type': 'application/json',
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(deviceId ? { "X-MelaChow-Device-Id": deviceId } : {}),
         },
     });
 };
