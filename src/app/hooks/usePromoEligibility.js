@@ -1,58 +1,52 @@
 "use client";
+
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import { useActivePromos } from "./useActivePromos";
 
-const fetchUserOrders = async () => {
-  try {
-    const res = await fetch("/api/orders/my-orders", { credentials: "include" });
-    if (!res.ok) throw new Error("Failed to fetch orders");
-    return res.json();
-  } catch (error) {
-    console.error("Promo eligibility check: failed to fetch orders", error);
-    return { orders: [] };
-  }
+const fetchFreeDeliveryEligibility = async (originalDeliveryFee) => {
+  const res = await axios.post(
+    "/api/orders/v2/free-delivery-eligibility",
+    { originalDeliveryFee },
+    {
+      withCredentials: true,
+      timeout: 10000,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  return res.data;
 };
 
 /**
- * Returns whether the current user qualifies for the platform
- * first-order free delivery promo.
- *
- * eligible:    true only when promo is active AND user has no prior paid orders.
- * isLoading:   true while either query is in flight.
- * platformPromo: the promo data (slots remaining, endsAt) or null.
+ * Backend-backed platform free delivery check.
+ * Checkout must not decide promo eligibility by itself because Paystack uses
+ * the backend-created order total.
  */
-export const usePromoEligibility = () => {
+export const usePromoEligibility = (originalDeliveryFee = 0) => {
   const { platformPromo, isLoading: promoLoading } = useActivePromos();
+  const fee = Number(originalDeliveryFee || 0);
 
-  const { data: ordersData, isLoading: ordersLoading } = useQuery({
-    queryKey: ["user-orders-promo-check"],
-    queryFn: fetchUserOrders,
-    // Only fetch if promo is active — no point checking orders if no promo
-    enabled: !!platformPromo,
+  const { data, isLoading: eligibilityLoading } = useQuery({
+    queryKey: ["free-delivery-eligibility", fee, platformPromo?.slotsRemaining],
+    queryFn: () => fetchFreeDeliveryEligibility(fee),
+    enabled: !!platformPromo && fee > 0,
     staleTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
     retry: false,
   });
 
-  const hasPriorPaidOrPromoOrder = (ordersData?.orders || []).some(
-    (o) =>
-      o.paymentStatus === "paid" ||
-      (
-        o.freeDeliveryPromo?.eligible &&
-        !["failed", "refunded"].includes(o.paymentStatus) &&
-        o.orderStatus !== "cancelled"
-      )
-  );
-
   const eligible =
     !!platformPromo &&
-    !hasPriorPaidOrPromoOrder &&
+    fee > 0 &&
+    !!data?.eligible &&
     (platformPromo.slotsRemaining || 0) > 0;
 
   return {
     eligible,
+    reason: data?.reason || null,
     platformPromo,
-    isLoading: promoLoading || (!!platformPromo && ordersLoading),
+    isLoading: promoLoading || (!!platformPromo && fee > 0 && eligibilityLoading),
   };
 };

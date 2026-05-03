@@ -68,11 +68,6 @@ function CheckoutContent() {
   );
 
   const { vendorPromoCount } = useActivePromos();
-  const {
-    eligible: isPlatformPromoEligible,
-    platformPromo,
-    isLoading: isPromoLoading,
-  } = usePromoEligibility();
 
   useEffect(() => {
     setIsMounted(true);
@@ -155,6 +150,11 @@ function CheckoutContent() {
     (sum, fee) => sum + fee,
     0
   );
+  const {
+    eligible: isPlatformPromoEligible,
+    platformPromo,
+    isLoading: isPromoLoading,
+  } = usePromoEligibility(rawDeliveryFee);
   const deliveryFee = isPlatformPromoEligible ? 0 : rawDeliveryFee;
 
   // Free delivery promos cover delivery only; service fee still applies when enabled.
