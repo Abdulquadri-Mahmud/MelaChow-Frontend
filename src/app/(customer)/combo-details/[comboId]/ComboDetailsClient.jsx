@@ -473,7 +473,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                                 <Clock size={18} />
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Est. Time</p>
+                                                <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Prep time</p>
                                                 <p className="text-sm font-black text-zinc-900 dark:text-white leading-none">
                                                     {combo.prep_time_minutes ? `${combo.prep_time_minutes} min` : "25 min"}
                                                 </p>

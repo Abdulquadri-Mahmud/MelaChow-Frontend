@@ -1,11 +1,22 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     subscribeUserToPush,
     unsubscribeUserFromPush
 } from '../lib/push-notification-service';
 import toast from 'react-hot-toast';
+
+const SERVICE_WORKER_STATUS_TIMEOUT_MS = 8000;
+
+const withTimeout = (promise, ms, message) => {
+    let timeoutId;
+    const timeout = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(message)), ms);
+    });
+
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+};
 
 export function usePushNotifications(role = 'user') {
     const [subscription, setSubscription] = useState(null);
@@ -14,7 +25,7 @@ export function usePushNotifications(role = 'user') {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const STORAGE_PREFIX = `melachow_${role}_`;
+    const STORAGE_PREFIX = useMemo(() => `melachow_${role}_`, [role]);
 
     /**
      * Listen for messages from Service Worker (Foreground notifications)
@@ -45,14 +56,22 @@ export function usePushNotifications(role = 'user') {
     useEffect(() => {
         const checkSupport = async () => {
             setLoading(true);
-            const pushSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+            const pushSupported =
+                typeof window !== 'undefined' &&
+                'serviceWorker' in navigator &&
+                'PushManager' in window &&
+                'Notification' in window;
             setIsSupported(pushSupported);
 
             if (pushSupported) {
                 setPermission(Notification.permission);
 
                 try {
-                    const registration = await navigator.serviceWorker.ready;
+                    const registration = await withTimeout(
+                        navigator.serviceWorker.ready,
+                        SERVICE_WORKER_STATUS_TIMEOUT_MS,
+                        'Notification service is not ready yet'
+                    );
                     const sub = await registration.pushManager.getSubscription();
                     setSubscription(sub);
 
@@ -62,7 +81,7 @@ export function usePushNotifications(role = 'user') {
                     }
                 } catch (err) {
                     console.error('Error checking push subscription:', err);
-                    setError('Failed to check notification status');
+                    setError(err.message || 'Failed to check notification status');
                 }
             }
 
@@ -70,7 +89,7 @@ export function usePushNotifications(role = 'user') {
         };
 
         checkSupport();
-    }, [role]);
+    }, [STORAGE_PREFIX]);
 
     /**
      * Subscribe to push notifications
@@ -80,6 +99,10 @@ export function usePushNotifications(role = 'user') {
         setError(null);
 
         try {
+            if (!isSupported) {
+                throw new Error('Push notifications are not supported by this browser');
+            }
+
             // First request permission
             const result = await Notification.requestPermission();
             setPermission(result);
@@ -101,7 +124,7 @@ export function usePushNotifications(role = 'user') {
         } finally {
             setLoading(false);
         }
-    }, [role]);
+    }, [STORAGE_PREFIX, isSupported, role]);
 
     /**
      * Unsubscribe from push notifications
@@ -122,14 +145,14 @@ export function usePushNotifications(role = 'user') {
         } finally {
             setLoading(false);
         }
-    }, [role]);
+    }, [STORAGE_PREFIX, role]);
 
     /**
      * Handle prompt dismissal
      */
     const dismissPrompt = useCallback(() => {
         localStorage.setItem(`${STORAGE_PREFIX}push_prompt_dismissed`, 'true');
-    }, [role]);
+    }, [STORAGE_PREFIX]);
 
     /**
      * Check if prompt should be shown
@@ -141,7 +164,7 @@ export function usePushNotifications(role = 'user') {
 
         const dismissed = localStorage.getItem(`${STORAGE_PREFIX}push_prompt_dismissed`);
         return dismissed !== 'true';
-    }, [isSupported, permission, subscription, role]);
+    }, [STORAGE_PREFIX, isSupported, permission, subscription]);
 
     return {
         isSupported,

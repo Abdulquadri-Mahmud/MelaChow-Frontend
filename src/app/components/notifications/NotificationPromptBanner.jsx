@@ -43,6 +43,8 @@ export default function NotificationPromptBanner() {
                     },
                 });
                 setIsVisible(false);
+            } else {
+                toast.error("Notifications were not enabled. Please try again.");
             }
         } catch (error) {
             console.error("Notification permission error:", error);

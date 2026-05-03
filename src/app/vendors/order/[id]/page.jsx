@@ -274,6 +274,42 @@ export default function VendorOrderDetailsPage() {
     const customerFoodTotal = Number(order.vendorTotal || 0) + Number(order.commission || 0);
     const vendorDeliveryShare = Number(order.deliveryShare || 0);
     const vendorPayout = Number(order.vendorTotal || 0) + vendorDeliveryShare;
+    const showVendorDeliveryShare = vendorDeliveryShare > 0;
+
+    const buildKitchenSummary = (item) => {
+        const itemName = item.name || item.variant?.name || "this item";
+        const quantity = Number(item.quantity) || 1;
+        const portionQuantity = Number(item.portion_quantity) || 1;
+        const totalPortions = portionQuantity * quantity;
+        const options = item.selected_options || item.metadata?.selected_options || [];
+        const cleanPortionLabel = (item.portion_label || item.metadata?.portion_label || "")?.trim();
+        const portionText = cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion");
+
+        let sentence = `${quantity} ${quantity > 1 ? "units" : "unit"} of ${itemName}`;
+        if (portionQuantity > 0) {
+            sentence += ` (${totalPortions} ${portionText})`;
+        }
+        if (options.length > 0) {
+            const optionsTextList = options.map((opt) => `${Number(opt.quantity) || 1} ${opt.label}`);
+            const optionsSentence = optionsTextList.length === 1
+                ? optionsTextList[0]
+                : optionsTextList.length === 2
+                    ? optionsTextList.join(" and ")
+                    : optionsTextList.slice(0, -1).join(", ") + ", and " + optionsTextList.slice(-1);
+            sentence += `, each with ${optionsSentence}`;
+        }
+        sentence += ".";
+
+        return {
+            itemName,
+            quantity,
+            portionQuantity,
+            totalPortions,
+            options,
+            portionText,
+            sentence,
+        };
+    };
 
     const isPlatformDelivery = true; // All vendors are now platform managed
     const lockedPlatformStatuses = ["out_for_delivery", "delivered", "completed"];
@@ -297,8 +333,8 @@ export default function VendorOrderDetailsPage() {
                                         <Package size={16} />
                                     </div>
                                     <div>
-                                        <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-tight text-[14px]">Executive Order Summary</h3>
-                                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Automated Directive Briefing</p>
+                                        <h3 className="font-black text-zinc-900 dark:text-white uppercase tracking-tight text-[14px]">Kitchen order summary</h3>
+                                        <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Plain list of what to prepare</p>
                                     </div>
                                 </div>
                                 <button 
@@ -326,33 +362,10 @@ export default function VendorOrderDetailsPage() {
 
                                 {/* Directives */}
                                 <div>
-                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3">Kitchen Directives ({detailedItems.length})</p>
+                                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3">Kitchen instructions ({detailedItems.length})</p>
                                     <div className="space-y-3">
                                         {detailedItems.map((item, idx) => {
-                                            const itemName = item.name || item.variant?.name || "Unknown Item";
-                                            const quantity = Number(item.quantity) || 1;
-                                            const portionQuantity = Number(item.portion_quantity) || 1;
-                                            const totalPortions = portionQuantity * quantity;
-                                            const options = item.selected_options || item.metadata?.selected_options || [];
-                                            const cleanPortionLabel = (item.portion_label || item.metadata?.portion_label || "")?.trim();
-                                            
-                                            let portionText = cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion");
-
-                                            // "X unit(s) of [Item] (Y portions total)"
-                                            let fullSentence = `${quantity} ${quantity > 1 ? "units" : "unit"} of ${itemName}`;
-                                            if (portionQuantity > 0) {
-                                                fullSentence += ` (${totalPortions} ${portionText})`;
-                                            }
-                                            if (options.length > 0) {
-                                                const optionsTextList = options.map((opt) => `${opt.quantity || 1} ${opt.label}`);
-                                                const optionsSentence = optionsTextList.length === 1
-                                                    ? optionsTextList[0]
-                                                    : optionsTextList.length === 2
-                                                        ? optionsTextList.join(" and ")
-                                                        : optionsTextList.slice(0, -1).join(", ") + ", and " + optionsTextList.slice(-1);
-                                                fullSentence += `, each with ${optionsSentence}`;
-                                            }
-                                            fullSentence += ".";
+                                            const { sentence } = buildKitchenSummary(item);
 
                                             return (
                                                 <div key={idx} className="flex gap-3 bg-zinc-900 text-white p-3.5 rounded-md border border-zinc-800 relative overflow-hidden">
@@ -360,7 +373,7 @@ export default function VendorOrderDetailsPage() {
                                                     <div className="p-2 bg-zinc-800 rounded-md shrink-0 relative z-10 self-start">
                                                         <Hash size={12} className="text-orange-500" />
                                                     </div>
-                                                    <p className="text-[12px] font-black uppercase tracking-wide leading-tight relative z-10 mt-0.5">{fullSentence}</p>
+                                                    <p className="text-[15px] font-black tracking-wide leading-snug relative z-10 mt-0.5">{sentence}</p>
                                                 </div>
                                             );
                                         })}
@@ -594,39 +607,23 @@ export default function VendorOrderDetailsPage() {
                                 {detailedItems.map((item, idx) => {
                                     const itemName = item.name || item.variant?.name || "Unknown Item";
                                     const itemImage = item.image_url || item.variant?.image || null;
-                                    const portionLabel = item.portion_label || item.metadata?.portion_label || null;
-                                    const quantity = Number(item.quantity) || 1;
-                                    const portionQuantity = Number(item.portion_quantity) || 1;
                                     const dietaryType = item.dietary_type || item.metadata?.dietary_type || null;
                                     const itemType = item.item_type || null;
                                     const originalPrice = Number(item.originalPrice) || Number(item.variant?.price) || 0;
-                                    const options = item.selected_options || item.metadata?.selected_options || [];
                                     const note = item.note || "";
                                     const pricing = item.metadata?.pricing || null;
+                                    const {
+                                        quantity,
+                                        portionQuantity,
+                                        totalPortions,
+                                        options,
+                                        portionText,
+                                        sentence,
+                                    } = buildKitchenSummary(item);
                                     const basePrice = pricing?.base_naira || (options.length === 0 ? originalPrice : (originalPrice || 0));
                                     const optionsTotal = options.reduce((sum, opt) => sum + ((Number(opt.price_modifier_naira) || 0) * (Number(opt.quantity) || 1)), 0);
                                     const unitPrice = pricing?.final_unit_naira || (basePrice + optionsTotal);
                                     const lineTotal = unitPrice * quantity;
-                                    const totalPortions = portionQuantity * quantity;
-                                    
-                                    const cleanPortionLabel = portionLabel?.trim() || "";
-                                    let portionText = cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion");
-
-                                    // "X unit(s) of [Item] (Y portions total)"
-                                    let fullSentence = `${quantity} ${quantity > 1 ? "units" : "unit"} of ${itemName}`;
-                                    if (portionQuantity > 0) {
-                                        fullSentence += ` (${totalPortions} ${portionText})`;
-                                    }
-                                    if (options.length > 0) {
-                                        const optionsTextList = options.map((opt) => `${opt.quantity || 1} ${opt.label}`);
-                                        const optionsSentence = optionsTextList.length === 1
-                                            ? optionsTextList[0]
-                                            : optionsTextList.length === 2
-                                                ? optionsTextList.join(" and ")
-                                                : optionsTextList.slice(0, -1).join(", ") + ", and " + optionsTextList.slice(-1);
-                                        fullSentence += `, each with ${optionsSentence}`;
-                                    }
-                                    fullSentence += ".";
 
                                     return (
                                         <motion.div
@@ -678,25 +675,37 @@ export default function VendorOrderDetailsPage() {
                                                         </div>
                                                     </div>
 
-                                                    {/* Instruction Manifest */}
-                                                    <div className="bg-zinc-50/50 dark:bg-zinc-950/30 rounded-md p-3 border border-zinc-100 dark:border-zinc-800/50">
-                                                        <div className="flex items-center gap-2 mb-2 leading-none">
-                                                            <Package size={10} className="text-zinc-400" />
-                                                            <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">PREPARATION MANIFEST</p>
+                                                    {/* Clear kitchen breakdown */}
+                                                    <div className="bg-zinc-50/70 dark:bg-zinc-950/30 rounded-md p-4 border border-zinc-100 dark:border-zinc-800/50">
+                                                        <div className="flex items-center gap-2 mb-3 leading-none">
+                                                            <Package size={13} className="text-orange-600" />
+                                                            <p className="text-[10px] font-black text-zinc-600 dark:text-zinc-300 uppercase tracking-widest">What the kitchen should prepare</p>
                                                         </div>
                                                         
                                                         <div className="space-y-2">
                                                             <p className="text-[10px] font-black text-zinc-700 dark:text-zinc-200 flex items-center gap-2 uppercase tracking-wide leading-none">
                                                                 <span className="w-1.5 h-1.5 bg-orange-600 rounded-full" />
-                                                                EXTRACT {totalPortions} {portionText.toUpperCase()}
+                                                                Prepare {totalPortions} {portionText}
                                                             </p>
                                                             
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-md p-3">
+                                                                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Main item</p>
+                                                                    <p className="text-[13px] font-black text-zinc-900 dark:text-white">{quantity} x {itemName}</p>
+                                                                </div>
+                                                                <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-md p-3">
+                                                                    <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-1">Portion / size</p>
+                                                                    <p className="text-[13px] font-black text-zinc-900 dark:text-white">{totalPortions} {portionText}</p>
+                                                                </div>
+                                                            </div>
+
                                                             {options.length > 0 && (
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 pl-3.5 border-l border-zinc-200 dark:border-zinc-800">
+                                                                <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                                     {options.map((opt, oIdx) => (
-                                                                        <p key={oIdx} className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-2 leading-none">
-                                                                            <span className="text-orange-600">{(Number(opt.quantity) || 1) * quantity}X</span> {opt.label}
-                                                                        </p>
+                                                                        <div key={oIdx} className="flex items-center justify-between gap-3 rounded-md bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 px-3 py-2">
+                                                                            <span className="text-[12px] font-bold text-zinc-700 dark:text-zinc-200">{opt.label}</span>
+                                                                            <span className="text-[12px] font-black text-orange-600">{(Number(opt.quantity) || 1) * quantity}x</span>
+                                                                        </div>
                                                                     ))}
                                                                 </div>
                                                             )}
@@ -731,8 +740,8 @@ export default function VendorOrderDetailsPage() {
                                                     <Hash size={14} className="text-orange-600" />
                                                 </div>
                                                 <div className="flex-1 relative z-10">
-                                                    <p className="text-[8px] font-black text-zinc-500 uppercase tracking-widest mb-0.5">DIRECTIVE SUMMARY</p>
-                                                    <p className="text-[11px] font-black uppercase tracking-wide leading-tight">{fullSentence}</p>
+                                                    <p className="text-[11px] font-black text-zinc-400 uppercase tracking-widest mb-1">DIRECTIVE SUMMARY</p>
+                                                    <p className="text-[16px] font-black tracking-wide leading-snug">{sentence}</p>
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -778,13 +787,15 @@ export default function VendorOrderDetailsPage() {
                                         </div>
                                     )}
 
-                                    <div className="flex justify-between gap-4">
-                                        <div>
-                                            <p className="text-sm font-bold text-zinc-700 dark:text-zinc-200">Delivery share</p>
-                                            <p className="text-[11px] text-zinc-400">This is only added when delivery money belongs to the store.</p>
+                                    {showVendorDeliveryShare && (
+                                        <div className="flex justify-between gap-4">
+                                            <div>
+                                                <p className="text-sm font-bold text-zinc-700 dark:text-zinc-200">Delivery money for your store</p>
+                                                <p className="text-[11px] text-zinc-400">Shown only when your store is paid to handle delivery.</p>
+                                            </div>
+                                            <span className="text-sm font-black text-zinc-900 dark:text-white">{formatMoney(vendorDeliveryShare)}</span>
                                         </div>
-                                        <span className="text-sm font-black text-zinc-900 dark:text-white">{formatMoney(vendorDeliveryShare)}</span>
-                                    </div>
+                                    )}
                                 </div>
 
                                 <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800">

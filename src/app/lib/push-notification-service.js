@@ -1,5 +1,40 @@
 import axios from 'axios';
 
+const SERVICE_WORKER_TIMEOUT_MS = 10000;
+const API_TIMEOUT_MS = 15000;
+
+const withTimeout = (promise, ms, message) => {
+    let timeoutId;
+    const timeout = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(message)), ms);
+    });
+
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+};
+
+async function getServiceWorkerRegistration() {
+    if (!('serviceWorker' in navigator)) {
+        throw new Error('Push notifications are not supported by this browser');
+    }
+
+    const existingRegistration = await navigator.serviceWorker.getRegistration('/');
+    if (existingRegistration) {
+        return existingRegistration;
+    }
+
+    try {
+        await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    } catch (error) {
+        throw new Error(error?.message || 'Could not start notification service');
+    }
+
+    return withTimeout(
+        navigator.serviceWorker.ready,
+        SERVICE_WORKER_TIMEOUT_MS,
+        'Notification service is taking too long to start. Please refresh and try again.'
+    );
+}
+
 /**
  * Convert VAPID public key from base64 to Uint8Array
  * Required for subscribing to push notifications
@@ -36,7 +71,11 @@ export async function getVapidPublicKey(role = 'user') {
         // from the base notification endpoint, not the segregated ones.
         const response = await axios.get(getApiPath('user', 'vapid-public-key'), {
             withCredentials: true,
+            timeout: API_TIMEOUT_MS,
         });
+        if (!response.data?.publicKey) {
+            throw new Error('Notification key is not configured on the server');
+        }
         return response.data.publicKey;
     } catch (error) {
         console.error('Failed to fetch VAPID public key:', error);
@@ -64,6 +103,7 @@ export async function sendSubscriptionToServer(subscription, role = 'user') {
 
         const response = await axios.post(getApiPath(role, 'subscribe'), payload, {
             withCredentials: true,
+            timeout: API_TIMEOUT_MS,
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -83,6 +123,7 @@ export async function removeSubscriptionFromServer(subscription, role = 'user') 
         const path = getApiPath(role, 'unsubscribe');
         const config = {
             withCredentials: true,
+            timeout: API_TIMEOUT_MS,
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -120,14 +161,21 @@ export async function subscribeUserToPush(role = 'user') {
     }
 
     try {
-        const registration = await navigator.serviceWorker.ready;
+        const registration = await getServiceWorkerRegistration();
         const vapidPublicKey = await getVapidPublicKey(role);
         const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
 
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: applicationServerKey,
-        });
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+            subscription = await withTimeout(
+                registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: applicationServerKey,
+                }),
+                SERVICE_WORKER_TIMEOUT_MS,
+                'Notification subscription is taking too long. Please try again.'
+            );
+        }
 
         await sendSubscriptionToServer(subscription, role);
         return subscription;
@@ -142,7 +190,7 @@ export async function subscribeUserToPush(role = 'user') {
  */
 export async function unsubscribeUserFromPush(role = 'user') {
     try {
-        const registration = await navigator.serviceWorker.ready;
+        const registration = await getServiceWorkerRegistration();
         const subscription = await registration.pushManager.getSubscription();
 
         if (subscription) {

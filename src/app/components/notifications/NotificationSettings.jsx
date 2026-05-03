@@ -60,7 +60,7 @@ export default function NotificationSettings() {
                     </div>
                     <div>
                         <p className="font-bold text-zinc-900 dark:text-white">Push Notifications Unsupported</p>
-                        <p className="text-sm opacity-60">Your browser doesn't support push notifications.</p>
+                        <p className="text-sm opacity-60">Your browser does not support push notifications.</p>
                     </div>
                 </div>
             </div>
