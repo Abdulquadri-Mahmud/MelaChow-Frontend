@@ -8,6 +8,10 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRider } from "@/app/context/RiderContext";
 import NewOrderModal from "@/app/components/rider/NewOrderModal";
+import PushNotificationPrompt from "@/app/components/notifications/PushNotificationPrompt";
+import PWAUpdateManager from "@/app/components/PWA/PWAUpdateManager";
+import PWAInstallPrompt from "@/app/components/PWA/PWAInstallPrompt";
+import { registerServiceWorker } from "@/app/lib/pwa-utils";
 
 function RiderHeader({ isOnline, toggleAvailability, isToggling }) {
     const { rider, logout } = useRider();
@@ -62,6 +66,10 @@ function RiderLayoutInner({ children }) {
     const { isOnline, toggleAvailability, loading, rider, isToggling, refreshProfile } = useRider();
     const pathname = usePathname();
     const [assignmentModal, setAssignmentModal] = useState(null);
+
+    useEffect(() => {
+        registerServiceWorker();
+    }, []);
 
     useEffect(() => {
         const handleNewAssignment = (e) => {
@@ -194,6 +202,9 @@ function RiderLayoutInner({ children }) {
                     />
                 )}
             </AnimatePresence>
+            <PWAUpdateManager />
+            <PWAInstallPrompt />
+            <PushNotificationPrompt />
         </div>
     );
 }

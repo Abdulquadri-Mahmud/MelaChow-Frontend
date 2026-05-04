@@ -13,6 +13,17 @@ export default function NewOrderModal({ riderId, assignmentData, onClose, onRefr
     const [actionLoading, setActionLoading] = useState(false);
     const router = useRouter();
 
+    const notifyAssignmentAction = (action) => {
+        if (typeof window === "undefined") return;
+        window.dispatchEvent(new CustomEvent("rider:assignment_action", {
+            detail: {
+                action,
+                orderId: assignmentData?.orderId,
+                order
+            }
+        }));
+    };
+
     useEffect(() => {
         const fetchOrder = async () => {
             if (!riderId || !assignmentData?.orderId) return;
@@ -35,6 +46,7 @@ export default function NewOrderModal({ riderId, assignmentData, onClose, onRefr
             setActionLoading(true);
             await toggleRiderAvailability(riderId, "on_delivery");
             toast.success("Delivery Accepted! 🛵", { duration: 5000 });
+            notifyAssignmentAction("accept");
             if (onRefresh) await onRefresh();
             onClose();
             router.push('/rider/dashboard');
@@ -50,6 +62,7 @@ export default function NewOrderModal({ riderId, assignmentData, onClose, onRefr
             setActionLoading(true);
             await toggleRiderAvailability(riderId, "available");
             toast.success("Order rejected");
+            notifyAssignmentAction("reject");
             if (onRefresh) await onRefresh();
             onClose();
         } catch (error) {

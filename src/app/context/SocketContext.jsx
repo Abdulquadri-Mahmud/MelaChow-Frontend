@@ -48,7 +48,7 @@ export const SocketProvider = ({ children }) => {
 
         try {
             // Refined fetching based on role-specific endpoints
-            const fetchUrl = (role === 'vendor' || role === 'rider') ? `${apiBase}/history` : `${apiBase}/unread-count`;
+            const fetchUrl = role === 'vendor' ? `${apiBase}/history` : `${apiBase}/unread-count`;
 
             const response = await fetch(fetchUrl, {
                 credentials: 'include',
@@ -239,7 +239,7 @@ export const SocketProvider = ({ children }) => {
 
             // Missed notifications handler
             socketService.onMissedNotifications(({ notifications: missed, count }) => {
-                const isRelevant = role === 'vendor' || role === 'admin' || role === 'user';
+                const isRelevant = role === 'vendor' || role === 'admin' || role === 'rider' || role === 'user';
                 
                 if (isRelevant && missed?.length > 0) {
                     missed.forEach(notification => {
@@ -247,8 +247,9 @@ export const SocketProvider = ({ children }) => {
                     });
                     setUnreadCount(prev => prev + count);
                     
-                    const label = role === 'admin' ? 'logistics alerts' : 
-                                   role === 'vendor' ? 'vendor updates' : 'order updates';
+                    const label = role === 'admin' ? 'logistics alerts' :
+                                   role === 'vendor' ? 'vendor updates' :
+                                   role === 'rider' ? 'delivery updates' : 'order updates';
                                    
                     toast.success(`${count} missed ${label} received while away.`, { id: 'missed-notifications-summary', duration: 8000 });
                 }
