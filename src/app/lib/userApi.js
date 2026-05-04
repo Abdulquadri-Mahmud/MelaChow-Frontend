@@ -35,3 +35,20 @@ export const getNearbyVendors = async ({ city, state }) => {
   });
   return res.data;
 };
+
+/**
+ * Fetch all active vendors for public marketplace discovery.
+ * Used as a guest/SEO-friendly fallback when no customer address is available.
+ */
+export const getAllVendors = async () => {
+  const res = await getUserAxios().get("/user/vendors");
+  return res.data;
+};
+
+/**
+ * Fetch all public food records for marketplace discovery.
+ */
+export const getAllFoods = async () => {
+  const res = await getUserAxios().get("/vendors/foods/get-foods");
+  return res.data;
+};

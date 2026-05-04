@@ -29,16 +29,21 @@ export async function generateMetadata({ params }) {
 
   const title = `${food.name} | MelaChow`;
   const description = food.description || `Order ${food.name} from MelaChow. Fast and reliable food delivery in Nigeria.`;
+  const image = food.image_url || food.image || "/logo.jpeg";
 
   return {
     title,
     description,
+    alternates: {
+      canonical: `https://www.melachow.com/food-details/${foodId}`,
+    },
     openGraph: {
       title,
       description,
+      url: `https://www.melachow.com/food-details/${foodId}`,
       images: [
         {
-          url: food.image_url || "/logo.jpeg",
+          url: image,
           width: 800,
           height: 600,
           alt: food.name,
@@ -49,7 +54,7 @@ export async function generateMetadata({ params }) {
       card: "summary_large_image",
       title,
       description,
-      images: [food.image_url || "/logo.jpeg"],
+      images: [image],
     },
   };
 }

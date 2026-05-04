@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useApi } from "@/app/context/ApiContext";
 import { fetchUser } from "@/app/lib/api";
+import { getAllFoods } from "@/app/lib/userApi";
 import axios from "axios";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
@@ -48,6 +49,11 @@ export default function AllFoods() {
     const { data: foods = [], isLoading, isError, refetch } = useQuery({
         queryKey: ["all-foods", defaultAddr?.city, defaultAddr?.state],
         queryFn: async () => {
+            if (!defaultAddr) {
+                const res = await getAllFoods();
+                return res.data || [];
+            }
+
             try {
                 const res = await axios.get(`${baseUrl}/user/foods`, {
                     params: {
@@ -62,7 +68,7 @@ export default function AllFoods() {
                 throw err;
             }
         },
-        enabled: !!baseUrl && !!defaultAddr,
+        enabled: !!baseUrl,
     });
 
     const filteredFoods = useMemo(() => {

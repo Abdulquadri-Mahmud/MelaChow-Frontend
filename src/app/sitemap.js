@@ -1,4 +1,7 @@
 const baseUrl = 'https://www.melachow.com'
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com'
+
+const api = (path) => `${apiUrl.replace(/\/$/, '')}${path}`
 
 export default async function sitemap() {
   const now = new Date()
@@ -9,18 +12,19 @@ export default async function sitemap() {
     { url: `${baseUrl}/home`,                 lastModified: now, changeFrequency: 'daily',   priority: 1.0 },
     { url: `${baseUrl}/all-restaurants`,      lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
     { url: `${baseUrl}/all-foods`,            lastModified: now, changeFrequency: 'daily',   priority: 0.9 },
-    { url: `${baseUrl}/search`,               lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
     { url: `${baseUrl}/trending-foods`,       lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
     { url: `${baseUrl}/trending-restaurants`, lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
     { url: `${baseUrl}/faqs`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${baseUrl}/auth/signin`,          lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${baseUrl}/auth/rider/login`,     lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${baseUrl}/vendors/auth/login`,   lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
+    { url: `${baseUrl}/vendors/auth/register`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
   ]
-
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com'
 
   // Dynamic: vendor/restaurant pages
   let vendorRoutes = []
   try {
-    const res = await fetch(`${apiUrl}/v1/vendors/get-all`, {
+    const res = await fetch(api('/api/user/vendors'), {
       next: { revalidate: 3600 } 
     })
     if (res.ok) {
@@ -39,7 +43,7 @@ export default async function sitemap() {
   // Dynamic: food detail pages
   let foodRoutes = []
   try {
-    const res = await fetch(`${apiUrl}/v1/vendors/foods/get-foods`, {
+    const res = await fetch(api('/api/vendors/foods/get-foods'), {
       next: { revalidate: 3600 }
     })
     if (res.ok) {
@@ -55,23 +59,28 @@ export default async function sitemap() {
     console.error('Sitemap: failed to fetch foods', e)
   }
 
-  // Dynamic: combo detail pages
+  // Dynamic: combo detail pages. There is no all-combos public endpoint today, so
+  // derive combo URLs from public restaurant menus instead of calling a dead route.
   let comboRoutes = []
-  try {
-    const res = await fetch(`${apiUrl}/v1/menu/combos/all`, {
-      next: { revalidate: 3600 }
-    })
-    if (res.ok) {
+  for (const route of vendorRoutes) {
+    const vendorId = route.url.split('/').pop()
+    try {
+      const res = await fetch(api(`/v1/vendors/${vendorId}/menu`), {
+        next: { revalidate: 3600 },
+      })
+      if (res.ok) {
         const data = await res.json()
-        comboRoutes = (data?.combos || []).map((c) => ({
-          url: `${baseUrl}/combo-details/${c._id}?vendorId=${c.vendorId || c.vendor}`,
+        const combos = data?.combos || data?.data?.combos || []
+        comboRoutes.push(...combos.map((c) => ({
+          url: `${baseUrl}/combo-details/${c._id}?vendorId=${vendorId}`,
           lastModified: new Date(c.updatedAt || now),
           changeFrequency: 'weekly',
           priority: 0.7,
-        }))
+        })))
+      }
+    } catch (e) {
+      console.error(`Sitemap: failed to fetch combos for vendor ${vendorId}`, e)
     }
-  } catch (e) {
-    console.error('Sitemap: failed to fetch combos', e)
   }
 
   return [...staticRoutes, ...vendorRoutes, ...foodRoutes, ...comboRoutes]
