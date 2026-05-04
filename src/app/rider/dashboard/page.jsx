@@ -21,6 +21,7 @@ export default function RiderDashboard() {
     const [activeOrder, setActiveOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [localAssignmentStatus, setLocalAssignmentStatus] = useState(null);
     const [otpState, setOtpState] = useState(() => {
         if (typeof window !== "undefined") {
             const saved = localStorage.getItem("pending_delivery_otp");
@@ -53,6 +54,23 @@ export default function RiderDashboard() {
     }, [loading, activeOrder, otpState.step]);
 
     const riderId = rider?._id || rider?.id;
+    const effectiveRiderStatus = localAssignmentStatus === "accepted"
+        ? "on_delivery"
+        : localAssignmentStatus === "rejected"
+            ? "available"
+            : rider?.status;
+    const orderLifecycleStatus = activeOrder?.orderStatus || activeOrder?.status;
+    const isPendingAssignment =
+        effectiveRiderStatus === "pending_assignment" &&
+        ["assigned", "pending_assignment", "rider_assigned"].includes(orderLifecycleStatus);
+    const isOnDelivery = effectiveRiderStatus === "on_delivery";
+    const isHeadingToStore = isOnDelivery && ["assigned", "rider_assigned"].includes(orderLifecycleStatus);
+    const isDeliveringToCustomer = isOnDelivery && ["out_for_delivery", "picked_up"].includes(orderLifecycleStatus);
+    const activeOrderTitle = isPendingAssignment
+        ? "New Request"
+        : isHeadingToStore
+            ? "Head to Store"
+            : "Out for Delivery";
 
     const fetchActiveOrder = async () => {
         if (!riderId) return;
@@ -63,6 +81,9 @@ export default function RiderDashboard() {
 
             const order = data?.data?.order || data?.order || (data?._id ? data : null);
             setActiveOrder(order);
+            if (!order) {
+                setLocalAssignmentStatus(null);
+            }
         } catch (error) {
             if (error?.response?.status !== 404) {
                 console.error("Failed to fetch active order:", error);
@@ -98,13 +119,38 @@ export default function RiderDashboard() {
         fetchActiveOrder();
 
         const handleNewAssignment = () => {
+            setLocalAssignmentStatus(null);
             fetchActiveOrder();
             toast.success("New delivery assigned! 🛵", { duration: 8000 });
         };
 
+        const handleAssignmentAction = (event) => {
+            const action = event.detail?.action;
+
+            if (action === "accept") {
+                setLocalAssignmentStatus("accepted");
+                setActiveOrder(prev => prev ? ({
+                    ...prev,
+                    status: "rider_assigned",
+                    orderStatus: "rider_assigned"
+                }) : event.detail?.order || prev);
+                Promise.allSettled([refreshProfile(), fetchActiveOrder()]);
+            }
+
+            if (action === "reject") {
+                setLocalAssignmentStatus("rejected");
+                setActiveOrder(null);
+                Promise.allSettled([refreshProfile(), fetchActiveOrder()]);
+            }
+        };
+
         window.addEventListener("rider:new_assignment", handleNewAssignment);
-        return () => window.removeEventListener("rider:new_assignment", handleNewAssignment);
-    }, [riderId]);
+        window.addEventListener("rider:assignment_action", handleAssignmentAction);
+        return () => {
+            window.removeEventListener("rider:new_assignment", handleNewAssignment);
+            window.removeEventListener("rider:assignment_action", handleAssignmentAction);
+        };
+    }, [riderId, refreshProfile]);
 
     useEffect(() => {
         if (!socket) return;
@@ -112,6 +158,7 @@ export default function RiderDashboard() {
         socket.on("order_assigned", (payload) => {
             console.log("🛵 Order assigned via dashboard listener:", payload);
             toast.success("New order assigned to you!");
+            setLocalAssignmentStatus(null);
             fetchActiveOrder();
         });
 
@@ -148,13 +195,30 @@ export default function RiderDashboard() {
                 });
                 toast.success(res.message || "OTP requested!");
             } else if (action === "accept") {
+                if (!isPendingAssignment) {
+                    toast("This delivery assignment is already in progress.");
+                    await Promise.allSettled([refreshProfile(), fetchActiveOrder()]);
+                    return;
+                }
+                setLocalAssignmentStatus("accepted");
+                setActiveOrder(prev => prev ? ({
+                    ...prev,
+                    status: "rider_assigned",
+                    orderStatus: "rider_assigned"
+                }) : prev);
                 await toggleRiderAvailability(riderId, "on_delivery");
                 toast.success("Delivery Accepted! 🛵");
                 await refreshProfile();
                 fetchActiveOrder();
             } else if (action === "reject") {
+                if (!isPendingAssignment) {
+                    toast("This delivery assignment has already been handled.");
+                    await Promise.allSettled([refreshProfile(), fetchActiveOrder()]);
+                    return;
+                }
                 await toggleRiderAvailability(riderId, "available");
                 toast.success("Order rejected");
+                setLocalAssignmentStatus("rejected");
                 setActiveOrder(null);
                 await refreshProfile();
             }
@@ -314,8 +378,7 @@ export default function RiderDashboard() {
                                         Live Job
                                     </div>
                                     <h2 className="text-3xl font-black text-gray-900 dark:text-white leading-tight">
-                                        {rider?.status === "pending_assignment" ? "New Request" :
-                                            activeOrder.status === "assigned" ? "Head to Store" : "Out for Delivery"}
+                                        {activeOrderTitle}
                                     </h2>
                                     <p className="text-gray-500 dark:text-white/70 text-xs font-bold uppercase tracking-tighter">
                                         Order #{String(activeOrder.orderId || activeOrder._id || "").toUpperCase().slice(-8)}
@@ -460,7 +523,7 @@ export default function RiderDashboard() {
 
                             {/* Actions Zone */}
                             <div className="grid grid-cols-2 gap-4">
-                                {rider?.status === "pending_assignment" || activeOrder.status === "assigned" ? (
+                                {isPendingAssignment ? (
                                     <>
                                         <button
                                             onClick={() => handleAction("reject")}
@@ -476,11 +539,10 @@ export default function RiderDashboard() {
                                             ACCEPT
                                         </button>
                                     </>
-                                ) : activeOrder.status === "out_for_delivery" || rider?.status === "on_delivery" ? (
+                                ) : isOnDelivery || isDeliveringToCustomer ? (
                                     <>
                                         <button
                                             onClick={() => {
-                                                const isHeadingToStore = activeOrder.orderStatus === "rider_assigned" || activeOrder.status === "assigned";
                                                 let targetAddr = "";
 
                                                 if (isHeadingToStore) {
@@ -509,7 +571,7 @@ export default function RiderDashboard() {
                                             <Navigation size={20} className="mr-2 text-orange-600 dark:text-orange-300" />
                                             OPEN MAPS
                                         </button>
-                                        {activeOrder.orderStatus === "rider_assigned" || activeOrder.status === "assigned" ? (
+                                        {isHeadingToStore ? (
                                             <button
                                                 onClick={() => handleAction("pickup")}
                                                 className="h-16 rounded-2xl bg-orange-600 dark:bg-white text-white dark:text-orange-700 flex items-center justify-center font-black text-sm transition-all active:scale-95"
