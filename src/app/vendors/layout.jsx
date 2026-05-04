@@ -29,7 +29,19 @@ export default function VendorLayout({ children }) {
     registerServiceWorker();
   }, []);
 
-  // ✅ Don't render until mounted to prevent hydration errors
+  const isAuthRoute = pathname?.startsWith("/vendors/auth");
+  const isPendingApprovalRoute = pathname === "/vendors/pending-approval";
+
+  // Render public vendor auth pages during SSR so crawlers receive real HTML.
+  if (!isMounted && (isAuthRoute || isPendingApprovalRoute)) {
+    return (
+      <VendorProfileProvider>
+        {children}
+      </VendorProfileProvider>
+    );
+  }
+
+  // ✅ Don't render protected dashboard chrome until mounted to prevent hydration errors
   if (!isMounted) {
     return (
       <VendorProfileProvider>
@@ -39,7 +51,7 @@ export default function VendorLayout({ children }) {
   }
 
   // Don't apply DashboardLayout or Bootstrapper to auth or pending status routes
-  const isExcludedRoute = isMounted && (pathname?.startsWith("/vendors/auth") || pathname === "/vendors/pending-approval");
+  const isExcludedRoute = isMounted && (isAuthRoute || isPendingApprovalRoute);
 
   return (
     <VendorProfileProvider>

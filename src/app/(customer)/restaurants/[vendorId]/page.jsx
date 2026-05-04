@@ -7,8 +7,6 @@ async function getFullMenu(vendorId) {
     const res = await fetch(`${API_URL}/v1/vendors/${vendorId}/menu`, {
       cache: 'no-store',
     });
-
-    console.log(res);
     
     if (!res.ok) return null;
     return await res.json();
@@ -36,9 +34,13 @@ export async function generateMetadata({ params }) {
   return {
     title,
     description,
+    alternates: {
+      canonical: `https://www.melachow.com/restaurants/${vendorId}`,
+    },
     openGraph: {
       title,
       description,
+      url: `https://www.melachow.com/restaurants/${vendorId}`,
       images: [
         {
           url: vendor.logo || "/logo.jpeg",

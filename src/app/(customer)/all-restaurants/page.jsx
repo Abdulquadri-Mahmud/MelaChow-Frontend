@@ -17,7 +17,7 @@ import { fetchUser } from "@/app/lib/api";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import axios from "axios";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
-import { getNearbyVendors } from "@/app/lib/userApi";
+import { getAllVendors, getNearbyVendors } from "@/app/lib/userApi";
 
 const Skeleton = ({ width = "100%", height = 24, className = "" }) => (
     <div
@@ -41,12 +41,14 @@ export default function AllRestaurants() {
     const defaultAddr = useMemo(() => user?.addresses?.find((a) => a.isDefault), [user]);
 
     const { data: responseData, isLoading, isError, error, refetch } = useQuery({
-        queryKey: ["vendors-nearby", defaultAddr?.city, defaultAddr?.state],
-        queryFn: () => getNearbyVendors({
-            city: defaultAddr.city,
-            state: defaultAddr.state,
-        }),
-        enabled: !!defaultAddr && !isUserLoading,
+        queryKey: ["vendors-marketplace", defaultAddr?.city, defaultAddr?.state],
+        queryFn: () => defaultAddr
+            ? getNearbyVendors({
+                city: defaultAddr.city,
+                state: defaultAddr.state,
+            })
+            : getAllVendors(),
+        enabled: !isUserLoading,
     });
 
     const allVendors = useMemo(() => {
@@ -54,7 +56,7 @@ export default function AllRestaurants() {
         return raw.map((v) => ({
             _id: v._id,
             storeName: v.storeName,
-            city: v.address?.city,
+            city: v.address?.city || v.cityId?.name,
             image: v.logo || null,
             deliveryFee: v.deliveryFee ?? 0,
             rating: v.rating || 0,
