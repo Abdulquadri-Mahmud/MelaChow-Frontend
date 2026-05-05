@@ -91,7 +91,6 @@ export default function VendorOrdersPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("active");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [viewMode, setViewMode] = useState("desk");
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [tabletMode, setTabletMode] = useState(false);
@@ -334,7 +333,6 @@ export default function VendorOrdersPage() {
 
   return (
     <div className={`min-h-screen bg-zinc-100 p-2 font-sans dark:bg-zinc-950 ${tabletMode ? "fixed inset-0 z-[9999] overflow-y-auto" : "rounded-md"}`}>
-    <div className={`min-h-screen bg-zinc-100 p-2 font-sans dark:bg-zinc-950 ${tabletMode ? "fixed inset-0 z-50 overflow-y-auto" : "rounded-md"}`}>
       <div className={`${tabletMode ? "mx-auto max-w-[1600px]" : "mx-auto max-w-7xl"} space-y-4`}>
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -426,7 +424,6 @@ export default function VendorOrdersPage() {
                     setViewMode(mode.id);
                     if (mode.id === "logs") setStatusFilter("active");
                   }}
-                  onClick={() => setViewMode(mode.id)}
                   className={`rounded-md px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
                     viewMode === mode.id
                       ? "bg-orange-600 text-white"
