@@ -25,10 +25,13 @@ import { getVendorOrders } from "@/app/lib/vendorApi";
 import VendorOrderCard from "@/app/components/order/VendorOrderCard";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
 import VendorOrderDeskCard from "./components/VendorOrderDeskCard";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
 
 const ACTIVE_STATUSES = ["pending", "accepted", "preparing", "ready", "ready_for_pickup"];
 const HISTORY_STATUSES = ["out_for_delivery", "delivered", "completed", "cancelled", "failed", "refunded"];
 const ACK_KEY = "melachow_vendor_acknowledged_orders_v1";
+const WARNING_CHIME_KEY = "melachow_vendor_warning_chime_v1";
 
 function getOrderId(order) {
   return order?._id?.$oid || order?._id || "";
@@ -60,26 +63,55 @@ function persistAcknowledgements(value) {
   window.localStorage.setItem(ACK_KEY, JSON.stringify(value));
 }
 
-function playOrderDeskChime() {
+let orderDeskAudioContext;
+
+function getOrderDeskAudioContext() {
   if (typeof window === "undefined") return;
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return;
+  if (!orderDeskAudioContext || orderDeskAudioContext.state === "closed") {
+    orderDeskAudioContext = new AudioContext();
+  }
+  if (orderDeskAudioContext.state === "suspended") {
+    orderDeskAudioContext.resume().catch(() => {});
+  }
+  return orderDeskAudioContext;
+}
 
-  const context = new AudioContext();
+function playOrderDeskChime({ urgent = false } = {}) {
+  if (typeof window === "undefined") return;
+  const context = getOrderDeskAudioContext();
+  if (!context) return;
+
   const gain = context.createGain();
-  gain.gain.value = 0.035;
+  gain.gain.value = urgent ? 0.055 : 0.04;
   gain.connect(context.destination);
 
-  [0, 0.16, 0.32].forEach((offset) => {
+  const pattern = urgent
+    ? [
+        [0, 880],
+        [0.14, 660],
+        [0.28, 880],
+        [0.42, 660],
+      ]
+    : [
+        [0, 740],
+        [0.16, 740],
+        [0.32, 740],
+      ];
+
+  pattern.forEach(([offset, frequency]) => {
     const oscillator = context.createOscillator();
     oscillator.type = "sine";
-    oscillator.frequency.value = 740;
+    oscillator.frequency.value = frequency;
     oscillator.connect(gain);
     oscillator.start(context.currentTime + offset);
-    oscillator.stop(context.currentTime + offset + 0.09);
+    oscillator.stop(context.currentTime + offset + 0.1);
   });
 
-  window.setTimeout(() => context.close().catch(() => {}), 900);
+  if (navigator.vibrate) {
+    navigator.vibrate(urgent ? [220, 120, 220] : [160, 80, 160]);
+  }
 }
 
 export default function VendorOrdersPage() {
@@ -92,11 +124,14 @@ export default function VendorOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("active");
   const [viewMode, setViewMode] = useState("desk");
+  const [deskStatusTab, setDeskStatusTab] = useState("pending");
+  const [deskSwiper, setDeskSwiper] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [tabletMode, setTabletMode] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [acknowledgedOrders, setAcknowledgedOrders] = useState({});
   const previousPendingIdsRef = useRef(new Set());
+  const warningChimeRef = useRef({});
   const hasLoadedOnceRef = useRef(false);
   const { vendorDetails } = useVendorStorage();
   const itemsPerPage = tabletMode ? 8 : 6;
@@ -125,6 +160,20 @@ export default function VendorOrdersPage() {
     setAcknowledgedOrders(getPersistedAcknowledgements());
     fetchOrders();
   }, [fetchOrders]);
+
+  useEffect(() => {
+    const unlockAudio = () => {
+      getOrderDeskAudioContext();
+      window.removeEventListener("pointerdown", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+    };
+    window.addEventListener("pointerdown", unlockAudio, { once: true });
+    window.addEventListener("keydown", unlockAudio, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+    };
+  }, []);
 
   useEffect(() => {
     const tick = window.setInterval(() => setNow(Date.now()), 1000);
@@ -165,6 +214,39 @@ export default function VendorOrdersPage() {
       }
     }
   }, [orders, soundEnabled]);
+
+  useEffect(() => {
+    if (!soundEnabled) return;
+
+    const persisted = (() => {
+      try {
+        return JSON.parse(window.sessionStorage.getItem(WARNING_CHIME_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    })();
+    warningChimeRef.current = { ...persisted, ...warningChimeRef.current };
+
+    orders.forEach((order) => {
+      if (getStatus(order) !== "pending") return;
+      const orderId = getOrderId(order);
+      if (!orderId) return;
+      const created = new Date(order.createdAt).getTime();
+      const ageMs = now - created;
+      if (!created || Number.isNaN(created) || ageMs < 3 * 60 * 1000) return;
+
+      const lastPlayed = warningChimeRef.current[orderId] || 0;
+      if (now - lastPlayed < 60 * 1000) return;
+
+      warningChimeRef.current[orderId] = now;
+      window.sessionStorage.setItem(WARNING_CHIME_KEY, JSON.stringify(warningChimeRef.current));
+      try {
+        playOrderDeskChime({ urgent: true });
+      } catch {
+        // Browser audio can be blocked until user interaction.
+      }
+    });
+  }, [now, orders, soundEnabled]);
 
   const activeOrders = useMemo(
     () => orders.filter((order) => ACTIVE_STATUSES.includes(getStatus(order))).sort(sortOldestFirst),
@@ -280,6 +362,33 @@ export default function VendorOrdersPage() {
     completed: orders.filter((order) => ["delivered", "completed"].includes(getStatus(order))).length,
   };
 
+  const deskTabs = [
+    {
+      id: "pending",
+      label: "New",
+      icon: BellRing,
+      orders: incomingOrders,
+      subtitle: "Accept quickly so customers and kitchen staff know the order is moving.",
+      emptyText: "No new orders waiting right now.",
+    },
+    {
+      id: "preparing",
+      label: "Preparing",
+      icon: Timer,
+      orders: preparingOrders,
+      subtitle: "Orders already accepted by the restaurant.",
+      emptyText: "No orders are currently being prepared.",
+    },
+    {
+      id: "ready",
+      label: "Ready",
+      icon: CheckCircle2,
+      orders: readyOrders,
+      subtitle: "Keep this clear so riders and counter staff can scan fast.",
+      emptyText: "No orders are ready for pickup yet.",
+    },
+  ];
+
   const renderDeskSection = (title, subtitle, sectionOrders, emptyText, icon) => {
     const Icon = icon;
     return (
@@ -298,7 +407,7 @@ export default function VendorOrdersPage() {
         </div>
 
         {sectionOrders.length > 0 ? (
-          <div className={`grid gap-3 ${tabletMode ? "xl:grid-cols-2" : "lg:grid-cols-2"}`}>
+          <div className={`grid gap-3 ${tabletMode ? "xl:grid-cols-3" : "lg:grid-cols-2 2xl:grid-cols-3"}`}>
             {sectionOrders.map((order) => (
               <VendorOrderDeskCard
                 key={getOrderId(order)}
@@ -374,7 +483,17 @@ export default function VendorOrdersPage() {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
-                onClick={() => setSoundEnabled((value) => !value)}
+                onClick={() => {
+                  setSoundEnabled((value) => {
+                    const next = !value;
+                    if (next) {
+                      try {
+                        playOrderDeskChime();
+                      } catch {}
+                    }
+                    return next;
+                  });
+                }}
                 className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
                   soundEnabled
                     ? "border-orange-200 bg-orange-50 text-orange-600 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-400"
@@ -470,29 +589,53 @@ export default function VendorOrdersPage() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              className="space-y-5"
+              className="space-y-4"
             >
-              {renderDeskSection(
-                "New Orders",
-                "Accept quickly so customers and kitchen staff know the order is moving.",
-                incomingOrders,
-                "No new orders waiting right now.",
-                BellRing
-              )}
-              {renderDeskSection(
-                "Preparing",
-                "Orders already accepted by the restaurant.",
-                preparingOrders,
-                "No orders are currently being prepared.",
-                Timer
-              )}
-              {renderDeskSection(
-                "Ready for Pickup",
-                "Keep this clear so riders and counter staff can scan fast.",
-                readyOrders,
-                "No orders are ready for pickup yet.",
-                CheckCircle2
-              )}
+              <div className="sticky top-2 z-20 rounded-lg border border-zinc-200 bg-white/95 p-2 shadow-sm backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/95">
+                <div className="grid grid-cols-3 gap-2">
+                  {deskTabs.map((tab, index) => {
+                    const Icon = tab.icon;
+                    const isActive = deskStatusTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => {
+                          setDeskStatusTab(tab.id);
+                          deskSwiper?.slideTo(index);
+                        }}
+                        className={`flex min-h-11 items-center justify-center gap-2 rounded-md border px-2 text-[10px] font-black uppercase tracking-widest transition-all active:scale-[0.98] ${
+                          isActive
+                            ? "border-transparent bg-orange-600 text-white shadow-sm"
+                            : "border-zinc-200 bg-zinc-50 text-zinc-500 hover:border-orange-300 hover:text-orange-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                        }`}
+                      >
+                        <Icon size={14} strokeWidth={2.5} />
+                        <span className="truncate">{tab.label}</span>
+                        <span className={`rounded-md px-2 py-0.5 text-[8px] font-black ${isActive ? "bg-orange-900 text-white" : "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"}`}>
+                          {tab.orders.length}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <Swiper
+                onSwiper={setDeskSwiper}
+                onSlideChange={(swiper) => setDeskStatusTab(deskTabs[swiper.activeIndex]?.id || "pending")}
+                speed={300}
+                simulateTouch
+                touchRatio={1}
+                autoHeight
+                style={{ width: "100%" }}
+              >
+                {deskTabs.map((tab) => (
+                  <SwiperSlide key={tab.id} style={{ height: "auto", minHeight: "50vh" }}>
+                    {renderDeskSection(tab.label === "New" ? "New Orders" : tab.label === "Ready" ? "Ready for Pickup" : tab.label, tab.subtitle, tab.orders, tab.emptyText, tab.icon)}
+                  </SwiperSlide>
+                ))}
+              </Swiper>
             </motion.div>
           ) : (
             <motion.div

@@ -165,8 +165,8 @@ export default function VendorOrderDetailsPage() {
             'pending': ['accepted', 'cancelled'],
             'accepted': ['preparing', 'cancelled'],
             'preparing': ['ready_for_pickup', 'cancelled'],
-            'ready_for_pickup': ['cancelled'],
-            'ready': ['cancelled'],
+            'ready_for_pickup': [],
+            'ready': [],
             'delivered': [],
             'completed': [],
             'cancelled': [],
@@ -276,6 +276,12 @@ export default function VendorOrderDetailsPage() {
     const vendorPayout = Number(order.vendorTotal || 0) + vendorDeliveryShare;
     const showVendorDeliveryShare = vendorDeliveryShare > 0;
 
+    const joinList = (parts) => {
+        if (parts.length <= 1) return parts[0] || "";
+        if (parts.length === 2) return parts.join(" and ");
+        return `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
+    };
+
     const buildKitchenSummary = (item) => {
         const itemName = item.name || item.variant?.name || "this item";
         const quantity = Number(item.quantity) || 1;
@@ -283,22 +289,24 @@ export default function VendorOrderDetailsPage() {
         const totalPortions = portionQuantity * quantity;
         const options = item.selected_options || item.metadata?.selected_options || [];
         const cleanPortionLabel = (item.portion_label || item.metadata?.portion_label || "")?.trim();
-        const portionText = cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion");
+        const parts = [`${quantity} ${quantity === 1 ? "unit" : "units"} ${itemName}`];
 
-        let sentence = `${quantity} ${quantity > 1 ? "units" : "unit"} of ${itemName}`;
-        if (portionQuantity > 0) {
-            sentence += ` (${totalPortions} ${portionText})`;
+        if (totalPortions > 1 || cleanPortionLabel) {
+            parts.push(`${totalPortions} ${cleanPortionLabel || (totalPortions === 1 ? "portion" : "portions")}`);
         }
+
         if (options.length > 0) {
-            const optionsTextList = options.map((opt) => `${Number(opt.quantity) || 1} ${opt.label}`);
-            const optionsSentence = optionsTextList.length === 1
-                ? optionsTextList[0]
-                : optionsTextList.length === 2
-                    ? optionsTextList.join(" and ")
-                    : optionsTextList.slice(0, -1).join(", ") + ", and " + optionsTextList.slice(-1);
-            sentence += `, each with ${optionsSentence}`;
+            const optionsSentence = joinList(
+                options
+                    .map((opt) => {
+                        const label = opt.label || opt.name;
+                        return label ? `${Number(opt.quantity) || 1} ${label}` : "";
+                    })
+                    .filter(Boolean)
+            );
+            if (optionsSentence) parts.push(`add-ons: ${optionsSentence}`);
         }
-        sentence += ".";
+        const sentence = `${parts.join(" | ")}.`;
 
         return {
             itemName,
@@ -306,7 +314,7 @@ export default function VendorOrderDetailsPage() {
             portionQuantity,
             totalPortions,
             options,
-            portionText,
+            portionText: cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion"),
             sentence,
         };
     };

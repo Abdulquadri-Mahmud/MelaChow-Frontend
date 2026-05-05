@@ -174,6 +174,7 @@ export default function VendorOrderDeskCard({
   }, [order.items, restaurantId, userOrder.items]);
 
   const isPending = status === "pending";
+  const isReady = ["ready", "ready_for_pickup"].includes(status);
   const isAtRisk = isPending && elapsed.minutes >= 3;
   const isLate = isPending && elapsed.minutes >= 5;
   const isTablet = mode === "tablet";
@@ -351,7 +352,7 @@ export default function VendorOrderDeskCard({
           )}
 
           <div className="flex gap-2">
-            {["pending", "accepted", "preparing", "ready", "ready_for_pickup"].includes(status) && (
+            {["pending", "accepted", "preparing"].includes(status) && (
               <button
                 type="button"
                 onClick={() => {
@@ -364,6 +365,15 @@ export default function VendorOrderDeskCard({
               >
                 <X size={16} />
               </button>
+            )}
+            {isReady && (
+              <div
+                className="flex min-h-12 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 px-4 text-zinc-400 dark:border-zinc-800 dark:bg-zinc-950"
+                aria-label="Cancellation disabled after ready"
+                title="Cancellation disabled after the order is marked ready"
+              >
+                <PackageCheck size={16} />
+              </div>
             )}
             <Link
               href={`/vendors/order/${id}`}
