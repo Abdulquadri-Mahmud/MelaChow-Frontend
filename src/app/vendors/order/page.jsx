@@ -1,11 +1,86 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  BellRing,
+  ChevronLeft,
+  ChevronRight,
+  CheckCircle2,
+  Clock,
+  Filter,
+  Maximize2,
+  Minimize2,
+  Package,
+  RotateCw,
+  Search,
+  TabletSmartphone,
+  Timer,
+  TrendingUp,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { getVendorOrders } from "@/app/lib/vendorApi";
 import VendorOrderCard from "@/app/components/order/VendorOrderCard";
-import { ChevronLeft, ChevronRight, Package, Search, Filter, TrendingUp, Clock, CheckCircle2, Hash, RotateCw } from "lucide-react";
 import { useVendorStorage } from "@/app/hooks/vendorStorage";
+import VendorOrderDeskCard from "./components/VendorOrderDeskCard";
+
+const ACTIVE_STATUSES = ["pending", "accepted", "preparing", "ready", "ready_for_pickup"];
+const HISTORY_STATUSES = ["out_for_delivery", "delivered", "completed", "cancelled", "failed", "refunded"];
+const ACK_KEY = "melachow_vendor_acknowledged_orders_v1";
+
+function getOrderId(order) {
+  return order?._id?.$oid || order?._id || "";
+}
+
+function getStatus(order) {
+  return order.orderStatus?.toLowerCase() || "pending";
+}
+
+function sortNewestFirst(a, b) {
+  return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+}
+
+function sortOldestFirst(a, b) {
+  return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+}
+
+function getPersistedAcknowledgements() {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(ACK_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function persistAcknowledgements(value) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(ACK_KEY, JSON.stringify(value));
+}
+
+function playOrderDeskChime() {
+  if (typeof window === "undefined") return;
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+
+  const context = new AudioContext();
+  const gain = context.createGain();
+  gain.gain.value = 0.035;
+  gain.connect(context.destination);
+
+  [0, 0.16, 0.32].forEach((offset) => {
+    const oscillator = context.createOscillator();
+    oscillator.type = "sine";
+    oscillator.frequency.value = 740;
+    oscillator.connect(gain);
+    oscillator.start(context.currentTime + offset);
+    oscillator.stop(context.currentTime + offset + 0.09);
+  });
+
+  window.setTimeout(() => context.close().catch(() => {}), 900);
+}
 
 export default function VendorOrdersPage() {
   const router = useRouter();
@@ -15,11 +90,18 @@ export default function VendorOrdersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
+  const [viewMode, setViewMode] = useState("desk");
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [tabletMode, setTabletMode] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  const [acknowledgedOrders, setAcknowledgedOrders] = useState({});
+  const previousPendingIdsRef = useRef(new Set());
+  const hasLoadedOnceRef = useRef(false);
   const { vendorDetails } = useVendorStorage();
-  const itemsPerPage = 6;
+  const itemsPerPage = tabletMode ? 8 : 6;
 
-  const fetchOrders = async (isRefresh = false) => {
+  const fetchOrders = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) {
         setIsRefreshing(true);
@@ -37,42 +119,124 @@ export default function VendorOrdersPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
-
-  useEffect(() => {
-    fetchOrders();
   }, []);
 
-  // Combined Search & Status Filter
+  useEffect(() => {
+    setAcknowledgedOrders(getPersistedAcknowledgements());
+    fetchOrders();
+  }, [fetchOrders]);
+
+  useEffect(() => {
+    const tick = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(tick);
+  }, []);
+
+  useEffect(() => {
+    const poll = () => fetchOrders(true);
+    const interval = window.setInterval(poll, document.hidden ? 30000 : 8000);
+    return () => window.clearInterval(interval);
+  }, [fetchOrders, viewMode]);
+
+  useEffect(() => {
+    const pendingIds = new Set(
+      orders
+        .filter((order) => getStatus(order) === "pending")
+        .map(getOrderId)
+        .filter(Boolean)
+    );
+
+    if (!hasLoadedOnceRef.current) {
+      previousPendingIdsRef.current = pendingIds;
+      hasLoadedOnceRef.current = true;
+      return;
+    }
+
+    const hasNewPending = [...pendingIds].some((id) => !previousPendingIdsRef.current.has(id));
+    previousPendingIdsRef.current = pendingIds;
+
+    if (hasNewPending) {
+      setViewMode("desk");
+      if (soundEnabled) {
+        try {
+          playOrderDeskChime();
+        } catch {
+          // Browser audio can be blocked until user interaction.
+        }
+      }
+    }
+  }, [orders, soundEnabled]);
+
+  const activeOrders = useMemo(
+    () => orders.filter((order) => ACTIVE_STATUSES.includes(getStatus(order))).sort(sortOldestFirst),
+    [orders]
+  );
+
+  const incomingOrders = useMemo(
+    () => activeOrders.filter((order) => getStatus(order) === "pending"),
+    [activeOrders]
+  );
+
+  const preparingOrders = useMemo(
+    () => activeOrders.filter((order) => ["accepted", "preparing"].includes(getStatus(order))),
+    [activeOrders]
+  );
+
+  const readyOrders = useMemo(
+    () => activeOrders.filter((order) => ["ready", "ready_for_pickup"].includes(getStatus(order))),
+    [activeOrders]
+  );
+
+  const unacknowledgedIncoming = useMemo(
+    () => incomingOrders.filter((order) => !acknowledgedOrders[getOrderId(order)]),
+    [acknowledgedOrders, incomingOrders]
+  );
+
+  useEffect(() => {
+    const originalTitle = document.title;
+    if (unacknowledgedIncoming.length > 0) {
+      document.title = `${unacknowledgedIncoming.length} New Order${unacknowledgedIncoming.length === 1 ? "" : "s"} - MelaChow`;
+    }
+    return () => {
+      document.title = originalTitle;
+    };
+  }, [unacknowledgedIncoming.length]);
+
+  const acknowledgeOrder = useCallback((orderId) => {
+    if (!orderId) return;
+    setAcknowledgedOrders((prev) => {
+      const next = { ...prev, [orderId]: Date.now() };
+      persistAcknowledgements(next);
+      return next;
+    });
+  }, []);
+
   useEffect(() => {
     let result = orders;
 
-    // 1. Filter by Status
     if (statusFilter !== "all") {
-      result = result.filter(order => {
-        if (statusFilter === 'ready_for_pickup') {
-          return order.orderStatus === 'ready_for_pickup' || order.orderStatus === 'ready';
-        }
-        return order.orderStatus === statusFilter;
+      result = result.filter((order) => {
+        const status = getStatus(order);
+        if (statusFilter === "active") return ACTIVE_STATUSES.includes(status);
+        if (statusFilter === "history") return HISTORY_STATUSES.includes(status);
+        if (statusFilter === "ready_for_pickup") return status === "ready_for_pickup" || status === "ready";
+        return status === statusFilter;
       });
     }
 
-    // 2. Filter by Search Query
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
-      result = result.filter(order => {
-        const orderId = (order._id?.$oid || order._id || "").toString().toLowerCase();
-        const userOrderId = (order.userOrderId?.orderId || "").toLowerCase();
-        const customerName = (order.userOrderId?.userId?.firstname + " " + order.userOrderId?.userId?.lastname).toLowerCase();
+      result = result.filter((order) => {
+        const orderId = getOrderId(order).toLowerCase();
+        const userOrderId = (order.userOrderId?.orderId || order.orderId || "").toLowerCase();
+        const customerName = `${order.userOrderId?.userId?.firstname || ""} ${order.userOrderId?.userId?.lastname || ""}`.toLowerCase();
         return orderId.includes(lowerQuery) || userOrderId.includes(lowerQuery) || customerName.includes(lowerQuery);
       });
     }
 
-    setFilteredOrders(result);
+    setFilteredOrders([...result].sort(sortNewestFirst));
     setCurrentPage(1);
   }, [searchQuery, statusFilter, orders]);
 
-  // Pagination Logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
@@ -81,321 +245,404 @@ export default function VendorOrdersPage() {
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   const tabs = [
     { id: "all", label: "All Logs", icon: Package },
-    { id: "pending", label: "Pending", icon: Clock },
+    { id: "active", label: "Active", icon: BellRing },
+    { id: "pending", label: "New", icon: Clock },
     { id: "accepted", label: "Accepted", icon: CheckCircle2 },
     { id: "preparing", label: "Preparing", icon: TrendingUp },
     { id: "ready_for_pickup", label: "Ready", icon: CheckCircle2 },
+    { id: "history", label: "History", icon: Package },
     { id: "out_for_delivery", label: "In Transit", icon: TrendingUp },
     { id: "delivered", label: "Delivered", icon: CheckCircle2 },
     { id: "completed", label: "Completed", icon: CheckCircle2 },
   ];
 
+  const getTabCount = (tabId) => {
+    if (tabId === "all") return orders.length;
+    if (tabId === "active") return activeOrders.length;
+    if (tabId === "history") return orders.filter((order) => HISTORY_STATUSES.includes(getStatus(order))).length;
+    if (tabId === "ready_for_pickup") {
+      return orders.filter((order) => ["ready", "ready_for_pickup"].includes(getStatus(order))).length;
+    }
+    return orders.filter((order) => getStatus(order) === tabId).length;
+  };
+
   const stats = {
     total: orders.length,
-    pending: orders.filter(o => o.orderStatus === 'pending').length,
-    active: orders.filter(o => ['accepted', 'preparing', 'ready_for_pickup', 'ready', 'out_for_delivery'].includes(o.orderStatus)).length,
-    completed: orders.filter(o => ['delivered', 'completed'].includes(o.orderStatus)).length,
+    pending: incomingOrders.length,
+    active: activeOrders.length,
+    ready: readyOrders.length,
+    completed: orders.filter((order) => ["delivered", "completed"].includes(getStatus(order))).length,
+  };
+
+  const renderDeskSection = (title, subtitle, sectionOrders, emptyText, icon) => {
+    const Icon = icon;
+    return (
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <div className="flex items-center gap-2">
+              <Icon size={16} className="text-orange-600" />
+              <h2 className="text-sm font-black uppercase tracking-widest text-zinc-900 dark:text-white">{title}</h2>
+              <span className="rounded-md bg-orange-50 px-2 py-0.5 text-[10px] font-black text-orange-600 dark:bg-orange-500/10 dark:text-orange-300">
+                {sectionOrders.length}
+              </span>
+            </div>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">{subtitle}</p>
+          </div>
+        </div>
+
+        {sectionOrders.length > 0 ? (
+          <div className={`grid gap-3 ${tabletMode ? "xl:grid-cols-2" : "lg:grid-cols-2"}`}>
+            {sectionOrders.map((order) => (
+              <VendorOrderDeskCard
+                key={getOrderId(order)}
+                order={order}
+                now={now}
+                mode={tabletMode ? "tablet" : "normal"}
+                vendorDetails={vendorDetails}
+                onRefresh={fetchOrders}
+                onAcknowledge={acknowledgeOrder}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
+            <p className="text-[11px] font-black uppercase tracking-widest text-zinc-400">{emptyText}</p>
+          </div>
+        )}
+      </section>
+    );
   };
 
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-zinc-50 dark:bg-zinc-950">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-[3px] border-orange-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Syncing Transaction Logs...</p>
+          <div className="h-10 w-10 rounded-full border-[3px] border-orange-600 border-t-transparent animate-spin" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Opening Order Desk...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-100 p-2 rounded-md dark:bg-zinc-950 font-sans">
-      <div className="max-w-7xl mx-auto space-y-4">
-
-        {/* Hero Header Section */}
+    <div className={`min-h-screen bg-zinc-100 p-2 font-sans dark:bg-zinc-950 ${tabletMode ? "fixed inset-0 z-[9999] overflow-y-auto" : "rounded-md"}`}>
+      <div className={`${tabletMode ? "mx-auto max-w-[1600px]" : "mx-auto max-w-7xl"} space-y-4`}>
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800"
+          className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
         >
-          {/* Top Row: Back Button & Title & Refresh */}
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <motion.button 
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => router.back()}
-                className="p-2.5 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-zinc-500 hover:text-orange-600 dark:hover:text-orange-500 transition-all border border-zinc-200 dark:border-zinc-700 active:scale-90 shrink-0"
-              >
-                <ChevronLeft size={18} />
-              </motion.button>
+              {!tabletMode && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => router.back()}
+                  className="shrink-0 rounded-lg border border-zinc-200 bg-zinc-100 p-2.5 text-zinc-500 transition-all hover:text-orange-600 active:scale-90 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:text-orange-500"
+                >
+                  <ChevronLeft size={18} />
+                </motion.button>
+              )}
               <div>
-                <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 dark:text-white uppercase tracking-tight leading-none">
-                  Order Logs
+                <div className="flex flex-wrap items-center gap-2">
+                  {unacknowledgedIncoming.length > 0 && (
+                    <span className="inline-flex items-center gap-1.5 rounded-md bg-orange-600 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-white">
+                      <BellRing size={12} />
+                      {unacknowledgedIncoming.length} New
+                    </span>
+                  )}
+                  <span className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                    <TabletSmartphone size={12} />
+                    Vendor Station
+                  </span>
+                </div>
+                <h1 className="mt-2 text-2xl font-black uppercase leading-none tracking-tight text-zinc-900 dark:text-white sm:text-3xl">
+                  Order Desk
                 </h1>
               </div>
             </div>
-            
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => fetchOrders(true)}
-              disabled={isRefreshing}
-              className="flex items-center gap-2 p-2 px-4 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-500 rounded-lg font-black text-[10px] uppercase tracking-widest border border-orange-200 dark:border-orange-500/20 active:scale-95 transition-all disabled:opacity-50"
-            >
-              <RotateCw size={14} className={isRefreshing ? "animate-spin" : ""} strokeWidth={2.5}/>
-              Refresh
-            </motion.button>
-          </div>
 
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSoundEnabled((value) => !value)}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                  soundEnabled
+                    ? "border-orange-200 bg-orange-50 text-orange-600 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-400"
+                    : "border-zinc-200 bg-white text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                }`}
+              >
+                {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+                Sound
+              </button>
 
-          {/* Second Row: Subtitle & Search */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
-              Real-time transaction manifest & operational history
-            </p>
+              <button
+                type="button"
+                onClick={() => setTabletMode((value) => !value)}
+                className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[10px] font-black uppercase tracking-widest text-zinc-600 transition-all active:scale-95 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+              >
+                {tabletMode ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                {tabletMode ? "Exit Station" : "Station Mode"}
+              </button>
 
-            {/* Search Bar */}
-            <div className="relative w-full sm:max-w-sm">
-              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-              <motion.input 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                placeholder="Search by ID or name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm font-bold uppercase tracking-wider outline-none focus:border-orange-600 dark:focus:border-orange-500 transition-colors text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500"
-              />
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => fetchOrders(true)}
+                disabled={isRefreshing}
+                className="flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 p-2 px-4 text-[10px] font-black uppercase tracking-widest text-orange-600 transition-all active:scale-95 disabled:opacity-50 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-500"
+              >
+                <RotateCw size={14} className={isRefreshing ? "animate-spin" : ""} strokeWidth={2.5} />
+                Refresh
+              </motion.button>
             </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">
+              Smart polling, kitchen tickets, SLA timers, and one-tap order movement.
+            </p>
+
+            <div className="flex rounded-lg border border-zinc-200 bg-zinc-100 p-1 dark:border-zinc-700 dark:bg-zinc-800">
+              {[
+                { id: "desk", label: "Desk" },
+                { id: "logs", label: "Logs" },
+              ].map((mode) => (
+                <button
+                  key={mode.id}
+                  type="button"
+                  onClick={() => {
+                    setViewMode(mode.id);
+                    if (mode.id === "logs") setStatusFilter("active");
+                  }}
+                  className={`rounded-md px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                    viewMode === mode.id
+                      ? "bg-orange-600 text-white"
+                      : "text-zinc-500 hover:text-orange-600 dark:text-zinc-300"
+                  }`}
+                >
+                  {mode.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-2 gap-3 border-t border-zinc-200 pt-6 dark:border-zinc-800 sm:grid-cols-5">
             {[
-              { label: "Total Orders", value: stats.total, icon: Package, gradient: "from-blue-500 to-blue-600", light: "text-blue-600", lightBg: "bg-blue-50 dark:bg-blue-500/10" },
-              { label: "Awaiting", value: stats.pending, icon: Clock, gradient: "from-amber-500 to-amber-600", light: "text-amber-600", lightBg: "bg-amber-50 dark:bg-amber-500/10" },
-              { label: "In Progress", value: stats.active, icon: TrendingUp, gradient: "from-orange-500 to-orange-600", light: "text-orange-600", lightBg: "bg-orange-50 dark:bg-orange-500/10" },
-              { label: "Completed", value: stats.completed, icon: CheckCircle2, gradient: "from-emerald-500 to-emerald-600", light: "text-emerald-600", lightBg: "bg-emerald-50 dark:bg-emerald-500/10" },
-            ].map((s, idx) => (
-              <motion.div 
-                key={idx}
+              { label: "Total Orders", value: stats.total, icon: Package, light: "text-blue-600", lightBg: "bg-blue-50 dark:bg-blue-500/10" },
+              { label: "New", value: stats.pending, icon: Clock, light: "text-amber-600", lightBg: "bg-amber-50 dark:bg-amber-500/10" },
+              { label: "Active", value: stats.active, icon: Timer, light: "text-orange-600", lightBg: "bg-orange-50 dark:bg-orange-500/10" },
+              { label: "Ready", value: stats.ready, icon: CheckCircle2, light: "text-purple-600", lightBg: "bg-purple-50 dark:bg-purple-500/10" },
+              { label: "Completed", value: stats.completed, icon: CheckCircle2, light: "text-emerald-600", lightBg: "bg-emerald-50 dark:bg-emerald-500/10" },
+            ].map((stat, idx) => (
+              <motion.div
+                key={stat.label}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className={`p-3 rounded-lg ${s.lightBg} border border-zinc-200 dark:border-zinc-700`}
+                transition={{ delay: idx * 0.06 }}
+                className={`rounded-lg border border-zinc-200 p-3 dark:border-zinc-700 ${stat.lightBg}`}
               >
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className={`text-[9px] font-black uppercase tracking-wider ${s.light} opacity-75`}>{s.label}</p>
+                <div className="mb-3 flex items-start justify-between gap-2">
+                  <p className={`text-[9px] font-black uppercase tracking-wider ${stat.light} opacity-75`}>{stat.label}</p>
+                  <div className={`rounded-lg bg-white p-2 ${stat.light} dark:bg-zinc-900`}>
+                    <stat.icon size={14} strokeWidth={2.5} />
                   </div>
-                  <motion.div 
-                    className={`p-2 bg-linear-to-br ${s.gradient} rounded-lg text-white`}
-                    whileHover={{ scale: 1.1 }}
-                  >
-                    <s.icon size={14} strokeWidth={2.5} />
-                  </motion.div>
                 </div>
-                <p className={`text-3xl font-black ${s.light} tabular-nums`}>{s.value}</p>
+                <p className={`text-3xl font-black tabular-nums ${stat.light}`}>{stat.value}</p>
               </motion.div>
             ))}
           </div>
         </motion.div>
 
-        {/* Filter Tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white dark:bg-zinc-900 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800"
-        >
-          <div className="flex items-center gap-2 mb-4 px-1">
-            <Filter size={14} className="text-orange-600" />
-            <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300">Filter by status</p>
-            <div className="ml-auto text-[9px] font-bold text-zinc-400 dark:text-zinc-500">
-              {filteredOrders.length} results
-            </div>
-          </div>
-          <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-hide scroll-smooth">
-            {tabs.map((tab) => {
-              const count = tab.id === 'all' 
-                ? orders.length 
-                : orders.filter(o => tab.id === 'ready_for_pickup' ? (o.orderStatus === 'ready' || o.orderStatus === 'ready_for_pickup') : o.orderStatus === tab.id).length;
-              
-              const isActive = statusFilter === tab.id;
-              return (
-                <motion.button
-                  key={tab.id}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setStatusFilter(tab.id)}
-                  className={`shrink-0 px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 border font-black text-[10px] uppercase tracking-wider whitespace-nowrap ${
-                    isActive
-                      ? "bg-linear-to-r from-orange-600 to-orange-700 text-white border-transparent"
-                      : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:border-orange-400 dark:hover:border-orange-500"
-                  }`}
-                >
-                  <tab.icon size={13} strokeWidth={2.5} />
-                  {tab.label}
-                  <motion.span 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className={`px-2 py-0.5 rounded-md text-[8px] font-black ${
-                      isActive ? "bg-orange-900 text-white" : "bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
-                    }`}
-                  >
-                    {count}
-                  </motion.span>
-                </motion.button>
-              );
-            })}
-          </div>
-        </motion.div>
-
-        {/* Orders Grid & Results */}
         <AnimatePresence mode="wait">
-          {currentOrders.length > 0 ? (
+          {viewMode === "desk" ? (
             <motion.div
-              key="orders-grid"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-6"
+              key="desk"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="space-y-5"
             >
-              {/* Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {currentOrders.map((order, index) => (
-                  <motion.div
-                    key={order._id?.$oid || order._id}
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ delay: index * 0.05, duration: 0.4 }}
-                  >
-                    <VendorOrderCard 
-                      order={order}
-                      onRefresh={fetchOrders}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Smart Pagination */}
-              {totalPages > 1 && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white dark:bg-zinc-900 p-5 rounded-lg border border-zinc-200 dark:border-zinc-800"
-                >
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
-                    
-                    {/* Result Counter */}
-                    <div className="text-center sm:text-left">
-                      <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
-                        Showing <span className="text-orange-600 dark:text-orange-500">{indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredOrders.length)}</span> of <span className="font-black text-zinc-900 dark:text-white">{filteredOrders.length}</span>
-                      </p>
-                    </div>
-
-                    {/* Navigation Buttons */}
-                    <div className="flex items-center gap-2">
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:text-orange-600 dark:hover:text-orange-500 hover:border-orange-600 dark:hover:border-orange-500 disabled:opacity-25 disabled:cursor-not-allowed transition-all bg-white dark:bg-zinc-800 font-bold"
-                      >
-                        <ChevronLeft size={16} />
-                      </motion.button>
-
-                      {/* Page Numbers */}
-                      <div className="flex gap-1.5">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                          const isCurrent = currentPage === page;
-                          const isVisible = Math.abs(page - currentPage) <= 1 || page === 1 || page === totalPages;
-
-                          if (!isVisible) return null;
-
-                          if ((page === 2 && currentPage > 3) || (page === totalPages - 1 && currentPage < totalPages - 2)) {
-                            return <span key={`ellipsis-${page}`} className="px-1 text-zinc-300">...</span>;
-                          }
-
-                          return (
-                            <motion.button
-                              key={page}
-                              whileHover={{ scale: 1.05 }}
-                              whileTap={{ scale: 0.95 }}
-                              onClick={() => handlePageChange(page)}
-                              className={`w-9 h-9 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border ${
-                                isCurrent
-                                  ? "bg-linear-to-r from-orange-600 to-orange-700 text-white border-transparent"
-                                  : "bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-orange-500 dark:hover:border-orange-500"
-                              }`}
-                            >
-                              {page}
-                            </motion.button>
-                          );
-                        })}
-                      </div>
-
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 text-zinc-500 dark:text-zinc-400 hover:text-orange-600 dark:hover:text-orange-500 hover:border-orange-600 dark:hover:border-orange-500 disabled:opacity-25 disabled:cursor-not-allowed transition-all bg-white dark:bg-zinc-800 font-bold"
-                      >
-                        <ChevronRight size={16} />
-                      </motion.button>
-                    </div>
-                  </div>
-                </motion.div>
+              {renderDeskSection(
+                "New Orders",
+                "Accept quickly so customers and kitchen staff know the order is moving.",
+                incomingOrders,
+                "No new orders waiting right now.",
+                BellRing
+              )}
+              {renderDeskSection(
+                "Preparing",
+                "Orders already accepted by the restaurant.",
+                preparingOrders,
+                "No orders are currently being prepared.",
+                Timer
+              )}
+              {renderDeskSection(
+                "Ready for Pickup",
+                "Keep this clear so riders and counter staff can scan fast.",
+                readyOrders,
+                "No orders are ready for pickup yet.",
+                CheckCircle2
               )}
             </motion.div>
           ) : (
             <motion.div
-              key="empty-state"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-zinc-900 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800 py-24 flex flex-col items-center justify-center text-center px-6"
+              key="logs"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="space-y-4"
             >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring" }}
-                className="p-6 bg-zinc-100 dark:bg-zinc-800 rounded-full mb-6"
-              >
-                <Package size={56} className="text-zinc-300 dark:text-zinc-600" strokeWidth={1} />
-              </motion.div>
-              <motion.h3 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-2xl font-black text-zinc-900 dark:text-white uppercase tracking-tight mb-2"
-              >
-                No Orders Found
-              </motion.h3>
-              <motion.p 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 max-w-sm leading-relaxed"
-              >
-                {searchQuery 
-                  ? `No orders match your search for "${searchQuery}"` 
-                  : `No ${statusFilter !== 'all' ? `${statusFilter.replace(/_/g, ' ')} ` : ''}orders at the moment`}
-              </motion.p>
+              <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-2 px-1">
+                    <Filter size={14} className="text-orange-600" />
+                    <p className="text-[10px] font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300">Filter by status</p>
+                    <div className="ml-auto text-[9px] font-bold text-zinc-400 dark:text-zinc-500 sm:ml-2">
+                      {filteredOrders.length} results
+                    </div>
+                  </div>
+
+                  <div className="relative w-full sm:max-w-sm">
+                    <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+                    <input
+                      placeholder="Search by ID or name..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full rounded-lg border border-zinc-200 bg-zinc-100 py-2.5 pl-11 pr-4 text-sm font-bold uppercase tracking-wider text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-orange-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-500 dark:focus:border-orange-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2 overflow-x-auto pb-2 scroll-smooth scrollbar-hide">
+                  {tabs.map((tab) => {
+                    const count = getTabCount(tab.id);
+                    const isActive = statusFilter === tab.id;
+                    return (
+                      <motion.button
+                        key={tab.id}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setStatusFilter(tab.id)}
+                        className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border px-4 py-2.5 text-[10px] font-black uppercase tracking-wider transition-all ${
+                          isActive
+                            ? "border-transparent bg-orange-600 text-white"
+                            : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-orange-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-orange-500"
+                        }`}
+                      >
+                        <tab.icon size={13} strokeWidth={2.5} />
+                        {tab.label}
+                        <span className={`rounded-md px-2 py-0.5 text-[8px] font-black ${isActive ? "bg-orange-900 text-white" : "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"}`}>
+                          {count}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {currentOrders.length > 0 ? (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+                    {currentOrders.map((order, index) => (
+                      <motion.div
+                        key={getOrderId(order)}
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ delay: index * 0.05, duration: 0.4 }}
+                      >
+                        <VendorOrderCard order={order} onRefresh={fetchOrders} />
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {totalPages > 1 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900"
+                    >
+                      <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+                        <p className="text-center text-[10px] font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300 sm:text-left">
+                          Showing <span className="text-orange-600 dark:text-orange-500">{indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredOrders.length)}</span> of <span className="font-black text-zinc-900 dark:text-white">{filteredOrders.length}</span>
+                        </p>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="rounded-lg border border-zinc-200 bg-white p-2.5 font-bold text-zinc-500 transition-all hover:border-orange-600 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-25 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:border-orange-500 dark:hover:text-orange-500"
+                          >
+                            <ChevronLeft size={16} />
+                          </button>
+
+                          <div className="flex gap-1.5">
+                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                              const isCurrent = currentPage === page;
+                              const isVisible = Math.abs(page - currentPage) <= 1 || page === 1 || page === totalPages;
+                              if (!isVisible) return null;
+                              if ((page === 2 && currentPage > 3) || (page === totalPages - 1 && currentPage < totalPages - 2)) {
+                                return <span key={`ellipsis-${page}`} className="px-1 text-zinc-300">...</span>;
+                              }
+                              return (
+                                <button
+                                  key={page}
+                                  onClick={() => handlePageChange(page)}
+                                  className={`h-9 w-9 rounded-lg border text-[10px] font-black uppercase tracking-wider transition-all ${
+                                    isCurrent
+                                      ? "border-transparent bg-orange-600 text-white"
+                                      : "border-zinc-200 bg-white text-zinc-600 hover:border-orange-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:border-orange-500"
+                                  }`}
+                                >
+                                  {page}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="rounded-lg border border-zinc-200 bg-white p-2.5 font-bold text-zinc-500 transition-all hover:border-orange-600 hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-25 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:border-orange-500 dark:hover:text-orange-500"
+                          >
+                            <ChevronRight size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              ) : (
+                <motion.div
+                  key="empty-state"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="flex flex-col items-center justify-center rounded-lg border border-dashed border-zinc-200 bg-white px-6 py-24 text-center dark:border-zinc-800 dark:bg-zinc-900"
+                >
+                  <div className="mb-6 rounded-full bg-zinc-100 p-6 dark:bg-zinc-800">
+                    <Package size={56} className="text-zinc-300 dark:text-zinc-600" strokeWidth={1} />
+                  </div>
+                  <h3 className="mb-2 text-2xl font-black uppercase tracking-tight text-zinc-900 dark:text-white">No Orders Found</h3>
+                  <p className="max-w-sm text-[11px] font-bold uppercase leading-relaxed tracking-wider text-zinc-500 dark:text-zinc-400">
+                    {searchQuery
+                      ? `No orders match your search for "${searchQuery}"`
+                      : `No ${statusFilter !== "all" ? `${statusFilter.replace(/_/g, " ")} ` : ""}orders at the moment`}
+                  </p>
+                </motion.div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
-
       </div>
     </div>
   );
