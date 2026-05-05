@@ -1,4 +1,4 @@
-﻿/**
+/**
  * MelaChow Service Worker
  * 
  * Implements a production-grade caching strategy for a food delivery app:
@@ -376,10 +376,10 @@ self.addEventListener('notificationclick', function (event) {
 
         default:
             // Default click (no action button) - go to notification detail or order
-            if (notificationData.orderId) {
-                targetUrl = `/track-orders/${notificationData.orderId}`;
-            } else if (notificationData.url) {
+            if (notificationData.url) {
                 targetUrl = notificationData.url;
+            } else if (notificationData.orderId) {
+                targetUrl = `/track-orders/${notificationData.orderId}`;
             } else {
                 targetUrl = '/notifications';
             }
