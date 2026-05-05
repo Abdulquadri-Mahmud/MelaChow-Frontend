@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, Lock, Eye, EyeOff, Bike, Loader2, AlertCircle, ChevronRight, Moon, Sun, Home } from "lucide-react";
+import { Phone, Lock, Eye, EyeOff, Bike, Loader2, AlertCircle, ChevronRight, ChevronLeft, Moon, Sun, Home } from "lucide-react";
 import { riderLogin } from "@/app/lib/riderApi";
 import { TokenManager } from "@/app/lib/auth-token";
 import toast from "react-hot-toast";
@@ -60,6 +60,16 @@ export default function RiderLoginPage() {
             {/* Background Decorations */}
             <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-orange-600/10 dark:bg-orange-600/15 rounded-full blur-[120px]" />
             <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-blue-600/5 dark:bg-blue-600/10 rounded-full blur-[100px]" />
+
+            {/* Back Button */}
+            <div className="absolute top-6 left-6 z-50">
+                <button
+                    onClick={() => router.back()}
+                    className="w-12 h-12 bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-white transition-all hover:scale-105 active:scale-95"
+                >
+                    <ChevronLeft size={20} />
+                </button>
+            </div>
 
             {/* Float Controls */}
             <div className="absolute top-6 right-6 flex items-center gap-3 z-50">
