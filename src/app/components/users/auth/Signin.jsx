@@ -247,6 +247,8 @@ export default function Signin() {
           <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-4 w-full">
             <Link
               href="/auth/partner"
+              target="_blank"
+              rel="noopener noreferrer"
               className="group flex-1 flex items-center justify-between md:p-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
             >
               <div className="flex items-center gap-4">

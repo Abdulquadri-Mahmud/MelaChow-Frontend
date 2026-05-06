@@ -11,6 +11,40 @@ import { useState } from "react";
 import { updateOrderStatus, completeOrder } from "@/app/lib/vendorApi";
 import toast from "react-hot-toast";
 
+function joinList(parts) {
+  if (parts.length <= 1) return parts[0] || "";
+  if (parts.length === 2) return parts.join(" and ");
+  return `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
+}
+
+function buildKitchenSummary(item) {
+  const quantity = Number(item.quantity) || 1;
+  const portionLabel = item.portion_label || item.metadata?.portion_label || "";
+  const portionQuantity = Number(item.portion_quantity) || 1;
+  const itemName = item.name || item.variant?.name || "Item";
+  const options = item.selected_options || item.metadata?.selected_options || [];
+  const totalPortions = portionQuantity * quantity;
+
+  const parts = [`${quantity} ${quantity === 1 ? "unit" : "units"} ${itemName}`];
+  if (totalPortions > 1 || portionLabel) {
+    parts.push(`${totalPortions} ${portionLabel || (totalPortions === 1 ? "portion" : "portions")}`);
+  }
+  if (options.length > 0) {
+    const optionsSentence = joinList(
+      options
+        .map((opt) => {
+          const optionQuantity = Number(opt.quantity) || 1;
+          const optionLabel = opt.label || opt.name;
+          return optionLabel ? `${optionQuantity} ${optionLabel}` : "";
+        })
+        .filter(Boolean)
+    );
+    if (optionsSentence) parts.push(`add-ons: ${optionsSentence}`);
+  }
+
+  return parts.join(" | ");
+}
+
 export default function VendorOrderCard({ order, onAssign, onRefresh }) {
   const { vendorProfile } = useVendorProfile();
   const vendorDetails = vendorProfile;
@@ -150,7 +184,7 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
 
                            <div className="h-px bg-slate-50 dark:bg-slate-800 my-1" />
 
-                          {['pending', 'accepted', 'preparing', 'ready', 'ready_for_pickup'].includes(order.orderStatus?.toLowerCase()) && (
+                          {['pending', 'accepted', 'preparing'].includes(order.orderStatus?.toLowerCase()) && (
                               <button 
                                   onClick={() => {
                                       if(window.confirm("Are you sure you want to cancel this order?")) {
@@ -298,33 +332,7 @@ export default function VendorOrderCard({ order, onAssign, onRefresh }) {
           <div className="space-y-1">
             {detailedItems.map((item, idx) => {
 
-              const quantity = Number(item.quantity) || 1;
-              const portionLabel = item.portion_label || item.metadata?.portion_label || null;
-              const portionQuantity = Number(item.portion_quantity) || 1;
-              const itemName = item.name || item.variant?.name || "Item";
-              const options = item.selected_options || item.metadata?.selected_options || [];
-              const totalPortions = portionQuantity * quantity;
-              
-              const cleanPortionLabel = portionLabel?.trim() || "";
-              let portionText = cleanPortionLabel || (totalPortions > 1 ? "portions" : "portion");
-
-              // "X unit(s) of [Item] (Y portions total)"
-              let fullSentence = `${quantity} ${quantity > 1 ? "units" : "unit"} of ${itemName}`;
-              if (portionQuantity > 0) {
-                fullSentence += ` (${totalPortions} ${portionText})`;
-              }
-
-              if (options.length > 0) {
-                // List options per unit
-                const optionsTextList = options.map((opt) => `${opt.quantity || 1} ${opt.label}`);
-                const optionsSentence = optionsTextList.length === 1 
-                  ? optionsTextList[0] 
-                  : optionsTextList.length === 2 
-                    ? optionsTextList.join(" and ") 
-                    : optionsTextList.slice(0, -1).join(", ") + ", and " + optionsTextList.slice(-1);
-                
-                fullSentence += `, each with ${optionsSentence}`;
-              }
+              const fullSentence = buildKitchenSummary(item);
               
               return (
                 <motion.div
