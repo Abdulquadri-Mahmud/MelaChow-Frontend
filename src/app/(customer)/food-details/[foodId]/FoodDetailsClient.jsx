@@ -96,7 +96,17 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
     setIsClient(true);
   }, []);
 
-  // Fetch Food (only if initialData is missing)
+    // Update Swiper height when data changes
+    useEffect(() => {
+      if (swiperInstance) {
+        setTimeout(() => {
+          swiperInstance.update();
+          swiperInstance.updateAutoHeight();
+        }, 300);
+      }
+    }, [food, activeTab, swiperInstance]);
+
+    // Fetch Food (only if initialData is missing)
   useEffect(() => {
     const fetchFood = async () => {
       // Only skip if we already have the full food object (portions AND choiceGroups check)
@@ -438,8 +448,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
         </button>
       </header>
 
-      <div className="pb-5 bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
-      <div className="max-w-4xl mx-auto pb-4">
+      <div className="pb-32 bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
+      <div className="max-w-4xl mx-auto pb-8">
         {isLoading ? (
           <div className="p-2"><FoodDetailsSkeleton /></div>
         ) : isError ? (
@@ -486,11 +496,13 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
               simulateTouch={true}
               touchRatio={1}
               autoHeight={true}
-              className="w-full"
+              observer={true}
+              observeParents={true}
+              className="w-full relative z-10"
             >
               {/* SLIDE 1: DETAILS */}
               <SwiperSlide>
-                <div className="space-y-4 pb-8">
+                <div className="space-y-4 pb-40">
                   {/* Main Info Card */}
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-1 pt-2">
                     <div className="bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-sm">
@@ -744,7 +756,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
               {/* Choice Groups */}
               {(food.choiceGroups?.length > 0 || food.choice_groups?.length > 0) && (
-                <div className="space-y-3 mb-4">
+                <div className="space-y-3 mb-4 relative z-10">
                   {(food.choiceGroups || food.choice_groups).map((group, gIdx) => (
                     <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[24px] p-3 border border-zinc-100 dark:border-zinc-800 shadow-sm flex flex-col">
                       <div className="flex items-center gap-2 mb-1">
@@ -768,7 +780,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                       </p>
 
                       <div className="space-y-2">
-                        {group.options.filter(o => o.is_available).map(option => {
+                        {(group.options || []).filter(o => o.is_available !== false).map(option => {
                           const isSelected = isOptionSelected(gIdx, option.label);
                           return (
                             <div key={option._id}
