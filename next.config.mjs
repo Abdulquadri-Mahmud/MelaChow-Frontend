@@ -41,6 +41,26 @@ const nextConfig = {
    * âœ… /api/vendors/*  â†’ Vendor endpoints
    * âœ… /api/admin/*    â†’ Admin endpoints
    */
+  async redirects() {
+    return [
+      {
+        source: '/vendors/:path*',
+        destination: 'https://vendor.melachow.com/vendors/:path*',
+        permanent: false,
+      },
+      {
+        source: '/rider/:path*',
+        destination: 'https://rider.melachow.com/rider/:path*',
+        permanent: false,
+      },
+      {
+        source: '/auth/rider/:path*',
+        destination: 'https://rider.melachow.com/auth/rider/:path*',
+        permanent: false,
+      },
+    ];
+  },
+
   async rewrites() {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com';
 

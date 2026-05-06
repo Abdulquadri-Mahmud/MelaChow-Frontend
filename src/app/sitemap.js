@@ -16,9 +16,6 @@ export default async function sitemap() {
     { url: `${baseUrl}/trending-restaurants`, lastModified: now, changeFrequency: 'daily',   priority: 0.8 },
     { url: `${baseUrl}/faqs`,                 lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
     { url: `${baseUrl}/auth/signin`,          lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
-    { url: `${baseUrl}/auth/rider/login`,     lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
-    { url: `${baseUrl}/vendors/auth/login`,   lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
-    { url: `${baseUrl}/vendors/auth/register`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
   ]
 
   // Dynamic: vendor/restaurant pages

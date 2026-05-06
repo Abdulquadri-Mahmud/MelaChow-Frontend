@@ -261,7 +261,7 @@ export default function Signup() {
 
           <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
             <Link
-              href="/vendors/auth/register"
+              href="https://vendor.melachow.com/vendors/auth/register"
               className="group inline-flex items-center gap-3 px-6 py-4 bg-orange-50/50 dark:bg-orange-500/5 rounded-[1.5rem] hover:bg-orange-100 dark:hover:bg-orange-500/10 transition-all duration-300 border border-transparent hover:border-orange-200"
             >
               <Store className="w-5 h-5 text-orange-600" />

@@ -32,9 +32,9 @@ export default function RootPage() {
           router.push("/home");
         }
       } else if (role === "vendor") {
-        router.push("/vendors/dashboard");
+        window.location.href = "https://vendor.melachow.com/vendors/dashboard";
       } else if (role === "rider") {
-        router.push("/rider/dashboard");
+        window.location.href = "https://rider.melachow.com/rider/dashboard";
       } else {
         // Default to customer home
         router.push("/home");
