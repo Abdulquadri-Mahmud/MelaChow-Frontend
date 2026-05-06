@@ -502,7 +502,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
             >
               {/* SLIDE 1: DETAILS */}
               <SwiperSlide>
-                <div className="space-y-4 pb-40">
+                <div className="space-y-4 pb-8">
                   {/* Main Info Card */}
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-1 pt-2">
                     <div className="bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-sm">
