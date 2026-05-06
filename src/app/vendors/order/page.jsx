@@ -18,6 +18,7 @@ import {
   TabletSmartphone,
   Timer,
   TrendingUp,
+  Megaphone,
   Volume2,
   VolumeX,
 } from "lucide-react";
@@ -114,6 +115,16 @@ function playOrderDeskChime({ urgent = false } = {}) {
   }
 }
 
+function speakOrderDeskAlert(message) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(message);
+  utterance.rate = 0.95;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+  window.speechSynthesis.speak(utterance);
+}
+
 export default function VendorOrdersPage() {
   const router = useRouter();
   const [orders, setOrders] = useState([]);
@@ -127,6 +138,7 @@ export default function VendorOrdersPage() {
   const [deskStatusTab, setDeskStatusTab] = useState("pending");
   const [deskSwiper, setDeskSwiper] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [voiceAlertsEnabled, setVoiceAlertsEnabled] = useState(false);
   const [tabletMode, setTabletMode] = useState(false);
   const [now, setNow] = useState(Date.now());
   const [acknowledgedOrders, setAcknowledgedOrders] = useState({});
@@ -212,8 +224,16 @@ export default function VendorOrdersPage() {
           // Browser audio can be blocked until user interaction.
         }
       }
+      if (voiceAlertsEnabled) {
+        const count = pendingIds.size;
+        try {
+          speakOrderDeskAlert(`You have ${count} ${count === 1 ? "awaiting order" : "awaiting orders"}.`);
+        } catch {
+          // Browser speech can be blocked until user interaction.
+        }
+      }
     }
-  }, [orders, soundEnabled]);
+  }, [orders, soundEnabled, voiceAlertsEnabled]);
 
   useEffect(() => {
     if (!soundEnabled) return;
@@ -227,6 +247,7 @@ export default function VendorOrdersPage() {
     })();
     warningChimeRef.current = { ...persisted, ...warningChimeRef.current };
 
+    const overdueOrders = [];
     orders.forEach((order) => {
       if (getStatus(order) !== "pending") return;
       const orderId = getOrderId(order);
@@ -239,14 +260,25 @@ export default function VendorOrdersPage() {
       if (now - lastPlayed < 60 * 1000) return;
 
       warningChimeRef.current[orderId] = now;
+      overdueOrders.push(orderId);
+    });
+
+    if (overdueOrders.length > 0) {
       window.sessionStorage.setItem(WARNING_CHIME_KEY, JSON.stringify(warningChimeRef.current));
       try {
         playOrderDeskChime({ urgent: true });
       } catch {
         // Browser audio can be blocked until user interaction.
       }
-    });
-  }, [now, orders, soundEnabled]);
+      if (voiceAlertsEnabled) {
+        try {
+          speakOrderDeskAlert(`${overdueOrders.length} ${overdueOrders.length === 1 ? "order needs" : "orders need"} attention.`);
+        } catch {
+          // Browser speech can be blocked until user interaction.
+        }
+      }
+    }
+  }, [now, orders, soundEnabled, voiceAlertsEnabled]);
 
   const activeOrders = useMemo(
     () => orders.filter((order) => ACTIVE_STATUSES.includes(getStatus(order))).sort(sortOldestFirst),
@@ -502,6 +534,31 @@ export default function VendorOrdersPage() {
               >
                 {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
                 Sound
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setVoiceAlertsEnabled((value) => {
+                    const next = !value;
+                    if (next) {
+                      try {
+                        speakOrderDeskAlert("Voice alerts enabled.");
+                      } catch {}
+                    } else if (typeof window !== "undefined" && "speechSynthesis" in window) {
+                      window.speechSynthesis.cancel();
+                    }
+                    return next;
+                  });
+                }}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                  voiceAlertsEnabled
+                    ? "border-orange-200 bg-orange-50 text-orange-600 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-400"
+                    : "border-zinc-200 bg-white text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                }`}
+              >
+                <Megaphone size={14} />
+                Voice
               </button>
 
               <button
