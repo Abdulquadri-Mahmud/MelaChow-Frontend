@@ -68,8 +68,11 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     // Resolve vendorId: prefer initialData (modal flow), fallback to URL param (page flow)
     const resolvedVendorId =
         initialData?.vendor?._id?.toString() ||
+        initialData?.vendor?.id?.toString() ||
         initialData?.combo?.vendor_id?.toString() ||
         initialData?.combo?.vendor?._id?.toString() ||
+        initialData?.combo?.restaurantId?.toString() ||
+        initialData?.combo?.vendorId?.toString() ||
         null;
 
     const [vendorId, setVendorId] = useState(resolvedVendorId);
@@ -297,19 +300,26 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
             });
         });
 
+        const vendorIdForCart = vendor?._id || vendor?.id || combo?.vendor_id || combo?.vendorId || combo?.restaurantId || vendorId;
+
+        if (!vendorIdForCart) {
+            toast.error("Restaurant details are still loading. Please try again.");
+            return;
+        }
+
         addComboToCart({
             type:          "combo",
             comboId:       combo._id,
             variantId:     combo._id, // Alias for backward compatibility
-            vendorId:      vendor._id,
+            vendorId:      vendorIdForCart,
 
-            storeName:     vendor.storeName,
-            restaurantId:  vendor._id,
+            storeName:     vendor?.storeName || "",
+            restaurantId:  vendorIdForCart,
             name:          combo.name,
             image_url:     combo.image_url || "",
             price_naira:   totalUnit,
             quantity,
-            deliveryFee:   vendor.deliveryFee || 0,
+            deliveryFee:   vendor?.deliveryFee || 0,
             selected_options,
         });
 
