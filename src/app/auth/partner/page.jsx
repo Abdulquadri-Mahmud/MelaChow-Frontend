@@ -5,6 +5,9 @@ import Link from "next/link";
 import { Store, Bike, ArrowRight, ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+const VENDOR_PORTAL_URL = "https://vendor.melachow.com/vendors/auth/login";
+const RIDER_PORTAL_URL = "https://rider.melachow.com/auth/rider/login";
+
 export default function PartnerPortalPage() {
     const router = useRouter();
 
@@ -39,7 +42,7 @@ export default function PartnerPortalPage() {
 
                 <div className="space-y-4">
                     {/* Vendor Card */}
-                    <Link href="/vendors/auth/login" className="block outline-none select-none group">
+                    <Link href={VENDOR_PORTAL_URL} target="_blank" rel="noopener noreferrer" className="block outline-none select-none group">
                         <motion.div
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -61,7 +64,7 @@ export default function PartnerPortalPage() {
                     </Link>
 
                     {/* Rider Card */}
-                    <Link href="/auth/rider/login" className="block outline-none select-none group">
+                    <Link href={RIDER_PORTAL_URL} target="_blank" rel="noopener noreferrer" className="block outline-none select-none group">
                         <motion.div
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
