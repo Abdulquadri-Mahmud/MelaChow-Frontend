@@ -80,6 +80,12 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
     }
   };
 
+  const getFoodVendor = (item = food) => item?.vendor || item?.restaurant || item?.restaurantId || null;
+  const getFoodVendorId = (item = food) => {
+    const vendor = getFoodVendor(item);
+    return vendor?._id || vendor?.id || item?.vendorId || item?.vendor_id || item?.restaurantId || item?.restaurant_id || "";
+  };
+
   // Reset base customizer when food fetches
   useEffect(() => {
     resetSelections();
@@ -94,15 +100,17 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   useEffect(() => {
     const fetchFood = async () => {
       // Only skip if we already have the full food object (portions AND choiceGroups check)
-      if (food && food.portions !== undefined && (food.choiceGroups !== undefined || food.choice_groups !== undefined)) return;
+      if (!isModal && food && food.portions !== undefined && (food.choiceGroups !== undefined || food.choice_groups !== undefined)) return;
       
       try {
-        setIsLoading(true);
+        if (!food) setIsLoading(true);
         const res = await getPublicFoodDetail(foodId);
         let foodData = res?.food;
 
         if (foodData) {
           foodData.choiceGroups = foodData.choiceGroups || foodData.choice_groups || [];
+          const fallbackVendor = getFoodVendor(food);
+          if (!foodData.vendor && fallbackVendor) foodData.vendor = fallbackVendor;
         }
 
         setFood(foodData);
@@ -116,7 +124,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
     };
 
     if (foodId) fetchFood();
-  }, [foodId, initialData]);
+  }, [foodId, initialData, isModal]);
 
   // Fetch Reviews
   const fetchFoodReviews = async (page = 1, rating = null) => {
@@ -315,12 +323,21 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
               });
           });
       });
+      const vendor = getFoodVendor(food);
+      const vendorId = getFoodVendorId(food);
+
+      if (!vendorId) {
+          toast.error("Restaurant details are still loading. Please try again.");
+          return;
+      }
+
       const payload = {
           type:         "item",                // ← ADD explicit type
           foodId:       food._id,
           portionId:    selectedPortion?._id || null, // ← camelCase
-          vendorId:     food.vendor?._id,
-          storeName:    food.vendor?.storeName || "",
+          vendorId,
+          restaurantId:  vendorId,
+          storeName:    vendor?.storeName || "",
           name:         food.name,
           image_url:    food.image || food.image_url || "",
           portion_label: selectedPortion?.label,
@@ -334,7 +351,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
               price_modifier_naira: opt.price_modifier_naira || 0,
               quantity:             opt.quantity,
           })),
-          deliveryFee:  food.vendor?.deliveryFee || food.deliveryFee || 0,
+          deliveryFee:  vendor?.deliveryFee || food.deliveryFee || 0,
           dietary_type: food.dietary_type,
           item_type:    food.item_type,
       };
@@ -631,7 +648,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                           </p>
                         </div>
                         <button
-                          onClick={() => openComboModal(combo._id, { combo, vendor: food?.vendor || null })}
+                          onClick={() => openComboModal(combo._id, { combo, vendor: getFoodVendor(food) })}
                           disabled={!combo.is_available || !itemAvailability.available}
                           className={`w-auto px-4 py-2 shrink-0 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                             (!combo.is_available || !itemAvailability.available)
