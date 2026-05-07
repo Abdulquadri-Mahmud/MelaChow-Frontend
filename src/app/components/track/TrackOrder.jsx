@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 
 import axios from "axios";
-import { Clock, Truck, Package, Home, CheckCircle, Star, Phone, Bike } from "lucide-react";
+import { Clock, Truck, Package, Home, CheckCircle, Star, Phone, Bike, Copy } from "lucide-react";
 import { useApi } from "@/app/context/ApiContext";
 import { useParams } from "next/navigation";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
@@ -88,6 +88,18 @@ export default function OrderTracking() {
 
   const { baseUrl } = useApi();
   const { user } = useUserStorage();
+
+  const copyOrderId = async () => {
+    const value = orderData?.orderId || orderId;
+    if (!value) return;
+
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success("Order ID copied");
+    } catch {
+      toast.error("Unable to copy order ID");
+    }
+  };
 
   const handleCancelOrder = async () => {
     if (!window.confirm("Are you sure you want to cancel this order? Your funds will be automatically refunded to your MelaChow wallet.")) return;
@@ -332,8 +344,17 @@ export default function OrderTracking() {
             <div className="flex justify-between items-start mb-10">
               <div>
                 <h3 className="text-zinc-900 dark:text-white font-black text-xl italic uppercase tracking-tight">Track Progress</h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs font-bold text-zinc-400 px-2 py-0.5 bg-zinc-50 dark:bg-zinc-800 rounded-lg">#{orderData.orderId.substring(0, 8)}</span>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <span className="text-xs font-bold text-zinc-500 px-2 py-0.5 bg-zinc-50 dark:bg-zinc-800 rounded-lg">#{orderData.orderId}</span>
+                  <button
+                    type="button"
+                    onClick={copyOrderId}
+                    className="inline-flex items-center gap-1 rounded-lg border border-orange-100 bg-orange-50 px-2 py-1 text-[9px] font-black uppercase tracking-widest text-orange-600 transition hover:bg-orange-100 active:scale-95 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-300"
+                    aria-label="Copy order ID"
+                  >
+                    <Copy size={12} />
+                    Copy
+                  </button>
                   <span className="text-[10px] font-black text-orange-500 uppercase">{currentStepIndex + 1} of {statusSteps.length} Steps Done</span>
                 </div>
               </div>
