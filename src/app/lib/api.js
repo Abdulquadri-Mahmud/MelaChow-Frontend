@@ -76,6 +76,51 @@ export const fetchUser = async () => {
   return data; // expected { user: ... }
 };
 
+export const createSupportTicket = async (ticketData) => {
+  try {
+    const res = await axios.post("/api/support/tickets", ticketData, {
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return res.data;
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      dispatchUserUnauthorized();
+    }
+
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to submit complaint";
+
+    throw new Error(message);
+  }
+};
+
+export const getMySupportTickets = async () => {
+  try {
+    const res = await axios.get("/api/support/my-tickets", {
+      withCredentials: true,
+    });
+
+    return res.data;
+  } catch (error) {
+    if (error.response && error.response.status === 401) {
+      dispatchUserUnauthorized();
+    }
+
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "Failed to load support tickets";
+
+    throw new Error(message);
+  }
+};
+
 /**
  * Create a new order
  * @param {Object} orderData - payload containing cart, address, etc.
