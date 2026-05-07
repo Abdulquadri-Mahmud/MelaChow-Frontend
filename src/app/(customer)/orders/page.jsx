@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/app/context/CartContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import Header2 from "@/app/components/App_Header/Header2";
-import { ShoppingCart, Package, Trash2, ArrowRight, Minus, Plus, ShoppingBag, Utensils } from "lucide-react";
+import { ShoppingCart, Package, Trash2, ArrowRight, Minus, Plus, ShoppingBag, Utensils, Copy } from "lucide-react";
 import toast from "react-hot-toast";
 import { useApi } from "@/app/context/ApiContext";
 import axios from "axios";
@@ -85,6 +85,18 @@ function OrdersContent() {
   });
 
   const orders = data?.orders || [];
+
+  const copyOrderId = async (event, orderId) => {
+    event.stopPropagation();
+    if (!orderId) return;
+
+    try {
+      await navigator.clipboard.writeText(orderId);
+      toast.success("Order ID copied");
+    } catch {
+      toast.error("Unable to copy order ID");
+    }
+  };
 
   const getRestaurantId = (item) => item.vendorId || item.restaurantId || "unknown";
   const getItemPrice = (item) => item.price_naira || item.price || 0;
@@ -352,6 +364,14 @@ function OrdersContent() {
                          <div className="space-y-0.5">
                            <div className="flex items-center gap-1.5">
                              <span className="font-bold text-zinc-900 dark:text-white text-sm">Order #{order.orderId}</span>
+                             <button
+                               type="button"
+                               onClick={(event) => copyOrderId(event, order.orderId)}
+                               className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-zinc-100 bg-zinc-50 text-zinc-400 transition-all hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 active:scale-95 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-orange-500/30 dark:hover:bg-orange-500/10 dark:hover:text-orange-300"
+                               aria-label="Copy order ID"
+                             >
+                               <Copy size={13} />
+                             </button>
                              <ArrowRight size={12} className="text-zinc-300 dark:text-zinc-600 group-hover:text-orange-500 transition-colors" />
                            </div>
                            <p className="text-[10px] text-zinc-400">
