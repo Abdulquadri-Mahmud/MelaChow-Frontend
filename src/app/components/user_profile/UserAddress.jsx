@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, MapPin, Trash2, Edit3, CheckCircle, X, Plus,
-  ChevronRight, Home, Building2, Loader2, AlertCircle
+  ChevronRight, Home, Building2, Loader2, AlertCircle, Navigation
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -28,6 +28,11 @@ export default function AddressPage() {
   const [addresses, setAddresses] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
+  // Modal states
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState(null);
+
   // Location state
   const [locations, setLocations] = useState([]);
   const [cities, setCities] = useState([]);
@@ -38,19 +43,12 @@ export default function AddressPage() {
 
   const [form, setForm] = useState({ addressLine: "" });
 
-  // Modal state
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedAddressId, setSelectedAddressId] = useState(null);
-
   /* ---------------- FETCH LOCATIONS ---------------- */
   const fetchLocations = async () => {
     try {
       setIsLoadingLocations(true);
       setLocationError(null);
-
       const result = await LocationService.fetchUserLocations();
-      console.log("Fetched locations:", result);
-
       if (result.success) {
         setLocations(result.locations || []);
       } else {
@@ -60,7 +58,6 @@ export default function AddressPage() {
     } catch (err) {
       console.error("Error fetching locations:", err);
       setLocationError("Error loading locations. Please refresh.");
-      toast.error("Error loading locations");
     } finally {
       setIsLoadingLocations(false);
     }
@@ -90,32 +87,22 @@ export default function AddressPage() {
   const handleStateChange = (e) => {
     const stateId = e.target.value;
     setSelectedStateId(stateId);
-
-    // Find selected state's cities
     const selectedLocation = locations.find(loc => loc.stateId === stateId);
     setCities(selectedLocation?.cities || []);
-    setSelectedCityId(""); // Reset city selection
+    setSelectedCityId("");
   };
 
-  /* ---------------- ADD / UPDATE ---------------- */
+  /* ---------------- SAVE ADDRESS ---------------- */
   const saveAddress = async () => {
-    // Validation
     if (!selectedStateId || !selectedCityId || !form.addressLine) {
-      toast.error("Please select state, city and enter address");
+      toast.error("Please fill all fields");
       return;
     }
 
     setLoading(true);
-
     try {
-      // Get state and city names from IDs
       const selectedLocation = locations.find(loc => loc.stateId === selectedStateId);
       const selectedCity = cities.find(city => city.cityId === selectedCityId);
-
-      if (!selectedLocation || !selectedCity) {
-        toast.error("Invalid location selection");
-        return;
-      }
 
       const addressData = {
         state: selectedLocation.state,
@@ -123,73 +110,45 @@ export default function AddressPage() {
         stateId: selectedStateId,
         cityId: selectedCityId,
         addressLine: form.addressLine,
-        isDefault: true
+        isDefault: addresses.length === 0 ? true : undefined
       };
 
       let res;
-
       if (!editingId) {
-        res = await axios.post(
-          `${baseUrl}/user/auth/address`,
-          addressData,
-          { withCredentials: true }
-        );
-        toast.success("New location added successfully! 🏡");
+        res = await axios.post(`${baseUrl}/user/auth/address`, addressData, { withCredentials: true });
+        toast.success("New location added! 🏡");
       } else {
         res = await axios.patch(
           `${baseUrl}/user/auth/address/update-address`,
           addressData,
           { params: { addressId: editingId }, withCredentials: true }
         );
-        toast.success("Address location updated ✨");
+        toast.success("Address updated ✨");
       }
 
-      // Force UI sync across all Home widgets
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-      queryClient.invalidateQueries({ queryKey: ["smartRecommendations"] });
-      queryClient.invalidateQueries({ queryKey: ["foods-by-location"] });
-      queryClient.invalidateQueries({ queryKey: ["trendingFoods"] });
-
       setAddresses(res.data.addresses);
-      setForm({ addressLine: "" });
-      setSelectedStateId("");
-      setSelectedCityId("");
-      setCities([]);
-      setEditingId(null);
+      closeForm();
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Something went wrong. Please try again.");
+      toast.error(err.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
   /* ---------------- DELETE ---------------- */
-  const confirmDelete = (id) => {
-    setSelectedAddressId(id);
-    setShowDeleteModal(true);
-  };
-
   const deleteAddress = async () => {
     if (!selectedAddressId) return;
     setDeletingId(selectedAddressId);
-
     try {
       await axios.delete(`${baseUrl}/user/auth/address/delete-address`, {
         params: { addressId: selectedAddressId },
         withCredentials: true,
       });
-
-      // Force UI sync across all Home widgets
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-      queryClient.invalidateQueries({ queryKey: ["smartRecommendations"] });
-      queryClient.invalidateQueries({ queryKey: ["foods-by-location"] });
-      queryClient.invalidateQueries({ queryKey: ["trendingFoods"] });
-
       setAddresses(prev => prev.filter(addr => addr._id !== selectedAddressId));
-      toast.success("Address removed successfully");
+      toast.success("Address removed");
     } catch (err) {
-      console.error(err);
       toast.error("Failed to delete address");
     } finally {
       setDeletingId(null);
@@ -207,339 +166,268 @@ export default function AddressPage() {
         { isDefault: true },
         { params: { addressId: id }, withCredentials: true }
       );
-      
-      // Force UI sync across all Home widgets
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-      queryClient.invalidateQueries({ queryKey: ["smartRecommendations"] });
-      queryClient.invalidateQueries({ queryKey: ["foods-by-location"] });
-      queryClient.invalidateQueries({ queryKey: ["trendingFoods"] });
-
       setAddresses(res.data.addresses);
       toast.success("Default address updated");
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to update default address");
+      toast.error("Failed to update default");
     } finally {
       setSettingDefaultId(null);
     }
   };
 
-  /* ---------------- EDIT ADDRESS ---------------- */
-  const handleEditAddress = (addr) => {
-    setEditingId(addr._id);
-    setForm({ addressLine: addr.addressLine });
-
-    // Find and set the state
-    const stateLocation = locations.find(loc => loc.state === addr.state);
-    if (stateLocation) {
-      setSelectedStateId(stateLocation.stateId);
-      setCities(stateLocation.cities || []);
-
-      // Find and set the city
-      const cityLocation = stateLocation.cities.find(city => city.name === addr.city);
-      if (cityLocation) {
-        setSelectedCityId(cityLocation.cityId);
+  /* ---------------- FORM CONTROL ---------------- */
+  const openForm = (addr = null) => {
+    if (addr) {
+      setEditingId(addr._id);
+      setForm({ addressLine: addr.addressLine });
+      const stateLoc = locations.find(loc => loc.state === addr.state || loc.stateId === addr.stateId);
+      if (stateLoc) {
+        setSelectedStateId(stateLoc.stateId);
+        setCities(stateLoc.cities || []);
+        const cityLoc = stateLoc.cities.find(c => c.name === addr.city || c.cityId === addr.cityId);
+        if (cityLoc) setSelectedCityId(cityLoc.cityId);
       }
+    } else {
+      setEditingId(null);
+      setForm({ addressLine: "" });
+      setSelectedStateId("");
+      setSelectedCityId("");
+      setCities([]);
     }
+    setIsFormOpen(true);
+  };
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setEditingId(null);
+    setForm({ addressLine: "" });
+    setSelectedStateId("");
+    setSelectedCityId("");
   };
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-20">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-gray-100 dark:border-zinc-800 px-4 py-4 flex items-center gap-4">
-        <motion.button
-          whileHover={{ x: -2 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => router.back()}
-          className="p-3 rounded-2xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
-        >
-          <ArrowLeft size={18} />
-        </motion.button>
-        <div>
-          <h1 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">Delivery Locations</h1>
-          <p className="text-[11px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-wide">Manage your addresses</p>
+      <header className="sticky top-0 z-40 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-gray-100 dark:border-zinc-800 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => router.back()}
+            className="p-2 rounded-xl bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-400"
+          >
+            <ArrowLeft size={18} />
+          </motion.button>
+          <div>
+            <h1 className="text-base font-black text-gray-900 dark:text-white tracking-tight leading-tight">My Addresses</h1>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Saved delivery spots</p>
+          </div>
         </div>
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => openForm()}
+          className="bg-orange-500 text-white p-2 rounded-xl shadow-lg shadow-orange-500/20"
+        >
+          <Plus size={20} />
+        </motion.button>
       </header>
 
-      <div className="max-w-2xl mx-auto p-4 md:p-6 space-y-8">
-        {fetching && <AddressSkeleton count={3} />}
-
-        <AnimatePresence mode="popLayout">
-          {!fetching && addresses.length === 0 && (
-            <motion.div
-              key="no-data"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white dark:bg-zinc-900 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-[32px] p-12 flex flex-col items-center text-center"
+      <div className="max-w-xl mx-auto p-4 space-y-4">
+        {fetching ? (
+          <AddressSkeleton count={3} />
+        ) : addresses.length === 0 ? (
+          <div className="py-20 flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-orange-50 dark:bg-orange-500/10 rounded-3xl flex items-center justify-center mb-4">
+              <MapPin className="text-orange-500" size={28} />
+            </div>
+            <h3 className="text-lg font-black text-gray-900 dark:text-white">No addresses yet</h3>
+            <p className="text-xs text-gray-400 mt-1 max-w-[200px]">Add a delivery address to start ordering your favorite meals.</p>
+            <button
+              onClick={() => openForm()}
+              className="mt-6 px-6 py-3 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl"
             >
-              <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/10 rounded-full flex items-center justify-center mb-6 relative">
-                <div className="absolute inset-0 bg-orange-200/50 dark:bg-orange-500/20 rounded-full animate-ping opacity-20"></div>
-                <MapPin className="text-orange-500" size={32} />
-              </div>
-              <h3 className="text-xl font-black text-gray-900 dark:text-white mb-2">No addresses found</h3>
-              <p className="text-gray-400 dark:text-zinc-500 text-sm max-w-[250px]">Add your home or office address to get started with seamless deliveries.</p>
-            </motion.div>
-          )}
-
-          {/* List Section — renders FIRST */}
-          <div key="address-list" className="space-y-4">
-            {addresses.length > 0 && (
-              <div className="flex items-center gap-2 px-2">
-                <Home size={16} className="text-orange-500" />
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Saved Locations</h3>
-              </div>
-            )}
-
+              Add New Address
+            </button>
+          </div>
+        ) : (
+          <div className="grid gap-3">
             {addresses.map((addr, index) => (
               <motion.div
                 key={addr._id || index}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={`group relative bg-white dark:bg-zinc-900 border transition-all duration-300 rounded-[24px] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 ${addr.isDefault
-                  ? "border-orange-500/30 shadow-lg shadow-orange-500/10 ring-4 ring-orange-500/5 dark:border-orange-500/50"
-                  : "border-gray-100 dark:border-zinc-800 hover:border-orange-200 dark:hover:border-zinc-700 hover:shadow-xl hover:shadow-gray-200/50"
-                  }`}
+                className={`relative overflow-hidden bg-white dark:bg-zinc-900 rounded-3xl border transition-all ${
+                  addr.isDefault 
+                  ? "border-orange-500/20 ring-1 ring-orange-500/10" 
+                  : "border-gray-100 dark:border-zinc-800"
+                }`}
               >
-                <div className="flex items-start gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${addr.isDefault ? "bg-orange-500 text-white shadow-lg shadow-orange-500/30" : "bg-gray-100 dark:bg-zinc-800 text-gray-400 group-hover:bg-orange-50 dark:group-hover:bg-orange-500/10 group-hover:text-orange-500 transition-colors"}`}>
-                    <Building2 size={24} />
-                  </div>
-
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-black text-gray-900 dark:text-white text-base">{addr.addressLine}</h3>
-                      {addr.isDefault && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 rounded-full text-[10px] font-bold uppercase tracking-wide">
-                          Default
-                        </span>
-                      )}
+                {addr.isDefault && (
+                  <div className="absolute top-0 right-0">
+                    <div className="bg-orange-500 text-white text-[8px] font-black uppercase tracking-tighter px-3 py-1 rounded-bl-xl">
+                      Default
                     </div>
-                    <p className="text-sm font-medium text-gray-400 dark:text-zinc-500 mt-0.5">{addr.city}, {addr.state}</p>
+                  </div>
+                )}
+                
+                <div className="p-4 flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-2xl shrink-0 flex items-center justify-center ${
+                    addr.isDefault ? "bg-orange-500 text-white" : "bg-gray-100 dark:bg-zinc-800 text-gray-400"
+                  }`}>
+                    {addr.isDefault ? <Home size={20} /> : <Navigation size={20} />}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-black text-gray-900 dark:text-white truncate pr-12 italic uppercase">
+                      {addr.addressLine}
+                    </h3>
+                    <p className="text-[11px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-tight">
+                      {addr.city}, {addr.state}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openForm(addr)}
+                      className="p-2 rounded-xl text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10"
+                    >
+                      <Edit3 size={16} />
+                    </button>
+                    <button
+                      onClick={() => { setSelectedAddressId(addr._id); setShowDeleteModal(true); }}
+                      className="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-2 md:pt-0 border-t md:border-none border-gray-50 dark:border-zinc-800 mt-2 md:mt-0">
-                  {!addr.isDefault && (
-                    <button
-                      onClick={() => setDefault(addr._id)}
-                      disabled={settingDefaultId === addr._id}
-                      className={`text-xs font-bold px-3 py-2 rounded-xl transition-all ${settingDefaultId === addr._id ? "text-gray-400 dark:text-zinc-600" : "text-gray-500 dark:text-zinc-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600"}`}
-                    >
-                      {settingDefaultId === addr._id ? "Saving..." : "Set Default"}
-                    </button>
-                  )}
-
+                {!addr.isDefault && (
                   <button
-                    onClick={() => handleEditAddress(addr)}
-                    className="p-2.5 rounded-xl text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all"
+                    onClick={() => setDefault(addr._id)}
+                    disabled={settingDefaultId === addr._id}
+                    className="w-full py-2 bg-gray-50/50 dark:bg-zinc-800/50 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/5 transition-all border-t border-gray-100 dark:border-zinc-800"
                   >
-                    <Edit3 size={18} />
+                    {settingDefaultId === addr._id ? "Applying..." : "Set as Default"}
                   </button>
-
-                  <button
-                    onClick={() => confirmDelete(addr._id)}
-                    disabled={deletingId === addr._id}
-                    className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all disabled:opacity-50"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
+                )}
               </motion.div>
             ))}
           </div>
-
-          {/* ADD / EDIT FORM — renders AFTER the list */}
-          <motion.div
-            key="address-form"
-            layout
-            className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-[24px] p-6 md:p-8 shadow-sm relative overflow-hidden group"
-          >
-            <div className="relative z-10">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 rounded-xl bg-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/20">
-                  {editingId ? <Edit3 size={20} /> : <Plus size={24} />}
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">{editingId ? "Update Location" : "Add New Address"}</h2>
-                  <p className="text-xs font-medium text-gray-500 dark:text-zinc-400">
-                    {editingId ? "Modify your delivery details" : "Where should we deliver your food?"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Location Error */}
-              {locationError && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
-                  <AlertCircle className="text-red-500 shrink-0 mt-0.5" size={20} />
-                  <div>
-                    <p className="text-sm font-bold text-red-900">{locationError}</p>
-                    <button
-                      onClick={fetchLocations}
-                      className="text-xs font-bold text-red-600 hover:text-red-700 mt-1 underline"
-                    >
-                      Retry
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Loading Locations */}
-              {isLoadingLocations && (
-                <div className="mb-6 p-6 bg-gray-50 dark:bg-zinc-800 rounded-xl flex items-center justify-center gap-3">
-                  <Loader2 className="animate-spin text-orange-500" size={20} />
-                  <p className="text-sm font-medium text-gray-500 dark:text-zinc-400">Loading available locations...</p>
-                </div>
-              )}
-
-              {/* No Locations Available */}
-              {!isLoadingLocations && locations.length === 0 && !locationError && (
-                <div className="mb-6 p-6 bg-yellow-50 border border-yellow-200 rounded-xl text-center">
-                  <AlertCircle className="text-yellow-600 mx-auto mb-2" size={24} />
-                  <p className="text-sm font-bold text-yellow-900 mb-1">No locations available</p>
-                  <p className="text-xs text-yellow-700">Please contact support for assistance.</p>
-                </div>
-              )}
-
-              {/* Form */}
-              {!isLoadingLocations && locations.length > 0 && (
-                <div className="space-y-5">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider pl-1">State *</label>
-                      <div className="relative">
-                        <select
-                          value={selectedStateId}
-                          onChange={handleStateChange}
-                          required
-                          className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 focus:border-orange-500 rounded-xl p-3.5 text-sm font-semibold text-gray-900 dark:text-white outline-none transition-all appearance-none cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
-                        >
-                          <option value="">Select State</option>
-                          {locations.map(loc => (
-                            <option key={loc.stateId} value={loc.stateId}>
-                              {loc.state}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90 pointer-events-none" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-bold text-gray-500 dark:text-slate-500 uppercase tracking-wider pl-1">City *</label>
-                      <div className="relative">
-                        <select
-                          value={selectedCityId}
-                          disabled={!selectedStateId}
-                          onChange={e => setSelectedCityId(e.target.value)}
-                          required
-                          className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 focus:border-orange-500 rounded-xl p-3.5 text-sm font-semibold text-gray-900 dark:text-white outline-none transition-all appearance-none disabled:bg-gray-50 dark:disabled:bg-zinc-800/50 disabled:text-gray-400 dark:disabled:text-zinc-600 disabled:cursor-not-allowed cursor-pointer pr-10 focus:ring-4 focus:ring-orange-500/10"
-                        >
-                          <option value="">
-                            {!selectedStateId ? "Select state first" : "Select City"}
-                          </option>
-                          {cities.map(city => (
-                            <option key={city.cityId} value={city.cityId}>
-                              {city.name}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90 pointer-events-none" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 dark:text-zinc-400 uppercase tracking-wider pl-1">Street Address *</label>
-                    <textarea
-                      placeholder="e.g. 12B, Admiralty Way, Lekki Phase 1"
-                      value={form.addressLine}
-                      onChange={e => setForm({ addressLine: e.target.value })}
-                      rows={2}
-                      required
-                      className="w-full bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-800 focus:border-orange-500 rounded-xl p-3.5 text-sm font-semibold text-gray-900 dark:text-white outline-none transition-all resize-none focus:ring-4 focus:ring-orange-500/10 placeholder:text-gray-400 dark:placeholder:text-zinc-600"
-                    />
-                  </div>
-
-                  <div className="flex gap-3 pt-4">
-                    {editingId && (
-                      <button
-                        onClick={() => {
-                          setEditingId(null);
-                          setForm({ addressLine: "" });
-                          setSelectedStateId("");
-                          setSelectedCityId("");
-                          setCities([]);
-                        }}
-                        className="flex-1 py-4 rounded-2xl font-bold text-gray-500 dark:text-zinc-400 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 transition-colors"
-                      >
-                        Cancel
-                      </button>
-                    )}
-                    <button
-                      disabled={loading || !selectedStateId || !selectedCityId || !form.addressLine}
-                      onClick={saveAddress}
-                      className="flex-[2] py-4 rounded-2xl font-bold text-white bg-gray-900 shadow-xl shadow-gray-900/20 hover:bg-orange-600 hover:shadow-orange-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
-                      {loading ? (
-                        <Loader2 className="animate-spin" size={20} />
-                      ) : (
-                        <>
-                          {editingId ? <CheckCircle size={20} /> : <Plus size={20} />}
-                          <span>{editingId ? "Update Location" : "Save Location"}</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </AnimatePresence>
+        )}
       </div>
 
-      {/* ---------------- DELETE MODAL ---------------- */}
+      {/* ---------------- FORM MODAL ---------------- */}
       <AnimatePresence>
-        {showDeleteModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        {isFormOpen && (
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setShowDeleteModal(false)}
+              onClick={closeForm}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             />
-
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="bg-white dark:bg-zinc-900 rounded-[32px] p-8 w-full max-w-sm text-center relative z-10 shadow-2xl"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 sm:p-8 shadow-2xl overflow-hidden"
             >
-              <div className="mx-auto w-20 h-20 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center mb-6 relative">
-                <div className="absolute inset-0 bg-red-200/50 dark:bg-red-500/20 rounded-full animate-ping opacity-20"></div>
+              <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-zinc-200 dark:bg-zinc-800 rounded-full sm:hidden" />
+              
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase italic">
+                    {editingId ? "Update Location" : "Add Address"}
+                  </h2>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Precise delivery details</p>
+                </div>
+                <button onClick={closeForm} className="p-2 bg-gray-100 dark:bg-zinc-800 rounded-full text-gray-400">
+                  <X size={20} />
+                </button>
+              </div>
+
+              {locationError ? (
+                <div className="mb-4 p-4 bg-red-50 dark:bg-red-500/5 border border-red-100 dark:border-red-500/20 rounded-2xl text-center">
+                  <p className="text-xs font-bold text-red-600 mb-2">{locationError}</p>
+                  <button onClick={fetchLocations} className="text-[10px] font-black uppercase tracking-widest underline text-red-700">Retry</button>
+                </div>
+              ) : isLoadingLocations ? (
+                <div className="py-12 flex flex-col items-center">
+                  <Loader2 className="animate-spin text-orange-500 mb-2" size={24} />
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Syncing zones...</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">State</label>
+                      <select
+                        value={selectedStateId}
+                        onChange={handleStateChange}
+                        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 text-sm font-bold text-gray-900 dark:text-white outline-none appearance-none"
+                      >
+                        <option value="">Choose State</option>
+                        {locations.map(loc => <option key={loc.stateId} value={loc.stateId}>{loc.state}</option>)}
+                      </select>
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">City</label>
+                      <select
+                        value={selectedCityId}
+                        disabled={!selectedStateId}
+                        onChange={e => setSelectedCityId(e.target.value)}
+                        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 text-sm font-bold text-gray-900 dark:text-white outline-none appearance-none disabled:opacity-50"
+                      >
+                        <option value="">{selectedStateId ? "Choose City" : "..."}</option>
+                        {cities.map(city => <option key={city.cityId} value={city.cityId}>{city.name}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Street Address</label>
+                    <textarea
+                      placeholder="e.g. 12B, Admiralty Way, Lekki"
+                      value={form.addressLine}
+                      onChange={e => setForm({ addressLine: e.target.value })}
+                      rows={3}
+                      className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 text-sm font-bold text-gray-900 dark:text-white outline-none resize-none focus:ring-4 focus:ring-orange-500/5"
+                    />
+                  </div>
+
+                  <button
+                    disabled={loading || !selectedStateId || !selectedCityId || !form.addressLine}
+                    onClick={saveAddress}
+                    className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {loading ? <Loader2 className="animate-spin" size={20} /> : editingId ? "Update Address" : "Save Address"}
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ---------------- DELETE MODAL ---------------- */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowDeleteModal(false)} className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 w-full max-w-sm text-center shadow-2xl">
+              <div className="mx-auto w-16 h-16 bg-red-50 dark:bg-red-500/10 rounded-2xl flex items-center justify-center mb-4">
                 <Trash2 className="text-red-500" size={32} />
               </div>
-              <h3 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Delete Address?</h3>
-              <p className="text-sm font-medium text-gray-400 dark:text-zinc-500 mb-8 px-2">
-                Are you sure you want to remove this delivery location? This action cannot be undone.
-              </p>
-
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={deleteAddress}
-                  className="bg-red-500 text-white py-4 rounded-2xl font-bold hover:bg-red-600 transition-all shadow-xl shadow-red-500/20"
-                >
-                  {deletingId ? "Removing..." : "Yes, Remove It"}
+              <h3 className="text-xl font-black text-gray-900 dark:text-white italic uppercase">Delete Address?</h3>
+              <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide mt-2 mb-6">This action cannot be undone.</p>
+              <div className="grid gap-2">
+                <button onClick={deleteAddress} className="w-full py-4 bg-red-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-red-500/20">
+                  {deletingId ? "Removing..." : "Delete Permanently"}
                 </button>
-                <button
-                  onClick={() => setShowDeleteModal(false)}
-                  className="bg-white dark:bg-zinc-800 text-gray-900 dark:text-white py-4 rounded-2xl font-bold hover:bg-gray-50 dark:hover:bg-zinc-700 transition-all border border-gray-100 dark:border-zinc-700"
-                >
-                  Cancel
-                </button>
+                <button onClick={() => setShowDeleteModal(false)} className="w-full py-4 text-gray-500 dark:text-gray-400 font-bold text-xs uppercase tracking-widest">Cancel</button>
               </div>
             </motion.div>
           </div>

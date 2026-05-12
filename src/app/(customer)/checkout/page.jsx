@@ -230,12 +230,10 @@ function CheckoutContent() {
     }
   };
 
-  /* ---------------- PAYMENT INITIALIZATION (V2 API) ---------------- */
-  const handleInitializePayment = async () => {
-    // Clear any previous errors
-    setOrderError(null);
+  const [showLocationConfirm, setShowLocationConfirm] = useState(false);
 
-    // 1. Validate delivery address
+  /* ---------------- PAYMENT INITIALIZATION (V2 API) ---------------- */
+  const handleConfirmLocation = () => {
     if (!defaultAddress) {
       toast.error("Please set a default delivery address.", { duration: 1500 });
       setTimeout(() => {
@@ -243,7 +241,14 @@ function CheckoutContent() {
       }, 1500);
       return;
     }
+    setShowLocationConfirm(true);
+  };
 
+  const handleInitializePayment = async () => {
+    setShowLocationConfirm(false);
+    // Clear any previous errors
+    setOrderError(null);
+    
     // 2. Validate cart is not empty
     if (checkoutCart.length === 0) {
       toast.error("Your cart is empty.");
@@ -448,6 +453,60 @@ function CheckoutContent() {
 
       {/* Processing Loader */}
       {loadingInit && <OrderProcessingLoader currentStep={processingStep} />}
+
+      {/* Location Confirmation Modal */}
+      <AnimatePresence>
+        {showLocationConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLocationConfirm(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 w-full max-w-sm text-center relative z-10 shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-2 bg-orange-500" />
+              <div className="mx-auto w-16 h-16 bg-orange-50 dark:bg-orange-500/10 rounded-2xl flex items-center justify-center mb-6">
+                <MapPin className="text-orange-500" size={32} />
+              </div>
+              <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic leading-tight">Confirm Location</h3>
+              <p className="text-[11px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mt-2 mb-8">
+                Is your delivery address correct?
+                <span className="block mt-2 text-zinc-900 dark:text-zinc-100 text-xs normal-case font-black italic">
+                  {defaultAddress?.addressLine}, {defaultAddress?.city}
+                </span>
+              </p>
+
+              <div className="grid gap-3">
+                <button
+                  onClick={handleInitializePayment}
+                  className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all"
+                >
+                  Yes, Proceed
+                </button>
+                <button
+                  onClick={() => router.push("/profile/address")}
+                  className="w-full py-4 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-2xl font-black text-xs uppercase tracking-[0.2em] active:scale-95 transition-all border border-orange-100 dark:border-orange-500/20"
+                >
+                  No, Change It
+                </button>
+                <button
+                  onClick={() => setShowLocationConfirm(false)}
+                  className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2 hover:text-zinc-600 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className="max-w-xl mx-auto p-2 space-y-2 pb-8">
         {/* Cart Validation Errors */}
@@ -748,7 +807,7 @@ function CheckoutContent() {
           <motion.button
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
-            onClick={!defaultAddress ? () => router.push("/profile/address") : handleInitializePayment}
+            onClick={!defaultAddress ? () => router.push("/profile/address") : handleConfirmLocation}
             disabled={loadingInit || checkoutCart.length === 0 || isPromoLoading}
             className={`max-w-xl mx-auto w-full py-4 rounded-[2rem] font-black text-lg flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] ${!defaultAddress ? "bg-red-500 text-white shadow-red-200" : "bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white text-white dark:text-zinc-900"}`}
           >

@@ -36,10 +36,12 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   const foodId = propFoodId || params.foodId;
   const { addToCart, cart } = useCart();
 
+  const isFoodComplete = (f) => f && f.portions !== undefined && (f.choiceGroups !== undefined || f.choice_groups !== undefined);
+
   // Data State
   const initialFood = initialData?.food || (initialData?.success ? null : initialData);
   const [food, setFood] = useState(initialFood && Object.keys(initialFood).length > 0 ? initialFood : null);
-  const [isLoading, setIsLoading] = useState(!initialFood || Object.keys(initialFood).length === 0);
+  const [isLoading, setIsLoading] = useState(!isFoodComplete(food));
   const [isError, setIsError] = useState(false);
 
   // console.log('[FoodDetailsClient] 🥗 initialData:', initialData);
@@ -110,10 +112,10 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   useEffect(() => {
     const fetchFood = async () => {
       // Only skip if we already have the full food object (portions AND choiceGroups check)
-      if (!isModal && food && food.portions !== undefined && (food.choiceGroups !== undefined || food.choice_groups !== undefined)) return;
+      if (!isModal && isFoodComplete(food)) return;
 
       try {
-        if (!food) setIsLoading(true);
+        if (!isFoodComplete(food)) setIsLoading(true);
         const res = await getPublicFoodDetail(foodId);
         let foodData = res?.food;
 
