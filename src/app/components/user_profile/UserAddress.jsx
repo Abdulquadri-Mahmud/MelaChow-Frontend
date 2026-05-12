@@ -320,7 +320,7 @@ export default function AddressPage() {
       {/* ---------------- FORM MODAL ---------------- */}
       <AnimatePresence>
         {isFormOpen && (
-          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -333,11 +333,11 @@ export default function AddressPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-t-[2.5rem] sm:rounded-[2.5rem] p-6 sm:p-8 shadow-2xl overflow-hidden"
+              className="relative w-full max-w-lg bg-white dark:bg-zinc-900 rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
               <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1 bg-zinc-200 dark:bg-zinc-800 rounded-full sm:hidden" />
               
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex justify-between items-center mb-6 px-6 sm:px-8 pt-8 sm:pt-8">
                 <div>
                   <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase italic">
                     {editingId ? "Update Location" : "Add Address"}
@@ -350,17 +350,21 @@ export default function AddressPage() {
               </div>
 
               {locationError ? (
-                <div className="mb-4 p-4 bg-red-50 dark:bg-red-500/5 border border-red-100 dark:border-red-500/20 rounded-2xl text-center">
-                  <p className="text-xs font-bold text-red-600 mb-2">{locationError}</p>
-                  <button onClick={fetchLocations} className="text-[10px] font-black uppercase tracking-widest underline text-red-700">Retry</button>
+                <div className="overflow-y-auto flex-1 px-6 sm:px-8 pb-8">
+                  <div className="mb-4 p-4 bg-red-50 dark:bg-red-500/5 border border-red-100 dark:border-red-500/20 rounded-2xl text-center">
+                    <p className="text-xs font-bold text-red-600 mb-2">{locationError}</p>
+                    <button onClick={fetchLocations} className="text-[10px] font-black uppercase tracking-widest underline text-red-700">Retry</button>
+                  </div>
                 </div>
               ) : isLoadingLocations ? (
-                <div className="py-12 flex flex-col items-center">
-                  <Loader2 className="animate-spin text-orange-500 mb-2" size={24} />
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Syncing zones...</p>
+                <div className="overflow-y-auto flex-1 px-6 sm:px-8 pb-8">
+                  <div className="py-12 flex flex-col items-center">
+                    <Loader2 className="animate-spin text-orange-500 mb-2" size={24} />
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Syncing zones...</p>
+                  </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="overflow-y-auto flex-1 px-6 sm:px-8 pb-8 space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">State</label>
