@@ -191,6 +191,8 @@ export const transformCartToOrderV2 = (cart, deliveryInfo, phone, email, userDat
                  || deliveryInfo.cityName || "",
       stateName:    deliveryInfo.state             // ← rename state → stateName
                  || deliveryInfo.stateName || "",
+      cityId:       deliveryInfo.cityId || "",     // ← ADD: city ObjectId for rider assignment
+      stateId:      deliveryInfo.stateId || "",   // ← ADD: state ObjectId for rider assignment
       name:         deliveryInfo.name              // ← ADD: contact person name
                  || (userData?.firstname
                     ? `${userData.firstname} ${userData.lastname || ""}`.trim()
