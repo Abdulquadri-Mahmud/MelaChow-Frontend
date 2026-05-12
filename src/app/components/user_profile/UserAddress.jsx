@@ -118,8 +118,10 @@ export default function AddressPage() {
       }
 
       const addressData = {
-        state: selectedLocation.state,  // Send name, not ID
-        city: selectedCity.name,        // Send name, not ID
+        state: selectedLocation.state,
+        city: selectedCity.name,
+        stateId: selectedStateId,
+        cityId: selectedCityId,
         addressLine: form.addressLine,
         isDefault: true
       };

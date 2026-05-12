@@ -52,6 +52,8 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
           addressLine: addressLine.trim(),
           city: cityName,
           state: stateName,
+          cityId: selectedCityId,
+          stateId: selectedStateId,
           isDefault: true,
         },
         {

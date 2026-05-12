@@ -314,6 +314,8 @@ function CheckoutContent() {
           || defaultAddress.cityName || "",
         stateName: defaultAddress.state
           || defaultAddress.stateName || "",
+        cityId: defaultAddress.cityId || "",
+        stateId: defaultAddress.stateId || "",
         name: defaultAddress.name
           || (userData?.firstname
             ? `${userData.firstname} ${userData.lastname || ""}`.trim()
