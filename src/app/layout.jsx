@@ -1,38 +1,9 @@
-import { Geist, Geist_Mono, Outfit, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ApiProvider } from "./context/ApiContext";
 import { SocketProvider } from "./context/SocketContext";
 import QueryProvider from "./providers/QueryProvider";
 import { Toaster } from "react-hot-toast";
 import "@/app/lib/api"; // Register axios interceptors
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap",
-  fallback: ["system-ui", "arial"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-  display: "swap",
-  fallback: ["monospace"],
-});
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-  display: "swap",
-  fallback: ["system-ui", "sans-serif"],
-});
-
-const playfairDisplay = Playfair_Display({
-  variable: "--font-playfair-display",
-  subsets: ["latin"],
-  display: "swap",
-  fallback: ["serif"],
-});
 
 export const viewport = {
   themeColor: "#ea580c",
@@ -178,6 +149,7 @@ export const metadata = {
 import { ThemeProvider } from "./context/ThemeContext";
 import InstallPWA from "./components/InstallPWA";
 import JsonLd from "./components/JsonLd";
+import RoutePrefetcher from "./components/RoutePrefetcher";
 
 const organizationSchema = {
   "@context": "https://schema.org",
@@ -239,7 +211,7 @@ const foodServiceSchema = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${playfairDisplay.variable} antialiased transition-colors duration-300`}>
+      <body className="antialiased transition-colors duration-300">
         {/* ── Structured Data ─────────────────────────────────────── */}
         <JsonLd data={[organizationSchema, websiteSchema, foodServiceSchema]} />
         {/* ✅ ONLY base providers - no auth logic here */}
@@ -248,6 +220,7 @@ export default function RootLayout({ children }) {
             <QueryProvider>
               <SocketProvider>
                 {children}
+                <RoutePrefetcher />
                 <InstallPWA />
               </SocketProvider>
             </QueryProvider>

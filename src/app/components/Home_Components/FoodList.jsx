@@ -15,6 +15,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Utensils, Star, Heart, Globe, Bike, MapPin, Flame, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import HomeFoodListSkeleton from "@/app/skeleton/HomeFoodListSkeleton";
@@ -50,9 +51,11 @@ const FoodCard = ({ food }) => {
         >
             {/* Image Container */}
             <div className="relative h-[130px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                <img
+                <Image
                     src={food.image || "/placeholder.jpg"}
                     alt={food.name}
+                    fill
+                    sizes="(max-width: 640px) 72vw, 280px"
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 
@@ -155,7 +158,7 @@ export default function FoodList({ user }) {
       state: userLocation.state,
     }),
     enabled: !!userLocation?.city && !!userLocation?.state,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60,
   });
 
   const foods = responseData?.foods || [];

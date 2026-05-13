@@ -8,7 +8,7 @@
  * - Skip waiting on update (controlled by update manager)
  */
 
-const CACHE_VERSION = 'melachow-v1.1.0';
+const CACHE_VERSION = 'melachow-v1.2.0';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const IMAGE_CACHE = `${CACHE_VERSION}-images`;
@@ -49,9 +49,9 @@ self.addEventListener('install', (event) => {
     console.log('[SW] Installing service worker...');
 
     event.waitUntil(
-        caches.open(STATIC_CACHE).then((cache) => {
+        caches.open(STATIC_CACHE).then(async (cache) => {
             console.log('[SW] Precaching assets');
-            return cache.addAll(PRECACHE_ASSETS);
+            await Promise.allSettled(PRECACHE_ASSETS.map((asset) => cache.add(asset)));
         })
     );
 
@@ -112,13 +112,13 @@ self.addEventListener('fetch', (event) => {
 
     // Strategy 3: Cache-first for static assets (JS, CSS, fonts)
     if (isStaticAsset(url)) {
-        event.respondWith(cacheFirstStrategy(request, STATIC_CACHE));
+        event.respondWith(staleWhileRevalidateStrategy(request, STATIC_CACHE));
         return;
     }
 
     // Strategy 4: Network-first for HTML pages (fresh content)
     if (request.headers.get('accept')?.includes('text/html')) {
-        event.respondWith(networkFirstStrategy(request, DYNAMIC_CACHE));
+        event.respondWith(networkFirstStrategy(request, DYNAMIC_CACHE, { timeoutMs: 4500 }));
         return;
     }
 
@@ -150,13 +150,12 @@ function isStaticAsset(url) {
 }
 
 // Strategy: Network-first (for dynamic content and API)
-async function networkFirstStrategy(request, cacheName) {
+async function networkFirstStrategy(request, cacheName, options = {}) {
     try {
-        // Try network first
-        const networkResponse = await fetch(request);
+        const networkResponse = await fetchWithOptionalTimeout(request, options.timeoutMs);
 
         // Cache successful responses
-        if (networkResponse && networkResponse.status === 200) {
+        if (shouldCacheResponse(networkResponse)) {
             const cache = await caches.open(cacheName);
             cache.put(request, networkResponse.clone());
         }
@@ -213,7 +212,7 @@ async function cacheFirstStrategy(request, cacheName, maxAge = null) {
         const networkResponse = await fetch(request);
 
         // Cache successful responses
-        if (networkResponse && networkResponse.status === 200) {
+        if (shouldCacheResponse(networkResponse)) {
             const cache = await caches.open(cacheName);
             cache.put(request, networkResponse.clone());
         }
@@ -228,17 +227,61 @@ async function cacheFirstStrategy(request, cacheName, maxAge = null) {
     }
 }
 
+// Strategy: Serve static assets instantly while updating the cached copy in the background.
+async function staleWhileRevalidateStrategy(request, cacheName) {
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
+
+    const networkFetch = fetch(request)
+        .then((response) => {
+            if (shouldCacheResponse(response)) {
+                cache.put(request, response.clone());
+            }
+            return response;
+        })
+        .catch(() => null);
+
+    if (cachedResponse) {
+        return cachedResponse;
+    }
+
+    const networkResponse = await networkFetch;
+    return networkResponse || new Response('Network error', {
+        status: 408,
+        headers: { 'Content-Type': 'text/plain' },
+    });
+}
+
 // Helper: Fetch and cache in background
 async function fetchAndCache(request, cacheName) {
     try {
         const response = await fetch(request);
-        if (response && response.status === 200) {
+        if (shouldCacheResponse(response)) {
             const cache = await caches.open(cacheName);
             cache.put(request, response);
         }
     } catch (error) {
         console.log('[SW] Background fetch failed:', request.url);
     }
+}
+
+async function fetchWithOptionalTimeout(request, timeoutMs) {
+    if (!timeoutMs || !request.headers.get('accept')?.includes('text/html')) {
+        return fetch(request);
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+        return await fetch(request, { signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+function shouldCacheResponse(response) {
+    return response && response.status === 200 && (response.type === 'basic' || response.type === 'cors');
 }
 
 // --- Enhanced Push Notification Handlers ---

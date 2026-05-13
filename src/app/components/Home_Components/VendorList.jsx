@@ -23,6 +23,7 @@ import {
   Sparkles, Gift, ChevronRight, Dot, Moon, ChefHat, Pizza, Coffee, Globe
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import FreeDeliveryBadge from "@/components/ui/FreeDeliveryBadge";
 import { useQuery } from "@tanstack/react-query";
@@ -70,9 +71,11 @@ const VendorCard = ({ vendor }) => {
       {/* Image Container */}
       <div className="relative h-[120px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
         {vendor.image ? (
-          <img
+          <Image
             src={vendor.image}
             alt={vendor.storeName}
+            fill
+            sizes="(max-width: 640px) 75vw, 280px"
             className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
               !isOpen ? "grayscale-[30%]" : ""
             }`}
@@ -252,7 +255,7 @@ export default function VendorList({ user }) {
     queryFn: () =>
       getNearbyVendors({ city: userLocation.city, state: userLocation.state }),
     enabled: !!userLocation?.city && !!userLocation?.state && mounted,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60,
   });
 
   const allVendors = useMemo(() => {
