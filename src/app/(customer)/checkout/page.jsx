@@ -11,7 +11,7 @@ import Header2 from "@/app/components/App_Header/Header2";
 import toast from "react-hot-toast";
 import CheckoutPageSkeleton from "@/app/components/skeleton/CheckoutPageSkeleton";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useApi } from "@/app/context/ApiContext";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import OrderErrorDisplay from "@/app/components/Checkout/OrderErrorDisplay";
