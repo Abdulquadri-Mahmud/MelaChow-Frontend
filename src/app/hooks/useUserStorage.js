@@ -2,6 +2,7 @@ import { useApi } from "../context/ApiContext";
 import { useProfile } from "../context/ProfileContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { TokenManager } from "../lib/auth-token";
+import { normalizeUserAddresses } from "../lib/addressUtils";
 
 /**
  * Hook for managing user data via ProfileContext (Server-Sourced Identity).
@@ -15,7 +16,7 @@ export const useUserStorage = () => {
   // Legacy compatibility: saveUser now optimistically updates the cache
   const saveUser = (payload) => {
     // Normalize payload: if it contains 'user' property, unwrap it (e.g. from VerifyAccount)
-    const data = payload?.user || payload;
+    const data = normalizeUserAddresses(payload?.user || payload);
 
     // âœ… Cache user data for refresh resilience
     try {
@@ -33,7 +34,7 @@ export const useUserStorage = () => {
   const updateUser = (updates) => {
     queryClient.setQueryData(["userProfile"], (prev) => {
       if (!prev) return prev;
-      return { ...prev, ...updates };
+      return normalizeUserAddresses({ ...prev, ...updates });
     });
   };
 

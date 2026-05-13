@@ -26,6 +26,9 @@ export default function HomeHeader() {
   }, []);
 
   const defaultAddress = user?.addresses?.find(addr => addr.isDefault);
+  const defaultCity = defaultAddress?.city || defaultAddress?.cityName;
+  const defaultState = defaultAddress?.state || defaultAddress?.stateName;
+  const defaultLocation = [defaultCity, defaultState].filter(Boolean).join(", ");
 
   const handleLocationClick = () => {
     if (user) {
@@ -71,7 +74,7 @@ export default function HomeHeader() {
                 <div className="flex items-center gap-1.5">
                   <MapPin size={14} className="text-orange-500" />
                   <span className="text-sm font-black text-gray-900 dark:text-gray-100 truncate max-w-[140px] sm:max-w-[200px]">
-                    {!isMounted ? "Select Location" : (defaultAddress ? `${defaultAddress.city}, ${defaultAddress.state}` : "Select Location")}
+                    {!isMounted ? "Select Location" : (defaultLocation || "Select Location")}
                   </span>
                 </div>
               </motion.div>
