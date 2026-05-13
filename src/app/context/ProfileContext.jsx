@@ -5,6 +5,7 @@ import { useApi } from "./ApiContext";
 import { TokenManager } from "../lib/auth-token";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
+import { normalizeUserAddresses } from "../lib/addressUtils";
 
 const ProfileContext = createContext(undefined);
 
@@ -92,7 +93,7 @@ export const ProfileProvider = ({ children }) => {
       }
 
       const data = await res.json();
-      return data.user || data;
+      return normalizeUserAddresses(data.user || data);
 
     } catch (error) {
       console.error('[ProfileContext] fetchProfile error:', error);
@@ -108,7 +109,7 @@ export const ProfileProvider = ({ children }) => {
       if (typeof window !== 'undefined') {
         const cached = localStorage.getItem("melachow_user_cache");
         try {
-          return cached ? JSON.parse(cached) : undefined;
+          return cached ? normalizeUserAddresses(JSON.parse(cached)) : undefined;
         } catch (e) { return undefined; }
       }
     },
@@ -157,7 +158,7 @@ export const ProfileProvider = ({ children }) => {
 
   useEffect(() => {
     if (data && typeof window !== 'undefined') {
-      localStorage.setItem("melachow_user_cache", JSON.stringify(data));
+      localStorage.setItem("melachow_user_cache", JSON.stringify(normalizeUserAddresses(data)));
     }
   }, [data]);
 

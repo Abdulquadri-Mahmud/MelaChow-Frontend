@@ -24,8 +24,11 @@ export const useLocationStore = create((set, get) => ({
         if (!user || !user.addresses) return;
 
         const defaultAddr = user.addresses.find((a) => a.isDefault);
-        if (defaultAddr?.city && defaultAddr?.state) {
-            const newLoc = { city: defaultAddr.city, state: defaultAddr.state };
+        const city = defaultAddr?.city || defaultAddr?.cityName;
+        const state = defaultAddr?.state || defaultAddr?.stateName;
+
+        if (city && state) {
+            const newLoc = { city, state };
             const currentLoc = get().userLocation;
 
             // Only update if the location is completely missing or different

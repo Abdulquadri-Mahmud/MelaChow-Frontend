@@ -4,13 +4,16 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, MapPin, Home, CheckCircle2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { useApi } from "../context/ApiContext";
 import axios from "axios";
 import LocationSelector, { useLocationSelector } from "../components/LocationSelector";
+import { normalizeUserAddresses } from "../lib/addressUtils";
 
 export default function AddressModal({ user, isOpen, setIsOpen }) {
   const [loading, setLoading] = useState(false);
   const { baseUrl } = useApi();
+  const queryClient = useQueryClient();
 
   // Check if user has existing addresses
   const hasExistingAddress = user?.addresses?.length > 0;
@@ -61,12 +64,14 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
         }
       );
 
+      const addresses = res.data?.addresses || [];
+      queryClient.setQueryData(["userProfile"], (prev) =>
+        normalizeUserAddresses(prev ? { ...prev, addresses } : { ...user, addresses })
+      );
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+
       toast.success("Delivery address saved!");
       setIsOpen(false);
-      // Use a slight delay before reload to let toast be seen
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
     } catch (error) {
       console.error(error);
       toast.error(

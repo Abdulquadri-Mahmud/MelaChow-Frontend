@@ -13,6 +13,7 @@ import axios from "axios";
 import { useApi } from "@/app/context/ApiContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { LocationService } from "@/app/lib/locationService";
+import { normalizeAddress } from "@/app/lib/addressUtils";
 import AddressSkeleton from "../skeleton/AddressSkeleton";
 
 export default function AddressPage() {
@@ -69,7 +70,7 @@ export default function AddressPage() {
       const res = await axios.get(`${baseUrl}/user/auth/my-address`, {
         withCredentials: true,
       });
-      setAddresses(res.data.addresses || []);
+      setAddresses((res.data.addresses || []).map(normalizeAddress));
     } catch (err) {
       console.error(err);
       toast.error("Failed to load addresses");
@@ -127,7 +128,7 @@ export default function AddressPage() {
       }
 
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-      setAddresses(res.data.addresses);
+      setAddresses((res.data.addresses || []).map(normalizeAddress));
       closeForm();
     } catch (err) {
       toast.error(err.response?.data?.message || "Something went wrong");
@@ -167,7 +168,7 @@ export default function AddressPage() {
         { params: { addressId: id }, withCredentials: true }
       );
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-      setAddresses(res.data.addresses);
+      setAddresses((res.data.addresses || []).map(normalizeAddress));
       toast.success("Default address updated");
     } catch (err) {
       toast.error("Failed to update default");
@@ -181,11 +182,11 @@ export default function AddressPage() {
     if (addr) {
       setEditingId(addr._id);
       setForm({ addressLine: addr.addressLine });
-      const stateLoc = locations.find(loc => loc.state === addr.state || loc.stateId === addr.stateId);
+      const stateLoc = locations.find(loc => loc.state === addr.state || loc.state === addr.stateName || loc.stateId === addr.stateId);
       if (stateLoc) {
         setSelectedStateId(stateLoc.stateId);
         setCities(stateLoc.cities || []);
-        const cityLoc = stateLoc.cities.find(c => c.name === addr.city || c.cityId === addr.cityId);
+        const cityLoc = stateLoc.cities.find(c => c.name === addr.city || c.name === addr.cityName || c.cityId === addr.cityId);
         if (cityLoc) setSelectedCityId(cityLoc.cityId);
       }
     } else {
