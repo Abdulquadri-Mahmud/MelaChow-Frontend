@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X, RefreshCw, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
@@ -28,6 +28,7 @@ export default function PWAUpdateManager() {
     const [showUpdateBanner, setShowUpdateBanner] = useState(false);
     const [waitingWorker, setWaitingWorker] = useState(null);
     const [isUpdating, setIsUpdating] = useState(false);
+    const hasReloadedRef = useRef(false);
 
     useEffect(() => {
         // Only run in browser
@@ -69,12 +70,14 @@ export default function PWAUpdateManager() {
         });
 
         // Listen for controller change (service worker activated)
-        navigator.serviceWorker.addEventListener("controllerchange", () => {
-            // Service worker has been updated, reload the page
-            if (!isUpdating) {
+        const handleControllerChange = () => {
+            if (!hasReloadedRef.current) {
+                hasReloadedRef.current = true;
                 window.location.reload();
             }
-        });
+        };
+
+        navigator.serviceWorker.addEventListener("controllerchange", handleControllerChange);
 
         // Check for updates periodically (every 30 minutes)
         const updateInterval = setInterval(() => {
@@ -83,8 +86,11 @@ export default function PWAUpdateManager() {
             });
         }, 30 * 60 * 1000); // 30 minutes
 
-        return () => clearInterval(updateInterval);
-    }, [isUpdating]);
+        return () => {
+            clearInterval(updateInterval);
+            navigator.serviceWorker.removeEventListener("controllerchange", handleControllerChange);
+        };
+    }, []);
 
     // Handle update action
     const handleUpdate = () => {

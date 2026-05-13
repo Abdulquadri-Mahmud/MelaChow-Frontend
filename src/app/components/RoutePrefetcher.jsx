@@ -22,7 +22,12 @@ export default function RoutePrefetcher() {
   useEffect(() => {
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
 
-    if (connection?.saveData) {
+    const isConstrainedNetwork =
+      connection?.saveData ||
+      ["slow-2g", "2g"].includes(connection?.effectiveType) ||
+      (typeof connection?.downlink === "number" && connection.downlink < 1.5);
+
+    if (navigator.onLine === false || isConstrainedNetwork) {
       return undefined;
     }
 
