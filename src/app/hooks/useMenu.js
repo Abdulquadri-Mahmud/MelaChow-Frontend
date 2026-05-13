@@ -26,7 +26,7 @@ export const useVendorMenu = (vendorId) => {
         queryKey: ["vendor-menu", vendorId],
         queryFn: () => getFullVendorMenu(vendorId),
         enabled: !!vendorId,
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60, // Keep menu changes visible without overloading the API
     });
 };
 
