@@ -150,6 +150,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import InstallPWA from "./components/InstallPWA";
 import JsonLd from "./components/JsonLd";
 import RoutePrefetcher from "./components/RoutePrefetcher";
+import ChunkLoadRecovery from "./components/ChunkLoadRecovery";
 
 const organizationSchema = {
   "@context": "https://schema.org",
@@ -220,6 +221,7 @@ export default function RootLayout({ children }) {
             <QueryProvider>
               <SocketProvider>
                 {children}
+                <ChunkLoadRecovery />
                 <RoutePrefetcher />
                 <InstallPWA />
               </SocketProvider>
