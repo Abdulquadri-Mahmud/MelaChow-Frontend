@@ -9,7 +9,7 @@ import { useParams } from "next/navigation";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import Header2 from "../App_Header/Header2";
 import OrderTrackingSkeleton from "../skeleton/OrderTrackingSkeleton";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import ReviewModal from "@/app/modals/ReviewModal";
 import { useOrderTracking } from "@/app/hooks/useOrderTracking";
 import toast from "react-hot-toast";
@@ -180,8 +180,11 @@ export default function OrderTracking() {
         const res = await axios.get(`${baseUrl}/orders/${orderId}`, {
           withCredentials: true
         });
-        console.log(res)
         setOrderData(res.data.order);
+        // OTP might be in the root of response from getSingleOrder update
+        if (res.data.deliveryOtp) {
+          setOrderData(prev => ({ ...prev, deliveryOtp: res.data.deliveryOtp }));
+        }
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch order details");
       } finally {
@@ -204,7 +207,7 @@ export default function OrderTracking() {
   if (!orderData)
     return <div className="md:p-6 p-2 text-center text-zinc-600 dark:text-zinc-400 font-medium">No order found</div>;
 
-  const { items, deliveryAddress, subtotal, deliveryFee, serviceFee, total, orderStatus, userId } = orderData;
+  const { items, deliveryAddress, subtotal, deliveryFee, serviceFee, total, orderStatus, userId, deliveryOtp } = orderData;
   const formatMoney = (value) => `₦${Number(value || 0).toLocaleString()}`;
   const promoSaved = Number(
     orderData.freeDeliveryPromo?.originalDeliveryFee ||
@@ -213,8 +216,6 @@ export default function OrderTracking() {
   );
   const promoWaivedDelivery = Number(deliveryFee || 0) === 0 && promoSaved > 0;
   const currentStepIndex = statusSteps.findIndex((s) => s.key === orderStatus);
-
-  // console.log(orderData);
 
   return (
     <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen font-display pb-32">
@@ -424,6 +425,31 @@ export default function OrderTracking() {
               })}
             </div>
           </motion.div>
+
+          {/* 🔐 NEW: Delivery Confirmation Code (OTP) Card */}
+          {((orderData.orderStatus === 'out_for_delivery' || orderData.orderStatus === 'delivered' || orderData.orderStatus === 'completed') && orderData.deliveryOtp) && (
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-zinc-900 dark:bg-orange-600 rounded-[40px] p-8 text-white relative overflow-hidden shadow-2xl shadow-orange-500/20 text-center"
+            >
+              <div className="relative z-10">
+                <div className="flex items-center justify-center gap-2 mb-4">
+                  <div className="w-1.5 h-1.5 rounded-full bg-orange-500 dark:bg-white animate-pulse" />
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80">Secure Delivery Code</p>
+                </div>
+                <h3 className="text-4xl font-black tracking-[0.4em] mb-4 font-mono">
+                  {orderData.deliveryOtp}
+                </h3>
+                <p className="text-xs font-bold opacity-70 max-w-[280px] mx-auto leading-relaxed">
+                  Provide this code to your rider only after you have received your order.
+                </p>
+              </div>
+              {/* Decorative Background Elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-12 translate-x-12 blur-2xl" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-orange-500/20 rounded-full translate-y-12 -translate-x-12 blur-2xl" />
+            </motion.div>
+          )}
 
           {/* Rider & Bag Detailed Card */}
           <div className="grid grid-cols-1 md:grid-cols-1 gap-3">
@@ -768,93 +794,95 @@ export default function OrderTracking() {
       </motion.div>
 
       {/* ── Auto Review Banner ───────────────────────────────────────────────── */}
-      {showReviewBanner && (
-        <motion.div
-          initial={{ y: 120, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 120, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="fixed bottom-0 left-0 right-0 z-[10000] p-4 pb-8"
-        >
-          <div className="max-w-md mx-auto bg-white dark:bg-zinc-900 rounded-[32px] shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.15)] border border-zinc-100 dark:border-zinc-800 overflow-hidden">
-            {/* Orange accent bar */}
-            <div className="h-1 bg-gradient-to-r from-orange-400 via-orange-600 to-amber-500" />
-            <div className="p-5">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-orange-50 dark:bg-orange-500/10 rounded-2xl flex items-center justify-center">
-                    <Star size={20} className="text-orange-500 fill-orange-500" />
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-black text-zinc-900 dark:text-white uppercase tracking-tight">How was your order?</p>
-                    <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Your feedback helps other customers</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowReviewBanner(false);
-                    localStorage.setItem(`review_prompted_${orderId}`, 'dismissed');
-                  }}
-                  className="p-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl text-zinc-400 hover:text-zinc-600 transition-colors"
-                >
-                  <span className="text-lg leading-none">×</span>
-                </button>
-              </div>
-
-              {/* Item thumbnails */}
-              {orderData?.items?.length > 0 && (
-                <div className="flex items-center gap-2 mb-4">
-                  {orderData.items.slice(0, 3).map((item, idx) => (
-                    <div key={idx} className="w-10 h-10 rounded-xl overflow-hidden border-2 border-white dark:border-zinc-800 shadow-sm">
-                      <img
-                        src={item.variant?.image || item.image_url || '/placeholder.jpg'}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
+      <AnimatePresence>
+        {showReviewBanner && (
+          <motion.div
+            initial={{ y: 120, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 120, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="fixed bottom-0 left-0 right-0 z-[10000] p-4 pb-8"
+          >
+            <div className="max-w-md mx-auto bg-white dark:bg-zinc-900 rounded-[32px] shadow-[0_-20px_60px_-10px_rgba(0,0,0,0.15)] border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+              {/* Orange accent bar */}
+              <div className="h-1 bg-gradient-to-r from-orange-400 via-orange-600 to-amber-500" />
+              <div className="p-5">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-orange-50 dark:bg-orange-500/10 rounded-2xl flex items-center justify-center">
+                      <Star size={20} className="text-orange-500 fill-orange-500" />
                     </div>
-                  ))}
-                  {orderData.items.length > 3 && (
-                    <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                      <span className="text-[10px] font-black text-zinc-500">+{orderData.items.length - 3}</span>
+                    <div>
+                      <p className="text-[13px] font-black text-zinc-900 dark:text-white uppercase tracking-tight">How was your order?</p>
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-0.5">Your feedback helps other customers</p>
                     </div>
-                  )}
-                  <p className="text-[11px] font-bold text-zinc-500 ml-1">{orderData.items.length} item{orderData.items.length > 1 ? 's' : ''}</p>
-                </div>
-              )}
-
-              {/* CTA Buttons */}
-              <div className="flex items-center gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => {
-                    if (orderData?.items?.length > 0) {
-                      setSelectedFoodForReview(orderData.items[0]);
-                      setIsReviewModalOpen(true);
+                  </div>
+                  <button
+                    onClick={() => {
                       setShowReviewBanner(false);
-                      localStorage.setItem(`review_prompted_${orderId}`, 'prompted');
-                    }
-                  }}
-                  className="flex-1 py-3.5 bg-orange-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
-                >
-                  <Star size={14} className="fill-white" />
-                  Rate Now
-                </motion.button>
-                <button
-                  onClick={() => {
-                    setShowReviewBanner(false);
-                    localStorage.setItem(`review_prompted_${orderId}`, 'dismissed');
-                  }}
-                  className="px-5 py-3.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-500 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-                >
-                  Later
-                </button>
+                      localStorage.setItem(`review_prompted_${orderId}`, 'dismissed');
+                    }}
+                    className="p-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl text-zinc-400 hover:text-zinc-600 transition-colors"
+                  >
+                    <span className="text-lg leading-none">×</span>
+                  </button>
+                </div>
+
+                {/* Item thumbnails */}
+                {orderData?.items?.length > 0 && (
+                  <div className="flex items-center gap-2 mb-4">
+                    {orderData.items.slice(0, 3).map((item, idx) => (
+                      <div key={idx} className="w-10 h-10 rounded-xl overflow-hidden border-2 border-white dark:border-zinc-800 shadow-sm">
+                        <img
+                          src={item.variant?.image || item.image_url || '/placeholder.jpg'}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                    {orderData.items.length > 3 && (
+                      <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                        <span className="text-[10px] font-black text-zinc-500">+{orderData.items.length - 3}</span>
+                      </div>
+                    )}
+                    <p className="text-[11px] font-bold text-zinc-500 ml-1">{orderData.items.length} item{orderData.items.length > 1 ? 's' : ''}</p>
+                  </div>
+                )}
+
+                {/* CTA Buttons */}
+                <div className="flex items-center gap-3">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => {
+                      if (orderData?.items?.length > 0) {
+                        setSelectedFoodForReview(orderData.items[0]);
+                        setIsReviewModalOpen(true);
+                        setShowReviewBanner(false);
+                        localStorage.setItem(`review_prompted_${orderId}`, 'prompted');
+                      }
+                    }}
+                    className="flex-1 py-3.5 bg-orange-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
+                  >
+                    <Star size={14} className="fill-white" />
+                    Rate Now
+                  </motion.button>
+                  <button
+                    onClick={() => {
+                      setShowReviewBanner(false);
+                      localStorage.setItem(`review_prompted_${orderId}`, 'dismissed');
+                    }}
+                    className="px-5 py-3.5 bg-zinc-50 dark:bg-zinc-800 text-zinc-500 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    Later
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Review Modal */}
       {selectedFoodForReview && (
@@ -872,4 +900,3 @@ export default function OrderTracking() {
     </div>
   );
 }
-
