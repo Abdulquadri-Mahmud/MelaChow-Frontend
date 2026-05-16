@@ -131,7 +131,8 @@ export default function OrderTracking() {
       setOrderData(prev => prev ? { 
         ...prev, 
         orderStatus: data.status,
-        riderId: data.rider || prev.riderId // Update rider if provided
+        riderId: data.rider || prev.riderId, // Update rider if provided
+        deliveryOtp: data.deliveryOtp || prev.deliveryOtp // ✅ Update OTP if provided
       } : null);
 
       // Optionally show a toast
@@ -427,12 +428,16 @@ export default function OrderTracking() {
           </motion.div>
 
           {/* 🔐 NEW: Delivery Confirmation Code (OTP) Card */}
-          {((orderData.orderStatus === 'out_for_delivery' || orderData.orderStatus === 'delivered' || orderData.orderStatus === 'completed') && orderData.deliveryOtp) && (
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="bg-zinc-900 dark:bg-orange-600 rounded-[40px] p-8 text-white relative overflow-hidden shadow-2xl shadow-orange-500/20 text-center"
-            >
+          {deliveryOtp && !['delivered', 'completed'].includes(orderStatus) && (
+              <motion.div
+                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-zinc-900 dark:bg-orange-600 rounded-[48px] p-10 text-white relative overflow-hidden shadow-[0_40px_80px_-20px_rgba(255,102,0,0.3)] text-center border-4 border-white/10"
+              >
+                {/* Visual Accent */}
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
               <div className="relative z-10">
                 <div className="flex items-center justify-center gap-2 mb-4">
                   <div className="w-1.5 h-1.5 rounded-full bg-orange-500 dark:bg-white animate-pulse" />

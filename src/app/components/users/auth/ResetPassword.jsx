@@ -76,6 +76,8 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [statusModal, setStatusModal] = useState({ isOpen: false, type: 'success', message: '' });
   const [resending, setResending] = useState(false);
+  const [step, setStep] = useState(1);
+  const [resetToken, setResetToken] = useState("");
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -129,22 +131,16 @@ export default function ResetPassword() {
     }
   };
 
-  const handleResetPassword = async () => {
+  const handleVerifyOTP = async () => {
     const otpString = otp.join("");
 
     if (otpString.length !== 6) {
       setStatusModal({ isOpen: true, type: 'error', message: "Please enter the 6-digit code we sent you." });
       return;
     }
-    if (!password || password.length < 8) {
-      setStatusModal({ isOpen: true, type: 'error', message: "Your new password must be at least 8 characters long." });
-      return;
-    }
 
     try {
       setLoading(true);
-
-      // Step 1: Verify Code
       const verifyEndpoint = `${baseUrl}/user/auth/verify-reset-code`;
       const verifyRes = await axios.post(
         verifyEndpoint,
@@ -156,9 +152,33 @@ export default function ResetPassword() {
         throw new Error(verifyRes.data.message || "Invalid or expired code.");
       }
 
-      const resetToken = verifyRes.data.resetToken || verifyRes.data.token;
+      const token = verifyRes.data.resetToken || verifyRes.data.token;
+      setResetToken(token);
+      setStep(2);
+      
+      setStatusModal({
+        isOpen: true,
+        type: 'success',
+        message: "Code verified successfully! You can now securely set your new password."
+      });
 
-      // Step 2: Reset Password
+    } catch (error) {
+      console.error('[VerifyOTP] Error:', error);
+      const errorMessage = error.response?.data?.message || "Invalid code or connection error. Please try again.";
+      setStatusModal({ isOpen: true, type: 'error', message: errorMessage });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSetNewPassword = async () => {
+    if (!password || password.length < 8) {
+      setStatusModal({ isOpen: true, type: 'error', message: "Your new password must be at least 8 characters long." });
+      return;
+    }
+
+    try {
+      setLoading(true);
       const endpoint = `${baseUrl}/user/auth/reset-password-new`;
       const { data } = await axios.post(
         endpoint,
@@ -182,7 +202,7 @@ export default function ResetPassword() {
 
     } catch (error) {
       console.error('[ResetPassword] Reset error:', error);
-      const errorMessage = error.response?.data?.message || "Invalid code or connection error. Please try again.";
+      const errorMessage = error.response?.data?.message || "Failed to reset password. Please try again.";
       setStatusModal({ isOpen: true, type: 'error', message: errorMessage });
     } finally {
       setLoading(false);
@@ -240,84 +260,122 @@ export default function ResetPassword() {
           </div>
 
           <h1 className="text-4xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-3">
-            Secure <span className="text-orange-600">Reset</span>
+            {step === 1 ? (
+              <>Secure <span className="text-orange-600">Verify</span></>
+            ) : (
+              <>Set <span className="text-orange-600">Password</span></>
+            )}
           </h1>
           <p className="text-xs font-semibold text-slate-500 mb-6 leading-relaxed">
-            Enter the 6-digit code sent to<br />
-            <span className="text-slate-700 dark:text-slate-300 font-bold">{email}</span>
+            {step === 1 ? (
+              <>
+                Enter the 6-digit code sent to<br />
+                <span className="text-slate-700 dark:text-slate-300 font-bold">{email}</span>
+              </>
+            ) : (
+              <>Please enter your new strong password below.</>
+            )}
           </p>
         </div>
 
-        {/* OTP Inputs */}
-        <div className="flex justify-center gap-3 mb-8">
-          {otp.map((digit, index) => (
-            <input
-              key={index}
-              ref={(el) => (inputRefs.current[index] = el)}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              onChange={(e) => handleChange(e.target.value, index)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              onPaste={index === 0 ? handlePaste : undefined}
-              className="w-12 h-14 text-center bg-slate-50 dark:bg-slate-800 rounded-2xl text-2xl font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-transparent focus:border-orange-500/20 shadow-sm"
-            />
-          ))}
-        </div>
+        {step === 1 ? (
+          <>
+            {/* OTP Inputs */}
+            <div className="flex justify-center gap-3 mb-8">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  ref={(el) => (inputRefs.current[index] = el)}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleChange(e.target.value, index)}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  onPaste={index === 0 ? handlePaste : undefined}
+                  className="w-12 h-14 text-center bg-slate-50 dark:bg-slate-800 rounded-2xl text-2xl font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-transparent focus:border-orange-500/20 shadow-sm"
+                />
+              ))}
+            </div>
 
-        {/* New Password Input */}
-        <div className="space-y-2 mb-8">
-          <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">New Password</label>
-          <input
-            type="password"
-            placeholder="Min. 8 characters"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm border border-transparent focus:border-orange-500/20"
-          />
-        </div>
+            <div className="space-y-4">
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={handleVerifyOTP}
+                disabled={loading}
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-orange-500/20"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={24} />
+                    <span>Verifying...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Verify Code</span>
+                    <ArrowRight size={20} />
+                  </>
+                )}
+              </motion.button>
 
-        <div className="space-y-4">
-          <motion.button
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            onClick={handleResetPassword}
-            disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-orange-500/20"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin" size={24} />
-                <span>Updating...</span>
-              </>
-            ) : (
-              <>
-                <span>Update Password</span>
-                <ArrowRight size={20} />
-              </>
-            )}
-          </motion.button>
+              <button
+                onClick={handleResendOTP}
+                disabled={resending}
+                className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all border border-orange-100 dark:border-orange-900/30 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/5 shadow-sm disabled:opacity-50"
+              >
+                {resending ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    <span>Resending...</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw size={18} />
+                    <span>Resend Code</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* New Password Input */}
+            <div className="space-y-2 mb-8">
+              <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">New Password</label>
+              <input
+                type="password"
+                placeholder="Min. 8 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm border border-transparent focus:border-orange-500/20"
+              />
+            </div>
 
-          <button
-            onClick={handleResendOTP}
-            disabled={resending}
-            className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all border border-orange-100 dark:border-orange-900/30 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/5 shadow-sm disabled:opacity-50"
-          >
-            {resending ? (
-              <>
-                <Loader2 className="animate-spin" size={18} />
-                <span>Resending...</span>
-              </>
-            ) : (
-              <>
-                <RefreshCw size={18} />
-                <span>Resend Code</span>
-              </>
-            )}
-          </button>
-        </div>
+            <div className="space-y-4">
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={handleSetNewPassword}
+                disabled={loading}
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-orange-500/20"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="animate-spin" size={24} />
+                    <span>Updating...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Update Password</span>
+                    <ArrowRight size={20} />
+                  </>
+                )}
+              </motion.button>
+            </div>
+          </>
+        )}
       </motion.div>
 
       <StatusModal
