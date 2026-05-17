@@ -406,14 +406,14 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   const content = (
     <>
       {/* 🧭 Header */}
-      <header className="flex items-center justify-between px-4 py-4 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800">
+      <header className="flex items-center justify-between px-4 py-2.5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800">
         <div className="flex items-center gap-3">
           <button
             onClick={() => {
               if (onClose) onClose();
               else router.back();
             }}
-            className="p-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600 dark:text-zinc-400 transition-all active:scale-90"
+            className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600 dark:text-zinc-400 transition-all active:scale-90"
             aria-label="Go back"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -439,8 +439,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
             router.push('/orders?activeTab=cart');
           }}
         >
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-zinc-900 dark:bg-zinc-100 p-2.5 rounded-2xl">
-            <BiCartAdd className="text-white dark:text-zinc-900" size={24} />
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-zinc-900 dark:bg-zinc-100 p-2 rounded-xl">
+            <BiCartAdd className="text-white dark:text-zinc-900" size={22} />
             {totalItems > 0 && (
               <span className="absolute -top-1.5 -right-1.5 bg-orange-500 ring-4 ring-white dark:ring-zinc-900 text-white text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-black">
                 {totalItems}
@@ -464,8 +464,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
           ) : food ? (
             <>
               {/* 🏷️ TAB TOGGLE */}
-              <div className="px-4 sticky pt-2 top-[72px] z-20 mb-4">
-                <div className="flex bg-zinc-200/50 dark:bg-zinc-800/50 p-1 rounded-2xl w-full max-w-sm mx-auto backdrop-blur-md border border-white/20 dark:border-zinc-800/50 shadow-sm">
+              <div className="px-4 sticky pt-1 top-[60px] z-20 mb-3">
+                <div className="flex bg-zinc-200/50 dark:bg-zinc-800/50 p-0.5 rounded-xl w-full max-w-sm mx-auto backdrop-blur-md border border-white/20 dark:border-zinc-800/50 shadow-sm">
                   {[
                     { id: 'details', label: 'Details', icon: Package },
                     { id: 'reviews', label: `Reviews${food?.totalReviews ? ` (${food.totalReviews})` : ''}`, icon: MessageSquare },
@@ -476,7 +476,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                         setActiveTab(tab.id);
                         swiperInstance?.slideTo(tab.id === 'details' ? 0 : 1);
                       }}
-                      className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 ${activeTab === tab.id
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${activeTab === tab.id
                           ? "bg-white dark:bg-zinc-700 text-orange-600 shadow-sm"
                           : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
                         }`}
@@ -506,10 +506,10 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                   <div className="space-y-4 pb-4">
                     {/* Main Info Card */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-1 pt-2">
-                      <div className="bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-sm">
+                      <div className="bg-white dark:bg-zinc-900 rounded-[28px] border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-sm">
                         {/* Image Section */}
-                        <div className="relative w-full bg-zinc-100 dark:bg-zinc-800 p-1.5">
-                          <div className="w-full h-[180px] md:h-[220px] rounded-[24px] overflow-hidden relative">
+                        <div className="relative w-full bg-zinc-100 dark:bg-zinc-800 p-1">
+                          <div className="w-full h-[140px] md:h-[185px] rounded-[18px] overflow-hidden relative">
                             <img
                               src={food?.image || food?.image_url || "/placeholder.jpg"}
                               alt={food?.name}
@@ -565,8 +565,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                         </div>
 
                         {/* Text Content */}
-                        <div className="md:p-4 p-2 pb-3">
-                          <h3 className="text-lg font-bold text-zinc-900 dark:text-white leading-tight tracking-tight uppercase mb-1">
+                        <div className="md:p-3 p-2 pb-2">
+                          <h3 className="text-base font-bold text-zinc-900 dark:text-white leading-tight tracking-tight uppercase mb-0.5">
                             {food?.name}
                           </h3>
                           <p className="text-zinc-500 dark:text-zinc-400 text-xs leading-relaxed italic font-medium">
@@ -584,10 +584,10 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                           </div>
 
                           {/* Quick Stats */}
-                          <div className="grid grid-cols-2 gap-2 mt-4">
+                          <div className="grid grid-cols-2 gap-2 mt-2.5">
                             {/* Time Stat */}
-                            <div className="flex items-center gap-2 p-2 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-xl border border-zinc-100/80 dark:border-zinc-700/80 backdrop-blur-sm">
-                              <div className="p-1.5 bg-white dark:bg-zinc-900 rounded-lg text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800"><Clock size={16} /></div>
+                            <div className="flex items-center gap-2 p-1.5 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-lg border border-zinc-100/80 dark:border-zinc-700/80 backdrop-blur-sm">
+                              <div className="p-1 bg-white dark:bg-zinc-900 rounded-md text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800"><Clock size={14} /></div>
                               <div>
                                 <p className="text-[8px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Prep time</p>
                                 <p className="text-xs font-black text-zinc-900 dark:text-white leading-none">{food?.prep_time_minutes ? `${food.prep_time_minutes} min` : `25 min`}</p>
@@ -595,14 +595,14 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                             </div>
 
                             {/* Delivery */}
-                            <div className={`flex items-center gap-2 p-2 rounded-xl border backdrop-blur-sm ${!food?.deliveryFee || food?.deliveryFee === 0
+                            <div className={`flex items-center gap-2 p-1.5 rounded-lg border backdrop-blur-sm ${!food?.deliveryFee || food?.deliveryFee === 0
                                 ? "bg-green-50/80 dark:bg-green-500/10 border-green-100/80 dark:border-green-500/20"
                                 : "bg-zinc-50/80 dark:bg-zinc-800/80 border-zinc-100/80 dark:border-zinc-700/80"
                               }`}>
-                              <div className={`p-1.5 bg-white dark:bg-zinc-900 rounded-lg shadow-sm ring-1 ${!food?.deliveryFee || food?.deliveryFee === 0
+                              <div className={`p-1 bg-white dark:bg-zinc-900 rounded-md shadow-sm ring-1 ${!food?.deliveryFee || food?.deliveryFee === 0
                                   ? "text-green-500 ring-green-100 dark:ring-green-500/20"
                                   : "text-orange-500 ring-zinc-100 dark:ring-zinc-800"
-                                }`}><Truck size={16} /></div>
+                                }`}><Truck size={14} /></div>
                               <div>
                                 <p className="text-[8px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Delivery</p>
                                 <p className={`text-xs font-black leading-none ${!food?.deliveryFee || food?.deliveryFee === 0
@@ -675,13 +675,13 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                         </div>
                       )}
 
-                      {/* Portions Selector */}
-                      {food.portions?.length > 0 && (
-                        <div className="bg-white dark:bg-zinc-900 rounded-[32px] p-4 border border-zinc-100 dark:border-zinc-800 shadow-sm mb-4">
-                          <div className="flex items-center gap-2 mb-4">
-                            <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
-                            <h3 className="text-lg font-black italic text-zinc-900 dark:text-white uppercase tracking-tight">Select Portion</h3>
-                          </div>
+                       {/* Portions Selector */}
+                       {food.portions?.length > 0 && (
+                         <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-3 border border-zinc-100 dark:border-zinc-800 shadow-sm mb-4">
+                           <div className="flex items-center gap-1.5 mb-3">
+                             <div className="w-1 h-5 bg-orange-500 rounded-full" />
+                             <h3 className="text-base font-black italic text-zinc-900 dark:text-white uppercase tracking-tight">Select Portion</h3>
+                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {food.portions.map(portion => {
                               const isSelected = selectedPortion?._id === portion._id;
@@ -694,7 +694,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                       setSelectedPortion(portion);
                                     }
                                   }}
-                                  className={`relative flex items-center justify-between p-4 rounded-[28px] border-2 transition-all cursor-pointer ${isSelected
+                                  className={`relative flex items-center justify-between p-3 rounded-[20px] border-2 transition-all cursor-pointer ${isSelected
                                       ? "bg-orange-50/50 dark:bg-orange-500/10 border-orange-500 shadow-[0_0_20px_rgba(255,102,0,0.1)] dark:shadow-[0_0_30px_rgba(255,102,0,0.15)] scale-[1.01]"
                                       : "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-200 dark:hover:border-orange-500/30"
                                     } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -749,11 +749,11 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                         </div>
                       )}
 
-                      {/* Choice Groups */}
-                      {(food.choiceGroups?.length > 0 || food.choice_groups?.length > 0) && (
-                        <div className="space-y-3 mb-4 relative z-10">
-                          {(food.choiceGroups || food.choice_groups).map((group, gIdx) => (
-                            <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[24px] p-3 border border-zinc-100 dark:border-zinc-800 shadow-sm flex flex-col">
+                       {/* Choice Groups */}
+                       {(food.choiceGroups?.length > 0 || food.choice_groups?.length > 0) && (
+                         <div className="space-y-3 mb-4 relative z-10">
+                           {(food.choiceGroups || food.choice_groups).map((group, gIdx) => (
+                             <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[18px] p-2.5 border border-zinc-100 dark:border-zinc-800 shadow-sm flex flex-col">
                               <div className="flex items-center gap-2 mb-1">
                                 <div className="w-1 h-5 bg-orange-500 rounded-full" />
                                 <h4 className="text-[13px] font-black italic text-zinc-900 dark:text-white uppercase tracking-tight">
@@ -780,7 +780,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                   return (
                                     <div key={option._id}
                                       onClick={() => itemAvailability.available && toggleChoice(gIdx, group, option)}
-                                      className={`flex items-center gap-3 p-2.5 rounded-[16px] border-2 cursor-pointer transition-all ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10 shadow-md" : "border-zinc-50 dark:border-zinc-800 bg-white dark:bg-zinc-900"
+                                      className={`flex items-center gap-2.5 p-2 rounded-[12px] border-2 cursor-pointer transition-all ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10 shadow-md" : "border-zinc-50 dark:border-zinc-800 bg-white dark:bg-zinc-900"
                                         } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                       {/* Option Image */}
                                       {/* Selection Indicator Circle */}
@@ -961,21 +961,21 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
         {/* Base Item Add to Order Footer - Fixed Bottom Bar */}
         {food && (
-          <div className="fixed bottom-0 left-0 right-0 p-3 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 pb-safe z-40">
-            <div className="max-w-2xl mx-auto flex items-center gap-4">
+          <div className="fixed bottom-0 left-0 right-0 p-2.5 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 pb-safe z-40">
+            <div className="max-w-2xl mx-auto flex items-center gap-3">
 
               {/* Quantity Control Container */}
-              <div className="flex items-center gap-1 bg-zinc-100/80 dark:bg-zinc-900/80 rounded-[20px] p-1 h-[52px] border border-zinc-200/50 dark:border-zinc-800/50 shadow-inner group transition-colors">
+              <div className="flex items-center gap-1 bg-zinc-100/80 dark:bg-zinc-900/80 rounded-[16px] p-0.5 h-[46px] border border-zinc-200/50 dark:border-zinc-800/50 shadow-inner group transition-colors">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={!itemAvailability.available}
-                  className="w-[40px] h-full flex items-center justify-center rounded-2xl bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all disabled:opacity-50 text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
+                  className="w-[36px] h-full flex items-center justify-center rounded-xl bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all disabled:opacity-50 text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
                 >
-                  <Minus size={18} strokeWidth={3} />
+                  <Minus size={16} strokeWidth={3} />
                 </button>
-                <div className="w-10 flex flex-col items-center">
-                  <span className="text-[9px] font-black text-zinc-400 uppercase tracking-tighter leading-none mb-0.5">Qty</span>
-                  <span className="text-base font-black text-zinc-900 dark:text-white tabular-nums leading-none">
+                <div className="w-8 flex flex-col items-center">
+                  <span className="text-[8px] font-black text-zinc-400 uppercase tracking-tighter leading-none mb-0.5">Qty</span>
+                  <span className="text-sm font-black text-zinc-900 dark:text-white tabular-nums leading-none">
                     {quantity}
                   </span>
                 </div>
@@ -988,16 +988,16 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                     }
                   }}
                   disabled={!itemAvailability.available}
-                  className="w-[40px] h-full flex items-center justify-center rounded-2xl bg-orange-500 text-white shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
+                  className="w-[36px] h-full flex items-center justify-center rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/20 active:scale-95 transition-all"
                 >
-                  <Plus size={18} strokeWidth={3} />
+                  <Plus size={16} strokeWidth={3} />
                 </button>
               </div>
 
               <button
                 onClick={handleAddToCartBaseItem}
                 disabled={!itemAvailability.available}
-                className="flex-1 h-[52px] py-1.5 bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[20px] font-black text-[13px] uppercase tracking-[0.05em] italic flex items-center justify-between px-4 transition-all active:scale-[0.98] shadow-2xl shadow-zinc-200/50 dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50 overflow-hidden"
+                className="flex-1 h-[46px] py-1 bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[16px] font-black text-[12px] uppercase tracking-[0.05em] italic flex items-center justify-between px-3.5 transition-all active:scale-[0.98] shadow-2xl shadow-zinc-200/50 dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50 overflow-hidden"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   {/* <div className="p-1.5 rounded-xl bg-orange-500 text-white shadow-lg shadow-orange-500/20 group-hover:rotate-12 transition-transform shrink-0">

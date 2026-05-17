@@ -42,28 +42,28 @@ const ActionCard = ({ icon: Icon, title, description, onClick, href, color = "or
 
   return (
     <motion.div
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}
       onClick={handleClick}
-      className={`cursor-pointer group relative overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-[28px] p-4 transition-all duration-300 ${hoverClass} hover:shadow-2xl shadow-zinc-100/50 dark:shadow-none`}
+      className={`cursor-pointer group relative overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-2.5 transition-all duration-300 ${hoverClass} hover:shadow-lg shadow-zinc-100/50 dark:shadow-none`}
     >
       {/* Glow Effects */}
-      <div className={`absolute top-0 right-0 w-24 h-24 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity ${isRed ? 'bg-red-500/10' : 'bg-orange-500/10'} -translate-y-1/2 translate-x-1/2`}></div>
+      <div className={`absolute top-0 right-0 w-16 h-16 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity ${isRed ? 'bg-red-500/10' : 'bg-orange-500/10'} -translate-y-1/2 translate-x-1/2`}></div>
 
-      <div className="flex items-center gap-5 relative z-10">
-        <div className={`p-4 rounded-2xl transition-colors ${isRed ? 'bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-400' : 'bg-orange-50 text-orange-500 dark:bg-orange-500/10 dark:text-orange-400'} shadow-sm group-hover:shadow-md`}>
-          <Icon size={24} strokeWidth={2.5} />
+      <div className="flex items-center gap-3.5 relative z-10">
+        <div className={`p-2.5 rounded-xl transition-colors ${isRed ? 'bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-400' : 'bg-orange-50 text-orange-500 dark:bg-orange-500/10 dark:text-orange-400'} shadow-sm group-hover:shadow-md`}>
+          <Icon size={20} strokeWidth={2.5} />
         </div>
         <div className="flex-1">
-          <h3 className={`font-bold text-[17px] tracking-tight ${isRed ? 'text-red-600 dark:text-red-400' : 'text-zinc-800 dark:text-white'}`}>
+          <h3 className={`font-bold text-[14px] tracking-tight ${isRed ? 'text-red-600 dark:text-red-400' : 'text-zinc-800 dark:text-white'}`}>
             {title}
           </h3>
-          <p className="text-[13px] font-medium text-zinc-400 dark:text-zinc-500 mt-0.5">
+          <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mt-0.5">
             {description}
           </p>
         </div>
-        <div className="text-zinc-300 group-hover:text-zinc-500 dark:text-zinc-600 dark:group-hover:text-zinc-400 transition-colors bg-zinc-50 dark:bg-zinc-800 p-2 rounded-full group-hover:bg-white dark:group-hover:bg-zinc-700 group-hover:shadow-sm">
-          <ChevronRight size={18} strokeWidth={3} />
+        <div className="text-zinc-300 group-hover:text-zinc-500 dark:text-zinc-600 dark:group-hover:text-zinc-400 transition-colors bg-zinc-50 dark:bg-zinc-800 p-1.5 rounded-full group-hover:bg-white dark:group-hover:bg-zinc-700 group-hover:shadow-sm">
+          <ChevronRight size={15} strokeWidth={3} />
         </div>
       </div>
     </motion.div>
@@ -151,21 +151,21 @@ const User_Profile = ({ userData, isLoading }) => {
       </div>
 
       {/* Profile Hero / Header */}
-      <section className="relative p-6 pt-10 text-center flex flex-col items-center">
+      <section className="relative p-3 pt-6 text-center flex flex-col items-center">
         {/* Background Decor */}
-        <div className="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-orange-500/5 dark:from-orange-500/10 to-transparent pointer-events-none -z-10" />
+        <div className="absolute top-0 inset-x-0 h-48 bg-gradient-to-b from-orange-500/5 dark:from-orange-500/10 to-transparent pointer-events-none -z-10" />
 
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className="relative group cursor-pointer"
         >
-          <div className="relative w-36 h-36 rounded-[48px] border-[6px] border-white dark:border-zinc-800 shadow-2xl overflow-hidden bg-white dark:bg-zinc-900 transition-transform duration-500 group-hover:scale-105">
+          <div className="relative w-24 h-24 rounded-[24px] border-4 border-white dark:border-zinc-800 shadow-xl overflow-hidden bg-white dark:bg-zinc-900 transition-transform duration-500 group-hover:scale-105">
             {userData.avatar ? (
               <img src={userData.avatar} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-800">
-                <User className="w-14 h-14 text-orange-200 dark:text-orange-500/20" />
+                <User className="w-10 h-10 text-orange-200 dark:text-orange-500/20" />
               </div>
             )}
 
@@ -179,9 +179,9 @@ const User_Profile = ({ userData, isLoading }) => {
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="absolute -bottom-2 -right-2 bg-green-500 text-white p-2.5 rounded-2xl border-[6px] border-white dark:border-zinc-800 shadow-lg"
+            className="absolute -bottom-1 -right-1 bg-green-500 text-white p-1.5 rounded-xl border-4 border-white dark:border-zinc-800 shadow-lg"
           >
-            <ShieldCheck size={20} strokeWidth={3} />
+            <ShieldCheck size={16} strokeWidth={3} />
           </motion.div>
         </motion.div>
 
@@ -189,13 +189,13 @@ const User_Profile = ({ userData, isLoading }) => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="mt-6 space-y-2"
+          className="mt-3 space-y-1"
         >
-          <h1 className="text-3xl font-black text-zinc-900 dark:text-white tracking-tight">
+          <h1 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">
             {userData.firstname} {userData.lastname}
           </h1>
 
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-zinc-100 dark:border-zinc-800 shadow-sm">
               <Mail size={14} className="text-orange-500" />
               <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">{userData.email}</span>
@@ -211,12 +211,12 @@ const User_Profile = ({ userData, isLoading }) => {
       </section>
 
       {/* Notifications Section - High Visibility */}
-      <div className="mt-8 px-6 space-y-4">
+      <div className="mt-4 px-6 space-y-4">
         <NotificationSettings />
       </div>
 
       {/* Action Grid */}
-      <div className="mt-8 px-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="mt-4 px-4 grid grid-cols-1 md:grid-cols-2 gap-2.5">
         <ActionCard
           icon={User}
           title="Personal Details"
@@ -269,13 +269,13 @@ const User_Profile = ({ userData, isLoading }) => {
       </div>
 
       {/* PWA Installation - Persistent Option */}
-      <div className="mt-8 px-6">
-        <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] pl-2 mb-4">Experience MelaChow App</p>
+      <div className="mt-4 px-6">
+        <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] pl-2 mb-2">Experience MelaChow App</p>
         <PermanentInstallButton />
       </div>
 
       {/* Danger Zone */}
-      <div className="mt-10 px-6 space-y-4">
+      <div className="mt-6 px-6 space-y-3">
         <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest pl-2">Session & Data</p>
 
         <ActionCard

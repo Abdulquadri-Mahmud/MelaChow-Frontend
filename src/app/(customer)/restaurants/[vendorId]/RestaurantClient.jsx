@@ -28,31 +28,31 @@ const FoodItemRow = ({ item, onSelect }) => {
     return (
         <div 
             onClick={() => !isUnavailable && onSelect(item)}
-            className={`group flex items-center gap-4 py-4 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer active:scale-[0.99] transition-all duration-200 ${isUnavailable ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+            className={`group flex items-center gap-3 py-2.5 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer active:scale-[0.99] transition-all duration-200 ${isUnavailable ? 'opacity-50 grayscale pointer-events-none' : ''}`}
         >
             {/* Text Content */}
             <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-2">
-                    <h3 className="text-[15px] font-extrabold text-zinc-900 dark:text-white tracking-tight truncate group-hover:text-orange-600 transition-colors duration-200">
+                <div className="flex items-center gap-1.5">
+                    <h3 className="text-[14px] font-extrabold text-zinc-900 dark:text-white tracking-tight truncate group-hover:text-orange-600 transition-colors duration-200">
                         {item.name}
                     </h3>
-                    {item.is_popular && <Flame size={13} className="text-orange-500 shrink-0 animate-pulse" />}
+                    {item.is_popular && <Flame size={12} className="text-orange-500 shrink-0 animate-pulse" />}
                 </div>
 
-                <p className="text-[12px] text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed font-medium">
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed font-medium">
                     {item.description || "Freshly prepared with premium ingredients."}
                 </p>
 
-                <div className="flex items-center gap-2 pt-0.5">
-                    <span className="text-[14px] font-black text-orange-600">₦{price.toLocaleString()}</span>
+                <div className="flex items-center gap-1.5 pt-0.5">
+                    <span className="text-[13px] font-black text-orange-600">₦{price.toLocaleString()}</span>
                     {oldPrice > price && (
-                        <span className="text-[12px] text-zinc-400 line-through font-medium">₦{Math.round(oldPrice).toLocaleString()}</span>
+                        <span className="text-[11px] text-zinc-400 line-through font-medium">₦{Math.round(oldPrice).toLocaleString()}</span>
                     )}
                 </div>
             </div>
 
             {/* Image + Add Button */}
-            <div className="relative w-[80px] h-[80px] rounded-2xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800 shadow-md group-hover:shadow-orange-200 dark:group-hover:shadow-orange-900/30 transition-shadow duration-300">
+            <div className="relative w-[70px] h-[70px] rounded-xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800 shadow-md group-hover:shadow-orange-200 dark:group-hover:shadow-orange-900/30 transition-shadow duration-300">
                 <img 
                     src={item.image_url || item.image || "/placeholder.jpg"} 
                     alt={item.name}
@@ -316,7 +316,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: -72, opacity: 0 }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className="fixed top-0 inset-x-0 z-[60] bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-100 dark:border-zinc-800 px-4 h-14 flex items-center justify-between"
+                        className="fixed top-0 inset-x-0 z-[60] bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-100 dark:border-zinc-800 px-4 h-11 flex items-center justify-between"
                     >
                         <AnimatePresence mode="wait">
                             {!isSearchActive ? (
@@ -327,12 +327,12 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                     exit={{ opacity: 0, x: 10 }}
                                     className="flex items-center justify-between w-full"
                                 >
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-lg overflow-hidden border border-zinc-100 dark:border-zinc-800 shrink-0">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-md overflow-hidden border border-zinc-100 dark:border-zinc-800 shrink-0">
                                             <img src={vendor.logo || "/placeholder.jpg"} className="w-full h-full object-cover" alt={vendor.storeName} />
                                         </div>
                                         <div className="min-w-0">
-                                            <h2 className="text-[12px] font-black text-zinc-900 dark:text-white truncate uppercase italic tracking-tight">{vendor.storeName}</h2>
+                                            <h2 className="text-[11px] font-black text-zinc-900 dark:text-white truncate uppercase italic tracking-tight">{vendor.storeName}</h2>
                                             <div className="flex items-center gap-1.5 text-[9px] font-black text-zinc-400 uppercase tracking-widest">
                                                 <Star size={8} className="text-amber-400 fill-amber-400" />
                                                 <span>{vendor.rating ? Number(vendor.rating).toFixed(1) : "NEW"}</span>
@@ -379,18 +379,18 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
             {/* 🏛️ Store Identity Card */}
             <div className="relative max-w-2xl mx-auto px-4 -mt-12 z-20">
-                <div className="bg-white dark:bg-zinc-900 rounded-[32px] p-5 shadow-2xl shadow-black/5 dark:shadow-none border border-zinc-100 dark:border-zinc-800">
+                <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-4 shadow-2xl shadow-black/5 dark:shadow-none border border-zinc-100 dark:border-zinc-800">
                     <div className="flex flex-col items-center text-center">
-                        <div className="w-20 h-20 rounded-[22px] bg-white dark:bg-zinc-950 p-1.5 shadow-xl -mt-12 mb-3 border border-zinc-100 dark:border-zinc-800">
+                        <div className="w-14 h-14 rounded-[14px] bg-white dark:bg-zinc-950 p-1 shadow-xl -mt-10 mb-2.5 border border-zinc-100 dark:border-zinc-800">
                             <img 
                                 src={vendor.logo || "/placeholder.jpg"} 
                                 alt={vendor.storeName} 
-                                className="w-full h-full object-cover rounded-[18px]"
+                                className="w-full h-full object-cover rounded-[10px]"
                             />
                         </div>
                         
-                        <div className="space-y-0.5 mb-4">
-                            <h1 className="text-[22px] font-black text-zinc-900 dark:text-white tracking-tight">
+                        <div className="space-y-0.5 mb-3.5">
+                            <h1 className="text-[18px] font-black text-zinc-900 dark:text-white tracking-tight">
                                 {vendor.storeName}
                             </h1>
                             <p className="text-[12px] font-medium text-zinc-500 flex items-center justify-center gap-1.5">
@@ -403,29 +403,29 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                         <div className="flex items-center gap-5 w-full justify-center">
                             <div className="text-center space-y-0.5">
                                 <div className="flex items-center gap-1 justify-center">
-                                    <Star size={13} className="text-amber-400 fill-amber-400" />
-                                    <span className="text-[15px] font-black text-zinc-900 dark:text-white">{vendor.rating ? Number(vendor.rating).toFixed(1) : "NEW"}</span>
+                                    <Star size={12} className="text-amber-400 fill-amber-400" />
+                                    <span className="text-[13px] font-black text-zinc-900 dark:text-white">{vendor.rating ? Number(vendor.rating).toFixed(1) : "NEW"}</span>
                                 </div>
-                                <p className="text-[10px] font-semibold text-zinc-400">({vendor.ratingCount || 0}) Reviews</p>
+                                <p className="text-[9px] font-semibold text-zinc-400">({vendor.ratingCount || 0}) Reviews</p>
                             </div>
-                            <div className="w-px h-8 bg-zinc-100 dark:bg-zinc-800" />
+                            <div className="w-px h-6 bg-zinc-100 dark:bg-zinc-800" />
                             <div className="text-center space-y-0.5">
                                 <div className="flex items-center gap-1 justify-center">
-                                    <Clock size={13} className="text-orange-500" />
-                                    <span className="text-[15px] font-black text-zinc-900 dark:text-white">{vendor.estimatedDeliveryTime || "25"} min</span>
+                                    <Clock size={12} className="text-orange-500" />
+                                    <span className="text-[13px] font-black text-zinc-900 dark:text-white">{vendor.estimatedDeliveryTime || "25"} min</span>
                                 </div>
-                                <p className="text-[10px] font-semibold text-zinc-400">Est. delivery</p>
+                                <p className="text-[9px] font-semibold text-zinc-400">Est. delivery</p>
                             </div>
-                            <div className="w-px h-8 bg-zinc-100 dark:bg-zinc-800" />
+                            <div className="w-px h-6 bg-zinc-100 dark:bg-zinc-800" />
                             <div className="text-center space-y-0.5">
-                                <div className="flex items-center gap-1 justify-center text-orange-500 font-black text-[15px]">
+                                <div className="flex items-center gap-1 justify-center text-orange-500 font-black text-[13px]">
                                     {!vendor.deliveryFee || vendor.deliveryFee === 0 ? (
                                         <span className="text-green-500">Free</span>
                                     ) : (
                                         `₦${vendor.deliveryFee.toLocaleString()}`
                                     )}
                                 </div>
-                                <p className="text-[10px] font-semibold text-zinc-400">Delivery</p>
+                                <p className="text-[9px] font-semibold text-zinc-400">Delivery</p>
                                 {vendor.hasActiveDeliveryPromo && (
                                     <p className="text-[8px] font-black text-orange-500 uppercase tracking-widest">
                                         Sponsored
@@ -464,28 +464,28 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
             </div>
 
             <div className="max-w-2xl mx-auto px-4 mt-5 space-y-4">
-                <div className="flex bg-zinc-100/50 dark:bg-zinc-900/50 backdrop-blur-md p-1 rounded-[22px] w-full border border-zinc-100 dark:border-zinc-800">
+                <div className="flex bg-zinc-100/50 dark:bg-zinc-900/50 backdrop-blur-md p-1 rounded-[16px] w-full border border-zinc-100 dark:border-zinc-800">
                     <button 
                         onClick={() => { setActiveTab("menu"); mainSwiper?.slideTo(0); }}
-                        className={`flex-1 py-2.5 rounded-[18px] text-[12px] font-black uppercase tracking-widest transition-all ${activeTab === 'menu' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-black/5 dark:shadow-none' : 'text-zinc-400'}`}
+                        className={`flex-1 py-1.5 rounded-[12px] text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'menu' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-black/5 dark:shadow-none' : 'text-zinc-400'}`}
                     >
                         Menu Items
                     </button>
                     <button 
                         onClick={() => { setActiveTab("reviews"); mainSwiper?.slideTo(1); }}
-                        className={`flex-1 py-2.5 rounded-[18px] text-[12px] font-black uppercase tracking-widest transition-all ${activeTab === 'reviews' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-black/5 dark:shadow-none' : 'text-zinc-400'}`}
+                        className={`flex-1 py-1.5 rounded-[12px] text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'reviews' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-black/5 dark:shadow-none' : 'text-zinc-400'}`}
                     >
                         Reviews ({vendor.ratingCount || 0})
                     </button>
                 </div>
 
                 {activeTab === 'menu' && (
-                    <div className="flex gap-5 overflow-x-auto pb-0 scrollbar-none sticky top-14 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-2xl z-40 -mx-4 px-5 border-b border-zinc-100 dark:border-zinc-800 shadow-sm transition-all duration-300">
+                    <div className="flex gap-4 overflow-x-auto pb-0 scrollbar-none sticky top-11 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-2xl z-40 -mx-4 px-5 border-b border-zinc-100 dark:border-zinc-800 shadow-sm transition-all duration-300">
                         {allSections.map((section) => (
                             <button
                                 key={section._id}
                                 onClick={() => scrollToSection(section._id)}
-                                className={`py-3.5 text-[11px] font-bold uppercase tracking-widest whitespace-nowrap border-b-2 transition-all ${activeSectionId === section._id ? 'border-orange-500 text-orange-600' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+                                className={`py-2 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap border-b-2 transition-all ${activeSectionId === section._id ? 'border-orange-500 text-orange-600' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
                             >
                                 {section.name}
                             </button>
