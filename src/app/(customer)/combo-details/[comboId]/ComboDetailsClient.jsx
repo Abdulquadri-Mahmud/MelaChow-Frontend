@@ -383,14 +383,14 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     const mainContent = (
         <div className={`min-h-screen ${isModal ? 'bg-zinc-50 dark:bg-zinc-950 overflow-hidden' : 'bg-zinc-50 dark:bg-zinc-950'}`}>
             {/* Sticky Header */}
-            <header className="flex items-center justify-between px-4 py-4 bg-white bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800">
+            <header className="flex items-center justify-between px-4 py-2.5 bg-white bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => {
                             if (onClose) onClose();
                             else router.back();
                         }}
-                        className="p-2.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600 dark:text-zinc-400 transition-all active:scale-90"
+                        className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600 dark:text-zinc-400 transition-all active:scale-90"
                         aria-label="Go back"
                     >
                         <ArrowLeft className="w-5 h-5" />
@@ -412,8 +412,8 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
 
                 <div className="flex items-center gap-2">
                     <Link href="/orders?activeTab=cart" onClick={() => isModal && onClose && onClose()}>
-                        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-zinc-900 dark:bg-zinc-100 p-2.5 rounded-2xl">
-                            <BiCartAdd className="text-white dark:text-zinc-900" size={24} />
+                        <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-zinc-900 dark:bg-zinc-100 p-2 rounded-xl">
+                            <BiCartAdd className="text-white dark:text-zinc-900" size={22} />
                             {totalItems > 0 && (
                                 <span className="absolute -top-1.5 -right-1.5 bg-orange-500 ring-4 ring-white dark:ring-zinc-900 text-white text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-black">
                                     {totalItems}
@@ -431,23 +431,23 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
 
                         {/* Hero Card */}
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-1 pt-2">
-                            <div className="bg-white dark:bg-zinc-900 rounded-[40px] border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-sm">
+                            <div className="bg-white dark:bg-zinc-900 rounded-[28px] border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-sm">
                                 {/* Image */}
-                                <div className="relative w-full bg-zinc-100 dark:bg-zinc-800 p-2">
-                                    <div className="w-full h-[250px] md:h-[300px] rounded-[32px] overflow-hidden relative">
+                                <div className="relative w-full bg-zinc-100 dark:bg-zinc-800 p-1.5">
+                                    <div className="w-full h-[140px] md:h-[185px] rounded-[18px] overflow-hidden relative">
                                         <img
                                             src={combo.image_url || "/placeholder.jpg"}
                                             alt={combo.name}
                                             className="w-full h-full object-cover"
                                         />
                                         {/* Deal badge */}
-                                        <div className="absolute top-3 left-3 bg-orange-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest">
+                                        <div className="absolute top-2.5 left-2.5 bg-orange-500 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest">
                                             Bundle Deal
                                         </div>
-
+ 
                                         {/* Dietary badge */}
                                         {combo.dietary_type && combo.dietary_type !== "mixed" && (
-                                            <div className="absolute top-3 right-3 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-zinc-800 dark:text-zinc-200 text-[10px] font-semibold px-3 py-1 rounded-full uppercase tracking-widest border border-zinc-100 dark:border-zinc-800 shadow-sm">
+                                            <div className="absolute top-2.5 right-2.5 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-zinc-800 dark:text-zinc-200 text-[8px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-widest border border-zinc-100 dark:border-zinc-800 shadow-sm">
                                                 {combo.dietary_type}
                                             </div>
                                         )}
@@ -455,48 +455,48 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                 </div>
 
                                 {/* Text Content */}
-                                <div className="md:p-5 p-2 pb-4">
-                                    <h3 className="text-2xl font-bold text-zinc-900 dark:text-white leading-tight tracking-tight uppercase mb-2">
+                                <div className="md:p-3 p-2 pb-2">
+                                    <h3 className="text-base font-bold text-zinc-900 dark:text-white leading-tight tracking-tight uppercase mb-0.5">
                                         {combo.name}
                                     </h3>
                                     {combo.description && (
-                                        <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed italic font-medium">
+                                        <p className="text-zinc-500 dark:text-zinc-400 text-xs leading-relaxed italic font-medium">
                                             "{combo.description}"
                                         </p>
                                     )}
-
+ 
                                     {/* Tags */}
                                     {combo.tags?.length > 0 && (
-                                        <div className="flex flex-wrap gap-2 mt-4">
+                                        <div className="flex flex-wrap gap-1.5 mt-2.5">
                                             {combo.tags.map(tag => (
-                                                <span key={tag} className="text-[10px] font-black uppercase tracking-widest bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 px-3 py-1 rounded-full border border-orange-100 dark:border-orange-500/20">
+                                                <span key={tag} className="text-[8px] font-black uppercase tracking-widest bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 px-2 py-0.5 rounded-full border border-orange-100 dark:border-orange-500/20">
                                                     {tag}
                                                 </span>
                                             ))}
                                         </div>
                                     )}
-
+ 
                                     {/* Quick Stats */}
-                                    <div className="grid grid-cols-2 gap-3 mt-6">
-                                        <div className="flex items-center gap-3 p-3 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-2xl border border-zinc-100/80 dark:border-zinc-700/80">
-                                            <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800">
-                                                <Clock size={18} />
+                                    <div className="grid grid-cols-2 gap-2 mt-4">
+                                        <div className="flex items-center gap-2.5 p-2 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-xl border border-zinc-100/80 dark:border-zinc-700/80">
+                                            <div className="p-1.5 bg-white dark:bg-zinc-900 rounded-lg text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800">
+                                                <Clock size={14} />
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Prep time</p>
-                                                <p className="text-sm font-black text-zinc-900 dark:text-white leading-none">
+                                                <p className="text-[8px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Prep time</p>
+                                                <p className="text-xs font-black text-zinc-900 dark:text-white leading-none">
                                                     {combo.prep_time_minutes ? `${combo.prep_time_minutes} min` : "25 min"}
                                                 </p>
                                             </div>
                                         </div>
-
-                                        <div className="flex items-center gap-3 p-3 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-2xl border border-zinc-100/80 dark:border-zinc-700/80">
-                                            <div className="p-2 bg-white dark:bg-zinc-900 rounded-xl text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800">
-                                                <Truck size={18} />
+ 
+                                        <div className="flex items-center gap-2.5 p-2 bg-zinc-50/80 dark:bg-zinc-800/80 rounded-xl border border-zinc-100/80 dark:border-zinc-700/80">
+                                            <div className="p-1.5 bg-white dark:bg-zinc-900 rounded-lg text-orange-500 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-800">
+                                                <Truck size={14} />
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Delivery</p>
-                                                <p className="text-sm font-black text-zinc-900 dark:text-white leading-none">
+                                                <p className="text-[8px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mb-0.5">Delivery</p>
+                                                <p className="text-xs font-black text-zinc-900 dark:text-white leading-none">
                                                     {vendor?.deliveryFee ? `₦${vendor.deliveryFee.toLocaleString()}` : "Free"}
                                                 </p>
                                             </div>
@@ -509,16 +509,16 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                         {/* What's Included */}
                         {combo.contents?.length > 0 && (
                             <div className="px-1">
-                                <div className="bg-white dark:bg-zinc-900 rounded-[32px] p-4 border border-zinc-100 dark:border-zinc-800 shadow-sm">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <div className="w-1.5 h-6 bg-green-500 rounded-full" />
-                                        <h3 className="text-lg font-black italic text-zinc-900 dark:text-white uppercase tracking-tight">
+                                <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-3 border border-zinc-100 dark:border-zinc-800 shadow-sm">
+                                    <div className="flex items-center gap-1.5 mb-3">
+                                        <div className="w-1 h-5 bg-green-500 rounded-full" />
+                                        <h3 className="text-base font-black italic text-zinc-900 dark:text-white uppercase tracking-tight">
                                             What's Included
                                         </h3>
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-1.5">
                                         {combo.contents.map((item, idx) => (
-                                            <div key={idx} className="bg-zinc-50 dark:bg-zinc-800 px-3 py-1.5 rounded-xl border border-zinc-100 dark:border-zinc-700 text-[11px] font-black uppercase tracking-tight italic text-zinc-600 dark:text-zinc-300">
+                                            <div key={idx} className="bg-zinc-50 dark:bg-zinc-800 px-2 py-1 rounded-xl border border-zinc-100 dark:border-zinc-700 text-[10px] font-black uppercase tracking-tight italic text-zinc-600 dark:text-zinc-300">
                                                 {item}
                                             </div>
                                         ))}
@@ -540,37 +540,37 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                     ) : true;
 
                                     return (
-                                        <div key={groupKey} className="bg-white dark:bg-zinc-900 rounded-[32px] p-4 border border-zinc-100 dark:border-zinc-800 shadow-sm">
-                                            <div className="flex items-center justify-between gap-2 mb-1">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
-                                                    <h4 className="text-[15px] font-black italic text-zinc-900 dark:text-white uppercase tracking-tight">
+                                        <div key={groupKey} className="bg-white dark:bg-zinc-900 rounded-[24px] p-3 border border-zinc-100 dark:border-zinc-800 shadow-sm">
+                                            <div className="flex items-center justify-between gap-1.5 mb-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="w-1.5 h-5 bg-orange-500 rounded-full" />
+                                                    <h4 className="text-[13px] font-black italic text-zinc-900 dark:text-white uppercase tracking-tight">
                                                         {group.name}
                                                     </h4>
                                                 </div>
                                                 {group.is_required ? (
-                                                    <span className={`text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border ${isMet ? "bg-green-500/10 border-green-500/20 text-green-500" : "bg-rose-500/10 border-rose-500/20 text-rose-500"}`}>
+                                                    <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border ${isMet ? "bg-green-500/10 border-green-500/20 text-green-500" : "bg-rose-500/10 border-rose-500/20 text-rose-500"}`}>
                                                         {isMet ? "Yes" : "Required"}
                                                     </span>
                                                 ) : (
-                                                    <span className="text-[9px] font-black text-zinc-400 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 px-2.5 py-1 rounded-full uppercase tracking-widest">
+                                                    <span className="text-[8px] font-black text-zinc-400 bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 px-2 py-0.5 rounded-full uppercase tracking-widest">
                                                         Optional
                                                     </span>
                                                 )}
                                             </div>
-
-                                            <p className="text-[11px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-widest mb-4">
+ 
+                                            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase tracking-widest mb-3">
                                                 {group.max_selections > 1 ? `Pick ${group.min_selections}–${group.max_selections}` : "Pick exactly one"}
                                             </p>
 
-                                            <div className="space-y-3">
+                                            <div className="space-y-2">
                                                 {group.options?.filter(o => o.is_available).map(option => {
                                                     const isSelected = isOptionSelected(groupKey, option.label);
                                                     return (
                                                         <div
                                                             key={option._id}
                                                             onClick={() => toggleChoice(groupKey, group, option)}
-                                                            className={`flex items-center gap-4 p-3 rounded-[20px] border-2 cursor-pointer transition-all ${
+                                                            className={`flex items-center gap-2.5 p-2 rounded-[16px] border-2 cursor-pointer transition-all ${
                                                                 isSelected
                                                                     ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10 shadow-lg shadow-orange-500/5"
                                                                     : "border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-orange-200 dark:hover:border-orange-500/30"
@@ -649,15 +649,15 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
             </div>
 
             {/* Fixed Bottom Bar */}
-            <div className={`fixed bottom-0 left-0 right-0 p-2 bg-white bg-opacity-95 dark:bg-zinc-950 dark:bg-opacity-90 backdrop-blur-xl border-t border-zinc-100 border-opacity-50 dark:border-zinc-800 dark:border-opacity-80 pb-safe z-40 ${isModal ? 'rounded-b-[40px]' : ''}`}>
+            <div className={`fixed bottom-0 left-0 right-0 p-2.5 bg-white bg-opacity-95 dark:bg-zinc-950 dark:bg-opacity-90 backdrop-blur-xl border-t border-zinc-100 border-opacity-50 dark:border-zinc-800 dark:border-opacity-80 pb-safe z-40 ${isModal ? 'rounded-b-[40px]' : ''}`}>
                 <div className="max-w-2xl mx-auto flex items-center gap-3 px-2">
                     {/* Quantity control */}
-                    <div className="flex items-center gap-1 bg-zinc-100 bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 rounded-[21px] p-1 h-[48px] border border-zinc-200 border-opacity-50 dark:border-zinc-800 dark:border-opacity-50 shadow-inner shrink-0">
+                    <div className="flex items-center gap-1 bg-zinc-100 bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 rounded-[16px] p-0.5 h-[46px] border border-zinc-200 border-opacity-50 dark:border-zinc-800 dark:border-opacity-50 shadow-inner shrink-0">
                         <button
                             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                            className="w-[30px] h-[30px] flex items-center justify-center rounded-2xl bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500 dark:hover:bg-opacity-10 transition-all text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
+                            className="w-[26px] h-[26px] flex items-center justify-center rounded-xl bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500 dark:hover:bg-opacity-10 transition-all text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
                         >
-                            <Minus size={18} strokeWidth={3} />
+                            <Minus size={16} strokeWidth={3} />
                         </button>
                         <div className="w-8 flex flex-col items-center">
                             <span className="text-[8px] font-black text-zinc-400 uppercase tracking-tighter leading-none mb-0.5">Qty</span>
@@ -665,17 +665,17 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                         </div>
                         <button
                             onClick={() => setQuantity(quantity + 1)}
-                            className="w-[30px] h-[30px] flex items-center justify-center rounded-2xl bg-orange-500 text-white active:scale-95 transition-all"
+                            className="w-[26px] h-[26px] flex items-center justify-center rounded-xl bg-orange-500 text-white active:scale-95 transition-all"
                         >
-                            <Plus size={18} strokeWidth={3} />
+                            <Plus size={16} strokeWidth={3} />
                         </button>
                     </div>
-
+ 
                     {/* Add to Order button */}
                     <button
                         onClick={handleAddToCart}
                         disabled={!combo.is_available}
-                        className="flex-1 h-[48px] bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[20px] font-black text-[12px] uppercase tracking-[0.05em] italic flex items-center justify-between px-4 transition-all active:scale-[0.98] dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50 shadow-lg"
+                        className="flex-1 h-[46px] bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[16px] font-black text-[12px] uppercase tracking-[0.05em] italic flex items-center justify-between px-4 transition-all active:scale-[0.98] dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50 shadow-lg"
                     >
                         <div className="flex items-center gap-2 min-w-0">
                             <div className="p-1.5 rounded-xl bg-orange-500 text-white group-hover:rotate-12 transition-transform shrink-0">
