@@ -4,7 +4,7 @@ import React, { useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useApi } from "@/app/context/ApiContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, ArrowRight, Loader2, RefreshCw, ShieldCheck, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { Lock, ArrowRight, Loader2, RefreshCw, ShieldCheck, CheckCircle2, AlertCircle, X, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 
 // --- Custom Status Modal Component ---
@@ -72,6 +72,7 @@ export default function ResetPassword() {
   const { baseUrl } = useApi();
   const [otp, setOtp] = useState(Array(6).fill(""));
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const inputRefs = useRef([]);
   const [loading, setLoading] = useState(false);
   const [statusModal, setStatusModal] = useState({ isOpen: false, type: 'success', message: '', buttonText: 'Continue', redirectOnClose: false });
@@ -352,14 +353,23 @@ export default function ResetPassword() {
             {/* New Password Input */}
             <div className="space-y-2 mb-8">
               <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">New Password</label>
-              <input
-                type="password"
-                placeholder="Min. 8 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm border border-transparent focus:border-orange-500/20"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Min. 8 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full bg-slate-50 dark:bg-slate-800 p-4 pr-12 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm border border-transparent focus:border-orange-500/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">
