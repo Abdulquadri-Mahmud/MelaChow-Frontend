@@ -63,7 +63,8 @@ export default function VendorResetPassword() {
                 { headers: { "Content-Type": "application/json" }, withCredentials: true }
             );
 
-            if (!verifyRes.data.success && !verifyRes.data.status) {
+            const isSuccess = verifyRes.status === 200 || verifyRes.data.success || verifyRes.data.status;
+            if (!isSuccess) {
                 throw new Error(verifyRes.data.message || "Invalid OTP");
             }
 

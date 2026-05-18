@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Bell, BellOff, Gift, Package, Sparkles, Check, AlertCircle, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Bell, BellOff, Gift, Package, Sparkles, Check, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import toast from "react-hot-toast";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 
 export default function NotificationSettings() {
@@ -16,7 +15,8 @@ export default function NotificationSettings() {
         unsubscribe,
     } = usePushNotifications();
 
-    const [preferences, setPreferences] = useState({
+    // Preserve original preference states under-the-hood so other functions remain completely intact
+    const [preferences] = useState({
         orderUpdates: true,
         promotions: false,
         newFeatures: true
@@ -24,32 +24,6 @@ export default function NotificationSettings() {
 
     const isEnabled = !!subscription;
     const isDenied = permission === 'denied';
-
-    const togglePreference = async (preference) => {
-        setPreferences(prev => ({
-            ...prev,
-            [preference]: !prev[preference]
-        }));
-
-        // Save preferences to backend - assuming this endpoint exists based on user prompt
-        try {
-            // Note: Since I don't have the definitive backend API structure, 
-            // I'm following the user's provided logic for preference toggling.
-            /*
-            await fetch("/api/user/notification-preferences", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify({
-                    [preference]: !preferences[preference]
-                })
-            });
-            */
-            toast.success("Preference updated");
-        } catch (error) {
-            console.error("Save preference error:", error);
-        }
-    };
 
     if (!isSupported) {
         return (
@@ -71,14 +45,14 @@ export default function NotificationSettings() {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-zinc-900 rounded-[32px] md:p-6 p-3 shadow-xl shadow-zinc-100/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 space-y-6"
+            className="bg-white dark:bg-zinc-900 rounded-[32px] md:p-6 p-4 shadow-xl shadow-zinc-100/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 space-y-6"
         >
             {/* Header */}
             <div className="flex items-center justify-between pb-6 border-b border-zinc-50 dark:border-zinc-800">
                 <div className="flex items-center gap-4">
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors shadow-inner ${isEnabled
-                        ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10"
-                        : "bg-zinc-50 text-zinc-400 dark:bg-zinc-800"
+                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-inner ${isEnabled
+                        ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400"
+                        : "bg-zinc-50 text-zinc-400 dark:bg-zinc-850"
                         }`}>
                         {isEnabled ? (
                             <Bell className="animate-bounce" size={28} />
@@ -88,7 +62,7 @@ export default function NotificationSettings() {
                     </div>
                     <div>
                         <h3 className="font-black text-zinc-900 dark:text-white text-xl tracking-tight italic uppercase">Notifications</h3>
-                        <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest mt-0.5">
+                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mt-0.5">
                             {isEnabled
                                 ? "Active • Real-time updates"
                                 : isDenied
@@ -98,7 +72,7 @@ export default function NotificationSettings() {
                     </div>
                 </div>
 
-                {/* Master Toggle */}
+                {/* Single Master Toggle */}
                 <button
                     onClick={isEnabled ? unsubscribe : subscribe}
                     disabled={loading || isDenied}
@@ -126,38 +100,33 @@ export default function NotificationSettings() {
                 </div>
             )}
 
-            {/* Notification Categories */}
+            {/* Notification Categories - Passive Indicators */}
             <AnimatePresence>
                 {isEnabled && (
                     <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="space-y-4 overflow-hidden"
+                        className="space-y-3.5 overflow-hidden"
                     >
-                        <PreferenceItem
+                        <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] pl-1">Subscribed Channels</p>
+                        <PassivePreferenceItem
                             icon={Package}
                             color="blue"
                             title="Order Updates"
                             desc="Track your orders in real-time"
-                            active={preferences.orderUpdates}
-                            onToggle={() => togglePreference("orderUpdates")}
                         />
-                        <PreferenceItem
+                        <PassivePreferenceItem
                             icon={Gift}
                             color="orange"
                             title="Promotions & Deals"
                             desc="Get exclusive offers and discounts"
-                            active={preferences.promotions}
-                            onToggle={() => togglePreference("promotions")}
                         />
-                        <PreferenceItem
+                        <PassivePreferenceItem
                             icon={Sparkles}
                             color="purple"
                             title="New Features"
                             desc="Be first to know about updates"
-                            active={preferences.newFeatures}
-                            onToggle={() => togglePreference("newFeatures")}
                         />
                     </motion.div>
                 )}
@@ -168,9 +137,9 @@ export default function NotificationSettings() {
                 <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-[24px] p-5 space-y-3">
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-amber-100 dark:bg-amber-500/20 rounded-xl flex items-center justify-center">
-                            <Bell className="text-amber-600" size={16} />
+                            <Bell className="text-amber-650 dark:text-amber-400" size={16} />
                         </div>
-                        <p className="text-xs font-black text-amber-900 dark:text-amber-400 uppercase italic tracking-wider">Why Enable Notifications?</p>
+                        <p className="text-xs font-black text-amber-900 dark:text-amber-450 uppercase italic tracking-wider">Why Enable Notifications?</p>
                     </div>
                     <ul className="space-y-2">
                         <BenefitItem text="Get instant updates when your order is ready" />
@@ -183,43 +152,27 @@ export default function NotificationSettings() {
     );
 }
 
-function PreferenceItem({ icon: Icon, title, desc, active, onToggle, color }) {
+function PassivePreferenceItem({ icon: Icon, title, desc, color }) {
     const colorMap = {
-        blue: "bg-blue-50 text-blue-600 dark:bg-blue-500/10",
-        orange: "bg-orange-50 text-orange-600 dark:bg-orange-500/10",
-        purple: "bg-purple-50 text-purple-600 dark:bg-purple-500/10"
-    };
-
-    const toggleColorMap = {
-        blue: "bg-blue-500",
-        orange: "bg-orange-500",
-        purple: "bg-purple-500"
+        blue: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
+        orange: "bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400",
+        purple: "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400"
     };
 
     return (
-        <div className="flex items-center justify-between p-3 bg-zinc-50/50 dark:bg-zinc-800/30 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all group border border-transparent hover:border-zinc-100 dark:hover:border-zinc-700">
-            <div className="flex items-center gap-4">
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform ${colorMap[color]}`}>
+        <div className="flex items-center justify-between p-3.5 bg-zinc-50/50 dark:bg-zinc-800/20 rounded-2xl border border-zinc-100/50 dark:border-zinc-800/50">
+            <div className="flex items-center gap-3.5">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-sm ${colorMap[color]}`}>
                     <Icon size={20} />
                 </div>
                 <div>
-                    <p className="font-bold text-zinc-900 dark:text-white text-sm">{title}</p>
-                    <p className="text-[11px] text-zinc-500 font-medium">{desc}</p>
+                    <p className="font-bold text-zinc-800 dark:text-zinc-200 text-sm">{title}</p>
+                    <p className="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium mt-0.5">{desc}</p>
                 </div>
             </div>
-            <button
-                onClick={onToggle}
-                className={`relative w-14 h-7 rounded-full transition-all duration-300 ${active
-                    ? toggleColorMap[color]
-                    : "bg-zinc-300 dark:bg-zinc-700"
-                    }`}
-            >
-                <motion.div
-                    className="absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow-md"
-                    animate={{ x: active ? 28 : 0 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-            </button>
+            <div className="w-6 h-6 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-650 dark:text-emerald-400 flex items-center justify-center shadow-sm">
+                <Check size={12} strokeWidth={3.5} />
+            </div>
         </div>
     );
 }
@@ -232,4 +185,3 @@ function BenefitItem({ text }) {
         </li>
     );
 }
-
