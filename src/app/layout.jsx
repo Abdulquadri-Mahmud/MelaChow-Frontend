@@ -169,6 +169,8 @@ const organizationSchema = {
   },
 };
 
+
+
 const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
@@ -211,7 +213,21 @@ const foodServiceSchema = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/*
+          Blocking theme script — runs before any CSS or component renders.
+          This eliminates the dark-mode flash (FOUC) by applying the correct
+          class to <html> synchronously before the first paint.
+          suppressHydrationWarning on <html> silences the expected server/client
+          class mismatch that this technique intentionally produces.
+        */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('melachow-theme');if(t==='dark'){document.documentElement.classList.add('dark');}else{document.documentElement.classList.remove('dark');}}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="antialiased transition-colors duration-300">
         {/* ── Structured Data ─────────────────────────────────────── */}
         <JsonLd data={[organizationSchema, websiteSchema, foodServiceSchema]} />
@@ -248,4 +264,3 @@ export default function RootLayout({ children }) {
 }
 
 // rmdir /s /q .next && npm run dev -- --turbopack
-
