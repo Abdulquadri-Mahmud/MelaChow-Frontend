@@ -27,6 +27,8 @@ import SearchFoodSkeleton from "@/app/skeleton/SearchFoodSkeleton";
 import { isVendorOpen } from "@/app/lib/utils";
 import { useCategories } from "@/app/hooks/useCategories";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
+import { useComboModalStore } from "@/app/store/comboModalStore";
+import ComboDetailsClient from "@/app/(customer)/combo-details/[comboId]/ComboDetailsClient";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +41,7 @@ const DIETARY_COLORS = {
   "non-veg": "bg-red-500 text-white shadow-lg shadow-red-500/20",
 };
 
-const FoodItemRow = ({ food }) => {
+const FoodItemRow = ({ food, onSelect }) => {
     // Explicitly handle undefined/null as true for availability to prevent false 'Sold Out' states
     const isAvailable = food.is_available !== false;
     const isInStock = food.is_in_stock !== false;
@@ -48,13 +50,12 @@ const FoodItemRow = ({ food }) => {
     const vendor = food.restaurant || food.vendor;
     const price = food.portions?.min_price_naira || food.portions?.default_price_naira || food.price || 0;
     const oldPrice = food.old_price || (price * 1.2);
-    const openFoodModal = useFoodModalStore(state => state.openFoodModal);
 
     console.log('Food Item Data:', { name: food.name, is_available: food.is_available, is_in_stock: food.is_in_stock, isUnavailable });
 
     return (
         <div 
-            onClick={() => !isUnavailable && openFoodModal(food._id, { food })}
+            onClick={() => !isUnavailable && onSelect(food)}
             className={`group flex items-center gap-3 py-2 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer active:scale-[0.99] transition-all duration-200 ${isUnavailable ? 'opacity-50 grayscale pointer-events-none' : ''}`}
         >
             {/* Text Content */}
@@ -135,10 +136,28 @@ export default function FoodSearchMobile() {
   const [trending, setTrending] = useState([]);
   const [autocomplete, setAutocomplete] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedCombo, setSelectedCombo] = useState(null);
 
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
   const selectedCategory = searchParams.get("category");
+  const openFoodModal = useFoodModalStore(state => state.openFoodModal);
+  const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
+  const getItemId = (item) => item?._id || item?.id;
+
+  const handleItemTap = (item) => {
+    if (isComboItem(item)) {
+      if (item.is_available === false) return;
+      const selectedComboId = getItemId(item);
+      if (!selectedComboId) return;
+      setSelectedCombo({ comboId: selectedComboId, combo: item });
+      return;
+    }
+    if (!item.is_available || item.is_in_stock === false) return;
+    const selectedFoodId = getItemId(item);
+    if (!selectedFoodId) return;
+    openFoodModal(selectedFoodId, { food: item });
+  };
 
   const { data: categories = [] } = useCategories();
 
@@ -300,14 +319,14 @@ export default function FoodSearchMobile() {
 
       {/* 🎭 Premium Floating Search Header */}
       <div className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-200/50 dark:border-zinc-800/50 transition-all duration-300">
-        <div className="max-w-xl mx-auto px-4 py-1.5">
-          <div className="flex items-center justify-between mb-2">
+        <div className="max-w-xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between mb-3.5">
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => router.back()}
-              className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-800 transition-colors hover:text-orange-500"
+              className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-800 transition-colors hover:text-orange-500"
             >
-              <ArrowLeft size={16} strokeWidth={2.5} />
+              <ArrowLeft size={18} strokeWidth={2.5} />
             </motion.button>
  
             <div className="flex flex-col items-center">
@@ -317,25 +336,25 @@ export default function FoodSearchMobile() {
  
             <motion.button 
                 whileHover={{ rotate: 180 }}
-                className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-400 border border-zinc-200/50 dark:border-zinc-800"
+                className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-400 border border-zinc-200/50 dark:border-zinc-800"
             >
-                <Sparkles size={16} />
+                <Sparkles size={18} />
             </motion.button>
           </div>
 
           {/* 🔍 Elite Search Bar */}
           <div className="relative">
             <form onSubmit={handleSearchSubmit} className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-[22px] blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
               
-              <div className="relative flex items-center gap-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 h-9.5 px-3 rounded-xl transition-all duration-300 group-focus-within:border-orange-500/50 group-focus-within:shadow-2xl group-focus-within:shadow-orange-500/10">
-                <Search size={15} className="text-zinc-400 group-focus-within:text-orange-500 transition-colors" />
+              <div className="relative flex items-center gap-3.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 h-13 px-4.5 rounded-[18px] transition-all duration-300 group-focus-within:border-orange-500/50 group-focus-within:shadow-2xl group-focus-within:shadow-orange-500/10">
+                <Search size={20} className="text-zinc-400 group-focus-within:text-orange-500 transition-colors shrink-0" />
                 
                 <input
                   ref={inputRef}
                   type="text"
                   placeholder="What's your mood today?"
-                  className="flex-1 outline-none bg-transparent text-xs font-bold text-zinc-800 dark:text-zinc-100 placeholder-zinc-400/70"
+                  className="flex-1 outline-none bg-transparent text-[14px] font-bold text-zinc-800 dark:text-zinc-100 placeholder-zinc-400/70"
                   value={query || ""}
                   onChange={(e) => {
                     setQuery(e.target.value || "");
@@ -345,10 +364,10 @@ export default function FoodSearchMobile() {
                   autoFocus
                 />
  
-                <div className="flex items-center gap-1.5">
-                    <div className="h-3.5 w-px bg-zinc-200 dark:bg-zinc-800" />
-                    <button type="button" className="p-1.5 text-zinc-400 hover:text-orange-500">
-                        <SlidersHorizontal size={15} strokeWidth={2.5} />
+                <div className="flex items-center gap-2">
+                    <div className="h-5 w-px bg-zinc-200 dark:bg-zinc-800" />
+                    <button type="button" className="p-1.5 text-zinc-400 hover:text-orange-500 shrink-0">
+                        <SlidersHorizontal size={18} strokeWidth={2.5} />
                     </button>
                 </div>
               </div>
@@ -502,7 +521,7 @@ export default function FoodSearchMobile() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: (sectionIdx * 0.1) + (foodIdx * 0.05) }}
                         >
-                            <FoodItemRow food={food} />
+                            <FoodItemRow food={food} onSelect={handleItemTap} />
                         </motion.div>
                     ))}
                     </div>
@@ -521,6 +540,17 @@ export default function FoodSearchMobile() {
           <Store size={24} />
         </button>
       </div>
+
+      <AnimatePresence>
+        {selectedCombo?.comboId && (
+          <ComboDetailsClient
+            isModal={true}
+            onClose={() => setSelectedCombo(null)}
+            comboId={selectedCombo.comboId}
+            initialData={{ combo: selectedCombo.combo, vendor: selectedCombo.combo.restaurant || selectedCombo.combo.vendor }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -22,7 +22,8 @@ import {
   Star,
   Wallet,
   Sun,
-  Moon
+  Moon,
+  Smartphone
 } from "lucide-react";
 import DeleteModal from "./DeleteModal";
 import NeedHelp from "@/app/(customer)/profile/need_help_contact_info/NeedHelp";
@@ -30,41 +31,55 @@ import NotificationSettings from "@/app/components/notifications/NotificationSet
 import { useTheme } from "@/app/context/ThemeContext";
 import PermanentInstallButton from "@/app/components/PermanentInstallButton";
 
-const ActionCard = ({ icon: Icon, title, description, onClick, href, color = "orange", isRed = false }) => {
+const MobileSettingsGroup = ({ title, children }) => {
+  return (
+    <div className="space-y-2">
+      <div className="px-4">
+        <h2 className="text-[10px] font-black uppercase text-zinc-400 dark:text-zinc-500 tracking-[0.2em] italic">
+          {title}
+        </h2>
+      </div>
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800/80 rounded-3xl overflow-hidden shadow-sm shadow-zinc-100/50 dark:shadow-none divide-y divide-zinc-50 dark:divide-zinc-800/50">
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const MobileActionRow = ({ icon: Icon, title, subtitle, onClick, href, color = "orange", isRed = false, rightElement = null }) => {
   const router = useRouter();
-  const baseColorClass = isRed ? "text-red-500 bg-red-50" : "text-orange-500 bg-orange-50";
-  const hoverClass = isRed ? "hover:border-red-200 hover:shadow-red-500/5" : "hover:border-orange-200 hover:shadow-orange-500/5";
 
   const handleClick = () => {
     if (href) router.push(href);
     if (onClick) onClick();
   };
 
+  const colorClasses = isRed
+    ? "bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-400"
+    : "bg-orange-50 text-orange-500 dark:bg-orange-500/10 dark:text-orange-400";
+
   return (
     <motion.div
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.98 }}
+      whileTap={{ backgroundColor: "rgba(228, 228, 231, 0.2)" }}
       onClick={handleClick}
-      className={`cursor-pointer group relative overflow-hidden bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-2.5 transition-all duration-300 ${hoverClass} hover:shadow-lg shadow-zinc-100/50 dark:shadow-none`}
+      className="flex items-center gap-3.5 p-3.5 cursor-pointer transition-all duration-200 group"
     >
-      {/* Glow Effects */}
-      <div className={`absolute top-0 right-0 w-16 h-16 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity ${isRed ? 'bg-red-500/10' : 'bg-orange-500/10'} -translate-y-1/2 translate-x-1/2`}></div>
-
-      <div className="flex items-center gap-3.5 relative z-10">
-        <div className={`p-2.5 rounded-xl transition-colors ${isRed ? 'bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-400' : 'bg-orange-50 text-orange-500 dark:bg-orange-500/10 dark:text-orange-400'} shadow-sm group-hover:shadow-md`}>
-          <Icon size={20} strokeWidth={2.5} />
-        </div>
-        <div className="flex-1">
-          <h3 className={`font-bold text-[14px] tracking-tight ${isRed ? 'text-red-600 dark:text-red-400' : 'text-zinc-800 dark:text-white'}`}>
-            {title}
-          </h3>
-          <p className="text-[11px] font-medium text-zinc-400 dark:text-zinc-500 mt-0.5">
-            {description}
+      <div className={`p-2.5 rounded-xl transition-all duration-300 group-hover:scale-105 ${colorClasses}`}>
+        <Icon size={18} strokeWidth={2.5} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className={`font-bold text-[13px] tracking-tight truncate ${isRed ? 'text-red-650 dark:text-red-400' : 'text-zinc-800 dark:text-zinc-100'}`}>
+          {title}
+        </p>
+        {subtitle && (
+          <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium truncate mt-0.5">
+            {subtitle}
           </p>
-        </div>
-        <div className="text-zinc-300 group-hover:text-zinc-500 dark:text-zinc-600 dark:group-hover:text-zinc-400 transition-colors bg-zinc-50 dark:bg-zinc-800 p-1.5 rounded-full group-hover:bg-white dark:group-hover:bg-zinc-700 group-hover:shadow-sm">
-          <ChevronRight size={15} strokeWidth={3} />
-        </div>
+        )}
+      </div>
+      <div className="flex items-center gap-1">
+        {rightElement}
+        <ChevronRight size={14} strokeWidth={3} className="text-zinc-300 dark:text-zinc-650 group-hover:text-zinc-400 transition-colors" />
       </div>
     </motion.div>
   );
@@ -78,8 +93,6 @@ const User_Profile = ({ userData, isLoading }) => {
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-
-  const token = user?.token;
 
   if (isLoading || !userData) {
     return (
@@ -115,11 +128,9 @@ const User_Profile = ({ userData, isLoading }) => {
       setDeleteLoading(true);
       const res = await fetch(`${baseUrl}/user/auth/delete`, {
         method: "DELETE",
-        credentials: "include", // ✅ Send cookies
-        // headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
       });
       if (res.ok) {
-        // localStorage.removeItem("userToken"); // Removed
         clearUser();
         router.push("/auth/signup");
       }
@@ -132,169 +143,178 @@ const User_Profile = ({ userData, isLoading }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-5">
-      {/* Navigation Header */}
-      <div className="md:px-4 px-2 pt-4 flex items-center justify-between">
+    <div className="max-w-xl mx-auto pb-24 px-4 space-y-6">
+      {/* Premium iOS style navigation header */}
+      <div className="pt-4 flex items-center justify-between">
         <motion.button
           whileHover={{ x: -2 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => router.back()}
-          className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors shadow-sm"
+          className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={18} strokeWidth={2.5} />
         </motion.button>
-        <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-full shadow-sm">
+        <div className="flex items-center gap-2 px-4.5 py-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-full shadow-sm">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
-          <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 dark:text-zinc-400">Account Hub</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.15em] text-zinc-500 dark:text-zinc-405">Profile Hub</span>
         </div>
-        <div className="w-11 h-11" />
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={toggleTheme}
+          className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm"
+        >
+          {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
+        </motion.button>
       </div>
 
-      {/* Profile Hero / Header */}
-      <section className="relative p-3 pt-6 text-center flex flex-col items-center">
-        {/* Background Decor */}
-        <div className="absolute top-0 inset-x-0 h-48 bg-gradient-to-b from-orange-500/5 dark:from-orange-500/10 to-transparent pointer-events-none -z-10" />
+      {/* Glassmorphic Profile Card */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-white to-zinc-50/50 dark:from-zinc-900 dark:to-zinc-950/50 border border-zinc-100 dark:border-zinc-800 rounded-[32px] p-6 shadow-xl shadow-zinc-100/50 dark:shadow-none">
+        {/* Abstract design glows */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none -z-10" />
 
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="relative group cursor-pointer"
-        >
-          <div className="relative w-24 h-24 rounded-[24px] border-4 border-white dark:border-zinc-800 shadow-xl overflow-hidden bg-white dark:bg-zinc-900 transition-transform duration-500 group-hover:scale-105">
-            {userData.avatar ? (
-              <img src={userData.avatar} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-zinc-50 dark:bg-zinc-800">
-                <User className="w-10 h-10 text-orange-200 dark:text-orange-500/20" />
+        <div className="flex items-center gap-5">
+          <div className="relative group shrink-0">
+            <div className="relative w-20 h-20 rounded-[22px] border-4 border-white dark:border-zinc-850 shadow-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 transition-transform duration-500 group-hover:scale-105">
+              {userData.avatar ? (
+                <img src={userData.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-orange-50 dark:bg-orange-500/5">
+                  <User className="w-8 h-8 text-orange-400/80 dark:text-orange-500/20" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                <Settings className="text-white drop-shadow-md" size={16} />
               </div>
-            )}
-
-            {/* Hover overlay hint */}
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <Settings className="text-white drop-shadow-lg" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 bg-green-500 text-white p-1 rounded-lg border-2 border-white dark:border-zinc-850 shadow-md">
+              <ShieldCheck size={12} strokeWidth={3} />
             </div>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-            className="absolute -bottom-1 -right-1 bg-green-500 text-white p-1.5 rounded-xl border-4 border-white dark:border-zinc-800 shadow-lg"
-          >
-            <ShieldCheck size={16} strokeWidth={3} />
-          </motion.div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="mt-3 space-y-1"
-        >
-          <h1 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight">
-            {userData.firstname} {userData.lastname}
-          </h1>
-
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-zinc-100 dark:border-zinc-800 shadow-sm">
-              <Mail size={14} className="text-orange-500" />
-              <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">{userData.email}</span>
-            </div>
-            {userData.phone && (
-              <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-zinc-100 dark:border-zinc-800 shadow-sm">
-                <Phone size={14} className="text-orange-500" />
-                <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">{userData.phone}</span>
-              </div>
-            )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-black text-zinc-900 dark:text-white tracking-tight truncate leading-none">
+              {userData.firstname} {userData.lastname}
+            </h1>
+            <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest mt-1.5 flex items-center gap-1.5">
+              <span className="px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded-full">Customer</span>
+              <span>•</span>
+              <span className="text-green-500">Verified</span>
+            </p>
           </div>
-        </motion.div>
+        </div>
+
+        {/* Contact badges grid */}
+        <div className="mt-5 pt-5 border-t border-zinc-100 dark:border-zinc-800/80 grid grid-cols-1 gap-2">
+          <div className="flex items-center gap-2 px-3.5 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 rounded-2xl border border-zinc-100/30 dark:border-zinc-800/30">
+            <Mail size={14} className="text-orange-500 shrink-0" />
+            <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 truncate">{userData.email}</span>
+          </div>
+          {userData.phone && (
+            <div className="flex items-center gap-2 px-3.5 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 rounded-2xl border border-zinc-100/30 dark:border-zinc-800/30">
+              <Phone size={14} className="text-orange-500 shrink-0" />
+              <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 truncate">{userData.phone}</span>
+            </div>
+          )}
+        </div>
       </section>
 
-      {/* Notifications Section - High Visibility */}
-      <div className="mt-4 px-6 space-y-4">
-        <NotificationSettings />
+      {/* Notifications Module - Unified Single Toggle */}
+      <NotificationSettings />
+
+      {/* Actions & Settings Groups */}
+      <div className="space-y-5">
+        <MobileSettingsGroup title="Account Settings">
+          <MobileActionRow
+            icon={User}
+            title="Personal Details"
+            subtitle="Edit your name, phone and profile image"
+            href="/profile/edit"
+          />
+          <MobileActionRow
+            icon={MapPin}
+            title="Delivery Addresses"
+            subtitle="Manage your saved home and office locations"
+            href="/profile/address"
+          />
+          <MobileActionRow
+            icon={Wallet}
+            title="My Wallet"
+            subtitle="Manage funds and view transaction history"
+            href="/profile/wallet"
+          />
+          <MobileActionRow
+            icon={Star}
+            title="My Reviews"
+            subtitle="View your past ratings and feedback"
+            href="/profile/reviews"
+          />
+        </MobileSettingsGroup>
+
+        <MobileSettingsGroup title="Support & Info">
+          <MobileActionRow
+            icon={LifeBuoy}
+            title="Get Help"
+            subtitle="Reach out to our support team for issues"
+            href="/get-help"
+          />
+          <MobileActionRow
+            icon={HelpCircle}
+            title="Support & FAQs"
+            subtitle="Find answers to common questions"
+            href="/faqs"
+          />
+          <MobileActionRow
+            icon={Bell}
+            title="Notifications History"
+            subtitle="View your recent updates and account alerts"
+            href="/notifications"
+          />
+          <MobileActionRow
+            icon={theme === 'light' ? Moon : Sun}
+            title={theme === 'light' ? "Dark Theme" : "Light Theme"}
+            subtitle={theme === 'light' ? "Switch to a darker interface" : "Switch to a brighter interface"}
+            onClick={toggleTheme}
+            rightElement={
+              <span className="text-[10px] font-black uppercase text-zinc-400 mr-1">
+                {theme}
+              </span>
+            }
+          />
+        </MobileSettingsGroup>
+
+        {/* PWA Section */}
+        <div className="space-y-2">
+          <div className="px-4 flex items-center gap-1.5">
+            <Smartphone size={10} className="text-zinc-400" />
+            <h2 className="text-[10px] font-black uppercase text-zinc-400 dark:text-zinc-500 tracking-[0.2em] italic">
+              App Experience
+            </h2>
+          </div>
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800/80 rounded-3xl p-4 shadow-sm shadow-zinc-100/50 dark:shadow-none">
+            <PermanentInstallButton />
+          </div>
+        </div>
+
+        {/* Danger & Session Settings */}
+        <MobileSettingsGroup title="Session & Privacy">
+          <MobileActionRow
+            icon={LogOut}
+            title={logoutLoading ? "Logging out..." : "Log Out"}
+            subtitle="Safely sign out from your current device"
+            onClick={handleLogout}
+          />
+          <MobileActionRow
+            icon={Trash2}
+            title="Delete Account"
+            subtitle="Permanently erase all your account data"
+            onClick={() => setIsDeleteModalOpen(true)}
+            isRed={true}
+          />
+        </MobileSettingsGroup>
       </div>
 
-      {/* Action Grid */}
-      <div className="mt-4 px-4 grid grid-cols-1 md:grid-cols-2 gap-2.5">
-        <ActionCard
-          icon={User}
-          title="Personal Details"
-          description="Edit your name, phone and profile image"
-          href="/profile/edit"
-        />
-        <ActionCard
-          icon={MapPin}
-          title="Delivery Addresses"
-          description="Manage your saved home and office locations"
-          href="/profile/address"
-        />
-        <ActionCard
-          icon={Wallet}
-          title="My Wallet"
-          description="Manage funds and view transaction history"
-          href="/profile/wallet"
-        />
-        <ActionCard
-          icon={Star}
-          title="My Reviews"
-          description="View your past ratings and feedback"
-          href="/profile/reviews"
-        />
-
-        <ActionCard
-          icon={LifeBuoy}
-          title="Get Help"
-          description="Reach out to our support team for issues"
-          href="/get-help"
-        />
-        <ActionCard
-          icon={HelpCircle}
-          title="Support & FAQs"
-          description="Find answers to common questions"
-          href="/faqs"
-        />
-        <ActionCard
-          icon={Bell}
-          title="Notifications"
-          description="View your recent updates and account alerts"
-          href="/notifications"
-        />
-        <ActionCard
-          icon={theme === 'light' ? Moon : Sun}
-          title={theme === 'light' ? "Dark Mode" : "Light Mode"}
-          description={theme === 'light' ? "Switch to a darker interface" : "Switch to a brighter interface"}
-          onClick={toggleTheme}
-        />
-      </div>
-
-      {/* PWA Installation - Persistent Option */}
-      <div className="mt-4 px-6">
-        <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] pl-2 mb-2">Experience MelaChow App</p>
-        <PermanentInstallButton />
-      </div>
-
-      {/* Danger Zone */}
-      <div className="mt-6 px-6 space-y-3">
-        <p className="text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest pl-2">Session & Data</p>
-
-        <ActionCard
-          icon={LogOut}
-          title={logoutLoading ? "Logging out..." : "Log Out"}
-          description="Safely sign out from your account"
-          onClick={handleLogout}
-        />
-
-        <ActionCard
-          icon={Trash2}
-          title="Delete Account"
-          description="Permanently remove your data and account"
-          onClick={() => setIsDeleteModalOpen(true)}
-          isRed={true}
-        />
-      </div>
-
-      <div className="px-4">
+      <div className="px-2">
         <NeedHelp />
       </div>
 
