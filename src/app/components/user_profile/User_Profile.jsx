@@ -167,12 +167,8 @@ const User_Profile = ({ userData, isLoading }) => {
         </motion.button>
       </div>
 
-      {/* Glassmorphic Profile Card */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-white to-zinc-50/50 dark:from-zinc-900 dark:to-zinc-950/50 border border-zinc-100 dark:border-zinc-800 rounded-[32px] p-6 shadow-xl shadow-zinc-100/50 dark:shadow-none">
-        {/* Abstract design glows */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none -z-10" />
-
+      {/* Clean Premium Profile Card (No Heavy Blur Filters to Prevent GPU Tearing) */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-white via-zinc-50 to-orange-50/30 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800/80 border border-zinc-100 dark:border-zinc-800 rounded-[32px] p-6 shadow-xl shadow-zinc-100/50 dark:shadow-none">
         <div className="flex items-center gap-5">
           <div className="relative group shrink-0">
             <div className="relative w-20 h-20 rounded-[22px] border-4 border-white dark:border-zinc-850 shadow-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 transition-transform duration-500 group-hover:scale-105">
