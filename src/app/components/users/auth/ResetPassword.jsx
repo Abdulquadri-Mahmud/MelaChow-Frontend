@@ -8,7 +8,7 @@ import { Lock, ArrowRight, Loader2, RefreshCw, ShieldCheck, CheckCircle2, AlertC
 import axios from "axios";
 
 // --- Custom Status Modal Component ---
-const StatusModal = ({ isOpen, type, message, onClose }) => {
+const StatusModal = ({ isOpen, type, message, buttonText, onClose }) => {
   if (!isOpen) return null;
 
   return (
@@ -43,7 +43,7 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
             </div>
 
             <h3 className="text-2xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-2">
-              {type === 'success' ? 'Password Reset!' : 'Oops!'}
+              {type === 'success' ? 'Success!' : 'Oops!'}
             </h3>
 
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-[240px]">
@@ -59,7 +59,7 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
                   : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-slate-900/20'
                 }`}
             >
-              {type === 'success' ? 'Login Now' : 'Try Again'}
+              {type === 'success' ? (buttonText || 'Continue') : 'Try Again'}
             </motion.button>
           </div>
         </motion.div>
@@ -74,7 +74,7 @@ export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const inputRefs = useRef([]);
   const [loading, setLoading] = useState(false);
-  const [statusModal, setStatusModal] = useState({ isOpen: false, type: 'success', message: '' });
+  const [statusModal, setStatusModal] = useState({ isOpen: false, type: 'success', message: '', buttonText: 'Continue', redirectOnClose: false });
   const [resending, setResending] = useState(false);
   const [step, setStep] = useState(1);
   const [resetToken, setResetToken] = useState("");
@@ -84,9 +84,9 @@ export default function ResetPassword() {
   const email = searchParams.get("email") || "";
 
   const closeModal = () => {
-    const wasSuccess = statusModal.type === 'success';
+    const redirect = statusModal.redirectOnClose;
     setStatusModal({ ...statusModal, isOpen: false });
-    if (wasSuccess) {
+    if (redirect) {
       router.push("/auth/signin");
     }
   };
@@ -120,7 +120,9 @@ export default function ResetPassword() {
       setStatusModal({
         isOpen: true,
         type: 'success',
-        message: "Verification code pasted! Now enter your new password."
+        message: "Verification code pasted! Now enter your new password.",
+        buttonText: "Continue",
+        redirectOnClose: false
       });
     } else {
       setStatusModal({
@@ -160,7 +162,9 @@ export default function ResetPassword() {
       setStatusModal({
         isOpen: true,
         type: 'success',
-        message: "Code verified successfully! You can now securely set your new password."
+        message: "Code verified successfully! You can now securely set your new password.",
+        buttonText: "Set New Password",
+        redirectOnClose: false
       });
 
     } catch (error) {
@@ -198,7 +202,9 @@ export default function ResetPassword() {
       setStatusModal({
         isOpen: true,
         type: 'success',
-        message: "Your password has been successfully updated! You can now log in with your new credentials."
+        message: "Your password has been successfully updated! You can now log in with your new credentials.",
+        buttonText: "Login Now",
+        redirectOnClose: true
       });
 
     } catch (error) {
@@ -237,7 +243,9 @@ export default function ResetPassword() {
       setStatusModal({
         isOpen: true,
         type: 'success',
-        message: "A fresh 6-digit code has been sent to your email. Please check your inbox."
+        message: "A fresh 6-digit code has been sent to your email. Please check your inbox.",
+        buttonText: "Got it",
+        redirectOnClose: false
       });
     } catch (error) {
       console.error('[ResetPassword] Resend error:', error);
