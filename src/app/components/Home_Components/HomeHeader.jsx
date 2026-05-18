@@ -39,13 +39,13 @@ export default function HomeHeader() {
   };
 
   return (
-    <motion.header
+    <header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       className="sticky top-0 z-50 w-full"
     >
       {/* Premium Glassmorphism Container */}
-      <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-zinc-800/50">
+      <div className="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
           <div className="flex items-center justify-between h-20">
 
@@ -116,7 +116,7 @@ export default function HomeHeader() {
           </div>
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 }
 
