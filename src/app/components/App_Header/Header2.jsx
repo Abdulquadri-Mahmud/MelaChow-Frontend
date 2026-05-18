@@ -23,13 +23,8 @@ export default function Header2({ title, subtitle }) {
   const displaySubtitle = subtitle || "MelaChow";
 
   return (
-    <motion.header
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-50 w-full"
-    >
-      <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-zinc-800/50">
-        <div className="max-w-7xl mx-auto px-4 py-4 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800/50 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 py-4 h-16 flex items-center justify-between">
 
           <div className="flex items-center gap-4">
             {/* Premium Back Button */}
@@ -59,9 +54,8 @@ export default function Header2({ title, subtitle }) {
             <NotificationBell />
             <ProfileIconWithBadge onClick={() => router.push('/profile')} />
           </div>
-        </div>
       </div>
-    </motion.header>
+    </header>
   );
 }
 
