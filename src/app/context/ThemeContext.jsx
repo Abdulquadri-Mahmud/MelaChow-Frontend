@@ -11,16 +11,15 @@ const ThemeContext = createContext({
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
-    // Lazy initializer: reads localStorage synchronously on first client render
-    // so that theme state is immediately correct — no useEffect delay, no flash.
-    const [theme, setThemeState] = useState(() => {
-        if (typeof window === 'undefined') return 'light';
-        return localStorage.getItem('melachow-theme') || 'light';
-    });
+    // Server and initial client render must match to avoid hydration mismatch.
+    const [theme, setThemeState] = useState('light');
+    const [mounted, setMounted] = useState(false);
 
-    // Sync the <html> class on mount in case the blocking script missed anything
     useEffect(() => {
-        document.documentElement.classList.toggle('dark', theme === 'dark');
+        setMounted(true);
+        const storedTheme = localStorage.getItem('melachow-theme') || 'light';
+        setThemeState(storedTheme);
+        document.documentElement.classList.toggle('dark', storedTheme === 'dark');
     }, []);
 
     const toggleTheme = () => {

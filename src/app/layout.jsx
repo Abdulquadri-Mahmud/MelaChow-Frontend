@@ -228,7 +228,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className="antialiased transition-colors duration-300">
+      <body className="antialiased">
         {/* ── Structured Data ─────────────────────────────────────── */}
         <JsonLd data={[organizationSchema, websiteSchema, foodServiceSchema]} />
         {/* ✅ ONLY base providers - no auth logic here */}
