@@ -106,7 +106,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         queryKey: ["vendor-storefront", vendorId],
         queryFn: () => getVendorStorefront(vendorId),
         enabled: !!vendorId,
-        staleTime: 0,
+        staleTime: 1000 * 60 * 5, // 5 minutes cache freshness
         initialData: initialData,
     });
 
