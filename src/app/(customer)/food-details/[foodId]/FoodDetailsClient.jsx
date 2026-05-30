@@ -41,7 +41,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   // Data State
   const initialFood = initialData?.food || (initialData?.success ? null : initialData);
   const [food, setFood] = useState(initialFood && Object.keys(initialFood).length > 0 ? initialFood : null);
-  const [isLoading, setIsLoading] = useState(!isFoodComplete(food));
+  const [isLoading, setIsLoading] = useState(isModal ? true : !isFoodComplete(food));
   const [isError, setIsError] = useState(false);
 
   // console.log('[FoodDetailsClient] 🥗 initialData:', initialData);

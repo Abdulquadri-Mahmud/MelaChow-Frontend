@@ -19,6 +19,7 @@ import { BiCartAdd } from "react-icons/bi";
 import { useCart } from "@/app/context/CartContext";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import { getStorefrontComboDetail, getVendorStorefront } from "@/app/lib/menuApi";
+import FoodDetailsSkeleton from "@/app/skeleton/FoodDetailsSkeleton";
 
 import { useQuery } from "@tanstack/react-query";
 
@@ -98,7 +99,8 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     // Data State
     const initialCombo = initialData?.combo || (initialData?.success ? null : initialData);
     const [combo, setCombo] = useState(initialCombo && Object.keys(initialCombo).length > 0 ? initialCombo : null);
-    const [isLoading, setIsLoading] = useState(!initialCombo || Object.keys(initialCombo).length === 0);
+    const isComboIncomplete = !initialCombo || !Array.isArray(initialCombo.choice_groups) || initialCombo.choice_groups.length === 0;
+    const [isLoading, setIsLoading] = useState(isModal ? true : isComboIncomplete);
     const [isError, setIsError] = useState(false);
     // initialData.vendor is now always set when opened as a modal from storefront/food-details.
     // initialCombo?.vendor covers the case where the combo document itself embeds vendor info.
@@ -134,6 +136,12 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
         setIsError(false);
         setIsLoading(false);
     }, [comboDetailData]);
+
+    useEffect(() => {
+        if (combo && Array.isArray(combo.choice_groups) && combo.choice_groups.length > 0) {
+            setIsLoading(false);
+        }
+    }, [combo]);
 
     // Only fetch the whole storefront if we still need vendor data and cannot
     // fetch a precise combo detail yet.
@@ -328,30 +336,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     // Render
     if (!isClient) return <div className="min-h-screen bg-white dark:bg-zinc-950" />;
 
-    if (isLoading) {
-        // Shown only in the full-page route while data is being fetched.
-        // As a modal, combo is always pre-loaded from initialData — this
-        // state should not trigger. If it somehow does, render minimally
-        // so the modal backdrop is still visible.
-        if (isModal) {
-            return (
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-                    <div className="relative w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                </div>
-            );
-        }
-        return (
-            <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                    <p className="text-xs font-black uppercase tracking-widest text-zinc-400">Loading Bundle...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (isError || !combo) {
+    if (!isLoading && (isError || !combo)) {
         const errorContent = (
             <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center px-6">
                 <div className="text-center p-8 bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-100 dark:border-zinc-800 max-w-sm w-full">
@@ -427,10 +412,14 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
             {/* Page Body */}
             <div className="bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
                 <div className="max-w-4xl mx-auto pb-32">
-                    <div className="space-y-6">
-
-                        {/* Hero Card */}
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-1 pt-2">
+                    {isLoading ? (
+                        <div className="p-2">
+                            <FoodDetailsSkeleton />
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {/* Hero Card */}
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-1 pt-2">
                             <div className="bg-white dark:bg-zinc-900 rounded-[28px] border border-zinc-100 dark:border-zinc-800 overflow-hidden shadow-sm">
                                 {/* Image */}
                                 <div className="relative w-full bg-zinc-100 dark:bg-zinc-800 p-1.5">
@@ -645,58 +634,61 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                         )}
 
                     </div>
+                    )}
                 </div>
             </div>
 
             {/* Fixed Bottom Bar */}
-            <div className={`fixed bottom-0 left-0 right-0 p-2.5 bg-white bg-opacity-95 dark:bg-zinc-950 dark:bg-opacity-90 backdrop-blur-xl border-t border-zinc-100 border-opacity-50 dark:border-zinc-800 dark:border-opacity-80 pb-safe z-40 ${isModal ? 'rounded-b-[40px]' : ''}`}>
-                <div className="max-w-2xl mx-auto flex items-center gap-3 px-2">
-                    {/* Quantity control */}
-                    <div className="flex items-center gap-1 bg-zinc-100 bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 rounded-[16px] p-0.5 h-[46px] border border-zinc-200 border-opacity-50 dark:border-zinc-800 dark:border-opacity-50 shadow-inner shrink-0">
-                        <button
-                            onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                            className="w-[26px] h-[26px] flex items-center justify-center rounded-xl bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500 dark:hover:bg-opacity-10 transition-all text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
-                        >
-                            <Minus size={16} strokeWidth={3} />
-                        </button>
-                        <div className="w-8 flex flex-col items-center">
-                            <span className="text-[8px] font-black text-zinc-400 uppercase tracking-tighter leading-none mb-0.5">Qty</span>
-                            <span className="text-sm font-black text-zinc-900 dark:text-white tabular-nums leading-none">{quantity}</span>
-                        </div>
-                        <button
-                            onClick={() => setQuantity(quantity + 1)}
-                            className="w-[26px] h-[26px] flex items-center justify-center rounded-xl bg-orange-500 text-white active:scale-95 transition-all"
-                        >
-                            <Plus size={16} strokeWidth={3} />
-                        </button>
-                    </div>
- 
-                    {/* Add to Order button */}
-                    <button
-                        onClick={handleAddToCart}
-                        disabled={!combo.is_available}
-                        className="flex-1 h-[46px] bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[16px] font-black text-[12px] uppercase tracking-[0.05em] italic flex items-center justify-between px-4 transition-all active:scale-[0.98] dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50 shadow-lg"
-                    >
-                        <div className="flex items-center gap-2 min-w-0">
-                            <div className="p-1.5 rounded-xl bg-orange-500 text-white group-hover:rotate-12 transition-transform shrink-0">
-                                <ShoppingCart size={18} />
+            {!isLoading && combo && (
+                <div className={`fixed bottom-0 left-0 right-0 p-2.5 bg-white bg-opacity-95 dark:bg-zinc-950 dark:bg-opacity-90 backdrop-blur-xl border-t border-zinc-100 border-opacity-50 dark:border-zinc-800 dark:border-opacity-80 pb-safe z-40 ${isModal ? 'rounded-b-[40px]' : ''}`}>
+                    <div className="max-w-2xl mx-auto flex items-center gap-3 px-2">
+                        {/* Quantity control */}
+                        <div className="flex items-center gap-1 bg-zinc-100 bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 rounded-[16px] p-0.5 h-[46px] border border-zinc-200 border-opacity-50 dark:border-zinc-800 dark:border-opacity-50 shadow-inner shrink-0">
+                            <button
+                                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                className="w-[26px] h-[26px] flex items-center justify-center rounded-xl bg-white dark:bg-zinc-900 hover:bg-orange-50 dark:hover:bg-orange-500 dark:hover:bg-opacity-10 transition-all text-zinc-600 dark:text-zinc-400 shadow-sm border border-zinc-100 dark:border-zinc-700"
+                            >
+                                <Minus size={16} strokeWidth={3} />
+                            </button>
+                            <div className="w-8 flex flex-col items-center">
+                                <span className="text-[8px] font-black text-zinc-400 uppercase tracking-tighter leading-none mb-0.5">Qty</span>
+                                <span className="text-sm font-black text-zinc-900 dark:text-white tabular-nums leading-none">{quantity}</span>
                             </div>
-                            <span className={`truncate ${combo.is_available ? "text-white dark:text-zinc-900 group-hover:text-orange-500" : "text-zinc-400"}`}>
-                                {combo.is_available ? "Add to Order" : "Unavailable"}
-                            </span>
+                            <button
+                                onClick={() => setQuantity(quantity + 1)}
+                                className="w-[26px] h-[26px] flex items-center justify-center rounded-xl bg-orange-500 text-white active:scale-95 transition-all"
+                            >
+                                <Plus size={16} strokeWidth={3} />
+                            </button>
                         </div>
-
-                        {combo.is_available && (
-                            <div className="flex items-center gap-3 shrink-0 ml-2">
-                                <div className="w-[1.5px] h-5 bg-white/20 dark:bg-zinc-950/20 rounded-full" />
-                                <span className="text-orange-500 tabular-nums font-black text-base">
-                                    ₦{total.toLocaleString()}
+     
+                        {/* Add to Order button */}
+                        <button
+                            onClick={handleAddToCart}
+                            disabled={!combo.is_available}
+                            className="flex-1 h-[46px] bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded-[16px] font-black text-[12px] uppercase tracking-[0.05em] italic flex items-center justify-between px-4 transition-all active:scale-[0.98] dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50 shadow-lg"
+                        >
+                            <div className="flex items-center gap-2 min-w-0">
+                                <div className="p-1.5 rounded-xl bg-orange-500 text-white group-hover:rotate-12 transition-transform shrink-0">
+                                    <ShoppingCart size={18} />
+                                </div>
+                                <span className={`truncate ${combo.is_available ? "text-white dark:text-zinc-900 group-hover:text-orange-500" : "text-zinc-400"}`}>
+                                    {combo.is_available ? "Add to Order" : "Unavailable"}
                                 </span>
                             </div>
-                        )}
-                    </button>
+    
+                            {combo.is_available && (
+                                <div className="flex items-center gap-3 shrink-0 ml-2">
+                                    <div className="w-[1.5px] h-5 bg-white/20 dark:bg-zinc-950/20 rounded-full" />
+                                    <span className="text-orange-500 tabular-nums font-black text-base">
+                                        ₦{total.toLocaleString()}
+                                    </span>
+                                </div>
+                            )}
+                        </button>
+                    </div>
                 </div>
-            </div>
+            )}
         </div>
     );
 
