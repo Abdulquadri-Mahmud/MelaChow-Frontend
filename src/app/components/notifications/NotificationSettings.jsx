@@ -45,7 +45,7 @@ export default function NotificationSettings() {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-zinc-900 rounded-[32px] md:p-6 p-4 shadow-xl shadow-zinc-100/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 space-y-6"
+            className="composite-stable bg-white dark:bg-zinc-900 rounded-[32px] md:p-6 p-4 shadow-xl shadow-zinc-100/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 space-y-6"
         >
             {/* Header */}
             <div className="flex items-center justify-between pb-6 border-b border-zinc-50 dark:border-zinc-800">
@@ -55,7 +55,7 @@ export default function NotificationSettings() {
                         : "bg-zinc-50 text-zinc-400 dark:bg-zinc-850"
                         }`}>
                         {isEnabled ? (
-                            <Bell className="animate-bounce" size={28} />
+                            <Bell size={28} />
                         ) : (
                             <BellOff size={28} />
                         )}
@@ -101,12 +101,12 @@ export default function NotificationSettings() {
             )}
 
             {/* Notification Categories - Passive Indicators */}
-            <AnimatePresence>
+            <AnimatePresence initial={false}>
                 {isEnabled && (
                     <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         className="space-y-3.5 overflow-hidden"
                     >
                         <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] pl-1">Subscribed Channels</p>
