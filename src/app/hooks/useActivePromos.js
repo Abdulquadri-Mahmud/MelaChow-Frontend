@@ -19,7 +19,7 @@ const fetchActivePromos = async () => {
 /**
  * Returns currently active promos for banner rendering.
  * Cached for 5 minutes — promo state rarely changes mid-session.
- * Returns { platformPromo, vendorPromoCount, hasAnyPromo }.
+ * Returns { platformPromo, platformPromoUsed, vendorPromoCount, vendorPromos, hasAnyPromo }.
  */
 export const useActivePromos = () => {
   const { data, isLoading } = useQuery({
@@ -33,8 +33,10 @@ export const useActivePromos = () => {
 
   const payload = data?.data || data || {};
   const platformPromo    = payload.platformPromo    || payload.promo || null;
+  const platformPromoUsed = payload.platformPromoUsed || false;
   const vendorPromoCount = payload.vendorPromoCount || payload.vendorPromosCount || 0;
+  const vendorPromos = payload.vendorPromos || [];
   const hasAnyPromo = !!platformPromo || vendorPromoCount > 0;
 
-  return { platformPromo, vendorPromoCount, hasAnyPromo, isLoading };
+  return { platformPromo, platformPromoUsed, vendorPromoCount, vendorPromos, hasAnyPromo, isLoading };
 };

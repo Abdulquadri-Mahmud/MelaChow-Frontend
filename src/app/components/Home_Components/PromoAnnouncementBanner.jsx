@@ -1,190 +1,172 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, Sparkles, ChevronRight, Bike, Zap, Star, LayoutGrid } from "lucide-react";
+import {
+  ArrowRight,
+  Bike,
+  Building2,
+  CalendarClock,
+  Gift,
+  Store,
+  TicketPercent,
+  Zap,
+} from "lucide-react";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
 
-/**
- * PromoAnnouncementBanner
- * A master-level, brand-aligned discovery surface for MelaChow promotions.
- * Uses the African pattern background and primary brand orange.
- */
+const formatDate = (value) => {
+  if (!value) return "Limited time";
+  return new Date(value).toLocaleDateString("en-NG", {
+    day: "numeric",
+    month: "short",
+  });
+};
+
+const formatCampaignName = (name) => {
+  if (!name) return "Free delivery campaign";
+  return name.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 export default function PromoAnnouncementBanner() {
-  const { platformPromo, vendorPromoCount, hasAnyPromo, isLoading } = useActivePromos();
-
-  const showPlatform = !!platformPromo;
-  const showVendor = vendorPromoCount > 0;
-  const totalSlots = platformPromo?.totalSlots || 0;
-  const slotsRemaining = platformPromo?.slotsRemaining || 0;
-
-  const handleCta = () => {
-    if (showPlatform) {
-      // Navigate to the all restaurants page.
-      window.location.href = "/all-restaurants";
-    } else {
-      // Vendor promo — navigate to a pre-filtered vendor view.
-      window.location.href = "/home?freeDelivery=true";
-    }
-  };
+  const {
+    platformPromo,
+    platformPromoUsed,
+    vendorPromoCount,
+    vendorPromos,
+    hasAnyPromo,
+    isLoading,
+  } = useActivePromos();
 
   if (isLoading || !hasAnyPromo) return null;
 
+  const showPlatform = !!platformPromo;
+  const totalSlots = Number(platformPromo?.totalSlots || 0);
+  const slotsRemaining = Number(platformPromo?.slotsRemaining || 0);
+  const percentRemaining = totalSlots > 0
+    ? Math.max(0, Math.min(100, (slotsRemaining / totalSlots) * 100))
+    : 0;
+  const featuredVendors = (vendorPromos || []).slice(0, 3);
+  const endDate = showPlatform ? platformPromo?.endsAt : featuredVendors[0]?.endsAt;
+
+  const handleCta = () => {
+    const params = new URLSearchParams();
+    params.set("promo", "free-delivery");
+    params.set("freeDelivery", "true");
+    window.location.href = `/home?${params.toString()}#vendor-list-anchor`;
+  };
+
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="relative rounded-[10px] overflow-hidden group border border-white/5 shadow-[0_25px_60px_-15px_rgba(244,133,37,0.2)] bg-zinc-950"
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        className="relative overflow-hidden rounded-[18px] border border-orange-200/70 bg-white shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] dark:border-white/10 dark:bg-zinc-900"
       >
-        {/* Dynamic Mesh Background with Brand Color */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#f48525]/20 via-transparent to-transparent" />
-          <motion.div
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3],
-              x: [-20, 20, -20]
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-[-20%] right-[-10%] w-[80%] h-[150%] bg-[#f48525]/10 rounded-full blur-[120px]"
-          />
-          {/* African Pattern Overlay */}
-          <div className="absolute inset-0 bg-african-pattern opacity-[0.15] mix-blend-overlay" />
-        </div>
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-500 via-amber-400 to-emerald-500" />
 
-        {/* Premium Shimmer Sweep */}
-        <motion.div
-          initial={{ x: "-150%" }}
-          animate={{ x: "200%" }}
-          transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 2 }}
-          className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-r from-transparent via-white/[0.03] to-transparent skew-x-12"
-        />
-
-        {/* Content Layout - Compacted */}
-        <div className="relative z-20 px-5 py-4 md:px-8 md:py-5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
-            
-            {/* Left: Discovery Message */}
-            <div className="flex items-center gap-4">
-              {/* Animated Icon Box - Scaled Down */}
-              <motion.div
-                whileHover={{ scale: 1.05, rotate: 2 }}
-                className="relative shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-[#f48525] to-[#c2611a] p-[1.5px] shadow-2xl shadow-[#f48525]/30"
-              >
-                <div className="w-full h-full rounded-[15px] bg-zinc-950/40 backdrop-blur-xl flex items-center justify-center">
-                  <AnimatePresence mode="wait">
-                    {showPlatform ? (
-                      <motion.div
-                        key="gift"
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.5 }}
-                      >
-                        <Gift size={24} className="text-white" strokeWidth={2.5} />
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="bike"
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.5 }}
-                      >
-                        <Bike size={24} className="text-white" strokeWidth={2.5} />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-                {/* Floating Badge */}
-                <motion.div
-                  animate={{ y: [0, -3, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center shadow-lg border-2 border-zinc-950"
-                >
-                  <Star size={12} className="text-zinc-950 fill-zinc-950" />
-                </motion.div>
-              </motion.div>
-
-              {/* Textual Narrative - Scaled Down */}
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[#f48525]/10 border border-[#f48525]/20 text-[9px] font-black text-[#f48525] uppercase tracking-[0.2em]">
-                    <Zap size={9} fill="currentColor" />
-                    Premium
-                  </span>
-                  {showPlatform && (
-                    <motion.span 
-                      animate={{ opacity: [1, 0.6, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="text-zinc-500 text-[9px] font-black uppercase tracking-widest"
-                    >
-                      {slotsRemaining} Left
-                    </motion.span>
-                  )}
-                </div>
-
-                <h2 className="text-xl md:text-2xl font-black text-white leading-none tracking-tighter uppercase italic">
-                  {showPlatform ? (
-                    <><span className="text-[#f48525]">Free</span> Delivery Slots</>
-                  ) : (
-                    <><span className="text-[#f48525]">{vendorPromoCount}</span> Shops Nearby</>
-                  )}
-                </h2>
-                
-                <p className="text-[11px] md:text-xs font-bold text-zinc-400 max-w-[280px] leading-tight tracking-tight">
-                  {showPlatform 
-                    ? `Free delivery for the first ${totalSlots.toLocaleString()} eligible first orders. ${slotsRemaining.toLocaleString()} spots left.`
-                    : "Top-rated restaurants near you offer free delivery."
-                  }
-                </p>
-              </div>
+        <div className="relative p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-orange-600 ring-1 ring-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:ring-orange-500/20">
+              {showPlatform ? <Gift size={23} strokeWidth={2.5} /> : <Bike size={23} strokeWidth={2.5} />}
             </div>
 
-            {/* Right: CTA - Scaled Down */}
-            <div className="flex items-center">
-              <button
-                onClick={handleCta}
-                className="group/btn relative h-11 px-6 rounded-xl bg-white overflow-hidden transition-all duration-500 hover:shadow-[0_0_30px_rgba(255,255,255,0.15)] active:scale-95"
-              >
-                <div className="relative z-20 flex items-center justify-center gap-2">
-                  <span className="text-zinc-950 font-black text-[11px] uppercase tracking-widest whitespace-nowrap">
-                    Get Started
-                  </span>
-                  <div className="w-5 h-5 rounded-lg bg-zinc-950 flex items-center justify-center shrink-0 transition-transform duration-500 group-hover/btn:translate-x-0.5">
-                    <ChevronRight size={14} className="text-white" strokeWidth={3} />
-                  </div>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#f48525]/10 to-transparent -translate-x-full group-hover/btn:animate-shimmer" />
-              </button>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 rounded-full bg-zinc-950 px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-white dark:bg-white dark:text-zinc-950">
+                  <TicketPercent size={10} />
+                  Free delivery
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2 py-1 text-[9px] font-black uppercase tracking-[0.16em] text-orange-700 ring-1 ring-orange-100 dark:bg-orange-500/10 dark:text-orange-300 dark:ring-orange-500/20">
+                  {showPlatform ? <Building2 size={10} /> : <Store size={10} />}
+                  {showPlatform ? "MelaChow sponsored" : "Restaurant sponsored"}
+                </span>
+              </div>
+
+              <h2 className="text-xl font-black leading-tight tracking-tight text-zinc-950 dark:text-white">
+                {showPlatform
+                  ? formatCampaignName(platformPromo.name)
+                  : `${vendorPromoCount} free-delivery restaurant${vendorPromoCount === 1 ? "" : "s"} near you`}
+              </h2>
+
+              <p className="mt-1 max-w-[34rem] text-xs font-semibold leading-relaxed text-zinc-500 dark:text-zinc-400">
+                {showPlatform
+                  ? platformPromoUsed
+                    ? "You have already used this platform offer. Restaurant-sponsored free delivery may still be available."
+                    : `MelaChow covers delivery for eligible orders while ${slotsRemaining.toLocaleString()} of ${totalSlots.toLocaleString()} slots remain.`
+                  : "Participating restaurants are covering delivery fees during their sponsorship windows."}
+              </p>
             </div>
           </div>
 
-          {/* Dynamic Footer - Slimmer */}
-          {showPlatform && (
-            <div className="mt-4 flex flex-col gap-1.5">
-              <div className="flex justify-between items-center">
-                 <p className="text-[8px] font-black text-zinc-600 uppercase tracking-[0.3em]">Live Slots</p>
-                 <p className="text-[9px] font-black text-[#f48525] italic uppercase tracking-widest">
-                   {totalSlots > 0 ? Math.round((slotsRemaining / totalSlots) * 100) : 0}% Available
-                 </p>
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="rounded-2xl bg-zinc-50 px-3 py-2 ring-1 ring-zinc-100 dark:bg-white/5 dark:ring-white/10">
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-400">Sponsor</p>
+              <p className="mt-1 truncate text-xs font-black text-zinc-900 dark:text-white">
+                {showPlatform ? "MelaChow" : "Restaurants"}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-zinc-50 px-3 py-2 ring-1 ring-zinc-100 dark:bg-white/5 dark:ring-white/10">
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-400">Eligible</p>
+              <p className="mt-1 text-xs font-black text-zinc-900 dark:text-white">
+                {vendorPromoCount > 0 ? `${vendorPromoCount} stores` : "Checkout"}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-zinc-50 px-3 py-2 ring-1 ring-zinc-100 dark:bg-white/5 dark:ring-white/10">
+              <p className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-400">Ends</p>
+              <p className="mt-1 flex items-center gap-1 text-xs font-black text-zinc-900 dark:text-white">
+                <CalendarClock size={12} className="text-orange-500" />
+                {formatDate(endDate)}
+              </p>
+            </div>
+            <button
+              onClick={handleCta}
+              className="flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-white shadow-lg shadow-orange-500/20 transition active:scale-[0.98]"
+            >
+              View deals
+              <ArrowRight size={14} />
+            </button>
+          </div>
+
+          {showPlatform && totalSlots > 0 && (
+            <div className="mt-4">
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="text-[9px] font-black uppercase tracking-[0.18em] text-zinc-400">Platform slots remaining</span>
+                <span className="text-[10px] font-black text-orange-600 dark:text-orange-400">{Math.round(percentRemaining)}%</span>
               </div>
-              <div className="h-[1.5px] w-full bg-zinc-900 rounded-full overflow-hidden">
+              <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100 dark:bg-white/10">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${totalSlots > 0 ? (slotsRemaining / totalSlots) * 100 : 0}%` }}
-                  transition={{ duration: 2, ease: "circOut" }}
-                  className="h-full bg-[#f48525]"
+                  animate={{ width: `${percentRemaining}%` }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  className="h-full rounded-full bg-orange-500"
                 />
               </div>
             </div>
           )}
-        </div>
 
-        {/* Subtle decorative background detail */}
-        <div className="absolute top-1/2 -right-10 -translate-y-1/2 opacity-[0.03] rotate-12 pointer-events-none">
-           <LayoutGrid size={240} className="text-white" />
+          {featuredVendors.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {featuredVendors.map((promo) => (
+                <span
+                  key={promo.promoId}
+                  className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-500/20"
+                >
+                  <Zap size={11} fill="currentColor" />
+                  <span className="truncate">{promo.vendorName}</span>
+                  {promo.remainingOrders != null && (
+                    <span className="text-emerald-500">({promo.remainingOrders} left)</span>
+                  )}
+                </span>
+              ))}
+              {vendorPromoCount > featuredVendors.length && (
+                <span className="inline-flex items-center rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-black text-zinc-500 dark:bg-white/10 dark:text-zinc-400">
+                  +{vendorPromoCount - featuredVendors.length} more
+                </span>
+              )}
+            </div>
+          )}
         </div>
-      </motion.div>
+      </motion.section>
     </AnimatePresence>
   );
 }
