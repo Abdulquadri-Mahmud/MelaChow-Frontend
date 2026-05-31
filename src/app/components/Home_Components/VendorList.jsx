@@ -238,7 +238,9 @@ export default function VendorList({ user }) {
   const [mounted, setMounted] = React.useState(false);
   const { userLocation, syncWithUserAddress } = useLocationStore();
   const searchParams = useSearchParams();
-  const filterFreeDelivery = searchParams.get("freeDelivery") === "true";
+  const filterFreeDelivery =
+    searchParams.get("freeDelivery") === "true" ||
+    searchParams.get("promo") === "free-delivery";
 
   React.useEffect(() => {
     setMounted(true);
@@ -272,6 +274,7 @@ export default function VendorList({ user }) {
       cuisineTypes: v.cuisineTypes || [],
       locationStatus: v.locationStatus || "approved",
       hasActiveDeliveryPromo: v.hasActiveDeliveryPromo || false,
+      activeDeliveryPromo: v.activeDeliveryPromo || null,
       badge: null,
       isOpen: getVendorOpenAndCloseStatus(v.openingHours).startsWith("Open now"),
     }));
@@ -344,11 +347,31 @@ export default function VendorList({ user }) {
             Restaurants Near You
           </h2>
         </div>
-        <EmptyState
-          city={userLocation?.city}
-          selectedCuisine={null}
-          onClear={() => setSelectedCuisine(null)}
-        />
+        {filterFreeDelivery ? (
+          <div className="px-4">
+            <div className="rounded-[24px] border border-orange-100 bg-orange-50/70 p-6 text-center dark:border-orange-500/20 dark:bg-orange-500/10">
+              <Gift className="mx-auto mb-3 text-orange-500" size={28} />
+              <h3 className="text-base font-black text-zinc-900 dark:text-white">
+                No free-delivery restaurants right now
+              </h3>
+              <p className="mx-auto mt-2 max-w-[260px] text-xs font-semibold leading-relaxed text-zinc-500 dark:text-zinc-400">
+                The campaign may have ended, reached its claim limit, or no participating restaurant is available in {userLocation?.city || "your area"}.
+              </p>
+              <button
+                onClick={() => window.location.href = "/home"}
+                className="mt-4 rounded-full border border-orange-200 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-widest text-orange-600 dark:border-orange-500/30 dark:bg-zinc-900"
+              >
+                Show all restaurants
+              </button>
+            </div>
+          </div>
+        ) : (
+          <EmptyState
+            city={userLocation?.city}
+            selectedCuisine={null}
+            onClear={() => {}}
+          />
+        )}
       </div>
     );
   }
@@ -356,13 +379,18 @@ export default function VendorList({ user }) {
   return (
     <div className="space-y-8 pb-4">
       {filterFreeDelivery && (
-        <div className="flex items-center justify-between px-3 py-2 mx-2 mb-1 bg-orange-50 dark:bg-orange-500/10 rounded-2xl border border-orange-100 dark:border-orange-500/20">
-          <p className="text-[11px] font-black text-orange-600 uppercase tracking-widest">
-            Showing free delivery restaurants only
-          </p>
+        <div className="mx-2 mb-1 flex items-center justify-between gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-3 py-2 dark:border-orange-500/20 dark:bg-orange-500/10">
+          <div className="min-w-0">
+            <p className="text-[11px] font-black uppercase tracking-widest text-orange-600">
+              Free delivery campaign
+            </p>
+            <p className="truncate text-[10px] font-semibold text-orange-600/80 dark:text-orange-300/80">
+              Showing restaurants eligible for sponsored delivery
+            </p>
+          </div>
           <button
             onClick={() => window.location.href = "/home"}
-            className="text-[10px] font-black text-orange-500 border border-orange-200 dark:border-orange-500/30 px-2 py-1 rounded-lg uppercase tracking-widest"
+            className="shrink-0 rounded-lg border border-orange-200 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-orange-500 dark:border-orange-500/30"
           >
             Clear
           </button>
