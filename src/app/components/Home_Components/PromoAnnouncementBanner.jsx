@@ -17,10 +17,10 @@ const formatWindow = (value) => {
 };
 
 const platformText = (promo, used) => {
-  if (used) return "You have used this platform offer. Restaurant-sponsored free delivery may still be available.";
+  if (used) return "You have used this offer. More restaurant deals may still be available.";
   const remaining = Number(promo?.slotsRemaining || 0).toLocaleString();
   const total = Number(promo?.totalSlots || 0).toLocaleString();
-  return `MelaChow covers delivery while ${remaining} of ${total} slots remain.`;
+  return `${remaining} of ${total} free deliveries left.`;
 };
 
 export default function PromoAnnouncementBanner() {
@@ -42,7 +42,7 @@ export default function PromoAnnouncementBanner() {
       nextSlides.push({
         id: `platform-${platformPromo.promoId || "active"}`,
         type: "platform",
-        label: "MelaChow sponsored",
+        label: "Free delivery",
         title: formatCampaignName(platformPromo.name),
         body: platformText(platformPromo, platformPromoUsed),
         meta: `${Number(platformPromo.slotsRemaining || 0).toLocaleString()} slots left`,
@@ -60,9 +60,9 @@ export default function PromoAnnouncementBanner() {
       nextSlides.push({
         id: `vendor-${promo.promoId || promo.vendorId}`,
         type: "vendor",
-        label: "Restaurant sponsored",
+        label: "Free delivery",
         title: promo.adminNote || `Free delivery at ${promo.vendorName || "this restaurant"}`,
-        body: promo.vendorName || "Selected restaurant",
+        body: promo.vendorName ? `Order from ${promo.vendorName}` : "Tap to order now",
         meta: remaining,
         city: promo.city,
         endsAt: promo.endsAt,
@@ -95,10 +95,10 @@ export default function PromoAnnouncementBanner() {
   if (isLoading || !hasAnyPromo || slides.length === 0) return null;
 
   return (
-    <section className="overflow-hidden rounded-2xl bg-white px-3 py-3 shadow-sm ring-1 ring-orange-100 dark:bg-zinc-900 dark:ring-white/10">
+    <section className="overflow-hidden">
       <div
         ref={railRef}
-        className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth pb-1"
+        className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth"
         onScroll={(event) => {
           const rail = event.currentTarget;
           const nextIndex = Math.round(rail.scrollLeft / Math.max(1, rail.clientWidth * 0.88));
@@ -115,14 +115,14 @@ export default function PromoAnnouncementBanner() {
               type="button"
               whileTap={{ scale: 0.98 }}
               onClick={() => router.push(slide.href)}
-              className={`min-w-[86%] snap-center rounded-2xl px-3 py-3 text-left shadow-md transition sm:min-w-[360px] ${
+              className={`min-w-[82%] snap-center rounded-2xl px-3 py-3 text-left shadow-md transition sm:min-w-[340px] ${
                 isVendor
                   ? "bg-zinc-950 text-white shadow-zinc-950/15"
                   : "bg-orange-500 text-white shadow-orange-500/20"
               }`}
             >
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/15 ring-1 ring-white/15">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/15 ring-1 ring-white/15">
                   {isVendor && slide.logo ? (
                     <img src={slide.logo} alt="" className="h-full w-full object-cover" />
                   ) : (
@@ -133,11 +133,11 @@ export default function PromoAnnouncementBanner() {
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-center gap-1.5">
                     {isVendor ? <Store size={12} /> : <TicketPercent size={12} />}
-                    <span className="truncate text-[9px] font-black uppercase tracking-[0.16em] text-white/75">
+                    <span className="truncate text-[9px] font-black uppercase tracking-[0.12em] text-white/75">
                       {slide.label}
                     </span>
                   </div>
-                  <p className="line-clamp-2 text-base font-black leading-tight">
+                  <p className="line-clamp-2 text-sm font-black leading-tight">
                     {slide.title}
                   </p>
                   <p className="mt-1 truncate text-[11px] font-bold text-white/75">
@@ -146,12 +146,12 @@ export default function PromoAnnouncementBanner() {
                   </p>
                 </div>
 
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-zinc-950">
-                  <ArrowRight size={17} />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-zinc-950">
+                  <ArrowRight size={15} />
                 </div>
               </div>
 
-              <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/10 pt-2 text-[10px] font-black uppercase tracking-[0.14em] text-white/70">
+              <div className="mt-2 flex items-center justify-between gap-2 border-t border-white/10 pt-2 text-[9px] font-black uppercase tracking-[0.1em] text-white/70">
                 <span className="truncate">{slide.meta}</span>
                 <span className="shrink-0">Ends {formatWindow(slide.endsAt)}</span>
               </div>
