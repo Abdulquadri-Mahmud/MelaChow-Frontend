@@ -1,16 +1,18 @@
+import { Gift } from "lucide-react";
+
 export default function FreeDeliveryBadge({ type = "vendor" }) {
   const label =
     type === "vendor"
-      ? "🏪 Free Delivery"
-      : "🎁 Free Delivery";
+      ? `Free Delivery on All Orders`
+      : "Free Delivery on All Orders";
 
   return (
-    <span
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full
-                 text-xs font-semibold bg-green-100 text-green-800 border
-                 border-green-200"
+    <p
+      className="inline-flex items-center gap-1 px-2 py-1 rounded
+                 text-xs font-semibold bg-yellow-50 text-zinc-800 border
+                 border-zinc-900"
     >
-      {label}
-    </span>
+      <Gift className="w-4 h-4 text-yellow-500" />{label}
+    </p>
   );
 }
