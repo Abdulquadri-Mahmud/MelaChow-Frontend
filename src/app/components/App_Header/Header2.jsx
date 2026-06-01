@@ -23,7 +23,7 @@ export default function Header2({ title, subtitle }) {
   const displaySubtitle = subtitle || "MelaChow";
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800/50 shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800/50">
       <div className="max-w-7xl mx-auto px-4 py-4 h-16 flex items-center justify-between">
 
           <div className="flex items-center gap-4">
