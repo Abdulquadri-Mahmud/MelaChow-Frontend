@@ -9,7 +9,7 @@ import 'swiper/css';
 import { AnimatePresence, motion } from "framer-motion";
 
 import ComboDetailsClient from "@/app/(customer)/combo-details/[comboId]/ComboDetailsClient";
-import { MapPin, Clock, Star, Search, X, Plus, Share2, Flame, MessageSquare, ChevronLeft, Loader2, Store, Gift } from "lucide-react";
+import { MapPin, Clock, Star, Search, X, Plus, Share2, Flame, MessageSquare, ChevronLeft, Loader2, Store, Gift, ChevronRight } from "lucide-react";
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
@@ -33,7 +33,7 @@ const FoodItemRow = ({ item, onSelect }) => {
             {/* Text Content */}
             <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-center gap-1.5">
-                    <h3 className="text-[14px] font-extrabold text-zinc-900 dark:text-white tracking-tight truncate group-hover:text-orange-600 transition-colors duration-200">
+                    <h3 className="text-[14px] font-medium text-zinc-900 dark:text-white tracking-tight truncate group-hover:text-orange-600 transition-colors duration-200">
                         {item.name}
                     </h3>
                     {item.is_popular && <Flame size={12} className="text-orange-500 shrink-0 animate-pulse" />}
@@ -44,10 +44,10 @@ const FoodItemRow = ({ item, onSelect }) => {
                 </p>
 
                 <div className="flex items-center gap-1.5 pt-0.5">
-                    <span className="text-[13px] font-black text-orange-600">₦{price.toLocaleString()}</span>
-                    {oldPrice > price && (
+                    <span className="text-[13px] font-medium text-zinc-700">From ₦{price.toLocaleString()}</span>
+                    {/* {oldPrice > price && (
                         <span className="text-[11px] text-zinc-400 line-through font-medium">₦{Math.round(oldPrice).toLocaleString()}</span>
-                    )}
+                    )} */}
                 </div>
             </div>
 
@@ -71,7 +71,7 @@ const FoodItemRow = ({ item, onSelect }) => {
 
                 {isUnavailable && (
                     <div className="absolute inset-0 bg-zinc-900/50 backdrop-blur-[1px] flex items-center justify-center">
-                        <span className="bg-white/95 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest text-zinc-800">
+                        <span className="bg-white/95 px-2 py-0.5 rounded-md text-[9px] font-medium uppercase tracking-widest text-zinc-800">
                             Sold Out
                         </span>
                     </div>
@@ -271,9 +271,9 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
             <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-950 px-6">
                 <div className="text-center p-8 bg-zinc-50 dark:bg-zinc-900 rounded-[32px] border border-zinc-100 dark:border-zinc-800 max-w-sm w-full">
                     <Store size={48} className="mx-auto text-zinc-300 mb-4" />
-                    <h2 className="text-xl font-black text-zinc-900 dark:text-white tracking-tight mb-2">Menu Unavailable</h2>
+                    <h2 className="text-xl font-medium text-zinc-900 dark:text-white tracking-tight mb-2">Menu Unavailable</h2>
                     <p className="text-zinc-500 text-sm mb-6">We couldn't load the menu for this restaurant right now.</p>
-                    <button onClick={() => router.back()} className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 h-12 rounded-2xl font-black uppercase tracking-widest text-xs">Go Back</button>
+                    <button onClick={() => router.back()} className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 h-12 rounded-2xl font-medium uppercase tracking-widest text-xs">Go Back</button>
                 </div>
             </div>
         );
@@ -282,25 +282,25 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const isScrolled = scrollY > 120;
 
     return (
-        <div className="min-h-screen scroll bg-white dark:bg-zinc-950 pb-20">
-            <div className="relative h-[140px] w-full overflow-hidden">
+        <div className="min-h-screen scroll bg-white dark:bg-zinc-950 pb-">
+            <div className="relative h-[110px] w-full overflow-hidden">
                 <motion.div 
                     style={{ scale: 1 + scrollY * 0.001, y: scrollY * 0.4 }}
                     className="absolute inset-0 w-full h-full"
                 >
                     <img src={vendor.logo || "/placeholder.jpg"} alt={vendor.storeName} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-medium/60 via-medium/20 to-transparent" />
                 </motion.div>
                 {!isScrolled && (
                     <div className="absolute top-4 left-4 right-4 z-50 flex items-center justify-between">
-                        <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white">
+                        <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full bg-medium/20 backdrop-blur-md border border-white/20 text-white">
                             <ChevronLeft size={24} />
                         </button>
                         <div className="flex items-center gap-2">
-                            <button onClick={() => setIsSearchActive(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white transition-all active:scale-90">
+                            <button onClick={() => setIsSearchActive(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-medium/20 backdrop-blur-md border border-white/20 text-white transition-all active:scale-90">
                                 <Search size={20} />
                             </button>
-                            <button onClick={handleShare} className="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white transition-all active:scale-90">
+                            <button onClick={handleShare} className="w-10 h-10 flex items-center justify-center rounded-full bg-medium/20 backdrop-blur-md border border-white/20 text-white transition-all active:scale-90">
                                 <Share2 size={20} />
                             </button>
                         </div>
@@ -332,8 +332,8 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                             <img src={vendor.logo || "/placeholder.jpg"} className="w-full h-full object-cover" alt={vendor.storeName} />
                                         </div>
                                         <div className="min-w-0">
-                                            <h2 className="text-[11px] font-black text-zinc-900 dark:text-white truncate uppercase italic tracking-tight">{vendor.storeName}</h2>
-                                            <div className="flex items-center gap-1.5 text-[9px] font-black text-zinc-400 uppercase tracking-widest">
+                                            <h2 className="text-[11px] font-medium text-zinc-900 dark:text-white truncate uppercase italic tracking-tight">{vendor.storeName}</h2>
+                                            <div className="flex items-center gap-1.5 text-[9px] font-medium text-zinc-400 uppercase tracking-widest">
                                                 <Star size={8} className="text-amber-400 fill-amber-400" />
                                                 <span>{vendor.rating ? Number(vendor.rating).toFixed(1) : "NEW"}</span>
                                                 <span className="w-0.5 h-0.5 bg-zinc-300 rounded-full" />
@@ -364,12 +364,12 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                             autoFocus
                                             type="text"
                                             placeholder="Search menu..."
-                                            className="w-full h-9 bg-zinc-100 dark:bg-zinc-900 rounded-lg pl-9 pr-3 text-[12px] font-black text-zinc-900 dark:text-white outline-none ring-offset-2 focus:ring-2 ring-orange-500/20"
+                                            className="w-full h-9 bg-zinc-100 dark:bg-zinc-900 rounded-lg pl-9 pr-3 text-[12px] font-medium text-zinc-900 dark:text-white outline-none ring-offset-2 focus:ring-2 ring-orange-500/20"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                         />
                                     </div>
-                                    <button onClick={() => { setIsSearchActive(false); setSearchQuery(""); }} className="text-[11px] font-black uppercase text-orange-600 tracking-widest px-1">Cancel</button>
+                                    <button onClick={() => { setIsSearchActive(false); setSearchQuery(""); }} className="text-[11px] font-medium uppercase text-orange-600 tracking-widest px-1">Cancel</button>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -378,8 +378,8 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
             </AnimatePresence>
 
             {/* 🏛️ Store Identity Card */}
-            <div className="relative max-w-2xl mx-auto px-4 -mt-12 z-20">
-                <div className="bg-white dark:bg-zinc-900 rounded-[24px] p-4 shadow-2xl shadow-black/5 dark:shadow-none border border-zinc-100 dark:border-zinc-800">
+            <div className="relative max-w-2xl mx-auto z-20">
+                <div className="bg-white dark:bg-zinc-900 p-2 shadow-medium/5 dark:shadow-none border border-zinc-100 dark:border-zinc-800">
                     <div className="flex flex-col items-center text-center">
                         <div className="w-14 h-14 rounded-[14px] bg-white dark:bg-zinc-950 p-1 shadow-xl -mt-10 mb-2.5 border border-zinc-100 dark:border-zinc-800">
                             <img 
@@ -389,22 +389,31 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                             />
                         </div>
                         
-                        <div className="space-y-0.5 mb-3.5">
-                            <h1 className="text-[18px] font-black text-zinc-900 dark:text-white tracking-tight">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h1 className="text-[18px] font-medium text-zinc-900 dark:text-white tracking-tight">
                                 {vendor.storeName}
                             </h1>
-                            <p className="text-[12px] font-medium text-zinc-500 flex items-center justify-center gap-1.5">
-                                <MapPin size={11} className="text-orange-500" />
+                            <span className="">-</span>
+                            <p className="text-[18px] font-medium text-zinc-900 dark:text-white flex items-center justify-center gap-1.5">
+                                {/* <MapPin size={11} className="text-orange-900" /> */}
                                 {vendor.address?.city || "Restaurant"}
                             </p>
                         </div>
 
+                        {/* Status Badge */}
+                        <div className="flex items-center ">
+                            <span className="text-[12px] font-medium text-zinc-500">
+                                {getVendorOpenAndCloseStatus(vendor.openingHours)}
+                            </span>
+                            <ChevronRight className="text-zinc-500 h-5 w-4" />
+                        </div>
+
                         {/* Stats Row */}
-                        <div className="flex items-center gap-5 w-full justify-center">
+                        <div className="mt-3 flex items-center gap-5 w-full justify-center border border-zinc-100 dark:border-zinc-800 rounded-sm py-1">
                             <div className="text-center space-y-0.5">
                                 <div className="flex items-center gap-1 justify-center">
                                     <Star size={12} className="text-amber-400 fill-amber-400" />
-                                    <span className="text-[13px] font-black text-zinc-900 dark:text-white">{vendor.rating ? Number(vendor.rating).toFixed(1) : "NEW"}</span>
+                                    <span className="text-[13px] font-medium text-zinc-900 dark:text-white">{vendor.rating ? Number(vendor.rating).toFixed(1) : "NEW"}</span>
                                 </div>
                                 <p className="text-[9px] font-semibold text-zinc-400">({vendor.ratingCount || 0}) Reviews</p>
                             </div>
@@ -412,13 +421,13 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                             <div className="text-center space-y-0.5">
                                 <div className="flex items-center gap-1 justify-center">
                                     <Clock size={12} className="text-orange-500" />
-                                    <span className="text-[13px] font-black text-zinc-900 dark:text-white">{vendor.estimatedDeliveryTime || "25"} min</span>
+                                    <span className="text-[13px] font-medium text-zinc-900 dark:text-white">{vendor.estimatedDeliveryTime || "25"} min</span>
                                 </div>
                                 <p className="text-[9px] font-semibold text-zinc-400">Est. delivery</p>
                             </div>
                             <div className="w-px h-6 bg-zinc-100 dark:bg-zinc-800" />
                             <div className="text-center space-y-0.5">
-                                <div className="flex items-center gap-1 justify-center text-orange-500 font-black text-[13px]">
+                                <div className="flex items-center gap-1 justify-center text-orange-500 font-medium text-[13px]">
                                     {!vendor.deliveryFee || vendor.deliveryFee === 0 ? (
                                         <span className="text-green-500">Free</span>
                                     ) : (
@@ -427,25 +436,17 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                 </div>
                                 <p className="text-[9px] font-semibold text-zinc-400">Delivery</p>
                                 {vendor.hasActiveDeliveryPromo && (
-                                    <p className="text-[8px] font-black text-orange-500 uppercase tracking-widest">
+                                    <p className="text-[8px] font-medium text-orange-500 uppercase tracking-widest">
                                         Sponsored
                                     </p>
                                 )}
                             </div>
                         </div>
 
-                        {/* Status Badge */}
-                        <div className="mt-4 flex items-center gap-2 px-4 py-2 bg-orange-50 dark:bg-orange-500/10 rounded-2xl border border-orange-100 dark:border-orange-500/20">
-                            <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-                            <span className="text-[12px] font-bold text-orange-600">
-                                {getVendorOpenAndCloseStatus(vendor.openingHours)}
-                            </span>
-                        </div>
-
                         {vendor.hasActiveDeliveryPromo && (
-                            <div className="mt-3 flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-500/10 rounded-2xl border border-green-100 dark:border-green-500/20">
+                            <div className="mt-3 flex items-center gap-2 px-2 py-2 bg-green-50 dark:bg-green-500/10 rounded-sm border border-green-100 dark:border-green-500/20">
                                 <span className="text-base">🏪</span>
-                                <span className="text-[11px] font-black text-green-700 dark:text-green-400 uppercase tracking-widest">
+                                <span className="text-[11px] font-medium text-green-700 dark:text-green-400 uppercase tracking-widest">
                                     Free delivery — sponsored by this restaurant
                                 </span>
                             </div>
@@ -454,7 +455,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                         {platformPromo && (
                             <div className="mt-3 flex items-start gap-2 px-4 py-2 bg-orange-50 dark:bg-orange-500/10 rounded-2xl border border-orange-100 dark:border-orange-500/20">
                                 <Gift size={16} className="mt-0.5 shrink-0 text-orange-500" />
-                                <span className="text-[11px] font-black text-orange-700 dark:text-orange-400 uppercase tracking-widest leading-snug">
+                                <span className="text-[11px] font-medium text-orange-700 dark:text-orange-400 uppercase tracking-widest leading-snug">
                                     Free delivery for the first {platformPromo.totalSlots?.toLocaleString()} eligible first orders. {platformPromo.slotsRemaining?.toLocaleString()} spots left.
                                 </span>
                             </div>
@@ -463,29 +464,29 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                 </div>
             </div>
 
-            <div className="max-w-2xl mx-auto px-4 mt-5 space-y-4">
-                <div className="flex bg-zinc-100/50 dark:bg-zinc-900/50 backdrop-blur-md p-1 rounded-[16px] w-full border border-zinc-100 dark:border-zinc-800">
+            <div className="max-w-2xl mx-auto px-4 mt-3 space-y-2">
+                <div className="flex bg-zinc-100/50 dark:bg-zinc-900/50 backdrop-blur-md p-1 rounded-[8px] w-full border border-zinc-100 dark:border-zinc-800">
                     <button 
                         onClick={() => { setActiveTab("menu"); mainSwiper?.slideTo(0); }}
-                        className={`flex-1 py-1.5 rounded-[12px] text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'menu' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-black/5 dark:shadow-none' : 'text-zinc-400'}`}
+                        className={`flex-1 py-1.5 rounded-[8px] text-[11px] font-medium uppercase tracking-widest transition-all ${activeTab === 'menu' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-medium/5 dark:shadow-none' : 'text-zinc-400'}`}
                     >
                         Menu Items
                     </button>
                     <button 
                         onClick={() => { setActiveTab("reviews"); mainSwiper?.slideTo(1); }}
-                        className={`flex-1 py-1.5 rounded-[12px] text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === 'reviews' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-black/5 dark:shadow-none' : 'text-zinc-400'}`}
+                        className={`flex-1 py-1.5 rounded-[8px] text-[11px] font-medium uppercase tracking-widest transition-all ${activeTab === 'reviews' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-medium/5 dark:shadow-none' : 'text-zinc-400'}`}
                     >
                         Reviews ({vendor.ratingCount || 0})
                     </button>
                 </div>
 
                 {activeTab === 'menu' && (
-                    <div className="flex gap-4 overflow-x-auto pb-0 scrollbar-none sticky top-11 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-2xl z-40 -mx-4 px-5 border-b border-zinc-100 dark:border-zinc-800 shadow-sm transition-all duration-300">
+                    <div className="flex gap-4 overflow-x-auto pb-0 scrollbar-none sticky top-11 bg-white/90 dark:bg-zinc-950/90 z-40 -mx-4 px-5 border-b border-zinc-100 dark:border-zinc-800 transition-all duration-300">
                         {allSections.map((section) => (
                             <button
                                 key={section._id}
                                 onClick={() => scrollToSection(section._id)}
-                                className={`py-2 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap border-b-2 transition-all ${activeSectionId === section._id ? 'border-orange-500 text-orange-600' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+                                className={`py-2 text-[13px] font-medium capitalize whitespace-nowrap border-b-2 transition-all ${activeSectionId === section._id ? 'border-green-200 bg-green-100 px-3 rounded-t-sm' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
                             >
                                 {section.name}
                             </button>
@@ -532,14 +533,14 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                             <Search size={32} className="text-zinc-300" />
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-[16px] font-black text-zinc-900 dark:text-white uppercase italic tracking-tight">No Items Found</p>
+                                            <p className="text-[16px] font-medium text-zinc-900 dark:text-white uppercase italic tracking-tight">No Items Found</p>
                                             <p className="text-[12px] font-bold text-zinc-400 uppercase tracking-widest leading-relaxed">
                                                 We couldn't find anything matching "{searchQuery}". <br/> Try searching for something else.
                                             </p>
                                         </div>
                                         <button 
                                             onClick={() => { setSearchQuery(""); setIsSearchActive(false); }}
-                                            className="text-orange-500 text-[11px] font-black uppercase tracking-[0.2em] pt-2"
+                                            className="text-orange-500 text-[11px] font-medium uppercase tracking-[0.2em] pt-2"
                                         >
                                             Clear Search
                                         </button>
@@ -550,18 +551,18 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                     </SwiperSlide>
 
                     <SwiperSlide>
-                        <div className="pb-20 bg-gray-50/10 dark:bg-zinc-900/10 space-y-4 pt-6">
+                        <div className="pb-20 bg-gray-50/10 dark:bg-zinc-900/10 space-y-4 pt-4">
                             {reviewsLoading ? (
                                 <div className="flex flex-col items-center justify-center py-20 gap-4">
                                     <Loader2 size={32} className="animate-spin text-orange-500" />
-                                    <p className="text-[12px] font-black uppercase tracking-widest text-zinc-400">Loading Reviews...</p>
+                                    <p className="text-[12px] font-medium uppercase tracking-widest text-zinc-400">Loading Reviews...</p>
                                 </div>
                             ) : reviewsData ? (
                                 <>
-                                    <div className="bg-white dark:bg-zinc-900 rounded-[40px] p-8 border border-zinc-100 dark:border-zinc-800 shadow-xl shadow-black/[0.02]">
+                                    <div className="bg-white dark:bg-zinc-900 rounded-[8px] p-2 border border-zinc-100 dark:border-zinc-800 shadow shadow-medium/5 dark:shadow-none">
                                         <div className="flex flex-col sm:flex-row items-center gap-8">
                                             <div className="text-center shrink-0">
-                                                <p className="text-7xl font-black text-zinc-900 dark:text-white leading-none mb-3 italic">
+                                                <p className="text-7xl font-medium text-zinc-900 dark:text-white leading-none mb-3 italic">
                                                     {reviewsData.restaurant.averageRating || '—'}
                                                 </p>
                                                 <div className="flex justify-center gap-1">
@@ -569,14 +570,14 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                                         <Star key={s} size={16} className={s <= Math.round(reviewsData.restaurant.averageRating) ? 'fill-amber-400 text-amber-400' : 'text-zinc-100 dark:text-zinc-800'} />
                                                     ))}
                                                 </div>
-                                                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em] mt-3">Overall Rating</p>
+                                                <p className="text-[10px] font-medium text-zinc-400 uppercase tracking-[0.2em] mt-3">Overall Rating</p>
                                             </div>
                                             <div className="flex-1 w-full space-y-3">
                                                 {[5,4,3,2,1].map(star => {
                                                     const pct = reviewsData.ratingPercentages?.[star] || 0;
                                                     return (
                                                         <div key={star} className="flex items-center gap-4">
-                                                            <span className="text-[10px] font-black text-zinc-400 w-2">{star}</span>
+                                                            <span className="text-[10px] font-medium text-zinc-400 w-2">{star}</span>
                                                             <div className="flex-1 h-2.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-full overflow-hidden">
                                                                 <motion.div 
                                                                     initial={{ width: 0 }}
@@ -585,7 +586,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                                                     className="h-full bg-orange-500 rounded-full" 
                                                                 />
                                                             </div>
-                                                            <span className="text-[10px] font-black text-zinc-900 dark:text-white w-8 text-right">{pct}%</span>
+                                                            <span className="text-[10px] font-medium text-zinc-900 dark:text-white w-8 text-right">{pct}%</span>
                                                         </div>
                                                     );
                                                 })}
@@ -595,14 +596,14 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
                                     <div className="space-y-3 pt-4">
                                         {reviewsData.reviews.map((review, idx) => (
-                                            <div key={idx} className="bg-white dark:bg-zinc-900 rounded-[32px] p-6 border border-zinc-100/80 dark:border-zinc-800/80 space-y-4 shadow-sm group hover:border-orange-500/20 transition-colors">
+                                            <div key={idx} className="bg-white dark:bg-zinc-900 rounded-[8px] p-2 border border-zinc-100/80 dark:border-zinc-800/80 space-y-4 shadow-sm group hover:border-orange-500/20 transition-colors">
                                                 <div className="flex items-start justify-between">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-2xl bg-orange-500 flex items-center justify-center font-black text-white text-lg shadow-lg shadow-orange-500/20">
+                                                        <div className="w-12 h-12 rounded bg-orange-500 flex items-center justify-center font-medium text-white text-lg shadow-lg shadow-orange-500/20">
                                                             {review.userId?.firstname?.[0]}{review.userId?.lastname?.[0]}
                                                         </div>
                                                         <div className="space-y-1">
-                                                            <p className="text-[15px] font-black text-zinc-900 dark:text-white leading-tight uppercase italic">
+                                                            <p className="text-[15px] font-medium text-zinc-900 dark:text-white leading-tight uppercase italic">
                                                                 {review.userId?.firstname} {review.userId?.lastname}
                                                             </p>
                                                             <div className="flex gap-0.5">
@@ -613,7 +614,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                                                        <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest">
                                                             {new Date(review.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                                                         </span>
                                                     </div>
