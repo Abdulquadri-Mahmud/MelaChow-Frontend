@@ -78,7 +78,7 @@ export default function BottomBar() {
                     )}
 
                     <div className={`flex flex-col items-center gap-1 transition-all duration-300 ${isOrder
-                        ? "-mt-10"
+                        ? "-mt-8"
                         : isActive
                           ? "text-orange-500"
                           : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
@@ -91,8 +91,8 @@ export default function BottomBar() {
                             transition={{ duration: 2, repeat: Infinity }}
                             className="absolute rounded-full"
                           />
-                          <div className="bg-gradient-to-tr from-orange-400 to-orange-600 p-3 rounded-full shadow-[0_8px_20px_rgba(249,115,22,0.4)] text-white relative z-20 hover:rotate-[10deg] transition-transform">
-                            <Icon size={24} strokeWidth={2.5} />
+                          <div className="bg-gradient-to-tr from-orange-400 to-orange-600 p-2.5 rounded-full shadow-[0_8px_20px_rgba(249,115,22,0.32)] text-white relative z-20 hover:rotate-[10deg] transition-transform">
+                            <Icon size={21} strokeWidth={2.5} />
                           </div>
                         </div>
                       ) : (
@@ -104,7 +104,7 @@ export default function BottomBar() {
                       )}
 
                       <span className={`text-[10px] font-black uppercase tracking-widest leading-none mt-1 transition-all ${isOrder
-                          ? "text-orange-600 translate-y-2 opacity-100"
+                          ? "text-orange-600 translate-y-1.5 opacity-100"
                           : isActive
                             ? "opacity-100 translate-y-0"
                             : "opacity-40 group-hover:opacity-70"
