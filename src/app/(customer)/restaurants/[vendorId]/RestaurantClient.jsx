@@ -283,7 +283,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
     return (
         <div className="min-h-screen scroll bg-white dark:bg-zinc-950 pb-20">
-            <div className="relative h-[120px] w-full overflow-hidden">
+            <div className="relative h-[140px] w-full overflow-hidden">
                 <motion.div 
                     style={{ scale: 1 + scrollY * 0.001, y: scrollY * 0.4 }}
                     className="absolute inset-0 w-full h-full"
