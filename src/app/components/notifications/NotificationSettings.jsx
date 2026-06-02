@@ -27,9 +27,9 @@ export default function NotificationSettings() {
 
     if (!isSupported) {
         return (
-            <div className="p-6 bg-zinc-50 dark:bg-zinc-800/50 rounded-3xl border border-zinc-100 dark:border-zinc-800">
+            <div className=" p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded border border-zinc-100 dark:border-zinc-800">
                 <div className="flex items-center gap-4 text-zinc-500">
-                    <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
                         <BellOff size={24} />
                     </div>
                     <div>
@@ -45,7 +45,7 @@ export default function NotificationSettings() {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="composite-stable bg-white dark:bg-zinc-900 rounded-[32px] md:p-6 p-4 shadow-xl shadow-zinc-100/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 space-y-6"
+            className="bg-white dark:bg-zinc-900 rounded-[8px] md:p-6 p-3 shadow-xl shadow-zinc-100/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 space-y-6"
         >
             {/* Header */}
             <div className="flex items-center justify-between pb-6 border-b border-zinc-50 dark:border-zinc-800">
@@ -91,7 +91,7 @@ export default function NotificationSettings() {
 
             {/* Status Messages */}
             {isDenied && (
-                <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 rounded-2xl p-4 flex items-start gap-3">
+                <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 rounded-2xl p-3 flex items-start gap-3">
                     <AlertCircle className="text-rose-500 flex-shrink-0 mt-0.5" size={18} />
                     <div>
                         <p className="text-sm font-black text-rose-900 dark:text-rose-400 uppercase italic">Notifications Blocked</p>

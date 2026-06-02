@@ -59,6 +59,8 @@ export default function UserWalletPage() {
     const [showBalance, setShowBalance] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [filterType, setFilterType] = useState("ALL"); // ALL, CREDIT, DEBIT
+    const [dateFilterMode, setDateFilterMode] = useState("ALL"); // ALL, DATE, MONTH, YEAR
+    const [dateFilterValue, setDateFilterValue] = useState("");
     const [selectedTransaction, setSelectedTransaction] = useState(null);
     const [showTransactionModal, setShowTransactionModal] = useState(false);
 
@@ -115,7 +117,7 @@ export default function UserWalletPage() {
     };
 
     // Derived Logic for Display
-    const transactions = walletData?.transactions || [];
+    const transactions = useMemo(() => walletData?.transactions || [], [walletData]);
 
     // 1. Filter
     const filteredTransactions = useMemo(() => {
@@ -129,7 +131,21 @@ export default function UserWalletPage() {
                 const searchLower = searchQuery.toLowerCase();
                 const descMatch = tx.description?.toLowerCase().includes(searchLower);
                 const amtMatch = tx.amount?.toString().includes(searchLower);
-                return descMatch || amtMatch;
+                if (!(descMatch || amtMatch)) return false;
+            }
+
+            // Date filter by exact day, month, or year
+            if (dateFilterMode !== "ALL" && dateFilterValue) {
+                const txDate = new Date(tx.date || tx.createdAt);
+                if (Number.isNaN(txDate.getTime())) return false;
+
+                const txYear = txDate.getFullYear().toString();
+                const txMonth = `${txYear}-${String(txDate.getMonth() + 1).padStart(2, "0")}`;
+                const txDay = txDate.toISOString().slice(0, 10);
+
+                if (dateFilterMode === "DATE" && dateFilterValue !== txDay) return false;
+                if (dateFilterMode === "MONTH" && dateFilterValue !== txMonth) return false;
+                if (dateFilterMode === "YEAR" && dateFilterValue !== txYear) return false;
             }
 
             return true;
@@ -137,7 +153,7 @@ export default function UserWalletPage() {
 
         // Sort by newest first
         return result.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
-    }, [transactions, filterType, searchQuery]);
+    }, [transactions, filterType, searchQuery, dateFilterMode, dateFilterValue]);
 
     // 2. Group
     const groupedTransactions = useMemo(() => groupTransactionsByDate(filteredTransactions), [filteredTransactions]);
@@ -164,18 +180,18 @@ export default function UserWalletPage() {
             <div className="max-w-4xl mx-auto md:px-6 px-2 py-2.5 space-y-5">
  
                 {/* Header Section */}
-                <div className="flex justify-between items-end">
+                {/* <div className="flex justify-between items-end">
                     <div>
                         <h1 className="text-xl md:text-2xl font-black text-zinc-900 dark:text-zinc-100 tracking-tight">My Wallet</h1>
                         <p className="text-zinc-500 dark:text-zinc-400 text-xs mt-0.5 font-medium">Manage your balance & transactions</p>
                     </div>
-                </div>
+                </div> */}
 
                 {/* VISUAL BALANCE CARD */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="relative overflow-hidden rounded-[24px] shadow-2xl transition-all hover:shadow-orange-500/10 group"
+                    className="relative overflow-hidden rounded-[8px] shadow-2xl transition-all hover:shadow-orange-500/10 group"
                 >
                     {/* Artistic Background Layer */}
                     <div className="absolute inset-0 bg-gray-900">
@@ -218,12 +234,12 @@ export default function UserWalletPage() {
  
                         <button
                             onClick={() => setShowFundModal(true)}
-                            className="group relative bg-white text-gray-900 px-5 py-2.5 rounded-[18px] font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/10 flex items-center gap-2 overflow-hidden"
+                            className="group relative bg-gradient-to-r from-orange-500 via-orange-500 to-orange-600 text-white px-5 py-2.5 rounded-[8px] font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-xl shadow-orange-500/20 flex items-center gap-2 overflow-hidden"
                         >
                             <span className="relative z-10 flex items-center gap-1.5">
                                 <Plus size={16} className="stroke-[3px]" /> Fund Wallet
                             </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         </button>
                     </div>
                 </motion.div>
@@ -240,22 +256,22 @@ export default function UserWalletPage() {
 
                         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
                             {/* Filter Tabs */}
-                            <div className="flex p-1 bg-zinc-200/50 dark:bg-zinc-800/50 rounded-xl">
+                            <div className="flex p-1 bg-zinc-200/50 dark:bg-zinc-800/50 rounded">
                                 <button
                                     onClick={() => setFilterType("ALL")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "ALL" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-100" : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"}`}
+                                    className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${filterType === "ALL" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-zinc-100" : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"}`}
                                 >
                                     All
                                 </button>
                                 <button
                                     onClick={() => setFilterType("CREDIT")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "CREDIT" ? "bg-white dark:bg-zinc-700 shadow-sm text-emerald-600" : "text-zinc-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-500"}`}
+                                    className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${filterType === "CREDIT" ? "bg-white dark:bg-zinc-700 shadow-sm text-emerald-600" : "text-zinc-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-500"}`}
                                 >
                                     Money In
                                 </button>
                                 <button
                                     onClick={() => setFilterType("DEBIT")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "DEBIT" ? "bg-white dark:bg-zinc-700 shadow-sm text-red-600" : "text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-500"}`}
+                                    className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${filterType === "DEBIT" ? "bg-white dark:bg-zinc-700 shadow-sm text-red-600" : "text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-500"}`}
                                 >
                                     Money Out
                                 </button>
@@ -269,18 +285,81 @@ export default function UserWalletPage() {
                                     placeholder="Search..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 dark:text-zinc-100 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none w-32 focus:w-48 transition-all"
+                                    className="pl-9 pr-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 dark:text-zinc-100 rounded text-xs font-semibold focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none w-32 focus:w-48 transition-all"
                                 />
                             </div>
                         </div>
                     </div>
 
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                            <Filter size={14} className="text-zinc-400 dark:text-zinc-500" />
+                            <span>Date filter</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {['ALL', 'DATE', 'MONTH', 'YEAR'].map((mode) => (
+                                <button
+                                    key={mode}
+                                    type="button"
+                                    onClick={() => {
+                                        setDateFilterMode(mode);
+                                        if (mode === 'ALL') setDateFilterValue('');
+                                    }}
+                                    className={`px-3 py-1.5 rounded text-xs font-semibold transition ${dateFilterMode === mode ? 'bg-orange-500 text-white shadow-sm' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'}`}
+                                >
+                                    {mode === 'ALL' ? 'All' : mode.charAt(0) + mode.slice(1).toLowerCase()}
+                                </button>
+                            ))}
+                        </div>
+                        {dateFilterMode !== 'ALL' && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                                {dateFilterMode === 'DATE' && (
+                                    <input
+                                        type="date"
+                                        value={dateFilterValue}
+                                        onChange={(e) => setDateFilterValue(e.target.value)}
+                                        className="px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 dark:text-zinc-100 rounded text-xs focus:ring-2 focus:ring-orange-500/20 outline-none"
+                                    />
+                                )}
+                                {dateFilterMode === 'MONTH' && (
+                                    <input
+                                        type="month"
+                                        value={dateFilterValue}
+                                        onChange={(e) => setDateFilterValue(e.target.value)}
+                                        className="px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 dark:text-zinc-100 rounded text-xs focus:ring-2 focus:ring-orange-500/20 outline-none"
+                                    />
+                                )}
+                                {dateFilterMode === 'YEAR' && (
+                                    <input
+                                        type="number"
+                                        min="2000"
+                                        max="2100"
+                                        placeholder="YYYY"
+                                        value={dateFilterValue}
+                                        onChange={(e) => setDateFilterValue(e.target.value)}
+                                        className="w-28 px-3 py-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 dark:text-zinc-100 rounded text-xs focus:ring-2 focus:ring-orange-500/20 outline-none"
+                                    />
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setDateFilterMode('ALL');
+                                        setDateFilterValue('');
+                                    }}
+                                    className="px-3 py-2 rounded text-xs font-semibold bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition"
+                                >
+                                    Clear
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
                     <div className="space-y-4">
                         {Object.keys(groupedTransactions).length === 0 ? (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-900 rounded-[32px] border border-dashed border-zinc-200 dark:border-zinc-800">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-900 rounded-[8px] border border-dashed border-zinc-200 dark:border-zinc-800">
                                 <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4 relative">
                                     <div className="absolute inset-0 bg-orange-500/5 rounded-full animate-ping"></div>
-                                    <Search size={32} className="text-zinc-300 dark:text-zinc-700 relative z-10" />
+                                    <Search size={32} className="text-zinc-300 dark:text-zinc-400 relative z-10" />
                                 </div>
                                 <h4 className="text-zinc-900 dark:text-zinc-100 font-bold text-lg">No transactions found</h4>
                                 <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">Try adjusting your filters or search.</p>
@@ -293,7 +372,7 @@ export default function UserWalletPage() {
                                         <div className="h-[1px] bg-zinc-100 dark:bg-zinc-800 flex-1"></div>
                                     </div>
  
-                                    <div className="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+                                    <div className="bg-white dark:bg-zinc-900 rounded border border-zinc-100 dark:border-zinc-800 overflow-hidden">
                                         {txs.map((tx, idx) => (
                                             <motion.div
                                                 initial={{ opacity: 0, x: -10 }}
@@ -305,20 +384,20 @@ export default function UserWalletPage() {
                                                     setSelectedTransaction(tx);
                                                     setShowTransactionModal(true);
                                                 }}
-                                                className={`group p-2.5 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors hover:bg-gray-50 cursor-pointer ${(idx !== txs.length - 1) ? "border-b border-gray-50" : ""}`}
+                                                className={`group p-2.5 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors hover:bg-gray-50 dark:hover:bg-zinc-950 cursor-pointer ${(idx !== txs.length - 1) ? "border-b border-gray-50 dark:border-zinc-800" : ""}`}
                                             >
                                                 <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${tx.type === 'credit' || tx.type === 'deposit'
-                                                        ? 'bg-emerald-50 text-emerald-500'
-                                                        : 'bg-red-50 text-red-500'
+                                                    <div className={`w-9 h-9 rounded flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${tx.type === 'credit' || tx.type === 'deposit'
+                                                        ? 'bg-emerald-50 text-emerald-500 dark:bg-emerald-500/10 dark:text-emerald-200'
+                                                        : 'bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-200'
                                                         }`}>
                                                         {tx.type === 'credit' || tx.type === 'deposit' ? <TrendingUp size={16} strokeWidth={2.5} /> : <TrendingDown size={16} strokeWidth={2.5} />}
                                                     </div>
                                                     <div className="min-w-0 flex-1">
-                                                        <h5 className="font-bold text-gray-900 text-xs sm:text-sm truncate">
+                                                        <h5 className="font-bold text-zinc-900 dark:text-zinc-100 text-xs sm:text-sm truncate">
                                                             {tx.description || (tx.type === 'credit' ? 'Wallet Funding' : 'Payment')}
                                                         </h5>
-                                                        <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
+                                                        <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                                                             <span>{new Date(tx.date || tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                             <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                                                             <span className="uppercase font-semibold tracking-wider text-[10px] bg-gray-100 px-1.5 py-0.5 rounded">{tx.type}</span>
@@ -327,14 +406,14 @@ export default function UserWalletPage() {
                                                 </div>
 
                                                 <div className="text-right flex items-center justify-between sm:block shrink-0">
-                                                    <span className="sm:hidden text-xs font-bold text-gray-400">Amount</span>
+                                                        <span className="sm:hidden text-xs font-bold text-zinc-500 dark:text-zinc-400">Amount</span>
                                                     <div>
-                                                        <p className={`text-sm sm:text-base font-black tabular-nums ${tx.type === 'credit' || tx.type === 'deposit' ? 'text-emerald-500' : 'text-gray-900'
+                                                        <p className={`text-sm sm:text-base font-black tabular-nums ${tx.type === 'credit' || tx.type === 'deposit' ? 'text-emerald-500 dark:text-emerald-300' : 'text-zinc-900 dark:text-zinc-100'
                                                             }`}>
                                                             {tx.type === 'credit' || tx.type === 'deposit' ? '+' : '-'}
                                                             {formatCurrency(tx.amount)}
                                                         </p>
-                                                        <ChevronRight size={14} className="text-gray-400 ml-auto hidden sm:block" />
+                                                        <ChevronRight size={14} className="text-zinc-400 dark:text-zinc-500 ml-auto hidden sm:block" />
                                                     </div>
                                                 </div>
                                             </motion.div>
@@ -359,38 +438,38 @@ export default function UserWalletPage() {
                                 initial={{ opacity: 0, scale: 0.9, y: 50 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 50 }}
-                                className="fixed top-[10%] left-0 right-0 m-auto mx-4 max-w-md h-fit bg-white rounded-[32px] overflow-hidden shadow-2xl z-50 border border-gray-100"
+                                className="fixed top-[10%] left-0 right-0 m-auto mx-4 max-w-md h-fit bg-white dark:bg-zinc-950 rounded-[8px] overflow-hidden shadow-2xl z-50 border border-gray-100 dark:border-zinc-800"
                             >
                                 <div className="relative bg-black p-6">
                                     <div className="absolute top-0 right-0 p-24 bg-orange-600/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                                    <button onClick={() => setShowFundModal(false)} className="absolute top-5 right-5 z-20 p-2 bg-white/10 rounded-full text-white hover:bg-white/20 transition"><X size={18} /></button>
+                                    <button onClick={() => setShowFundModal(false)} className="absolute top-5 right-5 z-20 p-2 bg-white/15 dark:bg-zinc-800/80 rounded-full text-white hover:bg-white/25 dark:hover:bg-zinc-700 transition"><X size={18} /></button>
                                     <h3 className="text-2xl font-black text-white relative z-10">Fund Wallet</h3>
-                                    <p className="text-gray-400 text-sm mt-1 relative z-10">Add funds securely via Paystack</p>
+                                    <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1 relative z-10">Add funds securely via Paystack</p>
                                 </div>
 
                                 <div className="md:p-6 p-3">
                                      <div className="mb-4">
-                                         <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Enter Amount</label>
+                                         <label className="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Enter Amount</label>
                                          <div className="relative">
-                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl font-bold">₦</span>
+                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-xl font-bold">₦</span>
                                              <input
                                                  type="number"
                                                  value={amount}
                                                  onChange={(e) => setAmount(e.target.value)}
                                                  placeholder="0.00"
-                                                 className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-3 font-black text-2xl text-gray-900 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all appearance-none"
+                                                 className="w-full bg-gray-50 dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded pl-10 pr-4 py-3 font-black text-2xl text-zinc-900 dark:text-zinc-100 outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all appearance-none"
                                              />
                                          </div>
                                      </div>
  
                                      <div className="mb-5">
-                                         <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Quick Select</label>
+                                         <label className="block text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-2">Quick Select</label>
                                          <div className="flex flex-wrap gap-1.5">
                                              {PRESET_AMOUNTS.map(amt => (
                                                  <button
                                                      key={amt}
                                                      onClick={() => setAmount(amt)}
-                                                     className="px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-xs font-bold text-gray-600 hover:border-orange-500 hover:text-orange-600 hover:bg-orange-50 active:scale-95 transition-all shadow-sm"
+                                                     className="px-3 py-1.5 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-bold text-zinc-700 dark:text-zinc-100 hover:bg-orange-50 dark:hover:bg-orange-600/10 hover:text-orange-600 dark:hover:text-orange-300 active:scale-95 transition-all shadow-sm"
                                                  >
                                                      ₦{amt.toLocaleString()}
                                                  </button>
@@ -401,7 +480,7 @@ export default function UserWalletPage() {
                                      <button
                                          onClick={handleFundWallet}
                                          disabled={isFunding}
-                                         className="w-full py-3 bg-black text-white font-bold text-sm rounded-xl hover:bg-gray-900 hover:shadow-xl hover:shadow-black/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                         className="w-full py-3 bg-gradient-to-r from-orange-500 via-orange-500 to-orange-600 text-white font-bold text-sm rounded-lg hover:shadow-xl hover:shadow-orange-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                      >
                                          {isFunding ? (
                                              <Loader2 className="animate-spin" size={20} />
@@ -430,7 +509,7 @@ export default function UserWalletPage() {
                                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                className="fixed top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-md bg-white rounded-2xl shadow-2xl z-50 overflow-hidden"
+                                className="fixed top-[45%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] max-w-md bg-white dark:bg-zinc-950 rounded shadow-2xl z-50 overflow-hidden border border-gray-100 dark:border-zinc-800"
                             >
                                 {/* Header */}
                                 <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 md:p-4 p-3">
@@ -443,7 +522,7 @@ export default function UserWalletPage() {
                                     </button>
 
                                     <div className="relative z-10">
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${selectedTransaction.type === 'credit' || selectedTransaction.type === 'deposit'
+                                        <div className={`w-12 h-12 rounded flex items-center justify-center mb-3 ${selectedTransaction.type === 'credit' || selectedTransaction.type === 'deposit'
                                             ? 'bg-emerald-500/20 text-emerald-400'
                                             : 'bg-red-500/20 text-red-400'
                                             }`}>
@@ -456,16 +535,16 @@ export default function UserWalletPage() {
                                         <h3 className="text-xl font-black text-white mb-0.5">
                                             {selectedTransaction.description || (selectedTransaction.type === 'credit' ? 'Wallet Funding' : 'Payment')}
                                         </h3>
-                                        <p className="text-gray-400 text-xs">Transaction Details</p>
+                                        <p className="text-zinc-500 dark:text-zinc-400 text-xs">Transaction Details</p>
                                     </div>
                                 </div>
 
                                 {/* Amount Display */}
-                                <div className="md:px-4 p-2.5 py-2.5 border-b border-gray-100">
-                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Amount</p>
+                                <div className="md:px-4 p-2.5 py-2.5 border-b border-gray-100 dark:border-zinc-800">
+                                    <p className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">Amount</p>
                                     <p className={`text-2xl font-black ${selectedTransaction.type === 'credit' || selectedTransaction.type === 'deposit'
-                                        ? 'text-emerald-500'
-                                        : 'text-gray-900'
+                                        ? 'text-emerald-500 dark:text-emerald-300'
+                                        : 'text-zinc-900 dark:text-zinc-100'
                                         }`}>
                                         {selectedTransaction.type === 'credit' || selectedTransaction.type === 'deposit' ? '+' : '-'}
                                         {formatCurrency(selectedTransaction.amount)}
@@ -474,34 +553,34 @@ export default function UserWalletPage() {
 
                                 {/* Transaction Info */}
                                 <div className="md:px-4 p-2.5 py-1.5 space-y-0.5">
-                                    <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                                        <span className="text-xs font-semibold text-gray-500">Type</span>
+                                    <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-zinc-800">
+                                        <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Type</span>
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${selectedTransaction.type === 'credit' || selectedTransaction.type === 'deposit'
-                                            ? 'bg-emerald-100 text-emerald-700'
-                                            : 'bg-red-100 text-red-700'
+                                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200'
+                                            : 'bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-200'
                                             }`}>
                                             {selectedTransaction.type}
                                         </span>
                                     </div>
 
-                                    <div className="flex justify-between items-start py-2 border-b border-gray-50">
-                                        <span className="text-xs font-semibold text-gray-500">Description</span>
-                                        <span className="text-xs font-bold text-gray-900 text-right max-w-[60%] break-words">
+                                    <div className="flex justify-between items-start py-2 border-b border-gray-50 dark:border-zinc-800">
+                                        <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Description</span>
+                                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 text-right max-w-[60%] break-words">
                                             {selectedTransaction.description || 'N/A'}
                                         </span>
                                     </div>
 
-                                    <div className="flex justify-between items-center py-2 border-b border-gray-50">
-                                        <span className="text-xs font-semibold text-gray-500">Date & Time</span>
+                                    <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-zinc-800">
+                                        <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Date & Time</span>
                                         <div className="text-right">
-                                            <p className="text-xs font-bold text-gray-900">
+                                            <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
                                                 {new Date(selectedTransaction.date || selectedTransaction.createdAt).toLocaleDateString('en-US', {
                                                     month: 'short',
                                                     day: 'numeric',
                                                     year: 'numeric'
                                                 })}
                                             </p>
-                                            <p className="text-[10px] text-gray-500">
+                                            <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
                                                 {new Date(selectedTransaction.date || selectedTransaction.createdAt).toLocaleTimeString('en-US', {
                                                     hour: '2-digit',
                                                     minute: '2-digit'
@@ -511,18 +590,18 @@ export default function UserWalletPage() {
                                     </div>
 
                                     <div className="flex justify-between items-center py-2">
-                                        <span className="text-xs font-semibold text-gray-500">Transaction ID</span>
-                                        <span className="text-[10px] font-mono text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                                        <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">Transaction ID</span>
+                                        <span className="text-[10px] font-mono text-zinc-300 dark:text-zinc-300 bg-gray-100 dark:bg-zinc-800 px-2 py-0.5 rounded">
                                             {selectedTransaction._id?.slice(-8).toUpperCase() || 'N/A'}
                                         </span>
                                     </div>
                                 </div>
 
                                 {/* Footer */}
-                                <div className="px-4 py-2 bg-gray-50">
+                                <div className="px-4 py-2 bg-gray-50 dark:bg-zinc-900">
                                     <button
                                         onClick={() => setShowTransactionModal(false)}
-                                        className="w-full py-2.5 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition-colors"
+                                        className="w-full py-2.5 bg-gradient-to-r from-orange-500 via-orange-500 to-orange-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-orange-500/20 transition-all"
                                     >
                                         Close
                                     </button>

@@ -130,7 +130,7 @@ export default function BottomBar() {
                       animate={{ scale: 1, y: 0 }}
                       className="absolute -top-10 right-[22%] z-30"
                     >
-                      <div className="bg-white dark:bg-slate-900 text-orange-600 text-[10px] font-black min-w-[18px] h-[18px] flex items-center justify-center rounded-full shadow-lg ring-2 ring-orange-500/20 border border-orange-100 dark:border-orange-500/30 px-1">
+                      <div className="bg-orange-500 dark:bg-slate-900 text-white text-[10px] font-black min-w-[18px] h-[18px] flex items-center justify-center rounded-full ring-2 ring-orange-500/20 px-1">
                         {cart.length}
                       </div>
                     </motion.div>
