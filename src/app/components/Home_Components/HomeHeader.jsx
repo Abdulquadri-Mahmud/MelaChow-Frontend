@@ -45,9 +45,9 @@ export default function HomeHeader() {
       className="sticky top-0 z-50 w-full"
     >
       {/* Premium Glassmorphism Container */}
-      <div className="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800/50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
-          <div className="flex items-center justify-between h-20">
+      <div className="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800/50">
+        <div className="max-w-7xl mx-auto px-2 py-3 lg:px-6">
+          <div className="flex items-center justify-between">
 
             {/* Left Section: Branding & Location */}
             <div className="flex items-center gap-4">
@@ -63,7 +63,7 @@ export default function HomeHeader() {
                 onClick={handleLocationClick}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex flex-col cursor-pointer group px-3 py-1.5 rounded-2xl hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+                className="flex flex-col cursor-pointer group px-2 transition-colors"
               >
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <span className="text-[10px] font-black uppercase text-orange-500 tracking-widest italic opacity-80">

@@ -94,7 +94,7 @@ const VendorCard = ({ vendor }) => {
         ) : (!vendor.deliveryFee || vendor.deliveryFee === 0) ? (
           <div className="absolute bottom-3 right-3 bg-[#FFF9E5] border border-black/10 px-3 py-1.5 rounded-[12px] shadow-sm flex items-center gap-2">
             <Gift size={14} className="text-orange-500" />
-            <span className="text-[10px] font-bold text-zinc-800 tracking-tight">
+            <span className="text-[10px] font-semibold text-zinc-800 tracking-tight">
               Free delivery on all orders
             </span>
           </div>
@@ -105,7 +105,7 @@ const VendorCard = ({ vendor }) => {
       <div className="px-1 pt-3 pb-4">
         {/* Title Row */}
         <div className="flex justify-between items-center mb-2">
-          <h3 className="text-[15px] font-bold text-zinc-900 dark:text-white truncate">
+          <h3 className="text-[15px] font-semibold text-zinc-900 dark:text-white truncate">
             {vendor.storeName} - {vendor.city}
           </h3>
         </div>
@@ -131,7 +131,7 @@ const VendorCard = ({ vendor }) => {
             <span className="text-zinc-300">|</span>
 
             {/* Status */}
-            <span className={isOpen ? "text-emerald-600 font-bold" : "text-rose-500 font-bold"}>
+            <span className={isOpen ? "text-emerald-600 font-semiboldd" : "text-rose-500 font-semiboldd"}>
               {isOpen ? "Open now" : "Closed"}
             </span>
           </div>
@@ -139,7 +139,7 @@ const VendorCard = ({ vendor }) => {
           {/* Rating */}
           <div className="flex items-center gap-1">
             <Star size={14} className="fill-yellow-400 text-yellow-400" />
-            <span className="text-zinc-900 dark:text-white font-bold">
+            <span className="text-zinc-900 dark:text-white font-semiboldd">
               {Number(vendor.rating || 0) === 0 ? "New" : Number(vendor.rating).toFixed(1)}
             </span>
             {vendor.ratingCount > 0 && (
@@ -155,14 +155,14 @@ const VendorCard = ({ vendor }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 // SECTION HEADER
 // ─────────────────────────────────────────────────────────────────────────────
-const SectionHeader = ({ title, subtitle, href, hrefLabel = "View all" }) => (
+const SectionHeader = ({ title, subtitle, href, hrefLabel = "Explore" }) => (
   <div className="flex items-center justify-between px-2 mb-3.5">
     <div>
-      <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">
+      <h2 className="text-lg font-semibold text-zinc-900 dark:text-white tracking-tight">
         {title}
       </h2>
       {subtitle && (
-        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mt-0.5">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mt-0.5">
           {subtitle}
         </p>
       )}
@@ -170,7 +170,7 @@ const SectionHeader = ({ title, subtitle, href, hrefLabel = "View all" }) => (
     {href && (
       <Link
         href={href}
-        className="text-orange-600 text-[10px] font-black uppercase tracking-widest hover:opacity-70 flex items-center gap-1 group"
+        className="text-orange-600 text-[10px] font-medium uppercase tracking-widest hover:opacity-70 flex items-center gap-1 group"
       >
         {hrefLabel}
         <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
@@ -204,7 +204,7 @@ const EmptyState = ({ city, selectedCuisine, onClear }) => (
       </div>
       {selectedCuisine ? (
         <>
-          <h3 className="font-bold text-zinc-900 dark:text-white text-base mb-1">
+          <h3 className="font-semibold text-zinc-900 dark:text-white text-base mb-1">
             No {selectedCuisine} restaurants yet
           </h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-[240px] leading-relaxed mb-4">
@@ -212,14 +212,14 @@ const EmptyState = ({ city, selectedCuisine, onClear }) => (
           </p>
           <button
             onClick={onClear}
-            className="text-[10px] font-black uppercase tracking-widest text-orange-600 border border-orange-300 px-4 py-2 rounded-full"
+            className="text-[10px] font-medium uppercase tracking-widest text-orange-600 border border-orange-300 px-4 py-2 rounded-full"
           >
             Show all restaurants
           </button>
         </>
       ) : (
         <>
-          <h3 className="font-bold text-zinc-900 dark:text-white text-base mb-1">
+          <h3 className="font-semibold text-zinc-900 dark:text-white text-base mb-1">
             Coming Soon to {city}!
           </h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-[240px] leading-relaxed">
@@ -343,7 +343,7 @@ export default function VendorList({ user }) {
           <div className="bg-orange-100 dark:bg-orange-500/20 p-1.5 rounded-lg">
             <Sparkles className="text-orange-600 fill-orange-600" size={18} />
           </div>
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white tracking-tight">
             Restaurants Near You
           </h2>
         </div>
@@ -351,7 +351,7 @@ export default function VendorList({ user }) {
           <div className="px-4">
             <div className="rounded-[24px] border border-orange-100 bg-orange-50/70 p-6 text-center dark:border-orange-500/20 dark:bg-orange-500/10">
               <Gift className="mx-auto mb-3 text-orange-500" size={28} />
-              <h3 className="text-base font-black text-zinc-900 dark:text-white">
+              <h3 className="text-base font-medium text-zinc-900 dark:text-white">
                 No free-delivery restaurants right now
               </h3>
               <p className="mx-auto mt-2 max-w-[260px] text-xs font-semibold leading-relaxed text-zinc-500 dark:text-zinc-400">
@@ -359,7 +359,7 @@ export default function VendorList({ user }) {
               </p>
               <button
                 onClick={() => window.location.href = "/home"}
-                className="mt-4 rounded-full border border-orange-200 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-widest text-orange-600 dark:border-orange-500/30 dark:bg-zinc-900"
+                className="mt-4 rounded-full border border-orange-200 bg-white px-4 py-2 text-[10px] font-medium uppercase tracking-widest text-orange-600 dark:border-orange-500/30 dark:bg-zinc-900"
               >
                 Show all restaurants
               </button>
@@ -381,7 +381,7 @@ export default function VendorList({ user }) {
       {filterFreeDelivery && (
         <div className="mx-2 mb-1 flex items-center justify-between gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-3 py-2 dark:border-orange-500/20 dark:bg-orange-500/10">
           <div className="min-w-0">
-            <p className="text-[11px] font-black uppercase tracking-widest text-orange-600">
+            <p className="text-[11px] font-medium uppercase tracking-widest text-orange-600">
               Free delivery campaign
             </p>
             <p className="truncate text-[10px] font-semibold text-orange-600/80 dark:text-orange-300/80">
@@ -390,7 +390,7 @@ export default function VendorList({ user }) {
           </div>
           <button
             onClick={() => window.location.href = "/home"}
-            className="shrink-0 rounded-lg border border-orange-200 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-orange-500 dark:border-orange-500/30"
+            className="shrink-0 rounded-lg border border-orange-200 px-2 py-1 text-[10px] font-medium uppercase tracking-widest text-orange-500 dark:border-orange-500/30"
           >
             Clear
           </button>
@@ -415,7 +415,7 @@ export default function VendorList({ user }) {
             }
             subtitle={`${openVendors.length} restaurant${openVendors.length !== 1 ? "s" : ""} taking orders`}
             href="/all-restaurants"
-            hrefLabel="View all"
+            hrefLabel="Explore"
           />
           <VendorRow vendors={openVendors} />
         </div>
@@ -462,7 +462,7 @@ export default function VendorList({ user }) {
               }
               subtitle={`Popular ${cuisine.toLowerCase()} spots near you`}
               href={`/search?cuisine=${cuisine}`}
-              hrefLabel="View more"
+              hrefLabel="Explore"
             />
             <VendorRow vendors={sortedCuisineVendors} />
           </div>
