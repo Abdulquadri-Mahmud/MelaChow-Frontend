@@ -182,7 +182,7 @@ function UserWalletContent() {
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400 p-4 rounded-2xl flex items-center gap-3 shadow-sm mb-6"
+                        className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-700 dark:text-blue-400 p-4 rounded flex items-center gap-3 shadow-sm mb-6"
                     >
                         <Loader2 className="animate-spin" size={20} />
                         <span className="font-bold">Verifying transaction... Please wait.</span>
@@ -230,7 +230,7 @@ function UserWalletContent() {
                                 <div className="flex items-baseline gap-1">
                                     <h2 className="text-5xl md:text-6xl font-black text-white tracking-tight tabular-nums">
                                         {isLoading && !walletData ? (
-                                            <div className="h-12 w-48 bg-white/10 rounded-xl animate-pulse"></div>
+                                            <div className="h-12 w-48 bg-white/10 rounded animate-pulse"></div>
                                         ) : showBalance ? (
                                             <>
                                                 <span className="text-2xl md:text-3xl font-bold text-orange-500 opacity-80">₦</span>
@@ -268,22 +268,22 @@ function UserWalletContent() {
 
                         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
                             {/* Filter Tabs */}
-                            <div className="flex p-1 bg-zinc-200/50 dark:bg-zinc-800/50 rounded-xl">
+                            <div className="flex p-1 bg-zinc-200/50 dark:bg-zinc-800/50 rounded">
                                 <button
                                     onClick={() => setFilterType("ALL")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "ALL" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-white" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-white"}`}
+                                    className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${filterType === "ALL" ? "bg-white dark:bg-zinc-700 shadow-sm text-zinc-900 dark:text-white" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-white"}`}
                                 >
                                     All
                                 </button>
                                 <button
                                     onClick={() => setFilterType("CREDIT")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "CREDIT" ? "bg-white dark:bg-zinc-700 shadow-sm text-emerald-600" : "text-zinc-500 dark:text-zinc-400 hover:text-emerald-600"}`}
+                                    className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${filterType === "CREDIT" ? "bg-white dark:bg-zinc-700 shadow-sm text-emerald-600" : "text-zinc-500 dark:text-zinc-400 hover:text-emerald-600"}`}
                                 >
                                     Money In
                                 </button>
                                 <button
                                     onClick={() => setFilterType("DEBIT")}
-                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filterType === "DEBIT" ? "bg-white dark:bg-zinc-700 shadow-sm text-red-600" : "text-zinc-500 dark:text-zinc-400 hover:text-red-600"}`}
+                                    className={`px-4 py-1.5 rounded text-xs font-bold transition-all ${filterType === "DEBIT" ? "bg-white dark:bg-zinc-700 shadow-sm text-red-600" : "text-zinc-500 dark:text-zinc-400 hover:text-red-600"}`}
                                 >
                                     Money Out
                                 </button>
@@ -297,7 +297,7 @@ function UserWalletContent() {
                                     placeholder="Search..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none w-32 focus:w-48 transition-all dark:text-white dark:placeholder-zinc-500"
+                                    className="pl-9 pr-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded text-xs font-semibold focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none w-32 focus:w-48 transition-all dark:text-white dark:placeholder-zinc-500"
                                 />
                             </div>
                         </div>
@@ -306,10 +306,10 @@ function UserWalletContent() {
                     <div className="space-y-8">
                         {isLoading && !walletData ? (
                             <div className="space-y-4">
-                                {[1, 2, 3].map(i => <div key={i} className="h-20 bg-zinc-100 dark:bg-zinc-800 rounded-2xl animate-pulse"></div>)}
+                                {[1, 2, 3].map(i => <div key={i} className="h-20 bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse"></div>)}
                             </div>
                         ) : Object.keys(groupedTransactions).length === 0 ? (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-900 rounded-[32px] border border-dashed border-zinc-200 dark:border-zinc-800">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center py-20 bg-white dark:bg-zinc-900 rounded-[8px] border border-dashed border-zinc-200 dark:border-zinc-800">
                                 <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mb-4 relative">
                                     <div className="absolute inset-0 bg-orange-500/5 rounded-full animate-ping"></div>
                                     <Search size={32} className="text-zinc-300 dark:text-zinc-600 relative z-10" />
@@ -325,7 +325,7 @@ function UserWalletContent() {
                                         <div className="h-[1px] bg-zinc-100 dark:bg-zinc-800 flex-1"></div>
                                     </div>
 
-                                    <div className="bg-white dark:bg-zinc-900 rounded-[24px] border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden">
+                                    <div className="bg-white dark:bg-zinc-900 rounded-[8px] border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden">
                                         {txs.map((tx, idx) => (
                                             <motion.div
                                                 initial={{ opacity: 0, x: -10 }}
@@ -336,7 +336,7 @@ function UserWalletContent() {
                                                 className={`group p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 ${(idx !== txs.length - 1) ? "border-b border-zinc-50 dark:border-zinc-800" : ""}`}
                                             >
                                                 <div className="flex items-center gap-4">
-                                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${tx.type === 'credit' || tx.type === 'deposit'
+                                                    <div className={`w-12 h-12 rounded flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${tx.type === 'credit' || tx.type === 'deposit'
                                                         ? 'bg-emerald-50 text-emerald-500 dark:bg-emerald-500/10'
                                                         : 'bg-red-50 text-red-500 dark:bg-red-500/10'
                                                         }`}>
@@ -396,7 +396,7 @@ function UserWalletContent() {
                                 initial={{ opacity: 0, scale: 0.9, x: "-50%", y: "-45%" }}
                                 animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
                                 exit={{ opacity: 0, scale: 0.9, x: "-50%", y: "-45%" }}
-                                className="fixed top-1/2  w-full max-w-md h-fit bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-2xl z-50 border border-zinc-100 dark:border-zinc-800"
+                                className="fixed top-1/2  w-full max-w-md h-fit bg-white dark:bg-zinc-900 rounded-[8px] overflow-hidden shadow-2xl z-50 border border-zinc-100 dark:border-zinc-800"
                                 style={{ margin: 0, width: "95%" }} // Ensure width constraint on mobile
                             >
                                 <div className="relative bg-zinc-950 p-6">
@@ -416,7 +416,7 @@ function UserWalletContent() {
                                                 value={amount}
                                                 onChange={(e) => setAmount(e.target.value)}
                                                 placeholder="0.00"
-                                                className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-2xl pl-10 pr-4 py-4 font-black text-3xl text-zinc-900 dark:text-white outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all appearance-none"
+                                                className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded pl-10 pr-4 py-4 font-black text-3xl text-zinc-900 dark:text-white outline-none focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all appearance-none"
                                             />
                                         </div>
                                     </div>
@@ -428,7 +428,7 @@ function UserWalletContent() {
                                                 <button
                                                     key={amt}
                                                     onClick={() => setAmount(amt)}
-                                                    className="px-4 py-2 rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:border-orange-500 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 active:scale-95 transition-all shadow-sm"
+                                                    className="px-4 py-2 rounded bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:border-orange-500 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 active:scale-95 transition-all shadow-sm"
                                                 >
                                                     ₦{amt.toLocaleString()}
                                                 </button>
@@ -439,7 +439,7 @@ function UserWalletContent() {
                                     <button
                                         onClick={handleFundWallet}
                                         disabled={isFunding}
-                                        className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-lg rounded-2xl hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-xl hover:shadow-black/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                        className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-lg rounded hover:bg-zinc-800 dark:hover:bg-zinc-100 hover:shadow-xl hover:shadow-black/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
                                         {isFunding ? (
                                             <Loader2 className="animate-spin" size={24} />

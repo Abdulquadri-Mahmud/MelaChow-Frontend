@@ -30,6 +30,7 @@ import NeedHelp from "@/app/(customer)/profile/need_help_contact_info/NeedHelp";
 import NotificationSettings from "@/app/components/notifications/NotificationSettings";
 import { useTheme } from "@/app/context/ThemeContext";
 import PermanentInstallButton from "@/app/components/PermanentInstallButton";
+import Header2 from "../App_Header/Header2";
 
 const MobileSettingsGroup = ({ title, children }) => {
   return (
@@ -39,7 +40,7 @@ const MobileSettingsGroup = ({ title, children }) => {
           {title}
         </h2>
       </div>
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800/80 rounded-3xl overflow-hidden shadow-sm shadow-zinc-100/50 dark:shadow-none divide-y divide-zinc-50 dark:divide-zinc-800/50">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800/80 rounded overflow-hidden shadow-sm shadow-zinc-100/50 dark:shadow-none divide-y divide-zinc-50 dark:divide-zinc-800/50">
         {children}
       </div>
     </div>
@@ -64,7 +65,7 @@ const MobileActionRow = ({ icon: Icon, title, subtitle, onClick, href, color = "
       onClick={handleClick}
       className="flex items-center gap-3.5 p-3.5 cursor-pointer transition-all duration-200 group"
     >
-      <div className={`p-2.5 rounded-xl transition-all duration-300 group-hover:scale-105 ${colorClasses}`}>
+      <div className={`p-2.5 rounded transition-all duration-300 group-hover:scale-105 ${colorClasses}`}>
         <Icon size={18} strokeWidth={2.5} />
       </div>
       <div className="flex-1 min-w-0">
@@ -98,7 +99,7 @@ const User_Profile = ({ userData, isLoading }) => {
     return (
       <div className="flex flex-col items-center justify-center py-20 bg-zinc-50/50 dark:bg-zinc-950/50 min-h-[60vh]">
         <div className="relative">
-          <div className="w-24 h-24 bg-zinc-200 dark:bg-zinc-800 rounded-[32px] animate-pulse" />
+          <div className="w-24 h-24 bg-zinc-200 dark:bg-zinc-800 rounded-[8px] animate-pulse" />
           <div className="absolute inset-0 flex items-center justify-center">
             <User className="text-zinc-300 dark:text-zinc-600 animate-pulse" size={40} />
           </div>
@@ -143,14 +144,15 @@ const User_Profile = ({ userData, isLoading }) => {
   };
 
   return (
-    <div className="max-w-xl mx-auto pb-24 px-4 space-y-6 composite-stable">
+    <div className="max-w-xl mx-auto pb-20 space-y-4">
+      <Header2/>
       {/* Premium iOS style navigation header */}
-      <div className="pt-4 flex items-center justify-between">
+      {/* <div className="pt-4 flex items-center justify-between">
         <motion.button
           whileHover={{ x: -2 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => router.back()}
-          className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm"
+          className="p-3 rounded bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm"
         >
           <ArrowLeft size={18} strokeWidth={2.5} />
         </motion.button>
@@ -161,17 +163,18 @@ const User_Profile = ({ userData, isLoading }) => {
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={toggleTheme}
-          className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm"
+          className="p-3 rounded bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm"
         >
           {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
         </motion.button>
-      </div>
+      </div> */}
 
       {/* Clean Premium Profile Card (No Heavy Blur Filters to Prevent GPU Tearing) */}
-      <section className="relative overflow-hidden composite-stable bg-gradient-to-br from-white via-zinc-50 to-orange-50/30 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800/80 border border-zinc-100 dark:border-zinc-800 rounded-[32px] p-6 shadow-xl shadow-zinc-100/50 dark:shadow-none">
+      {/* relative overflow-hidden composite-stable */}
+      <section className="mx-2 bg-gradient-to-br from-white via-zinc-50 to-orange-50/30 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800/80 border border-zinc-100 dark:border-zinc-800 rounded-[8px] p-4 shadow-xl shadow-zinc-100/50 dark:shadow-none">
         <div className="flex items-center gap-5">
-          <div className="relative group shrink-0">
-            <div className="relative w-20 h-20 rounded-[22px] border-4 border-white dark:border-zinc-850 shadow-xl overflow-hidden bg-zinc-100 dark:bg-zinc-800 transition-transform duration-500 group-hover:scale-105">
+          <div className="relative">
+            <div className="relative w-20 h-20 rounded-[8px] border-4 border-orange-100 dark:border-zinc-850 overflow-hidden bg-zinc-100 dark:bg-zinc-800 transition-transform duration-500 group-hover:scale-105">
               {userData.avatar ? (
                 <img src={userData.avatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -183,7 +186,7 @@ const User_Profile = ({ userData, isLoading }) => {
                 <Settings className="text-white drop-shadow-md" size={16} />
               </div>
             </div>
-            <div className="absolute -bottom-1 -right-1 bg-green-500 text-white p-1 rounded-lg border-2 border-white dark:border-zinc-850 shadow-md">
+            <div className="absolute -bottom-1 -right-1 bg-green-500 text-white p-1 rounded border-2 border-white dark:border-zinc-850 shadow-md">
               <ShieldCheck size={12} strokeWidth={3} />
             </div>
           </div>
@@ -202,12 +205,12 @@ const User_Profile = ({ userData, isLoading }) => {
 
         {/* Contact badges grid */}
         <div className="mt-5 pt-5 border-t border-zinc-100 dark:border-zinc-800/80 grid grid-cols-1 gap-2">
-          <div className="flex items-center gap-2 px-3.5 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 rounded-2xl border border-zinc-100/30 dark:border-zinc-800/30">
+          <div className="flex items-center gap-2 px-3.5 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 rounded border border-zinc-100/30 dark:border-zinc-800/30">
             <Mail size={14} className="text-orange-500 shrink-0" />
             <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 truncate">{userData.email}</span>
           </div>
           {userData.phone && (
-            <div className="flex items-center gap-2 px-3.5 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 rounded-2xl border border-zinc-100/30 dark:border-zinc-800/30">
+            <div className="flex items-center gap-2 px-3.5 py-2.5 bg-zinc-50/50 dark:bg-zinc-950/40 rounded border border-zinc-100/30 dark:border-zinc-800/30">
               <Phone size={14} className="text-orange-500 shrink-0" />
               <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400 truncate">{userData.phone}</span>
             </div>
@@ -216,10 +219,12 @@ const User_Profile = ({ userData, isLoading }) => {
       </section>
 
       {/* Notifications Module - Unified Single Toggle */}
-      <NotificationSettings />
+      <div className="mx-2">
+        <NotificationSettings />
+      </div>
 
       {/* Actions & Settings Groups */}
-      <div className="space-y-5">
+      <div className="space-y-5 mx-2">
         <MobileSettingsGroup title="Account Settings">
           <MobileActionRow
             icon={User}
@@ -287,7 +292,7 @@ const User_Profile = ({ userData, isLoading }) => {
               App Experience
             </h2>
           </div>
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800/80 rounded-3xl p-4 shadow-sm shadow-zinc-100/50 dark:shadow-none">
+          <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800/80 rounded p-4 shadow-sm shadow-zinc-100/50 dark:shadow-none">
             <PermanentInstallButton />
           </div>
         </div>
@@ -310,9 +315,9 @@ const User_Profile = ({ userData, isLoading }) => {
         </MobileSettingsGroup>
       </div>
 
-      <div className="px-2">
+      {/* <div className="px-2">
         <NeedHelp />
-      </div>
+      </div> */}
 
       <DeleteModal
         isDeleteModalOpen={isDeleteModalOpen}
