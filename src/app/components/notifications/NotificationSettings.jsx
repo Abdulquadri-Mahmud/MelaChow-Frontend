@@ -45,7 +45,9 @@ export default function NotificationSettings() {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-zinc-900 rounded-[8px] md:p-6 p-3 shadow-xl shadow-zinc-100/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 space-y-6"
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="bg-white dark:bg-zinc-900 rounded-[8px] md:p-6 p-3 shadow-xl shadow-zinc-100/50 dark:shadow-none border border-zinc-100 dark:border-zinc-800 space-y-6 will-change-transform"
+            style={{ backfaceVisibility: "hidden", WebkitFontSmoothing: "antialiased" }}
         >
             {/* Header */}
             <div className="flex items-center justify-between pb-6 border-b border-zinc-50 dark:border-zinc-800">
@@ -76,15 +78,17 @@ export default function NotificationSettings() {
                 <button
                     onClick={isEnabled ? unsubscribe : subscribe}
                     disabled={loading || isDenied}
-                    className={`relative w-16 h-8 rounded-full transition-all duration-300 shadow-inner ${isEnabled
+                    className={`relative w-16 h-8 rounded-full transition-colors duration-200 shadow-inner ${isEnabled
                         ? "bg-emerald-500"
                         : "bg-zinc-200 dark:bg-zinc-700"
                         } ${isDenied ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105 active:scale-95'}`}
+                    style={{ WebkitFontSmoothing: "antialiased" }}
                 >
                     <motion.div
-                        className="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-lg"
+                        className="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-lg will-change-transform"
                         animate={{ x: isEnabled ? 32 : 0 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        transition={{ type: "spring", stiffness: 600, damping: 35, duration: 0.2 }}
+                        style={{ backfaceVisibility: "hidden" }}
                     />
                 </button>
             </div>
@@ -101,13 +105,15 @@ export default function NotificationSettings() {
             )}
 
             {/* Notification Categories - Passive Indicators */}
-            <AnimatePresence initial={false}>
+            <AnimatePresence initial={false} mode="wait">
                 {isEnabled && (
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="space-y-3.5 overflow-hidden"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        className="space-y-3.5 overflow-hidden will-change-transform"
+                        style={{ backfaceVisibility: "hidden" }}
                     >
                         <p className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em] pl-1">Subscribed Channels</p>
                         <PassivePreferenceItem

@@ -61,9 +61,10 @@ const MobileActionRow = ({ icon: Icon, title, subtitle, onClick, href, color = "
 
   return (
     <motion.div
-      whileTap={{ backgroundColor: "rgba(228, 228, 231, 0.2)" }}
+      whileTap={{ scale: 0.98 }}
       onClick={handleClick}
-      className="flex items-center gap-3.5 p-3.5 cursor-pointer transition-all duration-200 group"
+      className="flex items-center gap-3.5 p-3.5 cursor-pointer transition-colors duration-200 group will-change-transform"
+      style={{ backfaceVisibility: "hidden", WebkitFontSmoothing: "antialiased" }}
     >
       <div className={`p-2.5 rounded transition-all duration-300 group-hover:scale-105 ${colorClasses}`}>
         <Icon size={18} strokeWidth={2.5} />
@@ -171,7 +172,7 @@ const User_Profile = ({ userData, isLoading }) => {
 
       {/* Clean Premium Profile Card (No Heavy Blur Filters to Prevent GPU Tearing) */}
       {/* relative overflow-hidden composite-stable */}
-      <section className="mx-2 bg-gradient-to-br from-white via-zinc-50 to-orange-50/30 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800/80 border border-zinc-100 dark:border-zinc-800 rounded-[8px] p-4 shadow-xl shadow-zinc-100/50 dark:shadow-none">
+      <section className="mx-2 bg-gradient-to-br from-white via-zinc-50 to-orange-50/30 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-800/80 border border-zinc-100 dark:border-zinc-800 rounded-[8px] p-4 shadow-xl shadow-zinc-100/50 dark:shadow-none will-change-auto" style={{ backfaceVisibility: "hidden", WebkitFontSmoothing: "antialiased", contain: "layout style paint" }}>
         <div className="flex items-center gap-5">
           <div className="relative">
             <div className="relative w-20 h-20 rounded-[8px] border-4 border-orange-100 dark:border-zinc-850 overflow-hidden bg-zinc-100 dark:bg-zinc-800 transition-transform duration-500 group-hover:scale-105">
