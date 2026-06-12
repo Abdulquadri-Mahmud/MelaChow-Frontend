@@ -378,14 +378,14 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
             </AnimatePresence>
 
             {/* 🏛️ Store Identity Card */}
-            <div className="relative max-w-2xl mx-auto z-20">
+            <div className="relative z-30 max-w-2xl mx-auto -mt-12 md:-mt-14">
                 <div className="bg-white dark:bg-zinc-900 p-2 shadow-medium/5 dark:shadow-none border border-zinc-100 dark:border-zinc-800">
                     <div className="flex flex-col items-center text-center">
-                        <div className="w-14 h-14 rounded-[14px] bg-white dark:bg-zinc-950 p-1 shadow-xl -mt-10 mb-2.5 border border-zinc-100 dark:border-zinc-800">
+                        <div className="relative z-10 w-14 h-14 rounded-[14px] bg-white dark:bg-zinc-950 p-1 shadow-xl -mt-10 mb-2.5 border border-zinc-100 dark:border-zinc-800">
                             <img 
                                 src={vendor.logo || "/placeholder.jpg"} 
                                 alt={vendor.storeName} 
-                                className="w-full h-full object-cover rounded-[10px]"
+                                className="relative z-10 w-full h-full object-cover rounded-[10px]"
                             />
                         </div>
                         
@@ -486,7 +486,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                             <button
                                 key={section._id}
                                 onClick={() => scrollToSection(section._id)}
-                                className={`py-2 text-[13px] font-medium capitalize whitespace-nowrap border-b-2 transition-all ${activeSectionId === section._id ? 'border-green-200 bg-green-100 px-3 rounded-t-sm' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
+                                className={`py-2 text-[13px] font-medium capitalize whitespace-nowrap border-b-2 transition-all ${activeSectionId === section._id ? 'border-zinc-200 bg-zinc-100 px-3 rounded-t-sm' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
                             >
                                 {section.name}
                             </button>

@@ -48,7 +48,7 @@ export default function BottomBar() {
       <motion.nav
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="relative composite-stable bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-t-[32px] px-2 py-3"
+        className="relative overflow-visible composite-stable bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-t-[32px] px-2 py-3"
       >
         <div className="flex justify-between items-center relative">
           {navItems.map((item) => {
@@ -62,7 +62,7 @@ export default function BottomBar() {
                 href={item.href}
                 className="relative flex-1 group"
               >
-                <div className="flex flex-col items-center justify-center py-1">
+                <div className={`flex flex-col items-center justify-center py-1 ${isOrder ? 'relative z-30 -mt-8' : 'relative z-10'}`}>
                   <motion.div
                     whileTap={{ scale: 0.85 }}
                     whileHover={{ scale: 1.05 }}
@@ -78,7 +78,7 @@ export default function BottomBar() {
                     )}
 
                     <div className={`flex flex-col items-center gap-1 transition-all duration-300 ${isOrder
-                        ? "-mt-8"
+                      ? ""
                         : isActive
                           ? "text-orange-500"
                           : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
