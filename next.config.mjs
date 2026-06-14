@@ -34,16 +34,16 @@ const nextConfig = {
    * 4. iOS Safari accepts cookie (same domain = first-party)
    * 
    * Benefits:
-   * âœ… Works on iOS Safari
-   * âœ… Works on iOS PWAs
-   * âœ… No CORS issues
-   * âœ… No backend changes needed
-   * âœ… credentials: "include" works correctly
+   * ✅ Works on iOS Safari
+   * ✅ Works on iOS PWAs
+   * ✅ No CORS issues
+   * ✅ No backend changes needed
+   * ✅ credentials: "include" works correctly
    * 
    * Route Namespacing:
-   * âœ… /api/user/*     â†’ User endpoints
-   * âœ… /api/vendors/*  â†’ Vendor endpoints
-   * âœ… /api/admin/*    â†’ Admin endpoints
+   * ✅ /api/user/*     → User endpoints
+   * ✅ /api/vendors/*  → Vendor endpoints
+   * ✅ /api/admin/*    → Admin endpoints
    */
   async redirects() {
     return [
@@ -68,13 +68,17 @@ const nextConfig = {
   async rewrites() {
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://grubdash-api.onrender.com';
 
-    // âœ… Only log in development (reduce console noise in production)
+    // ✅ Only log in development (reduce console noise in production)
     if (process.env.NODE_ENV === 'development') {
       console.log('[Next.js Proxy] Backend URL:', backendUrl);
       console.log('[Next.js Proxy] All /api/* requests will be proxied');
     }
 
     return [
+      {
+        source: '/r/:vendorId',
+        destination: `${backendUrl}/api/qr/scan/:vendorId`,
+      },
       {
         // Proxy all /api/* requests to the backend
         source: '/api/:path*',
@@ -158,7 +162,7 @@ const nextConfig = {
   },
 
 
-  // âœ… Optional: Environment variable validation
+  // ✅ Optional: Environment variable validation
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_FRONTEND_URL: process.env.NEXT_PUBLIC_FRONTEND_URL,
@@ -166,4 +170,3 @@ const nextConfig = {
 };
 
 export default nextConfig;
-
