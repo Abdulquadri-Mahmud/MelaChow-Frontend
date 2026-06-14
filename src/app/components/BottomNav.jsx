@@ -29,7 +29,7 @@ export default function BottomBar() {
   const isFoodDetailsPage = pathname.startsWith("/food-details/");
   const isComboDetailsPage = pathname.startsWith("/combo-details/");
   const isCheckoutPage = pathname === "/checkout";
-  
+
   // Also hide if logged in but no addresses (mandatory address modal state)
   const isNoAddress = !isLoading && user && user?.addresses?.length === 0;
 
@@ -44,17 +44,60 @@ export default function BottomBar() {
   ) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 px-0 md:max-w-md md:mx-auto z-[9999] mobile-solid-surface">
+    // Outer wrapper: fixed to bottom, overflow-visible so the Order button can float above
+    <div className="fixed bottom-0 left-0 right-0 md:max-w-md md:mx-auto z-[9999]" style={{ overflow: "visible" }}>
+
+      {/* ── Floating Order Button ── rendered OUTSIDE the nav so border-radius never clips it */}
+      <div className="absolute left-1/2 -translate-x-1/2 -top-6 z-[10000]">
+        <Link href="/orders">
+          <motion.div
+            whileTap={{ scale: 0.85 }}
+            whileHover={{ scale: 1.08 }}
+            className="relative"
+          >
+            {/* Pulsing ring */}
+            <motion.div
+              animate={{ scale: [1, 1.35, 1], opacity: [0.4, 0, 0.4] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute inset-0 rounded-full bg-orange-400"
+            />
+            {/* Badge */}
+            {cart.length > 0 && (
+              <motion.div
+                key={cart.length}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1.5 -right-1.5 z-10 bg-orange-500 text-white text-[10px] font-black min-w-[18px] h-[18px] flex items-center justify-center rounded-full ring-2 ring-white px-1"
+              >
+                {cart.length}
+              </motion.div>
+            )}
+            <div className="bg-gradient-to-tr from-orange-400 to-orange-600 p-3.5 rounded-full shadow-[0_8px_24px_rgba(249,115,22,0.45)] text-white hover:rotate-[10deg] transition-transform">
+              <ShoppingCart size={22} strokeWidth={2.5} />
+            </div>
+          </motion.div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-orange-600 text-center mt-0.5">
+            Order
+          </p>
+        </Link>
+      </div>
+
+      {/* ── Nav bar ── no overflow clipping issue since Order button is outside */}
       <motion.nav
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="relative overflow-visible composite-stable bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-t-[32px] px-2 py-3"
+        className="bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.10)] dark:shadow-[0_-8px_32px_rgba(0,0,0,0.3)] rounded-t-[32px] px-2 pt-3 pb-2"
       >
-        <div className="flex justify-between items-center relative">
+        <div className="flex justify-between items-end">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
             const isOrder = item.name === "Order";
+
+            // Render a blank spacer in place of the Order slot so spacing stays symmetric
+            if (isOrder) {
+              return <div key={item.name} className="flex-1" />;
+            }
 
             return (
               <Link
@@ -62,80 +105,48 @@ export default function BottomBar() {
                 href={item.href}
                 className="relative flex-1 group"
               >
-                <div className={`flex flex-col items-center justify-center py-1 ${isOrder ? 'relative z-30 -mt-8' : 'relative z-10'}`}>
-                  <motion.div
-                    whileTap={{ scale: 0.85 }}
-                    whileHover={{ scale: 1.05 }}
-                    className="relative z-10"
-                  >
-                    {/* Active Background Pill (Subtle) */}
-                    {isActive && !isOrder && (
-                      <motion.div
-                        layoutId="activeTab"
-                        className="absolute inset-0 -m-2 rounded-2xl"
-                        transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
-                      />
-                    )}
-
-                    <div className={`flex flex-col items-center gap-1 transition-all duration-300 ${isOrder
-                      ? ""
-                        : isActive
-                          ? "text-orange-500"
-                          : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
-                      }`}>
-                      {isOrder ? (
-                        <div className="relative">
-                          {/* Animated ring for Order button */}
-                          <motion.div
-                            animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.2, 0.5] }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                            className="absolute rounded-full"
-                          />
-                          <div className="bg-gradient-to-tr from-orange-400 to-orange-600 p-2.5 rounded-full shadow-[0_8px_20px_rgba(249,115,22,0.32)] text-white relative z-20 hover:rotate-[10deg] transition-transform">
-                            <Icon size={21} strokeWidth={2.5} />
-                          </div>
-                        </div>
-                      ) : (
-                        <Icon
-                          size={22}
-                          strokeWidth={isActive ? 2.5 : 2}
-                          className="transition-all"
-                        />
-                      )}
-
-                      <span className={`text-[10px] font-black uppercase tracking-widest leading-none mt-1 transition-all ${isOrder
-                          ? "text-orange-600 translate-y-1.5 opacity-100"
-                          : isActive
-                            ? "opacity-100 translate-y-0"
-                            : "opacity-40 group-hover:opacity-70"
-                        }`}>
-                        {item.name}
-                      </span>
-                    </div>
-
-                    {/* Active Dot Selector */}
-                    {isActive && !isOrder && (
-                      <motion.div
-                        layoutId="activeDot"
-                        className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.8)]"
-                      />
-                    )}
-                  </motion.div>
-
-                  {/* Cart Badge - Refined */}
-                  {isOrder && cart.length > 0 && (
+                <motion.div
+                  whileTap={{ scale: 0.85 }}
+                  whileHover={{ scale: 1.05 }}
+                  className="flex flex-col items-center gap-1 py-1"
+                >
+                  {/* Active pill background */}
+                  {isActive && (
                     <motion.div
-                      key={cart.length}
-                      initial={{ scale: 0, y: 10 }}
-                      animate={{ scale: 1, y: 0 }}
-                      className="absolute -top-10 right-[22%] z-30"
-                    >
-                      <div className="bg-orange-500 dark:bg-slate-900 text-white text-[10px] font-black min-w-[18px] h-[18px] flex items-center justify-center rounded-full ring-2 ring-orange-500/20 px-1">
-                        {cart.length}
-                      </div>
-                    </motion.div>
+                      layoutId="activeTab"
+                      className="absolute inset-0 -m-1 rounded-2xl"
+                      transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+                    />
                   )}
-                </div>
+
+                  <Icon
+                    size={22}
+                    strokeWidth={isActive ? 2.5 : 2}
+                    className={`transition-all ${
+                      isActive
+                        ? "text-orange-500"
+                        : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
+                    }`}
+                  />
+
+                  <span
+                    className={`text-[10px] font-black uppercase tracking-widest leading-none transition-all ${
+                      isActive
+                        ? "text-orange-500 opacity-100"
+                        : "text-slate-400 opacity-40 group-hover:opacity-70"
+                    }`}
+                  >
+                    {item.name}
+                  </span>
+
+                  {/* Active dot */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeDot"
+                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.8)]"
+                    />
+                  )}
+                </motion.div>
               </Link>
             );
           })}

@@ -283,14 +283,16 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
     return (
         <div className="min-h-screen scroll bg-white dark:bg-zinc-950 pb-">
-            <div className="relative h-[110px] w-full overflow-hidden">
-                <motion.div 
-                    style={{ scale: 1 + scrollY * 0.001, y: scrollY * 0.4 }}
-                    className="absolute inset-0 w-full h-full"
-                >
-                    <img src={vendor.logo || "/placeholder.jpg"} alt={vendor.storeName} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-medium/60 via-medium/20 to-transparent" />
-                </motion.div>
+        <div className="relative h-[140px] w-full">
+                <div className="absolute inset-0 overflow-hidden">
+                    <motion.div 
+                        style={{ scale: 1 + scrollY * 0.001, y: scrollY * 0.4 }}
+                        className="absolute inset-0 w-full h-full"
+                    >
+                        <img src={vendor.logo || "/placeholder.jpg"} alt={vendor.storeName} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-medium/60 via-medium/20 to-transparent" />
+                    </motion.div>
+                </div>
                 {!isScrolled && (
                     <div className="absolute top-4 left-4 right-4 z-50 flex items-center justify-between">
                         <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full bg-medium/20 backdrop-blur-md border border-white/20 text-white">
@@ -306,6 +308,16 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                         </div>
                     </div>
                 )}
+                {/* Logo straddling the hero/card boundary — sits here so overflow-hidden never clips it */}
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-40">
+                    <div className="w-16 h-16 rounded-[16px] bg-white dark:bg-zinc-950 p-1 shadow-xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+                        <img
+                            src={vendor.logo || "/placeholder.jpg"}
+                            alt={vendor.storeName}
+                            className="w-full h-full object-cover rounded-[12px]"
+                        />
+                    </div>
+                </div>
             </div>
 
             {/* 🏰 Sticky Glass Header */}
@@ -378,17 +390,10 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
             </AnimatePresence>
 
             {/* 🏛️ Store Identity Card */}
-            <div className="relative z-30 max-w-2xl mx-auto -mt-12 md:-mt-14">
-                <div className="bg-white dark:bg-zinc-900 p-2 shadow-medium/5 dark:shadow-none border border-zinc-100 dark:border-zinc-800">
+            <div className="relative max-w-2xl mx-auto">
+                <div className="bg-white dark:bg-zinc-900 pt-10 px-2 pb-2 shadow-medium/5 dark:shadow-none border border-zinc-100 dark:border-zinc-800">
                     <div className="flex flex-col items-center text-center">
-                        <div className="relative z-10 w-14 h-14 rounded-[14px] bg-white dark:bg-zinc-950 p-1 shadow-xl -mt-10 mb-2.5 border border-zinc-100 dark:border-zinc-800">
-                            <img 
-                                src={vendor.logo || "/placeholder.jpg"} 
-                                alt={vendor.storeName} 
-                                className="relative z-10 w-full h-full object-cover rounded-[10px]"
-                            />
-                        </div>
-                        
+
                         <div className="flex items-center gap-2 mb-1">
                             <h1 className="text-[18px] font-medium text-zinc-900 dark:text-white tracking-tight">
                                 {vendor.storeName}
