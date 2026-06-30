@@ -86,7 +86,6 @@ export function useNotificationManager(options = {}) {
     // Fetch initial data from API
     useEffect(() => {
         fetchNotificationsFromAPI(true);
-        fetchUnreadCountFromAPI();
     }, [restaurantId, role]);
 
     // Poll API when WebSocket is disconnected (fallback)
@@ -94,9 +93,8 @@ export function useNotificationManager(options = {}) {
         if (!wsConnected) {
             console.log(`📡 WebSocket disconnected - falling back to ${role} API polling`);
             const interval = setInterval(() => {
-                fetchNotificationsFromAPI(true);
-                fetchUnreadCountFromAPI();
-            }, 30000); // Every 30s
+                if (!document.hidden) fetchNotificationsFromAPI(true);
+            }, 300000); // Five-minute safety fallback while realtime is unavailable
             return () => clearInterval(interval);
         }
     }, [wsConnected, restaurantId, role]);
@@ -183,7 +181,6 @@ export function useNotificationManager(options = {}) {
 
             if (count !== undefined) {
                 setApiUnreadCount(count);
-                if (refreshUnreadCount) refreshUnreadCount();
             }
         } catch (error) {
             console.error(`Failed to fetch ${role} notifications:`, error);
@@ -209,7 +206,6 @@ export function useNotificationManager(options = {}) {
             }
             const count = responseData.unreadCount ?? responseData.count ?? responseData?.data?.count ?? responseData?.data ?? 0;
             setApiUnreadCount(count);
-            if (refreshUnreadCount) refreshUnreadCount();
         } catch (error) {
             console.error(`Failed to fetch ${role} unread count:`, error);
         }

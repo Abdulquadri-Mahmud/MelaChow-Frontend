@@ -46,11 +46,11 @@ export default function HomeHeader() {
     >
       {/* Premium Glassmorphism Container */}
       <div className="bg-white dark:bg-zinc-900 border-b border-gray-100 dark:border-zinc-800/50">
-        <div className="max-w-7xl mx-auto px-2 py-3 lg:px-6">
+        <div className="max-w-7xl mx-auto lg:px-6">
           <div className="flex items-center justify-between">
 
             {/* Left Section: Branding & Location */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 px-2 py-3">
               {/* Optional: Logo Mark */}
               <Link href="/" className="hidden lg:flex items-center gap-2 group">
                 <div className="w-10 h-10 bg-orange-500 rounded-2xl flex items-center justify-center group-hover:rotate-6 transition-transform">
