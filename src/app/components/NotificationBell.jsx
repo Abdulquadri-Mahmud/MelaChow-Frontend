@@ -3,11 +3,11 @@
 import { Bell } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNotificationManager } from '@/app/hooks/useNotificationManager';
+import { useSocket } from '@/app/context/SocketContext';
 
-export default function NotificationBell({ restaurantId, role, href = '/notifications' }) {
+export default function NotificationBell({ href = '/notifications' }) {
     const router = useRouter();
-    const { unreadCount, isRealtimeConnected } = useNotificationManager({ restaurantId, role });
+    const { unreadCount, isConnected: isRealtimeConnected } = useSocket();
 
     return (
         <motion.button
