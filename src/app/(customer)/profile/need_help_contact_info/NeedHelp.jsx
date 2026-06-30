@@ -41,6 +41,12 @@ export default function NeedHelp() {
               Email Support
             </button>
           </Link>
+          <Link href="mailto:help@melachow.com" className="w-full md:w-auto">
+            <button className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-2xl w-full transition-all shadow-lg shadow-amber-500/20 font-bold">
+              <EnvelopeIcon className="w-5 h-5" />
+              Email Help Desk
+            </button>
+          </Link>
           <Link href="tel:+2340000000000" className="w-full md:w-auto">
             <button className="flex items-center justify-center gap-2 bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 text-white px-6 py-3 rounded-2xl w-full transition-all shadow-lg shadow-zinc-900/20 font-bold">
               <PhoneIcon className="w-5 h-5" />

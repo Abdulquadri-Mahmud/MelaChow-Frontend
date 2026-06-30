@@ -375,10 +375,17 @@ export default function GetHelp() {
             />
             <ContactMethod
               icon={Mail}
-              name="Email support"
+              name="Email Support"
               description="support@melachow.com"
               url="mailto:support@melachow.com"
               colorClass="bg-orange-50 dark:bg-orange-500/10 text-orange-600"
+            />
+            <ContactMethod
+              icon={Mail}
+              name="Email Help Desk"
+              description="help@melachow.com"
+              url="mailto:help@melachow.com"
+              colorClass="bg-zinc-50 dark:bg-zinc-500/10 text-zinc-500"
             />
           </div>
 

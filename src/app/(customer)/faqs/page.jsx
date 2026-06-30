@@ -353,7 +353,7 @@ export default function FAQs() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
             {/* Live Chat */}
             <Link href="/support" className="group">
               <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-emerald-500/30 transition-all text-center space-y-4">
@@ -370,17 +370,33 @@ export default function FAQs() {
               </div>
             </Link>
 
-            {/* Email */}
+            {/* Email Support */}
             <Link href="mailto:support@melachow.com" className="group">
               <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-blue-500/30 transition-all text-center space-y-4">
                 <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-500 mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Mail size={24} />
                 </div>
                 <div>
-                  <h4 className="font-bold text-zinc-900 dark:text-white text-sm">Send Email</h4>
-                  <p className="text-xs text-zinc-500 mt-1">Response in 24h</p>
+                  <h4 className="font-bold text-zinc-900 dark:text-white text-sm">Email Support</h4>
+                  <p className="text-xs text-zinc-500 mt-1">support@melachow.com</p>
                 </div>
                 <div className="text-[10px] font-bold uppercase tracking-widest text-blue-600 flex items-center justify-center gap-1">
+                  Write Us <ArrowRight size={12} />
+                </div>
+              </div>
+            </Link>
+
+            {/* Email Help */}
+            <Link href="mailto:help@melachow.com" className="group">
+              <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-orange-500/30 transition-all text-center space-y-4">
+                <div className="w-12 h-12 rounded-full bg-orange-50 dark:bg-orange-950/20 text-orange-500 mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Mail size={24} />
+                </div>
+                <div>
+                  <h4 className="font-bold text-zinc-900 dark:text-white text-sm">Help Desk</h4>
+                  <p className="text-xs text-zinc-500 mt-1">help@melachow.com</p>
+                </div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-orange-600 flex items-center justify-center gap-1">
                   Write Us <ArrowRight size={12} />
                 </div>
               </div>

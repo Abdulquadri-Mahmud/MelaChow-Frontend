@@ -207,9 +207,15 @@ export default function Support() {
             />
             <ContactOption
               icon={Mail}
-              title="Email Us"
-              subtitle="Response within 24h"
+              title="Email Support"
+              subtitle="support@melachow.com"
               href="mailto:support@melachow.com"
+            />
+            <ContactOption
+              icon={Mail}
+              title="Email Help Desk"
+              subtitle="help@melachow.com"
+              href="mailto:help@melachow.com"
             />
             <ContactOption
               icon={Phone}
