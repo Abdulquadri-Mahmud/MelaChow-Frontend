@@ -423,8 +423,8 @@ export default function FAQs() {
         </div>
 
       </div>
-    </div>
       <ChatWidget />
+    </div>
   );
 }
 
