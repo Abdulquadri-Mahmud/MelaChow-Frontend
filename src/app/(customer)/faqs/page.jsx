@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Header2 from "@/app/components/App_Header/Header2";
+import ChatWidget from "@/app/components/Support/ChatWidget";
+
 
 const FAQ_DATA = [
   {
@@ -421,6 +423,7 @@ export default function FAQs() {
         </div>
 
       </div>
+      <ChatWidget />
     </div>
   );
 }
