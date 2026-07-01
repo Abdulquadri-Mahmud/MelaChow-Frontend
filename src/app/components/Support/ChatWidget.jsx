@@ -119,7 +119,7 @@ export default function ChatWidget() {
       {/* ── Chat Panel ─────────────────────────────────────────────── */}
       {isOpen && (
         <div
-          className="fixed bottom-24 right-6 z-50 flex flex-col bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden"
+          className="fixed bottom-40 right-4 z-[10001] flex flex-col bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-700 overflow-hidden"
           style={{ width: "min(360px, calc(100vw - 24px))", height: "480px" }}
         >
           {/* Header */}
@@ -221,7 +221,7 @@ export default function ChatWidget() {
       <button
         id="chat-widget-toggle-btn"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center hover:scale-105 active:scale-95"
+        className="fixed bottom-24 right-4 z-[10001] w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center hover:scale-105 active:scale-95"
         aria-label={isOpen ? "Close chat" : "Open support chat"}
       >
         {isOpen ? <X size={22} /> : <MessageCircle size={22} />}
