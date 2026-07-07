@@ -151,12 +151,12 @@ export default function Signin() {
   };
 
   return (
-    <div className="h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden p-4">
+    <div className="min-h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-y-auto p-3 md:p-8">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md flex flex-col h-full max-h-[90vh] justify-center"
+        className="w-full max-w-md flex flex-col justify-center py-6"
       >
         <div className="text-center space-y-3 mb-10">
           <h2 className="text-4xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white">
@@ -167,7 +167,7 @@ export default function Signin() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 px-2">
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">Email Address</label>
             <input
