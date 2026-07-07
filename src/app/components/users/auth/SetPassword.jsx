@@ -171,12 +171,12 @@ export default function SetPassword() {
     };
 
     return (
-        <div className="h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden p-4">
+        <div className="min-h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-y-auto p-3 md:p-8">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full max-w-md flex flex-col h-full max-h-[40vh] justify-center"
+                className="w-full max-w-md flex flex-col justify-center py-4"
             >
                 <div className="text-center mb-10">
                     <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
@@ -193,7 +193,7 @@ export default function SetPassword() {
                 </div>
 
                 <form onSubmit={handleSetPassword} className="space-y-5">
-                    <div className="space-y-2">
+                    <div className="space-y-2 p-1">
                         <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">New Password</label>
                         <div className="relative">
                             <input
@@ -202,7 +202,7 @@ export default function SetPassword() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all pr-12 shadow-sm border border-transparent focus:border-orange-500/20"
+                                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
                             />
                             <button
                                 type="button"
@@ -215,7 +215,7 @@ export default function SetPassword() {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-2 p-1">
                         <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">Confirm Password</label>
                         <input
                             type={showPassword ? "text" : "password"}
@@ -223,7 +223,7 @@ export default function SetPassword() {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
-                            className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm border border-transparent focus:border-orange-500/20"
+                            className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
                         />
                     </div>
 

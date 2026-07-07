@@ -152,12 +152,12 @@ export default function Signup() {
   };
 
   return (
-    <div className="h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden p-4">
+    <div className="min-h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-y-auto p-3 md:p-8">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md flex flex-col h-full max-h-[90vh] justify-center"
+        className="w-full max-w-md flex flex-col justify-center py-6 px-2"
       >
         {/* Header Section */}
         <div className="text-center space-y-3 mb-10">
@@ -171,17 +171,17 @@ export default function Signup() {
 
         {/* Form Section */}
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2 p-1">
             {/* First Name */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">First Name</label>
               <input
                 type="text"
                 name="firstname"
-                placeholder="John"
+                placeholder="Mahmood"
                 value={formData.firstname}
                 onChange={handleChange}
-                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm border border-transparent focus:border-orange-500/20"
+                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
                 required
               />
             </div>
@@ -191,10 +191,10 @@ export default function Signup() {
               <input
                 type="text"
                 name="lastname"
-                placeholder="Doe"
+                placeholder="Adeyemi"
                 value={formData.lastname}
                 onChange={handleChange}
-                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm border border-transparent focus:border-orange-500/20"
+                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
                 required
               />
             </div>
@@ -206,10 +206,10 @@ export default function Signup() {
             <input
               type="email"
               name="email"
-              placeholder="name@example.com"
+              placeholder="name@gmail.com"
               value={formData.email}
               onChange={handleChange}
-              className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm border border-transparent focus:border-orange-500/20"
+              className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
               required
             />
           </div>
@@ -223,7 +223,7 @@ export default function Signup() {
               placeholder="0800 000 0000"
               value={formData.phone}
               onChange={handleChange}
-              className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all shadow-sm border border-transparent focus:border-orange-500/20"
+              className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
               required
             />
           </div>
