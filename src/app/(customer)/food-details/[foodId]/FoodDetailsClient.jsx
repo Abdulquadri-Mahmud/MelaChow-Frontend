@@ -605,7 +605,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                     ? "text-green-500"
                                     : "text-zinc-900 dark:text-white"
                                   }`}>
-                                  {!food?.deliveryFee || food?.deliveryFee === 0 ? "Free" : `${food.deliveryFee.toLocaleString()}`}
+                                  {!food?.deliveryFee || food?.deliveryFee === 0 ? "Free" : `₦${food.deliveryFee.toLocaleString()}`}
                                 </p>
                               </div>
                             </div>
@@ -622,7 +622,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                           <div className="flex items-center gap-2 mb-4">
                             <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
                             <h3 className="text-lg font-medium italic text-zinc-900 dark:text-white capitalize tracking-tight">
-                              Available Deals ðŸŽ
+                              Available Deals ðŸŽ 
                             </h3>
                           </div>
                           <div className="grid gap-3">
@@ -649,7 +649,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                     {combo.description || "Combo deal"}
                                   </p>
                                   <p className="text-sm font-medium text-zinc-500 mt-1">
-                                    {combo.price_naira?.toLocaleString()}
+                                    ₦{combo.price_naira?.toLocaleString()}
                                   </p>
                                 </div>
                                 <button
@@ -700,7 +700,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                       {portion.label}
                                     </span>
                                     <span className="text-[11px] font-medium text-zinc-500 mt-0.5">
-                                      {portion.price_naira ? `${portion.price_naira.toLocaleString()}` : 'Free'}
+                                      {portion.price_naira ? `₦${portion.price_naira.toLocaleString()}` : 'Free'}
                                     </span>
                                   </div>
 
@@ -787,7 +787,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                       <div className="flex-1 min-w-0">
                                         <p className="font-medium text-[11px] text-zinc-900 dark:text-white truncate capitalize italic">{option.label}</p>
                                         {option.price_modifier_naira > 0 ? (
-                                          <p className="text-[10px] font-medium text-zinc-500">+{option.price_modifier_naira.toLocaleString()}</p>
+                                          <p className="text-[10px] font-medium text-zinc-500">+₦{option.price_modifier_naira.toLocaleString()}</p>
                                         ) : (
                                           <p className="text-[8px] font-medium text-zinc-400 dark:text-zinc-500 capitalize tracking-widest mt-0.5">Free</p>
                                         )}
@@ -836,7 +836,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                           <div className="flex flex-col sm:flex-row items-center gap-6">
                             <div className="text-center shrink-0">
                               <p className="text-6xl font-medium text-zinc-900 dark:text-white leading-none">
-                                {reviewsData.food.averageRating || '”'}
+                                {reviewsData.food.averageRating || '—'}
                               </p>
                               <div className="flex justify-center gap-0.5 mt-2">
                                 {[1, 2, 3, 4, 5].map(s => (
