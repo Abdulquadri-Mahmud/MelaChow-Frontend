@@ -282,7 +282,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const isScrolled = scrollY > 120;
 
     return (
-        <div className="min-h-screen scroll bg-white dark:bg-zinc-950 pb-">
+        <div className="min-h-screen scroll bg-white dark:bg-zinc-950 pb-5">
         <div className="relative h-[140px] w-full">
                 <div className="absolute inset-0 overflow-hidden">
                     <motion.div 

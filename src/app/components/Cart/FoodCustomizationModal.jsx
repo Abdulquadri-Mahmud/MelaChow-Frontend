@@ -502,7 +502,7 @@ export default function FoodCustomizationModal({
                     </div>
 
                     {/* Footer */}
-                    <div className="p-4 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 shadow-2xl">
+                    <div className="absolute bottom-0 left-0 right-0 z-10 p-4 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 shadow-2xl">
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-[20px] p-1 h-[48px] shadow-inner shrink-0">
                                 <button
