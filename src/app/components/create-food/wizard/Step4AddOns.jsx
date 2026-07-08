@@ -97,7 +97,7 @@ export default function Step4AddOns() {
 
         const data = {
             name: groupName.trim(),
-            is_required: isRequired || min > 0,
+            is_required: isRequired,
             min_selections: min,
             max_selections: max,
         };
