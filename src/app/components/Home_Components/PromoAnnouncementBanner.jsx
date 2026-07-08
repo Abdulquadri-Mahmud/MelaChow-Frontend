@@ -115,45 +115,57 @@ export default function PromoAnnouncementBanner() {
               type="button"
               whileTap={{ scale: 0.98 }}
               onClick={() => router.push(slide.href)}
-              className={`min-w-[82%] snap-center rounded-2xl px-3 py-3 text-left shadow-md transition sm:min-w-[340px] ${
+              className={`relative overflow-hidden min-w-[82%] snap-center rounded-2xl px-3.5 py-3.5 text-left transition-all duration-300 sm:min-w-[340px] border shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.18)] ${
                 isVendor
-                  ? "bg-zinc-950 text-white shadow-zinc-950/15"
-                  : "bg-orange-500 text-white shadow-orange-500/20"
+                  ? "bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 border-zinc-800/80 text-white"
+                  : "bg-gradient-to-br from-[#FF5100] via-[#FF6B00] to-[#E04400] border-orange-400/30 text-white"
               }`}
             >
-              <div className="flex items-center gap-2.5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/15 ring-1 ring-white/15">
+              {/* Subtle background glow design element */}
+              <div className={`absolute -right-6 -top-6 w-16 h-16 rounded-full blur-2xl opacity-30 pointer-events-none ${
+                isVendor ? "bg-orange-500" : "bg-white"
+              }`} />
+
+              <div className="relative z-10 flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner">
                   {isVendor && slide.logo ? (
                     <img src={slide.logo} alt="" className="h-full w-full object-cover" />
                   ) : (
-                    <Icon size={22} />
+                    <Icon size={20} className="text-white drop-shadow-sm" />
                   )}
                 </div>
-
+ 
                 <div className="min-w-0 flex-1">
-                  <div className="mb-1 flex items-center gap-1.5">
-                    {isVendor ? <Store size={12} /> : <TicketPercent size={12} />}
-                    <span className="truncate text-[9px] font-black uppercase tracking-[0.12em] text-white/75">
+                  <div className="mb-1 flex items-center">
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/10 text-[8px] font-black uppercase tracking-[0.15em] text-white/90">
+                      {isVendor ? <Store size={9} strokeWidth={3.5} /> : <TicketPercent size={9} strokeWidth={3.5} />}
                       {slide.label}
                     </span>
                   </div>
-                  <p className="line-clamp-2 text-sm font-black leading-tight">
+                  <p className="line-clamp-2 text-sm font-black leading-tight tracking-tight drop-shadow-sm">
                     {slide.title}
                   </p>
-                  <p className="mt-1 truncate text-[11px] font-bold text-white/75">
+                  <p className="mt-1 truncate text-[11px] font-bold text-white/80">
                     {slide.body}
                     {slide.city ? ` - ${slide.city}` : ""}
                   </p>
                 </div>
-
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-zinc-950">
-                  <ArrowRight size={15} />
+ 
+                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-300 shadow-md ${
+                  isVendor 
+                    ? "bg-[#FF6600] text-white shadow-orange-600/20" 
+                    : "bg-zinc-950 text-white shadow-zinc-950/20"
+                }`}>
+                  <ArrowRight size={14} className="stroke-[3]" />
                 </div>
               </div>
-
-              <div className="mt-2 flex items-center justify-between gap-2 border-t border-white/10 pt-2 text-[9px] font-black uppercase tracking-[0.1em] text-white/70">
-                <span className="truncate">{slide.meta}</span>
-                <span className="shrink-0">Ends {formatWindow(slide.endsAt)}</span>
+ 
+              <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-white/10 pt-2.5 text-[9px] font-black uppercase tracking-[0.12em] text-white/60">
+                <span className={`flex items-center gap-1.5 font-extrabold ${isVendor ? "text-orange-400" : "text-white"}`}>
+                  <div className={`h-1.5 w-1.5 rounded-full ${isVendor ? "bg-orange-500" : "bg-white"} animate-pulse`} />
+                  {slide.meta}
+                </span>
+                <span className="shrink-0 opacity-80">Ends {formatWindow(slide.endsAt)}</span>
               </div>
             </motion.button>
           );
