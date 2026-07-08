@@ -432,7 +432,12 @@ export default function Step4AddOns() {
                                                 <p className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none italic">Force choice for customer</p>
                                             </div>
                                             <button 
-                                                onClick={() => setIsRequired(!isRequired)}
+                                                onClick={() => {
+                                                    const newValue = !isRequired;
+                                                    setIsRequired(newValue);
+                                                    if (!newValue) setMinSelections("0");
+                                                    if (newValue && minSelections === "0") setMinSelections("1");
+                                                }}
                                                 className={`w-10 h-5 rounded-full p-1 transition-all ${isRequired ? 'bg-orange-600' : 'bg-zinc-200 dark:bg-zinc-800'}`}
                                             >
                                                 <div className={`w-3 h-3 bg-white rounded-full shadow-sm transform transition-all ${isRequired ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -442,7 +447,12 @@ export default function Step4AddOns() {
                                         <div className="grid grid-cols-2 gap-4 pb-1">
                                             <div className="space-y-1.5 relative group">
                                                 <label className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.2em] group-focus-within:text-orange-600 transition-colors block pl-1">Min Picks</label>
-                                                <input type="number" min="0" value={minSelections} onChange={e => setMinSelections(e.target.value)} className="w-full h-11 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-black tabular-nums outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all" />
+                                                <input type="number" min="0" value={minSelections} onChange={e => {
+                                                    const val = e.target.value;
+                                                    setMinSelections(val);
+                                                    if (Number(val) > 0) setIsRequired(true);
+                                                    if (Number(val) === 0 && val !== "") setIsRequired(false);
+                                                }} className="w-full h-11 px-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-black tabular-nums outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 shadow-sm transition-all" />
                                             </div>
                                             <div className="space-y-1.5 relative group">
                                                 <label className="text-[8px] font-black text-zinc-400 uppercase tracking-[0.2em] group-focus-within:text-orange-600 transition-colors block pl-1">Max Picks</label>
