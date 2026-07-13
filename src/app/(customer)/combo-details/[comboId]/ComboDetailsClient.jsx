@@ -423,7 +423,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
             </header>
 
             {/* Page Body */}
-            <div className={`bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300 ${isModal ? 'flex-1 overflow-y-auto no-scrollbar' : ''}`}>
+            <div className={`pb-10 bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300 ${isModal ? 'flex-1 overflow-y-auto no-scrollbar' : ''}`}>
                 <div className={`max-w-4xl mx-auto ${isModal ? 'pb-8' : 'pb-32'}`}>
                     {isLoading ? (
                         <div className="p-2">
@@ -654,8 +654,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
             {/* Fixed Bottom Bar */}
             {!isLoading && combo && (
                 <div
-                    className="fixed inset-x-0 bottom-0 p-2.5 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 z-[10001] shadow-[0_-12px_30px_rgba(15,23,42,0.08)]"
-                    style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}
+                    className={`${isModal ? 'shrink-0' : 'fixed inset-x-0 bottom-0'} p-2.5 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 z-[10001] shadow-[0_-12px_30px_rgba(15,23,42,0.08)]`} style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}
                 >
                     <div className="max-w-2xl mx-auto flex items-center gap-3">
                         {/* Quantity control */}
@@ -682,7 +681,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                         <button
                             onClick={handleAddToCart}
                             disabled={!combo.is_available}
-                            className="flex-1 h-[46px] bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded font-medium text-[12px] capitalize tracking-[0.05em] italic flex items-center justify-between px-4 transition-all active:scale-[0.98] dark:shadow-none group border border-zinc-800/50 dark:border-zinc-200/50 shadow-lg"
+                            className="flex-1 h-[46px] py-1 bg-zinc-900 dark:bg-zinc-100 hover:bg-medium dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded font-medium text-[12px] capitalize tracking-[0.05em] italic flex items-center justify-between px-3.5 transition-all active:scale-[0.98] group border border-zinc-800/50 dark:border-zinc-200/50 overflow-hidden"
                         >
                             <div className="flex items-center gap-2 min-w-0">
                                 <span className={`truncate ${combo.is_available ? "text-white dark:text-zinc-900 group-hover:text-orange-500" : "text-zinc-400"}`}>
