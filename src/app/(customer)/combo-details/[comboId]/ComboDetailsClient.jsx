@@ -96,6 +96,16 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
         return () => setIsModalOpen(false);
     }, [isModal, setIsModalOpen]);
 
+    // Keep the restaurant page fixed behind the full-screen combo modal.
+    useEffect(() => {
+        if (!isModal) return;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [isModal]);
+
     // Data State
     const initialCombo = initialData?.combo || (initialData?.success ? null : initialData);
     const [combo, setCombo] = useState(initialCombo && Object.keys(initialCombo).length > 0 ? initialCombo : null);
@@ -351,9 +361,9 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
         );
         if (isModal) {
             return (
-                <div className="fixed inset-0 z-[9999] flex items-end justify-center">
+                <div className="fixed inset-0 z-[9999] flex items-stretch justify-center">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-                    <div className="relative w-full max-w-2xl h-screen overflow-y-auto no-scrollbar bg-white dark:bg-zinc-950">
+                    <div className="relative w-full h-[100dvh] overflow-y-auto overscroll-contain no-scrollbar bg-white dark:bg-zinc-950">
                         {errorContent}
                     </div>
                 </div>
@@ -366,7 +376,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     const totalItems = cart.length;
 
     const mainContent = (
-        <div className={`min-h-screen ${isModal ? 'bg-zinc-50 dark:bg-zinc-950 overflow-hidden' : 'bg-zinc-50 dark:bg-zinc-950'}`}>
+        <div className={`${isModal ? 'min-h-full flex flex-col' : 'min-h-screen'} bg-zinc-50 dark:bg-zinc-950`}>
             {/* Sticky Header */}
             <header className=" flex items-center justify-between px-4 py-2.5 bg-white bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800">
                 <div className="flex items-center gap-3">
@@ -410,8 +420,8 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
             </header>
 
             {/* Page Body */}
-            <div className="bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300">
-                <div className="max-w-4xl mx-auto pb-32">
+            <div className={`bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300 ${isModal ? 'flex-1' : ''}`}>
+                <div className={`max-w-4xl mx-auto ${isModal ? 'pb-0' : 'pb-32'}`}>
                     {isLoading ? (
                         <div className="p-2">
                             <FoodDetailsSkeleton />
@@ -640,7 +650,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
 
             {/* Fixed Bottom Bar */}
             {!isLoading && combo && (
-                <div className={`fixed bottom-0 left-0 right-0 p-2.5 bg-white bg-opacity-95 dark:bg-zinc-950 dark:bg-opacity-90 backdrop-blur-xl border-t border-zinc-100 border-opacity-50 dark:border-zinc-800 dark:border-opacity-80 pb-safe z-40 ${isModal ? 'rounded-b-[40px]' : ''}`}>
+                <div className={`${isModal ? 'relative mt-auto shrink-0' : 'fixed bottom-0 left-0 right-0'} p-2.5 bg-white bg-opacity-95 dark:bg-zinc-950 dark:bg-opacity-90 backdrop-blur-xl border-t border-zinc-100 border-opacity-50 dark:border-zinc-800 dark:border-opacity-80 pb-safe z-40`}>
                     <div className="max-w-2xl mx-auto flex items-center gap-3 px-2">
                         {/* Quantity control */}
                         <div className="flex items-center gap-1 bg-zinc-100 bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 rounded p-0.5 h-[46px] border border-zinc-200 border-opacity-50 dark:border-zinc-800 dark:border-opacity-50 shadow-inner shrink-0">
@@ -691,7 +701,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
 
     if (isModal) {
         return (
-            <div className="fixed inset-0 z-[9999] flex items-end justify-center">
+            <div className="fixed inset-0 z-[9999] flex items-stretch justify-center">
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -704,7 +714,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                     animate={{ y: 0 }}
                     exit={{ y: "100%" }}
                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    className="relative w-full max-w-2xl h-screen overflow-y-auto no-scrollbar"
+                    className="relative w-full h-[100dvh] overflow-y-auto overscroll-contain no-scrollbar bg-zinc-50 dark:bg-zinc-950"
                 >
                     {mainContent}
                 </motion.div>
