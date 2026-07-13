@@ -518,7 +518,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                             {allSections.length > 0 ? (
                                 allSections.map((section) => (
                                     <SwiperSlide key={section._id}>
-                                        <div className="pb-6 pt-2 min-h-[50vh]">
+                                        <div className="pb-6 pt-2 min-h-[55vh]">
                                             <div className="space-y-0 px-2">
                                                 {section.items.map((item, index) => (
                                                     <FoodItemRow 
