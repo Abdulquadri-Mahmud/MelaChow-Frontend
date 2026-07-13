@@ -361,12 +361,15 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
         );
         if (isModal) {
             return (
-                <div className="fixed inset-0 z-[9999] flex items-stretch justify-center">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-                    <div className="relative w-full h-[100dvh] overflow-y-auto overscroll-contain no-scrollbar bg-white dark:bg-zinc-950">
-                        {errorContent}
-                    </div>
-                </div>
+                <motion.div
+                    initial={{ y: "100%", opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: "100%", opacity: 0 }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    className="fixed inset-0 z-[9999] bg-zinc-50 dark:bg-zinc-950 flex flex-col overflow-hidden w-full h-full"
+                >
+                    {errorContent}
+                </motion.div>
             );
         }
         return errorContent;
@@ -376,9 +379,9 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     const totalItems = cart.length;
 
     const mainContent = (
-        <div className={`${isModal ? 'min-h-full flex flex-col' : 'min-h-screen'} bg-zinc-50 dark:bg-zinc-950`}>
+        <div className={`${isModal ? 'h-full flex flex-col overflow-hidden' : 'min-h-screen'} bg-zinc-50 dark:bg-zinc-950`}>
             {/* Sticky Header */}
-            <header className=" flex items-center justify-between px-4 py-2.5 bg-white bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800">
+            <header className="flex items-center justify-between px-2 py-2.5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800 shrink-0">
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => {
@@ -420,8 +423,8 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
             </header>
 
             {/* Page Body */}
-            <div className={`bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300 ${isModal ? 'flex-1' : ''}`}>
-                <div className={`max-w-4xl mx-auto ${isModal ? 'pb-0' : 'pb-32'}`}>
+            <div className={`bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300 ${isModal ? 'flex-1 overflow-y-auto no-scrollbar' : ''}`}>
+                <div className={`max-w-4xl mx-auto ${isModal ? 'pb-8' : 'pb-32'}`}>
                     {isLoading ? (
                         <div className="p-2">
                             <FoodDetailsSkeleton />
@@ -650,8 +653,11 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
 
             {/* Fixed Bottom Bar */}
             {!isLoading && combo && (
-                <div className={`${isModal ? 'relative mt-auto shrink-0' : 'fixed bottom-0 left-0 right-0'} p-2.5 bg-white bg-opacity-95 dark:bg-zinc-950 dark:bg-opacity-90 backdrop-blur-xl border-t border-zinc-100 border-opacity-50 dark:border-zinc-800 dark:border-opacity-80 pb-safe z-40`}>
-                    <div className="max-w-2xl mx-auto flex items-center gap-3 px-2">
+                <div
+                    className="fixed inset-x-0 bottom-0 p-2.5 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 z-[10001] shadow-[0_-12px_30px_rgba(15,23,42,0.08)]"
+                    style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}
+                >
+                    <div className="max-w-2xl mx-auto flex items-center gap-3">
                         {/* Quantity control */}
                         <div className="flex items-center gap-1 bg-zinc-100 bg-opacity-80 dark:bg-zinc-900 dark:bg-opacity-80 rounded p-0.5 h-[46px] border border-zinc-200 border-opacity-50 dark:border-zinc-800 dark:border-opacity-50 shadow-inner shrink-0">
                             <button
@@ -701,24 +707,15 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
 
     if (isModal) {
         return (
-            <div className="fixed inset-0 z-[9999] flex items-stretch justify-center">
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={onClose}
-                    className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                />
-                <motion.div
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "100%" }}
-                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    className="relative w-full h-[100dvh] overflow-y-auto overscroll-contain no-scrollbar bg-zinc-50 dark:bg-zinc-950"
-                >
-                    {mainContent}
-                </motion.div>
-            </div>
+            <motion.div
+                initial={{ y: "100%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: "100%", opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="fixed inset-0 z-[9999] bg-zinc-50 dark:bg-zinc-950 flex flex-col overflow-hidden w-full h-full"
+            >
+                {mainContent}
+            </motion.div>
         );
     }
 
