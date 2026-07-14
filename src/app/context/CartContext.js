@@ -124,6 +124,7 @@ export const CartProvider = ({ children }) => {
 
   // Add item
   const addToCart = (item) => {
+    showAnimatedToast("success", "Item added to cart", "cart-add", proceedToCartAction);
     setCart((prev) => {
       const existingIndex = prev.findIndex(c => isSameItem(c, item));
 
@@ -135,17 +136,16 @@ export const CartProvider = ({ children }) => {
           cartId: newCart[existingIndex].cartId,
           quantity: (Number(newCart[existingIndex].quantity) || 1) + (Number(item.quantity) || 1)
         };
-        showAnimatedToast("success", "Item quantity updated", "cart-qty-inc", proceedToCartAction);
         return newCart;
       }
 
-      showAnimatedToast("success", "Item added to cart", "cart-add", proceedToCartAction);
       return [...prev, { ...item, cartId: `${Date.now()}-${Math.random()}` }];
     });
   };
 
   // Add Combo
   const addComboToCart = (comboItem) => {
+    showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo", proceedToCartAction);
     const newItem = {
         ...comboItem,
         type:     "combo",
@@ -155,7 +155,6 @@ export const CartProvider = ({ children }) => {
     setCart((prev) => {
       const existingIndex = prev.findIndex((item) => isSameItem(item, newItem));
       if (existingIndex === -1) {
-        showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo", proceedToCartAction);
         return [...prev, newItem];
       }
 
@@ -166,7 +165,6 @@ export const CartProvider = ({ children }) => {
         cartId: next[existingIndex].cartId,
         quantity: (Number(next[existingIndex].quantity) || 1) + newItem.quantity,
       };
-      showAnimatedToast("success", "Item quantity updated", "cart-qty-inc", proceedToCartAction);
       return next;
     });
   };

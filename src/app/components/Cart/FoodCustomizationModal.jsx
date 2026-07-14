@@ -421,6 +421,7 @@ export default function FoodCustomizationModal({
                             <div key={group._id} className="space-y-3">
                                 <div className="flex items-center justify-between gap-2 px-1">
                                     <div className="flex items-center gap-2">
+                                       {group.image_url && <img src={group.image_url} alt="" className="h-9 w-9 rounded object-cover border border-zinc-200 dark:border-zinc-700" />}
                                        <div className="w-1 h-4 bg-orange-500 rounded-full" />
                                        <h4 className="font-black text-zinc-900 dark:text-white text-[13px] uppercase italic tracking-tight">
                                            {group.name}
