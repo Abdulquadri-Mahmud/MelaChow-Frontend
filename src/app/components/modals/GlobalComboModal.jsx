@@ -11,6 +11,7 @@ export default function GlobalComboModal() {
     <AnimatePresence>
       {isOpen && comboId && (
         <ComboDetailsClient
+          key={comboId}
           isModal={true}
           onClose={closeComboModal}
           comboId={comboId}

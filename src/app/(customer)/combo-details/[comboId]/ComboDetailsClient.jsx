@@ -207,6 +207,10 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     };
 
     const toggleChoice = (groupKey, group, option) => {
+        if (option.is_available === false || (option.track_stock && option.stock_quantity <= 0)) {
+            toast.error(`${option.label} is sold out`);
+            return;
+        }
         setSelections(prev => {
             const current = prev[groupKey];
             const isMulti = group.max_selections > 1;
@@ -257,6 +261,10 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                     toast.error(`Max ${group.max_selections} selection for ${group.name}`);
                     return prev;
                 }
+                if (delta > 0 && current.track_stock && newQty * quantity > current.stock_quantity) {
+                    toast.error(`Only ${current.stock_quantity} ${current.label} left`);
+                    return prev;
+                }
                 return { ...prev, [groupKey]: { ...current, quantity: newQty } };
             }
 
@@ -266,6 +274,10 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
 
             const item = list[index];
             const newQty = (item.quantity || 1) + delta;
+            if (delta > 0 && item.track_stock && newQty * quantity > item.stock_quantity) {
+                toast.error(`Only ${item.stock_quantity} ${item.label} left`);
+                return prev;
+            }
             if (newQty <= 0) {
                 if (group.is_required && list.length === 1) return prev;
                 return { ...prev, [groupKey]: list.filter(i => i.label !== optionLabel) };
@@ -307,6 +319,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
             const sel = selections[key];
             const items = Array.isArray(sel) ? sel : (sel ? [sel] : []);
             items.forEach(opt => {
+                if (opt.track_stock && (opt.quantity || 1) * quantity > opt.stock_quantity) return;
                 selected_options.push({
                     group_id:             group._id,
                     group_name:           group.name,
@@ -317,6 +330,11 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                 });
             });
         });
+        const selectedCount = Object.values(selections).reduce((sum, sel) => sum + (Array.isArray(sel) ? sel.length : sel ? 1 : 0), 0);
+        if (selected_options.length < selectedCount) {
+            toast.error("One of your selected options no longer has enough stock");
+            return;
+        }
 
         const vendorIdForCart = vendor?._id || vendor?.id || combo?.vendor_id || combo?.vendorId || combo?.restaurantId || vendorId;
 
@@ -344,7 +362,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     };
 
     // Render
-    if (!isClient) return <div className="min-h-screen bg-white dark:bg-zinc-950" />;
+    if (!isClient) return null;
 
     if (!isLoading && (isError || !combo)) {
         const errorContent = (
@@ -379,7 +397,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     const totalItems = cart.length;
 
     const mainContent = (
-        <div className={`${isModal ? 'h-full flex flex-col overflow-hidden' : 'min-h-screen'} bg-zinc-50 dark:bg-zinc-950`}>
+        <div className={`${isModal ? 'h-full flex flex-col' : 'min-h-screen'} bg-zinc-50 dark:bg-zinc-950`}>
             {/* Sticky Header */}
             <header className="flex items-center justify-between px-2 py-2.5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800 shrink-0">
                 <div className="flex items-center gap-3">
@@ -423,8 +441,8 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
             </header>
 
             {/* Page Body */}
-            <div className={`pb-10 bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300 ${isModal ? 'flex-1 overflow-y-auto no-scrollbar' : ''}`}>
-                <div className={`max-w-4xl mx-auto ${isModal ? 'pb-8' : 'pb-32'}`}>
+            <div className={`bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300 ${isModal ? 'flex-1 overflow-y-auto no-scrollbar' : 'pb-10'}`}>
+                <div className={`max-w-4xl mx-auto ${isModal ? 'pb-4' : 'pb-32'}`}>
                     {isLoading ? (
                         <div className="p-2">
                             <FoodDetailsSkeleton />
@@ -566,17 +584,18 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                             </p>
 
                                             <div className="space-y-2">
-                                                {group.options?.filter(o => o.is_available).map(option => {
+                                                {group.options?.map(option => {
                                                     const isSelected = isOptionSelected(groupKey, option.label);
+                                                    const optionUnavailable = option.is_available === false || (option.track_stock && option.stock_quantity <= 0);
                                                     return (
                                                         <div
                                                             key={option._id}
-                                                            onClick={() => toggleChoice(groupKey, group, option)}
+                                                            onClick={() => !optionUnavailable && toggleChoice(groupKey, group, option)}
                                                             className={`flex items-center gap-2.5 p-2 rounded-[8px] border-2 cursor-pointer transition-all ${
                                                                 isSelected
                                                                     ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10 shadow-lg shadow-orange-500/5"
                                                                     : "border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-orange-200 dark:hover:border-orange-500/30"
-                                                            }`}
+                                                            } ${optionUnavailable ? "opacity-50 cursor-not-allowed" : ""}`}
                                                         >
                                                             {/* Selection Indicator Circle */}
                                                             <div className="w-8 h-8 rounded-full bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
@@ -588,6 +607,8 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                                                 <p className="font-bold text-[13px] text-zinc-900 dark:text-white truncate tracking-tight capitalize italic">
                                                                     {option.label}
                                                                 </p>
+                                                                {optionUnavailable && <p className="text-[8px] font-black uppercase tracking-widest text-rose-500">Sold out</p>}
+                                                                {!optionUnavailable && option.track_stock && option.stock_quantity <= (option.low_stock_threshold ?? 5) && <p className="text-[8px] font-black uppercase tracking-widest text-amber-500">Only {option.stock_quantity} left</p>}
                                                                 {option.price_modifier_naira > 0 ? (
                                                                     <p className="text-[11px] font-medium text-zinc-500 mt-0.5">
                                                                         ₦{option.price_modifier_naira.toLocaleString()}
@@ -651,10 +672,13 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                 </div>
             </div>
 
-            {/* Fixed Bottom Bar */}
+            {/* Bottom Bar — sticky in modal (flex child), fixed on full page */}
             {!isLoading && combo && (
                 <div
-                    className={`${isModal ? 'shrink-0' : 'fixed inset-x-0 bottom-0'} p-2.5 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 z-[10001] shadow-[0_-12px_30px_rgba(15,23,42,0.08)]`} style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}
+                    className={isModal
+                        ? "shrink-0 p-2.5 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 shadow-[0_-12px_30px_rgba(15,23,42,0.08)]"
+                        : "fixed inset-x-0 bottom-0 p-2.5 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 z-[10001] shadow-[0_-12px_30px_rgba(15,23,42,0.08)]"}
+                    style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}
                 >
                     <div className="max-w-2xl mx-auto flex items-center gap-3">
                         {/* Quantity control */}

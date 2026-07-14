@@ -214,6 +214,10 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   };
 
   const toggleChoice = (groupIndex, group, option) => {
+    if (option.is_available === false || (option.track_stock && option.stock_quantity <= 0)) {
+      toast.error(`${option.label} is sold out`);
+      return;
+    }
     setSelections(prev => {
       const current = prev[groupIndex];
       const isMulti = group.max_selections > 1;
@@ -263,6 +267,10 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
           toast.error(`Max ${group.max_selections} selections for ${group.name}`);
           return prev;
         }
+        if (delta > 0 && current.track_stock && newQty * quantity > current.stock_quantity) {
+          toast.error(`Only ${current.stock_quantity} ${current.label} left`);
+          return prev;
+        }
         return { ...prev, [groupIndex]: { ...current, selectionQuantity: newQty } };
       }
 
@@ -272,6 +280,11 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
       const item = list[index];
       const newQty = (item.selectionQuantity || 1) + delta;
+
+      if (delta > 0 && item.track_stock && newQty * quantity > item.stock_quantity) {
+        toast.error(`Only ${item.stock_quantity} ${item.label} left`);
+        return prev;
+      }
 
       if (newQty <= 0) {
         return {
@@ -325,6 +338,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
       const sel = selections[key];
       const items = Array.isArray(sel) ? sel : (sel ? [sel] : []);
       items.forEach(opt => {
+        if (opt.track_stock && (opt.selectionQuantity || 1) * quantity > opt.stock_quantity) return;
         selectedOptions.push({
           group_id: group._id,
           group_name: group.name,
@@ -335,6 +349,11 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
         });
       });
     });
+    const selectedCount = Object.values(selections).reduce((sum, sel) => sum + (Array.isArray(sel) ? sel.length : sel ? 1 : 0), 0);
+    if (selectedOptions.length < selectedCount) {
+      toast.error("One of your selected options no longer has enough stock");
+      return;
+    }
     const vendor = getFoodVendor(food);
     const vendorId = getFoodVendorId(food);
 
@@ -771,13 +790,14 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                               </p>
 
                               <div className="space-y-2">
-                                {(group.options || []).filter(o => o.is_available !== false).map(option => {
+                                {(group.options || []).map(option => {
                                   const isSelected = isOptionSelected(gIdx, option.label);
+                                  const optionUnavailable = option.is_available === false || (option.track_stock && option.stock_quantity <= 0);
                                   return (
                                     <div key={option._id}
-                                      onClick={() => itemAvailability.available && toggleChoice(gIdx, group, option)}
+                                      onClick={() => itemAvailability.available && !optionUnavailable && toggleChoice(gIdx, group, option)}
                                       className={`flex items-center gap-2.5 p-2 rounded-[12px] border-2 cursor-pointer transition-all ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10" : "border-zinc-50 dark:border-zinc-800 bg-white dark:bg-zinc-900"
-                                        } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                        } ${!itemAvailability.available || optionUnavailable ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                       {/* Option Image */}
                                       {/* Selection Indicator Circle */}
                                       <div className="w-8 h-8 rounded-full bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
@@ -786,6 +806,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                       {/* Details */}
                                       <div className="flex-1 min-w-0">
                                         <p className="font-medium text-[11px] text-zinc-900 dark:text-white truncate capitalize italic">{option.label}</p>
+                                        {optionUnavailable && <p className="text-[8px] font-black uppercase tracking-widest text-rose-500">Sold out</p>}
+                                        {!optionUnavailable && option.track_stock && option.stock_quantity <= (option.low_stock_threshold ?? 5) && <p className="text-[8px] font-black uppercase tracking-widest text-amber-500">Only {option.stock_quantity} left</p>}
                                         {option.price_modifier_naira > 0 ? (
                                           <p className="text-[10px] font-medium text-zinc-500">+₦{option.price_modifier_naira.toLocaleString()}</p>
                                         ) : (

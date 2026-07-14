@@ -8,13 +8,13 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import { AnimatePresence, motion } from "framer-motion";
 
-import ComboDetailsClient from "@/app/(customer)/combo-details/[comboId]/ComboDetailsClient";
 import { MapPin, Clock, Star, Search, X, Plus, Share2, Flame, MessageSquare, ChevronLeft, Loader2, Store, Gift, ChevronRight } from "lucide-react";
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import ViewVendorSkeleton from "@/app/skeleton/ViewVendorSkeleton";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
+import { useComboModalStore } from "@/app/store/comboModalStore";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
 
 const getItemId = (item) => item?._id || item?.id;
@@ -89,7 +89,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const { addToCart } = useCart();
     const sectionRefs = useRef({});
     const openFoodModal = useFoodModalStore(state => state.openFoodModal);
-    const [selectedCombo, setSelectedCombo] = useState(null);
+    const openComboModal = useComboModalStore(state => state.openComboModal);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeSectionId, setActiveSectionId] = useState("all");
     const [activeTab, setActiveTab] = useState("menu");
@@ -146,7 +146,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         if (combo.is_available === false) return;
         const selectedComboId = getItemId(combo);
         if (!selectedComboId) return;
-        setSelectedCombo({ comboId: selectedComboId, combo });
+        openComboModal(selectedComboId, { combo, vendor });
     };
 
     const handleItemTap = (item) => {
@@ -282,7 +282,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const isScrolled = scrollY > 120;
 
     return (
-        <div className="min-h-screen scroll bg-white dark:bg-zinc-950 pb-5">
+        <div className="min-h-screen scroll bg-white dark:bg-zinc-950 pb-10">
         <div className="relative h-[140px] w-full">
                 <div className="absolute inset-0 overflow-hidden">
                     <motion.div 
@@ -640,16 +640,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                 </Swiper>
             </div>
 
-            <AnimatePresence>
-                {selectedCombo?.comboId && (
-                    <ComboDetailsClient
-                        isModal={true}
-                        onClose={() => setSelectedCombo(null)}
-                        comboId={selectedCombo.comboId}
-                        initialData={{ combo: selectedCombo.combo, vendor }}
-                    />
-                )}
-            </AnimatePresence>
+
 
         </div>
     );
