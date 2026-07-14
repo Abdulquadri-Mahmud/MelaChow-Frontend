@@ -770,6 +770,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                            {(food.choiceGroups || food.choice_groups).map((group, gIdx) => (
                              <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[8px] p-2.5 border border-zinc-100 dark:border-zinc-800 flex flex-col">
                               <div className="flex items-center gap-2 mb-1">
+                                {group.image_url && <img src={group.image_url} alt="" className="h-9 w-9 rounded object-cover border border-zinc-200 dark:border-zinc-700" />}
                                 <div className="w-1 h-5 bg-orange-500 rounded-full" />
                                 <h4 className="text-[13px] font-medium italic text-zinc-900 dark:text-white capitalize tracking-tight">
                                   {group.name}

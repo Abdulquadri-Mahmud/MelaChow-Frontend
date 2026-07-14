@@ -274,6 +274,7 @@ export default function ComboCustomizationModal({
                                 <div key={groupKey} className="bg-white dark:bg-zinc-900 rounded-[32px] p-4 border border-zinc-100 dark:border-zinc-800 shadow-sm">
                                     <div className="flex items-center justify-between gap-2 mb-2">
                                         <div className="flex items-center gap-2">
+                                           {group.image_url && <img src={group.image_url} alt="" className="h-10 w-10 rounded object-cover border border-zinc-200 dark:border-zinc-700" />}
                                            <div className="w-1 h-5 bg-orange-500 rounded-full" />
                                            <h4 className="font-black text-zinc-900 dark:text-white text-sm uppercase italic tracking-tight">
                                                {group.name}
