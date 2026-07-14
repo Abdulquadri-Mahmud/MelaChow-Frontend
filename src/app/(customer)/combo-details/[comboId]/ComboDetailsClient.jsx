@@ -563,7 +563,6 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                         <div key={groupKey} className="bg-white dark:bg-zinc-900 rounded-[8px] p-3 border border-zinc-100 dark:border-zinc-800">
                                             <div className="flex items-center justify-between gap-1.5 mb-1">
                                                 <div className="flex items-center gap-1.5">
-                                                    {group.image_url && <img src={group.image_url} alt="" className="h-9 w-9 rounded object-cover border border-zinc-200 dark:border-zinc-700" />}
                                                     <div className="w-1 h-5 bg-orange-500 rounded-full" />
                                                     <h4 className="text-[13px] font-medium italic text-zinc-900 dark:text-white capitalize tracking-tight">
                                                         {group.name}
@@ -598,10 +597,13 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                                                     : "border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-orange-200 dark:hover:border-orange-500/30"
                                                             } ${optionUnavailable ? "opacity-50 cursor-not-allowed" : ""}`}
                                                         >
-                                                            {/* Selection Indicator Circle */}
-                                                            <div className="w-8 h-8 rounded-full bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
-                                                                <Plus size={12} strokeWidth={4} />
-                                                            </div>
+                                                            {option.image_url ? (
+                                                                <img src={option.image_url} alt={option.label} className="w-8 h-8 rounded-lg object-cover shrink-0 border border-zinc-100 dark:border-zinc-800" />
+                                                            ) : (
+                                                                <div className="w-8 h-8 rounded-full bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
+                                                                    <Plus size={12} strokeWidth={4} />
+                                                                </div>
+                                                            )}
 
                                                             {/* Label & price */}
                                                             <div className="flex-1 min-w-0">
