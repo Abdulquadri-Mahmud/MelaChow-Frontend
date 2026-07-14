@@ -38,9 +38,23 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
   const isFoodComplete = (f) => f && f.portions !== undefined && (f.choiceGroups !== undefined || f.choice_groups !== undefined);
 
+  // Ensure portions and choiceGroups are always arrays regardless of API shape
+  const normalizeFood = (f) => {
+    if (!f) return f;
+    return {
+      ...f,
+      portions: Array.isArray(f.portions) ? f.portions : [],
+      choiceGroups: Array.isArray(f.choiceGroups)
+        ? f.choiceGroups
+        : Array.isArray(f.choice_groups)
+          ? f.choice_groups
+          : [],
+    };
+  };
+
   // Data State
   const initialFood = initialData?.food || (initialData?.success ? null : initialData);
-  const [food, setFood] = useState(initialFood && Object.keys(initialFood).length > 0 ? initialFood : null);
+  const [food, setFood] = useState(initialFood && Object.keys(initialFood).length > 0 ? normalizeFood(initialFood) : null);
   const [isLoading, setIsLoading] = useState(isModal ? true : !isFoodComplete(food));
   const [isError, setIsError] = useState(false);
 
@@ -120,9 +134,9 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
         let foodData = res?.food;
 
         if (foodData) {
-          foodData.choiceGroups = foodData.choiceGroups || foodData.choice_groups || [];
           const fallbackVendor = getFoodVendor(food);
           if (!foodData.vendor && fallbackVendor) foodData.vendor = fallbackVendor;
+          foodData = normalizeFood(foodData);
         }
 
         setFood(foodData);
@@ -195,7 +209,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   };
 
   // Base Item Customizer Logic
-  const effectivePortion = selectedPortion || food?.portions?.find((portion) => portion.is_default) || food?.portions?.[0] || null;
+  const foodPortions = Array.isArray(food?.portions) ? food.portions : [];
+  const effectivePortion = selectedPortion || foodPortions.find((portion) => portion.is_default) || foodPortions[0] || null;
   const basePriceNaira = (effectivePortion?.price_naira || 0) * portionQuantity;
 
   const addonsPrice = Object.values(selections).reduce((acc, sel) => {
@@ -307,7 +322,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   };
 
   const handleAddToCartBaseItem = () => {
-    if (food.portions?.length > 0 && !effectivePortion) {
+    if (foodPortions.length > 0 && !effectivePortion) {
       toast.error("Please select a size");
       return;
     }
@@ -419,8 +434,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   const itemAvailability = checkAvailability();
 
   // Derive base price from cheapest portion
-  const basePrice = food?.portions?.length > 0
-    ? Math.min(...food.portions.map(p => p.price_naira))
+  const basePrice = foodPortions.length > 0
+    ? Math.min(...foodPortions.map(p => p.price_naira))
     : null;
 
   const content = (
@@ -692,14 +707,14 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                       )}
 
                        {/* Portions Selector */}
-                       {food.portions?.length > 0 && (
+                       {foodPortions.length > 0 && (
                          <div className="bg-white dark:bg-zinc-900 rounded-[8px] p-3 border border-zinc-100 dark:border-zinc-800 mb-4">
                            <div className="flex items-center gap-1.5 mb-3">
                              <div className="w-1 h-5 bg-orange-500 rounded-full" />
                              <h3 className="text-base font-medium italic text-zinc-900 dark:text-white capitalize tracking-tight">Select Portion</h3>
                            </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1">
-                            {food.portions.map(portion => {
+                            {foodPortions.map(portion => {
                               const isSelected = selectedPortion?._id === portion._id;
                               return (
                                 <div
