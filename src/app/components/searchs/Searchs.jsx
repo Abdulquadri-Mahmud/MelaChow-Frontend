@@ -28,7 +28,6 @@ import { isVendorOpen } from "@/app/lib/utils";
 import { useCategories } from "@/app/hooks/useCategories";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
 import { useComboModalStore } from "@/app/store/comboModalStore";
-import ComboDetailsClient from "@/app/(customer)/combo-details/[comboId]/ComboDetailsClient";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 
 export const dynamic = "force-dynamic";
@@ -136,12 +135,11 @@ export default function FoodSearchMobile() {
   const [trending, setTrending] = useState([]);
   const [autocomplete, setAutocomplete] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedCombo, setSelectedCombo] = useState(null);
-
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
   const selectedCategory = searchParams.get("category");
   const openFoodModal = useFoodModalStore(state => state.openFoodModal);
+  const openComboModal = useComboModalStore(state => state.openComboModal);
   const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
   const getItemId = (item) => item?._id || item?.id;
 
@@ -150,7 +148,7 @@ export default function FoodSearchMobile() {
       if (item.is_available === false) return;
       const selectedComboId = getItemId(item);
       if (!selectedComboId) return;
-      setSelectedCombo({ comboId: selectedComboId, combo: item });
+      openComboModal(selectedComboId, { combo: item, vendor: item.restaurant || item.vendor });
       return;
     }
     if (!item.is_available || item.is_in_stock === false) return;
@@ -541,16 +539,7 @@ export default function FoodSearchMobile() {
         </button>
       </div>
 
-      <AnimatePresence>
-        {selectedCombo?.comboId && (
-          <ComboDetailsClient
-            isModal={true}
-            onClose={() => setSelectedCombo(null)}
-            comboId={selectedCombo.comboId}
-            initialData={{ combo: selectedCombo.combo, vendor: selectedCombo.combo.restaurant || selectedCombo.combo.vendor }}
-          />
-        )}
-      </AnimatePresence>
+
     </div>
   );
 }
