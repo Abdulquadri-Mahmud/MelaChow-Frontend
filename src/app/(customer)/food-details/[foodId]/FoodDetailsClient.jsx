@@ -195,7 +195,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   };
 
   // Base Item Customizer Logic
-  const basePriceNaira = (selectedPortion?.price_naira || 0) * portionQuantity;
+  const effectivePortion = selectedPortion || food?.portions?.find((portion) => portion.is_default) || food?.portions?.[0] || null;
+  const basePriceNaira = (effectivePortion?.price_naira || 0) * portionQuantity;
 
   const addonsPrice = Object.values(selections).reduce((acc, sel) => {
     if (Array.isArray(sel)) {
@@ -306,7 +307,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   };
 
   const handleAddToCartBaseItem = () => {
-    if (food.portions?.length > 0 && !selectedPortion) {
+    if (food.portions?.length > 0 && !effectivePortion) {
       toast.error("Please select a size");
       return;
     }
@@ -365,13 +366,13 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
     const payload = {
       type: "item",                //ADD explicit type
       foodId: food._id,
-      portionId: selectedPortion?._id || null, // camelCase
+      portionId: effectivePortion?._id || null, // camelCase
       vendorId,
       restaurantId: vendorId,
       storeName: vendor?.storeName || "",
       name: food.name,
       image_url: food.image || food.image_url || "",
-      portion_label: selectedPortion?.label,
+      portion_label: effectivePortion?.label,
       portion_quantity: portionQuantity,
       price_naira: totalUnit,
       quantity,
@@ -770,7 +771,6 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                            {(food.choiceGroups || food.choice_groups).map((group, gIdx) => (
                              <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[8px] p-2.5 border border-zinc-100 dark:border-zinc-800 flex flex-col">
                               <div className="flex items-center gap-2 mb-1">
-                                {group.image_url && <img src={group.image_url} alt="" className="h-9 w-9 rounded object-cover border border-zinc-200 dark:border-zinc-700" />}
                                 <div className="w-1 h-5 bg-orange-500 rounded-full" />
                                 <h4 className="text-[13px] font-medium italic text-zinc-900 dark:text-white capitalize tracking-tight">
                                   {group.name}
@@ -799,11 +799,13 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                       onClick={() => itemAvailability.available && !optionUnavailable && toggleChoice(gIdx, group, option)}
                                       className={`flex items-center gap-2.5 p-2 rounded-[12px] border-2 cursor-pointer transition-all ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10" : "border-zinc-50 dark:border-zinc-800 bg-white dark:bg-zinc-900"
                                         } ${!itemAvailability.available || optionUnavailable ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                      {/* Option Image */}
-                                      {/* Selection Indicator Circle */}
-                                      <div className="w-8 h-8 rounded-full bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
-                                        <Plus size={12} strokeWidth={4} />
-                                      </div>
+                                      {option.image_url ? (
+                                        <img src={option.image_url} alt={option.label} className="w-8 h-8 rounded-lg object-cover shrink-0 border border-zinc-100 dark:border-zinc-800" />
+                                      ) : (
+                                        <div className="w-8 h-8 rounded-full bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
+                                          <Plus size={12} strokeWidth={4} />
+                                        </div>
+                                      )}
                                       {/* Details */}
                                       <div className="flex-1 min-w-0">
                                         <p className="font-medium text-[11px] text-zinc-900 dark:text-white truncate capitalize italic">{option.label}</p>
