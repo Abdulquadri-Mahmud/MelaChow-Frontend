@@ -11,9 +11,9 @@ import ProfileIconWithBadge from "../App_Header/ProfileIconWithBadge";
 
 export default function HomeHeader() {
   const { user, isLoading } = useUserStorage();
-  const { cart } = useCart();
+  const { cartItemCount } = useCart();
   const router = useRouter();
-  const totalItems = cart.length;
+  const totalItems = cartItemCount;
   const [greeting, setGreeting] = useState("Hello");
   const [isMounted, setIsMounted] = useState(false);
 

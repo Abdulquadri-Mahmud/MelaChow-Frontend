@@ -19,7 +19,7 @@ const navItems = [
 
 export default function BottomBar() {
   const pathname = usePathname();
-  const { cart, isModalOpen } = useCart();
+  const { cartItemCount, isModalOpen } = useCart();
   const { user, isLoading } = useUserStorage();
   const { isOpen: isFoodModalOpen } = useFoodModalStore();
   const { isOpen: isComboModalOpen } = useComboModalStore();
@@ -62,14 +62,14 @@ export default function BottomBar() {
               className="absolute inset-0 rounded-full bg-orange-400"
             />
             {/* Badge */}
-            {cart.length > 0 && (
+            {cartItemCount > 0 && (
               <motion.div
-                key={cart.length}
+                key={cartItemCount}
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 className="absolute -top-1.5 -right-1.5 z-10 bg-orange-500 text-white text-[10px] font-black min-w-[18px] h-[18px] flex items-center justify-center rounded-full ring-2 ring-white px-1"
               >
-                {cart.length}
+                {cartItemCount}
               </motion.div>
             )}
             <div className="bg-gradient-to-tr from-orange-400 to-orange-600 p-3.5 rounded-full shadow-[0_8px_24px_rgba(249,115,22,0.45)] text-white hover:rotate-[10deg] transition-transform">

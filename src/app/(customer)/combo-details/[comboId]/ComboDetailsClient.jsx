@@ -87,7 +87,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
         }
     }, [isClient]);
 
-    const { addComboToCart, cart, setIsModalOpen } = useCart();
+    const { addComboToCart, cartItemCount, setIsModalOpen } = useCart();
 
     useEffect(() => {
         if (!isModal || !setIsModalOpen) return;
@@ -394,7 +394,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     }
 
     const choiceGroups = combo.choice_groups || [];
-    const totalItems = cart.length;
+    const totalItems = cartItemCount;
 
     const mainContent = (
         <div className={`${isModal ? 'h-full flex flex-col' : 'min-h-screen'} bg-zinc-50 dark:bg-zinc-950`}>

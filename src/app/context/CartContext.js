@@ -6,6 +6,7 @@ import showAnimatedToast from "../components/toast/showAnimatedToast";
 
 const CartContext = createContext({
   cart: [],
+  cartItemCount: 0,
   addToCart: () => {},
   addComboToCart: () => {},
   increaseQuantity: () => {},
@@ -26,6 +27,7 @@ export const useCart = () => {
   if (context === undefined) {
     return {
       cart: [],
+      cartItemCount: 0,
       addToCart: () => {},
       addComboToCart: () => {},
       increaseQuantity: () => {},
@@ -39,32 +41,60 @@ export const useCart = () => {
   return context;
 };
 
+const normalizeId = (value) => String(value?._id || value?.id || value || "");
+
+const getItemType = (item) =>
+  item?.type || (item?.comboId || item?.variantId ? "combo" : "item");
+
+const getOptionsSignature = (item) =>
+  (item?.selected_options || [])
+    .map((option) => ({
+      id: normalizeId(option.option_id || option._id || option.label),
+      quantity: Number(option.quantity) || 1,
+    }))
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .map((option) => `${option.id}:${option.quantity}`)
+    .join("|");
+
 // Helper to compare if two items are functionally identical
 const isSameItem = (a, b) => {
   if (!a || !b) return false;
-  if (a.type !== b.type) return false;
-  
-  if (a.type === "combo") {
-    return (a.comboId || a.variantId) === (b.comboId || b.variantId);
+  const typeA = getItemType(a);
+  const typeB = getItemType(b);
+  if (typeA !== typeB) return false;
+
+  if (typeA === "combo") {
+    return (
+      normalizeId(a.comboId || a.variantId) === normalizeId(b.comboId || b.variantId)
+      && getOptionsSignature(a) === getOptionsSignature(b)
+    );
   }
 
-  if (a.foodId !== b.foodId || a.portionId !== b.portionId) return false;
-
-  const optA = a.selected_options || [];
-  const optB = b.selected_options || [];
-  if (optA.length !== optB.length) return false;
-
-  // Compare options (order doesn't matter, so we sort or check existence)
-  const sortedA = [...optA].sort((x, y) => (x.option_id || "").localeCompare(y.option_id || ""));
-  const sortedB = [...optB].sort((x, y) => (x.option_id || "").localeCompare(y.option_id || ""));
-
-  for (let i = 0; i < sortedA.length; i++) {
-    if (sortedA[i].option_id !== sortedB[i].option_id) return false;
-    if (sortedA[i].quantity !== sortedB[i].quantity) return false;
-  }
-
-  return true;
+  return (
+    normalizeId(a.foodId) === normalizeId(b.foodId)
+    && normalizeId(a.portionId) === normalizeId(b.portionId)
+    && (Number(a.portion_quantity) || 1) === (Number(b.portion_quantity) || 1)
+    && getOptionsSignature(a) === getOptionsSignature(b)
+  );
 };
+
+const mergeDuplicateCartItems = (items) =>
+  items.reduce((merged, item) => {
+    const existingIndex = merged.findIndex((existing) => isSameItem(existing, item));
+    if (existingIndex === -1) {
+      return [...merged, item];
+    }
+
+    const next = [...merged];
+    const existing = next[existingIndex];
+    next[existingIndex] = {
+      ...existing,
+      ...item,
+      cartId: existing.cartId,
+      quantity: (Number(existing.quantity) || 1) + (Number(item.quantity) || 1),
+    };
+    return next;
+  }, []);
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState(() => {
@@ -75,10 +105,10 @@ export const CartProvider = ({ children }) => {
 
     try {
       const parsed = JSON.parse(stored);
-      return parsed.map(item => ({
+      return mergeDuplicateCartItems(parsed.map(item => ({
         ...item,
         cartId: item.cartId || `${Date.now()}-${Math.random()}`
-      }));
+      })));
     } catch {
       return [];
     }
@@ -101,7 +131,9 @@ export const CartProvider = ({ children }) => {
         const newCart = [...prev];
         newCart[existingIndex] = {
           ...newCart[existingIndex],
-          quantity: newCart[existingIndex].quantity + (item.quantity || 1)
+          ...item,
+          cartId: newCart[existingIndex].cartId,
+          quantity: (Number(newCart[existingIndex].quantity) || 1) + (Number(item.quantity) || 1)
         };
         showAnimatedToast("success", "Item quantity updated", "cart-qty-inc", proceedToCartAction);
         return newCart;
@@ -117,11 +149,26 @@ export const CartProvider = ({ children }) => {
     const newItem = {
         ...comboItem,
         type:     "combo",
-        quantity: comboItem.quantity || 1,
+        quantity: Number(comboItem.quantity) || 1,
         cartId:   `${Date.now()}-${Math.random()}`
     };
-    setCart(prev => [...prev, newItem]);
-    showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo", proceedToCartAction);
+    setCart((prev) => {
+      const existingIndex = prev.findIndex((item) => isSameItem(item, newItem));
+      if (existingIndex === -1) {
+        showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo", proceedToCartAction);
+        return [...prev, newItem];
+      }
+
+      const next = [...prev];
+      next[existingIndex] = {
+        ...next[existingIndex],
+        ...newItem,
+        cartId: next[existingIndex].cartId,
+        quantity: (Number(next[existingIndex].quantity) || 1) + newItem.quantity,
+      };
+      showAnimatedToast("success", "Item quantity updated", "cart-qty-inc", proceedToCartAction);
+      return next;
+    });
   };
 
   // Increase Quantity
@@ -219,10 +266,16 @@ export const CartProvider = ({ children }) => {
     showAnimatedToast("success", "Cart cleared", "cart-clear");
   };
 
+  const cartItemCount = cart.reduce(
+    (total, item) => total + (Number(item.quantity) || 1),
+    0
+  );
+
   return (
     <CartContext.Provider
       value={{
         cart,
+        cartItemCount,
         isModalOpen,
         setIsModalOpen,
         addToCart,

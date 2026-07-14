@@ -283,7 +283,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
     return (
         <div className="min-h-screen scroll bg-white dark:bg-zinc-950 pb-10">
-        <div className="relative h-[140px] w-full">
+        <div className="relative h-[155px] w-full">
                 <div className="absolute inset-0 overflow-hidden">
                     <motion.div 
                         style={{ scale: 1 + scrollY * 0.001, y: scrollY * 0.4 }}
@@ -310,7 +310,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                 )}
                 {/* Logo straddling the hero/card boundary — sits here so overflow-hidden never clips it */}
                 <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 z-40">
-                    <div className="w-16 h-16 rounded-[16px] bg-white dark:bg-zinc-950 p-1 shadow-xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
+                    <div className="w-18 h-18 rounded-[16px] bg-white dark:bg-zinc-950 p-1 shadow-xl border border-zinc-100 dark:border-zinc-800 overflow-hidden">
                         <img
                             src={vendor.logo || "/placeholder.jpg"}
                             alt={vendor.storeName}
