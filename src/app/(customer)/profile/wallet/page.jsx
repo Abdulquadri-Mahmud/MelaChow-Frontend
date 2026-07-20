@@ -233,8 +233,10 @@ export default function UserWalletPage() {
                         </div>
  
                         <button
-                            onClick={() => setShowFundModal(true)}
-                            className="group relative bg-gradient-to-r from-orange-500 via-orange-500 to-orange-600 text-white px-5 py-2.5 rounded-[8px] font-bold text-sm hover:scale-105 active:scale-95 transition-all shadow-xl shadow-orange-500/20 flex items-center gap-2 overflow-hidden"
+                            type="button"
+                            disabled
+                            title="Wallet funding is unavailable. This wallet is for refunds and disputes only."
+                            className="group relative bg-zinc-600 text-white/70 px-5 py-2.5 rounded-[8px] font-bold text-sm cursor-not-allowed transition-all shadow-xl shadow-black/10 flex items-center gap-2 overflow-hidden"
                         >
                             <span className="relative z-10 flex items-center gap-1.5">
                                 <Plus size={16} className="stroke-[3px]" /> Fund Wallet
