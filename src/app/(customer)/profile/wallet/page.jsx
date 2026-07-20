@@ -232,7 +232,7 @@ export default function UserWalletPage() {
                             </div>
                         </div>
  
-                        <button
+                        {/* <button
                             type="button"
                             disabled
                             title="Wallet funding is unavailable. This wallet is for refunds and disputes only."
@@ -242,7 +242,7 @@ export default function UserWalletPage() {
                                 <Plus size={16} className="stroke-[3px]" /> Fund Wallet
                             </span>
                             <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        </button>
+                        </button> */}
                     </div>
                 </motion.div>
 
