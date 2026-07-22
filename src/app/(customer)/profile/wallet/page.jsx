@@ -231,18 +231,6 @@ export default function UserWalletPage() {
                                 </div>
                             </div>
                         </div>
- 
-                        {/* <button
-                            type="button"
-                            disabled
-                            title="Wallet funding is unavailable. This wallet is for refunds and disputes only."
-                            className="group relative bg-zinc-600 text-white/70 px-5 py-2.5 rounded-[8px] font-bold text-sm cursor-not-allowed transition-all shadow-xl shadow-black/10 flex items-center gap-2 overflow-hidden"
-                        >
-                            <span className="relative z-10 flex items-center gap-1.5">
-                                <Plus size={16} className="stroke-[3px]" /> Fund Wallet
-                            </span>
-                            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        </button> */}
                     </div>
                 </motion.div>
 
