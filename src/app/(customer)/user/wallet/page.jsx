@@ -243,18 +243,6 @@ function UserWalletContent() {
                                 </div>
                             </div>
                         </div>
-
-                        <button
-                            type="button"
-                            disabled
-                            title="Wallet funding is unavailable. This wallet is for refunds and disputes only."
-                            className="group relative bg-white/60 dark:bg-zinc-300/60 text-zinc-500 px-8 py-4 rounded-3xl font-bold text-lg cursor-not-allowed transition-all shadow-xl shadow-black/10 border border-transparent flex items-center gap-3 overflow-hidden"
-                        >
-                            <span className="relative z-10 flex items-center gap-2">
-                                <Plus size={20} className="stroke-[3px]" /> Fund Wallet
-                            </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-white dark:from-white dark:to-zinc-200 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        </button>
                     </div>
                 </motion.div>
 
