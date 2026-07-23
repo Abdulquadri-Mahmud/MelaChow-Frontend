@@ -822,7 +822,7 @@ export default function OrderTracking() {
                     </div>
                   )}
               </div>
-            </div>
+            </motion.div>
             <div className="bg-white dark:bg-zinc-900 p-3 rounded-[8px] border border-zinc-100 dark:border-zinc-800 flex items-center gap-4">
               <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded">
                 <Clock size={20} className="text-zinc-400" />
