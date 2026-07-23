@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { verifyPaymentV2 } from "../lib/orderService";
 import toast from "react-hot-toast";
 import Header2 from "./App_Header/Header2";
@@ -13,69 +13,129 @@ export default function VerifyPayment() {
   const [status, setStatus] = useState("verifying");
   const [order, setOrder] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [retryMessage, setRetryMessage] = useState("");
+  const [retryCount, setRetryCount] = useState(0);
+  const [isOnline, setIsOnline] = useState(typeof window !== "undefined" ? window.navigator.onLine : true);
+  const retryTimeoutRef = useRef(null);
+  const didVerify = useRef(false);
+  const verifyPaymentRef = useRef(null);
 
   const router = useRouter();
 
   const reference = searchParams.get("reference");
-  const didVerify = useRef(false);
   const formatMoney = (value) => `₦${Number(value || 0).toLocaleString()}`;
   const promoWaivedDelivery =
     Number(order?.deliveryFee || 0) === 0 &&
     Number(order?.freeDeliveryPromo?.originalDeliveryFee || order?.vendorDeliveryPromo?.originalDeliveryFee || 0) > 0;
 
-  useEffect(() => {
-    // Prevent double verification
-    if (!reference || didVerify.current) return;
-    didVerify.current = true;
+  const scheduleRetry = useCallback((delay = 10000) => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
 
-    const verifyPayment = async () => {
-      try {
-        // Use V2 API with cookie-based authentication
-        const res = await verifyPaymentV2(reference);
-        console.log("V2 Payment Verification Response:", res);
+    retryTimeoutRef.current = setTimeout(() => {
+      if (navigator.onLine) {
+        verifyPaymentRef.current?.();
+      } else {
+        scheduleRetry(10000);
+      }
+    }, delay);
+  }, []);
 
-        // Check if order was created successfully
-        if (!res.order) {
-          setStatus("failed");
-          setErrorMessage("Payment verified but order was not created.");
-          toast.error("Payment verified but order was not created.");
-          return;
-        }
+  const verifyPayment = useCallback(async () => {
+    try {
+      setErrorMessage("");
+      setRetryMessage("");
+      setStatus("verifying");
 
-        // Set order data and success status
-        setOrder(res.order);
-        setStatus("success");
-        toast.success(res.message || "Payment verified successfully!");
+      const res = await verifyPaymentV2(reference);
+      console.log("V2 Payment Verification Response:", res);
 
-        // Mark that user has placed an order for contextual push notifications
-        localStorage.setItem('has_placed_order', 'true');
-
-        // Clear pending order ID from session storage if it exists
-        sessionStorage.removeItem("pendingOrderId");
-      } catch (error) {
-        if (error.status !== 401) {
-          console.error("Verification error:", error);
-        }
+      if (!res.order) {
+        const msg = "Payment verified but order was not created.";
         setStatus("failed");
-
-        let msg = "Something went wrong while verifying your payment.";
-
-        // Handle specific Business Logic Failures
-        if (error.status === 401) {
-          msg = "Session expired. Please log in to complete verification.";
-        } else if (error.code === "PAYMENT_FAILED") {
-          msg = error.message;
-        } else if (error.message) {
-          msg = error.message;
-        }
-
         setErrorMessage(msg);
         toast.error(msg);
+        return;
       }
+
+      setOrder(res.order);
+      setStatus("success");
+      setRetryMessage("");
+      toast.success(res.message || "Payment verified successfully!");
+
+      localStorage.setItem("has_placed_order", "true");
+      sessionStorage.removeItem("pendingOrderId");
+
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+    } catch (error) {
+      if (error.status === 401) {
+        const msg = "Session expired. Please log in to complete verification.";
+        setStatus("failed");
+        setErrorMessage(msg);
+        toast.error(msg);
+        return;
+      }
+
+      const isNetworkError = !navigator.onLine || !error.response;
+      const msg = !navigator.onLine
+        ? "You are offline. We'll retry payment verification automatically when you're back online."
+        : error.response?.status >= 500
+        ? "Unable to verify payment right now. Retrying in 10 seconds..."
+        : error.code === "PAYMENT_FAILED"
+        ? error.message
+        : error.message || "Something went wrong while verifying your payment.";
+
+      if (isNetworkError || error.response?.status >= 500) {
+        setStatus("retrying");
+        setRetryMessage(msg);
+        setRetryCount((prev) => prev + 1);
+        scheduleRetry(10000);
+        return;
+      }
+
+      setStatus("failed");
+      setErrorMessage(msg);
+      toast.error(msg);
+    }
+  }, [reference, scheduleRetry]);
+
+  useEffect(() => {
+    verifyPaymentRef.current = verifyPayment;
+  }, [verifyPayment]);
+
+  useEffect(() => {
+    if (!reference || didVerify.current) return;
+    didVerify.current = true;
+    verifyPayment();
+
+    const handleOnline = () => {
+      setIsOnline(true);
+      setRetryMessage("Connection restored. Retrying payment verification now...");
+      setStatus("retrying");
+      scheduleRetry(0);
     };
 
-    verifyPayment();
-  }, [reference]);
+    const handleOffline = () => {
+      setIsOnline(false);
+      setRetryMessage("You are offline. We will retry automatically when your device reconnects.");
+      setStatus("retrying");
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, [reference, verifyPayment, scheduleRetry]);
 
   // Animation variants
   const containerVariants = {
@@ -83,8 +143,8 @@ export default function VerifyPayment() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
   };
 
-  // 1. Verifying State
-  if (status === "verifying") {
+  // 1. Verifying / Retrying State
+  if (status === "verifying" || status === "retrying") {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col transition-colors duration-300">
         <Header2 />
@@ -102,10 +162,25 @@ export default function VerifyPayment() {
                 <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-orange-500" size={24} />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-zinc-100 mb-2 font-display italic uppercase tracking-tight">Verifying Payment</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-zinc-100 mb-2 font-display italic uppercase tracking-tight">
+              {status === "retrying" ? "Retrying Verification" : "Verifying Payment"}
+            </h2>
             <p className="text-slate-500 dark:text-zinc-400 font-medium">
-              Please wait while we confirm your secure transaction...
+              {retryMessage || "Please wait while we confirm your secure transaction..."}
             </p>
+            {retryCount > 0 && (
+              <p className="text-xs text-slate-400 dark:text-zinc-500 mt-2">
+                Retry attempt #{retryCount} scheduled every 10 seconds until verification succeeds.
+              </p>
+            )}
+            {status === "retrying" && (
+              <button
+                onClick={() => verifyPaymentRef.current?.()}
+                className="mt-4 px-6 py-3 rounded-xl bg-slate-900 dark:bg-zinc-100 dark:text-zinc-900 text-white font-bold hover:bg-slate-800 transition-colors"
+              >
+                Retry now
+              </button>
+            )}
           </motion.div>
         </div>
       </div>

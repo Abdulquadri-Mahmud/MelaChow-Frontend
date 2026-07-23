@@ -3,10 +3,9 @@
 import React, { useEffect, useState, useRef } from "react";
 
 import axios from "axios";
-import { Clock, Truck, Package, Home, CheckCircle, Star, Phone, Bike, Copy } from "lucide-react";
+import { Clock, Truck, Package, Home, CheckCircle, Star, Phone, Bike, Copy, RefreshCw } from "lucide-react";
 import { useApi } from "@/app/context/ApiContext";
 import { useParams } from "next/navigation";
-import { useUserStorage } from "@/app/hooks/useUserStorage";
 import Header2 from "../App_Header/Header2";
 import OrderTrackingSkeleton from "../skeleton/OrderTrackingSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,6 +13,7 @@ import ReviewModal from "@/app/modals/ReviewModal";
 import { useOrderTracking } from "@/app/hooks/useOrderTracking";
 import toast from "react-hot-toast";
 import { generateOrderItemsStatement } from "@/app/lib/utils";
+import { verifyPaymentV2 } from "@/app/lib/orderService";
 
 const statusSteps = [
   {
@@ -82,12 +82,14 @@ export default function OrderTracking() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedFoodForReview, setSelectedFoodForReview] = useState(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isVerifyingPayment, setIsVerifyingPayment] = useState(false);
+  const [verificationMessage, setVerificationMessage] = useState("");
+  const [verificationError, setVerificationError] = useState("");
   const [showReviewBanner, setShowReviewBanner] = useState(false);
   const [hasAutoPrompted, setHasAutoPrompted] = useState(false);
   const reviewTimerRef = useRef(null);
 
   const { baseUrl } = useApi();
-  const { user } = useUserStorage();
 
   const copyOrderId = async () => {
     const value = orderData?.orderId || orderId;
@@ -98,6 +100,55 @@ export default function OrderTracking() {
       toast.success("Order ID copied");
     } catch {
       toast.error("Unable to copy order ID");
+    }
+  };
+
+  const handleVerifyPayment = async () => {
+    if (!orderData?.paymentReference) {
+      const msg = "No payment reference found for this order.";
+      setVerificationError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    setIsVerifyingPayment(true);
+    setVerificationError("");
+    setVerificationMessage("Retrying payment verification...");
+
+    try {
+      const res = await verifyPaymentV2(orderData.paymentReference);
+      const updatedOrder = res.order;
+
+      if (!updatedOrder) {
+        const msg = "Payment verified but order details were not returned.";
+        setVerificationError(msg);
+        toast.error(msg);
+        return;
+      }
+
+      setOrderData((prev) => ({ ...prev, ...updatedOrder }));
+      setVerificationMessage("Payment verified successfully.");
+      toast.success(res.message || "Payment verification succeeded!");
+    } catch (error) {
+      if (error.status === 401) {
+        const msg = "Session expired. Please log in to complete verification.";
+        setVerificationError(msg);
+        toast.error(msg);
+        return;
+      }
+
+      const message = !navigator.onLine
+        ? "You are currently offline. Reconnect and retry verification."
+        : error.code === "PAYMENT_FAILED"
+        ? error.message || "Payment was not successful."
+        : error.response?.status >= 500
+        ? "Unable to verify payment right now. Please try again shortly."
+        : error.message || "Payment verification failed.";
+
+      setVerificationError(message);
+      toast.error(message);
+    } finally {
+      setIsVerifyingPayment(false);
     }
   };
 
@@ -208,7 +259,7 @@ export default function OrderTracking() {
   if (!orderData)
     return <div className="md:p-6 p-2 text-center text-zinc-600 dark:text-zinc-400 font-medium">No order found</div>;
 
-  const { items, deliveryAddress, subtotal, deliveryFee, serviceFee, total, orderStatus, userId, deliveryOtp } = orderData;
+  const { items, deliveryAddress, subtotal, deliveryFee, serviceFee, total, orderStatus, userId, deliveryOtp, paymentStatus, paymentReference } = orderData;
   const formatMoney = (value) => `₦${Number(value || 0).toLocaleString()}`;
   const promoSaved = Number(
     orderData.freeDeliveryPromo?.originalDeliveryFee ||
@@ -217,6 +268,7 @@ export default function OrderTracking() {
   );
   const promoWaivedDelivery = Number(deliveryFee || 0) === 0 && promoSaved > 0;
   const currentStepIndex = statusSteps.findIndex((s) => s.key === orderStatus);
+  const showPaymentRetry = paymentReference && paymentStatus !== "paid" && orderStatus !== "cancelled";
 
   return (
     <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen font-display pb-20">
@@ -739,19 +791,36 @@ export default function OrderTracking() {
                     </span>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          </div>
 
-          {/* Location & Details Mini Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-zinc-900 p-3 rounded-[8px] border border-zinc-100 dark:border-zinc-800 flex items-center gap-4">
-              <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded">
-                <Home size={20} className="text-zinc-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-[10px] font-medium uppercase text-zinc-400 tracking-widest opacity-60">Home Address</h3>
-                <p className="text-xs font-medium text-zinc-900 dark:text-white truncate uppercase italic mt-0.5">{deliveryAddress.addressLine}</p>
+                  {showPaymentRetry && (
+                    <div className="mt-4 bg-orange-50 dark:bg-orange-950/10 p-4 rounded-3xl border border-orange-100 dark:border-orange-800/50">
+                      <div className="flex flex-col gap-3">
+                        <div>
+                          <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">Payment verification</h4>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                            We detected that this order still needs Paystack verification. Retry now to confirm the payment and refresh the order status.
+                          </p>
+                        </div>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={handleVerifyPayment}
+                            disabled={isVerifyingPayment}
+                            className="inline-flex items-center justify-center rounded-full px-4 py-2 bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <RefreshCw size={16} className="mr-2" />
+                            {isVerifyingPayment ? "Retrying…" : "Retry payment verification"}
+                          </button>
+                          {verificationMessage && (
+                            <p className="text-xs text-emerald-600 dark:text-emerald-400">{verificationMessage}</p>
+                          )}
+                          {verificationError && (
+                            <p className="text-xs text-red-600 dark:text-red-400">{verificationError}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
               </div>
             </div>
             <div className="bg-white dark:bg-zinc-900 p-3 rounded-[8px] border border-zinc-100 dark:border-zinc-800 flex items-center gap-4">

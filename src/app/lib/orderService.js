@@ -69,7 +69,7 @@ export const createOrderV2 = async (orderData) => {
 export const verifyPaymentV2 = async (reference) => {
     try {
         const response = await axios.post(
-            `/api/orders/verify/${reference}`,
+            `/api/orders/v2/verify/${reference}`,
             {}, // Empty body - backend handles verification
             {
                 withCredentials: true, // ✅ Send cookies for authentication
