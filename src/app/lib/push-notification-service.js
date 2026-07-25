@@ -37,6 +37,16 @@ async function getServiceWorkerRegistration() {
 }
 
 /**
+ * Build Authorization + Content-Type headers for the given role.
+ */
+function getAuthHeaders(role = 'user') {
+    const token = TokenManager.getToken(role);
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    return headers;
+}
+
+/**
  * Convert VAPID public key from base64 to Uint8Array
  * Required for subscribing to push notifications
  */
@@ -65,11 +75,10 @@ const getApiPath = (role, endpoint) => {
 
 /**
  * Fetch VAPID public key from backend
+ * VAPID keys are global — always served from the public user endpoint.
  */
 export async function getVapidPublicKey(role = 'user') {
     try {
-        // VAPID keys are global to the application and usually served 
-        // from the base notification endpoint, not the segregated ones.
         const response = await axios.get(getApiPath('user', 'vapid-public-key'), {
             withCredentials: true,
             timeout: API_TIMEOUT_MS,
@@ -96,42 +105,16 @@ export async function sendSubscriptionToServer(subscription, role = 'user') {
         } else if (/Tablet|iPad/i.test(navigator.userAgent)) {
             deviceType = 'tablet';
         }
-    } catch (error) {
-        console.error('Failed to fetch VAPID public key:', error);
-        throw error;
-    }
-}
-
-/**
- * Send subscription to backend
- */
-export async function sendSubscriptionToServer(subscription, role = 'user') {
-    try {
-        // Determine device type
-        let deviceType = 'desktop';
-        if (/Mobi|Android/i.test(navigator.userAgent)) {
-            deviceType = 'mobile';
-        } else if (/Tablet|iPad/i.test(navigator.userAgent)) {
-            deviceType = 'tablet';
-        }
 
         const payload = {
             subscription,
             deviceType
         };
 
-        const token = TokenManager.getToken(role);
-        const headers = {
-            'Content-Type': 'application/json',
-        };
-        if (token) {
-            headers.Authorization = `Bearer ${token}`;
-        }
-
         const response = await axios.post(getApiPath(role, 'subscribe'), payload, {
             withCredentials: true,
             timeout: API_TIMEOUT_MS,
-            headers,
+            headers: getAuthHeaders(role),
         });
         return response.data;
     } catch (error) {
@@ -145,22 +128,17 @@ export async function sendSubscriptionToServer(subscription, role = 'user') {
  */
 export async function removeSubscriptionFromServer(subscription, role = 'user') {
     try {
-        const token = TokenManager.getToken(role);
-        const headers = {
-            'Content-Type': 'application/json',
-        };
-        if (token) {
-            headers.Authorization = `Bearer ${token}`;
-        }
-
         const path = getApiPath(role, 'unsubscribe');
-        const config = {
+        const response = await axios.post(path, subscription, {
             withCredentials: true,
             timeout: API_TIMEOUT_MS,
-            headers,
-        };
-
-        const response = await axios.post(path, subscription, config);
+            headers: getAuthHeaders(role),
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Failed to remove subscription from server:', error);
+        throw error;
+    }
 }
 
 /**
@@ -170,6 +148,7 @@ export async function testPushNotification(role = 'user') {
     try {
         const response = await axios.post(getApiPath(role, 'test'), {}, {
             withCredentials: true,
+            headers: getAuthHeaders(role),
         });
         return response.data;
     } catch (error) {
