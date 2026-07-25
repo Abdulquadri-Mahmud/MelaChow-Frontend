@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { TokenManager } from './auth-token';
 
 const SERVICE_WORKER_TIMEOUT_MS = 10000;
 const API_TIMEOUT_MS = 15000;
@@ -95,18 +96,42 @@ export async function sendSubscriptionToServer(subscription, role = 'user') {
         } else if (/Tablet|iPad/i.test(navigator.userAgent)) {
             deviceType = 'tablet';
         }
+    } catch (error) {
+        console.error('Failed to fetch VAPID public key:', error);
+        throw error;
+    }
+}
+
+/**
+ * Send subscription to backend
+ */
+export async function sendSubscriptionToServer(subscription, role = 'user') {
+    try {
+        // Determine device type
+        let deviceType = 'desktop';
+        if (/Mobi|Android/i.test(navigator.userAgent)) {
+            deviceType = 'mobile';
+        } else if (/Tablet|iPad/i.test(navigator.userAgent)) {
+            deviceType = 'tablet';
+        }
 
         const payload = {
             subscription,
             deviceType
         };
 
+        const token = TokenManager.getToken(role);
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+
         const response = await axios.post(getApiPath(role, 'subscribe'), payload, {
             withCredentials: true,
             timeout: API_TIMEOUT_MS,
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers,
         });
         return response.data;
     } catch (error) {
@@ -120,21 +145,22 @@ export async function sendSubscriptionToServer(subscription, role = 'user') {
  */
 export async function removeSubscriptionFromServer(subscription, role = 'user') {
     try {
+        const token = TokenManager.getToken(role);
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        if (token) {
+            headers.Authorization = `Bearer ${token}`;
+        }
+
         const path = getApiPath(role, 'unsubscribe');
         const config = {
             withCredentials: true,
             timeout: API_TIMEOUT_MS,
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers,
         };
 
         const response = await axios.post(path, subscription, config);
-        return response.data;
-    } catch (error) {
-        console.error('Failed to remove subscription from server:', error);
-        throw error;
-    }
 }
 
 /**
