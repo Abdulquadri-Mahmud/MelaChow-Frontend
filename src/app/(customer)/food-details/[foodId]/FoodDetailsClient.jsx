@@ -804,6 +804,11 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                               <p className="text-[9px] text-zinc-400 dark:text-zinc-500 font-medium capitalize tracking-[0.15em] mb-3">
                                 {group.max_selections > 1 ? `Select up to ${group.max_selections}` : "Select one"}
                               </p>
+                              {quantity > 1 && (
+                                <p className="-mt-1 mb-3 text-[9px] font-medium text-orange-600 dark:text-orange-400">
+                                  Your selection applies to each of the {quantity} orders.
+                                </p>
+                              )}
 
                               <div className="space-y-2">
                                 {(group.options || []).map(option => {

@@ -656,7 +656,7 @@ export default function OrderTracking() {
 
                     {/* SELECTED OPTIONS — broken down by choice group */}
                     {((item.selected_options || item.metadata?.selected_options)?.length > 0) && (
-                      <div className="space-y-3 pt-2">
+                      <div className="space-y-3 pt-2"><p className="text-[9px] font-medium uppercase tracking-[0.15em] text-zinc-400">Each order includes</p>
                         {Object.entries(
                           (item.selected_options || item.metadata.selected_options).reduce((groups, opt) => {
                             const key = opt.group_name || 'Additional Extras';
