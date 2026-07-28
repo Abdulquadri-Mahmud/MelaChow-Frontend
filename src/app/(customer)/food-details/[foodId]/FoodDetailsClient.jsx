@@ -15,7 +15,8 @@ import {
   Minus,
   ShoppingCart,
   Package,
-  MessageSquare
+  MessageSquare,
+  Loader2
 } from "lucide-react";
 import { BiCartAdd } from "react-icons/bi";
 import { Swiper, SwiperSlide } from 'swiper/react';
