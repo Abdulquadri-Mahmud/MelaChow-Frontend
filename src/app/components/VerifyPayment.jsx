@@ -72,14 +72,6 @@ export default function VerifyPayment() {
         retryTimeoutRef.current = null;
       }
     } catch (error) {
-      if (error.status === 401) {
-        const msg = "Session expired. Please log in to complete verification.";
-        setStatus("failed");
-        setErrorMessage(msg);
-        toast.error(msg);
-        return;
-      }
-
       const isNetworkError = !navigator.onLine || !error.response;
       const msg = !navigator.onLine
         ? "You are offline. We'll retry payment verification automatically when you're back online."

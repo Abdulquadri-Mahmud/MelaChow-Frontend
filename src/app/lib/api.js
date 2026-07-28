@@ -45,6 +45,33 @@ const dispatchUserUnauthorized = () => {
   }
 };
 
+/**
+ * Silently attempt a token refresh using the HttpOnly refreshToken cookie.
+ * Returns true if a new access token was obtained, false otherwise.
+ * Never throws — callers treat false as "log the user out".
+ */
+const silentRefreshToken = async () => {
+  try {
+    const res = await axios.post(
+      "/api/user/auth/refresh",
+      {},
+      {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+    if (res.data?.accessToken) {
+      TokenManager.setToken(res.data.accessToken, "user");
+      console.log("[api.js silentRefreshToken] ✅ Token refreshed");
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.warn("[api.js silentRefreshToken] ❌ Refresh failed:", err?.response?.data?.message || err.message);
+    return false;
+  }
+};
+
 export const fetchUser = async () => {
   // No token arg needed; cookies are sent automatically
 
@@ -126,9 +153,7 @@ export const getMySupportTickets = async () => {
  * @param {Object} orderData - payload containing cart, address, etc.
  * @returns {Object} - created order response
  */
-
 export const createOrder = async (orderData) => {
-  // console.log('orderData: ', orderData)
   try {
     const res = await axios.post(
       "/api/orders/create",
@@ -145,7 +170,6 @@ export const createOrder = async (orderData) => {
   } catch (error) {
     console.error("Create Order Error:", error);
 
-    // Only dispatch if it's a genuine 401 response (not a network/CORS error)
     if (error.response && error.response.status === 401) {
       dispatchUserUnauthorized();
     }
@@ -159,27 +183,38 @@ export const createOrder = async (orderData) => {
   }
 };
 
-
 // ✅ Frontend helper to verify payment and create order
 export const verifyPayment = async (reference, body = {}) => {
+  const requestConfig = {
+    withCredentials: true, // ✅ Send cookies
+    headers: { "Content-Type": "application/json" },
+  };
+  const doRequest = () =>
+    axios.post(`/api/orders/verify/${reference}`, body, requestConfig);
 
   try {
-    const res = await axios.post(
-      `/api/orders/verify/${reference}`,
-      body, // send items, deliveryFee, deliveryAddress, phone here
-      {
-        withCredentials: true, // ✅ Send cookies
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    return res.data; // contains order confirmation & Paystack data
+    const res = await doRequest();
+    return res.data;
   } catch (error) {
-    console.error("Verify Payment Error:", error);
+    if (error.response?.status === 401) {
+      console.warn("[verifyPayment] 401 — attempting silent token refresh.");
+      const refreshed = await silentRefreshToken();
 
-    if (error.response && error.response.status === 401) {
+      if (refreshed) {
+        try {
+          const retryRes = await doRequest();
+          return retryRes.data;
+        } catch (retryError) {
+          console.error("[verifyPayment] Retry after refresh failed:", retryError);
+          const message =
+            retryError.response?.data?.message ||
+            retryError.message ||
+            "Failed to verify payment";
+          throw new Error(message);
+        }
+      }
+
+      console.error("[verifyPayment] Refresh failed. Logging user out.");
       dispatchUserUnauthorized();
     }
 
@@ -187,7 +222,6 @@ export const verifyPayment = async (reference, body = {}) => {
       error.response?.data?.message ||
       error.message ||
       "Failed to verify payment";
-
     throw new Error(message);
   }
 };
@@ -222,11 +256,6 @@ export const getUserReviews = async () => {
     throw new Error(message);
   }
 };
-
-/**
- * Get User Wallet
- * @returns {Object} - wallet data { balance, transactions }
- */
 export const getWallet = async () => {
   try {
     const res = await axios.get("/api/user/my-wallet", {
@@ -268,16 +297,34 @@ export const fundWallet = async (data) => {
  * @returns {Object} - result
  */
 export const verifyWalletTransaction = async (reference) => {
+  const doRequest = () =>
+    axios.get(`/api/user/wallet/verify/${reference}`, { withCredentials: true });
+
   try {
-    const res = await axios.get(`/api/user/wallet/verify/${reference}`, {
-      withCredentials: true,
-    });
+    const res = await doRequest();
     return res.data;
   } catch (error) {
-    console.error("Verify Wallet Error:", error);
-    if (error.response && error.response.status === 401) {
+    // --- Silent token refresh on 401 ---
+    if (error.response?.status === 401) {
+      console.warn("[verifyWalletTransaction] 401 — attempting silent token refresh.");
+      const refreshed = await silentRefreshToken();
+
+      if (refreshed) {
+        try {
+          const retryRes = await doRequest();
+          return retryRes.data;
+        } catch (retryError) {
+          console.error("[verifyWalletTransaction] Retry after refresh failed:", retryError);
+          throw retryError;
+        }
+      }
+
+      // Refresh failed — session is genuinely invalid
+      console.error("[verifyWalletTransaction] Refresh failed. Logging user out.");
       dispatchUserUnauthorized();
     }
+
+    console.error("Verify Wallet Error:", error);
     throw error;
   }
 };
