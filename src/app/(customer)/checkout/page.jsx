@@ -659,6 +659,16 @@ function CheckoutContent() {
                       )}
 
                       <p className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate font-bold uppercase tracking-tighter">{item.storeName}</p>
+                      {(item.selected_options || []).length > 0 && (
+                        <div className="mt-1 space-y-0.5">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400">Each order includes</p>
+                          {(item.selected_options || []).map((option, optionIndex) => (
+                            <p key={`${option.option_id || option.label}-${optionIndex}`} className="text-[10px] font-medium text-zinc-600 dark:text-zinc-300">
+                              {option.group_name ? `${option.group_name}: ` : ""}{Number(option.quantity) || 1} × {option.label}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">₦{((item.price_naira || item.price || 0) * item.quantity).toLocaleString()}</p>
                     </div>
                     <div className="bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded">
