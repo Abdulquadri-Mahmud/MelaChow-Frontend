@@ -529,7 +529,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                         {/* What's Included */}
                         {combo.contents?.length > 0 && (
                             <div className="px-1">
-                                <div className="bg-white dark:bg-zinc-900 rounded-[8px] p-3 border border-zinc-100 dark:border-zinc-800">
+                                <div className="bg-white dark:bg-zinc-900 rounded-[12px] p-4 border border-zinc-100 dark:border-zinc-800">
                                     <div className="flex items-center gap-1.5 mb-3">
                                         <div className="w-1 h-5 bg-orange-500 rounded-full" />
                                         <h3 className="text-base font-medium italic text-zinc-900 dark:text-white capitalize tracking-tight">
@@ -560,11 +560,11 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                     ) : true;
 
                                     return (
-                                        <div key={groupKey} className="bg-white dark:bg-zinc-900 rounded-[8px] p-3 border border-zinc-100 dark:border-zinc-800">
+                                        <div key={groupKey} className="bg-white dark:bg-zinc-900 rounded-[12px] p-4 border border-zinc-100 dark:border-zinc-800">
                                             <div className="flex items-center justify-between gap-1.5 mb-1">
                                                 <div className="flex items-center gap-1.5">
                                                     <div className="w-1 h-5 bg-orange-500 rounded-full" />
-                                                    <h4 className="text-[13px] font-medium italic text-zinc-900 dark:text-white capitalize tracking-tight">
+                                                    <h4 className="text-base font-bold italic text-zinc-900 dark:text-white capitalize tracking-tight">
                                                         {group.name}
                                                     </h4>
                                                 </div>
@@ -591,14 +591,14 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                                         <div
                                                             key={option._id}
                                                             onClick={() => !optionUnavailable && toggleChoice(groupKey, group, option)}
-                                                            className={`flex items-center gap-2.5 p-2 rounded-[8px] border-2 cursor-pointer transition-all ${
+                                                            className={`flex items-center gap-3 p-3 rounded-[14px] border-2 cursor-pointer transition-all ${
                                                                 isSelected
                                                                     ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10 shadow-lg shadow-orange-500/5"
                                                                     : "border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-orange-200 dark:hover:border-orange-500/30"
                                                             } ${optionUnavailable ? "opacity-50 cursor-not-allowed" : ""}`}
                                                         >
                                                             {option.image_url ? (
-                                                                <img src={option.image_url} alt={option.label} className="w-8 h-8 rounded-lg object-cover shrink-0 border border-zinc-100 dark:border-zinc-800" />
+                                                                <img src={option.image_url} alt={option.label} className="w-11 h-11 rounded-xl object-cover shrink-0 border border-zinc-100 dark:border-zinc-800" />
                                                             ) : (
                                                                 <div className="w-8 h-8 rounded-full bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
                                                                     <Plus size={12} strokeWidth={4} />
@@ -607,13 +607,13 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
 
                                                             {/* Label & price */}
                                                             <div className="flex-1 min-w-0">
-                                                                <p className="font-bold text-[13px] text-zinc-900 dark:text-white truncate tracking-tight capitalize italic">
+                                                                <p className="font-bold text-base text-zinc-900 dark:text-white truncate tracking-tight capitalize italic">
                                                                     {option.label}
                                                                 </p>
                                                                 {optionUnavailable && <p className="text-[8px] font-black uppercase tracking-widest text-rose-500">Sold out</p>}
                                                                 {!optionUnavailable && option.track_stock && option.stock_quantity <= (option.low_stock_threshold ?? 5) && <p className="text-[8px] font-black uppercase tracking-widest text-amber-500">Only {option.stock_quantity} left</p>}
                                                                 {option.price_modifier_naira > 0 ? (
-                                                                    <p className="text-[11px] font-medium text-zinc-500 mt-0.5">
+                                                                    <p className="text-sm font-semibold text-zinc-500 mt-0.5">
                                                                         ₦{option.price_modifier_naira.toLocaleString()}
                                                                     </p>
                                                                 ) : (
@@ -631,18 +631,18 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                                                 >
                                                                     <button
                                                                         onClick={() => updateOptionQuantity(groupKey, option.label, -1, group)}
-                                                                        className="w-[26px] h-[26px] flex items-center justify-center rounded-[8px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900"
+                                                                        className="w-8 h-8 flex items-center justify-center rounded-[8px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900"
                                                                     >
                                                                         <Minus size={14} strokeWidth={3} />
                                                                     </button>
-                                                                    <span className="text-[13px] font-medium text-zinc-900 dark:text-white min-w-[12px] text-center tabular-nums">
+                                                                    <span className="text-base font-bold text-zinc-900 dark:text-white min-w-[12px] text-center tabular-nums">
                                                                         {Array.isArray(selections[groupKey])
                                                                             ? selections[groupKey].find(i => i.label === option.label)?.quantity || 1
                                                                             : selections[groupKey]?.quantity || 1}
                                                                     </span>
                                                                     <button
                                                                         onClick={() => updateOptionQuantity(groupKey, option.label, 1, group)}
-                                                                        className="w-[26px] h-[26px] flex items-center justify-center rounded-[8px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900"
+                                                                        className="w-8 h-8 flex items-center justify-center rounded-[8px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900"
                                                                     >
                                                                         <Plus size={14} strokeWidth={3} />
                                                                     </button>
