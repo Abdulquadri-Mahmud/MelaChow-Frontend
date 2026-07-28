@@ -708,10 +708,10 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
                        {/* Portions Selector */}
                        {foodPortions.length > 0 && (
-                         <div className="bg-white dark:bg-zinc-900 rounded-[8px] p-3 border border-zinc-100 dark:border-zinc-800 mb-4">
+                         <div className="bg-white dark:bg-zinc-900 rounded-[12px] p-4 border border-zinc-100 dark:border-zinc-800 mb-5">
                            <div className="flex items-center gap-1.5 mb-3">
                              <div className="w-1 h-5 bg-orange-500 rounded-full" />
-                             <h3 className="text-base font-medium italic text-zinc-900 dark:text-white capitalize tracking-tight">Select Portion</h3>
+                             <h3 className="text-lg font-bold italic text-zinc-900 dark:text-white capitalize tracking-tight">Select Portion</h3>
                            </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1">
                             {foodPortions.map(portion => {
@@ -725,16 +725,16 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                       setSelectedPortion(portion);
                                     }
                                   }}
-                                  className={`relative flex items-center justify-between p-1 rounded-[10px] border-2 transition-all cursor-pointer ${isSelected
+                                  className={`relative flex items-center justify-between p-3 rounded-[12px] border-2 transition-all cursor-pointer ${isSelected
                                       ? "bg-orange-50/50 dark:bg-orange-500/10 border-orange-500 shadow-[0_0_20px_rgba(255,102,0,0.1)] dark:shadow-[0_0_30px_rgba(255,102,0,0.15)] scale-[1.01]"
                                       : "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-200 dark:hover:border-orange-500/30"
                                     } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                   <div className="flex flex-col">
-                                    <span className={`text-sm font-medium capitalize tracking-wider ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-600 dark:text-zinc-400'}`}>
+                                    <span className={`text-base font-bold capitalize tracking-wider ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-600 dark:text-zinc-400'}`}>
                                       {portion.label}
                                     </span>
-                                    <span className="text-[11px] font-medium text-zinc-500 mt-0.5">
+                                    <span className="text-sm font-semibold text-zinc-500 mt-0.5">
                                       {portion.price_naira ? `₦${portion.price_naira.toLocaleString()}` : 'Free'}
                                     </span>
                                   </div>
@@ -784,10 +784,10 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                        {(food.choiceGroups?.length > 0 || food.choice_groups?.length > 0) && (
                          <div className="space-y-3 mb-4 relative z-10">
                            {(food.choiceGroups || food.choice_groups).map((group, gIdx) => (
-                             <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[8px] p-2.5 border border-zinc-100 dark:border-zinc-800 flex flex-col">
+                             <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[12px] p-4 border border-zinc-100 dark:border-zinc-800 flex flex-col">
                               <div className="flex items-center gap-2 mb-1">
                                 <div className="w-1 h-5 bg-orange-500 rounded-full" />
-                                <h4 className="text-[13px] font-medium italic text-zinc-900 dark:text-white capitalize tracking-tight">
+                                <h4 className="text-base font-bold italic text-zinc-900 dark:text-white capitalize tracking-tight">
                                   {group.name}
                                 </h4>
                                 {group.is_required && (
@@ -817,7 +817,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                   return (
                                     <div key={option._id}
                                       onClick={() => itemAvailability.available && !optionUnavailable && toggleChoice(gIdx, group, option)}
-                                      className={`flex items-center gap-2.5 p-2 rounded-[12px] border-2 cursor-pointer transition-all ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10" : "border-zinc-50 dark:border-zinc-800 bg-white dark:bg-zinc-900"
+                                      className={`flex items-center gap-3 p-3 rounded-[14px] border-2 cursor-pointer transition-all ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10" : "border-zinc-50 dark:border-zinc-800 bg-white dark:bg-zinc-900"
                                         } ${!itemAvailability.available || optionUnavailable ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                       {option.image_url ? (
                                         <img src={option.image_url} alt={option.label} className="w-8 h-8 rounded-lg object-cover shrink-0 border border-zinc-100 dark:border-zinc-800" />
@@ -828,11 +828,11 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                       )}
                                       {/* Details */}
                                       <div className="flex-1 min-w-0">
-                                        <p className="font-medium text-[11px] text-zinc-900 dark:text-white truncate capitalize italic">{option.label}</p>
+                                        <p className="font-semibold text-sm text-zinc-900 dark:text-white truncate capitalize italic">{option.label}</p>
                                         {optionUnavailable && <p className="text-[8px] font-black uppercase tracking-widest text-rose-500">Sold out</p>}
                                         {!optionUnavailable && option.track_stock && option.stock_quantity <= (option.low_stock_threshold ?? 5) && <p className="text-[8px] font-black uppercase tracking-widest text-amber-500">Only {option.stock_quantity} left</p>}
                                         {option.price_modifier_naira > 0 ? (
-                                          <p className="text-[10px] font-medium text-zinc-500">+₦{option.price_modifier_naira.toLocaleString()}</p>
+                                          <p className="text-xs font-semibold text-zinc-500">+₦{option.price_modifier_naira.toLocaleString()}</p>
                                         ) : (
                                           <p className="text-[8px] font-medium text-zinc-400 dark:text-zinc-500 capitalize tracking-widest mt-0.5">Free</p>
                                         )}
@@ -906,7 +906,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                     className={`w-full flex items-center gap-3 group transition-opacity ${ratingFilter && ratingFilter !== star ? 'opacity-40' : 'opacity-100'
                                       }`}
                                   >
-                                    <span className="text-[10px] font-medium text-zinc-500 w-4 shrink-0">{star}</span>
+                                    <span className="text-xs font-semibold text-zinc-500 w-4 shrink-0">{star}</span>
                                     <Star size={10} className="fill-orange-400 text-orange-400 shrink-0" />
                                     <div className="flex-1 h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                                       <div
