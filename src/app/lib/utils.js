@@ -30,52 +30,24 @@ export const isVendorOpen = (openingHours) => {
  */
 export function generateOrderItemsStatement(order, { includeCustomerName = false, prefix = "" } = {}) {
   const items = order.items || order.userOrderId?.items || [];
-  if (items.length === 0) return "No items recorded in this order.";
-
-  const itemStatements = items.map((item) => {
+  if (!items.length) return "No items recorded in this order.";
+  const joinList = (parts) => parts.length < 2 ? (parts[0] || "") : parts.length === 2 ? parts.join(" and ") : `${parts.slice(0, -1).join(", ")}, and ${parts.at(-1)}`;
+  const lines = items.map((item) => {
     const quantity = Number(item.quantity) || 1;
-    const portionLabel = item.portion_label || item.metadata?.portion_label || "";
     const portionQuantity = Number(item.portion_quantity) || 1;
+    const portionLabel = item.portion_label || item.metadata?.portion_label || "portion";
     const itemName = item.name || item.variant?.name || "item";
     const options = item.selected_options || item.metadata?.selected_options || [];
-    const totalPortions = portionQuantity * quantity;
-
-    const cleanPortionLabel = (portionLabel || "").trim();
-    const portionText = cleanPortionLabel || (totalPortions > 1 ? "servings" : "serving");
-
-    let statement = `${quantity} ${quantity > 1 ? "packs" : "pack"} of ${itemName}`;
-    if (portionQuantity > 0) {
-      statement += `, making ${totalPortions} ${portionText}`;
-    }
-
-    if (options.length > 0) {
-      const optionsTextList = options.map((opt) => `${opt.quantity || 1} ${opt.label}`);
-      const optionsSentence = optionsTextList.length === 1 
-        ? optionsTextList[0] 
-        : optionsTextList.length === 2 
-          ? optionsTextList.join(" and ") 
-          : optionsTextList.slice(0, -1).join(", ") + ", and " + optionsTextList.slice(-1);
-      
-      statement += `, with ${optionsSentence}`;
-    }
-    return statement;
+    const choices = joinList(options.map((option) => `${Number(option.quantity) || 1} ${option.label || option.name}`).filter(Boolean));
+    const packText = `${quantity} ${quantity === 1 ? "pack" : "packs"} of ${itemName}`;
+    const contents = `${portionQuantity} ${portionLabel}${choices ? `, with ${choices}` : ""}`;
+    return quantity === 1 ? `${packText}, making ${contents}` : `${packText}, each with ${contents}. Quantity: ${quantity}`;
   });
-
-  const fullList = itemStatements.length === 1 
-    ? itemStatements[0] 
-    : itemStatements.length === 2 
-      ? itemStatements.join(" and ") 
-      : itemStatements.slice(0, -1).join(", ") + ", and " + itemStatements.slice(-1);
-
+  const fullList = joinList(lines);
   if (includeCustomerName) {
     const user = order.userId || order.userOrderId?.userId;
     const name = user ? `${user.firstname || ""} ${user.lastname || ""}`.trim() : "";
     return `${name || "This customer"} ordered ${fullList}.`;
   }
-
-  if (prefix) {
-    return `${prefix} ${fullList}.`;
-  }
-
-  return `${fullList}.`;
+  return `${prefix ? `${prefix} ` : ""}${fullList}.`;
 }
