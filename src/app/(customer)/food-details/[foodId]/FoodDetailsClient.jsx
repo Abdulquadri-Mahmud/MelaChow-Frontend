@@ -36,6 +36,21 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   const params = useParams();
   const foodId = propFoodId || params.foodId;
   const { addToCart, cart } = useCart();
+  useEffect(() => {
+    if (!isModal || !onClose) return;
+    let closed = false;
+    window.history.pushState({ melachowModal: "food" }, "");
+    const handlePopState = () => {
+      if (closed) return;
+      closed = true;
+      onClose();
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      if (!closed && window.history.state?.melachowModal === "food") window.history.back();
+    };
+  }, [isModal, onClose]);
 
   const isFoodComplete = (f) => f && f.portions !== undefined && (f.choiceGroups !== undefined || f.choice_groups !== undefined);
 
