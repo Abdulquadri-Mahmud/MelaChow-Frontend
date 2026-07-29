@@ -14,6 +14,7 @@ import { useOrderTracking } from "@/app/hooks/useOrderTracking";
 import toast from "react-hot-toast";
 import { generateOrderItemsStatement } from "@/app/lib/utils";
 import { verifyPaymentV2 } from "@/app/lib/orderService";
+import customerApi from "@/app/lib/customerApi";
 
 const statusSteps = [
   {
@@ -157,9 +158,7 @@ export default function OrderTracking() {
 
     setIsCancelling(true);
     try {
-      const response = await axios.patch(`${baseUrl}/orders/${orderData._id}/cancel`, {}, {
-        withCredentials: true
-      });
+      const response = await customerApi.patch(`/orders/${orderData._id}/cancel`);
       
       if (response.data.success) {
         toast.success("Order cancelled and funds refunded!");
@@ -229,9 +228,7 @@ export default function OrderTracking() {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/orders/${orderId}`, {
-          withCredentials: true
-        });
+        const res = await customerApi.get(`/orders/${orderId}`);
         setOrderData(res.data.order);
         // OTP might be in the root of response from getSingleOrder update
         if (res.data.deliveryOtp) {
