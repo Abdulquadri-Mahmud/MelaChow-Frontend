@@ -10,6 +10,7 @@ import { ShoppingCart, Package, Trash2, ArrowRight, Minus, Plus, ShoppingBag, Ut
 import toast from "react-hot-toast";
 import { useApi } from "@/app/context/ApiContext";
 import axios from "axios";
+import customerApi from "@/app/lib/customerApi";
 import { OrderCardSkeleton } from "@/app/components/skeleton/OrderCardSkeleton";
 import { motion } from "framer-motion";
 import { Pencil, Loader2, AlertCircle, RefreshCw } from "lucide-react";
@@ -71,9 +72,7 @@ function OrdersContent() {
 
   const fetchUserOrders = async () => {
     if (!user) return { orders: [] };
-    const res = await axios.get(`${baseUrl}/orders/my-orders`, {
-      withCredentials: true,
-    });
+    const res = await customerApi.get("/orders/my-orders");
     return res.data;
   };
 

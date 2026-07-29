@@ -6,6 +6,7 @@ import { TokenManager } from "../lib/auth-token";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname } from "next/navigation";
 import { normalizeUserAddresses } from "../lib/addressUtils";
+import { refreshCustomerAccessToken } from "../lib/customerApi";
 
 const ProfileContext = createContext(undefined);
 
@@ -50,7 +51,7 @@ export const ProfileProvider = ({ children }) => {
     }
 
     try {
-      const res = await fetch(`${baseUrl}/user/auth/profile`, {
+      let res = await fetch(`${baseUrl}/user/auth/profile`, {
         credentials: "include",
         headers: headers,
       });
@@ -60,6 +61,13 @@ export const ProfileProvider = ({ children }) => {
           status: res.status,
           ok: res.ok,
         });
+      }
+
+      if (res.status === 401) {
+        try {
+          const accessToken = await refreshCustomerAccessToken();
+          res = await fetch(`${baseUrl}/user/auth/profile`, { credentials: "include", headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` } });
+        } catch {}
       }
 
       if (res.status === 401) {
