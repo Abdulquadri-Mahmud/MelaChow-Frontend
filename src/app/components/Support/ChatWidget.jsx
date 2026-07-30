@@ -70,7 +70,7 @@ export default function ChatWidget() {
         }),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (res.ok) {
         setMessages((prev) => [
@@ -88,12 +88,17 @@ export default function ChatWidget() {
           { role: "assistant", content: data.error, isError: true, is502: true },
         ]);
       } else {
-        // 400 or other
+        const message =
+          data?.error ||
+          data?.message ||
+          (res.status === 401
+            ? "Please sign in again, then try Chow once more."
+            : "Chow could not respond just now. Please try again or use Get Help to contact support.");
         setMessages((prev) => [
           ...prev,
           {
             role: "assistant",
-            content: "I couldn't process that message. Please try rephrasing.",
+            content: message,
             isError: true,
           },
         ]);
@@ -103,7 +108,7 @@ export default function ChatWidget() {
         ...prev,
         {
           role: "assistant",
-          content: "I couldn't process that message. Please try rephrasing.",
+          content: "Chow could not connect just now. Please check your connection and try again, or use Get Help to contact support.",
           isError: true,
         },
       ]);
