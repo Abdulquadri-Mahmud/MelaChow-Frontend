@@ -138,6 +138,11 @@ export default function Signin() {
 
     } catch (err) {
       console.error('[Signin] Error:', err);
+      const pendingAccount = err.response?.data?.requiresVerification || err.response?.data?.code === "ACCOUNT_VERIFICATION_REQUIRED";
+      if (pendingAccount) {
+        router.push(`/auth/verify-registration?email=${encodeURIComponent(err.response?.data?.email || formData.email)}&returnTo=signin`);
+        return;
+      }
       const errorMessage = err.response?.data?.message || "Invalid email or password. Please try again.";
 
       setStatusModal({
@@ -199,7 +204,6 @@ export default function Signin() {
                 value={formData.password}
                 onChange={handleChange}
                 className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all pr-12 border border-slate-200 focus:border-orange-500/20"
-                required
               />
               <button
                 type="button"
@@ -235,7 +239,7 @@ export default function Signin() {
 
         <div className="mt-8 text-center space-y-6">
           <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link
               href="/auth/signup"
               className="text-orange-600 hover:text-orange-700 font-bold ml-1"
@@ -258,7 +262,7 @@ export default function Signin() {
                 <div className="text-left">
                   <p className="text-sm font-bold text-slate-900 dark:text-white">Partner Portal</p>
                   <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Vendors 
+                    Vendors
                     {/* & Riders */}
                   </p>
                 </div>
