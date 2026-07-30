@@ -75,10 +75,12 @@ export default function VerifyRegistration() {
     const [resending, setResending] = useState(false);
     const [timeLeft, setTimeLeft] = useState(600); // 10 minutes countdown
     const [statusModal, setStatusModal] = useState({ isOpen: false, type: 'success', message: '' });
+    const [requiresPassword, setRequiresPassword] = useState(true);
 
     const router = useRouter();
     const searchParams = useSearchParams();
     const email = searchParams.get("email");
+    const returnTo = searchParams.get("returnTo");
     const { baseUrl } = useApi();
 
     useEffect(() => {
@@ -145,7 +147,7 @@ export default function VerifyRegistration() {
         const wasSuccess = statusModal.type === 'success';
         setStatusModal({ ...statusModal, isOpen: false });
         if (wasSuccess) {
-            router.push(`/auth/set-password?email=${encodeURIComponent(email)}`);
+            router.push(requiresPassword ? `/auth/set-password?email=${encodeURIComponent(email)}` : (returnTo === "signin" ? `/auth/signin?verified=1` : "/auth/signin"));
         }
     };
 
@@ -164,7 +166,7 @@ export default function VerifyRegistration() {
             setLoading(true);
             const endpoint = `${baseUrl}/user/auth/verify-registration`;
 
-            await axios.post(
+            const { data } = await axios.post(
                 endpoint,
                 { email, otp: otpString },
                 {
@@ -173,10 +175,14 @@ export default function VerifyRegistration() {
                 }
             );
 
+            const needsPassword = data.requiresPassword !== false;
+            setRequiresPassword(needsPassword);
             setStatusModal({
                 isOpen: true,
                 type: 'success',
-                message: "Authentication successful! Now, let's secure your account with a password."
+                message: needsPassword
+                    ? "Email verified. Create a password to complete your account."
+                    : "Email verified. You can now sign in."
             });
 
         } catch (error) {
