@@ -5,7 +5,7 @@ import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { Clock, Truck, Package, Home, CheckCircle, Star, Phone, Bike, Copy, RefreshCw } from "lucide-react";
 import { useApi } from "@/app/context/ApiContext";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Header2 from "../App_Header/Header2";
 import OrderTrackingSkeleton from "../skeleton/OrderTrackingSkeleton";
 import { motion, AnimatePresence } from "framer-motion";
@@ -77,6 +77,7 @@ const statusSteps = [
 
 export default function OrderTracking() {
   const { orderId } = useParams();
+  const router = useRouter();
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -407,6 +408,7 @@ export default function OrderTracking() {
                     Copy
                   </button>
                   <span className="text-[10px] font-medium text-orange-500 uppercase">{currentStepIndex + 1} of {statusSteps.length} Steps Done</span>
+                  <button type="button" onClick={() => router.push("/get-help?orderId=" + encodeURIComponent(orderData.orderId || orderId) + "&paymentReference=" + encodeURIComponent(orderData.paymentReference || ""))} className="rounded border border-red-100 bg-red-50 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-red-600 dark:border-red-500/20 dark:bg-red-500/10">Report an issue</button>
                 </div>
               </div>
               <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded">

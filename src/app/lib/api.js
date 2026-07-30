@@ -127,6 +127,23 @@ export const createSupportTicket = async (ticketData) => {
   }
 };
 
+export const getMySupportTicket = async (ticketId) => {
+  try {
+    const res = await axios.get("/api/support/my-tickets/" + ticketId, { withCredentials: true });
+    return res.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || error.message || "Failed to load support ticket");
+  }
+};
+
+export const addSupportTicketMessage = async (ticketId, payload) => {
+  try {
+    const res = await axios.post("/api/support/my-tickets/" + ticketId + "/messages", payload, { withCredentials: true });
+    return res.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.message || error.message || "Failed to send support message");
+  }
+};
 export const getMySupportTickets = async () => {
   try {
     const res = await axios.get("/api/support/my-tickets", {
