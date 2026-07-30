@@ -21,7 +21,8 @@ import {
   Truck,
   User,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import uploadToCloudinary from "@/app/components/user_profile/helpers/uploadToCloudinary";
 import { createSupportTicket, getMySupportTickets } from "@/app/lib/api";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 
@@ -86,6 +87,7 @@ function TicketStatus({ status }) {
 
 export default function GetHelp() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useUserStorage();
   const [form, setForm] = useState({
     category: "payment_issue",
@@ -95,10 +97,13 @@ export default function GetHelp() {
     customerPhone: user?.phone || "",
     customerEmail: user?.email || "",
     message: "",
+    requestedResolution: "",
+    evidence: [],
   });
   const [tickets, setTickets] = useState([]);
   const [isLoadingTickets, setIsLoadingTickets] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingEvidence, setIsUploadingEvidence] = useState(false);
 
   const activeCategory = useMemo(
     () => categories.find((item) => item.id === form.category) || categories[0],
@@ -135,6 +140,17 @@ export default function GetHelp() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleEvidenceUpload = async (event) => {
+    const files = Array.from(event.target.files || []).slice(0, 5 - form.evidence.length);
+    if (!files.length) return;
+    try {
+      setIsUploadingEvidence(true);
+      const uploaded = await Promise.all(files.map(uploadToCloudinary));
+      const validUrls = uploaded.filter(Boolean);
+      setForm((prev) => ({ ...prev, evidence: [...prev.evidence, ...validUrls].slice(0, 5) }));
+      if (validUrls.length !== files.length) toast.error("Some files could not be uploaded. Please try again.");
+    } finally { setIsUploadingEvidence(false); event.target.value = ""; }
+  };
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -158,6 +174,8 @@ export default function GetHelp() {
         orderReference: "",
         paymentReference: "",
         message: "",
+    requestedResolution: "",
+    evidence: [],
       }));
       await loadTickets();
     } catch (error) {
@@ -343,7 +361,7 @@ export default function GetHelp() {
             ) : (
               <div className="space-y-2">
                 {tickets.slice(0, 6).map((ticket) => (
-                  <div key={ticket._id} className="rounded-lg border border-zinc-200 p-3 dark:border-zinc-800">
+                  <button type="button" onClick={() => router.push("/get-help/tickets/" + ticket._id)} key={ticket._id} className="w-full rounded-lg border border-zinc-200 p-3 text-left dark:border-zinc-800">
                     <div className="mb-2 flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="truncate text-[10px] font-black uppercase tracking-widest text-orange-600">{ticket.ticketNumber}</p>

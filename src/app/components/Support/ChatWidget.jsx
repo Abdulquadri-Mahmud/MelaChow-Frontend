@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, X, ArrowUp, Mail } from "lucide-react";
+import { MessageCircle, X, ArrowUp, Mail, LifeBuoy } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createSupportTicket } from "@/app/lib/api";
 
 // Hardcoded greeting — no API call on open
 const CUSTOMER_GREETING = {
@@ -16,6 +19,8 @@ export default function ChatWidget() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [hasGreeted, setHasGreeted] = useState(false);
+  const [isEscalating, setIsEscalating] = useState(false);
+  const router = useRouter();
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -107,6 +112,19 @@ export default function ChatWidget() {
     }
   };
 
+  const handoffToSupport = async () => {
+    try {
+      setIsEscalating(true);
+      const transcript = messages.filter((item) => item.role !== "assistant" || item.content !== CUSTOMER_GREETING.content).map((item) => (item.role === "user" ? "Customer: " : "Chow: ") + item.content).join("\n\n");
+      const response = await createSupportTicket({ category: "other", subject: "Chatbot support handoff", message: transcript.length >= 15 ? transcript : "Customer requested a human support follow-up.", requestedResolution: "Speak with a support officer" });
+      const ticketId = response.data?.ticket?._id;
+      if (!ticketId) throw new Error("Support ticket was not created");
+      setIsOpen(false);
+      router.push("/get-help/tickets/" + ticketId);
+    } catch (error) {
+      setMessages((prev) => [...prev, { role: "assistant", content: "I could not create a support ticket just now. Please use Get Help to contact support.", isError: true }]);
+    } finally { setIsEscalating(false); }
+  };
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -190,6 +208,14 @@ export default function ChatWidget() {
 
           {/* Input area */}
           <div className="px-3 pb-3 pt-2 border-t border-zinc-100 dark:border-zinc-800 shrink-0">
+            <Link
+              href="/get-help"
+              onClick={() => setIsOpen(false)}
+              className="mb-2 flex items-center justify-center gap-1 text-xs font-semibold text-orange-600 hover:text-orange-700"
+            >
+              <LifeBuoy size={13} />
+              Need order-specific help? Contact support
+            </Link>
             <div className="flex items-end gap-2 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 px-3 py-2">
               <textarea
                 id="chat-widget-input"
