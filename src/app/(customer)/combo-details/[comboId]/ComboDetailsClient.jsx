@@ -28,6 +28,8 @@ import { useQuery } from "@tanstack/react-query";
 // Route: /combo-details/[comboId]?vendorId=xxx
 // -----------------------------------------------------------------------------
 
+const isSoupChoiceGroup = (group) => /^choose\s+your\s+soup$/i.test(String(group?.name || "").trim());
+
 export default function ComboDetailsPage({ initialData, comboId: propComboId, isModal, onClose }) {
     const router = useRouter();
     const params = useParams();
@@ -626,7 +628,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                                             {/* Quantity stepper or radio dot */}
                                                             {isSelected ? (
                                                                 <div
-                                                                    className="flex items-center gap-2.5 bg-white dark:bg-zinc-800 rounded-xl p-1 border border-zinc-100 dark:border-zinc-700"
+                                                                    className={(isSoupChoiceGroup(group) ? "hidden" : "flex") + " items-center gap-2.5 bg-white dark:bg-zinc-800 rounded-xl p-1 border border-zinc-100 dark:border-zinc-700"}
                                                                     onClick={e => e.stopPropagation()}
                                                                 >
                                                                     <button

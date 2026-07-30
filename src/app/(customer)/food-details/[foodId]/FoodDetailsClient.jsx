@@ -31,6 +31,8 @@ import { useFoodModalStore } from "@/app/store/foodModalStore";
 import { useComboModalStore } from "@/app/store/comboModalStore";
 import FoodDetailsSkeleton from "@/app/skeleton/FoodDetailsSkeleton";
 
+const isSoupChoiceGroup = (group) => /^choose\s+your\s+soup$/i.test(String(group?.name || "").trim());
+
 export default function FoodDetails({ initialData, foodId: propFoodId, isModal, onClose }) {
   const router = useRouter();
   const params = useParams();
@@ -855,7 +857,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                       </div>
                                       {/* Selection Indicator */}
                                       {isSelected ? (
-                                        <div className="flex items-center gap-2 bg-white dark:bg-zinc-800 rounded-lg p-0.5 border border-zinc-100 dark:border-zinc-700" onClick={e => e.stopPropagation()}>
+                                        <div className={(isSoupChoiceGroup(group) ? "hidden" : "flex") + " items-center gap-2 bg-white dark:bg-zinc-800 rounded-lg p-0.5 border border-zinc-100 dark:border-zinc-700"} onClick={e => e.stopPropagation()}>
                                           <button onClick={() => updateOptionQuantity(gIdx, option.label, -1, group)} disabled={!itemAvailability.available} className="w-[22px] h-[22px] flex items-center justify-center rounded-[6px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900">
                                             <Minus size={12} strokeWidth={3} />
                                           </button>
