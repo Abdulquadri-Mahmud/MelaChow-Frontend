@@ -74,6 +74,7 @@ export default function VerifyRegistration() {
     const [loading, setLoading] = useState(false);
     const [resending, setResending] = useState(false);
     const [timeLeft, setTimeLeft] = useState(600); // 10 minutes countdown
+    const [resendCooldown, setResendCooldown] = useState(30); // 30 seconds resend cooldown
     const [statusModal, setStatusModal] = useState({ isOpen: false, type: 'success', message: '' });
     const [requiresPassword, setRequiresPassword] = useState(true);
 
@@ -98,6 +99,22 @@ export default function VerifyRegistration() {
 
         return () => clearInterval(interval);
     }, [timeLeft]);
+
+    useEffect(() => {
+        if (resendCooldown <= 0) return;
+
+        const interval = setInterval(() => {
+            setResendCooldown((prev) => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [resendCooldown]);
 
     const formatTime = (seconds) => {
         const m = String(Math.floor(seconds / 60)).padStart(2, "0");
@@ -200,7 +217,7 @@ export default function VerifyRegistration() {
     };
 
     const handleResend = async () => {
-        if (resending || timeLeft > 0) return;
+        if (resending || resendCooldown > 0) return;
 
         try {
             setResending(true);
@@ -224,6 +241,7 @@ export default function VerifyRegistration() {
             setOtp(Array(6).fill(""));
             inputRefs.current[0]?.focus();
             setTimeLeft(600);
+            setResendCooldown(30);
         } catch (error) {
             console.error('[VerifyRegistration] Resend error:', error);
             setStatusModal({
@@ -306,8 +324,8 @@ export default function VerifyRegistration() {
 
                     <button
                         onClick={handleResend}
-                        disabled={resending || timeLeft > 0}
-                        className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all border ${resending || timeLeft > 0
+                        disabled={resending || resendCooldown > 0}
+                        className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all border ${resending || resendCooldown > 0
                             ? "bg-transparent border-slate-100 dark:border-slate-800 text-slate-400 cursor-not-allowed"
                             : "bg-transparent border-orange-100 dark:border-orange-900/30 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/5 shadow-sm"
                             }`}
@@ -316,8 +334,12 @@ export default function VerifyRegistration() {
                             <Loader2 className="animate-spin" size={18} />
                         ) : (
                             <>
-                                <RefreshCw size={18} className={timeLeft > 0 ? "opacity-50" : ""} />
-                                <span>Resend OTP {timeLeft > 0 ? "" : ""}</span>
+                                <RefreshCw size={18} className={resendCooldown > 0 ? "opacity-50" : ""} />
+                                <span>
+                                    {resendCooldown > 0
+                                        ? `Resend OTP (${resendCooldown}s)`
+                                        : "Resend OTP"}
+                                </span>
                             </>
                         )}
                     </button>
