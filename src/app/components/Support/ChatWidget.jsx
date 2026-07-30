@@ -5,6 +5,8 @@ import { MessageCircle, X, ArrowUp, Mail, LifeBuoy } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupportTicket } from "@/app/lib/api";
+import { TokenManager } from "@/app/lib/auth-token";
+import { refreshCustomerAccessToken } from "@/app/lib/customerApi";
 
 // Hardcoded greeting — no API call on open
 const CUSTOMER_GREETING = {
@@ -60,15 +62,33 @@ export default function ChatWidget() {
     const history = [...messages, userMsg].slice(-16);
 
     try {
-      const res = await fetch("/api/support/chat", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: trimmed,
-          history: messages.slice(-16), // history BEFORE the current message
-        }),
-      });
+      const requestChatReply = (accessToken) =>
+        fetch("/api/support/chat", {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+          body: JSON.stringify({
+            message: trimmed,
+            history: messages.slice(-16), // history BEFORE the current message
+          }),
+        });
+
+      let res = await requestChatReply(TokenManager.getToken("user"));
+
+      // Match the customer API behaviour: a request made during an access-token
+      // rollover gets one refresh-and-retry instead of falsely telling the user
+      // their session is invalid.
+      if (res.status === 401) {
+        try {
+          const accessToken = await refreshCustomerAccessToken();
+          res = await requestChatReply(accessToken);
+        } catch {
+          // The response below gives the customer a clear sign-in instruction.
+        }
+      }
 
       const data = await res.json().catch(() => ({}));
 
