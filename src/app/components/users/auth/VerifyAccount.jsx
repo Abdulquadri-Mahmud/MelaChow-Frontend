@@ -77,6 +77,7 @@ export default function VerifyAccount() {
   const [statusModal, setStatusModal] = useState({ isOpen: false, type: 'success', message: '' });
   const [resending, setResending] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600);
+  const [resendCooldown, setResendCooldown] = useState(30);
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
@@ -99,6 +100,22 @@ export default function VerifyAccount() {
 
     return () => clearInterval(interval);
   }, [timeLeft]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
 
   const closeModal = () => {
     const wasSuccess = statusModal.type === 'success';
@@ -199,7 +216,7 @@ export default function VerifyAccount() {
   };
 
   const handleResend = async () => {
-    if (resending || timeLeft > 0) return;
+    if (resending || resendCooldown > 0) return;
 
     try {
       setResending(true);
@@ -223,6 +240,7 @@ export default function VerifyAccount() {
       setOtp(Array(6).fill(""));
       inputRefs.current[0]?.focus();
       setTimeLeft(600);
+      setResendCooldown(30);
     } catch (error) {
       console.error('[VerifyAccount] Resend error:', error);
       setStatusModal({ isOpen: true, type: 'error', message: "Could not resend the code. Please try again later." });
@@ -301,8 +319,8 @@ export default function VerifyAccount() {
 
           <button
             onClick={handleResend}
-            disabled={resending || timeLeft > 0}
-            className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all border ${resending || timeLeft > 0
+            disabled={resending || resendCooldown > 0}
+            className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all border ${resending || resendCooldown > 0
               ? "bg-transparent border-slate-100 dark:border-slate-800 text-slate-400 cursor-not-allowed"
               : "bg-transparent border-orange-100 dark:border-orange-900/30 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/5 shadow-sm"
               }`}
@@ -311,8 +329,12 @@ export default function VerifyAccount() {
               <Loader2 className="animate-spin" size={18} />
             ) : (
               <>
-                <RefreshCw size={18} className={timeLeft > 0 ? "opacity-30" : ""} />
-                <span>Resend Code</span>
+                <RefreshCw size={18} className={resendCooldown > 0 ? "opacity-30" : ""} />
+                <span>
+                  {resendCooldown > 0
+                    ? `Resend OTP (${resendCooldown}s)`
+                    : "Resend Code"}
+                </span>
               </>
             )}
           </button>
