@@ -9,6 +9,7 @@ import { fetchUser } from "@/app/lib/api";
 import User_Profile from "@/app/components/user_profile/User_Profile";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import ProtectedRoute from "@/app/components/protected-route/ProtectedRoute";
+import ProfilePageSkeleton from "@/app/skeleton/ProfilePageSkeleton";
 
 export default function ProfilePage() {
   // const [token, setToken] = useState(undefined); // Removed
@@ -86,21 +87,7 @@ export default function ProfilePage() {
   }
 
   // Show loading if query is in progress or userData is not yet available
-  if (isLoading || !userData) {
-    return (
-      <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen">
-        <Header2 />
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="animate-pulse flex flex-col gap-3 items-center">
-            <div className="w-24 h-24 bg-zinc-300 dark:bg-zinc-800 rounded-full" />
-            <div className="w-40 h-5 bg-zinc-300 dark:bg-zinc-800 rounded-md" />
-            <div className="w-52 h-4 bg-zinc-200 dark:bg-zinc-800 rounded-md" />
-          </div>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-6">Loading your profile...</p>
-        </div>
-      </div>
-    );
-  }
+  if (isLoading || !userData) return <ProfilePageSkeleton />;
 
   // Show user profile once data is ready
   return (
