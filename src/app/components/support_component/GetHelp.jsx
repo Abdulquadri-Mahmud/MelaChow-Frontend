@@ -370,7 +370,7 @@ export default function GetHelp() {
                       <TicketStatus status={ticket.status} />
                     </div>
                     <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{formatDate(ticket.createdAt)}</p>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
