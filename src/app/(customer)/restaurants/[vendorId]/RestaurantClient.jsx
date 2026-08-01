@@ -20,96 +20,20 @@ import { useActivePromos } from "@/app/hooks/useActivePromos";
 const getItemId = (item) => item?._id || item?.id;
 const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
 
-const getChoiceGroupCount = (item) => {
-    if (Array.isArray(item?.choice_groups)) return item.choice_groups.length;
-    if (Array.isArray(item?.choiceGroups)) return item.choiceGroups.length;
-    return Number(item?.choice_groups?.count ?? item?.choiceGroups?.count ?? 0);
-};
+const getChoiceGroupCount = (item) => Array.isArray(item?.choice_groups)
+    ? item.choice_groups.length
+    : Array.isArray(item?.choiceGroups)
+        ? item.choiceGroups.length
+        : Number(item?.choice_groups?.count ?? item?.choiceGroups?.count ?? 0);
 
-const isStandaloneQuickAddItem = (item) => (
-    !isComboItem(item)
-    && Number(item?.portions?.count) === 1
-    && getChoiceGroupCount(item) === 0
-);
-
-const FoodItemRow = ({ item, onSelect, selectedQuantity = 1, onQuantityChange }) => {
+const FoodItemRow = ({ item, onSelect }) => {
     const isUnavailable = !item.is_available || item.is_in_stock === false;
-    const isQuickAdd = isStandaloneQuickAddItem(item);
     const price = item.portions?.min_price_naira || item.portions?.default_price_naira || item.price_naira || item.price || 0;
-
-    return (
-        <div
-            onClick={() => !isUnavailable && onSelect(item, isQuickAdd ? selectedQuantity : 1)}
-            className={`group flex items-center gap-4 py-4 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer active:scale-[0.99] transition-all duration-200 ${isUnavailable ? "opacity-50 grayscale pointer-events-none" : ""}`}
-        >
-            <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-2">
-                    <h3 className="text-[16px] font-bold text-zinc-900 dark:text-white tracking-tight truncate group-hover:text-orange-600 transition-colors duration-200">
-                        {item.name}
-                    </h3>
-                    {item.is_popular && <Flame size={13} className="text-orange-500 shrink-0 animate-pulse" />}
-                </div>
-
-                <p className="text-[12px] text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed font-normal">
-                    {item.description || "Freshly prepared with premium ingredients."}
-                </p>
-
-                <div className="flex items-center gap-2 pt-1">
-                    <span className="text-[15px] font-bold text-zinc-950 dark:text-zinc-50">From ₦{price.toLocaleString()}</span>
-                    {isQuickAdd && !isUnavailable && (
-                        <div
-                            onClick={(event) => event.stopPropagation()}
-                            className="ml-auto flex items-center rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
-                        >
-                            <button
-                                type="button"
-                                aria-label={`Decrease ${item.name} quantity`}
-                                onClick={() => onQuantityChange?.(Math.max(1, selectedQuantity - 1))}
-                                disabled={selectedQuantity <= 1}
-                                className="flex h-7 w-7 items-center justify-center text-zinc-500 disabled:opacity-30"
-                            >
-                                <Minus size={13} strokeWidth={3} />
-                            </button>
-                            <span className="min-w-6 text-center text-[11px] font-black text-zinc-900 dark:text-white">{selectedQuantity}</span>
-                            <button
-                                type="button"
-                                aria-label={`Increase ${item.name} quantity`}
-                                onClick={() => onQuantityChange?.(selectedQuantity + 1)}
-                                className="flex h-7 w-7 items-center justify-center text-orange-600"
-                            >
-                                <Plus size={13} strokeWidth={3} />
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <div className="relative w-[90px] h-[90px] rounded-2xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800 shadow-md group-hover:shadow-orange-200 dark:group-hover:shadow-orange-900/30 transition-shadow duration-300">
-                <img
-                    src={item.image_url || item.image || "/placeholder.jpg"}
-                    alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(event) => { event.currentTarget.src = "/placeholder.jpg"; event.currentTarget.onerror = null; }}
-                />
-
-                {!isUnavailable && (
-                    <div className="absolute bottom-2 right-2 rounded-[14px] bg-orange-500 px-2 py-1.5 text-white shadow-lg shadow-orange-500/40 group-active:scale-90 transition-transform">
-                        <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wide">
-                            <Plus size={14} strokeWidth={3} /> Add{isQuickAdd && selectedQuantity > 1 ? ` ×${selectedQuantity}` : ""}
-                        </span>
-                    </div>
-                )}
-
-                {isUnavailable && (
-                    <div className="absolute inset-0 bg-zinc-900/50 backdrop-blur-[1px] flex items-center justify-center">
-                        <span className="bg-white/95 px-2 py-0.5 rounded-md text-[9px] font-medium uppercase tracking-widest text-zinc-800">Sold Out</span>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
+    return <div onClick={() => !isUnavailable && onSelect(item)} className={`group flex items-center gap-4 py-4 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer ${isUnavailable ? "opacity-50 grayscale pointer-events-none" : ""}`}>
+        <div className="flex-1 min-w-0 space-y-1"><h3 className="text-[16px] font-bold text-zinc-900 dark:text-white tracking-tight truncate">{item.name}</h3><p className="text-[12px] text-zinc-500 dark:text-zinc-400 line-clamp-2">{item.description || "Freshly prepared with premium ingredients."}</p><span className="text-[15px] font-bold text-zinc-950 dark:text-zinc-50">From ₦{price.toLocaleString()}</span></div>
+        <div className="relative w-[90px] h-[90px] rounded-2xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800"><img src={item.image_url || item.image || "/placeholder.jpg"} alt={item.name} className="w-full h-full object-cover" onError={(event) => { event.currentTarget.src = "/placeholder.jpg"; event.currentTarget.onerror = null; }} />{!isUnavailable && <div className="absolute bottom-0 inset-x-0 bg-emerald-100/95 py-2 text-center text-[12px] font-bold text-emerald-900">Add +</div>}</div>
+    </div>;
 };
-
 export default function StorefrontPage({ initialData, vendorId: propVendorId }) {
     const params = useParams();
     const vendorId = propVendorId || params.vendorId;
@@ -128,7 +52,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const [reviewsPage, setReviewsPage] = useState(1);
     const [ratingFilter, setRatingFilter] = useState(null);
     const [isSearchActive, setIsSearchActive] = useState(false);
-    const [standaloneQuantities, setStandaloneQuantities] = useState({});
+    const [standaloneSheet, setStandaloneSheet] = useState(null);
     const { platformPromo } = useActivePromos();
 
     const { data, isLoading, isError } = useQuery({
@@ -178,68 +102,38 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         openComboModal(selectedComboId, { combo, vendor });
     };
 
-    const handleItemTap = async (item, requestedQuantity = 1) => {
-        // Combos remain configurable and keep their existing flow.
-        if (isComboItem(item)) {
-            if (item.is_available === false) return;
-            handleComboTap(item);
-            return;
-        }
-
+    const handleItemTap = async (item) => {
+        if (isComboItem(item)) return handleComboTap(item);
         if (!item.is_available || item.is_in_stock === false) return;
         const selectedFoodId = getItemId(item);
         if (!selectedFoodId) return;
-        const quantity = Math.max(1, Number(requestedQuantity) || 1);
-
         try {
-            // The menu list only contains price summaries. Fetch the full item
-            // before direct add so checkout receives the real portion ID.
             const detail = await getMenuItemDetail(vendorId, selectedFoodId);
             const food = detail?.item || item;
             const portions = (food.portions || []).filter((portion) => portion.is_available !== false);
-            const choiceGroups = Array.isArray(food.choice_groups)
-                ? food.choice_groups
-                : (Array.isArray(food.choiceGroups) ? food.choiceGroups : []);
-
-            if (portions.length === 1 && choiceGroups.length === 0) {
-                const portion = portions[0];
-                const maxQuantity = Number(portion.max_quantity);
-                if (maxQuantity > 0 && quantity > maxQuantity) {
-                    toast.error(`Only ${maxQuantity} ${food.name} can be ordered at once.`);
-                    return;
-                }
-                const priceNaira = Number(portion.price_naira ?? (Number(portion.price || 0) / 100));
-                addToCart({
-                    type: "item",
-                    foodId: food._id || selectedFoodId,
-                    portionId: portion._id,
-                    vendorId,
-                    restaurantId: vendorId,
-                    storeName: vendor?.storeName || "",
-                    name: food.name,
-                    image_url: food.image_url || food.image || "",
-                    portion_label: portion.label,
-                    portion_quantity: 1,
-                    price_naira: priceNaira,
-                    quantity,
-                    selected_options: [],
-                    deliveryFee: vendor?.deliveryFee || 0,
-                    dietary_type: food.dietary_type,
-                    item_type: food.item_type,
-                });
-                setStandaloneQuantities((current) => ({ ...current, [selectedFoodId]: 1 }));
+            const choiceGroups = getChoiceGroupCount(food);
+            if (portions.length && choiceGroups === 0) {
+                const defaultPortion = portions.find((portion) => portion.is_default) || portions[0];
+                setStandaloneSheet({ food, portions, portionId: defaultPortion._id, quantity: 1 });
                 return;
             }
-
-            // Multiple prices or legacy choices need a customer decision.
             openFoodModal(selectedFoodId, { food });
         } catch (error) {
-            console.error("Unable to load food details for direct add:", error);
-            // Preserve the established flow if the optimisation cannot run.
+            console.error("Unable to load food details:", error);
             openFoodModal(selectedFoodId, { food: item });
         }
     };
 
+    const addStandaloneSheetItem = () => {
+        if (!standaloneSheet) return;
+        const portion = standaloneSheet.portions.find((item) => item._id === standaloneSheet.portionId);
+        if (!portion) return;
+        const maxQuantity = Number(portion.max_quantity);
+        if (maxQuantity > 0 && standaloneSheet.quantity > maxQuantity) return toast.error(`Only ${maxQuantity} can be ordered at once.`);
+        const priceNaira = Number(portion.price_naira ?? (Number(portion.price || 0) / 100));
+        addToCart({ type: "item", foodId: standaloneSheet.food._id, portionId: portion._id, vendorId, restaurantId: vendorId, storeName: vendor?.storeName || "", name: standaloneSheet.food.name, image_url: standaloneSheet.food.image_url || "", portion_label: portion.label, portion_quantity: 1, price_naira: priceNaira, quantity: standaloneSheet.quantity, selected_options: [], deliveryFee: vendor?.deliveryFee || 0, dietary_type: standaloneSheet.food.dietary_type, item_type: standaloneSheet.food.item_type });
+        setStandaloneSheet(null);
+    };
     const handleShare = async () => {
         if (navigator.share) {
             try {
@@ -600,8 +494,6 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                                     <FoodItemRow 
                                                         key={`${section._id}-${item._id}-${index}`} 
                                                         item={item}
-                                                        selectedQuantity={standaloneQuantities[getItemId(item)] || 1}
-                                                        onQuantityChange={(quantity) => setStandaloneQuantities((current) => ({ ...current, [getItemId(item)]: quantity }))}
                                                         onSelect={handleItemTap}
                                                     />
                                                 ))}
@@ -717,9 +609,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                     </SwiperSlide>
                 </Swiper>
             </div>
-
-
-
+            <AnimatePresence>{standaloneSheet && (() => { const portion = standaloneSheet.portions.find((item) => item._id === standaloneSheet.portionId); const price = Number(portion?.price_naira ?? (Number(portion?.price || 0) / 100)); return <><motion.div className="fixed inset-0 z-[100] bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setStandaloneSheet(null)} /><motion.div className="fixed inset-x-0 bottom-0 z-[101] mx-auto max-w-2xl rounded-t-[28px] bg-white p-5 dark:bg-zinc-950" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}><button onClick={() => setStandaloneSheet(null)} className="absolute right-5 top-5 rounded-full bg-zinc-100 p-2 dark:bg-zinc-800"><X size={18} /></button><img src={standaloneSheet.food.image_url || "/placeholder.jpg"} alt="" className="h-44 w-full rounded-2xl object-cover" /><h2 className="mt-4 text-xl font-bold">{standaloneSheet.food.name}</h2><p className="mt-1 text-sm text-zinc-500">{standaloneSheet.food.description}</p><div className="mt-4 flex gap-2 overflow-x-auto">{standaloneSheet.portions.map((item) => <button key={item._id} onClick={() => setStandaloneSheet((current) => ({ ...current, portionId: item._id }))} className={`rounded-lg border px-3 py-2 text-sm ${item._id === standaloneSheet.portionId ? "border-emerald-700 bg-emerald-50 text-emerald-800" : "border-zinc-200"}`}>{item.label} — ₦{Number(item.price_naira ?? (Number(item.price || 0) / 100)).toLocaleString()}</button>)}</div><div className="mt-6 flex gap-3"><div className="flex items-center rounded-xl border"><button onClick={() => setStandaloneSheet((current) => ({ ...current, quantity: Math.max(1, current.quantity - 1) }))} className="p-4"><Minus size={16}/></button><span className="min-w-8 text-center font-bold">{standaloneSheet.quantity}</span><button onClick={() => setStandaloneSheet((current) => ({ ...current, quantity: current.quantity + 1 }))} className="p-4"><Plus size={16}/></button></div><button onClick={addStandaloneSheetItem} className="flex-1 rounded-xl bg-emerald-800 px-4 font-bold text-white">Add ₦{(price * standaloneSheet.quantity).toLocaleString()}</button></div></motion.div></>; })()}</AnimatePresence>
         </div>
     );
 }
