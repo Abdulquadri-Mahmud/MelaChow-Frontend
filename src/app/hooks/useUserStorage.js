@@ -18,7 +18,7 @@ export const useUserStorage = () => {
     // Normalize payload: if it contains 'user' property, unwrap it (e.g. from VerifyAccount)
     const data = normalizeUserAddresses(payload?.user || payload);
 
-    // âœ… Cache user data for refresh resilience
+    // ✅ Cache user data for refresh resilience
     try {
       if (typeof window !== "undefined") {
         localStorage.setItem("melachow_user_cache", JSON.stringify(data));
@@ -40,17 +40,17 @@ export const useUserStorage = () => {
 
   // Full logout: clear user + optional data
   const logout = async () => {
-    // âœ… ADD DEBUG LOG
+    // ✅ ADD DEBUG LOG
     console.log('[useUserStorage] Logout initiated');
 
     try {
-      // âœ… Call backend logout endpoint
+      // ✅ Call backend logout endpoint
       const response = await fetch(`${baseUrl}/user/auth/logout`, {
         method: "POST",
-        credentials: "include", // âœ… Send cookie so backend can clear it
+        credentials: "include", // ✅ Send cookie so backend can clear it
       });
 
-      // âœ… ADD DEBUG LOG
+      // ✅ ADD DEBUG LOG
       console.log('[useUserStorage] Logout response:', {
         status: response.status,
         ok: response.ok,
@@ -58,24 +58,24 @@ export const useUserStorage = () => {
 
     } catch (error) {
       console.error('[useUserStorage] Logout request failed:', error);
-      // âœ… Continue with client-side cleanup even if backend fails
+      // ✅ Continue with client-side cleanup even if backend fails
     }
 
-    // âœ… Clear ALL client-side state
+    // ✅ Clear ALL client-side state
     queryClient.setQueryData(["userProfile"], null);
     sessionStorage.removeItem("splashShown");
-    localStorage.removeItem("melachow_user_cache"); // âœ… Clear cache
+    localStorage.removeItem("melachow_user_cache"); // ✅ Clear cache
     localStorage.removeItem("cart");        // optional, keep client preferences
     localStorage.removeItem("addresses");   // optional
-    TokenManager.clearToken(); // âœ… Clear fallback token
+    TokenManager.clearToken(); // ✅ Clear fallback token
 
-    // âœ… Invalidate queries to force refetch
+    // ✅ Invalidate queries to force refetch
     queryClient.invalidateQueries(["userProfile"]);
 
-    // âœ… ADD DEBUG LOG
-    console.log('[useUserStorage] âœ… Logout cleanup complete');
+    // ✅ ADD DEBUG LOG
+    console.log('[useUserStorage] ✅ Logout cleanup complete');
 
-    // âœ… ADD: Redirect to signin after cleanup (IMPORTANT!)
+    // ✅ ADD: Redirect to signin after cleanup (IMPORTANT!)
     if (typeof window !== 'undefined') {
       // Small delay to ensure cleanup completes
       setTimeout(() => {
@@ -92,7 +92,7 @@ export const useUserStorage = () => {
   return {
     user: userProfile,
     isLoading,
-    hasCheckedSession, // âœ… Expose session check status
+    hasCheckedSession, // ✅ Expose session check status
     saveUser,
     updateUser,
     clearUser,

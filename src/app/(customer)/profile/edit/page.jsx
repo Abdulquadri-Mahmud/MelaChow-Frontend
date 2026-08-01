@@ -20,7 +20,7 @@ const uploadToCloudinary = async (file) => {
     formData.append("upload_preset", "GrubDash");
 
     try {
-        // âœ… Use fetch instead of axios to avoid Authorization header
+        // ✅ Use fetch instead of axios to avoid Authorization header
         const res = await fetch(
             "https://api.cloudinary.com/v1_1/dypn7gna0/image/upload",
             {
@@ -96,7 +96,7 @@ export default function EditProfilePage() {
                 setAvatarSuccess("Your profile details have been updated.");
                 setOpenProfileMessage(true);
 
-                // âœ… Invalidate profile queries
+                // ✅ Invalidate profile queries
                 queryClient.invalidateQueries({ queryKey: ["userProfile"] });
                 queryClient.invalidateQueries({ queryKey: ["user"] });
 
@@ -143,7 +143,7 @@ export default function EditProfilePage() {
                 setAvatarSuccess("Profile photo updated!");
                 setOpenProfileMessage(true);
 
-                // âœ… Invalidate profile queries
+                // ✅ Invalidate profile queries
                 queryClient.invalidateQueries({ queryKey: ["userProfile"] });
                 queryClient.invalidateQueries({ queryKey: ["user"] });
 

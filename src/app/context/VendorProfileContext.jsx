@@ -65,17 +65,17 @@ export const VendorProfileProvider = ({ children }) => {
             }
 
             if (res.status === 403) {
-                // Vendor is suspended, inactive, or deleted — identity confirmed but access denied.
+                // Vendor is suspended, inactive, or deleted � identity confirmed but access denied.
                 // Clear session so they land on login. Return a shaped object so
                 // VendorBootstrapper can surface a reason if needed in future.
-                console.warn("[VendorProfileContext] 403 — vendor access denied. Clearing session.");
+                console.warn("[VendorProfileContext] 403 � vendor access denied. Clearing session.");
                 TokenManager.clearToken('vendor');
                 localStorage.removeItem("melachow_vendor_cache");
                 return null;
             }
 
             if (res.status >= 500) {
-                // Server/infrastructure error — do NOT clear the session.
+                // Server/infrastructure error � do NOT clear the session.
                 // Let TanStack Query retry logic handle transient failures.
                 let serverError = "Server error. Please try again shortly.";
                 try {
@@ -88,7 +88,7 @@ export const VendorProfileProvider = ({ children }) => {
             }
 
             if (!res.ok) {
-                // Any other non-OK status (400, 404, etc.) — throw with server message.
+                // Any other non-OK status (400, 404, etc.) � throw with server message.
                 let errorMessage = "Failed to fetch vendor profile";
                 try {
                     const errorData = await res.json();
@@ -176,7 +176,7 @@ export const VendorProfileProvider = ({ children }) => {
             } else {
                 localStorage.removeItem("melachow_vendor_cache");
                 if (process.env.NODE_ENV === 'development') {
-                    console.warn('[VendorProfileContext] âš ï¸ isApproved missing from vendor data â€” cache cleared to prevent auth loop');
+                    console.warn('[VendorProfileContext] ⚠️ isApproved missing from vendor data — cache cleared to prevent auth loop');
                 }
             }
         }

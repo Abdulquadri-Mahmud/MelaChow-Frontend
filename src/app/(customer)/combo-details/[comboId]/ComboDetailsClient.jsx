@@ -38,7 +38,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
     const [isClient, setIsClient] = useState(false);
     useEffect(() => { setIsClient(true); }, []);
 
-    // â”€â”€ Hardware back-button support (Android / browser back gesture) â”€â”€
+    // ── Hardware back-button support (Android / browser back gesture) ──
     useEffect(() => {
         if (!isModal || !onClose) return;
 
@@ -60,7 +60,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
             window.removeEventListener('popstate', handlePopState);
             // Only call history.back() if the UI button (not the back gesture)
             // triggered the unmount. If popstate already fired, the state is
-            // already popped â€” calling back() again would navigate the page.
+            // already popped — calling back() again would navigate the page.
             if (!closed && window.history.state?.melachowModal === 'combo') {
                 closed = true; // prevent the popstate handler from also firing
                 window.history.back();
@@ -122,8 +122,8 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
         null
     );
 
-    console.log('[ComboDetailsPage] ðŸ± initialData:', initialData);
-    console.log('[ComboDetailsPage] ðŸ• combo state:', combo);
+    console.log('[ComboDetailsPage] 🍱 initialData:', initialData);
+    console.log('[ComboDetailsPage] 🍕 combo state:', combo);
 
     // Selections state
     const [selections, setSelections] = useState({});
@@ -297,7 +297,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
         });
     };
 
-    // â”€â”€ Add to Cart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Add to Cart ───────────────────────────────────────────────────────────
     const handleAddToCart = () => {
         const choiceGroups = combo?.choice_groups || [];
 
@@ -519,7 +519,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                             <div>
                                                 <p className="text-[8px] font-bold text-zinc-400 dark:text-zinc-500 capitalize tracking-widest mb-0.5">Delivery</p>
                                                 <p className="text-xs font-medium text-zinc-900 dark:text-white leading-none">
-                                                    {vendor?.deliveryFee ? `â‚¦${vendor.deliveryFee.toLocaleString()}` : "Free"}
+                                                    {vendor?.deliveryFee ? `₦${vendor.deliveryFee.toLocaleString()}` : "Free"}
                                                 </p>
                                             </div>
                                         </div>
@@ -582,7 +582,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                             </div>
  
                                             <p className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold capitalize tracking-widest mb-3">
-                                                {group.max_selections > 1 ? `Pick ${group.min_selections}â€“${group.max_selections}` : "Pick exactly one"}
+                                                {group.max_selections > 1 ? `Pick ${group.min_selections}–${group.max_selections}` : "Pick exactly one"}
                                             </p>
 
                                             <div className="space-y-2">
@@ -616,7 +616,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                                                 {!optionUnavailable && option.track_stock && option.stock_quantity <= (option.low_stock_threshold ?? 5) && <p className="text-[8px] font-black uppercase tracking-widest text-amber-500">Only {option.stock_quantity} left</p>}
                                                                 {option.price_modifier_naira > 0 ? (
                                                                     <p className="text-sm font-semibold text-zinc-500 mt-0.5">
-                                                                        â‚¦{option.price_modifier_naira.toLocaleString()}
+                                                                        ₦{option.price_modifier_naira.toLocaleString()}
                                                                     </p>
                                                                 ) : (
                                                                     <p className="text-[9px] font-bold text-zinc-400 dark:text-zinc-500 capitalize tracking-widest mt-0.5">
@@ -666,7 +666,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                         {choiceGroups.length === 0 && (
                             <div className="px-1">
                                 <div className="py-12 flex flex-col items-center justify-center text-center opacity-50 italic bg-white dark:bg-zinc-900 rounded-[32px] border border-zinc-100 dark:border-zinc-800">
-                                    <div className="text-4xl mb-4">âš¡</div>
+                                    <div className="text-4xl mb-4">⚡</div>
                                     <p className="text-xs font-medium capitalize tracking-widest">No customizations required</p>
                                 </div>
                             </div>
@@ -677,7 +677,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                 </div>
             </div>
 
-            {/* Bottom Bar â€” sticky in modal (flex child), fixed on full page */}
+            {/* Bottom Bar — sticky in modal (flex child), fixed on full page */}
             {!isLoading && combo && (
                 <div
                     className={isModal
@@ -722,7 +722,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                 <div className="flex items-center gap-3 shrink-0 ml-2">
                                     <div className="w-[1.5px] h-5 bg-white/20 dark:bg-zinc-950/20 rounded-full" />
                                     <span className="text-orange-500 tabular-nums font-medium text-base">
-                                        â‚¦{total.toLocaleString()}
+                                        ₦{total.toLocaleString()}
                                     </span>
                                 </div>
                             )}
