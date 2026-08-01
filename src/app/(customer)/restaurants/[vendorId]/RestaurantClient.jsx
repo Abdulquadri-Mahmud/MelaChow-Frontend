@@ -60,6 +60,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const [ratingFilter, setRatingFilter] = useState(null);
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [standaloneSheet, setStandaloneSheet] = useState(null);
+    const standaloneAddLock = useRef(false);
     const { platformPromo } = useActivePromos();
 
     const { data, isLoading, isError } = useQuery({
@@ -115,7 +116,6 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         const selectedFoodId = getItemId(item);
         if (!selectedFoodId) return;
         setStandaloneSheet({ food: item, portions: [], portionId: null, quantity: 1, loading: true });
-        setStandaloneSheet({ food: item, portions: [], portionId: null, quantity: 1, loading: true });
         try {
             const detail = await getMenuItemDetail(vendorId, selectedFoodId);
             const food = detail?.item || item;
@@ -136,7 +136,8 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     };
 
     const addStandaloneSheetItem = () => {
-        if (!standaloneSheet) return;
+        if (!standaloneSheet || standaloneAddLock.current) return;
+        standaloneAddLock.current = true;
         const portion = standaloneSheet.portions.find((item) => item._id === standaloneSheet.portionId);
         if (!portion) return;
         const maxQuantity = Number(portion.max_quantity);
@@ -144,6 +145,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         const priceNaira = Number(portion.price_naira ?? (Number(portion.price || 0) / 100));
         addToCart({ type: "item", foodId: standaloneSheet.food._id, portionId: portion._id, vendorId, restaurantId: vendorId, storeName: vendor?.storeName || "", name: standaloneSheet.food.name, image_url: standaloneSheet.food.image_url || "", portion_label: portion.label, portion_quantity: 1, price_naira: priceNaira, quantity: standaloneSheet.quantity, selected_options: [], deliveryFee: vendor?.deliveryFee || 0, dietary_type: standaloneSheet.food.dietary_type, item_type: standaloneSheet.food.item_type });
         setStandaloneSheet(null);
+        window.setTimeout(() => { standaloneAddLock.current = false; }, 0);
     };
     const handleShare = async () => {
         if (navigator.share) {
@@ -514,13 +516,13 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                 ))
                             ) : (
                                 <SwiperSlide>
-                                    <div className="flex flex-col items-center justify-center py-20 px-10 text-center space-y-4">
+                                    <div className="flex flex-col items-center justify-center py-20 px-10 text-center space-y-2">
                                         <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-900 rounded-[32px] flex items-center justify-center border border-zinc-100 dark:border-zinc-800">
                                             <Search size={32} className="text-zinc-300" />
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-[16px] font-medium text-zinc-900 dark:text-white uppercase italic tracking-tight">No Items Found</p>
-                                            <p className="text-[12px] font-bold text-zinc-400 uppercase tracking-widest leading-relaxed">
+                                            <p className="text-[12px] font-bold text-zinc-200 uppercase tracking-widest leading-relaxed">
                                                 We couldn't find anything matching "{searchQuery}". <br/> Try searching for something else.
                                             </p>
                                         </div>
@@ -537,7 +539,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                     </SwiperSlide>
 
                     <SwiperSlide>
-                        <div className="pb-20 bg-gray-50/10 dark:bg-zinc-900/10 space-y-4 pt-4">
+                        <div className="pb-20 bg-gray-50/10 dark:bg-zinc-900/10 space-y-2 pt-2">
                             {reviewsLoading ? (
                                 <div className="flex flex-col items-center justify-center py-20 gap-4">
                                     <Loader2 size={32} className="animate-spin text-orange-500" />
@@ -620,7 +622,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                     </SwiperSlide>
                 </Swiper>
             </div>
-            {typeof document !== "undefined" && createPortal(<AnimatePresence>{standaloneSheet && (() => { const portion = standaloneSheet.portions.find((item) => item._id === standaloneSheet.portionId); const price = Number(portion?.price_naira ?? (Number(portion?.price || 0) / 100)); return <><motion.div className="fixed inset-0 z-[9998] bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setStandaloneSheet(null)} /><motion.div className="fixed inset-x-0 bottom-[85px] z-[10001] mx-auto max-w-2xl rounded-t-[28px] bg-white p-5 shadow-2xl dark:bg-zinc-950" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}><button onClick={() => setStandaloneSheet(null)} className="absolute right-5 top-5 rounded-full bg-zinc-100 p-2 dark:bg-zinc-800"><X size={18} /></button><img src={standaloneSheet.food.image_url || "/placeholder.jpg"} alt="" className="h-44 w-full rounded-2xl object-cover" />{standaloneSheet.loading && <div className="mt-4 animate-pulse space-y-4"><div className="h-6 w-3/4 rounded bg-zinc-200 dark:bg-zinc-800" /><div className="h-4 w-full rounded bg-zinc-100 dark:bg-zinc-900" /><div className="h-4 w-2/3 rounded bg-zinc-100 dark:bg-zinc-900" /><div className="h-10 w-28 rounded-lg bg-zinc-100 dark:bg-zinc-900" /><div className="flex gap-3"><div className="h-14 w-32 rounded-xl bg-zinc-100 dark:bg-zinc-900" /><div className="h-14 flex-1 rounded-xl bg-orange-100 dark:bg-orange-950/40" /></div></div>}<h2 className="mt-4 text-xl font-bold">{standaloneSheet.food.name}</h2><p className="mt-1 text-sm text-zinc-500">{standaloneSheet.food.description}</p>{!standaloneSheet.loading && <div className="mt-4 flex gap-2 overflow-x-auto">{standaloneSheet.portions.map((item) => <button key={item._id} onClick={() => setStandaloneSheet((current) => ({ ...current, portionId: item._id }))} className={`rounded-lg border px-3 py-2 text-sm ${item._id === standaloneSheet.portionId ? "border-orange-600 bg-orange-50 text-orange-700" : "border-zinc-200"}`}>{standaloneSheet.portions.length === 1 ? `From ₦${Number(item.price_naira ?? (Number(item.price || 0) / 100)).toLocaleString()}` : `${item.label} — ₦${Number(item.price_naira ?? (Number(item.price || 0) / 100)).toLocaleString()}`}</button>)}</div>}<div className="mt-6 flex gap-3"><div className="flex items-center rounded-xl border"><button onClick={() => setStandaloneSheet((current) => ({ ...current, quantity: Math.max(1, current.quantity - 1) }))} className="p-4"><Minus size={16}/></button><span className="min-w-8 text-center font-bold">{standaloneSheet.quantity}</span><button onClick={() => setStandaloneSheet((current) => ({ ...current, quantity: current.quantity + 1 }))} className="p-4"><Plus size={16}/></button></div><button disabled={standaloneSheet.loading} onClick={addStandaloneSheetItem} className="flex-1 disabled:opacity-50 rounded-xl bg-orange-600 px-4 font-bold text-white">Add ₦{(price * standaloneSheet.quantity).toLocaleString()}</button></div></motion.div></>; })()}</AnimatePresence>, document.body)}
+            {typeof document !== "undefined" && createPortal(<AnimatePresence>{standaloneSheet && (() => { const portion = standaloneSheet.portions.find((item) => item._id === standaloneSheet.portionId); const price = Number(portion?.price_naira ?? (Number(portion?.price || 0) / 100)); return <><motion.div className="fixed inset-0 z-[9998] bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setStandaloneSheet(null)} /><motion.div className="fixed inset-x-0 bottom-[85px] z-[10001] mx-auto max-w-2xl rounded-t-[28px] bg-white p-5 shadow-2xl dark:bg-zinc-950" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}><button onClick={() => setStandaloneSheet(null)} className="absolute right-5 top-5 rounded-full bg-zinc-100 p-2 dark:bg-zinc-800"><X size={18} /></button><img src={standaloneSheet.food.image_url || "/placeholder.jpg"} alt="" className="h-44 w-full rounded-2xl object-cover" />{standaloneSheet.loading && <div className="mt-4 animate-pulse space-y-2"><div className="h-6 w-3/4 rounded bg-zinc-200 dark:bg-zinc-800" /><div className="h-4 w-full rounded bg-zinc-100 dark:bg-zinc-900" /><div className="h-4 w-2/3 rounded bg-zinc-100 dark:bg-zinc-900" /><div className="h-10 w-28 rounded-lg bg-zinc-100 dark:bg-zinc-900" /><div className="flex gap-3"><div className="h-14 w-32 rounded-xl bg-zinc-100 dark:bg-zinc-900" /><div className="h-14 flex-1 rounded-xl bg-orange-100 dark:bg-orange-950/40" /></div></div>}<h2 className="mt-4 text-xl font-bold">{standaloneSheet.food.name}</h2><p className="mt-1 text-sm text-zinc-500">{standaloneSheet.food.description}</p>{!standaloneSheet.loading && <div className="mt-4 flex gap-2 overflow-x-auto">{standaloneSheet.portions.map((item) => <button key={item._id} onClick={() => setStandaloneSheet((current) => ({ ...current, portionId: item._id }))} className={`rounded-lg border px-3 py-2 text-sm ${item._id === standaloneSheet.portionId ? "border-orange-600 bg-orange-50 text-orange-700" : "border-zinc-200"}`}>{standaloneSheet.portions.length === 1 ? `From ₦${Number(item.price_naira ?? (Number(item.price || 0) / 100)).toLocaleString()}` : `${item.label} — ₦${Number(item.price_naira ?? (Number(item.price || 0) / 100)).toLocaleString()}`}</button>)}</div>}<div className="mt-6 flex gap-3"><div className="flex items-center rounded-xl border"><button onClick={() => setStandaloneSheet((current) => ({ ...current, quantity: Math.max(1, current.quantity - 1) }))} className="p-4"><Minus size={16}/></button><span className="min-w-8 text-center font-bold">{standaloneSheet.quantity}</span><button onClick={() => setStandaloneSheet((current) => ({ ...current, quantity: current.quantity + 1 }))} className="p-4"><Plus size={16}/></button></div><button disabled={standaloneSheet.loading} onClick={addStandaloneSheetItem} className="flex-1 disabled:opacity-50 rounded-xl bg-orange-600 px-4 font-bold text-white">Add ₦{(price * standaloneSheet.quantity).toLocaleString()}</button></div></motion.div></>; })()}</AnimatePresence>, document.body)}
         </div>
     );
 }
