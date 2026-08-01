@@ -28,31 +28,28 @@ const FoodItemRow = ({ item, onSelect }) => {
     return (
         <div 
             onClick={() => !isUnavailable && onSelect(item)}
-            className={`group flex items-center gap-3 py-2.5 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer active:scale-[0.99] transition-all duration-200 ${isUnavailable ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+            className={`group flex items-center gap-4 py-4 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer active:scale-[0.99] transition-all duration-200 ${isUnavailable ? 'opacity-50 grayscale pointer-events-none' : ''}`}
         >
             {/* Text Content */}
             <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-1.5">
-                    <h3 className="text-[14px] font-medium text-zinc-900 dark:text-white tracking-tight truncate group-hover:text-orange-600 transition-colors duration-200">
+                <div className="flex items-center gap-2">
+                    <h3 className="text-[16px] font-bold text-zinc-900 dark:text-white tracking-tight truncate group-hover:text-orange-600 transition-colors duration-200">
                         {item.name}
                     </h3>
-                    {item.is_popular && <Flame size={12} className="text-orange-500 shrink-0 animate-pulse" />}
+                    {item.is_popular && <Flame size={13} className="text-orange-500 shrink-0 animate-pulse" />}
                 </div>
 
-                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed font-medium">
+                <p className="text-[12px] text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed font-normal">
                     {item.description || "Freshly prepared with premium ingredients."}
                 </p>
 
-                <div className="flex items-center gap-1.5 pt-0.5">
-                    <span className="text-[13px] font-medium text-zinc-700">From ₦{price.toLocaleString()}</span>
-                    {/* {oldPrice > price && (
-                        <span className="text-[11px] text-zinc-400 line-through font-medium">₦{Math.round(oldPrice).toLocaleString()}</span>
-                    )} */}
+                <div className="flex items-center gap-2 pt-1">
+                    <span className="text-[15px] font-bold text-zinc-950 dark:text-zinc-50">From ₦{price.toLocaleString()}</span>
                 </div>
             </div>
 
             {/* Image + Add Button */}
-            <div className="relative w-[70px] h-[70px] rounded-xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800 shadow-md group-hover:shadow-orange-200 dark:group-hover:shadow-orange-900/30 transition-shadow duration-300">
+            <div className="relative w-[90px] h-[90px] rounded-2xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800 shadow-md group-hover:shadow-orange-200 dark:group-hover:shadow-orange-900/30 transition-shadow duration-300">
                 <img 
                     src={item.image_url || item.image || "/placeholder.jpg"} 
                     alt={item.name}
@@ -62,9 +59,9 @@ const FoodItemRow = ({ item, onSelect }) => {
 
                 {/* Add Button */}
                 {!isUnavailable && (
-                    <div className="absolute bottom-1.5 right-1.5">
-                        <div className="w-7 h-7 bg-orange-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-500/40 group-active:scale-90 transition-transform">
-                            <Plus size={15} strokeWidth={3} />
+                    <div className="absolute bottom-2 right-2">
+                        <div className="w-8 h-8 bg-orange-500 rounded-[14px] flex items-center justify-center text-white shadow-lg shadow-orange-500/40 group-active:scale-90 transition-transform">
+                            <Plus size={17} strokeWidth={3} />
                         </div>
                     </div>
                 )}
