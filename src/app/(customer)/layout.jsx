@@ -14,6 +14,7 @@ import { registerServiceWorker } from "@/app/lib/pwa-utils";
 import { TokenManager } from "@/app/lib/auth-token";
 import GlobalFoodModal from "@/app/components/modals/GlobalFoodModal";
 import GlobalComboModal from "@/app/components/modals/GlobalComboModal";
+import NavigationFeedback from "@/app/components/NavigationFeedback";
 
 export default function CustomerLayout({ children }) {
     const pathname = usePathname();
