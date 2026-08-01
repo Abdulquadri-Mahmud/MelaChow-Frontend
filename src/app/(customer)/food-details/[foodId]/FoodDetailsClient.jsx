@@ -558,7 +558,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                       <div className="bg-white dark:bg-zinc-900 rounded-[8px] border border-zinc-100 dark:border-zinc-800 overflow-hidden">
                         {/* Image Section */}
                         <div className="relative w-full bg-zinc-100 dark:bg-zinc-800 p-1">
-                          <div className="w-full h-[140px] md:h-[185px] rounded-[18px] overflow-hidden relative">
+                          <div className="w-full h-[240px] md:h-[320px] rounded-[18px] overflow-hidden relative">
                             <img
                               src={food?.image || food?.image_url || "/placeholder.jpg"}
                               alt={food?.name}
@@ -726,7 +726,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
                        {/* Portions Selector */}
                        {foodPortions.length > 0 && (
-                         <div className="bg-white dark:bg-zinc-900 rounded-[12px] p-3 border border-zinc-100 dark:border-zinc-800 mb-4">
+                         <div className="bg-white dark:bg-zinc-900 rounded-[12px] p-2 border border-zinc-100 dark:border-zinc-800 mb-4">
                            <div className="flex items-center gap-1.5 mb-3">
                              <div className="w-1 h-5 bg-orange-500 rounded-full" />
                              <h3 className="text-base font-bold italic text-zinc-900 dark:text-white capitalize tracking-tight">Select Portion</h3>
@@ -743,7 +743,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                       setSelectedPortion(portion);
                                     }
                                   }}
-                                  className={`relative flex items-center justify-between p-2.5 rounded-[12px] border-2 transition-all cursor-pointer ${isSelected
+                                  className={`relative flex items-center justify-between p-1.5 rounded-[12px] border-2 transition-all cursor-pointer ${isSelected
                                       ? "bg-orange-50/50 dark:bg-orange-500/10 border-orange-500 shadow-[0_0_20px_rgba(255,102,0,0.1)] dark:shadow-[0_0_30px_rgba(255,102,0,0.15)] scale-[1.01]"
                                       : "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-200 dark:hover:border-orange-500/30"
                                     } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}

@@ -456,7 +456,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                             <div className="bg-white dark:bg-zinc-900 rounded-[8px] border border-zinc-100 dark:border-zinc-800 overflow-hidden">
                                 {/* Image */}
                                 <div className="relative w-full bg-zinc-100 dark:bg-zinc-800 p-1.5">
-                                    <div className="w-full h-[140px] md:h-[185px] rounded-[18px] overflow-hidden relative">
+                                    <div className="w-full h-[240px] md:h-[320px] rounded-[18px] overflow-hidden relative">
                                         <img
                                             src={combo.image_url || "/placeholder.jpg"}
                                             alt={combo.name}
@@ -562,7 +562,7 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
                                     ) : true;
 
                                     return (
-                                        <div key={groupKey} className="bg-white dark:bg-zinc-900 rounded-[12px] p-4 border border-zinc-100 dark:border-zinc-800">
+                                        <div key={groupKey} className="bg-white dark:bg-zinc-900 rounded-[12px] p-2 border border-zinc-100 dark:border-zinc-800">
                                             <div className="flex items-center justify-between gap-1.5 mb-1">
                                                 <div className="flex items-center gap-1.5">
                                                     <div className="w-1 h-5 bg-orange-500 rounded-full" />
