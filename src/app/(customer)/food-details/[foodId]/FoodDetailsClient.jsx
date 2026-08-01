@@ -76,8 +76,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   const [isLoading, setIsLoading] = useState(isModal ? true : !isFoodComplete(food));
   const [isError, setIsError] = useState(false);
 
-  // console.log('[FoodDetailsClient] Ã°Å¸Â¥â€” initialData:', initialData);
-  // console.log('[FoodDetailsClient] Ã°Å¸Â¥Â¦ food state:', food);
+  // console.log('[FoodDetailsClient] initialData:', initialData);
+  // console.log('[FoodDetailsClient] food state:', food);
   const [isClient, setIsClient] = useState(false);
 
   // Default customization state for base item
@@ -458,7 +458,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
   const content = (
     <>
-      {/*Â­ Header */}
+      {/*­ Header */}
       <header className="flex items-center justify-between px-2 py-2.5 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-50 border-b border-zinc-50 dark:border-zinc-800 shrink-0">
         <div className="flex items-center gap-3">
           <button
@@ -512,7 +512,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
             </div>
           ) : food ? (
             <>
-              {/* Ã°Å¸ÂÂ·Ã¯Â¸Â TAB TOGGLE */}
+              {/* TAB TOGGLE */}
               {/* <div className="px-4 sticky pt-1 top-[60px] z-20 mb-3">
                 <div className="flex bg-zinc-200/50 dark:bg-zinc-800/50 p-0.5 rounded-xl w-full max-w-sm mx-auto backdrop-blur-md border border-white/20 dark:border-zinc-800/50">
                   {[
@@ -589,7 +589,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                 <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md text-zinc-800 dark:text-zinc-200 text-[8px] font-semibold px-2 py-0.5 rounded-full capitalize tracking-widest border border-zinc-100 dark:border-zinc-800">
                                   {food.platform_category.parent?.name && (
                                     <span className="text-zinc-400 dark:text-zinc-500">
-                                      {food.platform_category.parent.name} Ã‚Â·{" "}
+                                      {food.platform_category.parent.name} Â·{" "}
                                     </span>
                                   )}
                                   {food.platform_category.name}
@@ -658,7 +658,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                     ? "text-green-500"
                                     : "text-zinc-900 dark:text-white"
                                   }`}>
-                                  {!food?.deliveryFee || food?.deliveryFee === 0 ? "Free" : `â‚¦${food.deliveryFee.toLocaleString()}`}
+                                  {!food?.deliveryFee || food?.deliveryFee === 0 ? "Free" : `₦${food.deliveryFee.toLocaleString()}`}
                                 </p>
                               </div>
                             </div>
@@ -675,7 +675,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                           <div className="flex items-center gap-2 mb-4">
                             <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
                             <h3 className="text-lg font-medium italic text-zinc-900 dark:text-white capitalize tracking-tight">
-                              Available Deals Ã°Å¸Å½ 
+                              Available Deals 
                             </h3>
                           </div>
                           <div className="grid gap-3">
@@ -702,7 +702,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                     {combo.description || "Combo deal"}
                                   </p>
                                   <p className="text-sm font-medium text-zinc-500 mt-1">
-                                    â‚¦{combo.price_naira?.toLocaleString()}
+                                    ₦{combo.price_naira?.toLocaleString()}
                                   </p>
                                 </div>
                                 <button
@@ -753,7 +753,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                       {portion.label}
                                     </span>
                                     <span className="text-[10px] font-semibold text-zinc-500 mt-0.5">
-                                      {portion.price_naira ? `â‚¦${portion.price_naira.toLocaleString()}` : 'Free'}
+                                      {portion.price_naira ? `₦${portion.price_naira.toLocaleString()}` : 'Free'}
                                     </span>
                                   </div>
 
@@ -850,7 +850,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                         {optionUnavailable && <p className="text-[8px] font-black uppercase tracking-widest text-rose-500">Sold out</p>}
                                         {!optionUnavailable && option.track_stock && option.stock_quantity <= (option.low_stock_threshold ?? 5) && <p className="text-[8px] font-black uppercase tracking-widest text-amber-500">Only {option.stock_quantity} left</p>}
                                         {option.price_modifier_naira > 0 ? (
-                                          <p className="text-xs font-semibold text-zinc-500">+â‚¦{option.price_modifier_naira.toLocaleString()}</p>
+                                          <p className="text-xs font-semibold text-zinc-500">+₦{option.price_modifier_naira.toLocaleString()}</p>
                                         ) : (
                                           <p className="text-[8px] font-medium text-zinc-400 dark:text-zinc-500 capitalize tracking-widest mt-0.5">Free</p>
                                         )}
@@ -899,7 +899,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                           <div className="flex flex-col sm:flex-row items-center gap-6">
                             <div className="text-center shrink-0">
                               <p className="text-6xl font-medium text-zinc-900 dark:text-white leading-none">
-                                {reviewsData.food.averageRating || 'â€”'}
+                                {reviewsData.food.averageRating || '—'}
                               </p>
                               <div className="flex justify-center gap-0.5 mt-2">
                                 {[1, 2, 3, 4, 5].map(s => (
