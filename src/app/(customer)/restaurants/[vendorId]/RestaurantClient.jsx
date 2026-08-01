@@ -8,7 +8,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import { AnimatePresence, motion } from "framer-motion";
 
-import { MapPin, Clock, Star, Search, X, Plus, Share2, Flame, MessageSquare, ChevronLeft, Loader2, Store, Gift, ChevronRight } from "lucide-react";
+import { MapPin, Clock, Star, Search, X, Plus, Minus, Share2, Flame, MessageSquare, ChevronLeft, Loader2, Store, Gift, ChevronRight } from "lucide-react";
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
@@ -20,17 +20,28 @@ import { useActivePromos } from "@/app/hooks/useActivePromos";
 const getItemId = (item) => item?._id || item?.id;
 const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
 
-const FoodItemRow = ({ item, onSelect }) => {
+const getChoiceGroupCount = (item) => {
+    if (Array.isArray(item?.choice_groups)) return item.choice_groups.length;
+    if (Array.isArray(item?.choiceGroups)) return item.choiceGroups.length;
+    return Number(item?.choice_groups?.count ?? item?.choiceGroups?.count ?? 0);
+};
+
+const isStandaloneQuickAddItem = (item) => (
+    !isComboItem(item)
+    && Number(item?.portions?.count) === 1
+    && getChoiceGroupCount(item) === 0
+);
+
+const FoodItemRow = ({ item, onSelect, selectedQuantity = 1, onQuantityChange }) => {
     const isUnavailable = !item.is_available || item.is_in_stock === false;
+    const isQuickAdd = isStandaloneQuickAddItem(item);
     const price = item.portions?.min_price_naira || item.portions?.default_price_naira || item.price_naira || item.price || 0;
-    const oldPrice = item.old_price || (price * 1.2); 
 
     return (
-        <div 
-            onClick={() => !isUnavailable && onSelect(item)}
-            className={`group flex items-center gap-4 py-4 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer active:scale-[0.99] transition-all duration-200 ${isUnavailable ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+        <div
+            onClick={() => !isUnavailable && onSelect(item, isQuickAdd ? selectedQuantity : 1)}
+            className={`group flex items-center gap-4 py-4 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer active:scale-[0.99] transition-all duration-200 ${isUnavailable ? "opacity-50 grayscale pointer-events-none" : ""}`}
         >
-            {/* Text Content */}
             <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-center gap-2">
                     <h3 className="text-[16px] font-bold text-zinc-900 dark:text-white tracking-tight truncate group-hover:text-orange-600 transition-colors duration-200">
@@ -45,39 +56,59 @@ const FoodItemRow = ({ item, onSelect }) => {
 
                 <div className="flex items-center gap-2 pt-1">
                     <span className="text-[15px] font-bold text-zinc-950 dark:text-zinc-50">From ₦{price.toLocaleString()}</span>
+                    {isQuickAdd && !isUnavailable && (
+                        <div
+                            onClick={(event) => event.stopPropagation()}
+                            className="ml-auto flex items-center rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"
+                        >
+                            <button
+                                type="button"
+                                aria-label={`Decrease ${item.name} quantity`}
+                                onClick={() => onQuantityChange?.(Math.max(1, selectedQuantity - 1))}
+                                disabled={selectedQuantity <= 1}
+                                className="flex h-7 w-7 items-center justify-center text-zinc-500 disabled:opacity-30"
+                            >
+                                <Minus size={13} strokeWidth={3} />
+                            </button>
+                            <span className="min-w-6 text-center text-[11px] font-black text-zinc-900 dark:text-white">{selectedQuantity}</span>
+                            <button
+                                type="button"
+                                aria-label={`Increase ${item.name} quantity`}
+                                onClick={() => onQuantityChange?.(selectedQuantity + 1)}
+                                className="flex h-7 w-7 items-center justify-center text-orange-600"
+                            >
+                                <Plus size={13} strokeWidth={3} />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Image + Add Button */}
             <div className="relative w-[90px] h-[90px] rounded-2xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800 shadow-md group-hover:shadow-orange-200 dark:group-hover:shadow-orange-900/30 transition-shadow duration-300">
-                <img 
-                    src={item.image_url || item.image || "/placeholder.jpg"} 
+                <img
+                    src={item.image_url || item.image || "/placeholder.jpg"}
                     alt={item.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => { e.target.src = '/placeholder.jpg'; e.target.onerror = null; }}
+                    onError={(event) => { event.currentTarget.src = "/placeholder.jpg"; event.currentTarget.onerror = null; }}
                 />
 
-                {/* Add Button */}
                 {!isUnavailable && (
-                    <div className="absolute bottom-2 right-2">
-                        <div className="w-8 h-8 bg-orange-500 rounded-[14px] flex items-center justify-center text-white shadow-lg shadow-orange-500/40 group-active:scale-90 transition-transform">
-                            <Plus size={17} strokeWidth={3} />
-                        </div>
+                    <div className="absolute bottom-2 right-2 rounded-[14px] bg-orange-500 px-2 py-1.5 text-white shadow-lg shadow-orange-500/40 group-active:scale-90 transition-transform">
+                        <span className="flex items-center gap-1 text-[9px] font-black uppercase tracking-wide">
+                            <Plus size={14} strokeWidth={3} /> Add{isQuickAdd && selectedQuantity > 1 ? ` ×${selectedQuantity}` : ""}
+                        </span>
                     </div>
                 )}
 
                 {isUnavailable && (
                     <div className="absolute inset-0 bg-zinc-900/50 backdrop-blur-[1px] flex items-center justify-center">
-                        <span className="bg-white/95 px-2 py-0.5 rounded-md text-[9px] font-medium uppercase tracking-widest text-zinc-800">
-                            Sold Out
-                        </span>
+                        <span className="bg-white/95 px-2 py-0.5 rounded-md text-[9px] font-medium uppercase tracking-widest text-zinc-800">Sold Out</span>
                     </div>
                 )}
             </div>
         </div>
     );
 };
-
 
 export default function StorefrontPage({ initialData, vendorId: propVendorId }) {
     const params = useParams();
@@ -97,6 +128,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const [reviewsPage, setReviewsPage] = useState(1);
     const [ratingFilter, setRatingFilter] = useState(null);
     const [isSearchActive, setIsSearchActive] = useState(false);
+    const [standaloneQuantities, setStandaloneQuantities] = useState({});
     const { platformPromo } = useActivePromos();
 
     const { data, isLoading, isError } = useQuery({
@@ -146,19 +178,66 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         openComboModal(selectedComboId, { combo, vendor });
     };
 
-    const handleItemTap = (item) => {
-        // Combo items use is_available only — they have no is_in_stock field.
-        // Regular food items check both.
+    const handleItemTap = async (item, requestedQuantity = 1) => {
+        // Combos remain configurable and keep their existing flow.
         if (isComboItem(item)) {
             if (item.is_available === false) return;
             handleComboTap(item);
             return;
         }
-        // Regular food item
+
         if (!item.is_available || item.is_in_stock === false) return;
         const selectedFoodId = getItemId(item);
         if (!selectedFoodId) return;
-        openFoodModal(selectedFoodId, { food: item });
+        const quantity = Math.max(1, Number(requestedQuantity) || 1);
+
+        try {
+            // The menu list only contains price summaries. Fetch the full item
+            // before direct add so checkout receives the real portion ID.
+            const detail = await getMenuItemDetail(vendorId, selectedFoodId);
+            const food = detail?.item || item;
+            const portions = (food.portions || []).filter((portion) => portion.is_available !== false);
+            const choiceGroups = Array.isArray(food.choice_groups)
+                ? food.choice_groups
+                : (Array.isArray(food.choiceGroups) ? food.choiceGroups : []);
+
+            if (portions.length === 1 && choiceGroups.length === 0) {
+                const portion = portions[0];
+                const maxQuantity = Number(portion.max_quantity);
+                if (maxQuantity > 0 && quantity > maxQuantity) {
+                    toast.error(`Only ${maxQuantity} ${food.name} can be ordered at once.`);
+                    return;
+                }
+                const priceNaira = Number(portion.price_naira ?? (Number(portion.price || 0) / 100));
+                addToCart({
+                    type: "item",
+                    foodId: food._id || selectedFoodId,
+                    portionId: portion._id,
+                    vendorId,
+                    restaurantId: vendorId,
+                    storeName: vendor?.storeName || "",
+                    name: food.name,
+                    image_url: food.image_url || food.image || "",
+                    portion_label: portion.label,
+                    portion_quantity: 1,
+                    price_naira: priceNaira,
+                    quantity,
+                    selected_options: [],
+                    deliveryFee: vendor?.deliveryFee || 0,
+                    dietary_type: food.dietary_type,
+                    item_type: food.item_type,
+                });
+                setStandaloneQuantities((current) => ({ ...current, [selectedFoodId]: 1 }));
+                return;
+            }
+
+            // Multiple prices or legacy choices need a customer decision.
+            openFoodModal(selectedFoodId, { food });
+        } catch (error) {
+            console.error("Unable to load food details for direct add:", error);
+            // Preserve the established flow if the optimisation cannot run.
+            openFoodModal(selectedFoodId, { food: item });
+        }
     };
 
     const handleShare = async () => {
@@ -520,7 +599,9 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                                 {section.items.map((item, index) => (
                                                     <FoodItemRow 
                                                         key={`${section._id}-${item._id}-${index}`} 
-                                                        item={item} 
+                                                        item={item}
+                                                        selectedQuantity={standaloneQuantities[getItemId(item)] || 1}
+                                                        onQuantityChange={(quantity) => setStandaloneQuantities((current) => ({ ...current, [getItemId(item)]: quantity }))}
                                                         onSelect={handleItemTap}
                                                     />
                                                 ))}
