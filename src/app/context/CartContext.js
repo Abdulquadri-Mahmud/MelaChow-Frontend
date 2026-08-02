@@ -56,6 +56,16 @@ const getOptionsSignature = (item) =>
     .map((option) => `${option.id}:${option.quantity}`)
     .join("|");
 
+const getQuantityLimit = (item) => {
+  if (item?.track_stock === true) return Math.max(0, Number(item.stock_quantity) || 0);
+  const maxQuantity = Number(item?.max_quantity);
+  return maxQuantity > 0 ? maxQuantity : null;
+};
+
+const getLimitMessage = (item, limit) =>
+  item?.track_stock === true
+    ? `Only ${limit} ${item.portion_label || item.name} available.`
+    : `Only ${limit} ${item.portion_label || item.name} can be ordered at once.`;
 // Helper to compare if two items are functionally identical
 const isSameItem = (a, b) => {
   if (!a || !b) return false;
@@ -124,25 +134,25 @@ export const CartProvider = ({ children }) => {
 
   // Add item
   const addToCart = (item) => {
-    showAnimatedToast("success", "Item added to cart", "cart-add", proceedToCartAction);
     setCart((prev) => {
-      const existingIndex = prev.findIndex(c => isSameItem(c, item));
-
-      if (existingIndex > -1) {
-        const newCart = [...prev];
-        newCart[existingIndex] = {
-          ...newCart[existingIndex],
-          ...item,
-          cartId: newCart[existingIndex].cartId,
-          quantity: (Number(newCart[existingIndex].quantity) || 1) + (Number(item.quantity) || 1)
-        };
-        return newCart;
+      const existingIndex = prev.findIndex((cartItem) => isSameItem(cartItem, item));
+      const existing = existingIndex > -1 ? prev[existingIndex] : null;
+      const nextQuantity = (Number(existing?.quantity) || 0) + (Number(item.quantity) || 1);
+      const limit = getQuantityLimit(item);
+      if (limit !== null && nextQuantity > limit) {
+        showAnimatedToast("error", getLimitMessage(item, limit), "cart-stock-limit");
+        return prev;
       }
 
-      return [...prev, { ...item, cartId: `${Date.now()}-${Math.random()}` }];
+      showAnimatedToast("success", "Item added to cart", "cart-add", proceedToCartAction);
+      if (existingIndex > -1) {
+        const next = [...prev];
+        next[existingIndex] = { ...existing, ...item, cartId: existing.cartId, quantity: nextQuantity };
+        return next;
+      }
+      return [...prev, { ...item, quantity: Number(item.quantity) || 1, cartId: `${Date.now()}-${Math.random()}` }];
     });
   };
-
   // Add Combo
   const addComboToCart = (comboItem) => {
     showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo", proceedToCartAction);
@@ -171,20 +181,19 @@ export const CartProvider = ({ children }) => {
 
   // Increase Quantity
   const increaseQuantity = (foodId, portionId, comboId, cartId) => {
-    setCart((prev) =>
-      prev.map((item) => {
-        const isMatch = cartId 
-          ? item.cartId === cartId 
-          : item.type === "combo"
-            ? (item.comboId === comboId || item.variantId === comboId)
-            : item.foodId === foodId && item.portionId === portionId;
-
-        return isMatch ? { ...item, quantity: item.quantity + 1 } : item;
-      })
-    );
-    showAnimatedToast("success", "Quantity increased", "cart-qty-inc");
+    setCart((prev) => prev.map((item) => {
+      const isMatch = cartId ? item.cartId === cartId : item.type === "combo" ? (item.comboId === comboId || item.variantId === comboId) : item.foodId === foodId && item.portionId === portionId;
+      if (!isMatch) return item;
+      const limit = getQuantityLimit(item);
+      const nextQuantity = (Number(item.quantity) || 0) + 1;
+      if (limit !== null && nextQuantity > limit) {
+        showAnimatedToast("error", getLimitMessage(item, limit), "cart-stock-limit");
+        return item;
+      }
+      showAnimatedToast("success", "Quantity increased", "cart-qty-inc");
+      return { ...item, quantity: nextQuantity };
+    }));
   };
-
   // Decrease Quantity
   const decreaseQuantity = (foodId, portionId, comboId, cartId) => {
     setCart((prev) => {

@@ -45,7 +45,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const params = useParams();
     const vendorId = propVendorId || params.vendorId;
     const router = useRouter();
-    const { addToCart } = useCart();
+    const { cart, addToCart } = useCart();
     const sectionRefs = useRef({});
     const openFoodModal = useFoodModalStore(state => state.openFoodModal);
     const openComboModal = useComboModalStore(state => state.openComboModal);
@@ -129,7 +129,9 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
             const choiceGroups = getChoiceGroupCount(food);
             if (portions.length && choiceGroups === 0) {
                 const defaultPortion = portions.find((portion) => portion.is_default) || portions[0];
-                setStandaloneSheet({ food, portions, portionQuantities: { [defaultPortion._id]: 1 }, loading: false });
+                const alreadyInCart = cart.filter((cartItem) => cartItem.foodId === food._id && cartItem.portionId === defaultPortion._id).reduce((sum, cartItem) => sum + (Number(cartItem.quantity) || 0), 0);
+                const defaultQuantity = defaultPortion.track_stock && alreadyInCart >= Number(defaultPortion.stock_quantity) ? 0 : 1;
+                setStandaloneSheet({ food, portions, portionQuantities: { [defaultPortion._id]: defaultQuantity }, loading: false });
                 return;
             }
             setStandaloneSheet(null);
@@ -148,13 +150,16 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
             .filter((line) => line.quantity > 0);
         if (lines.length === 0) return toast.error("Choose at least one size");
         for (const { portion, quantity } of lines) {
+            const alreadyInCart = cart.filter((cartItem) => cartItem.foodId === standaloneSheet.food._id && cartItem.portionId === portion._id).reduce((sum, cartItem) => sum + (Number(cartItem.quantity) || 0), 0);
+            const stockQuantity = Number(portion.stock_quantity);
+            if (portion.track_stock && alreadyInCart + quantity > stockQuantity) return toast.error(`Only ${stockQuantity} ${portion.label} available.`);
             const maxQuantity = Number(portion.max_quantity);
-            if (maxQuantity > 0 && quantity > maxQuantity) return toast.error(`Only ${maxQuantity} ${portion.label} can be ordered at once.`);
+            if (!portion.track_stock && maxQuantity > 0 && alreadyInCart + quantity > maxQuantity) return toast.error(`Only ${maxQuantity} ${portion.label} can be ordered at once.`);
         }
         standaloneAddLock.current = true;
         for (const { portion, quantity } of lines) {
             const priceNaira = Number(portion.price_naira ?? (Number(portion.price || 0) / 100));
-            addToCart({ type: "item", foodId: standaloneSheet.food._id, portionId: portion._id, vendorId, restaurantId: vendorId, storeName: vendor?.storeName || "", name: standaloneSheet.food.name, image_url: standaloneSheet.food.image_url || "", portion_label: portion.label, portion_quantity: 1, price_naira: priceNaira, quantity, selected_options: [], deliveryFee: vendor?.deliveryFee || 0, dietary_type: standaloneSheet.food.dietary_type, item_type: standaloneSheet.food.item_type });
+            addToCart({ type: "item", foodId: standaloneSheet.food._id, portionId: portion._id, vendorId, restaurantId: vendorId, storeName: vendor?.storeName || "", name: standaloneSheet.food.name, image_url: standaloneSheet.food.image_url || "", portion_label: portion.label, portion_quantity: 1, price_naira: priceNaira, quantity, selected_options: [], deliveryFee: vendor?.deliveryFee || 0, dietary_type: standaloneSheet.food.dietary_type, item_type: standaloneSheet.food.item_type, track_stock: portion.track_stock === true, stock_quantity: portion.track_stock ? Number(portion.stock_quantity) : null, max_quantity: portion.max_quantity || null });
         }
         setStandaloneSheet(null);
         window.setTimeout(() => { standaloneAddLock.current = false; }, 0);
@@ -211,10 +216,10 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         }));
 
         const combinedCategories = [...comboSection, ...foodSections];
-        
+
         // Deduplicate items for the "All" tab and preserve their type
         const allItemsListMap = new Map();
-        
+
         // 1. Process food items
         [...sections.flatMap(s => s.items || []), ...unsectioned].forEach(item => {
             if (item && item._id) {
@@ -280,7 +285,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         <div className="min-h-screen scroll bg-white dark:bg-zinc-950 pb-10">
         <div className="relative h-[155px] w-full">
                 <div className="absolute inset-0 overflow-hidden">
-                    <motion.div 
+                    <motion.div
                         style={{ scale: 1 + scrollY * 0.001, y: scrollY * 0.4 }}
                         className="absolute inset-0 w-full h-full"
                     >
@@ -318,7 +323,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
             {/* 🏰 Sticky Glass Header */}
             <AnimatePresence>
                 {(isScrolled || isSearchActive) && (
-                    <motion.div 
+                    <motion.div
                         initial={{ y: -72, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: -72, opacity: 0 }}
@@ -327,7 +332,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                     >
                         <AnimatePresence mode="wait">
                             {!isSearchActive ? (
-                                <motion.div 
+                                <motion.div
                                     key="info"
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -358,7 +363,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                     </div>
                                 </motion.div>
                             ) : (
-                                <motion.div 
+                                <motion.div
                                     key="search"
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
@@ -367,7 +372,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                 >
                                     <div className="relative flex-1">
                                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" size={14} />
-                                        <input 
+                                        <input
                                             autoFocus
                                             type="text"
                                             placeholder="Search menu..."
@@ -466,13 +471,13 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
             <div className="max-w-2xl mx-auto px-4 mt-3 space-y-2">
                 <div className="flex bg-zinc-100/50 dark:bg-zinc-900/50 backdrop-blur-md p-1 rounded-[8px] w-full border border-zinc-100 dark:border-zinc-800">
-                    <button 
+                    <button
                         onClick={() => { setActiveTab("menu"); mainSwiper?.slideTo(0); }}
                         className={`flex-1 py-1.5 rounded-[8px] text-[11px] font-medium uppercase tracking-widest transition-all ${activeTab === 'menu' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-medium/5 dark:shadow-none' : 'text-zinc-400'}`}
                     >
                         Menu Items
                     </button>
-                    <button 
+                    <button
                         onClick={() => { setActiveTab("reviews"); mainSwiper?.slideTo(1); }}
                         className={`flex-1 py-1.5 rounded-[8px] text-[11px] font-medium uppercase tracking-widest transition-all ${activeTab === 'reviews' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-medium/5 dark:shadow-none' : 'text-zinc-400'}`}
                     >
@@ -516,8 +521,8 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                         <div className="pb-6 pt-2 min-h-[55vh]">
                                             <div className="space-y-0 px-2">
                                                 {section.items.map((item, index) => (
-                                                    <FoodItemRow 
-                                                        key={`${section._id}-${item._id}-${index}`} 
+                                                    <FoodItemRow
+                                                        key={`${section._id}-${item._id}-${index}`}
                                                         item={item}
                                                         onSelect={handleItemTap}
                                                     />
@@ -538,7 +543,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                                 We couldn't find anything matching "{searchQuery}". <br/> Try searching for something else.
                                             </p>
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={() => { setSearchQuery(""); setIsSearchActive(false); }}
                                             className="text-orange-500 text-[11px] font-medium uppercase tracking-[0.2em] pt-2"
                                         >
@@ -579,11 +584,11 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                                                         <div key={star} className="flex items-center gap-4">
                                                             <span className="text-[10px] font-medium text-zinc-400 w-2">{star}</span>
                                                             <div className="flex-1 h-2.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-full overflow-hidden">
-                                                                <motion.div 
+                                                                <motion.div
                                                                     initial={{ width: 0 }}
                                                                     animate={{ width: `${pct}%` }}
                                                                     transition={{ duration: 1, ease: "easeOut" }}
-                                                                    className="h-full bg-orange-500 rounded-full" 
+                                                                    className="h-full bg-orange-500 rounded-full"
                                                                 />
                                                             </div>
                                                             <span className="text-[10px] font-medium text-zinc-900 dark:text-white w-8 text-right">{pct}%</span>
