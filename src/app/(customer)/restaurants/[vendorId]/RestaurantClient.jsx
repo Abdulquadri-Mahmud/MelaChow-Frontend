@@ -3,13 +3,11 @@
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { getVendorStorefront, getMenuItemDetail } from "@/app/lib/menuApi";
-import { useState, useRef, useMemo, useEffect, useCallback } from "react";
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
+import { useState, useRef, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
 
-import { MapPin, Clock, Star, Search, X, Plus, Minus, Share2, Flame, MessageSquare, ChevronLeft, Loader2, Store, Gift, ChevronRight } from "lucide-react";
+import { MapPin, Clock, Star, Search, X, Plus, Minus, Share2, Flame, ChevronLeft, Store, Gift, ChevronRight } from "lucide-react";
 import { useCart } from "@/app/context/CartContext";
 import toast from "react-hot-toast";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
@@ -34,7 +32,7 @@ const FoodItemRow = ({ item, onSelect }) => {
         <div className="flex-1 min-w-0 space-y-1">
             <h3 className="text-[16px] font-normal capitalize text-zinc-900 dark:text-white tracking-tight truncate">{item.name}</h3>
             <p className="text-[12px] text-zinc-500 dark:text-zinc-400 line-clamp-2">{item.description || "Freshly prepared with premium ingredients."}</p>
-            <span className="text-[15px] font-normal text-zinc-950 dark:text-zinc-50">₦{price.toLocaleString()}</span>
+            <span className="text-[15px] font-normal text-zinc-950 dark:text-zinc-50">From ₦{price.toLocaleString()}</span>
         </div>
         <div className="relative w-[100px] h-[100px] rounded-xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800">
             <img src={item.image_url || item.image || "/placeholder.jpg"} alt={item.name} className="w-full h-full object-cover" onError={(event) => { event.currentTarget.src = "/placeholder.jpg"; event.currentTarget.onerror = null; }} />
@@ -51,13 +49,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const openComboModal = useComboModalStore(state => state.openComboModal);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeSectionId, setActiveSectionId] = useState("all");
-    const [activeTab, setActiveTab] = useState("menu");
-    const [mainSwiper, setMainSwiper] = useState(null);
-    const [menuSwiper, setMenuSwiper] = useState(null);
-    const [reviewsData, setReviewsData] = useState(null);
-    const [reviewsLoading, setReviewsLoading] = useState(false);
-    const [reviewsPage, setReviewsPage] = useState(1);
-    const [ratingFilter, setRatingFilter] = useState(null);
+
     const [isSearchActive, setIsSearchActive] = useState(false);
     const [standaloneSheet, setStandaloneSheet] = useState(null);
     const standaloneAddLock = useRef(false);
@@ -76,33 +68,11 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const unsectioned = data?.unsectioned || [];
     const combos      = data?.combos || [];
 
-    const fetchReviews = useCallback(async (page = 1, rating = null) => {
-        if (!vendorId) return;
-        setReviewsLoading(true);
-        try {
-            const params = new URLSearchParams({ page, limit: 8 });
-            if (rating) params.append('rating', rating);
-            const res = await fetch(`/api/public/reviews/vendor/${vendorId}?${params}`);
-            const json = await res.json();
-            if (json.success) setReviewsData(json.data);
-        } catch (e) {
-            console.error('Failed to fetch reviews', e);
-        } finally {
-            setReviewsLoading(false);
-        }
-    }, [vendorId]);
-
-    useEffect(() => {
-        if (activeTab === 'reviews' && !reviewsData) {
-            fetchReviews(reviewsPage, ratingFilter);
-        }
-    }, [activeTab]);
-
     const scrollToSection = (id) => {
-        const index = allSections.findIndex(s => s._id === id);
-        if (index !== -1) menuSwiper?.slideTo(index);
+        setActiveSectionId(id);
+        const target = document.getElementById(`menu-section-${id}`);
+        target?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
-
     const handleComboTap = (combo) => {
         if (combo.is_available === false) return;
         const selectedComboId = getItemId(combo);
@@ -468,177 +438,26 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                 </div>
             </div>
 
-            <div className="max-w-2xl mx-auto px-4 mt-3 space-y-2">
-                <div className="flex bg-zinc-100/50 dark:bg-zinc-900/50 backdrop-blur-md p-1 rounded-[8px] w-full border border-zinc-100 dark:border-zinc-800">
-                    <button
-                        onClick={() => { setActiveTab("menu"); mainSwiper?.slideTo(0); }}
-                        className={`flex-1 py-1.5 rounded-[8px] text-[11px] font-medium uppercase tracking-widest transition-all ${activeTab === 'menu' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-medium/5 dark:shadow-none' : 'text-zinc-400'}`}
-                    >
-                        Menu Items
-                    </button>
-                    <button
-                        onClick={() => { setActiveTab("reviews"); mainSwiper?.slideTo(1); }}
-                        className={`flex-1 py-1.5 rounded-[8px] text-[11px] font-medium uppercase tracking-widest transition-all ${activeTab === 'reviews' ? 'bg-white dark:bg-zinc-800 text-orange-600 shadow-lg shadow-medium/5 dark:shadow-none' : 'text-zinc-400'}`}
-                    >
-                        Reviews ({vendor.ratingCount || 0})
-                    </button>
-                </div>
-
-                {activeTab === 'menu' && (
-                    <div className="flex gap-4 overflow-x-auto pb-0 scrollbar-none sticky top-11 bg-white dark:bg-zinc-950/90 z-40 -mx-4 px-5 border-b border-zinc-100 dark:border-zinc-800 transition-all duration-300">
+            <div className="max-w-2xl mx-auto mt-3">
+                <div className="sticky top-0 z-[70] border-y border-zinc-100 bg-white/95 px-4 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/95">
+                    <div className="flex gap-4 overflow-x-auto scrollbar-none">
                         {allSections.map((section) => (
-                            <button
-                                key={section._id}
-                                onClick={() => scrollToSection(section._id)}
-                                className={`py-2 text-[13px] font-medium capitalize whitespace-nowrap border-b-2 transition-all ${activeSectionId === section._id ? 'border-zinc-200 bg-zinc-100 px-3 rounded-t-sm' : 'border-transparent text-zinc-400 hover:text-zinc-600'}`}
-                            >
+                            <button key={section._id} onClick={() => scrollToSection(section._id)} className={`shrink-0 border-b-2 py-3 text-[14px] font-medium capitalize transition-all ${activeSectionId === section._id ? 'border-orange-500 text-orange-600' : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white'}`}>
                                 {section.name}
                             </button>
                         ))}
                     </div>
-                )}
+                </div>
 
-                <Swiper
-                    onSwiper={setMainSwiper}
-                    onSlideChange={(swiper) => setActiveTab(swiper.activeIndex === 0 ? 'menu' : 'reviews')}
-                    initialSlide={0}
-                    speed={500}
-                    autoHeight={true}
-                    className="w-full"
-                >
-                    <SwiperSlide>
-                        <Swiper
-                            onSwiper={setMenuSwiper}
-                            onSlideChange={(swiper) => setActiveSectionId(allSections[swiper.activeIndex]?._id)}
-                            speed={300}
-                            autoHeight={true}
-                            className="w-full"
-                        >
-                            {allSections.length > 0 ? (
-                                allSections.map((section) => (
-                                    <SwiperSlide key={section._id}>
-                                        <div className="pb-6 pt-2 min-h-[55vh]">
-                                            <div className="space-y-0 px-2">
-                                                {section.items.map((item, index) => (
-                                                    <FoodItemRow
-                                                        key={`${section._id}-${item._id}-${index}`}
-                                                        item={item}
-                                                        onSelect={handleItemTap}
-                                                    />
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </SwiperSlide>
-                                ))
-                            ) : (
-                                <SwiperSlide>
-                                    <div className="flex flex-col items-center justify-center py-20 px-10 text-center space-y-2">
-                                        <div className="w-20 h-20 bg-zinc-50 dark:bg-zinc-900 rounded-[32px] flex items-center justify-center border border-zinc-100 dark:border-zinc-800">
-                                            <Search size={32} className="text-zinc-300" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-[16px] font-medium text-zinc-900 dark:text-white uppercase italic tracking-tight">No Items Found</p>
-                                            <p className="text-[12px] font-bold text-zinc-200 uppercase tracking-widest leading-relaxed">
-                                                We couldn't find anything matching "{searchQuery}". <br/> Try searching for something else.
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={() => { setSearchQuery(""); setIsSearchActive(false); }}
-                                            className="text-orange-500 text-[11px] font-medium uppercase tracking-[0.2em] pt-2"
-                                        >
-                                            Clear Search
-                                        </button>
-                                    </div>
-                                </SwiperSlide>
-                            )}
-                        </Swiper>
-                    </SwiperSlide>
-
-                    <SwiperSlide>
-                        <div className="pb-20 bg-gray-50/10 dark:bg-zinc-900/10 space-y-2 pt-2">
-                            {reviewsLoading ? (
-                                <div className="flex flex-col items-center justify-center py-20 gap-4">
-                                    <Loader2 size={32} className="animate-spin text-orange-500" />
-                                    <p className="text-[12px] font-medium uppercase tracking-widest text-zinc-400">Loading Reviews...</p>
-                                </div>
-                            ) : reviewsData ? (
-                                <>
-                                    <div className="bg-white dark:bg-zinc-900 rounded-[8px] p-2 border border-zinc-100 dark:border-zinc-800 shadow shadow-medium/5 dark:shadow-none">
-                                        <div className="flex flex-col sm:flex-row items-center gap-8">
-                                            <div className="text-center shrink-0">
-                                                <p className="text-7xl font-medium text-zinc-900 dark:text-white leading-none mb-3 italic">
-                                                    {reviewsData.restaurant.averageRating || '—'}
-                                                </p>
-                                                <div className="flex justify-center gap-1">
-                                                    {[1,2,3,4,5].map(s => (
-                                                        <Star key={s} size={16} className={s <= Math.round(reviewsData.restaurant.averageRating) ? 'fill-amber-400 text-amber-400' : 'text-zinc-100 dark:text-zinc-800'} />
-                                                    ))}
-                                                </div>
-                                                <p className="text-[10px] font-medium text-zinc-400 uppercase tracking-[0.2em] mt-3">Overall Rating</p>
-                                            </div>
-                                            <div className="flex-1 w-full space-y-3">
-                                                {[5,4,3,2,1].map(star => {
-                                                    const pct = reviewsData.ratingPercentages?.[star] || 0;
-                                                    return (
-                                                        <div key={star} className="flex items-center gap-4">
-                                                            <span className="text-[10px] font-medium text-zinc-400 w-2">{star}</span>
-                                                            <div className="flex-1 h-2.5 bg-zinc-50 dark:bg-zinc-800/50 rounded-full overflow-hidden">
-                                                                <motion.div
-                                                                    initial={{ width: 0 }}
-                                                                    animate={{ width: `${pct}%` }}
-                                                                    transition={{ duration: 1, ease: "easeOut" }}
-                                                                    className="h-full bg-orange-500 rounded-full"
-                                                                />
-                                                            </div>
-                                                            <span className="text-[10px] font-medium text-zinc-900 dark:text-white w-8 text-right">{pct}%</span>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3 pt-4">
-                                        {reviewsData.reviews.map((review, idx) => (
-                                            <div key={idx} className="bg-white dark:bg-zinc-900 rounded-[8px] p-2 border border-zinc-100/80 dark:border-zinc-800/80 space-y-4 shadow-sm group hover:border-orange-500/20 transition-colors">
-                                                <div className="flex items-start justify-between">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded bg-orange-500 flex items-center justify-center font-medium text-white text-lg shadow-lg shadow-orange-500/20">
-                                                            {review.userId?.firstname?.[0]}{review.userId?.lastname?.[0]}
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <p className="text-[15px] font-medium text-zinc-900 dark:text-white leading-tight uppercase italic">
-                                                                {review.userId?.firstname} {review.userId?.lastname}
-                                                            </p>
-                                                            <div className="flex gap-0.5">
-                                                                {[1,2,3,4,5].map(s => (
-                                                                    <Star key={s} size={10} className={s <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-zinc-100 dark:text-zinc-800'} />
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-widest">
-                                                            {new Date(review.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className="relative">
-                                                    <p className="text-[14px] text-zinc-600 dark:text-zinc-400 leading-relaxed italic pr-6 font-medium">
-                                                        "{review.comment}"
-                                                    </p>
-                                                    <MessageSquare size={16} className="absolute top-0 right-0 text-zinc-100 dark:text-zinc-800" />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </>
-                            ) : null}
-                        </div>
-                    </SwiperSlide>
-                </Swiper>
-            </div>
-            {typeof document !== "undefined" && createPortal(<AnimatePresence>{standaloneSheet && (() => { const selectedLines = standaloneSheet.portions.map((item) => ({ item, quantity: Number(standaloneSheet.portionQuantities?.[item._id]) || 0 })).filter((line) => line.quantity > 0); const total = selectedLines.reduce((sum, line) => sum + Number(line.item.price_naira ?? (Number(line.item.price || 0) / 100)) * line.quantity, 0); const totalQuantity = selectedLines.reduce((sum, line) => sum + line.quantity, 0); return <><motion.div className="fixed inset-0 z-[9990] bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setStandaloneSheet(null)} /><div className="fixed inset-x-0 bottom-0 z-[9997] h-[92px] bg-white dark:bg-zinc-900" aria-hidden="true" />
+                <div id="menu-section-all" className="px-4 pt-2">
+                    {allSections.length > 1 ? allSections.filter((section) => section._id !== "all").map((section) => (
+                        <section id={`menu-section-${section._id}`} key={section._id} className="scroll-mt-14 py-4">
+                            <h2 className="mb-2 text-base font-medium text-zinc-900 dark:text-white">{section.name}</h2>
+                            <div className="space-y-0">{section.items.map((item, index) => <FoodItemRow key={`${section._id}-${item._id}-${index}`} item={item} onSelect={handleItemTap} />)}</div>
+                        </section>
+                    )) : <div className="flex flex-col items-center justify-center px-10 py-20 text-center"><Search size={32} className="text-zinc-300" /><p className="mt-3 text-sm font-medium text-zinc-500">No menu items found.</p></div>}
+                </div>
+            </div>            {typeof document !== "undefined" && createPortal(<AnimatePresence>{standaloneSheet && (() => { const selectedLines = standaloneSheet.portions.map((item) => ({ item, quantity: Number(standaloneSheet.portionQuantities?.[item._id]) || 0 })).filter((line) => line.quantity > 0); const total = selectedLines.reduce((sum, line) => sum + Number(line.item.price_naira ?? (Number(line.item.price || 0) / 100)) * line.quantity, 0); const totalQuantity = selectedLines.reduce((sum, line) => sum + line.quantity, 0); return <><motion.div className="fixed inset-0 z-[9990] bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setStandaloneSheet(null)} /><div className="fixed inset-x-0 bottom-0 z-[9997] h-[92px] bg-white dark:bg-zinc-900" aria-hidden="true" />
             <motion.div className="fixed inset-x-0 bottom-[66px] z-[9998] mx-auto max-w-2xl rounded-t-[28px] bg-white p-3 shadow-2xl dark:bg-zinc-950" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}><button onClick={() => setStandaloneSheet(null)} className="absolute right-5 top-5 rounded-full bg-zinc-100 p-2 dark:bg-zinc-800"><X size={18} /></button><img src={standaloneSheet.food.image_url || "/placeholder.jpg"} alt="" className="h-44 w-full rounded-2xl object-cover" />{standaloneSheet.loading && <div className="mt-4 animate-pulse space-y-2"><div className="h-6 w-3/4 rounded bg-zinc-200 dark:bg-zinc-800" /><div className="h-4 w-full rounded bg-zinc-100 dark:bg-zinc-900" /><div className="h-4 w-2/3 rounded bg-zinc-100 dark:bg-zinc-900" /><div className="h-10 w-28 rounded-lg bg-zinc-100 dark:bg-zinc-900" /><div className="flex gap-3"><div className="h-14 w-32 rounded-xl bg-zinc-100 dark:bg-zinc-900" /><div className="h-14 flex-1 rounded-xl bg-orange-100 dark:bg-orange-950/40" /></div></div>}<h2 className="mt-4 text-xl font-bold">{standaloneSheet.food.name}</h2><p className="mt-1 text-sm text-zinc-500">{standaloneSheet.food.description}</p>{!standaloneSheet.loading && <div className="mt-4 grid gap-3 rounded-2xl bg-zinc-50 p-3 dark:bg-zinc-900/70">{standaloneSheet.portions.map((item) => { const quantity = Number(standaloneSheet.portionQuantities?.[item._id]) || 0; const price = Number(item.price_naira ?? (Number(item.price || 0) / 100)); const availableStock = item.track_stock ? Math.max(0, Number(item.stock_quantity) || 0) : null; const atStockLimit = availableStock !== null && quantity >= availableStock; return <div key={item._id} className={`flex items-center justify-between gap-3 rounded-xl border p-3 ${quantity > 0 ? "border-orange-600 bg-orange-50" : "border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-950"}`}><div><p className="text-sm font-medium text-zinc-900 dark:text-white">{standaloneSheet.portions.length === 1 ? "From price" : item.label}</p><p className="text-sm text-orange-600">₦{price.toLocaleString()}</p>{availableStock !== null && <p className={`mt-1 text-xs ${atStockLimit ? "font-medium text-orange-700" : "text-zinc-500"}`}>{atStockLimit ? `Only ${availableStock} available` : `${availableStock} available`}</p>}</div><div className="flex items-center rounded-lg border bg-white dark:bg-zinc-900"><button onClick={() => setStandaloneSheet((current) => ({ ...current, portionQuantities: { ...current.portionQuantities, [item._id]: Math.max(0, quantity - 1) } }))} className="p-2" aria-label={`Reduce ${item.label} quantity`}><Minus size={15}/></button><span className="min-w-7 text-center font-bold">{quantity}</span><button disabled={atStockLimit} onClick={() => { if (atStockLimit) return; setStandaloneSheet((current) => ({ ...current, portionQuantities: { ...current.portionQuantities, [item._id]: quantity + 1 } })); }} title={atStockLimit ? `Only ${availableStock} available` : `Add ${item.label}`} aria-label={atStockLimit ? `Only ${availableStock} ${item.label} available` : `Increase ${item.label} quantity`} className="p-2 text-orange-600 disabled:cursor-not-allowed disabled:text-zinc-300"><Plus size={15}/></button></div></div>; })}</div>}<div className="mt-5 flex gap-3"><button disabled={standaloneSheet.loading || totalQuantity === 0} onClick={addStandaloneSheetItem} className="h-14 flex-1 rounded-xl bg-orange-600 px-4 font-bold text-white disabled:opacity-50">Add {totalQuantity > 0 ? `${totalQuantity} item${totalQuantity === 1 ? "" : "s"} · ₦${total.toLocaleString()}` : "items"}</button></div></motion.div></>; })()}</AnimatePresence>, document.body)}
         </div>
     );
