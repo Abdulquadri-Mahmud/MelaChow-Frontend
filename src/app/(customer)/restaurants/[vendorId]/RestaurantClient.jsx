@@ -121,7 +121,6 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
             openFoodModal(selectedFoodId, { food: item });
             return;
         }
-        setStandaloneSheet({ food: item, portions: [], portionQuantities: {}, loading: true });
         try {
             const detail = await getMenuItemDetail(vendorId, selectedFoodId);
             const food = detail?.item || item;
