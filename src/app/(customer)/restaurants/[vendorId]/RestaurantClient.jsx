@@ -37,8 +37,9 @@ const FoodItemRow = ({ item, onSelect }) => {
         <div className="relative w-[100px] h-[100px] rounded-xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800">
             <img src={item.image_url || item.image || "/placeholder.jpg"} alt={item.name} className="w-full h-full object-cover" onError={(event) => { event.currentTarget.src = "/placeholder.jpg"; event.currentTarget.onerror = null; }} />
             {!isUnavailable && <div className="absolute bottom-0 inset-x-0 bg-orange-100/95 py-2 text-center text-[12px] font-bold text-orange-700">Add +</div>}</div>
-    </div>;
+        </div>;
 };
+
 export default function StorefrontPage({ initialData, vendorId: propVendorId }) {
     const params = useParams();
     const vendorId = propVendorId || params.vendorId;
