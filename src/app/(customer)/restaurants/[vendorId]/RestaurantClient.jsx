@@ -125,7 +125,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         try {
             const detail = await getMenuItemDetail(vendorId, selectedFoodId);
             const food = detail?.item || item;
-            const portions = (food.portions || []).filter((portion) => portion.is_available !== false);
+            const portions = (food.portions || []).filter((portion) => portion.is_available !== false && portion.is_in_stock !== false && (!portion.track_stock || Number(portion.stock_quantity) > 0));
             const choiceGroups = getChoiceGroupCount(food);
             if (portions.length && choiceGroups === 0) {
                 const defaultPortion = portions.find((portion) => portion.is_default) || portions[0];
