@@ -92,6 +92,7 @@ export const transformCartItemToV2 = (cartItem) => {
                  || cartItem.restaurantId,
       quantity:     Number(cartItem.quantity),
       note:         cartItem.note || "",
+      meal_group_label: String(cartItem.meal_group_label || "").trim().slice(0, 40),
 
       selected_options: (cartItem.selected_options || []).map(opt => ({
         group_id:             opt.group_id,
@@ -139,6 +140,7 @@ export const transformCartItemToV2 = (cartItem) => {
     name:             cartItem.name          || "",
     image_url:        cartItem.image_url     || "",
     note:             cartItem.note          || "",
+    meal_group_label: String(cartItem.meal_group_label || "").trim().slice(0, 40),
 
     selected_options: (cartItem.selected_options || []).map(opt => ({
       group_id:             opt.group_id,

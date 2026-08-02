@@ -14,6 +14,8 @@ const CartContext = createContext({
   removeFromCart: () => {},
   removeRestaurantFromCart: () => {},
   updateCartItem: () => {},
+  setItemMealGroup: () => {},
+  splitCartItem: () => {},
   clearCart: () => {},
 });
 
@@ -35,6 +37,8 @@ export const useCart = () => {
       removeFromCart: () => {},
       removeRestaurantFromCart: () => {},
       updateCartItem: () => {},
+      setItemMealGroup: () => {},
+      splitCartItem: () => {},
       clearCart: () => {},
     };
   }
@@ -76,6 +80,7 @@ const isSameItem = (a, b) => {
   if (typeA === "combo") {
     return (
       normalizeId(a.comboId || a.variantId) === normalizeId(b.comboId || b.variantId)
+      && (a.meal_group_label || "") === (b.meal_group_label || "")
       && getOptionsSignature(a) === getOptionsSignature(b)
     );
   }
@@ -84,6 +89,7 @@ const isSameItem = (a, b) => {
     normalizeId(a.foodId) === normalizeId(b.foodId)
     && normalizeId(a.portionId) === normalizeId(b.portionId)
     && (Number(a.portion_quantity) || 1) === (Number(b.portion_quantity) || 1)
+    && (a.meal_group_label || "") === (b.meal_group_label || "")
     && getOptionsSignature(a) === getOptionsSignature(b)
   );
 };
@@ -267,6 +273,21 @@ export const CartProvider = ({ children }) => {
     showAnimatedToast("success", "Cart updated", "cart-update");
   };
 
+  const setItemMealGroup = (cartId, mealGroupLabel) => {
+    const normalizedLabel = String(mealGroupLabel || "").trim().slice(0, 40);
+    setCart((prev) => prev.map((item) => item.cartId === cartId ? { ...item, meal_group_label: normalizedLabel } : item));
+  };
+  const splitCartItem = (cartId) => {
+    setCart((prev) => {
+      const source = prev.find((item) => item.cartId === cartId);
+      if (!source || (Number(source.quantity) || 0) < 2) return prev;
+      return prev.flatMap((item) => item.cartId !== cartId ? [item] : [
+        { ...item, quantity: (Number(item.quantity) || 1) - 1 },
+        { ...item, quantity: 1, meal_group_label: "", cartId: `${Date.now()}-${Math.random()}` },
+      ]);
+    });
+  };
+
   // Clear cart
   const clearCart = () => {
     setCart([]);
@@ -292,6 +313,8 @@ export const CartProvider = ({ children }) => {
         removeFromCart,
         removeRestaurantFromCart,
         updateCartItem,
+        setItemMealGroup,
+        splitCartItem,
         clearCart,
       }}
     >
