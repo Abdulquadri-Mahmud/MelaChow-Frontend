@@ -23,7 +23,7 @@ export default function SearchBar() {
     >
       <div className="absolute inset-0 bg-orange-200 blur-lg opacity-10 rounded-2xl group-hover:opacity-20 transition-opacity duration-300" />
 
-      <div className="relative flex items-center bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-transparent group-hover:border-orange-100 dark:group-hover:border-zinc-700 transition-all duration-300 cursor-pointer">
+      <div className="relative flex items-center bg-white dark:bg-zinc-900 rounded-2xl p-4 border border-slate-100/90 dark:border-white/5 shadow-[0_10px_28px_rgba(15,23,42,0.09)] dark:shadow-[0_10px_28px_rgba(0,0,0,0.28)] group-hover:border-orange-100 group-hover:shadow-[0_14px_34px_rgba(249,115,22,0.16)] dark:group-hover:border-zinc-700 transition-all duration-300 cursor-pointer">
         <div className="p-2 bg-gray-50 dark:bg-zinc-800 rounded-xl mr-3 group-hover:bg-orange-50 dark:group-hover:bg-zinc-700 transition-colors">
           <Search className="text-gray-400 group-hover:text-orange-500 transition-colors" size={22} />
         </div>
