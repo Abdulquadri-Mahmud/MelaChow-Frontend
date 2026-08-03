@@ -31,8 +31,8 @@ export default function HomePage() {
       <HomeHeader />
       <div className="md:px-4 p-2 space-y-4">
         <SearchBar />
+      <PromoAnnouncementBanner />
         <CategoryList />
-        <PromoAnnouncementBanner />
         <div id="vendor-list-anchor">
           <Suspense fallback={null}>
             <VendorList user={user} />

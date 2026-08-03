@@ -5,6 +5,9 @@ import { ArrowRight, Bike, Gift, Store, TicketPercent } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
+import DynamicBannerCarousel from "./DynamicBannerCarousel";
+
+export default function PromoAnnouncementBanner() { return <DynamicBannerCarousel fallback={PromoAnnouncementBannerFallback} />; }
 
 const formatCampaignName = (name) => {
   if (!name) return "Free delivery";
@@ -23,7 +26,7 @@ const platformText = (promo, used) => {
   return `${remaining} of ${total} free deliveries left.`;
 };
 
-export default function PromoAnnouncementBanner() {
+function PromoAnnouncementBannerFallback() {
   const router = useRouter();
   const railRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
