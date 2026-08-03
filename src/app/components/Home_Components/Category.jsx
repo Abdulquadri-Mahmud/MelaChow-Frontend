@@ -108,7 +108,7 @@ export default function CategoryList() {
                                     className={`absolute inset-0 rounded-[30px] blur-xl transition-all duration-500
                                         ${activeCategory === category.name
                                             ? 'bg-orange-500/30 opacity-100 scale-110'
-                                            : 'bg-zinc-200 dark:bg-zinc-800 opacity-0 group-hover:opacity-100 group-hover:scale-105'}
+                                            : 'bg-orange-400/25 dark:bg-orange-500/20 opacity-0 group-hover:opacity-100 group-hover:scale-105'}
                                     `}
                                 />
 
@@ -117,7 +117,7 @@ export default function CategoryList() {
                                     className={`relative w-20 h-20 flex items-center justify-center rounded-[28px] transition-all duration-300 border overflow-hidden
                                         ${activeCategory === category.name
                                             ? 'bg-orange-500 border-orange-400 translate-y-[-2px]'
-                                            : 'bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 group-hover:border-orange-200 dark:group-hover:border-orange-900'}
+                                            : 'bg-white dark:bg-zinc-900 border-orange-100/80 dark:border-orange-500/20 shadow-[0_5px_14px_rgba(249,115,22,0.14)] dark:shadow-[0_5px_16px_rgba(0,0,0,0.32)] group-hover:border-orange-300 dark:group-hover:border-orange-400/60 group-hover:shadow-[0_8px_18px_rgba(249,115,22,0.24)]'}
                                     `}
                                 >
                                     {category.image ? (
@@ -164,7 +164,7 @@ export default function CategoryList() {
             </div>
 
             {/* Modern Divider */}
-            <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent my-4" />
+            <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-200 dark:via-zinc-800 to-transparent mt-2 mb-3" />
         </div>
     );
 }
