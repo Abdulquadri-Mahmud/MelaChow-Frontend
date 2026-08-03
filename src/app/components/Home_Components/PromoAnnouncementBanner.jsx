@@ -1,5 +1,3 @@
-export default function PromoAnnouncementBanner() { return <DynamicBannerCarousel fallback={PromoAnnouncementBannerFallback} />; }
-
 "use client";
 
 import { motion } from "framer-motion";
@@ -8,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
 import DynamicBannerCarousel from "./DynamicBannerCarousel";
+
+export default function PromoAnnouncementBanner() { return <DynamicBannerCarousel fallback={PromoAnnouncementBannerFallback} />; }
 
 const formatCampaignName = (name) => {
   if (!name) return "Free delivery";
