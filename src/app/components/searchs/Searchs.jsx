@@ -129,7 +129,7 @@ export default function FoodSearchMobile() {
   const [foods, setFoods] = useState([]);
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [error, setError] = useState(null);
   const [trending, setTrending] = useState([]);
@@ -182,7 +182,13 @@ export default function FoodSearchMobile() {
 
   // Fetch foods based on category or query
   useEffect(() => {
-    if (!hydrated) return;
+    const hasSearchIntent = Boolean(query.trim() || selectedCategory);
+    if (!hydrated || !hasSearchIntent) {
+      setFoods([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
 
     const fetchFoods = async () => {
       try {
@@ -206,7 +212,7 @@ export default function FoodSearchMobile() {
     };
 
     fetchFoods();
-  }, [baseUrl, hydrated, query]);
+  }, [baseUrl, hydrated, query, selectedCategory]);
 
   // Autocomplete
   useEffect(() => {
@@ -250,6 +256,8 @@ export default function FoodSearchMobile() {
   }, []);
 
   // Category grouping — always use all foods, filtered client-side by selectedCategory
+  const hasSearchIntent = Boolean(query.trim() || selectedCategory);
+
   const displayedFoods = useMemo(() => {
     if (!selectedCategory || !foods.length) return foods;
     const lower = selectedCategory.toLowerCase();
@@ -463,7 +471,7 @@ export default function FoodSearchMobile() {
       </div>
 
       {/* 📊 Refinement Toolbar / Result Counter */}
-      <div className="max-w-xl mx-auto px-2 pt-2.5">
+      {hasSearchIntent && <div className="max-w-xl mx-auto px-2 pt-2.5">
           <motion.div 
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
@@ -482,11 +490,17 @@ export default function FoodSearchMobile() {
                   Sort: <span className="text-zinc-900 dark:text-zinc-200">Relevance</span>
               </div>
           </motion.div>
-      </div>
+      </div>}
  
       {/* 🍱 Results Feed */}
       <div className="max-w-xl mx-auto mt-3.5">
-        {loading ? (
+        {!hasSearchIntent ? (
+          <div className="px-8 py-20 text-center">
+            <Search size={32} className="mx-auto mb-4 text-orange-500" />
+            <p className="text-sm font-semibold text-zinc-800 dark:text-white">Search for a dish or restaurant</p>
+            <p className="mt-1 text-xs text-zinc-500">Type what you want to eat to see matching items.</p>
+          </div>
+        ) : loading ? (
           <div className="px-2">
             <SearchFoodSkeleton items={6} />
           </div>
