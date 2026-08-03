@@ -64,7 +64,7 @@ export default function CategoryList() {
     }
 
     return (
-        <div className="mt-6">
+        <div className="mt-2">
             {/* <div className="flex items-center justify-between mb-4 px-1">
                 <div className="flex items-center gap-3">
                     <div className="relative">
