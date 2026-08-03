@@ -196,6 +196,12 @@ const VendorRow = ({ vendors }) => (
 // ─────────────────────────────────────────────────────────────────────────────
 // EMPTY STATE
 // ─────────────────────────────────────────────────────────────────────────────
+const VendorColumn = ({ vendors }) => (
+  <div className="space-y-3 px-2">
+    {vendors.map((vendor) => <VendorCard key={vendor._id} vendor={vendor} fullWidth />)}
+  </div>
+);
+
 const EmptyState = ({ city, selectedCuisine, onClear }) => (
   <div className="px-4">
     <div className="bg-orange-50/50 dark:bg-orange-500/5 rounded-[24px] p-8 text-center border border-orange-100/50 dark:border-orange-500/20 flex flex-col items-center">
@@ -439,36 +445,6 @@ export default function VendorList({ user }) {
         </div>
       )}
 
-      {/* ── Categorized Cuisines Rows ───────────────────────────────────── */}
-      {cuisineOptions.map((cuisine) => {
-        const cuisineVendors = allVendors.filter(v => 
-          v.cuisineTypes?.some(t => t.trim() === cuisine) && 
-          v.isOpen
-        );
-
-        if (cuisineVendors.length === 0) return null;
-
-        // Sort to put open ones first
-        const sortedCuisineVendors = [...cuisineVendors].sort((a, b) => (b.isOpen === a.isOpen) ? 0 : b.isOpen ? 1 : -1);
-
-        return (
-          <div key={cuisine}>
-            <SectionHeader
-              title={
-                <span className="flex items-center gap-2">
-                  <ChefHat size={18} className="text-orange-500" />
-                  {cuisine} Specials
-                </span>
-              }
-              subtitle={`Popular ${cuisine.toLowerCase()} spots near you`}
-              href={`/search?cuisine=${cuisine}`}
-              hrefLabel="Explore"
-            />
-            <VendorRow vendors={sortedCuisineVendors} />
-          </div>
-        );
-      })}
-
       {/* ── Closed / Coming Back Soon ────────────────────────────────────── */}
       {closedVendors.length > 0 && (
         <div>
@@ -481,7 +457,7 @@ export default function VendorList({ user }) {
             }
             subtitle="Check their hours before ordering"
           />
-          <VendorRow vendors={closedVendors} />
+          <VendorColumn vendors={closedVendors} />
         </div>
       )}
 
