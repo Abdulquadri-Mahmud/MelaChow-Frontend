@@ -275,7 +275,9 @@ export const CartProvider = ({ children }) => {
 
   const setItemMealGroup = (cartId, mealGroupLabel) => {
     const normalizedLabel = String(mealGroupLabel || "").trim().slice(0, 40);
-    setCart((prev) => prev.map((item) => item.cartId === cartId ? { ...item, meal_group_label: normalizedLabel } : item));
+    setCart((prev) => mergeDuplicateCartItems(prev.map((item) => (
+      item.cartId === cartId ? { ...item, meal_group_label: normalizedLabel } : item
+    ))));
   };
   const splitCartItem = (cartId) => {
     setCart((prev) => {
@@ -290,6 +292,8 @@ export const CartProvider = ({ children }) => {
 
   // Clear cart
   const clearCart = () => {
+    // Remove persisted cart immediately so a fresh add cannot revive an old line.
+    if (typeof window !== "undefined") localStorage.removeItem("melachowCart");
     setCart([]);
     showAnimatedToast("success", "Cart cleared", "cart-clear");
   };

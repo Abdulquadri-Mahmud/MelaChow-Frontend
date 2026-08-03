@@ -69,10 +69,8 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
     const unsectioned = data?.unsectioned || [];
     const combos      = data?.combos || [];
 
-    const scrollToSection = (id) => {
+    const selectMenuTab = (id) => {
         setActiveSectionId(id);
-        const target = document.getElementById(`menu-section-${id}`);
-        target?.scrollIntoView({ behavior: "smooth", block: "start" });
     };
     const handleComboTap = (combo) => {
         if (combo.is_available === false) return;
@@ -234,7 +232,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         })).filter(section => section.items.length > 0);
     }, [sections, unsectioned, combos, searchQuery]);
 
-    if (isLoading) return <ViewVendorSkeleton />;
+    const selectedSection = allSections.find((section) => section._id === activeSectionId) || allSections[0];
 
     if (isError || !vendor) {
         return (
@@ -443,21 +441,14 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                 <div className="sticky top-0 z-[70] border-y border-zinc-100 bg-white/95 px-4 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/95">
                     <div className="flex gap-4 overflow-x-auto scrollbar-none">
                         {allSections.map((section) => (
-                            <button key={section._id} onClick={() => scrollToSection(section._id)} className={`shrink-0 border-b-2 py-3 text-[14px] font-medium capitalize transition-all ${activeSectionId === section._id ? 'border-orange-500 text-orange-600' : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white'}`}>
+                            <button key={section._id} onClick={() => selectMenuTab(section._id)} className={`shrink-0 border-b-2 py-3 text-[14px] font-medium capitalize transition-all ${activeSectionId === section._id ? 'border-orange-500 text-orange-600' : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white'}`}>
                                 {section.name}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                <div id="menu-section-all" className="px-4 pt-2">
-                    {allSections.length > 1 ? allSections.filter((section) => section._id !== "all").map((section) => (
-                        <section id={`menu-section-${section._id}`} key={section._id} className="scroll-mt-14">
-                            {/* <h2 className="mb-2 text-base font-medium text-zinc-900 dark:text-white">{section.name}</h2> */}
-                            <div className="space-y-0">{section.items.map((item, index) => <FoodItemRow key={`${section._id}-${item._id}-${index}`} item={item} onSelect={handleItemTap} />)}</div>
-                        </section>
-                    )) : <div className="flex flex-col items-center justify-center px-10 py-20 text-center"><Search size={32} className="text-zinc-300" /><p className="mt-3 text-sm font-medium text-zinc-500">No menu items found.</p></div>}
-                </div>
+                <div className="px-4 pt-3">{selectedSection?.items?.length ? <section key={selectedSection._id} className="pb-8"><div className="space-y-0">{selectedSection.items.map((item, index) => <FoodItemRow key={`${selectedSection._id}-${item._id}-${index}`} item={item} onSelect={handleItemTap} />)}</div></section> : <div className="flex flex-col items-center justify-center px-10 py-20 text-center"><Search size={32} className="text-zinc-300" /><p className="mt-3 text-sm font-medium text-zinc-500">No menu items found.</p></div>}</div>
             </div>            {typeof document !== "undefined" && createPortal(<AnimatePresence>{standaloneSheet && (() => { const selectedLines = standaloneSheet.portions.map((item) => ({ item, quantity: Number(standaloneSheet.portionQuantities?.[item._id]) || 0 })).filter((line) => line.quantity > 0); const total = selectedLines.reduce((sum, line) => sum + Number(line.item.price_naira ?? (Number(line.item.price || 0) / 100)) * line.quantity, 0); const totalQuantity = selectedLines.reduce((sum, line) => sum + line.quantity, 0); return <><motion.div className="fixed inset-0 z-[9990] bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setStandaloneSheet(null)} /><div className="fixed inset-x-0 bottom-0 z-[9997] h-[92px] bg-white dark:bg-zinc-900" aria-hidden="true" />
             <motion.div className="fixed inset-x-0 bottom-[66px] z-[9998] mx-auto max-w-2xl rounded-t-[28px] bg-white p-3 shadow-2xl dark:bg-zinc-950" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}><button onClick={() => setStandaloneSheet(null)} className="absolute right-5 top-5 rounded-full bg-zinc-100 p-2 dark:bg-zinc-800"><X size={18} /></button><img src={standaloneSheet.food.image_url || "/placeholder.jpg"} alt="" className="h-44 w-full rounded-2xl object-cover" />{standaloneSheet.loading && <div className="mt-4 animate-pulse space-y-2"><div className="h-6 w-3/4 rounded bg-zinc-200 dark:bg-zinc-800" /><div className="h-4 w-full rounded bg-zinc-100 dark:bg-zinc-900" /><div className="h-4 w-2/3 rounded bg-zinc-100 dark:bg-zinc-900" /><div className="h-10 w-28 rounded-lg bg-zinc-100 dark:bg-zinc-900" /><div className="flex gap-3"><div className="h-14 w-32 rounded-xl bg-zinc-100 dark:bg-zinc-900" /><div className="h-14 flex-1 rounded-xl bg-orange-100 dark:bg-orange-950/40" /></div></div>}<h2 className="mt-4 text-xl font-bold">{standaloneSheet.food.name}</h2><p className="mt-1 text-sm text-zinc-500">{standaloneSheet.food.description}</p>{!standaloneSheet.loading && <div className="mt-4 grid gap-3 rounded-2xl bg-zinc-50 p-3 dark:bg-zinc-900/70">{standaloneSheet.portions.map((item) => { const quantity = Number(standaloneSheet.portionQuantities?.[item._id]) || 0; const price = Number(item.price_naira ?? (Number(item.price || 0) / 100)); const availableStock = item.track_stock ? Math.max(0, Number(item.stock_quantity) || 0) : null; const atStockLimit = availableStock !== null && quantity >= availableStock; return <div key={item._id} className={`flex items-center justify-between gap-3 rounded-xl border p-3 ${quantity > 0 ? "border-orange-600 bg-orange-50" : "border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-950"}`}><div><p className="text-sm font-medium text-zinc-900 dark:text-white">{standaloneSheet.portions.length === 1 ? "From price" : item.label}</p><p className="text-sm text-orange-600">₦{price.toLocaleString()}</p>{availableStock !== null && <p className={`mt-1 text-xs ${atStockLimit ? "font-medium text-orange-700" : "text-zinc-500"}`}>{atStockLimit ? `Only ${availableStock} available` : `${availableStock} available`}</p>}</div><div className="flex items-center rounded-lg border bg-white dark:bg-zinc-900"><button onClick={() => setStandaloneSheet((current) => ({ ...current, portionQuantities: { ...current.portionQuantities, [item._id]: Math.max(0, quantity - 1) } }))} className="p-2" aria-label={`Reduce ${item.label} quantity`}><Minus size={15}/></button><span className="min-w-7 text-center font-bold">{quantity}</span><button disabled={atStockLimit} onClick={() => { if (atStockLimit) return; setStandaloneSheet((current) => ({ ...current, portionQuantities: { ...current.portionQuantities, [item._id]: quantity + 1 } })); }} title={atStockLimit ? `Only ${availableStock} available` : `Add ${item.label}`} aria-label={atStockLimit ? `Only ${availableStock} ${item.label} available` : `Increase ${item.label} quantity`} className="p-2 text-orange-600 disabled:cursor-not-allowed disabled:text-zinc-300"><Plus size={15}/></button></div></div>; })}</div>}<div className="mt-5 flex gap-3"><button disabled={standaloneSheet.loading || totalQuantity === 0} onClick={addStandaloneSheetItem} className="h-14 flex-1 rounded-xl bg-orange-600 px-4 font-bold text-white disabled:opacity-50">Add {totalQuantity > 0 ? `${totalQuantity} item${totalQuantity === 1 ? "" : "s"} · ₦${total.toLocaleString()}` : "items"}</button></div></motion.div></>; })()}</AnimatePresence>, document.body)}
         </div>
