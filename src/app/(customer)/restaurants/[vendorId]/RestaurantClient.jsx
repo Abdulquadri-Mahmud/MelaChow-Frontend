@@ -28,11 +28,11 @@ const getChoiceGroupCount = (item) => Array.isArray(item?.choice_groups)
 const FoodItemRow = ({ item, onSelect }) => {
     const isUnavailable = !item.is_available || item.is_in_stock === false;
     const price = item.portions?.min_price_naira || item.portions?.default_price_naira || item.price_naira || item.price || 0;
-    return <div onClick={() => !isUnavailable && onSelect(item)} className={`group flex items-center gap-4 py-4 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer ${isUnavailable ? "opacity-50 grayscale pointer-events-none" : ""}`}>
+    return <div onClick={() => !isUnavailable && onSelect(item)} className={`group flex items-center gap-4 py-2 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer ${isUnavailable ? "opacity-50 grayscale pointer-events-none" : ""}`}>
         <div className="flex-1 min-w-0 space-y-1">
             <h3 className="text-[16px] font-normal capitalize text-zinc-900 dark:text-white tracking-tight truncate">{item.name}</h3>
             <p className="text-[12px] text-zinc-500 dark:text-zinc-400 line-clamp-2">{item.description || "Freshly prepared with premium ingredients."}</p>
-            <span className="text-[15px] font-normal text-zinc-950 dark:text-zinc-50">From ₦{price.toLocaleString()}</span>
+            <span className="text-[13px] font-normal text-zinc-950 dark:text-zinc-50">From ₦{price.toLocaleString()}</span>
         </div>
         <div className="relative w-[100px] h-[100px] rounded-xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800">
             <img src={item.image_url || item.image || "/placeholder.jpg"} alt={item.name} className="w-full h-full object-cover" onError={(event) => { event.currentTarget.src = "/placeholder.jpg"; event.currentTarget.onerror = null; }} />
@@ -452,8 +452,8 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
 
                 <div id="menu-section-all" className="px-4 pt-2">
                     {allSections.length > 1 ? allSections.filter((section) => section._id !== "all").map((section) => (
-                        <section id={`menu-section-${section._id}`} key={section._id} className="scroll-mt-14 py-4">
-                            <h2 className="mb-2 text-base font-medium text-zinc-900 dark:text-white">{section.name}</h2>
+                        <section id={`menu-section-${section._id}`} key={section._id} className="scroll-mt-14">
+                            {/* <h2 className="mb-2 text-base font-medium text-zinc-900 dark:text-white">{section.name}</h2> */}
                             <div className="space-y-0">{section.items.map((item, index) => <FoodItemRow key={`${section._id}-${item._id}-${index}`} item={item} onSelect={handleItemTap} />)}</div>
                         </section>
                     )) : <div className="flex flex-col items-center justify-center px-10 py-20 text-center"><Search size={32} className="text-zinc-300" /><p className="mt-3 text-sm font-medium text-zinc-500">No menu items found.</p></div>}
