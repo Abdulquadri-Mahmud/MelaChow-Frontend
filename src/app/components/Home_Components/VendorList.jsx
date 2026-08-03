@@ -36,7 +36,7 @@ import { useLocationStore } from "@/app/store/userLocationStore";
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const VendorCardSkeleton = () => (
   <div
-    className="flex-shrink-0 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900"
+    className="flex-shrink-0 rounded overflow-hidden bg-white dark:bg-zinc-900"
     style={{ width: "75vw", maxWidth: "300px" }}
   >
     <div className="w-full h-[160px] bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
@@ -65,7 +65,7 @@ const VendorCard = ({ vendor }) => {
   return (
     <Link
       href={`/restaurants/${vendor._id}`}
-      className="group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden cursor-pointer snap-start transition-all duration-300 block"
+      className="group flex-shrink-0 bg-white dark:bg-zinc-900 rounded overflow-hidden cursor-pointer snap-start transition-all duration-300 block"
       style={{ width: "75vw", maxWidth: "280px" }}
     >
       {/* Image Container */}
@@ -346,7 +346,7 @@ export default function VendorList({ user }) {
     return (
       <div className="px-0 mb-6">
         <div className="flex items-center gap-2 px-4 mb-4">
-          <div className="bg-orange-100 dark:bg-orange-500/20 p-1.5 rounded-lg">
+          <div className="bg-orange-100 dark:bg-orange-500/20 p-1.5 rounde ">
             <Sparkles className="text-orange-600 fill-orange-600" size={18} />
           </div>
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-white tracking-tight">
@@ -385,7 +385,7 @@ export default function VendorList({ user }) {
   return (
     <div className="space-y-6 pb-4">
       {filterFreeDelivery && (
-        <div className="mx-2 mb-1 flex items-center justify-between gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-3 py-2 dark:border-orange-500/20 dark:bg-orange-500/10">
+        <div className="mx-2 mb-1 flex items-center justify-between gap-3 rounded border border-orange-100 bg-orange-50 px-3 py-2 dark:border-orange-500/20 dark:bg-orange-500/10">
           <div className="min-w-0">
             <p className="text-[11px] font-medium uppercase tracking-widest text-orange-600">
               Free delivery campaign
@@ -396,7 +396,7 @@ export default function VendorList({ user }) {
           </div>
           <button
             onClick={() => window.location.href = "/home"}
-            className="shrink-0 rounded-lg border border-orange-200 px-2 py-1 text-[10px] font-medium uppercase tracking-widest text-orange-500 dark:border-orange-500/30"
+            className="shrink-0 rounded border border-orange-200 px-2 py-1 text-[10px] font-medium uppercase tracking-widest text-orange-500 dark:border-orange-500/30"
           >
             Clear
           </button>
