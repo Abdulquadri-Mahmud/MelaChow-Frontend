@@ -1,17 +1,17 @@
 "use client";
 
 /*
- * PAYLOAD REFERENCE — do not guess field names
+ * PAYLOAD REFERENCE â€” do not guess field names
  *
  * vendor._id
  * vendor.storeName
- * vendor.logo                    → card image (no coverImage on this endpoint)
+ * vendor.logo                    â†’ card image (no coverImage on this endpoint)
  * vendor.address.city
- * vendor.deliveryFee             → resolved naira (backend already computed)
+ * vendor.deliveryFee             â†’ resolved naira (backend already computed)
  * vendor.rating
  * vendor.ratingCount
- * vendor.openingHours            → passed to getVendorOpenAndCloseStatus()
- * vendor.cuisineTypes            → string[] — available but was unused. Now used for chips.
+ * vendor.openingHours            â†’ passed to getVendorOpenAndCloseStatus()
+ * vendor.cuisineTypes            â†’ string[] â€” available but was unused. Now used for chips.
  *
  * Navigate to vendor storefront:
  *   /restaurants/${vendor._id}
@@ -31,12 +31,12 @@ import { getNearbyVendors } from "@/app/lib/userApi";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import { useLocationStore } from "@/app/store/userLocationStore";
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SKELETON
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const VendorCardSkeleton = () => (
   <div
-    className="flex-shrink-0 rounded-[20px] overflow-hidden bg-white dark:bg-zinc-900"
+    className="flex-shrink-0 rounded overflow-hidden bg-white dark:bg-zinc-900"
     style={{ width: "75vw", maxWidth: "300px" }}
   >
     <div className="w-full h-[160px] bg-zinc-100 dark:bg-zinc-800 animate-pulse" />
@@ -55,9 +55,9 @@ const ChipSkeleton = () => (
 );
 
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // VENDOR CARD
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const VendorCard = ({ vendor }) => {
   const status = getVendorOpenAndCloseStatus(vendor.openingHours);
   const isOpen = status.startsWith("Open now");
@@ -65,7 +65,7 @@ const VendorCard = ({ vendor }) => {
   return (
     <Link
       href={`/restaurants/${vendor._id}`}
-      className="group flex-shrink-0 bg-white dark:bg-zinc-900 rounded-[20px] overflow-hidden cursor-pointer snap-start transition-all duration-300 block"
+      className="group flex-shrink-0 bg-white dark:bg-zinc-900 rounded overflow-hidden cursor-pointer snap-start transition-all duration-300 block"
       style={{ width: "75vw", maxWidth: "280px" }}
     >
       {/* Image Container */}
@@ -124,7 +124,7 @@ const VendorCard = ({ vendor }) => {
             <div className="flex items-center gap-1">
               <Bike size={14} className="text-zinc-800 dark:text-zinc-200" />
               <span className="text-zinc-800 dark:text-zinc-200">
-                From {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free" : `₦${vendor.deliveryFee}`}
+                From {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free" : `â‚¦${vendor.deliveryFee}`}
               </span>
             </div>
 
@@ -152,9 +152,9 @@ const VendorCard = ({ vendor }) => {
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SECTION HEADER
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const SectionHeader = ({ title, subtitle, href, hrefLabel = "Explore" }) => (
   <div className="flex items-center justify-between px-2 mb-3.5">
     <div>
@@ -179,9 +179,9 @@ const SectionHeader = ({ title, subtitle, href, hrefLabel = "Explore" }) => (
   </div>
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // HORIZONTAL VENDOR ROW
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const VendorRow = ({ vendors }) => (
   <div
     className="flex overflow-x-auto scroll gap-3 pb-3 scrollbar-hide no-scrollbar"
@@ -193,9 +193,9 @@ const VendorRow = ({ vendors }) => (
   </div>
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // EMPTY STATE
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const VendorColumn = ({ vendors }) => (
   <div className="space-y-3 px-2">
     {vendors.map((vendor) => <VendorCard key={vendor._id} vendor={vendor} fullWidth />)}
@@ -237,9 +237,9 @@ const EmptyState = ({ city, selectedCuisine, onClear }) => (
   </div>
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // MAIN EXPORT
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export default function VendorList({ user }) {
   const [mounted, setMounted] = React.useState(false);
   const { userLocation, syncWithUserAddress } = useLocationStore();
@@ -292,7 +292,7 @@ export default function VendorList({ user }) {
     return normalized;
   }, [responseData, filterFreeDelivery]);
 
-  // ── Cuisine chips — deduplicated across all vendors ────────────────────────
+  // â”€â”€ Cuisine chips â€” deduplicated across all vendors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const cuisineOptions = useMemo(() => {
     const counts = {};
     allVendors.forEach((v) => {
@@ -318,7 +318,7 @@ export default function VendorList({ user }) {
     };
   }, [allVendors]);
 
-  // ── Loading ────────────────────────────────────────────────────────────────
+  // â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (!mounted || isLoading) {
     return (
       <div className="space-y-6 pb-4">
@@ -341,12 +341,12 @@ export default function VendorList({ user }) {
   // if (!userLocation) return null; // Remove this to allow rendering even without location (it will hit empty state or skeleton)
 
 
-  // ── Empty state (no vendors at all in this city) ───────────────────────────
+  // â”€â”€ Empty state (no vendors at all in this city) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (allVendors.length === 0) {
     return (
       <div className="px-0 mb-6">
         <div className="flex items-center gap-2 px-4 mb-4">
-          <div className="bg-orange-100 dark:bg-orange-500/20 p-1.5 rounded-lg">
+          <div className="bg-orange-100 dark:bg-orange-500/20 p-1.5 rounde ">
             <Sparkles className="text-orange-600 fill-orange-600" size={18} />
           </div>
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-white tracking-tight">
@@ -383,9 +383,9 @@ export default function VendorList({ user }) {
   }
 
   return (
-    <div className="space-y-8 pb-4">
+    <div className="space-y-6 pb-4">
       {filterFreeDelivery && (
-        <div className="mx-2 mb-1 flex items-center justify-between gap-3 rounded-2xl border border-orange-100 bg-orange-50 px-3 py-2 dark:border-orange-500/20 dark:bg-orange-500/10">
+        <div className="mx-2 mb-1 flex items-center justify-between gap-3 rounded border border-orange-100 bg-orange-50 px-3 py-2 dark:border-orange-500/20 dark:bg-orange-500/10">
           <div className="min-w-0">
             <p className="text-[11px] font-medium uppercase tracking-widest text-orange-600">
               Free delivery campaign
@@ -396,7 +396,7 @@ export default function VendorList({ user }) {
           </div>
           <button
             onClick={() => window.location.href = "/home"}
-            className="shrink-0 rounded-lg border border-orange-200 px-2 py-1 text-[10px] font-medium uppercase tracking-widest text-orange-500 dark:border-orange-500/30"
+            className="shrink-0 rounded border border-orange-200 px-2 py-1 text-[10px] font-medium uppercase tracking-widest text-orange-500 dark:border-orange-500/30"
           >
             Clear
           </button>
@@ -404,7 +404,7 @@ export default function VendorList({ user }) {
       )}
 
 
-      {/* ── Open Now ─────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Open Now â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {openVendors.length > 0 && (
         <div>
           <SectionHeader
@@ -427,7 +427,7 @@ export default function VendorList({ user }) {
         </div>
       )}
 
-      {/* ── Top Rated ────────────────────────────────────────────────────── */}
+      {/* â”€â”€ Top Rated â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {topRatedVendors.length > 0 && (
         <div>
           <SectionHeader
@@ -445,7 +445,7 @@ export default function VendorList({ user }) {
         </div>
       )}
 
-      {/* ── Closed / Coming Back Soon ────────────────────────────────────── */}
+      {/* â”€â”€ Closed / Coming Back Soon â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {closedVendors.length > 0 && (
         <div>
           <SectionHeader
