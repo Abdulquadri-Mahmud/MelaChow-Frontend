@@ -210,11 +210,11 @@ function OrdersContent() {
                            <div className="mb-3 rounded-md border border-orange-100 bg-orange-50/60 p-2.5 dark:border-orange-500/20 dark:bg-orange-500/10">
                              <div className="flex items-center justify-between gap-3">
                                <div>
-                                 <p className="text-[10px] font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-300">Order for 2+ people?</p>
-                                 <p className="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">Add a person or plate to each item so the kitchen packs them correctly.</p>
+                                 <p className="text-[10px] font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-300">Ordering for more than one person?</p>
+                                 <p className="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">Tell us who each food is for. This helps the restaurant pack each order correctly.</p>
                                </div>
                                <button type="button" onClick={() => setMultiPersonOrders((current) => ({ ...current, [vendorId]: !showAllocations }))} className="shrink-0 rounded border border-orange-200 bg-white px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-orange-700 transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300">
-                                 {showAllocations ? "Hide" : "Add labels"}
+                                 {showAllocations ? "Hide" : "Set up"}
                                </button>
                              </div>
                            </div>
@@ -261,22 +261,14 @@ function OrdersContent() {
                                      {showAllocations && (
                                        <label className="mt-2 block">
                                          <span className="sr-only">For whom or which plate?</span>
-                                         <input value={item.meal_group_label || ""} onChange={(event) => setItemMealGroup(item.cartId, event.target.value)} maxLength={40} placeholder="For whom / which plate? e.g. Tunde or Plate 1" className="h-8 w-full rounded border border-zinc-200 bg-white px-2 text-[10px] text-zinc-700 outline-none transition-colors placeholder:text-zinc-400 focus:border-orange-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200" />
-                                         {item.quantity > 1 && <button type="button" onClick={() => splitCartItem(item.cartId)} className="mt-1 text-[9px] font-semibold text-orange-700 underline underline-offset-2 dark:text-orange-300">Separate one for another person / plate</button>}
+                                         <input value={item.meal_group_label || ""} onChange={(event) => setItemMealGroup(item.cartId, event.target.value)} maxLength={40} placeholder="Example: Me, Ada or Table 2" className="h-8 w-full rounded border border-zinc-200 bg-white px-2 text-[10px] text-zinc-700 outline-none transition-colors placeholder:text-zinc-400 focus:border-orange-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200" />
+                                         {item.quantity > 1 && <button type="button" onClick={() => splitCartItem(item.cartId)} className="mt-2 flex w-full items-center justify-between rounded-lg border border-orange-200 bg-orange-50 px-3 py-2.5 text-sm font-semibold text-orange-700 transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300"><span>Split this item</span><span className="text-xs font-medium">Give 1 to someone else</span></button>}
                                        </label>
                                      )}
                                      <div className="flex items-end justify-between mt-auto pt-2">
                                        <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-tighter self-center">₦{getItemPrice(item).toLocaleString()} / unit</p>
 
                                        <div className="flex items-center gap-3">
-                                         {item.type !== 'combo' && (
-                                           <button
-                                             onClick={() => handleEditClick(item)}
-                                             className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded transition-all active:scale-90 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 shadow-sm"
-                                           >
-                                             {isFetchingFood && editingItem === item ? <Loader2 size={14} className="animate-spin" /> : <Pencil size={14} />}
-                                           </button>
-                                         )}
 
                                          <div className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 rounded p-1 border border-zinc-100 dark:border-zinc-800 shadow-inner">
                                            <button
