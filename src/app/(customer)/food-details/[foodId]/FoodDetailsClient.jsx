@@ -16,7 +16,9 @@ import {
   ShoppingCart,
   Package,
   MessageSquare,
-  Loader2
+  Loader2,
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon
 } from "lucide-react";
 import { BiCartAdd } from "react-icons/bi";
 import { Swiper, SwiperSlide } from 'swiper/react';

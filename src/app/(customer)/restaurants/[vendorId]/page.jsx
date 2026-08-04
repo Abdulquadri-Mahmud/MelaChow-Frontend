@@ -1,12 +1,11 @@
-import { cache } from 'react';
 import RestaurantClient from "./RestaurantClient";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://grubdash-api.onrender.com";
 
-const getFullMenu = cache(async (vendorId) => {
+const getFullMenu = async (vendorId) => {
   try {
     const res = await fetch(`${API_URL}/v1/vendors/${vendorId}/menu`, {
-      next: { revalidate: 15 },
+      cache: "no-store",
     });
     
     if (!res.ok) return null;
@@ -15,7 +14,7 @@ const getFullMenu = cache(async (vendorId) => {
     console.error("Error fetching vendor data for SEO:", error);
     return null;
   }
-});
+};
 
 export async function generateMetadata({ params }) {
   const { vendorId } = await params;
@@ -60,9 +59,9 @@ export async function generateMetadata({ params }) {
   };
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function Page({ params }) {
   const { vendorId } = await params;
-  const initialData = await getFullMenu(vendorId);
-
-  return <RestaurantClient initialData={initialData} vendorId={vendorId} />;
+  return <RestaurantClient vendorId={vendorId} />;
 }
