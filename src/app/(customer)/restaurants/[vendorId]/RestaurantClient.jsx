@@ -2,13 +2,11 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getVendorStorefront, getMenuItemDetail } from "@/app/lib/menuApi";
+import { getVendorStorefront } from "@/app/lib/menuApi";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { createPortal } from "react-dom";
 
-import { MapPin, Clock, Star, Search, X, Plus, Minus, Share2, Flame, ChevronLeft, Store, Gift, ChevronRight } from "lucide-react";
-import { useCart } from "@/app/context/CartContext";
+import { MapPin, Clock, Star, Search, X, Share2, Flame, ChevronLeft, Store, Gift, ChevronRight } from "lucide-react";
 import toast from "react-hot-toast";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import ViewVendorSkeleton from "@/app/skeleton/ViewVendorSkeleton";
@@ -19,14 +17,9 @@ import { useActivePromos } from "@/app/hooks/useActivePromos";
 const getItemId = (item) => item?._id || item?.id;
 const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
 
-const getChoiceGroupCount = (item) => Array.isArray(item?.choice_groups)
-    ? item.choice_groups.length
-    : Array.isArray(item?.choiceGroups)
-        ? item.choiceGroups.length
-        : Number(item?.choice_groups?.count ?? item?.choiceGroups?.count ?? 0);
 
 const FoodItemRow = ({ item, onSelect }) => {
-    const isUnavailable = !item.is_available || item.is_in_stock === false;
+    const isUnavailable = item.is_available === false || item.is_in_stock === false;
     const price = item.portions?.min_price_naira || item.portions?.default_price_naira || item.price_naira || item.price || 0;
     return <div onClick={() => !isUnavailable && onSelect(item)} className={`group flex items-center gap-4 py-2 border-b border-zinc-100 dark:border-zinc-800/70 last:border-0 cursor-pointer ${isUnavailable ? "opacity-50 grayscale pointer-events-none" : ""}`}>
         <div className="flex-1 min-w-0 space-y-1">
@@ -40,28 +33,25 @@ const FoodItemRow = ({ item, onSelect }) => {
         </div>;
 };
 
-export default function StorefrontPage({ initialData, vendorId: propVendorId }) {
+export default function StorefrontPage({ vendorId: propVendorId }) {
     const params = useParams();
     const vendorId = propVendorId || params.vendorId;
-    const router = useRouter();
-    const { cart, addToCart } = useCart();
-    const sectionRefs = useRef({});
-    const openFoodModal = useFoodModalStore(state => state.openFoodModal);
+    const router = useRouter();    const openFoodModal = useFoodModalStore(state => state.openFoodModal);
     const openComboModal = useComboModalStore(state => state.openComboModal);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeSectionId, setActiveSectionId] = useState("all");
 
-    const [isSearchActive, setIsSearchActive] = useState(false);
-    const [standaloneSheet, setStandaloneSheet] = useState(null);
-    const standaloneAddLock = useRef(false);
-    const { platformPromo } = useActivePromos();
+    const [isSearchActive, setIsSearchActive] = useState(false);    const { platformPromo } = useActivePromos();
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ["vendor-storefront", vendorId],
         queryFn: () => getVendorStorefront(vendorId),
         enabled: !!vendorId,
-        staleTime: 1000 * 60 * 5, // 5 minutes cache freshness
-        initialData: initialData,
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnMount: "always",
+        refetchOnWindowFocus: true,
+        refetchOnReconnect: true,
     });
 
     const vendor      = data?.vendor;
@@ -79,78 +69,14 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
         openComboModal(selectedComboId, { combo, vendor });
     };
 
-    const handleItemTap = async (item) => {
+    const handleItemTap = (item) => {
         if (isComboItem(item)) return handleComboTap(item);
-        if (!item.is_available || item.is_in_stock === false) return;
+        if (item.is_available === false || item.is_in_stock === false) return;
         const selectedFoodId = getItemId(item);
         if (!selectedFoodId) return;
-        // The menu summary already tells us whether this food needs choices.
-        // Send those foods straight to the established customization modal.
-        if (getChoiceGroupCount(item) > 0) {
-            openFoodModal(selectedFoodId, { food: item });
-            return;
-        }
-        try {
-            const detail = await getMenuItemDetail(vendorId, selectedFoodId);
-            const food = detail?.item || item;
-            const portions = (food.portions || []).filter((portion) => portion.is_available !== false && portion.is_in_stock !== false && (!portion.track_stock || Number(portion.stock_quantity) > 0));
-            const choiceGroups = getChoiceGroupCount(food);
-            if (portions.length && choiceGroups === 0) {
-                const defaultPortion = portions.find((portion) => portion.is_default) || portions[0];
-                const alreadyInCart = cart.filter((cartItem) => cartItem.foodId === food._id && cartItem.portionId === defaultPortion._id).reduce((sum, cartItem) => sum + (Number(cartItem.quantity) || 0), 0);
-                const defaultQuantity = defaultPortion.track_stock && alreadyInCart >= Number(defaultPortion.stock_quantity) ? 0 : 1;
-                setStandaloneSheet({ food, portions, portionQuantities: { [defaultPortion._id]: defaultQuantity }, loading: false });
-                return;
-            }
-            setStandaloneSheet(null);
-            openFoodModal(selectedFoodId, { food });
-        } catch (error) {
-            console.error("Unable to load food details:", error);
-            setStandaloneSheet(null);
-            openFoodModal(selectedFoodId, { food: item });
-        }
+        openFoodModal(selectedFoodId, { food: item });
     };
 
-    const updateStandalonePortionQuantity = (portion, delta) => {
-        setStandaloneSheet((current) => {
-            if (!current) return current;
-            const currentQuantity = Number(current.portionQuantities?.[portion._id]) || 0;
-            const nextQuantity = Math.max(0, currentQuantity + delta);
-            const alreadyInCart = cart.filter((cartItem) => cartItem.foodId === current.food._id && cartItem.portionId === portion._id).reduce((sum, cartItem) => sum + (Number(cartItem.quantity) || 0), 0);
-            const stockQuantity = Number(portion.stock_quantity);
-            const maxQuantity = Number(portion.max_quantity);
-            if (delta > 0 && portion.track_stock && alreadyInCart + nextQuantity > stockQuantity) {
-                toast.error(`Only ${stockQuantity} ${portion.label} available.`);
-                return current;
-            }
-            if (delta > 0 && !portion.track_stock && maxQuantity > 0 && alreadyInCart + nextQuantity > maxQuantity) {
-                toast.error(`Only ${maxQuantity} ${portion.label} can be ordered at once.`);
-                return current;
-            }
-            return { ...current, portionQuantities: { ...current.portionQuantities, [portion._id]: nextQuantity } };
-        });
-    };
-    const addStandaloneSheetItem = () => {
-        if (!standaloneSheet || standaloneAddLock.current) return;
-        const lines = standaloneSheet.portions
-            .map((portion) => ({ portion, quantity: Number(standaloneSheet.portionQuantities?.[portion._id]) || 0 }))
-            .filter((line) => line.quantity > 0);
-        if (lines.length === 0) return toast.error("Choose at least one size");
-        for (const { portion, quantity } of lines) {
-            const alreadyInCart = cart.filter((cartItem) => cartItem.foodId === standaloneSheet.food._id && cartItem.portionId === portion._id).reduce((sum, cartItem) => sum + (Number(cartItem.quantity) || 0), 0);
-            const stockQuantity = Number(portion.stock_quantity);
-            if (portion.track_stock && alreadyInCart + quantity > stockQuantity) return toast.error(`Only ${stockQuantity} ${portion.label} available.`);
-            const maxQuantity = Number(portion.max_quantity);
-            if (!portion.track_stock && maxQuantity > 0 && alreadyInCart + quantity > maxQuantity) return toast.error(`Only ${maxQuantity} ${portion.label} can be ordered at once.`);
-        }
-        standaloneAddLock.current = true;
-        for (const { portion, quantity } of lines) {
-            const priceNaira = Number(portion.price_naira ?? (Number(portion.price || 0) / 100));
-            addToCart({ type: "item", foodId: standaloneSheet.food._id, portionId: portion._id, vendorId, restaurantId: vendorId, storeName: vendor?.storeName || "", name: standaloneSheet.food.name, image_url: standaloneSheet.food.image_url || "", portion_label: portion.label, portion_quantity: 1, price_naira: priceNaira, quantity, selected_options: [], deliveryFee: vendor?.deliveryFee || 0, dietary_type: standaloneSheet.food.dietary_type, item_type: standaloneSheet.food.item_type, track_stock: portion.track_stock === true, stock_quantity: portion.track_stock ? Number(portion.stock_quantity) : null, max_quantity: portion.max_quantity || null });
-        }
-        setStandaloneSheet(null);
-        window.setTimeout(() => { standaloneAddLock.current = false; }, 0);
-    };
     const handleShare = async () => {
         if (navigator.share) {
             try {
@@ -468,8 +394,7 @@ export default function StorefrontPage({ initialData, vendorId: propVendorId }) 
                 </div>
 
                 <div className="px-4 pt-3">{selectedSection?.items?.length ? <section key={selectedSection._id} className="pb-8"><div className="space-y-0">{selectedSection.items.map((item, index) => <FoodItemRow key={`${selectedSection._id}-${item._id}-${index}`} item={item} onSelect={handleItemTap} />)}</div></section> : <div className="flex flex-col items-center justify-center px-10 py-20 text-center"><Search size={32} className="text-zinc-300" /><p className="mt-3 text-sm font-medium text-zinc-500">No menu items found.</p></div>}</div>
-            </div>            {typeof document !== "undefined" && createPortal(<AnimatePresence>{standaloneSheet && (() => { const selectedLines = standaloneSheet.portions.map((item) => ({ item, quantity: Number(standaloneSheet.portionQuantities?.[item._id]) || 0 })).filter((line) => line.quantity > 0); const total = selectedLines.reduce((sum, line) => sum + Number(line.item.price_naira ?? (Number(line.item.price || 0) / 100)) * line.quantity, 0); const totalQuantity = selectedLines.reduce((sum, line) => sum + line.quantity, 0); return <><motion.div className="fixed inset-0 z-[9990] bg-black/50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setStandaloneSheet(null)} /><div className="fixed inset-x-0 bottom-0 z-[9997] h-[92px] bg-white dark:bg-zinc-900" aria-hidden="true" />
-            <motion.div className="fixed inset-x-0 bottom-[66px] z-[9998] mx-auto max-w-2xl rounded-t-[28px] bg-white p-3 shadow-2xl dark:bg-zinc-950" initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}><button onClick={() => setStandaloneSheet(null)} className="absolute right-5 top-5 rounded-full bg-zinc-100 p-2 dark:bg-zinc-800"><X size={18} /></button><img src={standaloneSheet.food.image_url || "/placeholder.jpg"} alt="" className="h-44 w-full rounded-2xl object-cover" />{standaloneSheet.loading && <div className="mt-4 animate-pulse space-y-2"><div className="h-6 w-3/4 rounded bg-zinc-200 dark:bg-zinc-800" /><div className="h-4 w-full rounded bg-zinc-100 dark:bg-zinc-900" /><div className="h-4 w-2/3 rounded bg-zinc-100 dark:bg-zinc-900" /><div className="h-10 w-28 rounded-lg bg-zinc-100 dark:bg-zinc-900" /><div className="flex gap-3"><div className="h-14 w-32 rounded-xl bg-zinc-100 dark:bg-zinc-900" /><div className="h-14 flex-1 rounded-xl bg-orange-100 dark:bg-orange-950/40" /></div></div>}<h2 className="mt-4 text-xl font-bold">{standaloneSheet.food.name}</h2><p className="mt-1 text-sm text-zinc-500">{standaloneSheet.food.description}</p>{!standaloneSheet.loading && <div className="mt-4 grid gap-3 rounded-2xl bg-zinc-50 p-3 dark:bg-zinc-900/70">{standaloneSheet.portions.map((item) => { const quantity = Number(standaloneSheet.portionQuantities?.[item._id]) || 0; const price = Number(item.price_naira ?? (Number(item.price || 0) / 100)); const availableStock = item.track_stock ? Math.max(0, Number(item.stock_quantity) || 0) : null; const atStockLimit = availableStock !== null && quantity >= availableStock; return <div key={item._id} className={`flex items-center justify-between gap-3 rounded-xl border p-3 ${quantity > 0 ? "border-orange-600 bg-orange-50" : "border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-950"}`}><div><p className="text-sm font-medium text-zinc-900 dark:text-white">{standaloneSheet.portions.length === 1 ? "From price" : item.label}</p><p className="text-sm text-orange-600">₦{price.toLocaleString()}</p>{availableStock !== null && <p className={`mt-1 text-xs ${atStockLimit ? "font-medium text-orange-700" : "text-zinc-500"}`}>{atStockLimit ? `Only ${availableStock} available` : `${availableStock} available`}</p>}</div><div className="flex items-center overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900"><button type="button" aria-label={`Remove ${item.label}`} disabled={quantity === 0} onClick={() => updateStandalonePortionQuantity(item, -1)} className="flex h-10 w-10 items-center justify-center text-zinc-600 transition hover:bg-zinc-100 disabled:opacity-30 dark:text-zinc-300 dark:hover:bg-zinc-800"><Minus size={16} /></button><span className="flex h-10 min-w-8 items-center justify-center text-sm font-semibold text-zinc-900 dark:text-white">{quantity}</span><button type="button" aria-label={`Add ${item.label}`} disabled={atStockLimit} onClick={() => updateStandalonePortionQuantity(item, 1)} className="flex h-10 w-10 items-center justify-center bg-orange-600 text-white transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-40"><Plus size={16} /></button></div></div>; })}</div>}<div className="mt-5 flex gap-3"><button disabled={standaloneSheet.loading || totalQuantity === 0} onClick={addStandaloneSheetItem} className="h-14 flex-1 rounded-xl bg-orange-600 px-4 font-bold text-white disabled:opacity-50">Add {totalQuantity > 0 ? `${totalQuantity} item${totalQuantity === 1 ? "" : "s"} · ₦${total.toLocaleString()}` : "items"}</button></div></motion.div></>; })()}</AnimatePresence>, document.body)}
+            </div>
         </div>
     );
 }
