@@ -178,7 +178,7 @@ export default function Signup() {
               <input
                 type="text"
                 name="firstname"
-                placeholder="Mahmood"
+                placeholder="John"
                 value={formData.firstname}
                 onChange={handleChange}
                 className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
@@ -191,7 +191,7 @@ export default function Signup() {
               <input
                 type="text"
                 name="lastname"
-                placeholder="Adeyemi"
+                placeholder="Michael"
                 value={formData.lastname}
                 onChange={handleChange}
                 className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
