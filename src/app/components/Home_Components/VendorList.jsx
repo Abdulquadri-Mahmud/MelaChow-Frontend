@@ -124,7 +124,7 @@ const VendorCard = ({ vendor }) => {
             <div className="flex items-center gap-1">
               <Bike size={14} className="text-zinc-800 dark:text-zinc-200" />
               <span className="text-zinc-800 dark:text-zinc-200">
-                From {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free" : `â‚¦${vendor.deliveryFee}`}
+                From {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free" : `${vendor.deliveryFee}`}
               </span>
             </div>
 
