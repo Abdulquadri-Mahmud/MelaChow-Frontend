@@ -179,6 +179,10 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
 
     const selectedSection = allSections.find((section) => section._id === activeSectionId) || allSections[0];
 
+    if (isLoading) {
+        return <ViewVendorSkeleton />;
+    }
+
     if (isError || !vendor) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white dark:bg-zinc-950 px-6">
