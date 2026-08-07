@@ -167,13 +167,6 @@ export default function VendorVerifyRegistration() {
                         A 6-digit code has been sent to<br />
                         <span className="text-zinc-700 dark:text-zinc-300 font-bold">{email}</span>
                     </p>
-
-                    <div className="flex items-center justify-center gap-2 bg-zinc-50 dark:bg-zinc-800 py-2 px-4 rounded-full w-fit mx-auto">
-                        <Clock size={14} className="text-orange-500" />
-                        <span className="text-xs font-bold text-zinc-600 dark:text-zinc-400">
-                            Expires in {formatTime(timeLeft)}
-                        </span>
-                    </div>
                 </div>
 
                 {/* OTP Inputs */}

@@ -269,13 +269,6 @@ export default function VerifyAccount() {
             Protecting your security. Enter the code sent to:<br />
             <span className="text-slate-700 dark:text-slate-300 font-bold">{email || "your-email@example.com"}</span>
           </p>
-
-          <div className="flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800 py-3 px-5 rounded-full w-fit mx-auto border border-slate-100 dark:border-slate-800 shadow-sm">
-            <Clock size={14} className="text-orange-500" />
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
-              Expires in {formatTime(timeLeft)}
-            </span>
-          </div>
         </div>
 
         {/* OTP Inputs */}

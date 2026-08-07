@@ -341,7 +341,7 @@ export default function FoodCustomizationModal({
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto scrollbar-none pb-24 px-4 pt-4 space-y-4">
+                    <div className="flex-1 overflow-y-auto scrollbar-none pb-14 px-4 pt-4 space-y-4">
                         {/* Portion Selector */}
                         {food.portions?.length > 1 && (
                             <div className="space-y-3">
@@ -351,7 +351,7 @@ export default function FoodCustomizationModal({
                                        Step 1: Choose Size
                                    </p>
                                 </div>
-                                <div className="grid grid-cols-1 gap-2">
+                                <div className="grid grid-cols-1 gap-2 p-1">
                                     {food.portions.map(portion => {
                                         const isSelected = selectedPortion?._id === portion._id;
                                         return (

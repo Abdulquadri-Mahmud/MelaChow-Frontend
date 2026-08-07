@@ -1066,7 +1066,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                           <ShoppingCart size={18} />
                        </div> */}
                   <span className={`truncate ${itemAvailability.available ? "text-white dark:text-zinc-900 group-hover:text-orange-500" : "text-zinc-400"}`}>
-                    {itemAvailability.available ? "Proceed to order" : "Sold Out"}
+                    {itemAvailability.available ? "Add To Cart" : "Sold Out"}
                   </span>
                 </div>
 
