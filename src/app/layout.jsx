@@ -2,7 +2,7 @@ import "./globals.css";
 import { ApiProvider } from "./context/ApiContext";
 import { SocketProvider } from "./context/SocketContext";
 import QueryProvider from "./providers/QueryProvider";
-import { Toaster } from "react-hot-toast";
+import SwipeableToaster from "./components/toast/SwipeableToaster";
 import "@/app/lib/api"; // Register axios interceptors
 
 export const viewport = {
@@ -230,20 +230,7 @@ export default function RootLayout({ children }) {
             </QueryProvider>
           </ApiProvider>
         </ThemeProvider>
-        <Toaster
-          position="top-right"
-          reverseOrder={false}
-          toastOptions={{
-            // Define default options
-            className: 'dark:bg-slate-800 dark:text-white',
-            style: {
-              borderRadius: '16px',
-              fontFamily: 'var(--font-outfit)',
-              fontSize: '14px',
-              fontWeight: '600',
-            },
-          }}
-        />
+        <SwipeableToaster />
       </body>
     </html>
   );
