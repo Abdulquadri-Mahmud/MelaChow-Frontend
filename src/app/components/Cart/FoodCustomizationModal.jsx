@@ -341,10 +341,10 @@ export default function FoodCustomizationModal({
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto scrollbar-none pb-14 px-4 pt-4 space-y-4">
+                    <div className="flex-1 overflow-y-auto scrollbar-none pb-4 px-4 pt-4 space-y-3">
                         {/* Portion Selector */}
                         {food.portions?.length > 1 && (
-                            <div className="space-y-3">
+                            <div className="space-y-2.5">
                                 <div className="flex items-center gap-2 mb-1 px-1">
                                    <div className="w-1 h-4 bg-orange-500 rounded-full" />
                                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 italic">
@@ -363,18 +363,18 @@ export default function FoodCustomizationModal({
                                                         setPortionQuantity(1);
                                                     }
                                                 }}
-                                                className={`flex items-center justify-between p-3 rounded-[18px] border-2 transition-all duration-300 cursor-pointer ${
+                                                className={`flex items-center justify-between p-2.5 rounded-[16px] border-2 transition-all duration-300 cursor-pointer ${
                                                     isSelected
                                                         ? "bg-orange-50 dark:bg-orange-500/5 border-orange-500"
                                                         : "bg-zinc-50 dark:bg-zinc-800/50 border-transparent hover:border-zinc-200 dark:hover:border-zinc-700"
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-zinc-200 dark:border-zinc-700'}`}>
-                                                        {isSelected && <Check size={12} className="text-white" strokeWidth={4} />}
+                                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-zinc-200 dark:border-zinc-700'}`}>
+                                                        {isSelected && <Check size={10} className="text-white" strokeWidth={4} />}
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className={`text-[13px] font-bold uppercase tracking-tight italic ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>
+                                                        <span className={`text-xs font-bold uppercase tracking-tight italic ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>
                                                             {portion.label}
                                                         </span>
                                                         <span className="text-[10px] font-bold text-orange-500">
@@ -382,19 +382,19 @@ export default function FoodCustomizationModal({
                                                         </span>
                                                     </div>
                                                 </div>
- 
+
                                                 {isSelected && (
                                                     <div 
-                                                      className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-[12px] p-0.5 border border-zinc-100 dark:border-zinc-700"
+                                                      className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 rounded-[10px] p-0.5 border border-zinc-100 dark:border-zinc-700"
                                                       onClick={(e) => e.stopPropagation()}
                                                     >
                                                       <button 
                                                         onClick={() => setPortionQuantity(Math.max(1, portionQuantity - 1))}
-                                                        className="w-7 h-7 flex items-center justify-center rounded-[10px] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-orange-600 transition-colors"
+                                                        className="w-6 h-6 flex items-center justify-center rounded-[7px] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-orange-600 transition-colors"
                                                       >
-                                                        <Minus size={12} strokeWidth={3} />
+                                                        <Minus size={11} strokeWidth={3} />
                                                       </button>
-                                                      <span className="text-[13px] font-black text-zinc-900 dark:text-white min-w-[16px] text-center tabular-nums">
+                                                      <span className="text-xs font-black text-zinc-900 dark:text-white min-w-[14px] text-center tabular-nums">
                                                         {portionQuantity}
                                                       </span>
                                                       <button 
@@ -405,9 +405,9 @@ export default function FoodCustomizationModal({
                                                             setPortionQuantity(portionQuantity + 1);
                                                           }
                                                         }}
-                                                        className="w-7 h-7 flex items-center justify-center rounded-[10px] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-orange-600 transition-colors"
+                                                        className="w-6 h-6 flex items-center justify-center rounded-[7px] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-orange-600 transition-colors"
                                                       >
-                                                        <Plus size={12} strokeWidth={3} />
+                                                        <Plus size={11} strokeWidth={3} />
                                                       </button>
                                                     </div>
                                                 )}
@@ -419,11 +419,11 @@ export default function FoodCustomizationModal({
                         )}
                         {/* Choice Groups */}
                         {choiceGroups.map((group, gIdx) => (
-                            <div key={group._id} className="space-y-3">
+                            <div key={group._id} className="space-y-2.5">
                                 <div className="flex items-center justify-between gap-2 px-1">
                                     <div className="flex items-center gap-2">
                                        <div className="w-1 h-4 bg-orange-500 rounded-full" />
-                                       <h4 className="font-black text-zinc-900 dark:text-white text-[13px] uppercase italic tracking-tight">
+                                       <h4 className="font-black text-zinc-900 dark:text-white text-xs uppercase italic tracking-tight">
                                            {group.name}
                                        </h4>
                                     </div>
@@ -438,8 +438,8 @@ export default function FoodCustomizationModal({
                                         ? `Limit: ${group.max_selections} items`
                                         : "Choice: select one"}
                                 </p>
- 
-                                <div className="grid grid-cols-1 gap-2">
+
+                                <div className="grid grid-cols-1 gap-1.5">
                                     {group.options
                                         .filter(o => o.is_available)
                                         .map(option => {
@@ -447,37 +447,37 @@ export default function FoodCustomizationModal({
                                             return (
                                                 <div key={option._id}
                                                      onClick={() => toggleChoice(gIdx, group, option)}
-                                                     className={`flex items-center gap-3 p-2.5 rounded-[18px] border-2 cursor-pointer transition-all duration-300 ${
+                                                     className={`flex items-center gap-2.5 p-2 rounded-[14px] border-2 cursor-pointer transition-all duration-300 ${
                                                          isSelected
                                                              ? "border-orange-500 bg-orange-50 dark:bg-orange-500/5"
                                                              : "border-transparent bg-zinc-50 dark:bg-zinc-800/50 hover:border-zinc-200 dark:hover:border-zinc-700"
                                                      }`}>
-                                                    <div className="w-10 h-10 rounded-[12px] overflow-hidden bg-white dark:bg-zinc-800 shrink-0 border border-zinc-100 dark:border-zinc-700">
+                                                    <div className="w-9 h-9 rounded-[10px] overflow-hidden bg-white dark:bg-zinc-800 shrink-0 border border-zinc-100 dark:border-zinc-700">
                                                         {option.image_url ? (
                                                             <img src={option.image_url}
                                                                  alt={option.label}
                                                                  className="w-full h-full object-cover" />
                                                         ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-sm bg-zinc-50 dark:bg-zinc-950 opacity-40">🍽️</div>
+                                                            <div className="w-full h-full flex items-center justify-center text-xs bg-zinc-50 dark:bg-zinc-950 opacity-40">🍽️</div>
                                                         )}
                                                     </div>
- 
+
                                                     <div className="flex-1 min-w-0">
-                                                        <p className={`font-bold text-[12px] uppercase italic tracking-tight ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>
+                                                        <p className={`font-bold text-[11px] uppercase italic tracking-tight ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>
                                                             {option.label}
                                                         </p>
                                                         <p className="text-[10px] font-bold text-orange-500">
                                                             {option.price_modifier_naira > 0 ? `+₦${option.price_modifier_naira.toLocaleString()}` : 'FREE'}
                                                         </p>
                                                     </div>
- 
+
                                                      {isSelected ? (
-                                                         <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-[10px] p-0.5 border border-zinc-100 dark:border-zinc-700" onClick={e => e.stopPropagation()}>
+                                                         <div className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 rounded-[8px] p-0.5 border border-zinc-100 dark:border-zinc-700" onClick={e => e.stopPropagation()}>
                                                              <button 
                                                                  onClick={() => updateOptionQuantity(gIdx, option.label, -1, group)}
-                                                                 className="w-7 h-7 flex items-center justify-center rounded-[8px] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-orange-600 transition-colors"
+                                                                 className="w-6 h-6 flex items-center justify-center rounded-[6px] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-orange-600 transition-colors"
                                                              >
-                                                                 <Minus size={12} strokeWidth={3} />
+                                                                 <Minus size={11} strokeWidth={3} />
                                                              </button>
                                                              <span className="text-[12px] font-black text-zinc-900 dark:text-white min-w-[16px] text-center tabular-nums">
                                                                  {Array.isArray(selections[gIdx]) 

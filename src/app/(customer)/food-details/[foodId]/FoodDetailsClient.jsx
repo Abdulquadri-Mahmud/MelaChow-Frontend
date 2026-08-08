@@ -554,7 +554,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
               >
                 {/* SLIDE 1: DETAILS */}
                 <SwiperSlide>
-                  <div className="space-y-4 pb-28" style={{ paddingBottom: "max(7rem, calc(5.5rem + env(safe-area-inset-bottom)))" }}>
+                  <div className="space-y-4 pb-14" style={{ paddingBottom: "max(3.8rem, calc(3.2rem + env(safe-area-inset-bottom)))" }}>
                     {/* Main Info Card */}
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-1 pt-2">
                       <div className="bg-white dark:bg-zinc-900 rounded-[8px] border border-zinc-100 dark:border-zinc-800 overflow-hidden">
@@ -728,12 +728,12 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
                        {/* Portions Selector */}
                        {foodPortions.length > 0 && (
-                         <div className="bg-white dark:bg-zinc-900 rounded-[12px] p-2 border border-zinc-100 dark:border-zinc-800 mb-4">
-                           <div className="flex items-center gap-1.5 mb-3">
-                             <div className="w-1 h-5 bg-orange-500 rounded-full" />
-                             <h3 className="text-base font-bold italic text-zinc-900 dark:text-white capitalize tracking-tight">Select Portion</h3>
+                         <div className="bg-white dark:bg-zinc-900 rounded-[12px] p-3 border border-zinc-100 dark:border-zinc-800 mb-3">
+                           <div className="flex items-center gap-1.5 mb-2">
+                             <div className="w-1 h-4 bg-orange-500 rounded-full" />
+                             <h3 className="text-sm font-bold italic text-zinc-900 dark:text-white capitalize tracking-tight">Select Portion</h3>
                            </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-1">
                             {foodPortions.map(portion => {
                               const isSelected = selectedPortion?._id === portion._id;
                               return (
@@ -745,8 +745,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                       setSelectedPortion(portion);
                                     }
                                   }}
-                                  className={`relative flex items-center justify-between p-1.5 rounded-[12px] border-2 transition-all cursor-pointer ${isSelected
-                                      ? "bg-orange-50/50 dark:bg-orange-500/10 border-orange-500 shadow-[0_0_20px_rgba(255,102,0,0.1)] dark:shadow-[0_0_30px_rgba(255,102,0,0.15)] scale-[1.01]"
+                                  className={`relative flex items-center justify-between p-2.5 rounded-[12px] border-2 transition-all cursor-pointer ${isSelected
+                                      ? "bg-orange-50/50 dark:bg-orange-500/10 border-orange-500 shadow-[0_0_15px_rgba(255,102,0,0.08)] dark:shadow-[0_0_20px_rgba(255,102,0,0.15)]"
                                       : "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-orange-200 dark:hover:border-orange-500/30"
                                     } ${!itemAvailability.available ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
@@ -802,12 +802,12 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
                        {/* Choice Groups */}
                        {(food.choiceGroups?.length > 0 || food.choice_groups?.length > 0) && (
-                         <div className="space-y-3 mb-4 relative z-10">
+                         <div className="space-y-2.5 mb-2 relative z-10">
                            {(food.choiceGroups || food.choice_groups).map((group, gIdx) => (
-                             <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[12px] p-4 border border-zinc-100 dark:border-zinc-800 flex flex-col">
-                              <div className="flex items-center gap-2 mb-1">
-                                <div className="w-1 h-5 bg-orange-500 rounded-full" />
-                                <h4 className="text-base font-bold italic text-zinc-900 dark:text-white capitalize tracking-tight">
+                             <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[12px] p-3 border border-zinc-100 dark:border-zinc-800 flex flex-col">
+                              <div className="flex items-center gap-1.5 mb-0.5">
+                                <div className="w-1 h-4 bg-orange-500 rounded-full" />
+                                <h4 className="text-sm font-bold italic text-zinc-900 dark:text-white capitalize tracking-tight">
                                   {group.name}
                                 </h4>
                                 {group.is_required && (
@@ -821,57 +821,57 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[9px] text-zinc-400 dark:text-zinc-500 font-medium capitalize tracking-[0.15em] mb-3">
+                              <p className="text-[9px] text-zinc-400 dark:text-zinc-500 font-medium capitalize tracking-[0.15em] mb-2">
                                 {group.max_selections > 1 ? `Select up to ${group.max_selections}` : "Select one"}
                               </p>
                               {quantity > 1 && (
-                                <p className="-mt-1 mb-3 text-[9px] font-medium text-orange-600 dark:text-orange-400">
+                                <p className="-mt-1 mb-2 text-[9px] font-medium text-orange-600 dark:text-orange-400">
                                   Your selection applies to each of the {quantity} orders.
                                 </p>
                               )}
 
-                              <div className="space-y-2">
+                              <div className="space-y-1.5">
                                 {(group.options || []).map(option => {
                                   const isSelected = isOptionSelected(gIdx, option.label);
                                   const optionUnavailable = option.is_available === false || (option.track_stock && option.stock_quantity <= 0);
                                   return (
                                     <div key={option._id}
                                       onClick={() => itemAvailability.available && !optionUnavailable && toggleChoice(gIdx, group, option)}
-                                      className={`flex items-center gap-3 p-3 rounded-[14px] border-2 cursor-pointer transition-all ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10" : "border-zinc-50 dark:border-zinc-800 bg-white dark:bg-zinc-900"
+                                      className={`flex items-center gap-2.5 p-2 rounded-[12px] border-2 cursor-pointer transition-all ${isSelected ? "border-orange-500 bg-orange-50/50 dark:bg-orange-500/10" : "border-zinc-50 dark:border-zinc-800 bg-white dark:bg-zinc-900"
                                         } ${!itemAvailability.available || optionUnavailable ? 'opacity-50 cursor-not-allowed' : ''}`}>
                                       {option.image_url ? (
-                                        <img src={option.image_url} alt={option.label} className="w-16 h-16 rounded-xl object-cover shrink-0 border border-zinc-100 dark:border-zinc-800" />
+                                        <img src={option.image_url} alt={option.label} className="w-11 h-11 rounded-lg object-cover shrink-0 border border-zinc-100 dark:border-zinc-800" />
                                       ) : (
-                                        <div className="w-16 h-16 rounded-xl bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
+                                        <div className="w-11 h-11 rounded-lg bg-orange-600/10 text-orange-600 flex items-center justify-center shrink-0">
                                           <Plus size={12} strokeWidth={4} />
                                         </div>
                                       )}
                                       {/* Details */}
                                       <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-sm text-zinc-900 dark:text-white truncate capitalize italic">{option.label}</p>
+                                        <p className="font-semibold text-xs text-zinc-900 dark:text-white truncate capitalize italic">{option.label}</p>
                                         {optionUnavailable && <p className="text-[8px] font-black uppercase tracking-widest text-rose-500">Sold out</p>}
                                         {!optionUnavailable && option.track_stock && option.stock_quantity <= (option.low_stock_threshold ?? 5) && <p className="text-[8px] font-black uppercase tracking-widest text-amber-500">Only {option.stock_quantity} left</p>}
                                         {option.price_modifier_naira > 0 ? (
-                                          <p className="text-xs font-semibold text-zinc-500">+₦{option.price_modifier_naira.toLocaleString()}</p>
+                                          <p className="text-[11px] font-semibold text-zinc-500">+₦{option.price_modifier_naira.toLocaleString()}</p>
                                         ) : (
                                           <p className="text-[8px] font-medium text-zinc-400 dark:text-zinc-500 capitalize tracking-widest mt-0.5">Free</p>
                                         )}
                                       </div>
                                       {/* Selection Indicator */}
                                       {isSelected ? (
-                                        <div className={(isSoupChoiceGroup(group) ? "hidden" : "flex") + " items-center gap-2 bg-white dark:bg-zinc-800 rounded-lg p-0.5 border border-zinc-100 dark:border-zinc-700"} onClick={e => e.stopPropagation()}>
-                                          <button onClick={() => updateOptionQuantity(gIdx, option.label, -1, group)} disabled={!itemAvailability.available} className="w-[22px] h-[22px] flex items-center justify-center rounded-[6px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900">
-                                            <Minus size={12} strokeWidth={3} />
+                                        <div className={(isSoupChoiceGroup(group) ? "hidden" : "flex") + " items-center gap-1.5 bg-white dark:bg-zinc-800 rounded-lg p-0.5 border border-zinc-100 dark:border-zinc-700"} onClick={e => e.stopPropagation()}>
+                                          <button onClick={() => updateOptionQuantity(gIdx, option.label, -1, group)} disabled={!itemAvailability.available} className="w-[20px] h-[20px] flex items-center justify-center rounded-[5px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900">
+                                            <Minus size={11} strokeWidth={3} />
                                           </button>
                                           <span className="text-[11px] font-medium text-zinc-900 dark:text-white min-w-[10px] text-center">
                                             {Array.isArray(selections[gIdx]) ? selections[gIdx].find(i => i.label === option.label)?.selectionQuantity || 1 : selections[gIdx]?.selectionQuantity || 1}
                                           </span>
-                                          <button onClick={() => updateOptionQuantity(gIdx, option.label, 1, group)} disabled={!itemAvailability.available} className="w-[22px] h-[22px] flex items-center justify-center rounded-[6px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900">
-                                            <Plus size={12} strokeWidth={3} />
+                                          <button onClick={() => updateOptionQuantity(gIdx, option.label, 1, group)} disabled={!itemAvailability.available} className="w-[20px] h-[20px] flex items-center justify-center rounded-[5px] hover:bg-orange-50 dark:hover:bg-orange-500/20 text-orange-600 bg-zinc-50 dark:bg-zinc-900">
+                                            <Plus size={11} strokeWidth={3} />
                                           </button>
                                         </div>
                                       ) : (
-                                        <div className="w-[18px] h-[18px] rounded-full border-2 border-zinc-100 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900" />
+                                        <div className="w-[16px] h-[16px] rounded-full border-2 border-zinc-100 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900" />
                                       )}
                                     </div>
                                   );
