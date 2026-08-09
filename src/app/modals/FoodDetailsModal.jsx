@@ -2,8 +2,9 @@
 
 import { useFoodById } from "@/app/hooks/useVendorFoodQuery";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Utensils, Star, Clock, Tag, Flame } from "lucide-react";
+import { X, Utensils, Star, Clock, Tag, Flame, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function FoodDetailsModal({ foodId, open, setOpen }) {
   const { food, isLoading, isError } = useFoodById(foodId);
@@ -11,6 +12,35 @@ export default function FoodDetailsModal({ foodId, open, setOpen }) {
   const dragRef = useRef(null);
   const accent = "#FF6600";
   const data = food?.data;
+
+  const handleShare = async () => {
+    const foodName = data?.name || "Check out this dish";
+    const shareUrl = typeof window !== "undefined"
+      ? `${window.location.origin}/food-details/${foodId}`
+      : "";
+    const shareData = {
+      title: foodName,
+      text: `Order ${foodName} on MelaChow!`,
+      url: shareUrl,
+    };
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err?.name !== "AbortError") {
+          console.error("Share failed:", err);
+        }
+      }
+    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Food link copied to clipboard!");
+      } catch (err) {
+        toast.error("Failed to copy link.");
+      }
+    }
+  };
 
   const nextImage = () => {
     if (!data?.images?.length) return;
@@ -62,12 +92,22 @@ export default function FoodDetailsModal({ foodId, open, setOpen }) {
                   Food Details
                 </h2>
               </div>
-              <button
-                onClick={() => setOpen(false)}
-                className="p-2 rounded-full hover:bg-gray-100 transition"
-              >
-                <X className="text-gray-600" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleShare}
+                  className="p-2 rounded-full hover:bg-orange-100/50 text-gray-600 hover:text-orange-600 transition"
+                  title="Share dish"
+                  aria-label="Share dish"
+                >
+                  <Share2 size={20} />
+                </button>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="p-2 rounded-full hover:bg-gray-100 transition"
+                >
+                  <X className="text-gray-600" />
+                </button>
+              </div>
             </div>
 
             {/* Body */}

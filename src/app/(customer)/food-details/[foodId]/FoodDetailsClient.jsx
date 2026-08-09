@@ -18,7 +18,8 @@ import {
   MessageSquare,
   Loader2,
   ChevronLeft,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
+  Share2
 } from "lucide-react";
 import { BiCartAdd } from "react-icons/bi";
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -120,6 +121,36 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   const getFoodVendorId = (item = food) => {
     const vendor = getFoodVendor(item);
     return vendor?._id || vendor?.id || item?.vendorId || item?.vendor_id || item?.restaurantId || item?.restaurant_id || "";
+  };
+
+  const handleShare = async () => {
+    const foodName = food?.name || "Check out this dish";
+    const storeName = getFoodVendor(food)?.storeName || "MelaChow";
+    const shareUrl = typeof window !== "undefined"
+      ? `${window.location.origin}/food-details/${foodId || food?._id}`
+      : "";
+    const shareData = {
+      title: `${foodName} - ${storeName}`,
+      text: `Order ${foodName} from ${storeName} on MelaChow!`,
+      url: shareUrl,
+    };
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err?.name !== "AbortError") {
+          console.error("Share failed:", err);
+        }
+      }
+    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success("Food link copied to clipboard!");
+      } catch (err) {
+        toast.error("Failed to copy link.");
+      }
+    }
   };
 
   // Reset base customizer when food fetches
@@ -484,21 +515,32 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
           </div>
         </div>
 
-        <button
-          onClick={() => {
-            if (isModal && onClose) onClose();
-            router.push('/orders?activeTab=cart');
-          }}
-        >
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-zinc-900 dark:bg-zinc-100 p-2 rounded-xl">
-            <BiCartAdd className="text-white dark:text-zinc-900" size={22} />
-            {totalItems > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-orange-500 ring-4 ring-white dark:ring-zinc-900 text-white text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-medium">
-                {totalItems}
-              </span>
-            )}
-          </motion.div>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleShare}
+            className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 hover:bg-orange-50 dark:hover:bg-orange-500/10 text-zinc-700 dark:text-zinc-300 hover:text-orange-600 dark:hover:text-orange-400 transition-all active:scale-90"
+            title="Share this dish"
+            aria-label="Share dish"
+          >
+            <Share2 className="w-5 h-5" />
+          </button>
+
+          <button
+            onClick={() => {
+              if (isModal && onClose) onClose();
+              router.push('/orders?activeTab=cart');
+            }}
+          >
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-zinc-900 dark:bg-zinc-100 p-2 rounded-xl">
+              <BiCartAdd className="text-white dark:text-zinc-900" size={22} />
+              {totalItems > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-orange-500 ring-4 ring-white dark:ring-zinc-900 text-white text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-medium">
+                  {totalItems}
+                </span>
+              )}
+            </motion.div>
+          </button>
+        </div>
       </header>
 
     <div className={`pb-1 border-b border-zinc-100 bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300 ${isModal ? "flex-1 overflow-y-auto no-scrollbar" : ""}`}>
@@ -577,6 +619,16 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                 </div>
                               </div>
                             )}
+
+                            {/* Share button overlay */}
+                            <button
+                              onClick={handleShare}
+                              className="absolute top-2.5 right-2.5 z-20 p-2 rounded-full bg-zinc-900/60 hover:bg-zinc-900/80 backdrop-blur-md text-white border border-white/20 transition-all active:scale-90 shadow-lg"
+                              title="Share this dish"
+                              aria-label="Share dish"
+                            >
+                              <Share2 className="w-4 h-4" />
+                            </button>
 
                             <div className="absolute top-2.5 left-2.5 pr-4 flex flex-wrap gap-1.5 z-10">
                               {/* Item type badge */}
