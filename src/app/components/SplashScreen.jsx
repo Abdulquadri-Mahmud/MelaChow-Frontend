@@ -2,16 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import Image from "next/image"; // Optimization 1: Use next/image
+import Image from "next/image";
 
 export default function SplashScreen({ user, vendorDetails }) {
-    // Determine if user is authenticated
     const isAuthenticated = !!user || !!vendorDetails;
 
     const [loadingText, setLoadingText] = useState("Initializing experience...");
-    const [showNextStep, setShowNextStep] = useState(false);
+    const [progress, setProgress] = useState(15);
 
-    // Cycle through realistic product-driven statuses
+    // Realistic product-driven status messages
     useEffect(() => {
         const statuses = [
             "Locating nearby tastes...",
@@ -25,16 +24,19 @@ export default function SplashScreen({ user, vendorDetails }) {
         const interval = setInterval(() => {
             index = (index + 1) % statuses.length;
             setLoadingText(statuses[index]);
-        }, 1800);
+        }, 1600);
 
-        // Show "Next Step" cue after a delay for engagement
-        const nextStepTimer = setTimeout(() => {
-            setShowNextStep(true);
-        }, 2500);
+        // Smooth simulated progress bar fill
+        const progressInterval = setInterval(() => {
+            setProgress((prev) => {
+                if (prev >= 92) return 92;
+                return prev + Math.floor(Math.random() * 15 + 8);
+            });
+        }, 300);
 
         return () => {
             clearInterval(interval);
-            clearTimeout(nextStepTimer);
+            clearInterval(progressInterval);
         };
     }, []);
 
@@ -42,180 +44,112 @@ export default function SplashScreen({ user, vendorDetails }) {
     useEffect(() => {
         if (isAuthenticated) {
             setLoadingText("Welcome back!");
-        } else {
-            setLoadingText("Discover food around you");
+            setProgress(100);
         }
     }, [isAuthenticated]);
 
-    // OPTIMIZATION: Motion variants kept identical to preserve animation feel
-    const dotVariants = {
-        initial: { y: 0, opacity: 0.4 },
-        animate: {
-            y: [0, -12, 0],
-            opacity: [0.4, 1, 0.4],
-            transition: {
-                duration: 0.8,
-                repeat: Infinity,
-                ease: "easeInOut",
-            },
-        },
-    };
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.2,
-                delayChildren: 0.4
-            },
-        },
-    };
-
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: { type: "spring", stiffness: 120, damping: 14 }
-        },
-    };
-
     return (
-        <div className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-white overflow-hidden">
-            {/* Background Layer: Dynamic Mesh Gradient */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 z-[10000] flex flex-col items-center justify-between bg-gradient-to-b from-amber-50/60 via-white to-orange-50/40 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 overflow-hidden px-6 py-12 selection:bg-orange-500 selection:text-white">
+            
+            {/* Background Layer: Soft Ambient Radial Glow */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 <motion.div
                     animate={{
                         scale: [1, 1.2, 1],
-                        rotate: [0, 90, 0],
-                        opacity: [0.3, 0.5, 0.3],
+                        opacity: [0.35, 0.6, 0.35],
                     }}
-                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                    className="absolute -top-[20%] -right-[10%] w-[100%] h-[100%] bg-orange-500/20 rounded-full blur-[120px]"
+                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] bg-gradient-to-tr from-amber-400/20 via-orange-500/25 to-red-500/15 rounded-full blur-[100px]"
                 />
-                <motion.div
-                    animate={{
-                        scale: [1.2, 1, 1.2],
-                        rotate: [0, -90, 0],
-                        opacity: [0.2, 0.4, 0.2],
-                    }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="absolute -bottom-[20%] -left-[10%] w-[100%] h-[100%] bg-orange-600/10 rounded-full blur-[100px]"
-                />
+                <div className="absolute inset-0 opacity-[0.025] dark:opacity-[0.05] pointer-events-none mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
             </div>
 
-            {/* Subtle Noise Texture */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
+            {/* Spacer Top */}
+            <div className="h-4" />
 
-            {/* Main Branding Container */}
+            {/* Center Section: Official MelaChow Branding */}
             <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className="relative z-10 flex flex-col items-center"
+                initial={{ opacity: 0, scale: 0.92, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                className="relative z-10 flex flex-col items-center my-auto"
             >
-                {/* Logo Frame: Liquid Style */}
+                {/* Brand Logo Container with Glowing Glass Backdrop */}
                 <motion.div
-                    variants={itemVariants}
-                    className="relative mb-12"
+                    animate={{ y: [0, -6, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    className="relative w-48 h-32 sm:w-60 sm:h-40 flex items-center justify-center mb-4"
                 >
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-                        className="absolute inset-0 bg-gradient-to-tr from-orange-500 to-orange-400 rounded-[40px] blur-2xl opacity-20 scale-110"
+                    <Image
+                        src="/logo.png"
+                        alt="MelaChow"
+                        fill
+                        sizes="(max-width: 640px) 192px, 240px"
+                        className="object-contain drop-shadow-xl"
+                        priority
                     />
-                    <div className="relative w-32 h-32 bg-white rounded-[38px] flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.3)] overflow-hidden p-6 group">
+                </motion.div>
+
+                {/* Subtitle Badge */}
+                <div className="flex items-center gap-2 mt-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                    <p className="text-[11px] font-black uppercase tracking-[0.35em] text-zinc-500 dark:text-zinc-400">
+                        Hot & Fresh • Delivered Fast
+                    </p>
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                </div>
+            </motion.div>
+
+            {/* Bottom Section: Progress & Signature Badge */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="relative z-10 w-full max-w-[300px] flex flex-col items-center space-y-5 mb-4"
+            >
+                {/* Progress Bar Container */}
+                <div className="w-full space-y-2">
+                    <div className="w-full h-1.5 bg-zinc-200/80 dark:bg-zinc-800 rounded-full overflow-hidden relative shadow-inner">
                         <motion.div
-                            initial={{ scale: 0.5, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
+                            initial={{ width: "10%" }}
+                            animate={{ width: `${progress}%` }}
+                            transition={{ duration: 0.4, ease: "easeOut" }}
+                            className="h-full bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-full relative"
                         >
-                            <Image
-                                src="/logo.png"
-                                alt="MelaChow"
-                                width={120}
-                                height={120}
-                                className="object-contain"
-                                priority
-                            />
+                            {/* Glowing trailing line pulse */}
+                            <span className="absolute right-0 top-0 bottom-0 w-3 bg-white/80 blur-[2px] rounded-full animate-pulse" />
                         </motion.div>
                     </div>
-                </motion.div>
 
-                {/* Typography: Modern & Refined */}
-                <motion.div variants={itemVariants} className="text-center space-y-4">
-                    <h1 className="text-6xl font-black italic uppercase tracking-tighter text-zinc-900 leading-none">
-                        Mela<span className="text-orange-500">Chow</span>
-                    </h1>
-                    <div className="flex items-center justify-center gap-3">
-                        <div className="h-[1px] w-6 bg-orange-500/20" />
-                        <p className="text-[11px] font-black uppercase tracking-[0.5em] text-orange-500 text-center">
-                            Premium Food Experience
-                        </p>
-                        <div className="h-[1px] w-6 bg-orange-500/20" />
-                    </div>
-                </motion.div>
-
-                {/* Loader Section */}
-                <motion.div variants={itemVariants} className="mt-20 flex flex-col items-center gap-8 w-[280px]">
-                    {/* Minimalist Progress Bar */}
-                    <div className="w-full h-[3px] bg-white/10 rounded-full overflow-hidden relative">
-                        <motion.div
-                            initial={{ x: "-100%" }}
-                            animate={{ x: "100%" }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                            className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-orange-500 to-transparent"
-                        />
-                    </div>
-
-                    <div className="space-y-3 flex flex-col items-center">
+                    {/* Dynamic Status Text */}
+                    <div className="h-5 flex items-center justify-center">
                         <AnimatePresence mode="wait">
-                            <motion.span
+                            <motion.p
                                 key={loadingText}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 1.1 }}
-                                className="text-[10px] font-bold uppercase tracking-[0.25em] text-zinc-400 text-center block"
+                                initial={{ opacity: 0, y: 4 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={{ duration: 0.25 }}
+                                className="text-[11px] font-extrabold uppercase tracking-widest text-zinc-600 dark:text-zinc-300 text-center"
                             >
                                 {loadingText}
-                            </motion.span>
+                            </motion.p>
                         </AnimatePresence>
-
-                        <div className="flex gap-1.5 justify-center">
-                            {[0, 1, 2].map((i) => (
-                                <motion.div
-                                    key={i}
-                                    animate={{
-                                        scale: [1, 1.5, 1],
-                                        opacity: [0.3, 1, 0.3]
-                                    }}
-                                    transition={{
-                                        duration: 1,
-                                        repeat: Infinity,
-                                        delay: i * 0.2
-                                    }}
-                                    className="w-1 h-1 bg-orange-500 rounded-full"
-                                />
-                            ))}
-                        </div>
                     </div>
-                </motion.div>
+                </div>
+
+                {/* Signature Brand Badge */}
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 dark:bg-zinc-900/90 border border-orange-200 dark:border-orange-500/30 rounded-full shadow-lg shadow-orange-500/10 backdrop-blur-md">
+                    <span className="flex h-2 w-2 relative">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500" />
+                    </span>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-400">
+                        ⚡ Speeding Hot & Fresh To You
+                    </p>
+                </div>
             </motion.div>
 
-            {/* Bottom Safe Area Branding (iOS style) */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.5 }}
-                className="absolute bottom-12 flex flex-col items-center gap-1"
-            >
-                <p className="text-[8px] font-black uppercase tracking-[0.3em] text-zinc-400">
-                    Premium Quality First
-                </p>
-                <div className="w-8 h-1 bg-orange-500/10 rounded-full" />
-            </motion.div>
         </div>
     );
 }
-
