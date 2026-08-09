@@ -55,27 +55,31 @@ const ChipSkeleton = () => (
 );
 
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// —————————————————————————————————————————————————————————————————————————————
 // VENDOR CARD
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const VendorCard = ({ vendor }) => {
+// —————————————————————————————————————————————————————————————————————————————
+const VendorCard = ({ vendor, fullWidth = false }) => {
   const status = getVendorOpenAndCloseStatus(vendor.openingHours);
   const isOpen = status.startsWith("Open now");
 
   return (
     <Link
       href={`/restaurants/${vendor._id}`}
-      className="group flex-shrink-0 bg-white dark:bg-zinc-900 rounded overflow-hidden cursor-pointer snap-start transition-all duration-300 block"
-      style={{ width: "75vw", maxWidth: "280px" }}
+      className={`group bg-white dark:bg-zinc-900 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 block ${
+        fullWidth ? "w-full" : "flex-shrink-0 snap-start"
+      }`}
+      style={fullWidth ? undefined : { width: "75vw", maxWidth: "280px" }}
     >
       {/* Image Container */}
-      <div className="relative h-[120px] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+      <div className={`relative w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 ${
+        fullWidth ? "h-[160px] sm:h-[200px]" : "h-[120px]"
+      }`}>
         {vendor.image ? (
           <Image
             src={vendor.image}
             alt={vendor.storeName}
             fill
-            sizes="(max-width: 640px) 75vw, 280px"
+            sizes={fullWidth ? "(max-width: 768px) 100vw, 800px" : "(max-width: 640px) 75vw, 280px"}
             className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
               !isOpen ? "grayscale-[30%]" : ""
             }`}
@@ -131,7 +135,7 @@ const VendorCard = ({ vendor }) => {
             <span className="text-zinc-300">|</span>
 
             {/* Status */}
-            <span className={isOpen ? "text-emerald-600 font-semiboldd" : "text-rose-500 font-semiboldd"}>
+            <span className={isOpen ? "text-emerald-600 font-semibold" : "text-rose-500 font-semibold"}>
               {isOpen ? "Open now" : "Closed"}
             </span>
           </div>
@@ -318,7 +322,7 @@ export default function VendorList({ user }) {
     };
   }, [allVendors]);
 
-  // â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Loading ──────────────────────────────────────────────────────────────────────────────────
   if (!mounted || isLoading) {
     return (
       <div className="space-y-6 pb-4">
@@ -341,7 +345,7 @@ export default function VendorList({ user }) {
   // if (!userLocation) return null; // Remove this to allow rendering even without location (it will hit empty state or skeleton)
 
 
-  // â”€â”€ Empty state (no vendors at all in this city) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Empty state (no vendors at all in this city) ──────────────────────────────────────────
   if (allVendors.length === 0) {
     return (
       <div className="px-0 mb-6">
@@ -404,7 +408,25 @@ export default function VendorList({ user }) {
       )}
 
 
-      {/* â”€â”€ Open Now â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* Top Rated */}
+      {topRatedVendors.length > 0 && (
+        <div>
+          <SectionHeader
+            title={
+              <span className="flex items-center gap-2">
+                <Star size={18} className="text-orange-500 fill-orange-500" />
+                Top Rated
+              </span>
+            }
+            subtitle="Highly recommended by local foodies"
+            href="/search?sort=rating"
+            hrefLabel="Explore"
+          />
+          <VendorRow vendors={topRatedVendors} />
+        </div>
+      )}
+
+      {/* Open Now */}
       {openVendors.length > 0 && (
         <div>
           <SectionHeader
@@ -423,29 +445,11 @@ export default function VendorList({ user }) {
             href="/all-restaurants"
             hrefLabel="Explore"
           />
-          <VendorRow vendors={openVendors} />
+          <VendorColumn vendors={openVendors} />
         </div>
       )}
 
-      {/* â”€â”€ Top Rated â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      {topRatedVendors.length > 0 && (
-        <div>
-          <SectionHeader
-            title={
-              <span className="flex items-center gap-2">
-                <Star size={18} className="text-orange-500 fill-orange-500" />
-                Top Rated
-              </span>
-            }
-            subtitle="Highly recommended by local foodies"
-            href="/search?sort=rating"
-            hrefLabel="Explore"
-          />
-          <VendorRow vendors={topRatedVendors} />
-        </div>
-      )}
-
-      {/* â”€â”€ Closed / Coming Back Soon â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* Closed / Coming Back Soon */}
       {closedVendors.length > 0 && (
         <div>
           <SectionHeader
