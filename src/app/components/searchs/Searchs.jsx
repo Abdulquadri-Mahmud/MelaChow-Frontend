@@ -48,9 +48,6 @@ const FoodItemRow = ({ food, onSelect }) => {
 
     const vendor = food.restaurant || food.vendor;
     const price = food.portions?.min_price_naira || food.portions?.default_price_naira || food.price || 0;
-    const oldPrice = food.old_price || (price * 1.2);
-
-    console.log('Food Item Data:', { name: food.name, is_available: food.is_available, is_in_stock: food.is_in_stock, isUnavailable });
 
     return (
         <div 
@@ -77,9 +74,6 @@ const FoodItemRow = ({ food, onSelect }) => {
                 <div className="flex items-center gap-2.5 pt-0.5">
                     <div className="flex items-center gap-1">
                         <span className="text-[13px] font-black text-orange-600">₦{price.toLocaleString()}</span>
-                        {oldPrice > price && (
-                            <span className="text-[10px] text-zinc-400 line-through font-medium">₦{Math.round(oldPrice).toLocaleString()}</span>
-                        )}
                     </div>
                     <div className="h-2.5 w-px bg-zinc-200 dark:bg-zinc-800" />
                     <div className="flex items-center gap-1">
@@ -127,8 +121,13 @@ export default function FoodSearchMobile() {
   const searchParams = useSearchParams();
 
   const [foods, setFoods] = useState([]);
+  const [restaurants, setRestaurants] = useState([]);
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("");
+  const [sort, setSort] = useState("relevance");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [error, setError] = useState(null);
@@ -151,7 +150,7 @@ export default function FoodSearchMobile() {
       openComboModal(selectedComboId, { combo: item, vendor: item.restaurant || item.vendor });
       return;
     }
-    if (!item.is_available || item.is_in_stock === false) return;
+    if (item.is_available === false || item.is_in_stock === false) return;
     const selectedFoodId = getItemId(item);
     if (!selectedFoodId) return;
     openFoodModal(selectedFoodId, { food: item });
@@ -163,6 +162,18 @@ export default function FoodSearchMobile() {
   useEffect(() => {
     setHydrated(true);
   }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 350);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  useEffect(() => {
+    setActiveCategory(selectedCategory || "");
+    setPage(1);
+    setFoods([]);
+    setRestaurants([]);
+  }, [selectedCategory, debouncedQuery, sort]);
 
   // Fetch trending searches
   useEffect(() => {
@@ -182,7 +193,7 @@ export default function FoodSearchMobile() {
 
   // Fetch foods based on category or query
   useEffect(() => {
-    const hasSearchIntent = Boolean(query.trim() || selectedCategory);
+    const hasSearchIntent = Boolean(debouncedQuery || selectedCategory);
     if (!hydrated || !hasSearchIntent) {
       setFoods([]);
       setError(null);
@@ -190,20 +201,26 @@ export default function FoodSearchMobile() {
       return;
     }
 
+    const controller = new AbortController();
     const fetchFoods = async () => {
       try {
         setLoading(true);
         setError(null);
 
         // Simple params — category filtering is done on the frontend
-        const params = query.trim() ? { q: query } : { q: '' };
+        const params = { q: debouncedQuery, ...(selectedCategory ? { category: selectedCategory } : {}), ...(sort !== "relevance" ? { sort } : {}), page, limit: 20 };
 
         const res = await axios.get(`${baseUrl}/search/food/search`, {
           params,
           withCredentials: true,
+          signal: controller.signal,
         });
-        setFoods(res.data.data || []);
+        const nextFoods = res.data.data || [];
+        setFoods((current) => page === 1 ? nextFoods : [...current, ...nextFoods.filter((item) => !current.some((existing) => existing._id === item._id))]);
+        if (page === 1) setRestaurants(res.data.vendors || []);
+        setHasMore(Number(res.data.currentPage || page) < Number(res.data.totalPages || 0));
       } catch (err) {
+        if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") return;
         console.error("Fetch Foods Error:", err?.response?.data || err.message || err);
         setError("Failed to load foods. Please try again.");
       } finally {
@@ -212,7 +229,8 @@ export default function FoodSearchMobile() {
     };
 
     fetchFoods();
-  }, [baseUrl, hydrated, query, selectedCategory]);
+    return () => controller.abort();
+  }, [baseUrl, hydrated, debouncedQuery, selectedCategory, sort, page]);
 
   // Autocomplete
   useEffect(() => {
@@ -486,9 +504,11 @@ export default function FoodSearchMobile() {
                   </p>
               </div>
  
-              <div className="flex items-center gap-1 text-[9px] font-black text-zinc-400 uppercase tracking-widest px-2.5 py-0.5 bg-zinc-100 dark:bg-zinc-900 rounded-md">
-                  Sort: <span className="text-zinc-900 dark:text-zinc-200">Relevance</span>
-              </div>
+              <select value={sort} onChange={(event) => setSort(event.target.value)} className="bg-zinc-100 dark:bg-zinc-900 rounded-md px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-zinc-700 outline-none dark:text-zinc-200">
+                <option value="relevance">Relevance</option>
+                <option value="rating_desc">Top rated</option>
+                <option value="newest">Newest</option>
+              </select>
           </motion.div>
       </div>}
  
@@ -504,12 +524,18 @@ export default function FoodSearchMobile() {
           <div className="px-2">
             <SearchFoodSkeleton items={6} />
           </div>
-        ) : displayedFoods.length === 0 ? (
+        ) : displayedFoods.length === 0 && restaurants.length === 0 ? (
           <div className="animate-in fade-in slide-in-from-bottom-5 duration-700">
             <NoFoodsFound />
           </div>
         ) : (
           <div className="space-y-4 pb-24 px-4 overflow-hidden">
+            {restaurants.length > 0 && (
+              <section className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+                <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">Restaurants</p>
+                {restaurants.slice(0, 3).map((restaurant) => <button key={restaurant._id} type="button" onClick={() => router.push(`/restaurants/${restaurant._id}`)} className="flex w-full items-center gap-3 border-t border-zinc-100 py-2 text-left first:border-t-0 dark:border-zinc-800"><div className="size-9 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">{restaurant.logo && <img src={restaurant.logo} alt="" className="h-full w-full object-cover" />}</div><span className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900 dark:text-white">{restaurant.storeName}</span><span className="text-xs text-zinc-500">★ {Number(restaurant.rating || 0).toFixed(1)}</span></button>)}
+              </section>
+            )}
             <AnimatePresence mode="popLayout">
                 {Object.entries(foodsByCategory).map(([category, categoryFoods], sectionIdx) => (
                 <motion.div 
@@ -540,6 +566,7 @@ export default function FoodSearchMobile() {
                 </motion.div>
                 ))}
             </AnimatePresence>
+            {hasMore && <button type="button" onClick={() => setPage((current) => current + 1)} disabled={loading} className="mx-auto mt-2 block rounded-lg border border-orange-200 bg-white px-5 py-3 text-xs font-semibold text-orange-600 disabled:opacity-50 dark:border-orange-500/30 dark:bg-zinc-900">{loading ? "Loading…" : "Show more"}</button>}
           </div>
         )}
       </div>
