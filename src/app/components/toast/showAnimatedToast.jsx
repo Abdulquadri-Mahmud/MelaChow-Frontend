@@ -34,7 +34,11 @@ const showAnimatedToast = (type, message, id, action = null) => {
               onClick={(e) => {
                 e.stopPropagation();
                 toast.dismiss(t.id);
-                window.location.href = action.href;
+                if (typeof action.onClick === "function") {
+                  action.onClick();
+                  return;
+                }
+                if (action.href) window.location.href = action.href;
               }}
               className="mt-2 rounded-lg bg-orange-500 px-3 py-1.5 text-xs font-bold text-white hover:bg-orange-600"
             >
