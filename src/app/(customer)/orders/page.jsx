@@ -25,7 +25,7 @@ function OrdersContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("activeTab") || "cart";
 
-  const { cart, increaseQuantity, decreaseQuantity, removeFromCart, updateCartItem, setItemMealGroup, splitCartItem } = useCart();
+  const { cart, increaseQuantity, decreaseQuantity, removeFromCart, updateCartItem, startAnotherPersonPlate, activeMealGroups } = useCart();
   const { user } = useUserStorage();
   const { baseUrl } = useApi();
    const [activeTab, setActiveTab] = useState(initialTab);
@@ -39,7 +39,6 @@ function OrdersContent() {
   const [isFetchingFood, setIsFetchingFood] = useState(false);
   const [editingVariant, setEditingVariant] = useState(null);
   const [editingPortion, setEditingPortion] = useState(null);
-  const [multiPersonOrders, setMultiPersonOrders] = useState({});
 
   const handleEditClick = async (item) => {
     if (isFetchingFood) return;
@@ -191,8 +190,8 @@ function OrdersContent() {
                      <div className="space-y-4">
                        {Object.entries(groupedCart).map(([vendorId, group]) => {
                          const groupSubtotal = group.items.reduce((sum, item) => sum + getItemPrice(item) * item.quantity, 0);
-                         const hasAllocations = group.items.some((item) => item.meal_group_label);
-                         const showAllocations = multiPersonOrders[vendorId] || hasAllocations;
+                         const activePlate = activeMealGroups[vendorId]?.label;
+                         const plateItems = [...group.items].sort((first, second) => String(first.meal_group_label || "Person 1").localeCompare(String(second.meal_group_label || "Person 1")));
 
                          return (
                          <div key={vendorId} className="bg-white dark:bg-zinc-900 rounded-[8px] p-3 border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden relative">
@@ -211,20 +210,24 @@ function OrdersContent() {
                              <div className="flex items-center justify-between gap-3">
                                <div>
                                  <p className="text-[10px] font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-300">Ordering for more than one person?</p>
-                                 <p className="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">Tell us who each food is for. This helps the restaurant pack each order correctly.</p>
+                                 <p className="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">Keep each person’s food together so it is packed correctly.</p>
                                </div>
-                               <button type="button" onClick={() => setMultiPersonOrders((current) => ({ ...current, [vendorId]: !showAllocations }))} className="shrink-0 rounded border border-orange-200 bg-white px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-orange-700 transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300">
-                                 {showAllocations ? "Hide" : "Set up"}
+                               <button type="button" onClick={() => { startAnotherPersonPlate(vendorId); router.push(`/restaurants/${encodeURIComponent(vendorId)}`); }} className="shrink-0 rounded border border-orange-200 bg-white px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-orange-700 transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300">
+                                 Add person
                                </button>
                              </div>
                            </div>
 
                            <div className="space-y-2">
-                             {group.items.map((item, index) => {
+                             {plateItems.map((item, index) => {
                                const itemKey = item.cartId || index;
+                               const plateLabel = item.meal_group_label || "Person 1";
+                               const previousPlateLabel = index > 0 ? (plateItems[index - 1].meal_group_label || "Person 1") : null;
 
                                return (
-                                 <div key={itemKey} className="flex gap-4 group">
+                                 <div key={itemKey}>
+                                   {plateLabel !== previousPlateLabel && <div className="mb-2 flex items-center justify-between rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800"><span className="text-xs font-semibold text-zinc-800 dark:text-zinc-100">{plateLabel}</span>{activePlate === plateLabel && <span className="text-[10px] font-medium text-orange-600">Adding food here</span>}</div>}
+                                 <div className="flex gap-4 group">
 
                                    <div className="relative w-20 h-20 rounded overflow-hidden bg-zinc-50 dark:bg-zinc-800 flex-shrink-0 shadow-inner">
                                      <img
@@ -258,13 +261,6 @@ function OrdersContent() {
                                        <p className="text-sm font-medium text-zinc-900 dark:text-white tabular-nums">₦{(getItemPrice(item) * item.quantity).toLocaleString()}</p>
                                      </div>
 
-                                     {showAllocations && (
-                                       <label className="mt-2 block">
-                                         <span className="sr-only">For whom or which plate?</span>
-                                         <input value={item.meal_group_label || ""} onChange={(event) => setItemMealGroup(item.cartId, event.target.value)} maxLength={40} placeholder="Example: Me, Ada or Table 2" className="h-8 w-full rounded border border-zinc-200 bg-white px-2 text-[10px] text-zinc-700 outline-none transition-colors placeholder:text-zinc-400 focus:border-orange-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200" />
-                                         {item.quantity > 1 && <button type="button" onClick={() => splitCartItem(item.cartId)} className="mt-2 flex w-full items-center justify-between rounded-lg border border-orange-200 bg-orange-50 px-3 py-2.5 text-sm font-semibold text-orange-700 transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300"><span>Split this item</span><span className="text-xs font-medium">Give 1 to someone else</span></button>}
-                                       </label>
-                                     )}
                                      <div className="flex items-end justify-between mt-auto pt-2">
                                        <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-tighter self-center">₦{getItemPrice(item).toLocaleString()} / unit</p>
 
@@ -294,6 +290,7 @@ function OrdersContent() {
                                        </div>
                                      </div>
                                    </div>
+                                 </div>
                                  </div>
                                )
                              })}

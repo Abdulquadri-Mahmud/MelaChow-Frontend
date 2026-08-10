@@ -16,13 +16,10 @@ const CartContext = createContext({
   updateCartItem: () => {},
   setItemMealGroup: () => {},
   splitCartItem: () => {},
+  startAnotherPersonPlate: () => {},
+  activeMealGroups: {},
   clearCart: () => {},
 });
-
-const proceedToCartAction = {
-  label: "Proceed to cart / checkout",
-  href: "/orders?activeTab=cart",
-};
 
 export const useCart = () => {
   const context = useContext(CartContext);
@@ -39,6 +36,8 @@ export const useCart = () => {
       updateCartItem: () => {},
       setItemMealGroup: () => {},
       splitCartItem: () => {},
+      startAnotherPersonPlate: () => {},
+      activeMealGroups: {},
       clearCart: () => {},
     };
   }
@@ -70,6 +69,13 @@ const getLimitMessage = (item, limit) =>
   item?.track_stock === true
     ? `Only ${limit} ${item.portion_label || item.name} available.`
     : `Only ${limit} ${item.portion_label || item.name} can be ordered at once.`;
+
+const getReservedStockQuantity = (items, target) => items.reduce((total, item) => {
+  if (getItemType(item) === "combo" || getItemType(target) === "combo") return total;
+  const isSameStockItem = normalizeId(item.foodId) === normalizeId(target.foodId)
+    && normalizeId(item.portionId) === normalizeId(target.portionId);
+  return total + (isSameStockItem ? (Number(item.quantity) || 1) : 0);
+}, 0);
 // Helper to compare if two items are functionally identical
 const isSameItem = (a, b) => {
   if (!a || !b) return false;
@@ -130,6 +136,10 @@ export const CartProvider = ({ children }) => {
     }
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeMealGroups, setActiveMealGroups] = useState(() => {
+    if (typeof window === "undefined") return {};
+    try { return JSON.parse(sessionStorage.getItem("melachowActiveMealGroups") || "{}"); } catch { return {}; }
+  });
 
   // Store cart to localStorage
   useEffect(() => {
@@ -138,32 +148,73 @@ export const CartProvider = ({ children }) => {
     }
   }, [cart]);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("melachowActiveMealGroups", JSON.stringify(activeMealGroups));
+    }
+  }, [activeMealGroups]);
+
+  const getRestaurantId = (item) => String(item?.vendorId || item?.restaurantId || "");
+  const withActiveMealGroup = (item) => {
+    if (!cart.some((cartItem) => getRestaurantId(cartItem) === getRestaurantId(item))) return item;
+    const activeMealGroup = activeMealGroups[getRestaurantId(item)];
+    return activeMealGroup ? { ...item, meal_group_label: activeMealGroup.label } : item;
+  };
+
+  const startAnotherPersonPlate = (restaurantId) => {
+    const normalizedRestaurantId = String(restaurantId || "");
+    if (!normalizedRestaurantId) return;
+
+    setCart((previousCart) => {
+      return previousCart.map((item) => (
+        getRestaurantId(item) === normalizedRestaurantId && !String(item.meal_group_label || "").trim()
+          ? { ...item, meal_group_label: "Person 1" }
+          : item
+      ));
+    });
+
+    setActiveMealGroups((current) => {
+      const restaurantItems = cart.filter((item) => getRestaurantId(item) === normalizedRestaurantId);
+      const labels = [...new Set(restaurantItems.map((item) => String(item.meal_group_label || "").trim()).filter(Boolean))];
+      const hasUnassignedItems = restaurantItems.some((item) => !String(item.meal_group_label || "").trim());
+      const number = Math.max(labels.length + (hasUnassignedItems ? 1 : 0), 1) + 1;
+      return { ...current, [normalizedRestaurantId]: { label: `Person ${number}` } };
+    });
+  };
+
   // Add item
   const addToCart = (item) => {
+    const itemForPlate = withActiveMealGroup(item);
     setCart((prev) => {
-      const existingIndex = prev.findIndex((cartItem) => isSameItem(cartItem, item));
+      const existingIndex = prev.findIndex((cartItem) => isSameItem(cartItem, itemForPlate));
       const existing = existingIndex > -1 ? prev[existingIndex] : null;
-      const nextQuantity = (Number(existing?.quantity) || 0) + (Number(item.quantity) || 1);
-      const limit = getQuantityLimit(item);
-      if (limit !== null && nextQuantity > limit) {
-        showAnimatedToast("error", getLimitMessage(item, limit), "cart-stock-limit");
+      const nextQuantity = (Number(existing?.quantity) || 0) + (Number(itemForPlate.quantity) || 1);
+      const limit = getQuantityLimit(itemForPlate);
+      const requestedQuantity = Number(itemForPlate.quantity) || 1;
+      const wouldExceedStock = itemForPlate.track_stock === true
+        && getReservedStockQuantity(prev, itemForPlate) + requestedQuantity > limit;
+      if (limit !== null && (wouldExceedStock || nextQuantity > limit)) {
+        showAnimatedToast("error", getLimitMessage(itemForPlate, limit), "cart-stock-limit");
         return prev;
       }
 
-      showAnimatedToast("success", "Item added to cart", "cart-add", proceedToCartAction);
       if (existingIndex > -1) {
         const next = [...prev];
-        next[existingIndex] = { ...existing, ...item, cartId: existing.cartId, quantity: nextQuantity };
+        next[existingIndex] = { ...existing, ...itemForPlate, cartId: existing.cartId, quantity: nextQuantity };
         return next;
       }
-      return [...prev, { ...item, quantity: Number(item.quantity) || 1, cartId: `${Date.now()}-${Math.random()}` }];
+      return [...prev, { ...itemForPlate, quantity: Number(itemForPlate.quantity) || 1, cartId: `${Date.now()}-${Math.random()}` }];
+    });
+    showAnimatedToast("success", "Item added to cart", "cart-add", {
+      label: "Add another person's plate",
+      onClick: () => startAnotherPersonPlate(getRestaurantId(item)),
     });
   };
   // Add Combo
   const addComboToCart = (comboItem) => {
-    showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo", proceedToCartAction);
+    const itemForPlate = withActiveMealGroup(comboItem);
     const newItem = {
-        ...comboItem,
+        ...itemForPlate,
         type:     "combo",
         quantity: Number(comboItem.quantity) || 1,
         cartId:   `${Date.now()}-${Math.random()}`
@@ -183,22 +234,35 @@ export const CartProvider = ({ children }) => {
       };
       return next;
     });
+    showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo", {
+      label: "Add another person's plate",
+      onClick: () => startAnotherPersonPlate(getRestaurantId(comboItem)),
+    });
   };
 
   // Increase Quantity
   const increaseQuantity = (foodId, portionId, comboId, cartId) => {
-    setCart((prev) => prev.map((item) => {
-      const isMatch = cartId ? item.cartId === cartId : item.type === "combo" ? (item.comboId === comboId || item.variantId === comboId) : item.foodId === foodId && item.portionId === portionId;
-      if (!isMatch) return item;
-      const limit = getQuantityLimit(item);
-      const nextQuantity = (Number(item.quantity) || 0) + 1;
-      if (limit !== null && nextQuantity > limit) {
-        showAnimatedToast("error", getLimitMessage(item, limit), "cart-stock-limit");
-        return item;
+    setCart((prev) => {
+      const target = prev.find((item) => (
+        cartId ? item.cartId === cartId : item.type === "combo"
+          ? (item.comboId === comboId || item.variantId === comboId)
+          : item.foodId === foodId && item.portionId === portionId
+      ));
+      if (!target) return prev;
+
+      const limit = getQuantityLimit(target);
+      const wouldExceedStock = target.track_stock === true
+        && getReservedStockQuantity(prev, target) + 1 > limit;
+      if (limit !== null && (wouldExceedStock || (Number(target.quantity) || 0) + 1 > limit)) {
+        showAnimatedToast("error", getLimitMessage(target, limit), "cart-stock-limit");
+        return prev;
       }
+
       showAnimatedToast("success", "Quantity increased", "cart-qty-inc");
-      return { ...item, quantity: nextQuantity };
-    }));
+      return prev.map((item) => item.cartId === target.cartId
+        ? { ...item, quantity: (Number(item.quantity) || 0) + 1 }
+        : item);
+    });
   };
   // Decrease Quantity
   const decreaseQuantity = (foodId, portionId, comboId, cartId) => {
@@ -246,6 +310,11 @@ export const CartProvider = ({ children }) => {
     setCart((prev) =>
       prev.filter((item) => (item.vendorId || item.restaurantId) !== restaurantId)
     );
+    setActiveMealGroups((current) => {
+      const next = { ...current };
+      delete next[String(restaurantId)];
+      return next;
+    });
   };
 
   // Update item (for editing options)
@@ -295,6 +364,7 @@ export const CartProvider = ({ children }) => {
     // Remove persisted cart immediately so a fresh add cannot revive an old line.
     if (typeof window !== "undefined") localStorage.removeItem("melachowCart");
     setCart([]);
+    setActiveMealGroups({});
     showAnimatedToast("success", "Cart cleared", "cart-clear");
   };
 
@@ -319,6 +389,8 @@ export const CartProvider = ({ children }) => {
         updateCartItem,
         setItemMealGroup,
         splitCartItem,
+        startAnotherPersonPlate,
+        activeMealGroups,
         clearCart,
       }}
     >
