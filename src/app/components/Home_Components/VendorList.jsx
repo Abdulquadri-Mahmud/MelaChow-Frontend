@@ -409,7 +409,7 @@ export default function VendorList({ user }) {
 
 
       {/* Top Rated */}
-      {topRatedVendors.length > 0 && (
+      {/* {topRatedVendors.length > 0 && (
         <div>
           <SectionHeader
             title={
@@ -424,7 +424,7 @@ export default function VendorList({ user }) {
           />
           <VendorRow vendors={topRatedVendors} />
         </div>
-      )}
+      )} */}
 
       {/* Open Now */}
       {openVendors.length > 0 && (
