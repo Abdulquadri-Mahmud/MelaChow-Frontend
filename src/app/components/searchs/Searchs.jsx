@@ -325,13 +325,12 @@ export default function FoodSearchMobile() {
   const handleDropdownSelect = async (value, type) => {
     setQuery(value);
     setShowDropdown(false);
+    setAutocomplete([]);
 
     if (type === "category") {
       handleCategoryClick(value);
     }
-    
-    // Keep focus
-    setTimeout(() => inputRef.current?.focus(), 50);
+    inputRef.current?.blur();
   };
 
   return (
