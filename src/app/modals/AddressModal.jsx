@@ -19,6 +19,8 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
   const hasExistingAddress = user?.addresses?.length > 0;
 
   const [addressLine, setAddressLine] = useState("");
+  const [coordinates, setCoordinates] = useState(null);
+  const [locating, setLocating] = useState(false);
 
   // Use the location selector hook
   const {
@@ -36,9 +38,27 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
   useEffect(() => {
     if (!isOpen) {
       setAddressLine("");
+      setCoordinates(null);
       reset();
     }
   }, [isOpen, reset]);
+
+  const captureDeliveryPin = () => {
+    if (!navigator.geolocation) return toast.error("Location is not supported on this device");
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setCoordinates({ lat: coords.latitude, lng: coords.longitude });
+        setLocating(false);
+        toast.success("Exact delivery pin captured");
+      },
+      (error) => {
+        setLocating(false);
+        toast.error(error.code === 1 ? "Allow location access to capture your delivery pin" : "Could not get your location. Move outdoors and try again.");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  };
 
   const handleSave = async () => {
     if (!isValid || !addressLine.trim()) {
@@ -57,6 +77,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
           state: stateName,
           cityId: selectedCityId,
           stateId: selectedStateId,
+          coordinates,
           isDefault: true,
         },
         {
@@ -133,6 +154,17 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
                     : '📍 Enter your address to discover restaurants near you and get your food delivered!'}
                 </p>
               </div>
+
+              <button
+                type="button"
+                onClick={captureDeliveryPin}
+                disabled={locating}
+                className={`w-full rounded-xl border px-4 py-3 text-sm font-bold flex items-center justify-center gap-2 ${coordinates ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-orange-200 bg-orange-50 text-orange-700"}`}
+              >
+                {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
+                {locating ? "Getting precise location..." : coordinates ? "Exact delivery pin captured" : "Use my current location for rider navigation"}
+              </button>
+              <p className="-mt-4 text-center text-xs text-gray-500">Stand at the delivery address before capturing the pin.</p>
             </div>
 
             {/* Form Section */}
