@@ -9,6 +9,7 @@ import { useApi } from "../context/ApiContext";
 import axios from "axios";
 import LocationSelector, { useLocationSelector } from "../components/LocationSelector";
 import { normalizeUserAddresses } from "../lib/addressUtils";
+import DeliveryPinField from "../components/DeliveryPinField";
 
 export default function AddressModal({ user, isOpen, setIsOpen }) {
   const [loading, setLoading] = useState(false);
@@ -48,7 +49,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        setCoordinates({ lat: coords.latitude, lng: coords.longitude });
+        setCoordinates({ lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy });
         setLocating(false);
         toast.success("Exact delivery pin captured");
       },
@@ -155,16 +156,6 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={captureDeliveryPin}
-                disabled={locating}
-                className={`w-full rounded-xl border px-4 py-3 text-sm font-bold flex items-center justify-center gap-2 ${coordinates ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-orange-200 bg-orange-50 text-orange-700"}`}
-              >
-                {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-                {locating ? "Getting precise location..." : coordinates ? "Exact delivery pin captured" : "Use my current location for rider navigation"}
-              </button>
-              <p className="-mt-4 text-center text-xs text-gray-500">Stand at the delivery address before capturing the pin.</p>
             </div>
 
             {/* Form Section */}
@@ -216,6 +207,8 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
                   />
                 </div>
               </div>
+
+              <DeliveryPinField coordinates={coordinates} locating={locating} onCapture={captureDeliveryPin} />
 
               {/* Action Buttons */}
               <div className="pt-2 flex flex-col sm:flex-row gap-3">
