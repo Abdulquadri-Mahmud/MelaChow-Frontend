@@ -7,6 +7,8 @@ export function cn(...inputs) {
 
 export const isVendorOpen = (openingHours) => {
   if (!openingHours) return false;
+  if (openingHours.adminOverride?.status === "open") return true;
+  if (openingHours.adminOverride?.status === "closed") return false;
   const now      = new Date();
   const dayName  = now.toLocaleDateString("en-US",
     { weekday: "long" }).toLowerCase();
