@@ -380,15 +380,15 @@ export default function GetHelp() {
             <ContactMethod
               icon={MessageCircle}
               name="WhatsApp"
-              description="Fast help for urgent issues"
-              url="https://wa.me/2349134831368"
+              description="07047594667 - Fast help for urgent issues"
+              url="https://wa.me/2347047594667"
               colorClass="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600"
             />
             <ContactMethod
               icon={Phone}
               name="Call support"
-              description="Talk to a support agent"
-              url="tel:2349134831368"
+              description="09134831368 - Talk to a support agent"
+              url="tel:09134831368"
               colorClass="bg-blue-50 dark:bg-blue-500/10 text-blue-600"
             />
             <ContactMethod

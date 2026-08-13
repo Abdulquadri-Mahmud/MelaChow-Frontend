@@ -405,14 +405,14 @@ export default function FAQs() {
             </Link>
 
             {/* Call */}
-            <Link href="tel:+23400000000" className="group">
+            <Link href="tel:09134831368" className="group">
               <div className="p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-purple-500/30 transition-all text-center space-y-4">
                 <div className="w-12 h-12 rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-500 mx-auto flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Phone size={24} />
                 </div>
                 <div>
                   <h4 className="font-bold text-zinc-900 dark:text-white text-sm">Call Us</h4>
-                  <p className="text-xs text-zinc-500 mt-1">Mon-Fri, 9am-6pm</p>
+                  <p className="text-xs text-zinc-500 mt-1">09134831368</p>
                 </div>
                 <div className="text-[10px] font-bold uppercase tracking-widest text-purple-600 flex items-center justify-center gap-1">
                   Call Now <ArrowRight size={12} />

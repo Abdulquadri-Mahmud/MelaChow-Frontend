@@ -31,10 +31,12 @@ export default function NeedHelp() {
         </p>
 
         <div className="flex flex-col md:flex-row gap-4 justify-center">
-          {/* <button onClick={() => setIsChatOpen(true)} className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-2xl w-full md:w-auto transition-all shadow-lg shadow-emerald-500/20 font-bold">
-            <ChatBubbleLeftRightIcon className="w-5 h-5" />
-            Live Chat
-          </button> */}
+          <Link href="https://wa.me/2347047594667" target="_blank" rel="noopener noreferrer" className="w-full md:w-auto">
+            <button className="flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-2xl w-full transition-all shadow-lg shadow-emerald-500/20 font-bold">
+              <ChatBubbleLeftRightIcon className="w-5 h-5" />
+              WhatsApp (07047594667)
+            </button>
+          </Link>
           <Link href="mailto:support@melachow.com" className="w-full md:w-auto">
             <button className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-2xl w-full transition-all shadow-lg shadow-orange-500/20 font-bold">
               <EnvelopeIcon className="w-5 h-5" />
@@ -47,10 +49,10 @@ export default function NeedHelp() {
               Email Help Desk
             </button>
           </Link>
-          <Link href="tel:+2340000000000" className="w-full md:w-auto">
+          <Link href="tel:09134831368" className="w-full md:w-auto">
             <button className="flex items-center justify-center gap-2 bg-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 text-white px-6 py-3 rounded-2xl w-full transition-all shadow-lg shadow-zinc-900/20 font-bold">
               <PhoneIcon className="w-5 h-5" />
-              Call Us
+              Call Us (09134831368)
             </button>
           </Link>
         </div>
