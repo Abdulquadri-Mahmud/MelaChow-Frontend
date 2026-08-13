@@ -10,6 +10,7 @@ import axios from "axios";
 import LocationSelector, { useLocationSelector } from "../components/LocationSelector";
 import { normalizeUserAddresses } from "../lib/addressUtils";
 import DeliveryPinField from "../components/DeliveryPinField";
+import { getDeliveryPosition } from "../lib/deliveryGeolocation";
 
 export default function AddressModal({ user, isOpen, setIsOpen }) {
   const [loading, setLoading] = useState(false);
@@ -44,21 +45,17 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
     }
   }, [isOpen, reset]);
 
-  const captureDeliveryPin = () => {
-    if (!navigator.geolocation) return toast.error("Location is not supported on this device");
+  const captureDeliveryPin = async () => {
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        setCoordinates({ lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy });
-        setLocating(false);
-        toast.success("Exact delivery pin captured");
-      },
-      (error) => {
-        setLocating(false);
-        toast.error(error.code === 1 ? "Allow location access to capture your delivery pin" : "Could not get your location. Move outdoors and try again.");
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
+    try {
+      const { coords } = await getDeliveryPosition();
+      setCoordinates({ lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy });
+      toast.success("Delivery pin captured. Check it in Maps before saving.");
+    } catch (error) {
+      toast.error(error.message, { duration: 7000 });
+    } finally {
+      setLocating(false);
+    }
   };
 
   const handleSave = async () => {
