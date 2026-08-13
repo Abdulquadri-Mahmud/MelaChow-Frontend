@@ -2,6 +2,8 @@
 // utils/vendorTime.js
 export function getVendorOpenStatus(openingHours) {
   if (!openingHours) return "Opening hours not available.";
+  if (openingHours.adminOverride?.status === "open") return "Open now by administrator override.";
+  if (openingHours.adminOverride?.status === "closed") return "Temporarily closed by administrator.";
 
   const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
   const now = new Date();
