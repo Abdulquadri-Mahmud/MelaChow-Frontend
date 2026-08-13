@@ -43,6 +43,25 @@ export default function AddressPage() {
   const [locationError, setLocationError] = useState(null);
 
   const [form, setForm] = useState({ addressLine: "" });
+  const [coordinates, setCoordinates] = useState(null);
+  const [locating, setLocating] = useState(false);
+
+  const captureDeliveryPin = () => {
+    if (!navigator.geolocation) return toast.error("Location is not supported on this device");
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setCoordinates({ lat: coords.latitude, lng: coords.longitude });
+        setLocating(false);
+        toast.success("Exact delivery pin captured");
+      },
+      (error) => {
+        setLocating(false);
+        toast.error(error.code === 1 ? "Allow location access to capture your delivery pin" : "Could not get your location. Move outdoors and try again.");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  };
 
   /* ---------------- FETCH LOCATIONS ---------------- */
   const fetchLocations = async () => {
@@ -111,6 +130,7 @@ export default function AddressPage() {
         stateId: selectedStateId,
         cityId: selectedCityId,
         addressLine: form.addressLine,
+        coordinates,
         isDefault: addresses.length === 0 ? true : undefined
       };
 
@@ -182,6 +202,7 @@ export default function AddressPage() {
     if (addr) {
       setEditingId(addr._id);
       setForm({ addressLine: addr.addressLine });
+      setCoordinates(addr.coordinates || null);
       const stateLoc = locations.find(loc => loc.state === addr.state || loc.state === addr.stateName || loc.stateId === addr.stateId);
       if (stateLoc) {
         setSelectedStateId(stateLoc.stateId);
@@ -192,6 +213,7 @@ export default function AddressPage() {
     } else {
       setEditingId(null);
       setForm({ addressLine: "" });
+      setCoordinates(null);
       setSelectedStateId("");
       setSelectedCityId("");
       setCities([]);
@@ -203,6 +225,8 @@ export default function AddressPage() {
     setIsFormOpen(false);
     setEditingId(null);
     setForm({ addressLine: "" });
+    setCoordinates(null);
+    setLocating(false);
     setSelectedStateId("");
     setSelectedCityId("");
   };
@@ -402,6 +426,17 @@ export default function AddressPage() {
                       className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 text-sm font-bold text-gray-900 dark:text-white outline-none resize-none focus:ring-4 focus:ring-orange-500/5"
                     />
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={captureDeliveryPin}
+                    disabled={locating}
+                    className={`w-full rounded-2xl border px-4 py-3.5 text-sm font-black flex items-center justify-center gap-2 ${coordinates ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10" : "border-orange-200 bg-orange-50 text-orange-700 dark:bg-orange-500/10"}`}
+                  >
+                    {locating ? <Loader2 className="animate-spin" size={18} /> : <Navigation size={18} />}
+                    {locating ? "Getting precise location..." : coordinates ? "Update current delivery pin" : "Use my current location"}
+                  </button>
+                  <p className="-mt-2 text-center text-[10px] font-semibold text-gray-400">Stand at the delivery address, then capture the pin.</p>
 
                   <button
                     disabled={loading || !selectedStateId || !selectedCityId || !form.addressLine}
