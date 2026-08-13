@@ -202,9 +202,9 @@ export default function Support() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <ContactOption
               icon={MessageCircle}
-              title="Chat Support"
-              subtitle="Average wait: 2 mins"
-              href="#"
+              title="WhatsApp Chat"
+              subtitle="07047594667"
+              href="https://wa.me/2347047594667"
             />
             <ContactOption
               icon={Mail}
@@ -221,8 +221,8 @@ export default function Support() {
             <ContactOption
               icon={Phone}
               title="Call Us"
-              subtitle="0800-GRUB-DASH"
-              href="tel:08000000000"
+              subtitle="09134831368"
+              href="tel:09134831368"
             />
           </div>
         </motion.div>
