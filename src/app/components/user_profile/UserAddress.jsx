@@ -15,6 +15,7 @@ import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { LocationService } from "@/app/lib/locationService";
 import { normalizeAddress } from "@/app/lib/addressUtils";
 import AddressSkeleton from "../skeleton/AddressSkeleton";
+import DeliveryPinField from "../DeliveryPinField";
 
 export default function AddressPage() {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function AddressPage() {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        setCoordinates({ lat: coords.latitude, lng: coords.longitude });
+        setCoordinates({ lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy });
         setLocating(false);
         toast.success("Exact delivery pin captured");
       },
@@ -427,16 +428,7 @@ export default function AddressPage() {
                     />
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={captureDeliveryPin}
-                    disabled={locating}
-                    className={`w-full rounded-2xl border px-4 py-3.5 text-sm font-black flex items-center justify-center gap-2 ${coordinates ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10" : "border-orange-200 bg-orange-50 text-orange-700 dark:bg-orange-500/10"}`}
-                  >
-                    {locating ? <Loader2 className="animate-spin" size={18} /> : <Navigation size={18} />}
-                    {locating ? "Getting precise location..." : coordinates ? "Update current delivery pin" : "Use my current location"}
-                  </button>
-                  <p className="-mt-2 text-center text-[10px] font-semibold text-gray-400">Stand at the delivery address, then capture the pin.</p>
+                  <DeliveryPinField coordinates={coordinates} locating={locating} onCapture={captureDeliveryPin} />
 
                   <button
                     disabled={loading || !selectedStateId || !selectedCityId || !form.addressLine}
