@@ -47,7 +47,7 @@ export default function DynamicBannerCarousel({ fallback: Fallback }) {
 
   if (isLoading) {
     return (
-      <div className="relative h-40 w-full overflow-hidden rounded-[26px] bg-slate-200 dark:bg-slate-800 animate-pulse sm:h-44">
+      <div className="relative h-[172px] w-full overflow-hidden rounded-[26px] bg-slate-200 dark:bg-slate-800 animate-pulse sm:h-48">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent animate-shimmer" />
         <div className="p-6 space-y-3 max-w-[65%]">
           <div className="h-4 w-20 rounded-full bg-slate-300 dark:bg-slate-700" />
@@ -99,7 +99,7 @@ export default function DynamicBannerCarousel({ fallback: Fallback }) {
               key={b._id}
               type="button"
               onClick={() => b.ctaLink && router.push(b.ctaLink)}
-              className="relative h-40 min-w-full snap-center overflow-hidden rounded-[26px] p-5 text-left text-white shadow-lg sm:h-48 sm:p-6 transition-all duration-300 group/card cursor-pointer"
+              className="relative h-[172px] min-w-full snap-center overflow-hidden rounded-[26px] p-4 text-left text-white shadow-lg sm:h-48 sm:p-6 transition-all duration-300 group/card cursor-pointer"
               style={{ background }}
               aria-label={b.ctaText ? `${b.title}: ${b.ctaText}` : b.title}
             >
