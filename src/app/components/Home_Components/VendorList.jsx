@@ -275,6 +275,7 @@ export default function VendorList({ user }) {
     const normalized = raw.map((v) => ({
       _id: v._id,
       storeName: v.storeName,
+      createdAt: v.createdAt,
       city: v.address?.city,
       image: v.logo || null,
       deliveryFee: v.deliveryFee ?? 0,
@@ -313,12 +314,29 @@ export default function VendorList({ user }) {
 
 
   const { openVendors, closedVendors, topRatedVendors } = useMemo(() => {
+    const getTimestamp = (v) => {
+      if (v.createdAt) {
+        const t = new Date(v.createdAt).getTime();
+        if (!isNaN(t)) return t;
+      }
+      if (v._id && typeof v._id === "string" && v._id.length === 24) {
+        const t = parseInt(v._id.substring(0, 8), 16) * 1000;
+        if (!isNaN(t)) return t;
+      }
+      return 0;
+    };
+
+    const byNewest = (a, b) => getTimestamp(b) - getTimestamp(a);
     const byRating = (a, b) => b.rating - a.rating;
-    const open = allVendors.filter((v) => v.isOpen).sort(byRating);
+
+    const open = allVendors.filter((v) => v.isOpen).sort(byNewest);
+    const closed = allVendors.filter((v) => !v.isOpen).sort(byNewest);
+    const topRated = open.filter((v) => v.rating >= 4.0).sort(byRating).slice(0, 10);
+
     return {
-      openVendors:   open,
-      closedVendors: allVendors.filter((v) => !v.isOpen).sort(byRating),
-      topRatedVendors: open.filter((v) => v.rating >= 4.0).slice(0, 10), // Top 10 open vendors with 4+ stars
+      openVendors: open,
+      closedVendors: closed,
+      topRatedVendors: topRated,
     };
   }, [allVendors]);
 
@@ -409,7 +427,7 @@ export default function VendorList({ user }) {
 
 
       {/* Top Rated */}
-      {/* {topRatedVendors.length > 0 && (
+      {topRatedVendors.length > 0 && (
         <div>
           <SectionHeader
             title={
@@ -424,7 +442,7 @@ export default function VendorList({ user }) {
           />
           <VendorRow vendors={topRatedVendors} />
         </div>
-      )} */}
+      )}
 
       {/* Open Now */}
       {openVendors.length > 0 && (
