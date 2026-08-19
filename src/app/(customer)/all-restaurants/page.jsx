@@ -50,11 +50,12 @@ export default function AllRestaurants() {
 
     const allVendors = useMemo(() => {
         const raw = responseData?.vendors || [];
-        return raw.map((v) => {
+        const mapped = raw.map((v) => {
             const rawStatus = getVendorOpenAndCloseStatus(v.openingHours);
             return {
                 _id: v._id,
                 storeName: v.storeName,
+                createdAt: v.createdAt,
                 city: v.address?.city || v.cityId?.name || v.city,
                 image: v.logo || null,
                 deliveryFee: v.deliveryFee ?? 0,
@@ -68,6 +69,20 @@ export default function AllRestaurants() {
                 rawStatus: rawStatus,
             };
         });
+
+        const getTimestamp = (v) => {
+            if (v.createdAt) {
+                const t = new Date(v.createdAt).getTime();
+                if (!isNaN(t)) return t;
+            }
+            if (v._id && typeof v._id === "string" && v._id.length === 24) {
+                const t = parseInt(v._id.substring(0, 8), 16) * 1000;
+                if (!isNaN(t)) return t;
+            }
+            return 0;
+        };
+
+        return mapped.sort((a, b) => getTimestamp(b) - getTimestamp(a));
     }, [responseData]);
 
     const cuisineOptions = useMemo(() => {
