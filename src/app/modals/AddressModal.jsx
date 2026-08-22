@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, MapPin, Home, CheckCircle2, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -12,10 +13,15 @@ import { normalizeUserAddresses } from "../lib/addressUtils";
 import DeliveryPinField from "../components/DeliveryPinField";
 import { getDeliveryPosition } from "../lib/deliveryGeolocation";
 
+const subscribe = () => () => {};
+
 export default function AddressModal({ user, isOpen, setIsOpen }) {
   const [loading, setLoading] = useState(false);
   const { baseUrl } = useApi();
   const queryClient = useQueryClient();
+
+  // SSR hydration safety for portals
+  const mounted = useSyncExternalStore(subscribe, () => true, () => false);
 
   // Check if user has existing addresses
   const hasExistingAddress = user?.addresses?.length > 0;
@@ -23,6 +29,18 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
   const [addressLine, setAddressLine] = useState("");
   const [coordinates, setCoordinates] = useState(null);
   const [locating, setLocating] = useState(false);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
 
   // Use the location selector hook
   const {
@@ -101,10 +119,12 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
     }
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4">
+        <div className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4 h-screen w-screen overflow-hidden">
           <motion.div
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             initial={{ opacity: 0 }}
@@ -232,6 +252,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
