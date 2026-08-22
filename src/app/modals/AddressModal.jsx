@@ -104,7 +104,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className={`fixed inset-0 z-[10001] flex items-center justify-center overflow-y-auto ${!hasExistingAddress ? 'p-0' : 'px-4 py-4'}`}>
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4">
           <motion.div
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             initial={{ opacity: 0 }}
@@ -114,68 +114,45 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
           />
 
           <motion.div
-            className={`relative w-full ${
-              !hasExistingAddress 
-                ? "h-screen w-screen max-w-none rounded-none" 
-                : "max-w-lg mx-auto rounded-3xl"
-            } overflow-hidden bg-white dark:bg-slate-900 shadow-2xl border border-transparent dark:border-slate-800`}
-            initial={{ opacity: 0, scale: !hasExistingAddress ? 1 : 0.9, y: !hasExistingAddress ? 0 : 20 }}
+            className="relative z-10 w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-lg bg-white dark:bg-slate-900 sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-transparent dark:border-slate-800"
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: !hasExistingAddress ? 1 : 0.9, y: !hasExistingAddress ? 0 : 20 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
             {/* Header with Background Pattern */}
-            <div className="relative bg-orange-500 px-4 py-6 text-white overflow-hidden">
-              <div className="absolute top-0 right-0 -mr-10 -mt-10 h-40 w-40 rounded-full bg-orange-400/20 blur-3xl" />
-              <div className="absolute bottom-0 left-0 -ml-10 -mb-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+            <div className="relative flex-shrink-0 bg-orange-500 px-4 py-5 sm:py-6 text-white overflow-hidden">
+              <div className="absolute top-0 right-0 -mr-10 -mt-10 h-40 w-40 rounded-full bg-orange-400/20 blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 -ml-10 -mb-10 h-32 w-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
 
               {/* Only show close button if user has existing addresses */}
               {hasExistingAddress && (
                 <button
+                  type="button"
                   onClick={() => setIsOpen(false)}
-                  className="absolute right-4 top-4 rounded-full bg-white/20 p-2 text-white transition-colors hover:bg-white/30"
+                  className="absolute right-4 top-4 z-20 rounded-full bg-white/20 p-2 text-white transition-colors hover:bg-white/30"
                 >
                   <X className="h-5 w-5" />
                 </button>
               )}
 
               <div className="relative z-10 flex flex-col items-center text-center">
-                <div className="mb-4 rounded-2xl bg-white/20 p-3 backdrop-blur-md">
-                  <MapPin className="h-8 w-8 text-white" />
+                <div className="mb-2 sm:mb-3 rounded-2xl bg-white/20 p-2.5 sm:p-3 backdrop-blur-md">
+                  <MapPin className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
                   {hasExistingAddress ? 'Add New Address' : 'Set Your Location'}
                 </h2>
-                <p className="mt-2 text-orange-50/90 text-sm sm:text-base max-w-md">
+                <p className="mt-1 text-orange-50/90 text-xs sm:text-sm max-w-md">
                   {hasExistingAddress
                     ? 'Add another delivery address for your convenience'
                     : '📍 Enter your address to discover restaurants near you and get your food delivered!'}
                 </p>
               </div>
-
             </div>
 
-            {/* Form Section */}
-            <div className="p-3 sm:p-6 space-y-6">
-              {/* Info Banner - Only show for first-time users */}
-              {/* {!hasExistingAddress && (
-                <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 mt-0.5">
-                      <MapPin className="h-5 w-5 text-orange-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-sm font-semibold text-orange-900 mb-1">
-                        Why we need your address
-                      </h4>
-                      <p className="text-xs text-orange-700 leading-relaxed">
-                        We'll use your location to show you nearby restaurants and ensure accurate delivery times. Your address helps us serve you better!
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )} */}
-
+            {/* Form Section - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
               {/* Location Selector */}
               <LocationSelector
                 selectedStateId={selectedStateId}
@@ -206,9 +183,11 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
               </div>
 
               <DeliveryPinField coordinates={coordinates} locating={locating} onCapture={captureDeliveryPin} />
+            </div>
 
-              {/* Action Buttons */}
-              <div className="pt-2 flex flex-col sm:flex-row gap-3">
+            {/* Action Buttons - Fixed at bottom */}
+            <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 p-4 sm:p-5 space-y-3 shadow-lg">
+              <div className="flex flex-col sm:flex-row gap-3">
                 {/* Only show cancel button if user has existing addresses */}
                 {hasExistingAddress && (
                   <button
@@ -220,10 +199,12 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
                   </button>
                 )}
                 <button
+                  type="button"
                   disabled={loading || !isValid || !addressLine.trim()}
                   onClick={handleSave}
-                  className={`group relative overflow-hidden rounded-xl bg-orange-500 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 hover:shadow-orange-500/40 disabled:opacity-70 disabled:cursor-not-allowed ${hasExistingAddress ? 'flex-[2]' : 'w-full'
-                    }`}
+                  className={`group relative overflow-hidden rounded-xl bg-orange-500 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 hover:shadow-orange-500/40 disabled:opacity-70 disabled:cursor-not-allowed ${
+                    hasExistingAddress ? 'flex-[2]' : 'w-full'
+                  }`}
                 >
                   <div className="relative z-10 flex items-center justify-center gap-2">
                     {loading ? (
@@ -240,11 +221,9 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
                   </div>
                 </button>
               </div>
-            </div>
 
-            {/* Footer Tip */}
-            <div className="bg-gray-50 dark:bg-slate-900/50 px-8 py-4 text-center border-t dark:border-slate-800">
-              <p className="text-xs text-gray-500 dark:text-slate-400">
+              {/* Footer Tip */}
+              <p className="text-center text-xs text-gray-500 dark:text-slate-400">
                 {hasExistingAddress
                   ? '🔒 Your address is secure and only used for delivery'
                   : '🎉 Once saved, you\'ll see all nearby restaurants!'}
@@ -256,4 +235,3 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
     </AnimatePresence>
   );
 }
-
