@@ -6,6 +6,8 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useCart } from "@/app/context/CartContext";
 
+const normalizeId = (value) => String(value?._id || value?.id || value || "");
+
 export default function FoodCustomizationModal({ 
     food, 
     isOpen, 
@@ -66,13 +68,15 @@ export default function FoodCustomizationModal({
                 setQuantity(initialEditItem.quantity || 1);
                 setPortionQuantity(initialEditItem.portion_quantity || 1);
                 const portions = Array.isArray(food?.portions) ? food.portions : [];
-                const foundPortion = portions.find(p => p._id === initialEditItem.portionId);
+                const foundPortion = portions.find(
+                    p => normalizeId(p) === normalizeId(initialEditItem.portionId)
+                );
                 setSelectedPortion(foundPortion || defaultPortion);
                 
                 const newSelections = {};
                 choiceGroups.forEach((group, gIdx) => {
                     const groupOptions = initialEditItem.selected_options?.filter(
-                        opt => opt.group_id === group._id
+                        opt => normalizeId(opt.group_id) === normalizeId(group)
                     );
                     if (groupOptions && groupOptions.length > 0) {
                         if (group.max_selections > 1) {
@@ -208,8 +212,8 @@ export default function FoodCustomizationModal({
             return;
         }
 
-        for (let i = 0; i < (food.choiceGroups || []).length; i++) {
-            const group = food.choiceGroups[i];
+        for (let i = 0; i < choiceGroups.length; i++) {
+            const group = choiceGroups[i];
             const sel = selections[i];
             let count = 0;
             if (Array.isArray(sel)) {

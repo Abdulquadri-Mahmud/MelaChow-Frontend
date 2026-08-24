@@ -17,6 +17,7 @@ const CartContext = createContext({
   setItemMealGroup: () => {},
   splitCartItem: () => {},
   startAnotherPersonPlate: () => {},
+  continuePersonPlate: () => {},
   activeMealGroups: {},
   clearCart: () => {},
 });
@@ -37,6 +38,7 @@ export const useCart = () => {
       setItemMealGroup: () => {},
       splitCartItem: () => {},
       startAnotherPersonPlate: () => {},
+      continuePersonPlate: () => {},
       activeMealGroups: {},
       clearCart: () => {},
     };
@@ -154,6 +156,25 @@ export const CartProvider = ({ children }) => {
     }
   }, [activeMealGroups]);
 
+  // A person group only belongs to a restaurant while that restaurant still
+  // has items in the cart. This also removes stale session state on hydration.
+  useEffect(() => {
+    const restaurantIdsInCart = new Set(
+      cart.map((item) => String(item?.vendorId || item?.restaurantId || "")).filter(Boolean)
+    );
+
+    setActiveMealGroups((current) => {
+      const staleRestaurantIds = Object.keys(current).filter(
+        (restaurantId) => !restaurantIdsInCart.has(restaurantId)
+      );
+      if (staleRestaurantIds.length === 0) return current;
+
+      const next = { ...current };
+      staleRestaurantIds.forEach((restaurantId) => delete next[restaurantId]);
+      return next;
+    });
+  }, [cart]);
+
   const getRestaurantId = (item) => String(item?.vendorId || item?.restaurantId || "");
   const withActiveMealGroup = (item) => {
     if (!cart.some((cartItem) => getRestaurantId(cartItem) === getRestaurantId(item))) return item;
@@ -188,6 +209,22 @@ export const CartProvider = ({ children }) => {
       `${nextPersonLabel} started. Add everything they want to eat.`,
       "cart-person-start"
     );
+  };
+
+  const continuePersonPlate = (restaurantId, mealGroupLabel) => {
+    const normalizedRestaurantId = String(restaurantId || "");
+    const normalizedLabel = String(mealGroupLabel || "").trim().slice(0, 40);
+    if (!normalizedRestaurantId || !normalizedLabel) return;
+
+    setCart((previousCart) => previousCart.map((item) => (
+      getRestaurantId(item) === normalizedRestaurantId && !String(item.meal_group_label || "").trim()
+        ? { ...item, meal_group_label: "Person 1" }
+        : item
+    )));
+    setActiveMealGroups((current) => ({
+      ...current,
+      [normalizedRestaurantId]: { label: normalizedLabel },
+    }));
   };
 
   // Add item
@@ -322,23 +359,28 @@ export const CartProvider = ({ children }) => {
   // Update item (for editing options)
   const updateCartItem = (foodId, portionId, updatedItem, cartId) => {
     setCart((prev) => {
+      const source = prev.find((item) => item.cartId === cartId);
+      if (!source) return prev;
+
       // 1. Remove the old item by its unique cartId
       const filtered = prev.filter(c => c.cartId !== cartId);
+      // Preserve person assignment and checkout metadata that are not part of
+      // the customization modal's editable payload.
+      const nextItem = { ...source, ...updatedItem, cartId: source.cartId };
 
       // 2. Check if the updated item (with its new options) already exists elsewhere in the cart
-      const existingIndex = filtered.findIndex(c => isSameItem(c, updatedItem));
+      const existingIndex = filtered.findIndex(c => isSameItem(c, nextItem));
 
       if (existingIndex > -1) {
         // Merge quantities if an identical item exists
         const newCart = [...filtered];
         newCart[existingIndex] = {
           ...newCart[existingIndex],
-          quantity: newCart[existingIndex].quantity + (updatedItem.quantity || 1)
+          quantity: newCart[existingIndex].quantity + (nextItem.quantity || 1)
         };
         return newCart;
       } else {
-        // Otherwise add the updated item as a new entry (reusing the same cartId is fine)
-        return [...filtered, { ...updatedItem, cartId: cartId || `${Date.now()}-${Math.random()}` }];
+        return [...filtered, nextItem];
       }
     });
     showAnimatedToast("success", "Cart updated", "cart-update");
@@ -392,6 +434,7 @@ export const CartProvider = ({ children }) => {
         setItemMealGroup,
         splitCartItem,
         startAnotherPersonPlate,
+        continuePersonPlate,
         activeMealGroups,
         clearCart,
       }}

@@ -25,7 +25,7 @@ function OrdersContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("activeTab") || "cart";
 
-  const { cart, increaseQuantity, decreaseQuantity, removeFromCart, updateCartItem, startAnotherPersonPlate, activeMealGroups } = useCart();
+  const { cart, increaseQuantity, decreaseQuantity, removeFromCart, updateCartItem, startAnotherPersonPlate, continuePersonPlate, activeMealGroups } = useCart();
   const { user } = useUserStorage();
   const { baseUrl } = useApi();
    const [activeTab, setActiveTab] = useState(initialTab);
@@ -231,7 +231,25 @@ function OrdersContent() {
 
                                return (
                                  <div key={itemKey}>
-                                   {plateLabel !== previousPlateLabel && <div className="mb-2 flex items-center justify-between rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800"><span className="text-xs font-semibold text-zinc-800 dark:text-zinc-100">{plateLabel}</span>{activePlate === plateLabel && <span className="text-[10px] font-medium text-orange-600">Adding food here</span>}</div>}
+                                   {plateLabel !== previousPlateLabel && (
+                                     <div className="mb-2 flex items-center justify-between gap-2 rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
+                                       <div>
+                                         <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-100">{plateLabel}</span>
+                                         {activePlate === plateLabel && <span className="ml-2 text-[10px] font-medium text-orange-600">Adding food here</span>}
+                                       </div>
+                                       <button
+                                         type="button"
+                                         onClick={() => {
+                                           continuePersonPlate(vendorId, plateLabel);
+                                           router.push(`/restaurants/${encodeURIComponent(vendorId)}`);
+                                         }}
+                                         className="flex shrink-0 items-center gap-1 rounded-md bg-white px-2 py-1 text-[9px] font-semibold uppercase tracking-wider text-orange-700 shadow-sm transition-colors hover:bg-orange-50 dark:bg-zinc-900 dark:text-orange-300"
+                                       >
+                                         <Plus size={10} strokeWidth={3} />
+                                         Add items
+                                       </button>
+                                     </div>
+                                   )}
                                  <div className="flex gap-4 group">
 
                                    <div className="relative w-20 h-20 rounded overflow-hidden bg-zinc-50 dark:bg-zinc-800 flex-shrink-0 shadow-inner">
@@ -270,6 +288,19 @@ function OrdersContent() {
                                        <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-tighter self-center">₦{getItemPrice(item).toLocaleString()} / unit</p>
 
                                        <div className="flex items-center gap-3">
+
+                                         {item.type !== "combo" && (
+                                           <button
+                                             type="button"
+                                             onClick={() => handleEditClick(item)}
+                                             disabled={isFetchingFood}
+                                             className="flex h-9 items-center gap-1 rounded border border-zinc-100 bg-white px-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-600 shadow-sm transition-all hover:text-orange-600 disabled:cursor-wait disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                                             aria-label={`Edit choices for ${item.name}`}
+                                           >
+                                             {isFetchingFood && editingItem?.cartId === item.cartId ? <Loader2 size={11} className="animate-spin" /> : <Pencil size={11} />}
+                                             Edit choices
+                                           </button>
+                                         )}
 
                                          <div className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 rounded p-1 border border-zinc-100 dark:border-zinc-800 shadow-inner">
                                            <button
