@@ -6,13 +6,14 @@ import { getVendorStorefront } from "@/app/lib/menuApi";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { MapPin, Clock, Star, Search, X, Share2, Flame, ChevronLeft, Store, Gift, ChevronRight } from "lucide-react";
+import { MapPin, Clock, Star, Search, X, Share2, Flame, ChevronLeft, Store, Gift, ChevronRight, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import ViewVendorSkeleton from "@/app/skeleton/ViewVendorSkeleton";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
 import { useComboModalStore } from "@/app/store/comboModalStore";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
+import { useCart } from "@/app/context/CartContext";
 
 const getItemId = (item) => item?._id || item?.id;
 const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
@@ -36,6 +37,8 @@ const FoodItemRow = ({ item, onSelect }) => {
 export default function StorefrontPage({ vendorId: propVendorId }) {
     const params = useParams();
     const vendorId = propVendorId || params.vendorId;
+    const { activeMealGroups } = useCart();
+    const activePerson = activeMealGroups[String(vendorId)]?.label;
     const router = useRouter();    const openFoodModal = useFoodModalStore(state => state.openFoodModal);
     const openComboModal = useComboModalStore(state => state.openComboModal);
     const [searchQuery, setSearchQuery] = useState("");
@@ -382,6 +385,19 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
                                 </span>
                             </div>
                         )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="mx-auto mt-3 max-w-2xl px-4">
+                <div className="flex gap-2 rounded-xl border border-orange-100 bg-orange-50 px-3 py-2.5 text-orange-700 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-300">
+                    <Users size={16} className="mt-0.5 shrink-0" />
+                    <div>
+                        <p className="text-[11px] font-semibold">Ordering for more than one person?</p>
+                        <p className="mt-0.5 text-[10px] leading-4 text-orange-600 dark:text-orange-400">
+                            Add all of Person 1&apos;s items first. When finished, open your cart and tap Add another person&apos;s order, then add everything the next person wants.
+                        </p>
+                        {activePerson && <p className="mt-1 text-[10px] font-semibold">Currently adding items for: {activePerson}</p>}
                     </div>
                 </div>
             </div>

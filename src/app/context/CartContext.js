@@ -173,13 +173,21 @@ export const CartProvider = ({ children }) => {
       ));
     });
 
-    setActiveMealGroups((current) => {
-      const restaurantItems = cart.filter((item) => getRestaurantId(item) === normalizedRestaurantId);
-      const labels = [...new Set(restaurantItems.map((item) => String(item.meal_group_label || "").trim()).filter(Boolean))];
-      const hasUnassignedItems = restaurantItems.some((item) => !String(item.meal_group_label || "").trim());
-      const number = Math.max(labels.length + (hasUnassignedItems ? 1 : 0), 1) + 1;
-      return { ...current, [normalizedRestaurantId]: { label: `Person ${number}` } };
-    });
+    const restaurantItems = cart.filter((item) => getRestaurantId(item) === normalizedRestaurantId);
+    const labels = [...new Set(restaurantItems.map((item) => String(item.meal_group_label || "").trim()).filter(Boolean))];
+    const hasUnassignedItems = restaurantItems.some((item) => !String(item.meal_group_label || "").trim());
+    const number = Math.max(labels.length + (hasUnassignedItems ? 1 : 0), 1) + 1;
+    const nextPersonLabel = `Person ${number}`;
+
+    setActiveMealGroups((current) => ({
+      ...current,
+      [normalizedRestaurantId]: { label: nextPersonLabel },
+    }));
+    showAnimatedToast(
+      "success",
+      `${nextPersonLabel} started. Add everything they want to eat.`,
+      "cart-person-start"
+    );
   };
 
   // Add item
@@ -205,10 +213,7 @@ export const CartProvider = ({ children }) => {
       }
       return [...prev, { ...itemForPlate, quantity: Number(itemForPlate.quantity) || 1, cartId: `${Date.now()}-${Math.random()}` }];
     });
-    showAnimatedToast("success", "Item added to cart", "cart-add", {
-      label: "Add another person's plate",
-      onClick: () => startAnotherPersonPlate(getRestaurantId(item)),
-    });
+    showAnimatedToast("success", "Item added to cart", "cart-add");
   };
   // Add Combo
   const addComboToCart = (comboItem) => {
@@ -234,10 +239,7 @@ export const CartProvider = ({ children }) => {
       };
       return next;
     });
-    showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo", {
-      label: "Add another person's plate",
-      onClick: () => startAnotherPersonPlate(getRestaurantId(comboItem)),
-    });
+    showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo");
   };
 
   // Increase Quantity
