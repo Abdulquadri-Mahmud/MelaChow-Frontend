@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Minus, Plus, ShoppingBag, Check, ShoppingCart } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import toast from "react-hot-toast";
 import { useCart } from "@/app/context/CartContext";
 
@@ -25,6 +25,11 @@ export default function FoodCustomizationModal({
     const [portionQuantity, setPortionQuantity] = useState(1);
     const cartContext = useCart();
     const setIsModalOpen = cartContext?.setIsModalOpen;
+    const onCloseRef = useRef(onClose);
+
+    useEffect(() => {
+        onCloseRef.current = onClose;
+    }, [onClose]);
 
     useEffect(() => {
         if (typeof setIsModalOpen === 'function') {
@@ -47,7 +52,7 @@ export default function FoodCustomizationModal({
       const handlePopState = (e) => {
         // Back was pressed — close the modal instead of navigating away
         // Don't call history.back() here — the pop already happened
-        onClose();
+        onCloseRef.current?.();
       };
 
       window.addEventListener('popstate', handlePopState);
@@ -60,7 +65,7 @@ export default function FoodCustomizationModal({
           window.history.back();
         }
       };
-    }, [isOpen, onClose]);
+    }, [isOpen]);
 
     useEffect(() => {
         if (isOpen) {

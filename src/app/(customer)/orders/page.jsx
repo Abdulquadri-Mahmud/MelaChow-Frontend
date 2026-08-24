@@ -8,9 +8,8 @@ import { useUserStorage } from "@/app/hooks/useUserStorage";
 import Header2 from "@/app/components/App_Header/Header2";
 import { ShoppingCart, Package, Trash2, ArrowRight, Minus, Plus, ShoppingBag, Utensils, Copy } from "lucide-react";
 import toast from "react-hot-toast";
-import { useApi } from "@/app/context/ApiContext";
-import axios from "axios";
 import customerApi from "@/app/lib/customerApi";
+import { getMenuItemDetail } from "@/app/lib/menuApi";
 import { OrderCardSkeleton } from "@/app/components/skeleton/OrderCardSkeleton";
 import { motion } from "framer-motion";
 import { Pencil, Loader2, AlertCircle, RefreshCw } from "lucide-react";
@@ -27,7 +26,6 @@ function OrdersContent() {
 
   const { cart, increaseQuantity, decreaseQuantity, removeFromCart, updateCartItem, startAnotherPersonPlate, continuePersonPlate, activeMealGroups } = useCart();
   const { user } = useUserStorage();
-  const { baseUrl } = useApi();
    const [activeTab, setActiveTab] = useState(initialTab);
    const [swiperInstance, setSwiperInstance] = useState(null);
 
@@ -45,9 +43,9 @@ function OrdersContent() {
     setIsFetchingFood(true);
     setEditingItem(item);
     try {
-      const res = await axios.get(`/v1/vendors/${item.vendorId}/menu/items/${item.foodId}`);
-      if (res.data && res.data.item) {
-        const food = { ...res.data.item, vendor: { _id: item.vendorId, storeName: item.storeName } };
+      const response = await getMenuItemDetail(item.vendorId, item.foodId);
+      if (response?.item) {
+        const food = { ...response.item, vendor: { _id: item.vendorId, storeName: item.storeName } };
         setFoodForEdit(food);
         setEditModalOpen(true);
       } else {
