@@ -302,7 +302,7 @@ export default function FoodCustomizationModal({
                     animate={{ y: 0 }}
                     exit={{ y: "100%" }}
                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    className="relative w-full sm:max-w-md bg-white dark:bg-zinc-900 rounded-t-[24px] sm:rounded-[32px] overflow-hidden flex flex-col max-h-[90vh] shadow-2xl border border-zinc-100 dark:border-zinc-800"
+                    className="relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[24px] border border-zinc-100 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 sm:max-h-[90vh] sm:max-w-md sm:rounded-[32px]"
                 >
                     {/* Header Image */}
                     <div className="relative h-[140px] shrink-0">
@@ -352,17 +352,17 @@ export default function FoodCustomizationModal({
 
                     <div className="flex-1 overflow-y-auto scrollbar-none pb-4 px-4 pt-4 space-y-3">
                         {/* Portion Selector */}
-                        {food.portions?.length > 1 && (
+                        {portions.length > 0 && (
                             <div className="space-y-2.5">
                                 <div className="flex items-center gap-2 mb-1 px-1">
                                    <div className="w-1 h-4 bg-orange-500 rounded-full" />
                                    <p className="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 italic">
-                                       Step 1: Choose Size
+                                       {portions.length > 1 ? "Step 1: Choose Size" : "Selected Size"}
                                    </p>
                                 </div>
                                 <div className="grid grid-cols-1 gap-2 p-1">
-                                    {food.portions.map(portion => {
-                                        const isSelected = selectedPortion?._id === portion._id;
+                                    {portions.map(portion => {
+                                        const isSelected = normalizeId(selectedPortion) === normalizeId(portion);
                                         return (
                                             <div
                                                 key={portion._id}
@@ -512,7 +512,7 @@ export default function FoodCustomizationModal({
                     </div>
 
                     {/* Footer */}
-                    <div className="absolute bottom-0 left-0 right-0 z-10 p-4 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 shadow-2xl">
+                    <div className="z-10 shrink-0 border-t border-zinc-100 bg-white/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-2xl backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/95">
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-[20px] p-1 h-[48px] shadow-inner shrink-0">
                                 <button

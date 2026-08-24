@@ -12,7 +12,7 @@ import customerApi from "@/app/lib/customerApi";
 import { getMenuItemDetail } from "@/app/lib/menuApi";
 import { OrderCardSkeleton } from "@/app/components/skeleton/OrderCardSkeleton";
 import { motion } from "framer-motion";
-import { Pencil, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -292,11 +292,10 @@ function OrdersContent() {
                                              type="button"
                                              onClick={() => handleEditClick(item)}
                                              disabled={isFetchingFood}
-                                             className="flex h-9 items-center gap-1 rounded border border-zinc-100 bg-white px-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-600 shadow-sm transition-all hover:text-orange-600 disabled:cursor-wait disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                                             className="flex h-9 items-center rounded border border-zinc-100 bg-white px-3 text-[9px] font-semibold uppercase tracking-wider text-zinc-600 shadow-sm transition-all hover:text-orange-600 disabled:cursor-wait disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                                              aria-label={`Edit choices for ${item.name}`}
                                            >
-                                             {isFetchingFood && editingItem?.cartId === item.cartId ? <Loader2 size={11} className="animate-spin" /> : <Pencil size={11} />}
-                                             Edit choices
+                                             Edit
                                            </button>
                                          )}
 
