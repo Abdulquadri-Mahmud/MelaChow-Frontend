@@ -154,6 +154,25 @@ export const CartProvider = ({ children }) => {
     }
   }, [activeMealGroups]);
 
+  // A person group only belongs to a restaurant while that restaurant still
+  // has items in the cart. This also removes stale session state on hydration.
+  useEffect(() => {
+    const restaurantIdsInCart = new Set(
+      cart.map((item) => String(item?.vendorId || item?.restaurantId || "")).filter(Boolean)
+    );
+
+    setActiveMealGroups((current) => {
+      const staleRestaurantIds = Object.keys(current).filter(
+        (restaurantId) => !restaurantIdsInCart.has(restaurantId)
+      );
+      if (staleRestaurantIds.length === 0) return current;
+
+      const next = { ...current };
+      staleRestaurantIds.forEach((restaurantId) => delete next[restaurantId]);
+      return next;
+    });
+  }, [cart]);
+
   const getRestaurantId = (item) => String(item?.vendorId || item?.restaurantId || "");
   const withActiveMealGroup = (item) => {
     if (!cart.some((cartItem) => getRestaurantId(cartItem) === getRestaurantId(item))) return item;
