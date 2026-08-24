@@ -207,15 +207,20 @@ function OrdersContent() {
                            </div>
 
                            <div className="mb-3 rounded-md border border-orange-100 bg-orange-50/60 p-2.5 dark:border-orange-500/20 dark:bg-orange-500/10">
-                             <div className="flex items-center justify-between gap-3">
-                               <div>
-                                 <p className="text-[10px] font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-300">Ordering for more than one person?</p>
-                                 <p className="mt-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">Keep each person’s food together so it is packed correctly.</p>
-                               </div>
-                               <button type="button" onClick={() => { startAnotherPersonPlate(vendorId); router.push(`/restaurants/${encodeURIComponent(vendorId)}`); }} className="shrink-0 rounded border border-orange-200 bg-white px-2.5 py-1.5 text-[9px] font-semibold uppercase tracking-wider text-orange-700 transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300">
-                                 Add person
-                               </button>
-                             </div>
+                             <p className="text-[10px] font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-300">Ordering for more than one person?</p>
+                             <p className="mt-1 text-[10px] leading-4 text-zinc-600 dark:text-zinc-300">Finish adding everything Person 1 wants, then:</p>
+                             <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-[10px] leading-4 text-zinc-600 dark:text-zinc-300">
+                               <li>Tap Add another person&apos;s order.</li>
+                               <li>Add everything the next person wants.</li>
+                               <li>Repeat as needed, then checkout once.</li>
+                             </ol>
+                             <p className="mt-2 rounded bg-white/80 px-2 py-1.5 text-[10px] text-orange-700 dark:bg-zinc-900 dark:text-orange-300">
+                               Currently adding items for: <span className="font-semibold">{activePlate || "Person 1"}</span>
+                             </p>
+                             <p className="mt-1.5 text-[9px] leading-4 text-zinc-500 dark:text-zinc-400">We&apos;ll group and label each person&apos;s items for easier packing.</p>
+                             <button type="button" onClick={() => { startAnotherPersonPlate(vendorId); router.push(`/restaurants/${encodeURIComponent(vendorId)}`); }} className="mt-2 w-full rounded border border-orange-200 bg-white px-2.5 py-2 text-[9px] font-semibold uppercase tracking-wider text-orange-700 transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300">
+                               Add another person&apos;s order
+                             </button>
                            </div>
 
                            <div className="space-y-2">
