@@ -128,14 +128,16 @@ export default function Signup() {
       setStatusModal({
         isOpen: true,
         type: 'success',
-        message: "Account created! We've sent a verification code to your email. Redirecting..."
+        message: data.devOtp
+          ? `Account created! Your local test code is ${data.devOtp}. Redirecting...`
+          : "Account created! We've sent a verification code to your email. Redirecting..."
       });
 
       // ✅ Auto-redirect after 2 seconds (don't wait for modal close)
       setTimeout(() => {
         setStatusModal({ ...statusModal, isOpen: false });
         router.push(`/auth/verify-registration?email=${encodeURIComponent(formData.email)}`);
-      }, 1000);
+      }, data.devOtp ? 6000 : 1000);
 
     } catch (err) {
       console.error('[SignUp] Registration failed:', err);

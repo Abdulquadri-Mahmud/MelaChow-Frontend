@@ -23,7 +23,14 @@ export default function VerifyPayment() {
   const router = useRouter();
 
   const reference = searchParams.get("reference");
-  const formatMoney = (value) => `₦${Number(value || 0).toLocaleString()}`;
+  const amountInNaira = (value) => {
+    const amount = Number(value || 0);
+    return order?.moneyUnit === "kobo" ? amount / 100 : amount;
+  };
+  const formatMoney = (value) => `₦${amountInNaira(value).toLocaleString("en-NG", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
   const promoWaivedDelivery =
     Number(order?.deliveryFee || 0) === 0 &&
     Number(order?.freeDeliveryPromo?.originalDeliveryFee || order?.vendorDeliveryPromo?.originalDeliveryFee || 0) > 0;

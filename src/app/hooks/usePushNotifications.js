@@ -23,6 +23,7 @@ export function usePushNotifications(role = 'user') {
     const [isSupported, setIsSupported] = useState(false);
     const [permission, setPermission] = useState('default');
     const [loading, setLoading] = useState(true);
+    const [isSubscribing, setIsSubscribing] = useState(false);
     const [error, setError] = useState(null);
 
     const STORAGE_PREFIX = useMemo(() => `melachow_${role}_`, [role]);
@@ -95,7 +96,7 @@ export function usePushNotifications(role = 'user') {
      * Subscribe to push notifications
      */
     const subscribe = useCallback(async () => {
-        setLoading(true);
+        setIsSubscribing(true);
         setError(null);
 
         try {
@@ -108,7 +109,11 @@ export function usePushNotifications(role = 'user') {
             setPermission(result);
 
             if (result === 'granted') {
-                const sub = await subscribeUserToPush(role);
+                const sub = await withTimeout(
+                    subscribeUserToPush(role),
+                    25000,
+                    'Notification setup timed out. Please try again.'
+                );
                 setSubscription(sub);
                 localStorage.setItem(`${STORAGE_PREFIX}push_notifications_enabled`, 'true');
                 localStorage.setItem(`${STORAGE_PREFIX}push_prompt_dismissed`, 'true'); // Dismiss prompt once subscribed
@@ -122,7 +127,7 @@ export function usePushNotifications(role = 'user') {
             setError(err.message || 'Failed to subscribe to notifications');
             return false;
         } finally {
-            setLoading(false);
+            setIsSubscribing(false);
         }
     }, [STORAGE_PREFIX, isSupported, role]);
 
@@ -158,19 +163,20 @@ export function usePushNotifications(role = 'user') {
      * Check if prompt should be shown
      */
     const shouldShowPrompt = useCallback(() => {
-        if (!isSupported || permission === 'denied' || subscription) {
+        if (loading || !isSupported || permission === 'denied' || subscription) {
             return false;
         }
 
         const dismissed = localStorage.getItem(`${STORAGE_PREFIX}push_prompt_dismissed`);
         return dismissed !== 'true';
-    }, [STORAGE_PREFIX, isSupported, permission, subscription]);
+    }, [STORAGE_PREFIX, isSupported, loading, permission, subscription]);
 
     return {
         isSupported,
         subscription,
         permission,
         loading,
+        isSubscribing,
         error,
         subscribe,
         unsubscribe,

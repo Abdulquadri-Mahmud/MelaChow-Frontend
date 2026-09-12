@@ -20,6 +20,7 @@ import { useCartValidation, CartValidationErrors } from "@/app/components/Cart/C
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
 import { usePromoEligibility } from "@/app/hooks/usePromoEligibility";
+import { getDeliveryQuotes } from "@/app/lib/userApi";
 
 function CheckoutContent() {
   const router = useRouter();
@@ -101,37 +102,57 @@ function CheckoutContent() {
   // Resolution logic for delivery fees
   const [vendorFeesMap, setVendorFeesMap] = useState({});
   const [vendorFreePromoMap, setVendorFreePromoMap] = useState({});
+  const [isDeliveryQuoteLoading, setIsDeliveryQuoteLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
     if (checkoutCart.length > 0 && isMounted) {
       const uniqueIds = Array.from(new Set(checkoutCart.map(item => item.vendorId || item.restaurantId)));
       const fetchFees = async () => {
+        setIsDeliveryQuoteLoading(true);
         const fees = {};
         const freePromos = {};
+        if (defaultAddress?.id || defaultAddress?._id) {
+          try {
+            const response = await getDeliveryQuotes({ addressId: defaultAddress.id || defaultAddress._id, vendorIds: uniqueIds, checkout: true });
+            for (const quote of response.data?.quotes || []) {
+              fees[String(quote.vendorId)] = quote.deliveryFee;
+              if (quote.vendorUuid) fees[String(quote.vendorUuid)] = quote.deliveryFee;
+            }
+          } catch (error) {
+            console.warn("Road delivery quote unavailable; using restaurant fallback", error);
+          }
+        }
         await Promise.all(uniqueIds.map(async id => {
           try {
             const data = await getVendorById(id);
-            const v = data.vendor || data;
+            const v = data?.data?.vendor || data?.vendor || data?.data || data;
             const hasVerifiedVendorPromo = !!v.activeDeliveryPromo?.promoId;
             freePromos[id] = hasVerifiedVendorPromo;
             // Vendor-sponsored promo zeroes the fee only when the backend
             // confirms the promo is currently active and not exhausted.
-            const fee = hasVerifiedVendorPromo
+            const fallbackFee = hasVerifiedVendorPromo
               ? 0
               : v.deliveryManagedBy === "vendor"
                 ? (v.flatRateDeliveryFee || v.deliveryFee || 0)
-                : (v.cityId?.platformDeliveryFee ?? v.deliveryFee ?? 0);
-            fees[id] = fee;
+                : (v.deliveryFee ?? 0);
+            if (fees[id] === undefined || hasVerifiedVendorPromo) fees[id] = hasVerifiedVendorPromo ? 0 : fallbackFee;
           } catch (e) {
             console.error("Fee fetch error:", e);
           }
         }));
-        setVendorFeesMap(prev => ({ ...prev, ...fees }));
-        setVendorFreePromoMap(prev => ({ ...prev, ...freePromos }));
+        if (active) {
+          setVendorFeesMap(prev => ({ ...prev, ...fees }));
+          setVendorFreePromoMap(prev => ({ ...prev, ...freePromos }));
+          setIsDeliveryQuoteLoading(false);
+        }
       };
       fetchFees();
+    } else if (isMounted) {
+      setIsDeliveryQuoteLoading(false);
     }
-  }, [checkoutCart, isMounted]);
+    return () => { active = false; };
+  }, [checkoutCart, isMounted, defaultAddress?.id, defaultAddress?._id]);
 
   // One delivery fee per restaurant
   const restaurantDeliveryMap = {};
@@ -241,6 +262,10 @@ function CheckoutContent() {
       }, 1500);
       return;
     }
+    if (isDeliveryQuoteLoading) {
+      toast("Please wait while we calculate the final delivery fee.");
+      return;
+    }
     setShowLocationConfirm(true);
   };
 
@@ -252,6 +277,10 @@ function CheckoutContent() {
     // 2. Validate cart is not empty
     if (checkoutCart.length === 0) {
       toast.error("Your cart is empty.");
+      return;
+    }
+    if (isDeliveryQuoteLoading) {
+      toast.error("The final delivery fee is still being calculated.");
       return;
     }
 
@@ -268,7 +297,7 @@ function CheckoutContent() {
         uniqueRestaurantIds.map(async (id) => {
           try {
             const data = await getVendorById(id);
-            return { id, vendor: data.vendor || data, success: true };
+            return { id, vendor: data?.data?.vendor || data?.vendor || data?.data || data, success: true };
           } catch (e) {
             console.error(`Failed to fetch vendor ${id}`, e);
             return { id, success: false };
@@ -313,6 +342,7 @@ function CheckoutContent() {
       }));
 
       const deliveryAddress = {
+        id: defaultAddress.id || defaultAddress._id,
         addressLine: defaultAddress.addressLine
           || defaultAddress.address || "",
         cityName: defaultAddress.city
@@ -789,8 +819,8 @@ function CheckoutContent() {
                   ₦{rawDeliveryFee.toLocaleString()}
                 </span>
               )}
-              <span className={`font-medium ${deliveryFee === 0 ? "text-green-400" : "text-white"}`}>
-                {deliveryFee === 0 ? "Free" : `₦${deliveryFee.toLocaleString()}`}
+              <span className={`font-medium ${deliveryFee === 0 && !isDeliveryQuoteLoading ? "text-green-400" : "text-white"}`}>
+                {isDeliveryQuoteLoading ? "Calculating…" : deliveryFee === 0 ? "Free" : `₦${deliveryFee.toLocaleString()}`}
               </span>
             </div>
           </div>
@@ -808,7 +838,7 @@ function CheckoutContent() {
           )}
           <div className="border-t border-white/10 pt-3 flex justify-between items-center text-lg font-bold">
             <span className="flex items-center gap-1 font-semibold text-white uppercase italic">Total</span>
-            <span className="text-orange-500 italic">₦{finalTotal.toLocaleString()}</span>
+            <span className="text-orange-500 italic">{isDeliveryQuoteLoading ? "Calculating…" : `₦${finalTotal.toLocaleString()}`}</span>
           </div>
         </div>
 
@@ -818,7 +848,7 @@ function CheckoutContent() {
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={!defaultAddress ? () => router.push("/profile/address") : handleConfirmLocation}
-            disabled={loadingInit || checkoutCart.length === 0 || isPromoLoading}
+            disabled={loadingInit || checkoutCart.length === 0 || isPromoLoading || isDeliveryQuoteLoading}
             className={`max-w-xl mx-auto w-full py-4 rounded font-black text-lg flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] ${!defaultAddress ? "bg-red-500 text-white shadow-red-200" : "bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white text-white dark:text-zinc-900"}`}
           >
             {loadingInit ? (
@@ -826,6 +856,11 @@ function CheckoutContent() {
                 <Loader2 className="animate-spin" size={24} />
                 <span className="uppercase tracking-[0.2em]">Processing…</span>
               </>
+            ) : isDeliveryQuoteLoading ? (
+              <div className="flex w-full items-center justify-center gap-3 px-6 italic">
+                <Loader2 className="animate-spin" size={21} />
+                <span className="uppercase tracking-tight">Calculating delivery…</span>
+              </div>
             ) : !defaultAddress ? (
               <div className="flex items-center justify-center w-full px-6 italic">
                 <span className="uppercase tracking-tight">Set Address to Continue</span>

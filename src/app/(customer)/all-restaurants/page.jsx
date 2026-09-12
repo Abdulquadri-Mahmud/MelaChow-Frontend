@@ -374,7 +374,7 @@ const VendorCard = ({ vendor, imgLoaded, setImgLoaded }) => {
                     <div className="flex items-center gap-1.5 bg-zinc-100 dark:bg-zinc-800 px-3 py-1.2 rounded-full">
                         <Bike size={14} className="text-orange-500" />
                         <span className="text-zinc-900 dark:text-zinc-100 font-bold">
-                            {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free Delivery" : `₦${vendor.deliveryFee.toLocaleString()}`}
+                            {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free Delivery" : `From ₦${vendor.deliveryFee.toLocaleString()}`}
                         </span>
                     </div>
 

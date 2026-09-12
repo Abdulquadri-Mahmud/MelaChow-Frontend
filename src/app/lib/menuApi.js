@@ -291,9 +291,9 @@ export const getFullVendorMenu = async (vendorId) => {
     return res.data;
 };
 
-export const getVendorStorefront = async (vendorId) => {
+export const getVendorStorefront = async (vendorId, addressId) => {
     const res = await getMenuAxios().get(
-        `/v1/vendors/${vendorId}/menu`
+        `/v1/vendors/${vendorId}/menu`, { params: addressId ? { addressId } : {} }
     );
     return res.data;
 };

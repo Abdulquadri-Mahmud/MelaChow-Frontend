@@ -1,23 +1,19 @@
 "use client";
 
-import { useState, useEffect, useSyncExternalStore } from "react";
+import { useState, useEffect, useSyncExternalStore, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MapPin, Home, CheckCircle2, Loader2 } from "lucide-react";
+import { X, MapPin, Home, CheckCircle2, Loader2, Search, ChevronRight, AlertCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { useApi } from "../context/ApiContext";
-import axios from "axios";
-import LocationSelector, { useLocationSelector } from "../components/LocationSelector";
+import customerApi from "../lib/customerApi";
 import { normalizeUserAddresses } from "../lib/addressUtils";
-import DeliveryPinField from "../components/DeliveryPinField";
-import { getDeliveryPosition } from "../lib/deliveryGeolocation";
+import { autocompleteDeliveryAddress, getDeliveryPlaceDetails } from "../lib/userApi";
 
 const subscribe = () => () => {};
 
 export default function AddressModal({ user, isOpen, setIsOpen }) {
   const [loading, setLoading] = useState(false);
-  const { baseUrl } = useApi();
   const queryClient = useQueryClient();
 
   // SSR hydration safety for portals
@@ -27,8 +23,16 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
   const hasExistingAddress = user?.addresses?.length > 0;
 
   const [addressLine, setAddressLine] = useState("");
-  const [coordinates, setCoordinates] = useState(null);
-  const [locating, setLocating] = useState(false);
+  const [manualMode, setManualMode] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [mapsUnavailable, setMapsUnavailable] = useState(false);
+  const [manualCity, setManualCity] = useState("");
+  const [manualState, setManualState] = useState("");
+  const sessionToken = useRef(null);
+  if (!sessionToken.current && typeof crypto !== "undefined") sessionToken.current = crypto.randomUUID();
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -42,42 +46,55 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
     };
   }, [isOpen]);
 
-  // Use the location selector hook
-  const {
-    selectedStateId,
-    selectedCityId,
-    stateName,
-    cityName,
-    handleStateChange,
-    handleCityChange,
-    reset,
-    isValid
-  } = useLocationSelector();
-
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
       setAddressLine("");
-      setCoordinates(null);
-      reset();
+      setSearchText("");
+      setSuggestions([]);
+      setSelectedPlace(null);
+      setManualMode(false);
+      setMapsUnavailable(false);
+      setManualCity("");
+      setManualState("");
     }
-  }, [isOpen, reset]);
+  }, [isOpen]);
 
-  const captureDeliveryPin = async () => {
-    setLocating(true);
-    try {
-      const { coords } = await getDeliveryPosition();
-      setCoordinates({ lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy });
-      toast.success("Delivery pin captured. Check it in Maps before saving.");
-    } catch (error) {
-      toast.error(error.message, { duration: 7000 });
-    } finally {
-      setLocating(false);
+  useEffect(() => {
+    if (!isOpen || manualMode || selectedPlace || searchText.trim().length < 3) {
+      setSuggestions([]);
+      return;
     }
+    const timer = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const response = await autocompleteDeliveryAddress({ input: searchText.trim(), sessionToken: sessionToken.current });
+        setSuggestions(response.data || []);
+        setMapsUnavailable(false);
+      } catch {
+        setSuggestions([]);
+        setMapsUnavailable(true);
+      } finally { setSearching(false); }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [isOpen, manualMode, searchText, selectedPlace]);
+
+  const selectSuggestion = async (suggestion) => {
+    setSearching(true);
+    try {
+      const response = await getDeliveryPlaceDetails(suggestion.placeId);
+      const place = response.data;
+      setSelectedPlace(place);
+      setSearchText(place.formattedAddress || suggestion.text);
+      setAddressLine(place.formattedAddress || suggestion.text);
+      setSuggestions([]);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "We could not confirm that address");
+    } finally { setSearching(false); }
   };
 
   const handleSave = async () => {
-    if (!isValid || !addressLine.trim()) {
+    if (!(selectedPlace || (manualMode && manualCity.trim() && manualState.trim())) || !addressLine.trim()) {
       toast.error("Please fill in all address details");
       return;
     }
@@ -85,15 +102,18 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        `${baseUrl}/user/auth/address`,
+      const res = await customerApi.post(
+        `/user/auth/address`,
         {
           addressLine: addressLine.trim(),
-          city: cityName,
-          state: stateName,
-          cityId: selectedCityId,
-          stateId: selectedStateId,
-          coordinates,
+          city: selectedPlace?.city || manualCity.trim(),
+          state: selectedPlace?.state || manualState.trim(),
+          postalCode: selectedPlace?.postalCode || undefined,
+          provider: selectedPlace ? "google" : "manual",
+          providerPlaceId: selectedPlace?.placeId,
+          formattedAddress: selectedPlace?.formattedAddress,
+          locationSource: selectedPlace ? "autocomplete_selection" : "manual",
+          ...(selectedPlace?.latitude != null ? { coordinates: { lat: selectedPlace.latitude, lng: selectedPlace.longitude } } : {}),
           isDefault: true,
         },
         {
@@ -173,16 +193,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
 
             {/* Form Section - Scrollable */}
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
-              {/* Location Selector */}
-              <LocationSelector
-                selectedStateId={selectedStateId}
-                selectedCityId={selectedCityId}
-                onStateChange={handleStateChange}
-                onCityChange={handleCityChange}
-                required={true}
-                stateLabel="State"
-                cityLabel="City"
-              />
+              {manualMode ? <><div className="grid grid-cols-2 gap-3"><label className="space-y-2"><span className="text-sm font-medium text-gray-700 dark:text-slate-300">State</span><input value={manualState} onChange={(event) => setManualState(event.target.value)} placeholder="Ogun" className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-sm outline-none focus:border-orange-500 dark:border-slate-700 dark:bg-slate-800" /></label><label className="space-y-2"><span className="text-sm font-medium text-gray-700 dark:text-slate-300">City or area</span><input value={manualCity} onChange={(event) => setManualCity(event.target.value)} placeholder="Saapade" className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-sm outline-none focus:border-orange-500 dark:border-slate-700 dark:bg-slate-800" /></label></div>
 
               {/* Address Line */}
               <div className="space-y-2">
@@ -200,9 +211,23 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
                     required
                   />
                 </div>
-              </div>
+              </div></> : <div className="space-y-3">
+                <label className="text-sm font-medium text-gray-700 dark:text-slate-300 ml-1">Search your delivery address</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+                  <input value={searchText} onChange={(event) => { setSearchText(event.target.value); setSelectedPlace(null); setAddressLine(""); }} placeholder="Start typing your street or area" className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 py-3 pl-11 pr-10 text-sm outline-none focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10" autoComplete="off" />
+                  {searching && <Loader2 className="absolute right-3 top-3.5 h-5 w-5 animate-spin text-orange-500" />}
+                </div>
+                {suggestions.length > 0 && <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl">
+                  {suggestions.map((suggestion) => <button key={suggestion.placeId} type="button" onClick={() => selectSuggestion(suggestion)} className="flex w-full items-center gap-3 border-b border-gray-100 dark:border-slate-700 px-4 py-3 text-left last:border-0 hover:bg-orange-50 dark:hover:bg-slate-700">
+                    <MapPin className="h-4 w-4 shrink-0 text-orange-500" /><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{suggestion.mainText || suggestion.text}</span><span className="block truncate text-xs text-gray-500">{suggestion.secondaryText}</span></span><ChevronRight className="h-4 w-4 text-gray-400" />
+                  </button>)}
+                </div>}
+                {selectedPlace && <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"><div className="flex items-start gap-2"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /><span><strong>Address confirmed</strong><br />{selectedPlace.formattedAddress}</span></div></div>}
+                {mapsUnavailable && <div className="flex items-start gap-2 rounded-xl bg-amber-50 p-3 text-xs text-amber-800"><AlertCircle className="h-4 w-4 shrink-0" />Address suggestions are temporarily unavailable. You can enter the address manually.</div>}
+                <button type="button" onClick={() => setManualMode(true)} className="text-sm font-semibold text-orange-600 hover:text-orange-700">Can&apos;t find the address? Enter it manually</button>
+              </div>}
 
-              <DeliveryPinField coordinates={coordinates} locating={locating} onCapture={captureDeliveryPin} />
             </div>
 
             {/* Action Buttons - Fixed at bottom */}
@@ -220,7 +245,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
                 )}
                 <button
                   type="button"
-                  disabled={loading || !isValid || !addressLine.trim()}
+                  disabled={loading || !(selectedPlace || (manualMode && manualCity.trim() && manualState.trim())) || !addressLine.trim()}
                   onClick={handleSave}
                   className={`group relative overflow-hidden rounded-xl bg-orange-500 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 hover:shadow-orange-500/40 disabled:opacity-70 disabled:cursor-not-allowed ${
                     hasExistingAddress ? 'flex-[2]' : 'w-full'

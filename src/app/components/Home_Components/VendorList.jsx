@@ -128,7 +128,7 @@ const VendorCard = ({ vendor, fullWidth = false }) => {
             <div className="flex items-center gap-1">
               <Bike size={14} className="text-zinc-800 dark:text-zinc-200" />
               <span className="text-zinc-800 dark:text-zinc-200">
-                From {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free" : `${vendor.deliveryFee}`}
+                {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free delivery" : `From ₦${Number(vendor.deliveryFee).toLocaleString()}`}
               </span>
             </div>
 
@@ -218,7 +218,7 @@ const EmptyState = ({ city, selectedCuisine, onClear }) => (
             No {selectedCuisine} restaurants yet
           </h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-[240px] leading-relaxed mb-4">
-            We don't have any {selectedCuisine} vendors in {city} right now.
+            We don&apos;t have any {selectedCuisine} vendors in {city} right now.
           </p>
           <button
             onClick={onClear}
@@ -233,7 +233,7 @@ const EmptyState = ({ city, selectedCuisine, onClear }) => (
             Coming Soon to {city}!
           </h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-[240px] leading-relaxed">
-            We're onboarding restaurants in your area. Get your appetite ready!
+            We&apos;re onboarding restaurants in your area. Get your appetite ready!
           </p>
         </>
       )}
@@ -263,10 +263,10 @@ export default function VendorList({ user }) {
   }, [user, syncWithUserAddress]);
 
   const { data: responseData, isLoading, isError } = useQuery({
-    queryKey: ["vendors-nearby", userLocation?.city, userLocation?.state],
+    queryKey: ["vendors-nearby", userLocation?.city, userLocation?.state, userLocation?.addressId],
     queryFn: () =>
-      getNearbyVendors({ city: userLocation.city, state: userLocation.state }),
-    enabled: !!userLocation?.city && !!userLocation?.state && mounted,
+      getNearbyVendors({ city: userLocation.city, state: userLocation.state, addressId: userLocation.addressId }),
+    enabled: !!userLocation?.addressId && mounted,
     staleTime: 1000 * 60,
   });
 
@@ -279,6 +279,8 @@ export default function VendorList({ user }) {
       city: v.address?.city,
       image: v.logo || null,
       deliveryFee: v.deliveryFee ?? 0,
+      distanceKm: v.distanceKm,
+      estimatedDeliveryMinutes: v.estimatedDeliveryMinutes,
       rating: v.rating || 0,
       ratingCount: v.ratingCount || 0,
       openingHours: v.openingHours,

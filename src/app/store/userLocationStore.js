@@ -27,15 +27,17 @@ export const useLocationStore = create((set, get) => ({
         const city = defaultAddr?.city || defaultAddr?.cityName;
         const state = defaultAddr?.state || defaultAddr?.stateName;
 
-        if (city && state) {
-            const newLoc = { city, state };
+        const addressId = defaultAddr?.id || defaultAddr?._id;
+        if (addressId && ((city && state) || defaultAddr?.coordinates)) {
+            const newLoc = { city: city || "", state: state || "", addressId, coordinates: defaultAddr.coordinates };
             const currentLoc = get().userLocation;
 
             // Only update if the location is completely missing or different
             if (
                 !currentLoc ||
                 currentLoc.city !== newLoc.city ||
-                currentLoc.state !== newLoc.state
+                currentLoc.state !== newLoc.state ||
+                currentLoc.addressId !== newLoc.addressId
             ) {
                 if (typeof window !== "undefined") {
                     localStorage.setItem("melachow_location", JSON.stringify(newLoc));

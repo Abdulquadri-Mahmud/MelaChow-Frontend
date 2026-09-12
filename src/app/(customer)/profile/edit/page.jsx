@@ -2,8 +2,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useApi } from "@/app/context/ApiContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
+import customerApi from "@/app/lib/customerApi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -42,7 +42,6 @@ const uploadToCloudinary = async (file) => {
 };
 
 export default function EditProfilePage() {
-    const { baseUrl } = useApi();
     const router = useRouter();
     const { user, isLoading: isUserLoading } = useUserStorage();
     const fileInputRef = useRef(null);
@@ -78,20 +77,13 @@ export default function EditProfilePage() {
         e.preventDefault(); // Prevent accidental form submit refreshing
         try {
             setLoading(true);
-            const res = await fetch(`${baseUrl}/user/auth/update-profile`, {
-                method: "PATCH",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
+            const res = await customerApi.patch(`/user/auth/update-profile`, {
                     firstname: userState.firstname,
                     lastname: userState.lastname,
                     phone: userState.phone,
                     avatar: userState.avatar,
-                }),
             });
-            const data = await res.json();
+            const data = res.data;
             if (data.status) {
                 setAvatarSuccess("Your profile details have been updated.");
                 setOpenProfileMessage(true);
@@ -131,13 +123,8 @@ export default function EditProfilePage() {
             // Optimistic update
             setUserState((prev) => ({ ...prev, avatar: url }));
 
-            const res = await fetch(`${baseUrl}/user/auth/update-profile`, {
-                method: "PATCH",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ avatar: url }),
-            });
-            const data = await res.json();
+            const res = await customerApi.patch(`/user/auth/update-profile`, { avatar: url });
+            const data = res.data;
 
             if (data.status) {
                 setAvatarSuccess("Profile photo updated!");

@@ -75,6 +75,37 @@ const statusSteps = [
   },
 ];
 
+const koboToNaira = (value) => Number(value || 0) / 100;
+
+const normalizeTrackedOrderMoney = (order) => {
+  if (!order || order.moneyUnit !== "kobo") return order;
+  return {
+    ...order,
+    moneyUnit: "naira",
+    subtotal: koboToNaira(order.subtotal),
+    deliveryFee: koboToNaira(order.deliveryFee),
+    serviceFee: koboToNaira(order.serviceFee),
+    total: koboToNaira(order.total),
+    riderEarnings: koboToNaira(order.riderEarnings),
+    items: (order.items || []).map((item) => ({
+      ...item,
+      price: koboToNaira(item.price),
+      selected_options: (item.selected_options || []).map((option) => ({
+        ...option,
+        ...(option.price_modifier_naira !== undefined && { price_modifier_naira: koboToNaira(option.price_modifier_naira) }),
+      })),
+    })),
+    vendorDeliveryFees: (order.vendorDeliveryFees || []).map((fee) => ({ ...fee, deliveryFee: koboToNaira(fee.deliveryFee) })),
+    ...(order.appliedDiscount && {
+      appliedDiscount: {
+        ...order.appliedDiscount,
+        ...(order.appliedDiscount.amount !== undefined && { amount: koboToNaira(order.appliedDiscount.amount) }),
+        ...(order.appliedDiscount.amount_saved !== undefined && { amount_saved: koboToNaira(order.appliedDiscount.amount_saved) }),
+      },
+    }),
+  };
+};
+
 export default function OrderTracking() {
   const { orderId } = useParams();
   const router = useRouter();
@@ -230,7 +261,7 @@ export default function OrderTracking() {
     const fetchOrder = async () => {
       try {
         const res = await customerApi.get(`/orders/${orderId}`);
-        setOrderData(res.data.order);
+        setOrderData(normalizeTrackedOrderMoney(res.data.order));
         // OTP might be in the root of response from getSingleOrder update
         if (res.data.deliveryOtp) {
           setOrderData(prev => ({ ...prev, deliveryOtp: res.data.deliveryOtp }));

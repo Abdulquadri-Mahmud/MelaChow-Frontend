@@ -82,6 +82,8 @@ function OrdersContent() {
   });
 
   const orders = data?.orders || [];
+  const orderAmountInNaira = (order, value) =>
+    order?.moneyUnit === "kobo" ? Number(value || 0) / 100 : Number(value || 0);
 
   const copyOrderId = async (event, orderId) => {
     event.stopPropagation();
@@ -449,7 +451,7 @@ function OrdersContent() {
                          </div>
                          <div className="text-right">
                            <p className="text-[10px] text-zinc-400 font-medium">Amount Paid</p>
-                           <p className="text-sm font-semibold text-zinc-900 dark:text-white">₦{order.total?.toLocaleString()}</p>
+                           <p className="text-sm font-semibold text-zinc-900 dark:text-white">₦{orderAmountInNaira(order, order.total).toLocaleString("en-NG", { maximumFractionDigits: 2 })}</p>
                          </div>
                        </div>
                      </div>

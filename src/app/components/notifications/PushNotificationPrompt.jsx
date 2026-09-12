@@ -16,7 +16,7 @@ const PushNotificationPrompt = () => {
         subscribe,
         shouldShowPrompt,
         dismissPrompt,
-        loading,
+        isSubscribing,
         error
     } = usePushNotifications(role);
 
@@ -87,7 +87,7 @@ const PushNotificationPrompt = () => {
 
                 <div className="flex gap-4">
                     <div className="flex-shrink-0 w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-orange-200 dark:shadow-none">
-                        <Bell size={24} className={loading ? "animate-pulse" : ""} />
+                        <Bell size={24} className={isSubscribing ? "animate-pulse" : ""} />
                     </div>
 
                     <div className="flex-1">
@@ -111,13 +111,13 @@ const PushNotificationPrompt = () => {
                 <div className="mt-5 flex items-center gap-3">
                     <button
                         onClick={handleSubscribe}
-                        disabled={loading || status === 'success'}
+                        disabled={isSubscribing || status === 'success'}
                         className={`flex-1 py-2.5 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${status === 'success'
                             ? 'bg-green-500 text-white'
                             : 'bg-orange-500 hover:bg-orange-600 text-white shadow-md hover:shadow-lg'
                             } disabled:opacity-70`}
                     >
-                        {loading ? (
+                        {isSubscribing ? (
                             <>
                                 <Loader2 size={16} className="animate-spin" />
                                 Subscribing...
@@ -134,7 +134,7 @@ const PushNotificationPrompt = () => {
 
                     <button
                         onClick={handleDismiss}
-                        disabled={loading}
+                        disabled={false}
                         className="px-4 py-2.5 rounded-xl font-medium text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     >
                         Later

@@ -29,11 +29,31 @@ export const getFoodsByLocation = async ({ city, state }) => {
  * @param {string} params.city
  * @param {string} params.state
  */
-export const getNearbyVendors = async ({ city, state }) => {
+export const getNearbyVendors = async ({ city, state, addressId }) => {
   const res = await getUserAxios().get("/user/vendors/nearby", {
-    params: { city, state },
+    params: { city, state, addressId },
   });
   return res.data;
+};
+
+export const autocompleteDeliveryAddress = async ({ input, sessionToken }) => {
+  const res = await getUserAxios().get("/user/locations/autocomplete", { params: { input, sessionToken } });
+  return res.data;
+};
+
+export const getDeliveryPlaceDetails = async (placeId) => {
+  const res = await getUserAxios().get(`/user/locations/place/${encodeURIComponent(placeId)}`);
+  return res.data;
+};
+
+export const getDeliveryQuotes = async ({ addressId, vendorIds, checkout = false }) => {
+  const res = await getUserAxios().post("/user/delivery-quotes", { addressId, vendorIds, checkout });
+  const payload = res.data;
+  if (payload?.data?.moneyUnit === "kobo") {
+    payload.data.quotes = (payload.data.quotes || []).map(quote => ({ ...quote, deliveryFee: Number(quote.deliveryFeeKobo || 0) / 100 }));
+    payload.data.moneyUnit = "naira";
+  }
+  return payload;
 };
 
 /**

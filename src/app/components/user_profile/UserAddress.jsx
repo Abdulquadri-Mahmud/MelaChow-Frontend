@@ -1,26 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, MapPin, Trash2, Edit3, CheckCircle, X, Plus,
-  ChevronRight, Home, Building2, Loader2, AlertCircle, Navigation
+  ChevronRight, Home, Building2, Loader2, Navigation, Search
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import axios from "axios";
-import { useApi } from "@/app/context/ApiContext";
+import customerApi from "@/app/lib/customerApi";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
-import { LocationService } from "@/app/lib/locationService";
 import { normalizeAddress } from "@/app/lib/addressUtils";
 import AddressSkeleton from "../skeleton/AddressSkeleton";
-import DeliveryPinField from "../DeliveryPinField";
-import { getDeliveryPosition } from "@/app/lib/deliveryGeolocation";
+import { autocompleteDeliveryAddress, getDeliveryPlaceDetails } from "@/app/lib/userApi";
 
 export default function AddressPage() {
   const router = useRouter();
-  const { baseUrl } = useApi();
   const { user } = useUserStorage();
   const queryClient = useQueryClient();
 
@@ -36,55 +32,38 @@ export default function AddressPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
 
-  // Location state
-  const [locations, setLocations] = useState([]);
-  const [cities, setCities] = useState([]);
-  const [selectedStateId, setSelectedStateId] = useState("");
-  const [selectedCityId, setSelectedCityId] = useState("");
-  const [isLoadingLocations, setIsLoadingLocations] = useState(true);
-  const [locationError, setLocationError] = useState(null);
-
   const [form, setForm] = useState({ addressLine: "" });
-  const [coordinates, setCoordinates] = useState(null);
-  const [locating, setLocating] = useState(false);
+  const [manualState, setManualState] = useState("");
+  const [manualCity, setManualCity] = useState("");
+  const [manualMode, setManualMode] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [selectedPlace, setSelectedPlace] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const sessionToken = useRef(typeof crypto !== "undefined" ? crypto.randomUUID() : "");
 
-  const captureDeliveryPin = async () => {
-    setLocating(true);
-    try {
-      const { coords } = await getDeliveryPosition();
-      setCoordinates({ lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy });
-      toast.success("Delivery pin captured. Check it in Maps before saving.");
-    } catch (error) {
-      toast.error(error.message, { duration: 7000 });
-    } finally {
-      setLocating(false);
-    }
-  };
+  useEffect(() => {
+    if (!isFormOpen || manualMode || selectedPlace || searchText.trim().length < 3) { setSuggestions([]); return; }
+    const timer = setTimeout(async () => {
+      setSearching(true);
+      try { const result = await autocompleteDeliveryAddress({ input: searchText.trim(), sessionToken: sessionToken.current }); setSuggestions(result.data || []); }
+      catch { setSuggestions([]); }
+      finally { setSearching(false); }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [isFormOpen, manualMode, searchText, selectedPlace]);
 
-  /* ---------------- FETCH LOCATIONS ---------------- */
-  const fetchLocations = async () => {
-    try {
-      setIsLoadingLocations(true);
-      setLocationError(null);
-      const result = await LocationService.fetchUserLocations();
-      if (result.success) {
-        setLocations(result.locations || []);
-      } else {
-        setLocationError(result.error);
-        toast.error(result.error);
-      }
-    } catch (err) {
-      console.error("Error fetching locations:", err);
-      setLocationError("Error loading locations. Please refresh.");
-    } finally {
-      setIsLoadingLocations(false);
-    }
+  const chooseSuggestedAddress = async (suggestion) => {
+    setSearching(true);
+    try { const result = await getDeliveryPlaceDetails(suggestion.placeId); setSelectedPlace(result.data); setSearchText(result.data.formattedAddress); setForm({ addressLine: result.data.formattedAddress }); setSuggestions([]); }
+    catch (error) { toast.error(error.response?.data?.message || "Could not confirm address"); }
+    finally { setSearching(false); }
   };
 
   /* ---------------- FETCH ADDRESSES ---------------- */
   const fetchAddresses = async () => {
     try {
-      const res = await axios.get(`${baseUrl}/user/auth/my-address`, {
+      const res = await customerApi.get(`/user/auth/my-address`, {
         withCredentials: true,
       });
       setAddresses((res.data.addresses || []).map(normalizeAddress));
@@ -97,48 +76,38 @@ export default function AddressPage() {
   };
 
   useEffect(() => {
-    fetchLocations();
     fetchAddresses();
   }, []);
 
-  /* ---------------- HANDLE STATE CHANGE ---------------- */
-  const handleStateChange = (e) => {
-    const stateId = e.target.value;
-    setSelectedStateId(stateId);
-    const selectedLocation = locations.find(loc => loc.stateId === stateId);
-    setCities(selectedLocation?.cities || []);
-    setSelectedCityId("");
-  };
-
   /* ---------------- SAVE ADDRESS ---------------- */
   const saveAddress = async () => {
-    if (!selectedStateId || !selectedCityId || !form.addressLine) {
+    if (!(selectedPlace || (manualState.trim() && manualCity.trim())) || !form.addressLine) {
       toast.error("Please fill all fields");
       return;
     }
 
     setLoading(true);
     try {
-      const selectedLocation = locations.find(loc => loc.stateId === selectedStateId);
-      const selectedCity = cities.find(city => city.cityId === selectedCityId);
-
       const addressData = {
-        state: selectedLocation.state,
-        city: selectedCity.name,
-        stateId: selectedStateId,
-        cityId: selectedCityId,
+        state: selectedPlace?.state || manualState.trim(),
+        city: selectedPlace?.city || manualCity.trim(),
         addressLine: form.addressLine,
-        coordinates,
+        postalCode: selectedPlace?.postalCode,
+        provider: selectedPlace ? "google" : "manual",
+        providerPlaceId: selectedPlace?.placeId,
+        formattedAddress: selectedPlace?.formattedAddress,
+        locationSource: selectedPlace ? "autocomplete_selection" : "manual",
+        ...(selectedPlace ? { coordinates: { lat: selectedPlace.latitude, lng: selectedPlace.longitude } } : {}),
         isDefault: addresses.length === 0 ? true : undefined
       };
 
       let res;
       if (!editingId) {
-        res = await axios.post(`${baseUrl}/user/auth/address`, addressData, { withCredentials: true });
+        res = await customerApi.post(`/user/auth/address`, addressData, { withCredentials: true });
         toast.success("New location added! 🏡");
       } else {
-        res = await axios.patch(
-          `${baseUrl}/user/auth/address/update-address`,
+        res = await customerApi.patch(
+          `/user/auth/address/update-address`,
           addressData,
           { params: { addressId: editingId }, withCredentials: true }
         );
@@ -160,7 +129,7 @@ export default function AddressPage() {
     if (!selectedAddressId) return;
     setDeletingId(selectedAddressId);
     try {
-      await axios.delete(`${baseUrl}/user/auth/address/delete-address`, {
+      await customerApi.delete(`/user/auth/address/delete-address`, {
         params: { addressId: selectedAddressId },
         withCredentials: true,
       });
@@ -180,8 +149,8 @@ export default function AddressPage() {
   const setDefault = async (id) => {
     setSettingDefaultId(id);
     try {
-      const res = await axios.patch(
-        `${baseUrl}/user/auth/address/update-address`,
+      const res = await customerApi.patch(
+        `/user/auth/address/update-address`,
         { isDefault: true },
         { params: { addressId: id }, withCredentials: true }
       );
@@ -198,23 +167,19 @@ export default function AddressPage() {
   /* ---------------- FORM CONTROL ---------------- */
   const openForm = (addr = null) => {
     if (addr) {
+      setManualMode(true);
       setEditingId(addr._id);
       setForm({ addressLine: addr.addressLine });
-      setCoordinates(addr.coordinates || null);
-      const stateLoc = locations.find(loc => loc.state === addr.state || loc.state === addr.stateName || loc.stateId === addr.stateId);
-      if (stateLoc) {
-        setSelectedStateId(stateLoc.stateId);
-        setCities(stateLoc.cities || []);
-        const cityLoc = stateLoc.cities.find(c => c.name === addr.city || c.name === addr.cityName || c.cityId === addr.cityId);
-        if (cityLoc) setSelectedCityId(cityLoc.cityId);
-      }
+      setManualState(addr.state || addr.stateName || "");
+      setManualCity(addr.city || addr.cityName || "");
     } else {
+      setManualMode(false);
       setEditingId(null);
       setForm({ addressLine: "" });
-      setCoordinates(null);
-      setSelectedStateId("");
-      setSelectedCityId("");
-      setCities([]);
+      setManualState("");
+      setManualCity("");
+      setSearchText("");
+      setSelectedPlace(null);
     }
     setIsFormOpen(true);
   };
@@ -223,10 +188,12 @@ export default function AddressPage() {
     setIsFormOpen(false);
     setEditingId(null);
     setForm({ addressLine: "" });
-    setCoordinates(null);
-    setLocating(false);
-    setSelectedStateId("");
-    setSelectedCityId("");
+    setManualState("");
+    setManualCity("");
+    setSearchText("");
+    setSuggestions([]);
+    setSelectedPlace(null);
+    setManualMode(false);
   };
 
   return (
@@ -372,45 +339,28 @@ export default function AddressPage() {
                 </button>
               </div>
 
-              {locationError ? (
-                <div className="overflow-y-auto flex-1 px-6 sm:px-8 pb-8">
-                  <div className="mb-4 p-4 bg-red-50 dark:bg-red-500/5 border border-red-100 dark:border-red-500/20 rounded-2xl text-center">
-                    <p className="text-xs font-bold text-red-600 mb-2">{locationError}</p>
-                    <button onClick={fetchLocations} className="text-[10px] font-black uppercase tracking-widest underline text-red-700">Retry</button>
-                  </div>
-                </div>
-              ) : isLoadingLocations ? (
-                <div className="overflow-y-auto flex-1 px-6 sm:px-8 pb-8">
-                  <div className="py-12 flex flex-col items-center">
-                    <Loader2 className="animate-spin text-orange-500 mb-2" size={24} />
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Syncing zones...</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="overflow-y-auto flex-1 px-6 sm:px-8 pb-8 space-y-4">
+              <div className="overflow-y-auto flex-1 px-6 sm:px-8 pb-8 space-y-4">
+                  {!manualMode && <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Search delivery address</label>
+                    <div className="relative"><Search className="absolute left-4 top-4 text-gray-400" size={17}/><input value={searchText} onChange={e=>{setSearchText(e.target.value);setSelectedPlace(null);setForm({addressLine:""});}} placeholder="Street, estate, landmark or area" className="w-full rounded-2xl border border-zinc-100 bg-zinc-50 py-3.5 pl-11 pr-10 text-sm font-bold outline-none focus:border-orange-500 dark:border-zinc-800 dark:bg-zinc-800/50 dark:text-white"/>{searching&&<Loader2 className="absolute right-4 top-4 animate-spin text-orange-500" size={17}/>}</div>
+                    {suggestions.length>0&&<div className="overflow-hidden rounded-2xl border border-zinc-100 dark:border-zinc-800">{suggestions.map(item=><button key={item.placeId} onClick={()=>chooseSuggestedAddress(item)} className="flex w-full items-center gap-3 border-b border-zinc-100 p-3 text-left last:border-0 hover:bg-orange-50 dark:border-zinc-800"><MapPin size={16} className="shrink-0 text-orange-500"/><span className="min-w-0 flex-1"><strong className="block truncate text-sm dark:text-white">{item.mainText||item.text}</strong><span className="block truncate text-xs text-gray-400">{item.secondaryText}</span></span><ChevronRight size={15}/></button>)}</div>}
+                    {selectedPlace&&<div className="flex gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-bold text-emerald-800"><CheckCircle size={17}/>{selectedPlace.formattedAddress}</div>}
+                    <button type="button" onClick={()=>setManualMode(true)} className="text-xs font-black text-orange-600">Can&apos;t find it? Enter manually</button>
+                  </div>}
+                  {manualMode && <>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">State</label>
-                      <select
-                        value={selectedStateId}
-                        onChange={handleStateChange}
+                      <input
+                        value={manualState}
+                        onChange={e => setManualState(e.target.value)}
+                        placeholder="e.g. Ogun"
                         className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 text-sm font-bold text-gray-900 dark:text-white outline-none appearance-none"
-                      >
-                        <option value="">Choose State</option>
-                        {locations.map(loc => <option key={loc.stateId} value={loc.stateId}>{loc.state}</option>)}
-                      </select>
+                      />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">City</label>
-                      <select
-                        value={selectedCityId}
-                        disabled={!selectedStateId}
-                        onChange={e => setSelectedCityId(e.target.value)}
-                        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 text-sm font-bold text-gray-900 dark:text-white outline-none appearance-none disabled:opacity-50"
-                      >
-                        <option value="">{selectedStateId ? "Choose City" : "..."}</option>
-                        {cities.map(city => <option key={city.cityId} value={city.cityId}>{city.name}</option>)}
-                      </select>
+                      <input value={manualCity} onChange={e => setManualCity(e.target.value)} placeholder="e.g. Saapade" className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 text-sm font-bold text-gray-900 dark:text-white outline-none" />
                     </div>
                   </div>
 
@@ -424,18 +374,17 @@ export default function AddressPage() {
                       className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 text-sm font-bold text-gray-900 dark:text-white outline-none resize-none focus:ring-4 focus:ring-orange-500/5"
                     />
                   </div>
+                  </>}
 
-                  <DeliveryPinField coordinates={coordinates} locating={locating} onCapture={captureDeliveryPin} />
 
                   <button
-                    disabled={loading || !selectedStateId || !selectedCityId || !form.addressLine}
+                    disabled={loading || !(selectedPlace || (manualState.trim() && manualCity.trim())) || !form.addressLine}
                     onClick={saveAddress}
                     className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {loading ? <Loader2 className="animate-spin" size={20} /> : editingId ? "Update Address" : "Save Address"}
                   </button>
                 </div>
-              )}
             </motion.div>
           </div>
         )}

@@ -14,6 +14,7 @@ import { useFoodModalStore } from "@/app/store/foodModalStore";
 import { useComboModalStore } from "@/app/store/comboModalStore";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
 import { useCart } from "@/app/context/CartContext";
+import { useLocationStore } from "@/app/store/userLocationStore";
 
 const getItemId = (item) => item?._id || item?.id;
 const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
@@ -37,6 +38,7 @@ const FoodItemRow = ({ item, onSelect }) => {
 export default function StorefrontPage({ vendorId: propVendorId }) {
     const params = useParams();
     const vendorId = propVendorId || params.vendorId;
+    const { userLocation } = useLocationStore();
     const { activeMealGroups } = useCart();
     const activePerson = activeMealGroups[String(vendorId)]?.label;
     const router = useRouter();    const openFoodModal = useFoodModalStore(state => state.openFoodModal);
@@ -47,8 +49,8 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
     const [isSearchActive, setIsSearchActive] = useState(false);    const { platformPromo } = useActivePromos();
 
     const { data, isLoading, isError } = useQuery({
-        queryKey: ["vendor-storefront", vendorId],
-        queryFn: () => getVendorStorefront(vendorId),
+        queryKey: ["vendor-storefront", vendorId, userLocation?.addressId],
+        queryFn: () => getVendorStorefront(vendorId, userLocation?.addressId),
         enabled: !!vendorId,
         staleTime: 0,
         gcTime: 0,
@@ -192,7 +194,7 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
                 <div className="text-center p-8 bg-zinc-50 dark:bg-zinc-900 rounded-[32px] border border-zinc-100 dark:border-zinc-800 max-w-sm w-full">
                     <Store size={48} className="mx-auto text-zinc-300 mb-4" />
                     <h2 className="text-xl font-medium text-zinc-900 dark:text-white tracking-tight mb-2">Menu Unavailable</h2>
-                    <p className="text-zinc-500 text-sm mb-6">We couldn't load the menu for this restaurant right now.</p>
+                    <p className="text-zinc-500 text-sm mb-6">We couldn&apos;t load the menu for this restaurant right now.</p>
                     <button onClick={() => router.back()} className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 h-12 rounded-2xl font-medium uppercase tracking-widest text-xs">Go Back</button>
                 </div>
             </div>
@@ -356,10 +358,10 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
                                     {!vendor.deliveryFee || vendor.deliveryFee === 0 ? (
                                         <span className="text-green-500">Free</span>
                                     ) : (
-                                        `₦${vendor.deliveryFee.toLocaleString()}`
+                                        `From ₦${vendor.deliveryFee.toLocaleString()}`
                                     )}
                                 </div>
-                                <p className="text-[9px] font-semibold text-zinc-400">Delivery</p>
+                                <p className="text-[9px] font-semibold text-zinc-400">Est. delivery</p>
                                 {vendor.hasActiveDeliveryPromo && (
                                     <p className="text-[8px] font-medium text-orange-500 uppercase tracking-widest">
                                         Sponsored

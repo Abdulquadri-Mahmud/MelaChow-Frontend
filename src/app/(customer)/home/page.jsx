@@ -21,8 +21,10 @@ export default function HomePage() {
 
   // Autoen modal if user has no saved addresses
   useEffect(() => {
-    if (!isLoading && user && user?.addresses?.length === 0) {
+    if (!isLoading && user && (!Array.isArray(user.addresses) || user.addresses.length === 0)) {
       setIsAddressOpen(true);
+    } else if (!isLoading && user && user.addresses.length > 0) {
+      setIsAddressOpen(false);
     }
   }, [user, isLoading]);
 

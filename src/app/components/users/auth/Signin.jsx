@@ -126,9 +126,19 @@ export default function Signin() {
         TokenManager.setToken(finalToken);
       }
 
-      if (userData && (userData.user || userData._id)) {
-        saveUser(userData.user || userData);
+      // Confirm the signed-in customer's current PostgreSQL profile instead of
+      // relying on a potentially stale browser cache or a partial login payload.
+      let profileUser = userData.user || (userData._id ? userData : null);
+      try {
+        const profileResponse = await axios.get(`${baseUrl}/user/auth/profile`, {
+          withCredentials: true,
+          headers: finalToken ? { Authorization: `Bearer ${finalToken}` } : undefined,
+        });
+        profileUser = profileResponse.data?.user || profileResponse.data || profileUser;
+      } catch (profileError) {
+        console.warn('[Signin] Fresh profile check failed; using login response:', profileError.message);
       }
+      if (profileUser) saveUser({ ...profileUser, addresses: Array.isArray(profileUser.addresses) ? profileUser.addresses : [] });
 
       setStatusModal({
         isOpen: true,

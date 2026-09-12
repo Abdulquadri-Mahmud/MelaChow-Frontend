@@ -165,12 +165,19 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
   // Update Swiper height when data changes
   useEffect(() => {
-    if (swiperInstance) {
-      setTimeout(() => {
-        swiperInstance.update();
+    if (!swiperInstance || swiperInstance.destroyed || !swiperInstance.params) return;
+
+    const updateTimer = setTimeout(() => {
+      // A food-details modal can close during this delay. Swiper clears its
+      // params when destroyed, so never update a stale modal instance.
+      if (swiperInstance.destroyed || !swiperInstance.params || !swiperInstance.el?.isConnected) return;
+      swiperInstance.update();
+      if (!swiperInstance.destroyed && swiperInstance.params) {
         swiperInstance.updateAutoHeight();
-      }, 300);
-    }
+      }
+    }, 300);
+
+    return () => clearTimeout(updateTimer);
   }, [food, activeTab, swiperInstance]);
 
   // Fetch Food (only if initialData is missing)
@@ -583,6 +590,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
               <Swiper
                 onSwiper={setSwiperInstance}
+                onBeforeDestroy={() => setSwiperInstance(null)}
                 onSlideChange={(swiper) => {
                   setActiveTab(swiper.activeIndex === 0 ? 'details' : 'reviews');
                 }}

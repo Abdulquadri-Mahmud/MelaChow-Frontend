@@ -187,6 +187,7 @@ export const transformCartToOrderV2 = (cart, deliveryInfo, phone, email, userDat
 
     // Address — fix key names to match backend contract
     deliveryAddress: {
+      id:           deliveryInfo.id || deliveryInfo._id || "",
       addressLine:  deliveryInfo.addressLine
                  || deliveryInfo.address || "",
       cityName:     deliveryInfo.city              // ← rename city → cityName
