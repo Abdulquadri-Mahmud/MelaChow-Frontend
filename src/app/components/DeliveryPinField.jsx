@@ -1,13 +1,10 @@
 "use client";
 
-import { CheckCircle2, ExternalLink, Loader2, MapPin, Navigation } from "lucide-react";
+import { CheckCircle2, Loader2, MapPin, Navigation } from "lucide-react";
 
 export default function DeliveryPinField({ coordinates, locating, onCapture }) {
   const accuracy = Number(coordinates?.accuracy);
   const hasAccuracy = Number.isFinite(accuracy) && accuracy > 0;
-  const mapsUrl = coordinates
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${coordinates.lat},${coordinates.lng}`)}`
-    : "";
 
   return (
     <section className={`rounded-2xl border p-4 ${coordinates ? "border-emerald-200 bg-emerald-50/70 dark:border-emerald-500/30 dark:bg-emerald-500/10" : "border-orange-200 bg-orange-50/70 dark:border-orange-500/30 dark:bg-orange-500/10"}`}>
@@ -42,11 +39,6 @@ export default function DeliveryPinField({ coordinates, locating, onCapture }) {
           {locating ? <Loader2 className="animate-spin" size={16} /> : <Navigation size={16} />}
           {locating ? "Finding your phone..." : coordinates ? "Update pin" : "Capture delivery pin"}
         </button>
-        {coordinates && (
-          <a href={mapsUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-4 py-3 text-xs font-black text-emerald-700 dark:bg-white/5 dark:text-emerald-300">
-            <ExternalLink size={15} /> Check pin in Maps
-          </a>
-        )}
       </div>
       {!coordinates && <p className="mt-2 text-[10px] font-semibold text-gray-500">Your browser will ask permission to use your location. MelaChow saves the pin only with this address.</p>}
     </section>

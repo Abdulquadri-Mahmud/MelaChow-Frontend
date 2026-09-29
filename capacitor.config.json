@@ -1,0 +1,21 @@
+{
+    "appId":  "com.melachow.customer",
+    "appName":  "MelaChow",
+    "webDir":  ".mobile-build/out",
+    "android":  {
+                    "allowMixedContent":  false
+                },
+    "plugins":  {
+                    "CapacitorHttp":  {
+                                          "enabled":  true
+                                      },
+                    "StatusBar":  {
+                                      "style":  "DARK",
+                                      "backgroundColor":  "#ffffff"
+                                  },
+                    "SystemBars":  {
+                                       "insetsHandling":  "native",
+                                       "initialViewportFitValueHint":  "contain"
+                                   }
+                }
+}

@@ -101,7 +101,7 @@ function PromoAnnouncementBannerFallback() {
     <section className="overflow-hidden">
       <div
         ref={railRef}
-        className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth"
+        className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto scroll scroll-smooth"
         onScroll={(event) => {
           const rail = event.currentTarget;
           const nextIndex = Math.round(rail.scrollLeft / Math.max(1, rail.clientWidth * 0.88));
@@ -129,7 +129,7 @@ function PromoAnnouncementBannerFallback() {
                 isVendor ? "bg-orange-500" : "bg-white"
               }`} />
 
-              <div className="relative z-10 flex items-center gap-3">
+              <div className="relative z-10 flex items-center gap-2">
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner">
                   {isVendor && slide.logo ? (
                     <img src={slide.logo} alt="" className="h-full w-full object-cover" />
@@ -140,7 +140,7 @@ function PromoAnnouncementBannerFallback() {
  
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex items-center">
-                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/10 text-[8px] font-black uppercase tracking-[0.15em] text-white/90">
+                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/10 text-[8px] uppercase tracking-[0.15em] text-white/90">
                       {isVendor ? <Store size={9} strokeWidth={3.5} /> : <TicketPercent size={9} strokeWidth={3.5} />}
                       {slide.label}
                     </span>
@@ -148,7 +148,7 @@ function PromoAnnouncementBannerFallback() {
                   <p className="line-clamp-2 text-sm font-black leading-tight tracking-tight drop-shadow-sm">
                     {slide.title}
                   </p>
-                  <p className="mt-1 truncate text-[11px] font-bold text-white/80">
+                  <p className="mt-1 truncate text-[11px] text-white/80">
                     {slide.body}
                     {slide.city ? ` - ${slide.city}` : ""}
                   </p>
@@ -164,7 +164,7 @@ function PromoAnnouncementBannerFallback() {
               </div>
  
               <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-white/10 pt-2.5 text-[9px] font-black uppercase tracking-[0.12em] text-white/60">
-                <span className={`flex items-center gap-1.5 font-extrabold ${isVendor ? "text-orange-400" : "text-white"}`}>
+                <span className={`flex items-center gap-1.5 ${isVendor ? "text-orange-400" : "text-white"}`}>
                   <div className={`h-1.5 w-1.5 rounded-full ${isVendor ? "bg-orange-500" : "bg-white"} animate-pulse`} />
                   {slide.meta}
                 </span>

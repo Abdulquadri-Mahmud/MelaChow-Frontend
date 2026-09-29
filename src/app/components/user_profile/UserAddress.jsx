@@ -17,6 +17,7 @@ import { normalizeAddress } from "@/app/lib/addressUtils";
 import AddressSkeleton from "../skeleton/AddressSkeleton";
 import DeliveryPinField from "../DeliveryPinField";
 import { getDeliveryPosition } from "@/app/lib/deliveryGeolocation";
+import AddressAutocomplete from "../AddressAutocomplete";
 
 export default function AddressPage() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function AddressPage() {
     try {
       const { coords } = await getDeliveryPosition();
       setCoordinates({ lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy });
-      toast.success("Delivery pin captured. Check it in Maps before saving.");
+      toast.success("Delivery pin captured.");
     } catch (error) {
       toast.error(error.message, { duration: 7000 });
     } finally {
@@ -112,7 +113,7 @@ export default function AddressPage() {
 
   /* ---------------- SAVE ADDRESS ---------------- */
   const saveAddress = async () => {
-    if (!selectedStateId || !selectedCityId || !form.addressLine) {
+    if (!selectedStateId || !selectedCityId || !form.addressLine || !coordinates) {
       toast.error("Please fill all fields");
       return;
     }
@@ -128,7 +129,7 @@ export default function AddressPage() {
         stateId: selectedStateId,
         cityId: selectedCityId,
         addressLine: form.addressLine,
-        coordinates,
+        ...(coordinates ? { coordinates } : {}),
         isDefault: addresses.length === 0 ? true : undefined
       };
 
@@ -416,11 +417,11 @@ export default function AddressPage() {
 
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Street Address</label>
-                    <textarea
+                    <AddressAutocomplete
                       placeholder="e.g. 12B, Admiralty Way, Lekki"
                       value={form.addressLine}
-                      onChange={e => setForm({ addressLine: e.target.value })}
-                      rows={3}
+                      onChange={addressLine => setForm({ addressLine })}
+                      onPlaceSelect={(location) => setCoordinates(location.coordinates)}
                       className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 text-sm font-bold text-gray-900 dark:text-white outline-none resize-none focus:ring-4 focus:ring-orange-500/5"
                     />
                   </div>
@@ -428,7 +429,7 @@ export default function AddressPage() {
                   <DeliveryPinField coordinates={coordinates} locating={locating} onCapture={captureDeliveryPin} />
 
                   <button
-                    disabled={loading || !selectedStateId || !selectedCityId || !form.addressLine}
+                    disabled={loading || !selectedStateId || !selectedCityId || !form.addressLine || !coordinates}
                     onClick={saveAddress}
                     className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-2 disabled:opacity-50"
                   >

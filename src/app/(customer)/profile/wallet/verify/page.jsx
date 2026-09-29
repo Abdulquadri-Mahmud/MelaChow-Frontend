@@ -25,6 +25,7 @@ function VerifyWalletComponent() {
                 const res = await verifyWalletTransaction(reference);
                 if (res.success) {
                     setStatus("success");
+                    window.__melachowPaymentVerified?.(reference);
                     setMessage(res.message || "Wallet funded successfully!");
                     toast.success("Wallet funded successfully!");
                 } else {

@@ -33,11 +33,11 @@ export default function VerifyPayment() {
       clearTimeout(retryTimeoutRef.current);
     }
 
-    retryTimeoutRef.current = setTimeout(() => {
+    retryTimeoutRef.current = setTimeout(function retry() {
       if (navigator.onLine) {
         verifyPaymentRef.current?.();
       } else {
-        scheduleRetry(10000);
+        retryTimeoutRef.current = setTimeout(retry, 10000);
       }
     }, delay);
   }, []);
@@ -61,6 +61,7 @@ export default function VerifyPayment() {
 
       setOrder(res.order);
       setStatus("success");
+      window.__melachowPaymentVerified?.(reference);
       setRetryMessage("");
       toast.success(res.message || "Payment verified successfully!");
 
@@ -312,14 +313,14 @@ export default function VerifyPayment() {
                           {Number(order.deliveryFee || 0) === 0 ? (promoWaivedDelivery ? "Free (promo)" : "Free") : formatMoney(order.deliveryFee)}
                         </span>
                       </div>
-                      
+
                       {/* Promo Rejection Note */}
                       {Number(order.deliveryFee || 0) > 0 && order.freeDeliveryPromo?.reason && (
                         <div className="mt-1 p-2 bg-amber-50 dark:bg-amber-500/5 rounded-lg border border-amber-100 dark:border-amber-500/10">
                           <p className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">
                             <span className="font-bold uppercase mr-1">Note:</span>
-                            {order.freeDeliveryPromo.reason === 'ip_threshold_exceeded' 
-                              ? "Free delivery promo limit reached for this network/device." 
+                            {order.freeDeliveryPromo.reason === 'ip_threshold_exceeded'
+                              ? "Free delivery promo limit reached for this network/device."
                               : order.freeDeliveryPromo.reason === 'not_first_order'
                               ? "This promo is only for your first order."
                               : "Delivery promo could not be applied."}

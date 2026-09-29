@@ -21,8 +21,11 @@ export default function HomePage() {
 
   // Autoen modal if user has no saved addresses
   useEffect(() => {
-    if (!isLoading && user && user?.addresses?.length === 0) {
-      setIsAddressOpen(true);
+    const defaultAddress = user?.addresses?.find((address) => address.isDefault) || user?.addresses?.[0];
+    const hasCoordinates = Number.isFinite(Number(defaultAddress?.coordinates?.lat ?? defaultAddress?.latitude)) && Number.isFinite(Number(defaultAddress?.coordinates?.lng ?? defaultAddress?.longitude));
+    if (!isLoading && user && !hasCoordinates) {
+      const timer = window.setTimeout(() => setIsAddressOpen(true), 0);
+      return () => window.clearTimeout(timer);
     }
   }, [user, isLoading]);
 
@@ -30,7 +33,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-white dark:bg-zinc-950 pb-14 transition-colors duration-300">
       <HomeHeader />
       <div className="md:px-4 p-2 space-y-4">
-        <SearchBar />
+        {/* <SearchBar /> */}
         <PromoAnnouncementBanner />
         <CategoryList />
         <div id="vendor-list-anchor">
@@ -56,3 +59,4 @@ export default function HomePage() {
     </div>
   );
 }
+

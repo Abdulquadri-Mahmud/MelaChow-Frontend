@@ -47,9 +47,9 @@ export default function DynamicBannerCarousel({ fallback: Fallback }) {
 
   if (isLoading) {
     return (
-      <div className="relative h-[172px] w-full overflow-hidden rounded-[26px] bg-slate-200 dark:bg-slate-800 animate-pulse sm:h-48">
+      <div className="relative h-[138px] w-full overflow-hidden rounded-[20px] bg-slate-200 dark:bg-slate-800 animate-pulse sm:h-48 sm:rounded-[26px]">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 dark:via-white/5 to-transparent animate-shimmer" />
-        <div className="p-6 space-y-3 max-w-[65%]">
+        <div className="max-w-[72%] space-y-2 p-4 sm:max-w-[65%] sm:space-y-3 sm:p-6">
           <div className="h-4 w-20 rounded-full bg-slate-300 dark:bg-slate-700" />
           <div className="h-6 w-48 rounded-xl bg-slate-300 dark:bg-slate-700" />
           <div className="h-3 w-36 rounded-lg bg-slate-300 dark:bg-slate-700" />
@@ -70,7 +70,7 @@ export default function DynamicBannerCarousel({ fallback: Fallback }) {
 
   return (
     <section
-      className="group relative overflow-hidden rounded-[26px]"
+      className="group relative overflow-hidden rounded-[20px] sm:rounded-[26px]"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -84,7 +84,7 @@ export default function DynamicBannerCarousel({ fallback: Fallback }) {
             )
           )
         }
-        className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto"
+        className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
         aria-label="Featured promotions"
       >
         {banners.map((b) => {
@@ -99,7 +99,7 @@ export default function DynamicBannerCarousel({ fallback: Fallback }) {
               key={b._id}
               type="button"
               onClick={() => b.ctaLink && router.push(b.ctaLink)}
-              className="relative h-[172px] min-w-full snap-center overflow-hidden rounded-[26px] p-4 text-left text-white shadow-lg sm:h-48 sm:p-6 transition-all duration-300 group/card cursor-pointer"
+              className="relative h-[138px] min-w-full snap-center overflow-hidden rounded-[20px] p-3 text-left text-white shadow-md transition-all duration-300 group/card cursor-pointer sm:h-48 sm:rounded-[26px] sm:p-6 sm:shadow-lg"
               style={{ background }}
               aria-label={b.ctaText ? `${b.title}: ${b.ctaText}` : b.title}
             >
@@ -127,21 +127,21 @@ export default function DynamicBannerCarousel({ fallback: Fallback }) {
               <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
 
               {/* Content Box */}
-              <div className="relative z-10 flex h-full max-w-[82%] sm:max-w-[70%] flex-col justify-between">
+              <div className="relative z-10 flex h-full max-w-[80%] flex-col justify-between sm:max-w-[70%]">
                 <div>
                   {b.bannerType && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-[0.18em] text-white/95 backdrop-blur-md border border-white/20 shadow-sm">
-                      <Sparkles size={10} className="text-amber-300" />
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-[8px] sm:px-2.5 sm:text-[9px] font-black uppercase tracking-[0.18em] text-white/95 backdrop-blur-md border border-white/20 shadow-sm">
+                      <Sparkles size={9} className="text-amber-300" />
                       {b.bannerType}
                     </span>
                   )}
 
-                  <h2 className="mt-2 line-clamp-2 text-xl sm:text-2xl font-black leading-tight tracking-tight drop-shadow-md">
+                  <h2 className="mt-1.5 line-clamp-2 text-lg sm:mt-2 sm:text-2xl font-black leading-tight tracking-tight drop-shadow-md">
                     {b.title}
                   </h2>
 
                   {(b.description || b.subtitle) && (
-                    <p className="mt-1 line-clamp-2 text-xs font-medium leading-relaxed text-white/90 drop-shadow">
+                    <p className="mt-0.5 line-clamp-2 text-[10px] font-medium leading-snug sm:mt-1 sm:text-xs sm:leading-relaxed text-white/90 drop-shadow">
                       {b.description || b.subtitle}
                     </p>
                   )}
@@ -149,9 +149,9 @@ export default function DynamicBannerCarousel({ fallback: Fallback }) {
 
                 {b.ctaText && (
                   <div>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-black text-slate-950 shadow-md transition-all group-hover/card:bg-orange-50 group-hover/card:shadow-orange-500/20 group-hover/card:scale-[1.03]">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[10px] sm:px-4 sm:py-2 sm:text-xs font-black text-slate-950 shadow-md transition-all group-hover/card:bg-orange-50 group-hover/card:shadow-orange-500/20 group-hover/card:scale-[1.03]">
                       {b.ctaText}
-                      <ArrowRight size={13} className="transition-transform group-hover/card:translate-x-1" />
+                      <ArrowRight size={12} className="transition-transform group-hover/card:translate-x-1" />
                     </span>
                   </div>
                 )}
@@ -186,7 +186,7 @@ export default function DynamicBannerCarousel({ fallback: Fallback }) {
 
       {/* Pagination Dot Indicators */}
       {banners.length > 1 && (
-        <div className="mt-2.5 flex justify-center items-center gap-1.5">
+        <div className="mt-1.5 flex items-center justify-center gap-1.5 sm:mt-2.5">
           {banners.map((b, index) => (
             <button
               key={b._id}

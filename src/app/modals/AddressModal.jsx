@@ -1,74 +1,60 @@
 "use client";
 
-import { useState, useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, MapPin, Home, CheckCircle2, Loader2 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { CheckCircle2, Home, Loader2, LocateFixed, MapPin, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { useApi } from "../context/ApiContext";
 import axios from "axios";
-import LocationSelector, { useLocationSelector } from "../components/LocationSelector";
+import { useApi } from "../context/ApiContext";
 import { normalizeUserAddresses } from "../lib/addressUtils";
-import DeliveryPinField from "../components/DeliveryPinField";
-import { getDeliveryPosition } from "../lib/deliveryGeolocation";
+import { getDeliveryPosition, reverseGeocodeWithOpenStreetMap } from "../lib/deliveryGeolocation";
 
 const subscribe = () => () => {};
+const hasCoordinates = (address) =>
+  Number.isFinite(Number(address?.coordinates?.lat ?? address?.latitude)) &&
+  Number.isFinite(Number(address?.coordinates?.lng ?? address?.longitude));
 
 export default function AddressModal({ user, isOpen, setIsOpen }) {
-  const [loading, setLoading] = useState(false);
-  const { baseUrl } = useApi();
-  const queryClient = useQueryClient();
-
-  // SSR hydration safety for portals
-  const mounted = useSyncExternalStore(subscribe, () => true, () => false);
-
-  // Check if user has existing addresses
-  const hasExistingAddress = user?.addresses?.length > 0;
-
   const [addressLine, setAddressLine] = useState("");
   const [coordinates, setCoordinates] = useState(null);
+  const [resolvedLocation, setResolvedLocation] = useState(null);
   const [locating, setLocating] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const mounted = useSyncExternalStore(subscribe, () => true, () => false);
+  const { baseUrl } = useApi();
+  const queryClient = useQueryClient();
+  const hasUsableAddress = user?.addresses?.some(hasCoordinates);
 
-  // Lock body scroll when modal is open
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
+    document.body.style.overflow = isOpen ? "hidden" : "unset";
+    return () => { document.body.style.overflow = "unset"; };
   }, [isOpen]);
 
-  // Use the location selector hook
-  const {
-    selectedStateId,
-    selectedCityId,
-    stateName,
-    cityName,
-    handleStateChange,
-    handleCityChange,
-    reset,
-    isValid
-  } = useLocationSelector();
-
-  // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
       setAddressLine("");
       setCoordinates(null);
-      reset();
+      setResolvedLocation(null);
     }
-  }, [isOpen, reset]);
+  }, [isOpen]);
 
-  const captureDeliveryPin = async () => {
+  const useCurrentLocation = async () => {
     setLocating(true);
     try {
       const { coords } = await getDeliveryPosition();
-      setCoordinates({ lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy });
-      toast.success("Delivery pin captured. Check it in Maps before saving.");
+      const pin = { lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy };
+      setCoordinates(pin);
+      try {
+        const location = await reverseGeocodeWithOpenStreetMap(pin);
+        setResolvedLocation(location);
+        setAddressLine(location.addressLine || "");
+        toast.success("Your location was found.");
+      } catch {
+        setResolvedLocation({ provider: "openstreetmap", locationSource: "device_gps" });
+        toast.success("Location captured. Type your exact street address.");
+      }
     } catch (error) {
       toast.error(error.message, { duration: 7000 });
     } finally {
@@ -76,44 +62,40 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
     }
   };
 
-  const handleSave = async () => {
-    if (!isValid || !addressLine.trim()) {
-      toast.error("Please fill in all address details");
+  const saveAddress = async () => {
+    if (!coordinates) {
+      toast.error("Use your current location before saving.");
+      return;
+    }
+    if (!addressLine.trim()) {
+      toast.error("Enter your full delivery address.");
       return;
     }
 
     setLoading(true);
-
     try {
-      const res = await axios.post(
-        `${baseUrl}/user/auth/address`,
-        {
-          addressLine: addressLine.trim(),
-          city: cityName,
-          state: stateName,
-          cityId: selectedCityId,
-          stateId: selectedStateId,
-          coordinates,
-          isDefault: true,
-        },
-        {
-          withCredentials: true, // ✅ Use cookie-based auth
-        }
-      );
+      const response = await axios.post(`${baseUrl}/user/auth/address`, {
+        addressLine: addressLine.trim(),
+        city: resolvedLocation?.city || "",
+        state: resolvedLocation?.state || "",
+        coordinates,
+        provider: resolvedLocation?.provider || "openstreetmap",
+        providerPlaceId: resolvedLocation?.providerPlaceId || "",
+        formattedAddress: addressLine.trim(),
+        locationSource: resolvedLocation?.locationSource || "device_gps",
+        isDefault: true,
+      }, { withCredentials: true });
 
-      const addresses = res.data?.addresses || [];
-      queryClient.setQueryData(["userProfile"], (prev) =>
-        normalizeUserAddresses(prev ? { ...prev, addresses } : { ...user, addresses })
+      const addresses = response.data?.addresses || [];
+      queryClient.setQueryData(["userProfile"], (previous) =>
+        normalizeUserAddresses(previous ? { ...previous, addresses } : { ...user, addresses })
       );
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-
-      toast.success("Delivery address saved!");
+      queryClient.invalidateQueries({ queryKey: ["vendors-nearby"] });
+      toast.success("Delivery location saved.");
       setIsOpen(false);
     } catch (error) {
-      console.error(error);
-      toast.error(
-        error.response?.data?.message || "Failed to save address. Try again."
-      );
+      toast.error(error.response?.data?.message || "Failed to save your location. Try again.");
     } finally {
       setLoading(false);
     }
@@ -124,132 +106,101 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 top-0 left-0 right-0 bottom-0 z-[999999] flex items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4 h-screen w-screen overflow-hidden">
-          <motion.div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        <div className="fixed inset-0 z-[999999] flex items-end justify-center bg-black/55 sm:items-center sm:p-4">
+          <motion.button
+            type="button"
+            aria-label="Close location dialog"
+            className="absolute inset-0 cursor-default"
+            onClick={hasUsableAddress ? () => setIsOpen(false) : undefined}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={hasExistingAddress ? () => setIsOpen(false) : undefined}
           />
 
-          <motion.div
-            className="relative z-10 w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-lg bg-white dark:bg-slate-900 sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-transparent dark:border-slate-800"
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          <motion.section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="location-title"
+            className="relative z-10 w-full overflow-hidden rounded-t-[28px] bg-white shadow-2xl dark:bg-slate-900 sm:max-w-md sm:rounded-[28px]"
+            initial={{ opacity: 0, y: 40, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 30, scale: 0.98 }}
+            transition={{ type: "spring", damping: 26, stiffness: 320 }}
           >
-            {/* Header with Background Pattern */}
-            <div className="relative flex-shrink-0 bg-orange-500 px-4 py-5 sm:py-6 text-white overflow-hidden">
-              <div className="absolute top-0 right-0 -mr-10 -mt-10 h-40 w-40 rounded-full bg-orange-400/20 blur-3xl pointer-events-none" />
-              <div className="absolute bottom-0 left-0 -ml-10 -mb-10 h-32 w-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
-
-              {/* Only show close button if user has existing addresses */}
-              {hasExistingAddress && (
-                <button
-                  type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="absolute right-4 top-4 z-20 rounded-full bg-white/20 p-2 text-white transition-colors hover:bg-white/30"
-                >
-                  <X className="h-5 w-5" />
+            <header className="relative bg-gradient-to-br from-orange-500 to-orange-600 px-6 pb-6 pt-7 text-center text-white">
+              {hasUsableAddress && (
+                <button type="button" onClick={() => setIsOpen(false)} className="absolute right-4 top-4 rounded-full bg-white/15 p-2" aria-label="Close">
+                  <X size={18} />
                 </button>
               )}
-
-              <div className="relative z-10 flex flex-col items-center text-center">
-                <div className="mb-2 sm:mb-3 rounded-2xl bg-white/20 p-2.5 sm:p-3 backdrop-blur-md">
-                  <MapPin className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-                  {hasExistingAddress ? 'Add New Address' : 'Set Your Location'}
-                </h2>
-                <p className="mt-1 text-orange-50/90 text-xs sm:text-sm max-w-md">
-                  {hasExistingAddress
-                    ? 'Add another delivery address for your convenience'
-                    : '📍 Enter your address to discover restaurants near you and get your food delivered!'}
-                </p>
+              <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-white/20">
+                <MapPin size={25} />
               </div>
-            </div>
+              <h2 id="location-title" className="mt-3 text-xl font-black">Set your delivery location</h2>
+              <p className="mx-auto mt-1.5 max-w-xs text-xs leading-relaxed text-orange-50">We’ll use your phone’s GPS to find restaurants and calculate delivery fees.</p>
+            </header>
 
-            {/* Form Section - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
-              {/* Location Selector */}
-              <LocationSelector
-                selectedStateId={selectedStateId}
-                selectedCityId={selectedCityId}
-                onStateChange={handleStateChange}
-                onCityChange={handleCityChange}
-                required={true}
-                stateLabel="State"
-                cityLabel="City"
-              />
+            <div className="space-y-4 p-5 sm:p-6">
+              <button
+                type="button"
+                onClick={useCurrentLocation}
+                disabled={locating}
+                className={`flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black transition disabled:opacity-60 ${coordinates ? "bg-emerald-600 text-white" : "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"}`}
+              >
+                {locating ? <Loader2 size={18} className="animate-spin" /> : coordinates ? <CheckCircle2 size={18} /> : <LocateFixed size={18} />}
+                {locating ? "Finding your location..." : coordinates ? "Location captured" : "Use my current location"}
+              </button>
 
-              {/* Address Line */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-slate-300 ml-1">Full Delivery Address</label>
-                <div className="relative group">
-                  <div className="absolute left-3 top-4 text-gray-400 dark:text-slate-500 group-focus-within:text-orange-500 transition-colors">
-                    <Home className="h-4 w-4" />
+              {coordinates && (
+                <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-500/25 dark:bg-emerald-500/10">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white">
+                      <MapPin size={17} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">GPS coordinates</p>
+                      <p className="mt-0.5 truncate font-mono text-[11px] font-bold text-zinc-700 dark:text-zinc-200">
+                        {Number(coordinates.lat).toFixed(6)}, {Number(coordinates.lng).toFixed(6)}
+                      </p>
+                    </div>
                   </div>
+                  {Number.isFinite(Number(coordinates.accuracy)) && (
+                    <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[9px] font-black text-emerald-700 shadow-sm dark:bg-slate-800 dark:text-emerald-300">
+                      {Number(coordinates.accuracy) >= 1000
+                        ? `\u00B1${(Number(coordinates.accuracy) / 1000).toFixed(Number(coordinates.accuracy) >= 10000 ? 0 : 1)} km`
+                        : `\u00B1${Math.round(Number(coordinates.accuracy))} m`}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label htmlFor="delivery-address" className="ml-1 text-[11px] font-black uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Delivery address</label>
+                <div className="relative">
+                  <Home className="absolute left-4 top-4 text-zinc-400" size={17} />
                   <textarea
-                    placeholder="House No, Street name, Landmark..."
+                    id="delivery-address"
                     value={addressLine}
-                    onChange={(e) => setAddressLine(e.target.value)}
+                    onChange={(event) => setAddressLine(event.target.value)}
+                    placeholder={coordinates ? "Confirm or correct your exact street and entrance" : "Use your location to fill this address"}
                     rows={3}
-                    className="w-full rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/50 py-3 pl-10 pr-4 text-sm text-gray-900 dark:text-slate-100 outline-none transition-all focus:border-orange-500 dark:focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-4 focus:ring-orange-500/10 resize-none"
-                    required
+                    className="w-full resize-none rounded-2xl border border-zinc-200 bg-zinc-50 py-3.5 pl-11 pr-4 text-sm font-medium text-zinc-900 outline-none transition focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                   />
                 </div>
+                {coordinates && <p className="px-1 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">Check the address and add your house number, entrance, or landmark if needed.</p>}
               </div>
 
-              <DeliveryPinField coordinates={coordinates} locating={locating} onCapture={captureDeliveryPin} />
+              <button
+                type="button"
+                onClick={saveAddress}
+                disabled={loading || !coordinates || !addressLine.trim()}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 px-4 py-4 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                {loading ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
+                {loading ? "Saving..." : "Save & find restaurants"}
+              </button>
             </div>
-
-            {/* Action Buttons - Fixed at bottom */}
-            <div className="flex-shrink-0 bg-white dark:bg-slate-900 border-t border-gray-100 dark:border-slate-800 p-4 sm:p-5 space-y-3 shadow-lg">
-              <div className="flex flex-col sm:flex-row gap-3">
-                {/* Only show cancel button if user has existing addresses */}
-                {hasExistingAddress && (
-                  <button
-                    type="button"
-                    onClick={() => setIsOpen(false)}
-                    className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold text-gray-500 dark:text-slate-400 transition-colors hover:bg-gray-100 dark:hover:bg-slate-800"
-                  >
-                    Cancel
-                  </button>
-                )}
-                <button
-                  type="button"
-                  disabled={loading || !isValid || !addressLine.trim()}
-                  onClick={handleSave}
-                  className={`group relative overflow-hidden rounded-xl bg-orange-500 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-orange-500/30 transition-all hover:bg-orange-600 hover:shadow-orange-500/40 disabled:opacity-70 disabled:cursor-not-allowed ${
-                    hasExistingAddress ? 'flex-[2]' : 'w-full'
-                  }`}
-                >
-                  <div className="relative z-10 flex items-center justify-center gap-2">
-                    {loading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin text-white" />
-                        <span>Saving Address...</span>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="h-4 w-4" />
-                        <span>{hasExistingAddress ? 'Confirm Address' : 'Save & Find Restaurants'}</span>
-                      </>
-                    )}
-                  </div>
-                </button>
-              </div>
-
-              {/* Footer Tip */}
-              <p className="text-center text-xs text-gray-500 dark:text-slate-400">
-                {hasExistingAddress
-                  ? '🔒 Your address is secure and only used for delivery'
-                  : '🎉 Once saved, you\'ll see all nearby restaurants!'}
-              </p>
-            </div>
-          </motion.div>
+          </motion.section>
         </div>
       )}
     </AnimatePresence>,
