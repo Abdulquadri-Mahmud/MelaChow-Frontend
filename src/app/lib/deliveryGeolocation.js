@@ -52,9 +52,23 @@ const normalizeOsmAddress = (result) => {
 };
 
 const osmRequest = async (url) => {
-  const response = await fetch(url, { headers: { Accept: "application/json", "Accept-Language": "en" } });
-  if (!response.ok) throw new Error("OpenStreetMap could not resolve this location right now.");
-  return response.json();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 12000);
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: "application/json", "Accept-Language": "en" },
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error("OpenStreetMap could not resolve this location right now.");
+    return response.json();
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw new Error("Address lookup took too long. You can type the address manually.");
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 };
 
 export async function reverseGeocodeWithOpenStreetMap({ lat, lng }) {

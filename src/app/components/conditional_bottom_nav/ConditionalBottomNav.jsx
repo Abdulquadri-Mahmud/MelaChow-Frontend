@@ -1,62 +1,64 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import BottomNav from "../BottomNav";
 
+const subscribe = () => () => {};
+const HIDE_ON_ROUTES = [
+  "/auth/signin", "/auth/login", "/auth/signup", "/auth/register",
+  "/auth/verify-account", "/auth/verify-registration", "/auth/set-password",
+  "/auth/forgot-password", "/auth/reset-password", "/vendors/auth",
+  "/admin/auth", "/combo-details", "/food-details", "/orders",
+];
+
+const isEditable = (element) =>
+  element instanceof HTMLElement &&
+  (["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName) || element.isContentEditable);
+
 export default function ConditionalBottomNav() {
   const pathname = usePathname();
-  const [shouldShow, setShouldShow] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const isMounted = useSyncExternalStore(subscribe, () => true, () => false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
-  // Routes where bottom nav should NEVER appear
-  const hideOnRoutes = [
-    "/auth/signin",
-    "/auth/login",
-    "/auth/signup",
-    "/auth/register",
-    "/auth/verify-account",
-    "/auth/verify-registration",
-    "/auth/set-password",
-    "/auth/forgot-password",
-    "/auth/reset-password",
-    "/vendors/auth",
-    "/admin/auth",
-    "/combo-details",
-    "/food-details",
-    "/orders"
-  ];
-
-  // ✅ First, set mounted state to prevent hydration mismatch
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    if (!isMounted || typeof window === "undefined") return;
 
-  // ✅ Then, check visibility based on pathname
-  useEffect(() => {
-    if (!isMounted) return;
+    let maximumViewportHeight = window.visualViewport?.height || window.innerHeight;
+    let blurTimer;
+    const updateFromViewport = () => {
+      const height = window.visualViewport?.height || window.innerHeight;
+      maximumViewportHeight = Math.max(maximumViewportHeight, height);
+      setIsKeyboardOpen(maximumViewportHeight - height > 120 || isEditable(document.activeElement));
+    };
+    const handleFocusIn = (event) => {
+      if (isEditable(event.target)) setIsKeyboardOpen(true);
+    };
+    const handleFocusOut = () => {
+      clearTimeout(blurTimer);
+      blurTimer = window.setTimeout(updateFromViewport, 120);
+    };
+    const handleOrientationChange = () => {
+      maximumViewportHeight = window.visualViewport?.height || window.innerHeight;
+      setIsKeyboardOpen(false);
+    };
 
-    // Check if current route is in hide list or is the root splash page
-    const isRoot = pathname === "/";
-    const isAuth = hideOnRoutes.some(route => pathname?.startsWith(route));
-    const shouldHide = isRoot || isAuth;
+    window.visualViewport?.addEventListener("resize", updateFromViewport);
+    window.addEventListener("focusin", handleFocusIn);
+    window.addEventListener("focusout", handleFocusOut);
+    window.addEventListener("orientationchange", handleOrientationChange);
 
-    setShouldShow(!shouldHide);
+    return () => {
+      clearTimeout(blurTimer);
+      window.visualViewport?.removeEventListener("resize", updateFromViewport);
+      window.removeEventListener("focusin", handleFocusIn);
+      window.removeEventListener("focusout", handleFocusOut);
+      window.removeEventListener("orientationchange", handleOrientationChange);
+    };
+  }, [isMounted]);
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[ConditionalBottomNav] Visibility check:', {
-        pathname,
-        shouldHide,
-        shouldShow: !shouldHide
-      });
-    }
-  }, [pathname, isMounted]);
-
-  // ✅ Don't render anything until mounted (prevents hydration mismatch)
   if (!isMounted) return null;
-
-  // ✅ Don't render if should be hidden
-  if (!shouldShow) return null;
-
+  const shouldHide = pathname === "/" || HIDE_ON_ROUTES.some((route) => pathname?.startsWith(route));
+  if (shouldHide || isKeyboardOpen) return null;
   return <BottomNav />;
 }

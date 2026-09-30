@@ -22,6 +22,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
   const [resolvedLocation, setResolvedLocation] = useState(null);
   const [locating, setLocating] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
   const mounted = useSyncExternalStore(subscribe, () => true, () => false);
   const { baseUrl } = useApi();
   const queryClient = useQueryClient();
@@ -37,6 +38,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
       setAddressLine("");
       setCoordinates(null);
       setResolvedLocation(null);
+      setSaveMessage("");
     }
   }, [isOpen]);
 
@@ -73,6 +75,8 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
     }
 
     setLoading(true);
+    setSaveMessage("Saving your delivery location...");
+    const toastId = toast.loading("Saving your delivery location...");
     try {
       const response = await axios.post(`${baseUrl}/user/auth/address`, {
         addressLine: addressLine.trim(),
@@ -84,18 +88,23 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
         formattedAddress: addressLine.trim(),
         locationSource: resolvedLocation?.locationSource || "device_gps",
         isDefault: true,
-      }, { withCredentials: true });
+      }, { withCredentials: true, timeout: 25000 });
 
       const addresses = response.data?.addresses || [];
       queryClient.setQueryData(["userProfile"], (previous) =>
         normalizeUserAddresses(previous ? { ...previous, addresses } : { ...user, addresses })
       );
-      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-      queryClient.invalidateQueries({ queryKey: ["vendors-nearby"] });
-      toast.success("Delivery location saved.");
+      setSaveMessage("Location saved. Finding restaurants...");
       setIsOpen(false);
+      toast.success("Delivery location saved.", { id: toastId });
+      void queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+      void queryClient.invalidateQueries({ queryKey: ["vendors-nearby"] });
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to save your location. Try again.");
+      const message = error.code === "ECONNABORTED"
+        ? "Saving took too long. Please try again; your location is still available."
+        : error.response?.data?.message || "Failed to save your location. Try again.";
+      setSaveMessage(message);
+      toast.error(message, { id: toastId });
     } finally {
       setLoading(false);
     }
@@ -144,7 +153,7 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
               <button
                 type="button"
                 onClick={useCurrentLocation}
-                disabled={locating}
+                disabled={locating || loading}
                 className={`flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black transition disabled:opacity-60 ${coordinates ? "bg-emerald-600 text-white" : "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"}`}
               >
                 {locating ? <Loader2 size={18} className="animate-spin" /> : coordinates ? <CheckCircle2 size={18} /> : <LocateFixed size={18} />}
@@ -197,8 +206,13 @@ export default function AddressModal({ user, isOpen, setIsOpen }) {
                 className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 px-4 py-4 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 {loading ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
-                {loading ? "Saving..." : "Save & find restaurants"}
+                {loading ? "Saving location..." : "Save & find restaurants"}
               </button>
+              {saveMessage && (
+                <p aria-live="polite" className={"text-center text-xs font-semibold " + (loading ? "text-orange-600 dark:text-orange-400" : "text-zinc-500 dark:text-zinc-400")}>
+                  {saveMessage}
+                </p>
+              )}
             </div>
           </motion.section>
         </div>
