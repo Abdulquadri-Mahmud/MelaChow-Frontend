@@ -16,7 +16,7 @@ import { LocationService } from "@/app/lib/locationService";
 import { normalizeAddress } from "@/app/lib/addressUtils";
 import AddressSkeleton from "../skeleton/AddressSkeleton";
 import DeliveryPinField from "../DeliveryPinField";
-import { getDeliveryPosition } from "@/app/lib/deliveryGeolocation";
+import { getDeliveryPosition, reverseGeocodeWithOpenStreetMap } from "@/app/lib/deliveryGeolocation";
 import AddressAutocomplete from "../AddressAutocomplete";
 
 export default function AddressPage() {
@@ -48,13 +48,23 @@ export default function AddressPage() {
   const [form, setForm] = useState({ addressLine: "" });
   const [coordinates, setCoordinates] = useState(null);
   const [locating, setLocating] = useState(false);
+  const [resolvedLocation, setResolvedLocation] = useState(null);
 
   const captureDeliveryPin = async () => {
     setLocating(true);
     try {
       const { coords } = await getDeliveryPosition();
-      setCoordinates({ lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy });
-      toast.success("Delivery pin captured.");
+      const pin = { lat: coords.latitude, lng: coords.longitude, accuracy: coords.accuracy };
+      setCoordinates(pin);
+      try {
+        const location = await reverseGeocodeWithOpenStreetMap(pin);
+        setResolvedLocation(location);
+        setForm((current) => ({ ...current, addressLine: location.addressLine || current.addressLine, city: location.city || current.city, state: location.state || current.state }));
+        toast.success("Your location was found.");
+      } catch {
+        setResolvedLocation({ provider: "openstreetmap", locationSource: "device_gps" });
+        toast.success("Location captured. Type your exact street address.");
+      }
     } catch (error) {
       toast.error(error.message, { duration: 7000 });
     } finally {
@@ -113,23 +123,25 @@ export default function AddressPage() {
 
   /* ---------------- SAVE ADDRESS ---------------- */
   const saveAddress = async () => {
-    if (!selectedStateId || !selectedCityId || !form.addressLine || !coordinates) {
+    if (!form.addressLine || !coordinates) {
       toast.error("Please fill all fields");
       return;
     }
 
     setLoading(true);
     try {
-      const selectedLocation = locations.find(loc => loc.stateId === selectedStateId);
-      const selectedCity = cities.find(city => city.cityId === selectedCityId);
 
       const addressData = {
-        state: selectedLocation.state,
-        city: selectedCity.name,
+        state: resolvedLocation?.state || form.state || "",
+        city: resolvedLocation?.city || form.city || "",
         stateId: selectedStateId,
         cityId: selectedCityId,
         addressLine: form.addressLine,
-        ...(coordinates ? { coordinates } : {}),
+        coordinates,
+        provider: resolvedLocation?.provider || "openstreetmap",
+        providerPlaceId: resolvedLocation?.providerPlaceId || "",
+        formattedAddress: form.addressLine,
+        locationSource: resolvedLocation?.locationSource || "device_gps",
         isDefault: addresses.length === 0 ? true : undefined
       };
 
@@ -200,7 +212,7 @@ export default function AddressPage() {
   const openForm = (addr = null) => {
     if (addr) {
       setEditingId(addr._id);
-      setForm({ addressLine: addr.addressLine });
+      setForm({ addressLine: addr.addressLine, city: addr.city || addr.cityName || "", state: addr.state || addr.stateName || "" });
       setCoordinates(addr.coordinates || null);
       const stateLoc = locations.find(loc => loc.state === addr.state || loc.state === addr.stateName || loc.stateId === addr.stateId);
       if (stateLoc) {
@@ -211,7 +223,7 @@ export default function AddressPage() {
       }
     } else {
       setEditingId(null);
-      setForm({ addressLine: "" });
+      setForm({ addressLine: "", city: "", state: "" });
       setCoordinates(null);
       setSelectedStateId("");
       setSelectedCityId("");
@@ -373,70 +385,51 @@ export default function AddressPage() {
                 </button>
               </div>
 
-              {locationError ? (
-                <div className="overflow-y-auto flex-1 px-6 sm:px-8 pb-8">
-                  <div className="mb-4 p-4 bg-red-50 dark:bg-red-500/5 border border-red-100 dark:border-red-500/20 rounded-2xl text-center">
-                    <p className="text-xs font-bold text-red-600 mb-2">{locationError}</p>
-                    <button onClick={fetchLocations} className="text-[10px] font-black uppercase tracking-widest underline text-red-700">Retry</button>
-                  </div>
-                </div>
-              ) : isLoadingLocations ? (
-                <div className="overflow-y-auto flex-1 px-6 sm:px-8 pb-8">
-                  <div className="py-12 flex flex-col items-center">
-                    <Loader2 className="animate-spin text-orange-500 mb-2" size={24} />
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Syncing zones...</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="overflow-y-auto flex-1 px-6 sm:px-8 pb-8 space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">State</label>
-                      <select
-                        value={selectedStateId}
-                        onChange={handleStateChange}
-                        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 text-sm font-bold text-gray-900 dark:text-white outline-none appearance-none"
-                      >
-                        <option value="">Choose State</option>
-                        {locations.map(loc => <option key={loc.stateId} value={loc.stateId}>{loc.state}</option>)}
-                      </select>
+              <div className="flex-1 space-y-4 overflow-y-auto px-6 pb-8 sm:px-8">
+                <button
+                  type="button"
+                  onClick={captureDeliveryPin}
+                  disabled={locating}
+                  className={`flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-4 text-sm font-black transition disabled:opacity-60 ${coordinates ? "bg-emerald-600 text-white" : "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"}`}
+                >
+                  {locating ? <Loader2 className="animate-spin" size={18} /> : coordinates ? <CheckCircle size={18} /> : <Navigation size={18} />}
+                  {locating ? "Finding your location..." : coordinates ? "Location captured" : "Use my current location"}
+                </button>
+
+                {coordinates && (
+                  <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 dark:border-emerald-500/25 dark:bg-emerald-500/10">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-300">GPS coordinates</p>
+                      <p className="mt-0.5 font-mono text-[11px] font-bold text-zinc-700 dark:text-zinc-200">{Number(coordinates.lat).toFixed(6)}, {Number(coordinates.lng).toFixed(6)}</p>
                     </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">City</label>
-                      <select
-                        value={selectedCityId}
-                        disabled={!selectedStateId}
-                        onChange={e => setSelectedCityId(e.target.value)}
-                        className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-3.5 text-sm font-bold text-gray-900 dark:text-white outline-none appearance-none disabled:opacity-50"
-                      >
-                        <option value="">{selectedStateId ? "Choose City" : "..."}</option>
-                        {cities.map(city => <option key={city.cityId} value={city.cityId}>{city.name}</option>)}
-                      </select>
-                    </div>
+                    {Number.isFinite(Number(coordinates.accuracy)) && (
+                      <span className="rounded-full bg-white px-2.5 py-1 text-[9px] font-black text-emerald-700 dark:bg-zinc-800 dark:text-emerald-300">
+                        {Number(coordinates.accuracy) >= 1000 ? `\u00B1${(Number(coordinates.accuracy) / 1000).toFixed(Number(coordinates.accuracy) >= 10000 ? 0 : 1)} km` : `\u00B1${Math.round(Number(coordinates.accuracy))} m`}
+                      </span>
+                    )}
                   </div>
+                )}
 
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Street Address</label>
-                    <AddressAutocomplete
-                      placeholder="e.g. 12B, Admiralty Way, Lekki"
-                      value={form.addressLine}
-                      onChange={addressLine => setForm({ addressLine })}
-                      onPlaceSelect={(location) => setCoordinates(location.coordinates)}
-                      className="w-full bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-100 dark:border-zinc-800 rounded-2xl p-4 text-sm font-bold text-gray-900 dark:text-white outline-none resize-none focus:ring-4 focus:ring-orange-500/5"
-                    />
-                  </div>
-
-                  <DeliveryPinField coordinates={coordinates} locating={locating} onCapture={captureDeliveryPin} />
-
-                  <button
-                    disabled={loading || !selectedStateId || !selectedCityId || !form.addressLine || !coordinates}
-                    onClick={saveAddress}
-                    className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-2xl flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
-                    {loading ? <Loader2 className="animate-spin" size={20} /> : editingId ? "Update Address" : "Save Address"}
-                  </button>
+                <div className="space-y-2">
+                  <label className="pl-1 text-[10px] font-black uppercase tracking-widest text-gray-400">Delivery address</label>
+                  <textarea
+                    value={form.addressLine}
+                    onChange={(event) => setForm((current) => ({ ...current, addressLine: event.target.value }))}
+                    placeholder={coordinates ? "Confirm or correct your street, entrance, or landmark" : "Use your location to fill this address"}
+                    rows={3}
+                    className="w-full resize-none rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold text-gray-900 outline-none focus:ring-4 focus:ring-orange-500/5 dark:border-zinc-800 dark:bg-zinc-800/50 dark:text-white"
+                  />
+                  {coordinates && <p className="px-1 text-[11px] text-zinc-500">Editing this address will keep the captured GPS coordinates.</p>}
                 </div>
-              )}
+
+                <button
+                  disabled={loading || !form.addressLine || !coordinates}
+                  onClick={saveAddress}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-4 text-sm font-black uppercase tracking-[0.16em] text-white shadow-lg disabled:opacity-50"
+                >
+                  {loading ? <Loader2 className="animate-spin" size={20} /> : editingId ? "Update Address" : "Save Address"}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
