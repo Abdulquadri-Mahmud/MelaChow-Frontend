@@ -73,7 +73,7 @@ export default function BottomBar() {
               </motion.div>
             )}
             <div className="bg-gradient-to-tr from-orange-400 to-orange-600 p-3.5 rounded-full shadow-[0_8px_24px_rgba(249,115,22,0.45)] text-white hover:rotate-[10deg] transition-transform">
-              <ShoppingCart size={22} strokeWidth={2.5} />
+              <ShoppingCart size={24} strokeWidth={2.5} />
             </div>
           </motion.div>
           <p className="text-[10px] font-black uppercase tracking-widest text-orange-600 text-center mt-0.5">
@@ -86,7 +86,7 @@ export default function BottomBar() {
       <motion.nav
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.10)] dark:shadow-[0_-8px_32px_rgba(0,0,0,0.3)] rounded-t-[32px] px-2 pt-3 pb-2"
+        className="bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.10)] dark:shadow-[0_-8px_32px_rgba(0,0,0,0.3)] rounded-t-[32px] px-2 pt-3.5 pb-3"
       >
         <div className="flex justify-between items-end">
           {navItems.map((item) => {
@@ -108,7 +108,7 @@ export default function BottomBar() {
                 <motion.div
                   whileTap={{ scale: 0.85 }}
                   whileHover={{ scale: 1.05 }}
-                  className="flex flex-col items-center gap-1 py-1"
+                  className="flex min-h-12 flex-col items-center gap-1.5 py-1.5"
                 >
                   {/* Active pill background */}
                   {isActive && (
@@ -120,7 +120,7 @@ export default function BottomBar() {
                   )}
 
                   <Icon
-                    size={22}
+                    size={24}
                     strokeWidth={isActive ? 2.5 : 2}
                     className={`transition-all ${
                       isActive
@@ -130,7 +130,7 @@ export default function BottomBar() {
                   />
 
                   <span
-                    className={`text-[10px] font-black uppercase tracking-widest leading-none transition-all ${
+                    className={`text-[11px] font-black uppercase tracking-widest leading-none transition-all ${
                       isActive
                         ? "text-orange-500 opacity-100"
                         : "text-slate-400 opacity-40 group-hover:opacity-70"

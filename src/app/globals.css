@@ -371,3 +371,18 @@ html, body {
   }
 }
 
+
+/* Keep the installed customer app comfortable to read on phone screens. */
+@media (max-width: 640px) {
+  html {
+    font-size: 17px;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+}
