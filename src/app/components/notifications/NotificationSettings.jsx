@@ -4,6 +4,10 @@ import { Bell, BellOff, AlertCircle } from "lucide-react";
 import { usePushNotifications } from "../../hooks/usePushNotifications";
 
 export default function NotificationSettings() {
+  return process.env.NEXT_PUBLIC_MOBILE_BUILD === "true" ? null : <WebNotificationSettings />;
+}
+
+function WebNotificationSettings() {
   const { isSupported, subscription, permission, loading, subscribe, unsubscribe } = usePushNotifications();
   const isEnabled = Boolean(subscription);
   const isDenied = permission === "denied";
