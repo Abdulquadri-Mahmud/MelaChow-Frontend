@@ -89,6 +89,7 @@ export default function OrderTracking() {
   const [verificationError, setVerificationError] = useState("");
   const [showReviewBanner, setShowReviewBanner] = useState(false);
   const [hasAutoPrompted, setHasAutoPrompted] = useState(false);
+  const [riderLocation, setRiderLocation] = useState(null);
   const reviewTimerRef = useRef(null);
 
   const { baseUrl } = useApi();
@@ -182,7 +183,10 @@ export default function OrderTracking() {
       setOrderData(prev => prev ? { 
         ...prev, 
         orderStatus: data.status,
-        riderId: data.rider || prev.riderId, // Update rider if provided
+        riderId: data.rider || prev.riderId,
+        riderAssignment: data.rider
+          ? { ...(prev.riderAssignment || {}), rider: data.rider }
+          : prev.riderAssignment,
         deliveryOtp: data.deliveryOtp || prev.deliveryOtp // ✅ Update OTP if provided
       } : null);
 
@@ -203,7 +207,7 @@ export default function OrderTracking() {
     // Listen for real-time location updates (for future map integration)
     onLocationUpdate((data) => {
       console.log('Real-time location update:', data.location);
-      // Update location in state if map is implemented
+      setRiderLocation(data.driverLocation || data.location || data);
     });
   }, [onStatusUpdate, onLocationUpdate]);
 
@@ -242,8 +246,15 @@ export default function OrderTracking() {
       }
     };
 
-    if (orderId) fetchOrder();
+    if (!orderId) return undefined;
+    fetchOrder();
+    const poll = window.setInterval(fetchOrder, 30000);
+    return () => window.clearInterval(poll);
   }, [orderId, baseUrl]);
+
+  const assignedRider = orderData?.riderId && typeof orderData.riderId === "object"
+    ? orderData.riderId
+    : orderData?.riderAssignment?.rider || null;
 
   if (loading)
     return (
@@ -511,7 +522,7 @@ export default function OrderTracking() {
           <div className="grid grid-cols-1 md:grid-cols-1 gap-3">
 
             {/* Rider Information Section - Real data from backend */}
-            {orderData.riderId && (
+            {assignedRider && (
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -522,9 +533,9 @@ export default function OrderTracking() {
 
                 <div className="flex items-center gap-5 relative z-10">
                   <div className="w-16 h-16 rounded-[8px] overflow-hidden border-2 border-white/30 p-1 bg-white/10 backdrop-blur-md flex items-center justify-center">
-                    {orderData.riderId.avatar ? (
+                    {assignedRider.avatar ? (
                       <img 
-                        src={orderData.riderId.avatar} 
+                        src={assignedRider.avatar} 
                         alt="Rider" 
                         className="w-full h-full object-cover rounded-[20px]" 
                       />
@@ -534,26 +545,31 @@ export default function OrderTracking() {
                   </div>
                   <div className="flex-1">
                     <h3 className="text-lg font-medium italic tracking-tight leading-tight">
-                      {orderData.riderId.name || "MelaChow Delivery Partner"}
+                      {assignedRider.name || "MelaChow Delivery Partner"}
                     </h3>
                     <p className="text-[10px] font-medium uppercase tracking-[0.2em] opacity-80 mt-1">
-                      Professional Rider {orderData.riderId.phone && `• ${orderData.riderId.phone}`}
+                      Professional Rider {assignedRider.phone && `• ${assignedRider.phone}`}
                     </p>
+                    {riderLocation?.latitude != null && riderLocation?.longitude != null && (
+                      <p className="text-[10px] opacity-80 mt-1">
+                        Live location: {Number(riderLocation.latitude).toFixed(5)}, {Number(riderLocation.longitude).toFixed(5)}
+                      </p>
+                    )}
                     <div className="flex items-center gap-3 mt-3">
                       <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-2 py-1 rounded">
                         <Star size={10} className="fill-white" />
-                        <span className="text-[10px] font-medium">{orderData.riderId.rating || "5.0"}</span>
+                        <span className="text-[10px] font-medium">{assignedRider.rating || "5.0"}</span>
                       </div>
                       <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-2 py-1 rounded">
                         <span className="text-[10px] font-medium uppercase">
-                          {orderData.riderId.totalDeliveries || 0}+ Trips
+                          {assignedRider.totalDeliveries || 0}+ Trips
                         </span>
                       </div>
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
                     <a 
-                      href={`tel:${orderData.riderId.phone}`}
+                      href={`tel:${assignedRider.phone}`}
                       className="p-4 bg-white text-orange-600 rounded shadow-xl hover:scale-105 transition-transform flex items-center justify-center"
                     >
                       <Phone size={24} strokeWidth={2.5} />
@@ -973,3 +989,4 @@ export default function OrderTracking() {
     </div>
   );
 }
+
