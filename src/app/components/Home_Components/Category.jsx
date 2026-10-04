@@ -1,11 +1,8 @@
 "use client";
 
-import axios from "axios";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from 'framer-motion';
-import { useApi } from "../../context/ApiContext";
 import { useCategories } from "@/app/hooks/useCategories";
 import {
     Flame,
@@ -18,6 +15,7 @@ export default function CategoryList() {
     const router = useRouter();
 
     const { data: categories = [], isLoading: loading } = useCategories();
+    const visibleCategories = categories.slice(0, 15);
     const [activeCategory, setActiveCategory] = useState(null);
 
     const handleCategoryClick = (category) => {
@@ -55,7 +53,7 @@ export default function CategoryList() {
         );
     }
 
-    if (!loading && categories.length === 0) {
+    if (!loading && visibleCategories.length === 0) {
         return null; // Hide section if no categories found
     }
 
@@ -86,7 +84,7 @@ export default function CategoryList() {
                 <div className="absolute bottom-0 right-0 top-0 z-10 w-6 sm:w-12 bg-gradient-to-l from-zinc-50 dark:from-zinc-950 to-transparent pointer-events-none" />
 
                 <div className="no-scrollbar flex snap-x gap-3 overflow-x-auto overscroll-x-contain px-3 pt-1 sm:gap-4 sm:px-4 sm:pt-2">
-                    {categories.map((category, idx) => (
+                    {visibleCategories.map((category, idx) => (
                         <motion.button
                             key={category._id}
                             initial={{ opacity: 0, x: 20 }}

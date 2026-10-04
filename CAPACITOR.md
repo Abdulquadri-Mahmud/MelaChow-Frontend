@@ -155,3 +155,32 @@ References:
 - https://capacitorjs.com/docs/apis/http
 - https://capacitorjs.com/docs/apis/geolocation
 - https://nextjs.org/docs/app/guides/static-exports
+
+
+Because the APK contains a packaged copy of the frontend code. Once installed, that code remains fixed until a newer APK replaces it.
+
+A rebuild is required when changing:
+
+- Pages, styling, components, or JavaScript bundled inside the app
+- Capacitor configuration
+- Android permissions
+- App icons or splash screens
+- Native plugins
+- Package name or Android configuration
+
+A rebuild is usually unnecessary when changing:
+
+- Backend API logic
+- PostgreSQL data
+- Backend environment variables
+- Server side authentication or CORS
+- Content fetched dynamically from the API
+
+For faster development, we can configure the vendor app for **live reload**:
+
+1. Run the frontend development server on your PC.
+2. Point Capacitor to your PC’s local network address.
+3. Open the already installed app.
+4. Frontend changes appear automatically without rebuilding the APK.
+
+Your phone and PC must be connected to the same Wi-Fi network. We should use live reload only for development. The final Play Store APK/AAB should always contain a production build and use the staging or production HTTPS API.

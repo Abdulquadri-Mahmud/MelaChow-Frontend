@@ -8,6 +8,7 @@ function configure(instance) {
     if (isApiUrl(instance.getUri(config), origin)) {
       const token = TokenManager.getToken("user");
       if (token) config.headers.set("Authorization", "Bearer " + token);
+      config.headers.set("X-MelaChow-Client", "customer-capacitor");
       config.withCredentials = true;
     }
     return config;

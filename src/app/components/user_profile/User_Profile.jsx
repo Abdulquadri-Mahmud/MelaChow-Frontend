@@ -21,15 +21,10 @@ import {
   ArrowLeft,
   Star,
   Wallet,
-  Sun,
-  Moon,
-  Smartphone
 } from "lucide-react";
 import DeleteModal from "./DeleteModal";
 import NeedHelp from "@/app/(customer)/profile/need_help_contact_info/NeedHelp";
 import NotificationSettings from "@/app/components/notifications/NotificationSettings";
-import { useTheme } from "@/app/context/ThemeContext";
-import PermanentInstallButton from "@/app/components/PermanentInstallButton";
 import Header2 from "../App_Header/Header2";
 
 const MobileSettingsGroup = ({ title, children }) => {
@@ -91,7 +86,6 @@ const User_Profile = ({ userData, isLoading }) => {
   const { baseUrl } = useApi();
   const router = useRouter();
   const { clearUser, user, logout } = useUserStorage();
-  const { theme, toggleTheme } = useTheme();
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -272,31 +266,7 @@ const User_Profile = ({ userData, isLoading }) => {
             subtitle="View your recent updates and account alerts"
             href="/notifications"
           />
-          <MobileActionRow
-            icon={theme === 'light' ? Moon : Sun}
-            title={theme === 'light' ? "Dark Theme" : "Light Theme"}
-            subtitle={theme === 'light' ? "Switch to a darker interface" : "Switch to a brighter interface"}
-            onClick={toggleTheme}
-            rightElement={
-              <span className="mr-1 text-xs font-black uppercase text-zinc-500">
-                {theme}
-              </span>
-            }
-          />
         </MobileSettingsGroup>
-
-        {/* PWA Section */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 px-3 sm:px-4">
-            <Smartphone size={14} className="text-zinc-400" />
-            <h2 className="text-xs font-black uppercase text-zinc-500 dark:text-zinc-400 tracking-[0.16em] italic">
-              App Experience
-            </h2>
-          </div>
-          <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800/80 rounded-2xl p-5 shadow-sm shadow-zinc-100/50 dark:shadow-none">
-            <PermanentInstallButton />
-          </div>
-        </div>
 
         {/* Danger & Session Settings */}
         <MobileSettingsGroup title="Session & Privacy">

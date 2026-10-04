@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "457360202500",
+    "project_id": "melachow-project",
+    "storage_bucket": "melachow-project.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:457360202500:android:90c8b6dbb8f584cad80e51",
+        "android_client_info": {
+          "package_name": "com.melachow.customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3Q1XBhxL-UzmdWyOM1GolwlMiKJMaVYc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

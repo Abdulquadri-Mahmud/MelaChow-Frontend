@@ -65,6 +65,30 @@ export function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
+export function nativePushTokenKey(role = 'user') { return 'melachow_' + role + '_fcm_token_v1'; }
+
+export async function registerNativePushToken(token, role = 'user', platform = 'android') {
+    const deviceKey = 'melachow_' + role + '_push_device_id_v1';
+    let deviceId = localStorage.getItem(deviceKey);
+    if (!deviceId) {
+        deviceId = globalThis.crypto?.randomUUID?.() || role + '-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+        localStorage.setItem(deviceKey, deviceId);
+    }
+    const response = await axios.post(getApiPath(role, 'native-token'), { token, platform, deviceId }, {
+        withCredentials: true, timeout: API_TIMEOUT_MS, headers: getAuthHeaders(role),
+    });
+    return response.data;
+}
+
+export async function removeNativePushToken(token, role = 'user', accessToken = null) {
+    const headers = getAuthHeaders(role);
+    if (accessToken) headers.Authorization = 'Bearer ' + accessToken;
+    const response = await axios.delete(getApiPath(role, 'native-token'), {
+        data: { token }, withCredentials: true, timeout: API_TIMEOUT_MS, headers,
+    });
+    return response.data;
+}
+
 const getApiPath = (role, endpoint) => {
     let base = '/api/notifications';
     if (role === 'vendor') base = '/api/vendors/notifications';

@@ -6,7 +6,7 @@ import SwipeableToaster from "./components/toast/SwipeableToaster";
 import "@/app/lib/api"; // Register axios interceptors
 
 export const viewport = {
-  themeColor: "#ea580c",
+  themeColor: "#ffffff",
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,

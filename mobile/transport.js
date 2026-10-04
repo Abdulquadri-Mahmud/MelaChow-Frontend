@@ -15,6 +15,7 @@ export function installTransport() {
     const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
     const token = TokenManager.getToken("user");
     if (token && !headers.has("Authorization")) headers.set("Authorization", "Bearer " + token);
+    headers.set("X-MelaChow-Client", "customer-capacitor");
     return fetch(request, { ...init, headers, credentials: "include" });
   };
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
@@ -26,8 +27,9 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 
 import { useCart } from "@/app/context/CartContext";
+import { useProfile } from "@/app/context/ProfileContext";
 import { isVendorOpen as isVendorOpenFn } from "@/app/lib/utils";
-import { getPublicFoodDetail } from "@/app/lib/menuApi";
+import { getPublicFoodDetail, getVendorStorefront } from "@/app/lib/menuApi";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
@@ -41,6 +43,12 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   const params = useParams();
   const foodId = propFoodId || params.foodId;
   const { addToCart, cart } = useCart();
+  const { userProfile } = useProfile();
+  const deliveryAddress = useMemo(
+    () => userProfile?.addresses?.find((address) => address.isDefault) || userProfile?.addresses?.[0],
+    [userProfile]
+  );
+  const addressId = deliveryAddress?._id || deliveryAddress?.id || null;
   useEffect(() => {
     if (!isModal || !onClose) return;
     let closed = false;
@@ -122,7 +130,21 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
     const vendor = getFoodVendor(item);
     return vendor?._id || vendor?.id || item?.vendorId || item?.vendor_id || item?.restaurantId || item?.restaurant_id || "";
   };
-
+  const deliveryVendorId = getFoodVendorId(food);
+  const { data: deliveryStorefront, isPending: isDeliveryFeePending } = useQuery({
+    queryKey: ["vendor-storefront", deliveryVendorId, addressId],
+    queryFn: () => getVendorStorefront(deliveryVendorId, { addressId }),
+    enabled: Boolean(deliveryVendorId && addressId),
+    staleTime: 60 * 1000,
+  });
+  const storefrontVendor = deliveryStorefront?.vendor;
+  const fallbackDeliveryFee = Number(getFoodVendor(food)?.deliveryFee ?? food?.deliveryFee ?? 0);
+  const deliveryFeeLoading = Boolean(addressId && deliveryVendorId && isDeliveryFeePending);
+  const resolvedDeliveryFee = deliveryFeeLoading
+    ? null
+    : storefrontVendor
+      ? Number(storefrontVendor.deliveryFee ?? storefrontVendor.distanceBasedDeliveryFee ?? 0)
+      : fallbackDeliveryFee;
   const handleShare = async () => {
     const foodName = food?.name || "Check out this dish";
     const storeName = getFoodVendor(food)?.storeName || "MelaChow";
@@ -255,7 +277,11 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   };
 
   const handleAddToCart = (payload) => {
-    addToCart(payload);
+    if (deliveryFeeLoading) {
+      toast.error("Calculating the delivery fee. Please wait a moment.");
+      return;
+    }
+    addToCart({ ...payload, deliveryFee: resolvedDeliveryFee ?? fallbackDeliveryFee });
     resetSelections();
   };
 
@@ -373,6 +399,10 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   };
 
   const handleAddToCartBaseItem = () => {
+    if (deliveryFeeLoading) {
+      toast.error("Calculating the delivery fee. Please wait a moment.");
+      return;
+    }
     if (foodPortions.length > 0 && !effectivePortion) {
       toast.error("Please select a size");
       return;
@@ -449,7 +479,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
         price_modifier_naira: opt.price_modifier_naira || 0,
         quantity: opt.quantity,
       })),
-      deliveryFee: vendor?.deliveryFee || food.deliveryFee || 0,
+      deliveryFee: resolvedDeliveryFee ?? fallbackDeliveryFee,
       dietary_type: food.dietary_type,
       item_type: food.item_type,
     };
@@ -698,22 +728,21 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                             </div>
 
                             {/* Delivery */}
-                            <div className={`flex items-center gap-2 p-1.5 rounded-lg border backdrop-blur-sm ${!food?.deliveryFee || food?.deliveryFee === 0
+                            <div className={`flex items-center gap-2 p-1.5 rounded-lg border backdrop-blur-sm ${resolvedDeliveryFee === 0
                                 ? "bg-green-50/80 dark:bg-green-500/10 border-green-100/80 dark:border-green-500/20"
                                 : "bg-zinc-50/80 dark:bg-zinc-800/80 border-zinc-100/80 dark:border-zinc-700/80"
                               }`}>
-                              <div className={`p-1 bg-white dark:bg-zinc-900 rounded-md ring-1 ${!food?.deliveryFee || food?.deliveryFee === 0
+                              <div className={`p-1 bg-white dark:bg-zinc-900 rounded-md ring-1 ${resolvedDeliveryFee === 0
                                   ? "text-green-500 ring-green-100 dark:ring-green-500/20"
                                   : "text-orange-500 ring-zinc-100 dark:ring-zinc-800"
                                 }`}><Truck size={14} /></div>
                               <div>
                                 <p className="text-[8px] font-medium text-zinc-400 dark:text-zinc-500 capitalize tracking-widest mb-0.5">Delivery</p>
-                                <p className={`text-sm font-medium leading-none ${!food?.deliveryFee || food?.deliveryFee === 0
+                                <p className={`text-sm font-medium leading-none ${resolvedDeliveryFee === 0
                                     ? "text-green-500"
                                     : "text-zinc-900 dark:text-white"
                                   }`}>
-                                  {!food?.deliveryFee || food?.deliveryFee === 0 ? "Free" : `₦${food.deliveryFee.toLocaleString()}`}
-                                </p>
+                                  {deliveryFeeLoading ? "Calculating" : resolvedDeliveryFee === 0 ? "Free" : "\u20A6" + Number(resolvedDeliveryFee).toLocaleString()}</p>
                               </div>
                             </div>
                           </div>
@@ -1110,7 +1139,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
               <button
                 onClick={handleAddToCartBaseItem}
-                disabled={!itemAvailability.available}
+                disabled={!itemAvailability.available || deliveryFeeLoading}
                 className="flex-1 h-[46px] py-1 bg-zinc-900 dark:bg-zinc-100 hover:bg-medium dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded font-medium text-[12px] capitalize tracking-[0.05em] italic flex items-center justify-between px-3.5 transition-all active:scale-[0.98] group border border-zinc-800/50 dark:border-zinc-200/50 overflow-hidden"
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -1118,7 +1147,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                           <ShoppingCart size={18} />
                        </div> */}
                   <span className={`truncate ${itemAvailability.available ? "text-white dark:text-zinc-900 group-hover:text-orange-500" : "text-zinc-400"}`}>
-                    {itemAvailability.available ? "Add To Cart" : "Sold Out"}
+                    {!itemAvailability.available ? "Sold Out" : deliveryFeeLoading ? "Checking delivery" : "Add To Cart"}
                   </span>
                 </div>
 

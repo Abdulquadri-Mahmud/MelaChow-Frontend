@@ -267,7 +267,12 @@ export default function VendorList({ user }) {
     queryFn: () =>
       getNearbyVendors({ city: userLocation.city, state: userLocation.state }),
     enabled: !!userLocation?.city && !!userLocation?.state && mounted,
-    staleTime: 1000 * 60,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
   const allVendors = useMemo(() => {

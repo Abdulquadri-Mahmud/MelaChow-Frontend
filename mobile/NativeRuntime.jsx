@@ -120,9 +120,10 @@ export default function NativeRuntime({ children }) {
     };
   }, [router]);
 
-  if (!ready) return <div role="status" className="p-8 text-center">Loading MelaChow&hellip;</div>;
+  if (!ready) return null;
 
   return <>
+    <NativePushRuntime role="user" />
     {children}
     {pending && <aside className="fixed bottom-24 left-4 right-4 z-[10002] rounded-xl bg-white text-zinc-900 p-4 shadow-xl border border-orange-200" aria-label="Pending payment">
       <p className="text-sm mb-2">You have a payment awaiting confirmation.</p>

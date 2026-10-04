@@ -36,6 +36,7 @@ export const TokenManager = {
         try {
             if (typeof window !== "undefined") {
                 localStorage.setItem(STORAGE_KEYS[role] || STORAGE_KEYS.user, token);
+                window.dispatchEvent(new CustomEvent("melachow:auth-token-set", { detail: { role } }));
             }
         } catch (e) {
             console.warn(`SecureAuth: LocalStorage unavailable for ${role}`, e);
@@ -67,6 +68,7 @@ export const TokenManager = {
      * @param {string} role - The role (user, vendor, admin)
      */
     clearToken: (role = 'user') => {
+        if (typeof window !== "undefined") window.dispatchEvent(new CustomEvent("melachow:auth-token-clearing", { detail: { role } }));
         memoryTokens[role] = null;
         try {
             if (typeof window !== "undefined") {

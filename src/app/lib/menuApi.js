@@ -18,6 +18,21 @@ export const getMenuAxios = () => {
     });
 };
 
+const getCustomerMenuAxios = () => {
+    const token = TokenManager.getToken('user');
+    const deviceId = getPromoDeviceId();
+
+    return axios.create({
+        baseURL: "",
+        withCredentials: true,
+        headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(deviceId ? { "X-MelaChow-Device-Id": deviceId } : {}),
+        },
+    });
+};
+
 // ─────────────────────────────────────────────
 // PLATFORM CATEGORIES (public, no auth needed)
 // ─────────────────────────────────────────────
@@ -291,9 +306,10 @@ export const getFullVendorMenu = async (vendorId) => {
     return res.data;
 };
 
-export const getVendorStorefront = async (vendorId) => {
-    const res = await getMenuAxios().get(
-        `/v1/vendors/${vendorId}/menu`
+export const getVendorStorefront = async (vendorId, { addressId } = {}) => {
+    const res = await getCustomerMenuAxios().get(
+        `/v1/vendors/${vendorId}/menu`,
+        { params: addressId ? { addressId } : undefined }
     );
     return res.data;
 };

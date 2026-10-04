@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+html {
+  background-color: var(--system-surface, #ffffff);
+}
+
+html.dark {
+  background-color: #09090b;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @keyframes shimmer {
@@ -24,6 +32,18 @@
 
 html::-webkit-scrollbar {
   width: 0px;
+}
+
+/* Hide browser and WebView scroll indicators while keeping scrolling enabled. */
+html, body, * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .no-scrollbar {

@@ -19,6 +19,7 @@ const navItems = [
 
 export default function BottomBar() {
   const pathname = usePathname();
+  const isOrderActive = pathname === "/orders" || pathname.startsWith("/orders/");
   const { cartItemCount, isModalOpen } = useCart();
   const { user, isLoading } = useUserStorage();
   const { isOpen: isFoodModalOpen } = useFoodModalStore();
@@ -45,11 +46,11 @@ export default function BottomBar() {
 
   return (
     // Outer wrapper: fixed to bottom, overflow-visible so the Order button can float above
-    <div className="fixed bottom-0 left-0 right-0 md:max-w-md md:mx-auto z-[9999]" style={{ overflow: "visible" }}>
+    <div className="fixed inset-x-0 bottom-0 z-[9999] mx-auto w-full md:max-w-md" style={{ overflow: "visible" }}>
 
       {/* ── Floating Order Button ── rendered OUTSIDE the nav so border-radius never clips it */}
-      <div className="absolute left-1/2 -translate-x-1/2 -top-6 z-[10000]">
-        <Link href="/orders">
+      <div className="absolute left-1/2 top-0 z-[10000] -translate-x-1/2 -translate-y-1/2">
+        <Link href="/orders" aria-label={`Orders${cartItemCount ? `, ${cartItemCount} items in cart` : ""}`}>
           <motion.div
             whileTap={{ scale: 0.85 }}
             whileHover={{ scale: 1.08 }}
@@ -72,11 +73,15 @@ export default function BottomBar() {
                 {cartItemCount}
               </motion.div>
             )}
-            <div className="bg-gradient-to-tr from-orange-400 to-orange-600 p-3.5 rounded-full shadow-[0_8px_24px_rgba(249,115,22,0.45)] text-white hover:rotate-[10deg] transition-transform">
-              <ShoppingCart size={24} strokeWidth={2.5} />
+            <div className={`bg-gradient-to-tr from-orange-500 to-orange-700 p-3 rounded-full text-white transition-transform hover:rotate-[10deg] ${
+              isOrderActive
+                ? "ring-4 ring-orange-100 shadow-[0_8px_28px_rgba(234,88,12,0.55)]"
+                : "shadow-[0_8px_24px_rgba(249,115,22,0.45)]"
+            }`}>
+              <ShoppingCart size={22} strokeWidth={2.5} />
             </div>
           </motion.div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-orange-600 text-center mt-0.5">
+          <p className="mt-0.5 text-center text-[10px] font-black uppercase tracking-widest text-orange-700">
             Order
           </p>
         </Link>
@@ -86,54 +91,55 @@ export default function BottomBar() {
       <motion.nav
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="bg-white dark:bg-zinc-900 border border-gray-200/50 dark:border-white/10 shadow-[0_-8px_32px_rgba(0,0,0,0.10)] dark:shadow-[0_-8px_32px_rgba(0,0,0,0.3)] rounded-t-[32px] px-2 pt-3.5 pb-3"
+        className="rounded-t-[24px] border border-gray-200/50 bg-white px-2 pt-2 shadow-[0_-8px_32px_rgba(0,0,0,0.10)] dark:border-white/10 dark:bg-[#09090b] dark:shadow-[0_-8px_32px_rgba(0,0,0,0.3)] pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
       >
-        <div className="flex justify-between items-end">
+        <div className="grid grid-cols-5 items-end">
           {navItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
             const Icon = item.icon;
             const isOrder = item.name === "Order";
 
             // Render a blank spacer in place of the Order slot so spacing stays symmetric
             if (isOrder) {
-              return <div key={item.name} className="flex-1" />;
+              return <div key={item.name} aria-hidden="true" className="h-11" />;
             }
 
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className="relative flex-1 group"
+                aria-current={isActive ? "page" : undefined}
+                className="group relative flex min-w-0 justify-center"
               >
                 <motion.div
                   whileTap={{ scale: 0.85 }}
                   whileHover={{ scale: 1.05 }}
-                  className="flex min-h-12 flex-col items-center gap-1.5 py-1.5"
+                  className="relative flex min-h-11 w-full flex-col items-center justify-center gap-1 rounded-2xl py-1"
                 >
                   {/* Active pill background */}
                   {isActive && (
                     <motion.div
                       layoutId="activeTab"
-                      className="absolute inset-0 -m-1 rounded-2xl"
+                      className="absolute inset-x-1 inset-y-0 z-0 rounded-2xl bg-orange-600 shadow-sm shadow-orange-200/70"
                       transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
                     />
                   )}
 
                   <Icon
-                    size={24}
+                    size={21}
                     strokeWidth={isActive ? 2.5 : 2}
-                    className={`transition-all ${
+                    className={`relative z-10 transition-all ${
                       isActive
-                        ? "text-orange-500"
-                        : "text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300"
+                        ? "text-white drop-shadow-sm"
+                        : "text-slate-600 group-hover:text-slate-800"
                     }`}
                   />
 
                   <span
-                    className={`text-[11px] font-black uppercase tracking-widest leading-none transition-all ${
+                    className={`relative z-10 text-[9px] font-extrabold uppercase tracking-[0.08em] leading-none transition-all sm:text-[10px] ${
                       isActive
-                        ? "text-orange-500 opacity-100"
-                        : "text-slate-400 opacity-40 group-hover:opacity-70"
+                        ? "text-white opacity-100 drop-shadow-sm"
+                        : "text-slate-600 opacity-90 group-hover:text-slate-800 group-hover:opacity-100"
                     }`}
                   >
                     {item.name}
@@ -143,7 +149,7 @@ export default function BottomBar() {
                   {isActive && (
                     <motion.div
                       layoutId="activeDot"
-                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.8)]"
+                      className="absolute -bottom-1 left-1/2 z-10 h-1 w-1 -translate-x-1/2 rounded-full bg-orange-700 shadow-[0_0_8px_rgba(234,88,12,0.7)]"
                     />
                   )}
                 </motion.div>

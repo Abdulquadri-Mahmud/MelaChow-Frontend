@@ -13,7 +13,6 @@ import VendorList from "@/app/components/Home_Components/VendorList";
 import PromoAnnouncementBanner from "@/app/components/Home_Components/PromoAnnouncementBanner";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import AddressModal from "@/app/modals/AddressModal";
-import NotificationPromptBanner from "@/app/components/notifications/NotificationPromptBanner";
 
 export default function HomePage() {
   const [isAddressOpen, setIsAddressOpen] = useState(false);
@@ -33,7 +32,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-white dark:bg-zinc-950 pb-14 transition-colors duration-300">
       <HomeHeader />
       <div className="md:px-4 p-2 space-y-4">
-        {/* <SearchBar /> */}
+        <SearchBar />
         <PromoAnnouncementBanner />
         <CategoryList />
         <div id="vendor-list-anchor">
@@ -55,7 +54,6 @@ export default function HomePage() {
         setIsOpen={setIsAddressOpen}
       />
 
-      <NotificationPromptBanner />
     </div>
   );
 }

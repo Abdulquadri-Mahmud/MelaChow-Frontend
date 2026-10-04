@@ -10,7 +10,7 @@
                                           "enabled":  true
                                       },
                     "StatusBar":  {
-                                      "style":  "DARK",
+                    "style":  "LIGHT",
                                       "backgroundColor":  "#ffffff"
                                   },
                     "SystemBars":  {

@@ -3,21 +3,30 @@
 import SplashScreen from "@/app/components/SplashScreen";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
+
+const MINIMUM_SPLASH_MS = 800;
 
 export default function RootPage() {
   const router = useRouter();
   const { user, hasCheckedSession, isLoading } = useUserStorage();
+  const splashStartedAt = useRef(Date.now());
+
+  useEffect(() => {
+    router.prefetch("/home");
+    router.prefetch("/auth/signin");
+  }, [router]);
 
   useEffect(() => {
     // 1. Wait for session check to complete
     if (!hasCheckedSession || isLoading) return;
 
-    // 2. Short delay to ensure splash screen is seen (Premium feel)
+    const elapsed = Date.now() - splashStartedAt.current;
+    const remainingDelay = Math.max(0, MINIMUM_SPLASH_MS - elapsed);
+
     const timer = setTimeout(() => {
       if (!user) {
-        // Unauthenticated -> Go to Login
-        router.push("/auth/signin");
+        router.replace("/auth/signin");
         return;
       }
 
@@ -29,7 +38,7 @@ export default function RootPage() {
         if (adminUrl) {
           window.location.href = `${adminUrl.replace(/\/$/, "")}/admin/dashboard`;
         } else {
-          router.push("/home");
+          router.replace("/home");
         }
       } else if (role === "vendor") {
         window.location.href = "https://vendor.melachow.com/vendors/dashboard";
@@ -37,9 +46,9 @@ export default function RootPage() {
         window.location.href = "https://rider.melachow.com/rider/dashboard";
       } else {
         // Default to customer home
-        router.push("/home");
+        router.replace("/home");
       }
-    }, 2800); 
+    }, remainingDelay);
 
     return () => clearTimeout(timer);
   }, [user, hasCheckedSession, isLoading, router]);

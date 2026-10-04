@@ -40,6 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+*.apk
 # Ignore Markdown documentation files
 *.md
 *.MD

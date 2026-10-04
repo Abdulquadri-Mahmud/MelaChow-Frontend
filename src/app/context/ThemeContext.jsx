@@ -1,6 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
+import { Capacitor, SystemBarType, SystemBars, SystemBarsStyle } from '@capacitor/core';
+import { StatusBar } from '@capacitor/status-bar';
 
 const ThemeContext = createContext({
     theme: 'light',
@@ -8,35 +10,36 @@ const ThemeContext = createContext({
     setTheme: () => { },
 });
 
+const applyLightTheme = () => {
+    if (typeof window === 'undefined') return;
+
+    const color = '#ffffff';
+    document.documentElement.style.setProperty('--system-surface', color);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', color);
+    document.documentElement.classList.remove('dark');
+    document.documentElement.style.colorScheme = 'light';
+
+    if (!Capacitor.isNativePlatform()) return;
+
+    Promise.all([
+        SystemBars.setStyle({ bar: SystemBarType.StatusBar, style: SystemBarsStyle.Light }),
+        SystemBars.setStyle({ bar: SystemBarType.NavigationBar, style: SystemBarsStyle.Light }),
+        StatusBar.setBackgroundColor({ color }),
+    ]).catch((error) => console.warn('[Theme] Could not update native system bars:', error));
+};
+
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
-    // Server and initial client render must match to avoid hydration mismatch.
-    const [theme, setThemeState] = useState('light');
-    const [mounted, setMounted] = useState(false);
-
     useEffect(() => {
-        setMounted(true);
-        const storedTheme = localStorage.getItem('melachow-theme') || 'light';
-        setThemeState(storedTheme);
-        document.documentElement.classList.toggle('dark', storedTheme === 'dark');
+        localStorage.setItem('melachow-theme', 'light');
+        applyLightTheme();
     }, []);
 
-    const toggleTheme = () => {
-        const newTheme = theme === 'light' ? 'dark' : 'light';
-        setThemeState(newTheme);
-        localStorage.setItem('melachow-theme', newTheme);
-        document.documentElement.classList.toggle('dark', newTheme === 'dark');
-    };
-
-    const setTheme = (newTheme) => {
-        setThemeState(newTheme);
-        localStorage.setItem('melachow-theme', newTheme);
-        document.documentElement.classList.toggle('dark', newTheme === 'dark');
-    };
+    const keepLightTheme = () => applyLightTheme();
 
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+        <ThemeContext.Provider value={{ theme: 'light', toggleTheme: keepLightTheme, setTheme: keepLightTheme }}>
             {children}
         </ThemeContext.Provider>
     );

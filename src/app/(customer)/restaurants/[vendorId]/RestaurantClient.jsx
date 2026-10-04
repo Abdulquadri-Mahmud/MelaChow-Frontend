@@ -14,6 +14,7 @@ import { useFoodModalStore } from "@/app/store/foodModalStore";
 import { useComboModalStore } from "@/app/store/comboModalStore";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
 import { useCart } from "@/app/context/CartContext";
+import { useProfile } from "@/app/context/ProfileContext";
 
 const getItemId = (item) => item?._id || item?.id;
 const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
@@ -37,6 +38,12 @@ const FoodItemRow = ({ item, onSelect }) => {
 export default function StorefrontPage({ vendorId: propVendorId }) {
     const params = useParams();
     const vendorId = propVendorId || params.vendorId;
+    const { userProfile } = useProfile();
+    const defaultAddress = useMemo(
+        () => userProfile?.addresses?.find((address) => address.isDefault) || userProfile?.addresses?.[0],
+        [userProfile]
+    );
+    const addressId = defaultAddress?._id || defaultAddress?.id || null;
     const { activeMealGroups } = useCart();
     const activePerson = activeMealGroups[String(vendorId)]?.label;
     const router = useRouter();    const openFoodModal = useFoodModalStore(state => state.openFoodModal);
@@ -47,12 +54,14 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
     const [isSearchActive, setIsSearchActive] = useState(false);    const { platformPromo } = useActivePromos();
 
     const { data, isLoading, isError } = useQuery({
-        queryKey: ["vendor-storefront", vendorId],
-        queryFn: () => getVendorStorefront(vendorId),
+        queryKey: ["vendor-storefront", vendorId, addressId],
+        queryFn: () => getVendorStorefront(vendorId, { addressId }),
         enabled: !!vendorId,
-        staleTime: 0,
-        gcTime: 0,
-        refetchOnMount: "always",
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        refetchInterval: 5 * 60 * 1000,
+        refetchIntervalInBackground: false,
+        refetchOnMount: true,
         refetchOnWindowFocus: true,
         refetchOnReconnect: true,
     });
@@ -192,7 +201,7 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
                 <div className="text-center p-8 bg-zinc-50 dark:bg-zinc-900 rounded-[32px] border border-zinc-100 dark:border-zinc-800 max-w-sm w-full">
                     <Store size={48} className="mx-auto text-zinc-300 mb-4" />
                     <h2 className="text-xl font-medium text-zinc-900 dark:text-white tracking-tight mb-2">Menu Unavailable</h2>
-                    <p className="text-zinc-500 text-sm mb-6">We couldn't load the menu for this restaurant right now.</p>
+                    <p className="text-zinc-500 text-sm mb-6">We could not load the menu for this restaurant right now.</p>
                     <button onClick={() => router.back()} className="w-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 h-12 rounded-2xl font-medium uppercase tracking-widest text-xs">Go Back</button>
                 </div>
             </div>
@@ -248,7 +257,7 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: -72, opacity: 0 }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className="fixed top-0 inset-x-0 z-[60] bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-100 dark:border-zinc-800 px-4 h-11 flex items-center justify-between"
+                        className="fixed inset-x-0 top-0 z-[60] box-content h-11 pt-[env(safe-area-inset-top)] bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-100 dark:border-zinc-800 px-4 flex items-center justify-between"
                     >
                         <AnimatePresence mode="wait">
                             {!isSearchActive ? (
@@ -353,10 +362,10 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
                             <div className="w-px h-6 bg-zinc-100 dark:bg-zinc-800" />
                             <div className="text-center space-y-0.5">
                                 <div className="flex items-center gap-1 justify-center text-orange-500 font-medium text-[13px]">
-                                    {!vendor.deliveryFee || vendor.deliveryFee === 0 ? (
+                                    {Number(vendor.deliveryFee ?? vendor.distanceBasedDeliveryFee ?? 0) <= 0 ? (
                                         <span className="text-green-500">Free</span>
                                     ) : (
-                                        `₦${vendor.deliveryFee.toLocaleString()}`
+                                        `₦${Number(vendor.deliveryFee ?? vendor.distanceBasedDeliveryFee).toLocaleString()}`
                                     )}
                                 </div>
                                 <p className="text-[9px] font-semibold text-zinc-400">Delivery</p>
