@@ -2,13 +2,14 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getVendorStorefront } from "@/app/lib/menuApi";
+import { getVendorDeliveryQuote, getVendorStorefront } from "@/app/lib/menuApi";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { MapPin, Clock, Star, Search, X, Share2, Flame, ChevronLeft, Store, Gift, ChevronRight, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+import { getDeliveryEtaLabel } from "@/app/lib/deliveryEta";
 import ViewVendorSkeleton from "@/app/skeleton/ViewVendorSkeleton";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
 import { useComboModalStore } from "@/app/store/comboModalStore";
@@ -30,7 +31,7 @@ const FoodItemRow = ({ item, onSelect }) => {
             <span className="text-[13px] font-normal text-zinc-950 dark:text-zinc-50">From ₦{price.toLocaleString()}</span>
         </div>
         <div className="relative w-[100px] h-[100px] rounded-xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800">
-            <img src={item.image_url || item.image || "/placeholder.jpg"} alt={item.name} className="w-full h-full object-cover" onError={(event) => { event.currentTarget.src = "/placeholder.jpg"; event.currentTarget.onerror = null; }} />
+            <img src={item.image_url || item.image || "/placeholder.jpg"} alt={item.name} loading="lazy" decoding="async" className="w-full h-full object-cover" onError={(event) => { event.currentTarget.src = "/placeholder.jpg"; event.currentTarget.onerror = null; }} />
             {!isUnavailable && <div className="absolute bottom-0 inset-x-0 bg-orange-100/95 py-2 text-center text-[12px] font-bold text-orange-700">Add +</div>}</div>
         </div>;
 };
@@ -54,8 +55,8 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
     const [isSearchActive, setIsSearchActive] = useState(false);    const { platformPromo } = useActivePromos();
 
     const { data, isLoading, isError } = useQuery({
-        queryKey: ["vendor-storefront", vendorId, addressId],
-        queryFn: () => getVendorStorefront(vendorId, { addressId }),
+        queryKey: ["vendor-storefront", vendorId],
+        queryFn: () => getVendorStorefront(vendorId),
         enabled: !!vendorId,
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
@@ -66,7 +67,22 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
         refetchOnReconnect: true,
     });
 
-    const vendor      = data?.vendor;
+    const { data: deliveryQuote } = useQuery({
+        queryKey: ["vendor-delivery-quote", vendorId, addressId],
+        queryFn: () => getVendorDeliveryQuote(vendorId, addressId),
+        enabled: Boolean(vendorId && addressId),
+        staleTime: 60 * 1000,
+        retry: 1,
+    });
+
+    const vendor      = data?.vendor
+        ? {
+            ...data.vendor,
+            deliveryFee: data.vendor.hasActiveDeliveryPromo
+                ? 0
+                : deliveryQuote?.deliveryFee ?? data.vendor.deliveryFee,
+        }
+        : null;
     const sections    = data?.sections || [];
     const unsectioned = data?.unsectioned || [];
     const combos      = data?.combos || [];
@@ -278,7 +294,7 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
                                                 <Star size={8} className="text-amber-400 fill-amber-400" />
                                                 <span>{vendor.rating ? Number(vendor.rating).toFixed(1) : "NEW"}</span>
                                                 <span className="w-0.5 h-0.5 bg-zinc-300 rounded-full" />
-                                                <span>Delivery {vendor.estimatedDeliveryTime || "25"} min</span>
+                                                <span>Delivery {getDeliveryEtaLabel(defaultAddress, vendor, vendor.estimatedDeliveryTime)}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -355,7 +371,7 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
                             <div className="text-center space-y-0.5">
                                 <div className="flex items-center gap-1 justify-center">
                                     <Clock size={12} className="text-orange-500" />
-                                    <span className="text-[13px] font-medium text-zinc-900 dark:text-white">{Math.max(0, Number(vendor.estimatedDeliveryTime || 25) - 5)}–{Number(vendor.estimatedDeliveryTime || 25)} min</span>
+                                    <span className="text-[13px] font-medium text-zinc-900 dark:text-white">{getDeliveryEtaLabel(defaultAddress, vendor, vendor.estimatedDeliveryTime)}</span>
                                 </div>
                                 <p className="text-[9px] font-semibold text-zinc-400">Est. delivery</p>
                             </div>

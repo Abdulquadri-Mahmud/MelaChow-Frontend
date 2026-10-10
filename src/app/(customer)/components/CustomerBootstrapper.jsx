@@ -60,7 +60,11 @@ export default function CustomerBootstrapper({ children }) {
         if (isProtectedRoute && !isAuthenticated && !isRedirecting) {
             console.log('[CustomerBootstrapper] Redirecting unauthenticated user from protected route:', pathname);
             setIsRedirecting(true);
-            router.replace("/auth/signin");
+            if (process.env.NEXT_PUBLIC_MOBILE_BUILD === "true") {
+                window.location.replace("/auth/signin/");
+            } else {
+                router.replace("/auth/signin");
+            }
         }
     }, [
         hasCheckedSession,
@@ -78,13 +82,10 @@ export default function CustomerBootstrapper({ children }) {
         setIsRedirecting(false);
     }, [pathname]);
 
-    // Only render nothing if it's a strictly protected route and we haven't checked session yet,
-    // to prevent exposing private layouts momentarily. For public SEO routes, always render children.
-    if (!hasCheckedSession) {
-        const isProtectedRoute = !isGuestAllowedRoute && !isRestaurantRoute && !isFoodDetailsRoute;
-        if (isProtectedRoute) {
-            return null;
-        }
+    // Never paint a protected page until the session check confirms a user.
+    const isProtectedRoute = !isGuestAllowedRoute && !isRestaurantRoute && !isFoodDetailsRoute;
+    if (isProtectedRoute && (!hasCheckedSession || !isAuthenticated || isRedirecting)) {
+        return null;
     }
 
     return (

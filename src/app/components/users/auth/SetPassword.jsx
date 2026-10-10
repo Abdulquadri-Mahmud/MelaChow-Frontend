@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import AuthFrame, { authInputClass, authLabelClass } from "./AuthFrame";
 import { useApi } from "@/app/context/ApiContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { motion, AnimatePresence } from "framer-motion";
@@ -171,44 +172,29 @@ export default function SetPassword() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-y-auto p-3 md:p-8">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full max-w-md flex flex-col justify-center py-4"
-            >
-                <div className="text-center mb-10">
-                    <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                        <Lock size={36} />
-                    </div>
-
-                    <h1 className="text-4xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-3">
-                        Set Your <span className="text-orange-600">Password</span>
-                    </h1>
-                    <p className="text-xs font-semibold text-slate-500 mb-4 leading-relaxed">
-                        Create a secure password for your new account:<br />
-                        <span className="text-slate-700 dark:text-slate-300 font-bold">{email}</span>
-                    </p>
-                </div>
+        <AuthFrame subtitle="Secure your account">
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+                <div className="mb-6 inline-flex rounded-full bg-orange-50 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-700">Step 3 of 3 · Set password</div>
+                <h1 className="mb-2 text-[28px] font-semibold tracking-tight">Create a password <Lock className="inline text-orange-500" size={23} /></h1>
+                <p className="mb-6 text-base leading-relaxed text-slate-500">Choose a strong password of at least 8 characters. You&apos;ll use it to sign in.</p>
 
                 <form onSubmit={handleSetPassword} className="space-y-5">
                     <div className="space-y-2 p-1">
-                        <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">New Password</label>
+                        <label className={authLabelClass}>New password</label>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
-                                placeholder="Create a strong password"
+                                placeholder="Min. 8 characters"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
-                                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
+                                className={`${authInputClass} pr-12`}
                             />
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-orange-600 transition-colors"
-                                tabIndex={-1}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-orange-600"
                             >
                                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
@@ -216,14 +202,14 @@ export default function SetPassword() {
                     </div>
 
                     <div className="space-y-2 p-1">
-                        <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">Confirm Password</label>
+                        <label className={authLabelClass}>Confirm password</label>
                         <input
                             type={showPassword ? "text" : "password"}
                             placeholder="Repeat your password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
-                            className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
+                            className={authInputClass}
                         />
                     </div>
 
@@ -232,7 +218,7 @@ export default function SetPassword() {
                         whileTap={{ scale: 0.99 }}
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-8 shadow-xl shadow-orange-500/20"
+                        className="w-full rounded-[20px] bg-orange-500 py-5 text-base font-semibold text-white shadow-[0_10px_20px_rgba(249,115,22,0.25)] transition hover:bg-orange-600 disabled:opacity-50"
                     >
                         {loading ? (
                             <>
@@ -241,8 +227,7 @@ export default function SetPassword() {
                             </>
                         ) : (
                             <>
-                                <span>Complete Registration</span>
-                                <ArrowRight size={20} />
+                                <span>Set password &amp; sign in</span>
                             </>
                         )}
                     </motion.button>
@@ -255,6 +240,6 @@ export default function SetPassword() {
                 message={statusModal.message}
                 onClose={closeModal}
             />
-        </div>
+        </AuthFrame>
     );
 }

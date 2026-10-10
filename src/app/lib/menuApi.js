@@ -314,6 +314,21 @@ export const getVendorStorefront = async (vendorId, { addressId } = {}) => {
     return res.data;
 };
 
+export const getVendorDeliveryQuote = async (vendorId, addressId) => {
+    if (!vendorId || !addressId) return null;
+    const res = await getCustomerMenuAxios().post("/api/user/delivery-quotes", {
+        addressId,
+        vendorIds: [vendorId],
+        checkout: false,
+    });
+    const quote = res.data?.data?.quotes?.[0];
+    if (!quote) return null;
+    return {
+        ...quote,
+        deliveryFee: Number(quote.deliveryFeeKobo || 0) / 100,
+    };
+};
+
 // ─────────────────────────────────────────────
 // COMBOS & VARIANTS
 // ─────────────────────────────────────────────

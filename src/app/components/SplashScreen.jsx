@@ -3,25 +3,24 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import { Capacitor, SystemBarType, SystemBars, SystemBarsStyle } from "@capacitor/core";
-import { StatusBar } from "@capacitor/status-bar";
+import { Animation, StatusBar, Style as StatusBarStyle } from "@capacitor/status-bar";
+
+const splashArtwork = process.env.NEXT_PUBLIC_MOBILE_BUILD === "true"
+  ? "/melachow-vendor-splash-clean.png"
+  : "/melachow-splash-clean.png";
 
 export default function SplashScreen() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return undefined;
 
+    // Keep the status bar visible and stable throughout startup. LIGHT means
+    // dark (black) system icons over the light status-bar surface.
     Promise.all([
-      SystemBars.hide(),
-      StatusBar.hide(),
-    ]).catch(() => {});
-    return () => {
-      Promise.all([
-        SystemBars.show(),
-        SystemBars.setStyle({ bar: SystemBarType.StatusBar, style: SystemBarsStyle.Light }),
-        SystemBars.setStyle({ bar: SystemBarType.NavigationBar, style: SystemBarsStyle.Light }),
-        StatusBar.show(),
-        StatusBar.setBackgroundColor({ color: "#ffffff" }),
-      ]).catch(() => {});
-    };
+      StatusBar.show({ animation: Animation.None }),
+      StatusBar.setStyle({ style: StatusBarStyle.Light }),
+      SystemBars.show({ bar: SystemBarType.StatusBar }),
+      SystemBars.setStyle({ bar: SystemBarType.StatusBar, style: SystemBarsStyle.Light }),
+    ]).catch((error) => console.warn("Could not prepare splash status bar:", error));
   }, []);
 
   return (
@@ -30,13 +29,18 @@ export default function SplashScreen() {
       aria-label="MelaChow"
     >
       <Image
-        src="/melachow-splash-clean.png"
+        src={splashArtwork}
         alt="MelaChow food delivery"
         fill
         priority
         sizes="100vw"
         className="object-cover object-center"
       />
+      <div className="native-startup-dots" role="status" aria-label="Opening MelaChow">
+        <span />
+        <span />
+        <span />
+      </div>
     </main>
   );
 }

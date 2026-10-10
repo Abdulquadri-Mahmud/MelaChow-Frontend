@@ -19,8 +19,8 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import {
-  Utensils, Star, Heart, MapPin, Bike, Clock,
-  Sparkles, Gift, ChevronRight, Dot, Moon, ChefHat, Pizza, Coffee, Globe
+  Utensils, Star, Heart, MapPin, Bike,
+  Sparkles, Gift, ChevronRight, Dot, ChefHat, Pizza, Coffee, Globe
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -28,6 +28,7 @@ import { useSearchParams } from "next/navigation";
 import FreeDeliveryBadge from "@/components/ui/FreeDeliveryBadge";
 import { useQuery } from "@tanstack/react-query";
 import { getNearbyVendors } from "@/app/lib/userApi";
+import { getDeliveryEtaLabel } from "@/app/lib/deliveryEta";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import { useLocationStore } from "@/app/store/userLocationStore";
 
@@ -58,7 +59,7 @@ const ChipSkeleton = () => (
 // —————————————————————————————————————————————————————————————————————————————
 // VENDOR CARD
 // —————————————————————————————————————————————————————————————————————————————
-const VendorCard = ({ vendor, fullWidth = false }) => {
+const VendorCard = ({ vendor, customerAddress, fullWidth = false }) => {
   const status = getVendorOpenAndCloseStatus(vendor.openingHours);
   const isOpen = status.startsWith("Open now");
 
@@ -89,6 +90,12 @@ const VendorCard = ({ vendor, fullWidth = false }) => {
             <Utensils className="text-zinc-300 dark:text-zinc-600" size={40} />
           </div>
         )}
+
+        <span className={`absolute left-2.5 top-2.5 rounded-full px-2 py-1 text-[9px] font-bold text-white shadow-sm ${
+          isOpen ? "bg-emerald-600" : "bg-zinc-700"
+        }`}>
+          {isOpen ? "Open now" : "Closed"}
+        </span>
 
         {/* Floating Promo Badge - Conditionally shown if delivery is free */}
         {vendor.hasActiveDeliveryPromo ? (
@@ -131,13 +138,11 @@ const VendorCard = ({ vendor, fullWidth = false }) => {
                 From {!vendor.deliveryFee || vendor.deliveryFee === 0 ? "Free" : `${vendor.deliveryFee}`}
               </span>
             </div>
-
             <span className="text-zinc-300">|</span>
-
-            {/* Status */}
-            <span className={isOpen ? "text-emerald-600 font-semibold" : "text-rose-500 font-semibold"}>
-              {isOpen ? "Open now" : "Closed"}
+            <span className="whitespace-nowrap text-[10px] text-zinc-700 dark:text-zinc-300">
+              {getDeliveryEtaLabel(customerAddress, vendor, vendor.estimatedDeliveryTime)}
             </span>
+
           </div>
 
           {/* Rating */}
@@ -186,13 +191,13 @@ const SectionHeader = ({ title, subtitle, href, hrefLabel = "Explore" }) => (
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // HORIZONTAL VENDOR ROW
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const VendorRow = ({ vendors }) => (
+const VendorRow = ({ vendors, customerAddress }) => (
   <div
     className="flex overflow-x-auto scroll gap-3 pb-3 scrollbar-hide no-scrollbar"
     style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
   >
     {vendors.map((v) => (
-      <VendorCard key={v._id} vendor={v} />
+      <VendorCard key={v._id} vendor={v} customerAddress={customerAddress} />
     ))}
   </div>
 );
@@ -200,12 +205,6 @@ const VendorRow = ({ vendors }) => (
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // EMPTY STATE
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const VendorColumn = ({ vendors }) => (
-  <div className="space-y-3 px-2">
-    {vendors.map((vendor) => <VendorCard key={vendor._id} vendor={vendor} fullWidth />)}
-  </div>
-);
-
 const EmptyState = ({ city, selectedCuisine, onClear }) => (
   <div className="px-4">
     <div className="bg-orange-50/50 dark:bg-orange-500/5 rounded-[24px] p-8 text-center border border-orange-100/50 dark:border-orange-500/20 flex flex-col items-center">
@@ -251,6 +250,7 @@ export default function VendorList({ user }) {
   const filterFreeDelivery =
     searchParams.get("freeDelivery") === "true" ||
     searchParams.get("promo") === "free-delivery";
+  const customerAddress = user?.addresses?.find((address) => address.isDefault) || user?.addresses?.[0];
 
   React.useEffect(() => {
     setMounted(true);
@@ -287,6 +287,11 @@ export default function VendorList({ user }) {
       rating: v.rating || 0,
       ratingCount: v.ratingCount || 0,
       openingHours: v.openingHours,
+      coordinates: v.coordinates || v.address?.coordinates,
+      latitude: v.address?.latitude,
+      longitude: v.address?.longitude,
+      address: v.address,
+      estimatedDeliveryTime: v.estimatedDeliveryTime,
       cuisineTypes: v.cuisineTypes || [],
       locationStatus: v.locationStatus || "approved",
       hasActiveDeliveryPromo: v.hasActiveDeliveryPromo || false,
@@ -318,29 +323,11 @@ export default function VendorList({ user }) {
   }, [allVendors]);
 
 
-  const { openVendors, closedVendors, topRatedVendors } = useMemo(() => {
-    const getTimestamp = (v) => {
-      if (v.createdAt) {
-        const t = new Date(v.createdAt).getTime();
-        if (!isNaN(t)) return t;
-      }
-      if (v._id && typeof v._id === "string" && v._id.length === 24) {
-        const t = parseInt(v._id.substring(0, 8), 16) * 1000;
-        if (!isNaN(t)) return t;
-      }
-      return 0;
-    };
-
-    const byNewest = (a, b) => getTimestamp(b) - getTimestamp(a);
+  const { topRatedVendors } = useMemo(() => {
     const byRating = (a, b) => b.rating - a.rating;
-
-    const open = allVendors.filter((v) => v.isOpen).sort(byNewest);
-    const closed = allVendors.filter((v) => !v.isOpen).sort(byNewest);
-    const topRated = open.filter((v) => v.rating >= 4.0).sort(byRating).slice(0, 10);
+    const topRated = allVendors.filter((v) => v.rating >= 4.0).sort(byRating).slice(0, 10);
 
     return {
-      openVendors: open,
-      closedVendors: closed,
       topRatedVendors: topRated,
     };
   }, [allVendors]);
@@ -445,46 +432,7 @@ export default function VendorList({ user }) {
             href="/search?sort=rating"
             hrefLabel="Explore"
           />
-          <VendorRow vendors={topRatedVendors} />
-        </div>
-      )}
-
-      {/* Open Now */}
-      {openVendors.length > 0 && (
-        <div>
-          <SectionHeader
-            title={
-              <span className="flex items-center gap-2">
-                <Clock size={18} className="text-emerald-500" />
-                Open Now
-                {/* Live dot */}
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-              </span>
-            }
-            subtitle={`${openVendors.length} restaurant${openVendors.length !== 1 ? "s" : ""} taking orders`}
-            href="/all-restaurants"
-            hrefLabel="Explore"
-          />
-          <VendorColumn vendors={openVendors} />
-        </div>
-      )}
-
-      {/* Closed / Coming Back Soon */}
-      {closedVendors.length > 0 && (
-        <div>
-          <SectionHeader
-            title={
-              <span className="flex items-center gap-2">
-                <Moon size={18} className="text-slate-400" />
-                Coming Back Soon
-              </span>
-            }
-            subtitle="Check their hours before ordering"
-          />
-          <VendorColumn vendors={closedVendors} />
+          <VendorRow vendors={topRatedVendors} customerAddress={customerAddress} />
         </div>
       )}
 

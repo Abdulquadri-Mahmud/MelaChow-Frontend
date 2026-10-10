@@ -5,12 +5,12 @@ import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
 import { Capacitor } from "@capacitor/core";
 import { installTransport } from "./transport";
+import NativePushRuntime from "@/app/components/NativePushRuntime";
 import { fromAppUrl, toMobileHref } from "./routes.mjs";
 import { parsePendingPayment, pendingPaymentKey, isPaymentVerificationPath } from "./payment-state.mjs";
 
 export default function NativeRuntime({ children }) {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
   const [pending, setPending] = useState(null);
 
   useEffect(() => {
@@ -109,7 +109,6 @@ export default function NativeRuntime({ children }) {
       App.getLaunchUrl().then((result) => { if (!disposed && result) onUrl(result); });
     }
 
-    queueMicrotask(() => { if (!disposed) setReady(true); });
     return () => {
       disposed = true;
       handles.forEach((handle) => handle.remove());
@@ -119,8 +118,6 @@ export default function NativeRuntime({ children }) {
       delete window.__melachowPaymentVerified;
     };
   }, [router]);
-
-  if (!ready) return null;
 
   return <>
     <NativePushRuntime role="user" />

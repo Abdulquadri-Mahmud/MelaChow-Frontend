@@ -118,7 +118,7 @@ function PromoAnnouncementBannerFallback() {
               type="button"
               whileTap={{ scale: 0.98 }}
               onClick={() => router.push(slide.href)}
-              className={`relative overflow-hidden min-w-[82%] snap-center rounded-2xl px-3.5 py-3.5 text-left transition-all duration-300 sm:min-w-[340px] border shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.18)] ${
+              className={`relative overflow-hidden min-w-[82%] snap-center rounded-2xl px-3.5 py-4.5 text-left transition-all duration-300 sm:min-w-[340px] border shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.18)] ${
                 isVendor
                   ? "bg-gradient-to-br from-zinc-900 via-zinc-950 to-zinc-900 border-zinc-800/80 text-white"
                   : "bg-gradient-to-br from-[#FF5100] via-[#FF6B00] to-[#E04400] border-orange-400/30 text-white"

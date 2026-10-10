@@ -125,15 +125,19 @@ no current database IDs or private orders are baked into the APK.
   Socket.IO/REST notifications remain. Background push is not implemented:
   it requires Firebase configuration, native device-token registration, and
   backend FCM delivery; existing web-push subscriptions cannot be reused.
-- **Screen/keyboard:** the mobile viewport uses contain so Android handles system
-  bar and keyboard insets, avoiding overlap with fixed web navigation.
-- **Branding:** Android launcher/splash use existing MelaChow icon assets.
-  App signing and store graphics are still release preparation.
-- **Dependency audit:** npm reported 19 dependency advisories during installation
-  (1 low, 8 moderate, 10 high). The initial Capacitor runtime install reported 16;
-  CLI installation raised this to 19. These are not all newly introduced runtime
-  issues. Review npm audit and dependency upgrades separately; no force upgrades
-  were applied.
+- **Screen/keyboard:** the Android activity draws edge-to-edge and applies
+  system-bar/cutout insets once to the app content. Capacitor's duplicate
+  SystemBars inset handler is disabled; the status and gesture bar surfaces are
+  white with dark icons.
+- **Branding:** Android's native launch screen uses `public/logo.png`. The
+  WebView loading surface is plain white so the logo does not appear a second
+  time before the customer in-app splash, which uses the vendor splash artwork
+  and animated loading dots. App signing and store graphics are still release
+  preparation.
+- **Dependency audit:** The Capacitor reinstall reported 32 dependency advisories
+  (1 low, 8 moderate, 23 high). These are not all newly introduced runtime issues.
+  Review npm audit and dependency upgrades separately; no force upgrades were
+  applied.
 
 ## Validation and remaining device checks
 

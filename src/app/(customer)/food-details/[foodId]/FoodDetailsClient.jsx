@@ -29,7 +29,7 @@ import 'swiper/css';
 import { useCart } from "@/app/context/CartContext";
 import { useProfile } from "@/app/context/ProfileContext";
 import { isVendorOpen as isVendorOpenFn } from "@/app/lib/utils";
-import { getPublicFoodDetail, getVendorStorefront } from "@/app/lib/menuApi";
+import { getPublicFoodDetail, getVendorDeliveryQuote } from "@/app/lib/menuApi";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import FoodCustomizationModal from "@/app/components/Cart/FoodCustomizationModal";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
@@ -65,13 +65,24 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
     };
   }, [isModal, onClose]);
 
-  const isFoodComplete = (f) => f && f.portions !== undefined && (f.choiceGroups !== undefined || f.choice_groups !== undefined);
+  const isFoodComplete = (f) => {
+    if (!f) return false;
+    if (f._detailsComplete === true) return true;
+    if (f._detailsComplete === false) return false;
+    return Array.isArray(f.portions) && (Array.isArray(f.choiceGroups) || Array.isArray(f.choice_groups));
+  };
 
   // Ensure portions and choiceGroups are always arrays regardless of API shape
   const normalizeFood = (f) => {
     if (!f) return f;
     return {
       ...f,
+      _detailsComplete: isFoodComplete(f),
+      price_naira: f.price_naira ?? (
+        Array.isArray(f.portions)
+          ? undefined
+          : f.portions?.default_price_naira ?? f.portions?.min_price_naira
+      ) ?? f.price,
       portions: Array.isArray(f.portions) ? f.portions : [],
       choiceGroups: Array.isArray(f.choiceGroups)
         ? f.choiceGroups
@@ -84,7 +95,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   // Data State
   const initialFood = initialData?.food || (initialData?.success ? null : initialData);
   const [food, setFood] = useState(initialFood && Object.keys(initialFood).length > 0 ? normalizeFood(initialFood) : null);
-  const [isLoading, setIsLoading] = useState(isModal ? true : !isFoodComplete(food));
+  const [isLoading, setIsLoading] = useState(!food);
+  const [isFoodDetailsReady, setIsFoodDetailsReady] = useState(isFoodComplete(initialFood));
   const [isError, setIsError] = useState(false);
 
   // console.log('[FoodDetailsClient] initialData:', initialData);
@@ -131,20 +143,20 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
     return vendor?._id || vendor?.id || item?.vendorId || item?.vendor_id || item?.restaurantId || item?.restaurant_id || "";
   };
   const deliveryVendorId = getFoodVendorId(food);
-  const { data: deliveryStorefront, isPending: isDeliveryFeePending } = useQuery({
-    queryKey: ["vendor-storefront", deliveryVendorId, addressId],
-    queryFn: () => getVendorStorefront(deliveryVendorId, { addressId }),
+  const { data: deliveryQuote, isPending: isDeliveryFeePending } = useQuery({
+    queryKey: ["vendor-delivery-quote", deliveryVendorId, addressId],
+    queryFn: () => getVendorDeliveryQuote(deliveryVendorId, addressId),
     enabled: Boolean(deliveryVendorId && addressId),
     staleTime: 60 * 1000,
+    retry: 1,
   });
-  const storefrontVendor = deliveryStorefront?.vendor;
   const fallbackDeliveryFee = Number(getFoodVendor(food)?.deliveryFee ?? food?.deliveryFee ?? 0);
   const deliveryFeeLoading = Boolean(addressId && deliveryVendorId && isDeliveryFeePending);
   const resolvedDeliveryFee = deliveryFeeLoading
     ? null
-    : storefrontVendor
-      ? Number(storefrontVendor.deliveryFee ?? storefrontVendor.distanceBasedDeliveryFee ?? 0)
-      : fallbackDeliveryFee;
+    : getFoodVendor(food)?.hasActiveDeliveryPromo
+      ? 0
+      : deliveryQuote?.deliveryFee ?? fallbackDeliveryFee;
   const handleShare = async () => {
     const foodName = food?.name || "Check out this dish";
     const storeName = getFoodVendor(food)?.storeName || "MelaChow";
@@ -198,11 +210,17 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   // Fetch Food (only if initialData is missing)
   useEffect(() => {
     const fetchFood = async () => {
-      // Only skip if we already have the full food object (portions AND choiceGroups check)
-      if (!isModal && isFoodComplete(food)) return;
+      // Menu cards can provide preview data. Render it immediately and fetch
+      // full customization data only when portions or choice groups are absent.
+      if (isFoodComplete(food)) {
+        setIsFoodDetailsReady(true);
+        setIsLoading(false);
+        return;
+      }
 
       try {
-        if (!isFoodComplete(food)) setIsLoading(true);
+        setIsFoodDetailsReady(false);
+        if (!food) setIsLoading(true);
         const res = await getPublicFoodDetail(foodId);
         let foodData = res?.food;
 
@@ -213,6 +231,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
         }
 
         setFood(foodData);
+        setIsFoodDetailsReady(isFoodComplete(foodData));
         setIsError(false);
       } catch (err) {
         console.error("Failed to fetch food:", err);
@@ -277,6 +296,10 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   };
 
   const handleAddToCart = (payload) => {
+    if (!isFoodDetailsReady) {
+      toast.error("Loading food options. Please wait a moment.");
+      return;
+    }
     if (deliveryFeeLoading) {
       toast.error("Calculating the delivery fee. Please wait a moment.");
       return;
@@ -288,7 +311,9 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   // Base Item Customizer Logic
   const foodPortions = Array.isArray(food?.portions) ? food.portions : [];
   const effectivePortion = selectedPortion || foodPortions.find((portion) => portion.is_default) || foodPortions[0] || null;
-  const basePriceNaira = (effectivePortion?.price_naira || 0) * portionQuantity;
+  const basePriceNaira = Number(
+    effectivePortion?.price_naira ?? food?.price_naira ?? food?.price ?? 0
+  ) * portionQuantity;
 
   const addonsPrice = Object.values(selections).reduce((acc, sel) => {
     if (Array.isArray(sel)) {
@@ -399,6 +424,10 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
   };
 
   const handleAddToCartBaseItem = () => {
+    if (!isFoodDetailsReady) {
+      toast.error("Loading food options. Please wait a moment.");
+      return;
+    }
     if (deliveryFeeLoading) {
       toast.error("Calculating the delivery fee. Please wait a moment.");
       return;
@@ -1139,7 +1168,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
 
               <button
                 onClick={handleAddToCartBaseItem}
-                disabled={!itemAvailability.available || deliveryFeeLoading}
+                disabled={!itemAvailability.available || deliveryFeeLoading || !isFoodDetailsReady}
                 className="flex-1 h-[46px] py-1 bg-zinc-900 dark:bg-zinc-100 hover:bg-medium dark:hover:bg-white disabled:bg-zinc-100 dark:disabled:bg-zinc-800 disabled:text-zinc-400 text-white dark:text-zinc-900 rounded font-medium text-[12px] capitalize tracking-[0.05em] italic flex items-center justify-between px-3.5 transition-all active:scale-[0.98] group border border-zinc-800/50 dark:border-zinc-200/50 overflow-hidden"
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -1147,7 +1176,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                           <ShoppingCart size={18} />
                        </div> */}
                   <span className={`truncate ${itemAvailability.available ? "text-white dark:text-zinc-900 group-hover:text-orange-500" : "text-zinc-400"}`}>
-                    {!itemAvailability.available ? "Sold Out" : deliveryFeeLoading ? "Checking delivery" : "Add To Cart"}
+                    {!itemAvailability.available ? "Sold Out" : !isFoodDetailsReady ? "Loading options" : deliveryFeeLoading ? "Checking delivery" : "Add To Cart"}
                   </span>
                 </div>
 

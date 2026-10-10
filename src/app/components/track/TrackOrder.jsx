@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 
 import axios from "axios";
-import { Clock, Truck, Package, Home, CheckCircle, Star, Phone, Bike, Copy, RefreshCw } from "lucide-react";
+import { Clock, Truck, Package, Home, CheckCircle, Star, Phone, Bike, Copy, RefreshCw, MapPin, CreditCard } from "lucide-react";
 import { useApi } from "@/app/context/ApiContext";
 import { useParams, useRouter } from "next/navigation";
 import Header2 from "../App_Header/Header2";
@@ -12,7 +12,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import ReviewModal from "@/app/modals/ReviewModal";
 import { useOrderTracking } from "@/app/hooks/useOrderTracking";
 import toast from "react-hot-toast";
-import { generateOrderItemsStatement } from "@/app/lib/utils";
 import { verifyPaymentV2 } from "@/app/lib/orderService";
 import customerApi from "@/app/lib/customerApi";
 
@@ -65,13 +64,6 @@ const statusSteps = [
     subtitle: "Hope you enjoy it!",
     description: "Your meal has been dropped off. Thank you for using MelaChow!",
     icon: Home
-  },
-  {
-    key: "completed",
-    label: "Completed",
-    subtitle: "Order closed",
-    description: "This order has been successfully completed. Enjoy your meal!",
-    icon: CheckCircle
   },
 ];
 
@@ -268,7 +260,9 @@ export default function OrderTracking() {
   if (!orderData)
     return <div className="md:p-6 p-2 text-center text-zinc-600 dark:text-zinc-400 font-medium">No order found</div>;
 
-  const { items, deliveryAddress, subtotal, deliveryFee, serviceFee, total, orderStatus, userId, deliveryOtp, paymentStatus, paymentReference } = orderData;
+  const items = Array.isArray(orderData.items) ? orderData.items : [];
+  const restaurantNames = [...new Set(items.map((item) => item.restaurantName || item.storeName || item.vendorName).filter(Boolean))];
+  const { deliveryAddress, subtotal, deliveryFee, serviceFee, total, orderStatus, userId, deliveryOtp, paymentStatus, paymentReference } = orderData;
   const formatMoney = (value) => `₦${Number(value || 0).toLocaleString()}`;
   const promoSaved = Number(
     orderData.freeDeliveryPromo?.originalDeliveryFee ||
@@ -276,7 +270,16 @@ export default function OrderTracking() {
     0
   );
   const promoWaivedDelivery = Number(deliveryFee || 0) === 0 && promoSaved > 0;
-  const currentStepIndex = statusSteps.findIndex((s) => s.key === orderStatus);
+  const deliveryAddressText = [
+    deliveryAddress?.addressLine || deliveryAddress?.address,
+    [deliveryAddress?.cityName || deliveryAddress?.city, deliveryAddress?.stateName || deliveryAddress?.state].filter(Boolean).join(", "),
+  ].filter(Boolean).join(", ");
+  const paymentMethodValue = orderData.paymentMethod || orderData.payment_method || orderData.payment?.method;
+  const paymentMethod = typeof paymentMethodValue === "string" ? paymentMethodValue : paymentMethodValue?.name || paymentMethodValue?.type;
+  const orderPlacedAt = orderData.createdAt ? new Date(orderData.createdAt).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Just now";
+  const discountAmount = Number(orderData.discountAmount || orderData.discount_amount || orderData.couponDiscount || 0);
+  const progressStatus = orderStatus === "completed" ? "delivered" : orderStatus === "processing" ? "preparing" : orderStatus;
+  const currentStepIndex = Math.max(0, statusSteps.findIndex((s) => s.key === progressStatus));
   const showPaymentRetry = paymentReference && paymentStatus !== "paid" && orderStatus !== "cancelled";
 
   return (
@@ -284,7 +287,7 @@ export default function OrderTracking() {
       <Header2 />
 
       {/* Dynamic Map Header Section */}
-      <div className="relative h-[70vh] w-full overflow-hidden bg-orange-50 dark:bg-orange-950/10">
+      <div className="relative h-[280px] w-full overflow-hidden bg-orange-50 dark:bg-orange-950/10 sm:h-[320px]">
         {/* Premium Map Stylized Pattern */}
         <div className="absolute inset-0 opacity-10 dark:opacity-20 pointer-events-none">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -306,7 +309,7 @@ export default function OrderTracking() {
           className="absolute top-1/4 left-1/4 w-32 h-32 bg-orange-400/5 dark:bg-orange-500/10 rounded-full blur-3xl"
         />
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center -translate-y-12">
+        <div className="absolute inset-0 flex flex-col items-center justify-center -translate-y-4 pt-5">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -316,7 +319,7 @@ export default function OrderTracking() {
             <div className="absolute inset-0 animate-ping bg-orange-500/20 rounded-full scale-110" />
             <div className="absolute inset-0 animate-pulse bg-orange-500/10 rounded-full scale-150" />
 
-            <div className="relative w-40 h-40 bg-white dark:bg-zinc-900 rounded-[48px] shadow-[0_30px_70px_-15px_rgba(255,102,0,0.3)] border-4 border-white dark:border-zinc-800 flex items-center justify-center overflow-hidden">
+            <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border-2 border-white bg-white shadow-xl shadow-orange-500/20 dark:border-zinc-800 dark:bg-zinc-900 sm:h-24 sm:w-24">
               <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-600 opacity-90" />
               <motion.div
                 animate={{
@@ -326,10 +329,10 @@ export default function OrderTracking() {
                 transition={{ repeat: Infinity, duration: 4 }}
                 className="z-10 text-white"
               >
-                {currentStepIndex === 3 ? (
-                  <CheckCircle size={64} strokeWidth={1.5} />
+                {['delivered', 'completed'].includes(orderStatus) ? (
+                  <CheckCircle size={36} strokeWidth={1.8} />
                 ) : (
-                  <Truck size={64} strokeWidth={1.5} />
+                  <Truck size={36} strokeWidth={1.8} />
                 )}
               </motion.div>
 
@@ -342,22 +345,22 @@ export default function OrderTracking() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mt-8 text-center"
+            className="mt-4 text-center"
           >
-            <h2 className="text-3xl font-medium text-zinc-900 dark:text-white italic uppercase tracking-tighter">
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-white sm:text-2xl">
               {orderStatus === 'cancelled' ? 'Order Cancelled' : statusSteps[currentStepIndex]?.label}
             </h2>
-            <div className="flex items-center gap-2 justify-center mt-2">
-              <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-400">Live Updates Enabled</p>
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <span className="flex h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+              <p className="text-[9px] font-medium uppercase tracking-[0.15em] text-zinc-400">Live updates enabled</p>
             </div>
           </motion.div>
         </div>
 
         {/* Top Actions */}
-        <div className="absolute top-6 left-4 right-4 flex justify-between items-center z-10">
-          <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded border border-white/50 dark:border-zinc-800/50 shadow-lg">
-            <span className="text-[10px] font-medium text-orange-600 uppercase italic">
+        <div className="absolute left-3 right-3 top-3 z-10 flex flex-wrap items-center justify-between gap-2 sm:left-5 sm:right-5 sm:top-5">
+          <div className="rounded-full border border-white/50 bg-white/80 px-3 py-1.5 shadow-sm backdrop-blur-md dark:border-zinc-800/50 dark:bg-zinc-900/80">
+            <span className="text-[9px] font-semibold uppercase text-orange-600">
               {orderStatus === 'out_for_delivery' ? 'Arriving Shortly' : 
                orderStatus === 'delivered' ? 'Order Arrived' :
                orderStatus === 'ready_for_pickup' ? 'Assigning Rider' : 'Tracking Active'}
@@ -367,7 +370,7 @@ export default function OrderTracking() {
             <button
               onClick={handleCancelOrder}
               disabled={isCancelling}
-              className="bg-red-50 dark:bg-red-950/30 px-4 py-2 rounded border border-red-100 dark:border-red-900/50 shadow-lg text-[10px] font-medium text-red-600 uppercase hover:bg-red-100 transition-colors disabled:opacity-50"
+              className="rounded-full border border-red-100 bg-red-50 px-3 py-1.5 text-[9px] font-semibold uppercase text-red-600 shadow-sm transition-colors hover:bg-red-100 disabled:opacity-50 dark:border-red-900/50 dark:bg-red-950/30"
             >
               {isCancelling ? "Cancelling..." : "Cancel Order"}
             </button>
@@ -383,7 +386,7 @@ export default function OrderTracking() {
                 setShowReviewBanner(false);
               }
             }}
-            className={`bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md px-4 py-2 rounded border border-white/50 dark:border-zinc-800/50 shadow-lg text-[10px] font-medium uppercase transition-colors ${
+            className={`rounded-full border border-white/50 bg-white/80 px-3 py-1.5 text-[9px] font-semibold uppercase shadow-sm backdrop-blur-md transition-colors dark:border-zinc-800/50 dark:bg-zinc-900/80 ${
               ['delivered', 'completed'].includes(orderStatus)
                 ? 'text-orange-600 hover:text-orange-700'
                 : 'text-zinc-300 cursor-not-allowed'
@@ -395,45 +398,45 @@ export default function OrderTracking() {
       </div>
 
       {/* Overlapping Content Section */}
-      <div className="relative max-w-4xl mx-auto -mt-[9rem] px-1">
-        <div className="space-y-3">
+      <div className="relative mx-auto -mt-8 max-w-3xl px-3 pb-6 sm:px-5">
+        <div className="flex flex-col gap-3">
 
           {/* Main Status & Progress Card */}
           <motion.div
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className="bg-white dark:bg-zinc-900 rounded p-2 border-b border-zinc-100 dark:border-zinc-800"
+            className="order-3 rounded-2xl border border-zinc-100 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-4"
           >
-            <div className="flex justify-between items-start mb-10">
+            <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h3 className="text-zinc-900 dark:text-white font-medium text-xl italic uppercase tracking-tight">Track Progress</h3>
+                <h3 className="text-base font-semibold text-zinc-900 dark:text-white">Track your order</h3>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
-                  <span className="text-xs font-bold text-zinc-500 px-2 py-0.5 bg-zinc-50 dark:bg-zinc-800 rounded">#{orderData.orderId}</span>
+                  <span className="rounded bg-zinc-50 px-2 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-zinc-800">#{orderData.orderId}</span>
                   <button
                     type="button"
                     onClick={copyOrderId}
-                    className="inline-flex items-center gap-1 rounded border border-orange-100 bg-orange-50 px-2 py-1 text-[9px] font-medium uppercase tracking-widest text-orange-600 transition hover:bg-orange-100 active:scale-95 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-300"
+                    className="inline-flex items-center gap-1 rounded border border-orange-100 bg-orange-50 px-2 py-1 text-[9px] font-semibold text-orange-600 transition hover:bg-orange-100 active:scale-95 dark:border-orange-500/20 dark:bg-orange-500/10 dark:text-orange-300"
                     aria-label="Copy order ID"
                   >
                     <Copy size={12} />
                     Copy
                   </button>
-                  <span className="text-[10px] font-medium text-orange-500 uppercase">{currentStepIndex + 1} of {statusSteps.length} Steps Done</span>
-                  <button type="button" onClick={() => router.push("/get-help?orderId=" + encodeURIComponent(orderData.orderId || orderId) + "&paymentReference=" + encodeURIComponent(orderData.paymentReference || ""))} className="rounded border border-red-100 bg-red-50 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-red-600 dark:border-red-500/20 dark:bg-red-500/10">Report an issue</button>
+                  <span className="text-[9px] font-medium text-orange-500">Step {currentStepIndex + 1} of {statusSteps.length}</span>
+                  <button type="button" onClick={() => router.push("/get-help?orderId=" + encodeURIComponent(orderData.orderId || orderId) + "&paymentReference=" + encodeURIComponent(orderData.paymentReference || ""))} className="rounded border border-red-100 bg-red-50 px-2 py-1 text-[9px] font-semibold text-red-600 dark:border-red-500/20 dark:bg-red-500/10">Get help</button>
                 </div>
               </div>
-              <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded">
-                <Package size={24} className="text-zinc-400" />
+              <div className="rounded-xl bg-zinc-50 p-2 dark:bg-zinc-800">
+                <Package size={18} className="text-zinc-400" />
               </div>
             </div>
 
-            <div className="relative space-y-4">
+            <div className="relative space-y-2.5">
               {/* Refined Vertical Timeline */}
-              <div className="absolute left-[23px] top-6 bottom-6 w-[2px] bg-zinc-50 dark:bg-zinc-800" />
+              <div className="absolute bottom-4 left-[15px] top-4 w-0.5 bg-zinc-100 dark:bg-zinc-800" />
               <motion.div
                 initial={{ height: 0 }}
                 animate={{ height: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%` }}
-                className="absolute left-[23px] top-6 w-[2px] bg-gradient-to-b from-orange-400 to-orange-600 shadow-[0_0_15px_rgba(255,102,0,0.4)]"
+                className="absolute left-[15px] top-4 w-0.5 bg-gradient-to-b from-orange-400 to-orange-600"
               />
 
               {statusSteps.map((step, idx) => {
@@ -442,45 +445,42 @@ export default function OrderTracking() {
                 const isPast = idx < currentStepIndex;
 
                 return (
-                  <div key={idx} className="flex gap-3 relative">
+                  <div key={step.key} className="relative flex gap-2.5">
                     <div className="relative z-10">
                       <motion.div
                         animate={{
                           scale: isActive ? [1, 1.1, 1] : 1,
-                          backgroundColor: isActive || isPast ? "#ff6600" : "#ffffff"
                         }}
                         transition={{ repeat: isActive ? Infinity : 0, duration: 2 }}
-                        className={`w-12 h-12 rounded-full flex items-center justify-center shadow-2xl transition-all duration-500 border-2 ${isActive || isPast
-                          ? "text-white border-transparent shadow-orange-500/40"
-                          : "text-zinc-300 border-zinc-50 dark:border-zinc-800 dark:bg-zinc-900"
+                        className={`flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-300 ${isActive || isPast
+                          ? "border-orange-500 bg-orange-500 text-white shadow-sm shadow-orange-500/25"
+                          : "border-zinc-200 bg-white text-zinc-300 dark:border-zinc-700 dark:bg-zinc-900"
                           }`}
                       >
-                        {isPast ? <CheckCircle size={20} /> : <Icon size={20} />}
+                        {isPast ? <CheckCircle size={15} /> : <Icon size={15} />}
                       </motion.div>
                     </div>
 
                     <div className={`flex-1 transition-all duration-700 ${idx > currentStepIndex ? "opacity-30 blur-[0.5px]" : "opacity-100"}`}>
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-3">
-                          <h4 className={`text-[13px] font-medium uppercase tracking-tight ${isActive ? "text-orange-600" : "text-zinc-900 dark:text-white"}`}>
+                      <div className="flex min-h-8 flex-col justify-center">
+                        <div className="flex items-center gap-2">
+                          <h4 className={`text-xs font-semibold ${isActive ? "text-orange-600" : "text-zinc-800 dark:text-zinc-200"}`}>
                             {step.label}
                           </h4>
                           {isActive && (
                             <motion.span
                               animate={{ opacity: [1, 0.5, 1] }}
                               transition={{ repeat: Infinity, duration: 1.5 }}
-                              className="px-2 py-0.5 bg-orange-500 text-[8px] font-medium text-white rounded-full uppercase italic tracking-widest"
+                              className="rounded-full bg-orange-500 px-1.5 py-0.5 text-[8px] font-semibold text-white"
                             >
                               Ongoing
                             </motion.span>
                           )}
                         </div>
-                        <p className="text-zinc-500 dark:text-zinc-400 text-[11px] mt-1 font-bold italic uppercase tracking-wider opacity-60">
+                        <p className="mt-0.5 text-[9px] text-zinc-500 dark:text-zinc-400">
                           {step.subtitle}
                         </p>
-                        <p className="text-zinc-400 text-xs mt-2 font-medium leading-relaxed max-w-[200px]">
-                          {step.description}
-                        </p>
+                        {isActive && <p className="mt-1 max-w-[280px] text-[10px] leading-relaxed text-zinc-500 dark:text-zinc-400">{step.description}</p>}
                       </div>
                     </div>
                   </div>
@@ -495,20 +495,20 @@ export default function OrderTracking() {
                 initial={{ opacity: 0, y: 30, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="bg-zinc-900 dark:bg-orange-600 rounded p-4 text-white relative overflow-hidden shadow-[0_40px_80px_-20px_rgba(255,102,0,0.3)] text-center border-4 border-white/10"
+                className="order-4 relative overflow-hidden rounded-2xl border border-white/10 bg-zinc-900 p-3 text-center text-white shadow-lg dark:bg-orange-600"
               >
                 {/* Visual Accent */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
               <div className="relative z-10">
-                <div className="flex items-center justify-center gap-2 mb-4">
+                <div className="mb-2 flex items-center justify-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-orange-500 dark:bg-white animate-pulse" />
                   <p className="text-[10px] font-medium uppercase tracking-[0.3em] opacity-80">Secure Delivery Code</p>
                 </div>
-                <h3 className="text-4xl font-medium tracking-[0.4em] mb-4 font-mono">
+                <h3 className="mb-2 font-mono text-3xl font-semibold tracking-[0.3em]">
                   {orderData.deliveryOtp}
                 </h3>
-                <p className="text-xs font-bold opacity-70 max-w-[280px] mx-auto leading-relaxed">
+                <p className="mx-auto max-w-[280px] text-[11px] leading-relaxed opacity-80">
                   Provide this code to your rider only after you have received your order.
                 </p>
               </div>
@@ -519,20 +519,20 @@ export default function OrderTracking() {
           )}
 
           {/* Rider & Bag Detailed Card */}
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-3">
+          <div className="order-1 grid grid-cols-1 gap-3">
 
             {/* Rider Information Section - Real data from backend */}
             {assignedRider && (
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-orange-600 rounded p-4 text-white relative overflow-hidden shadow-2xl shadow-orange-500/20"
+                className="order-2 relative overflow-hidden rounded-2xl bg-orange-600 p-3 text-white shadow-lg shadow-orange-500/20"
               >
                 {/* Decorative Pattern */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-12 translate-x-12 blur-2xl" />
 
-                <div className="flex items-center gap-5 relative z-10">
-                  <div className="w-16 h-16 rounded-[8px] overflow-hidden border-2 border-white/30 p-1 bg-white/10 backdrop-blur-md flex items-center justify-center">
+                <div className="relative z-10 flex items-center gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/30 bg-white/10 p-1 backdrop-blur-md">
                     {assignedRider.avatar ? (
                       <img 
                         src={assignedRider.avatar} 
@@ -540,7 +540,7 @@ export default function OrderTracking() {
                         className="w-full h-full object-cover rounded-[20px]" 
                       />
                     ) : (
-                      <Bike size={32} strokeWidth={1.5} className="text-white/80" />
+                      <Bike size={24} strokeWidth={1.5} className="text-white/80" />
                     )}
                   </div>
                   <div className="flex-1">
@@ -570,9 +570,9 @@ export default function OrderTracking() {
                   <div className="flex flex-col gap-2">
                     <a 
                       href={`tel:${assignedRider.phone}`}
-                      className="p-4 bg-white text-orange-600 rounded shadow-xl hover:scale-105 transition-transform flex items-center justify-center"
+                      className="flex items-center justify-center rounded-xl bg-white p-3 text-orange-600 shadow-xl transition-transform hover:scale-105"
                     >
-                      <Phone size={24} strokeWidth={2.5} />
+                      <Phone size={18} strokeWidth={2.5} />
                     </a>
                   </div>
                 </div>
@@ -581,27 +581,31 @@ export default function OrderTracking() {
 
             {/* Bag/Items Section */}
             <motion.div
-              className="bg-white dark:bg-zinc-900 rounded p-4 border border-zinc-100 dark:border-zinc-800"
+              className="order-1 rounded-2xl border border-zinc-100 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-4"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-zinc-900 dark:text-white font-medium text-sm uppercase italic tracking-[0.2em]">Order Summary</h3>
-                <span className="text-zinc-300 text-xs font-bold uppercase">{items.length} Items</span>
+              <div className="mb-3 flex items-center justify-between gap-3 border-b border-dashed border-zinc-200 pb-3 dark:border-zinc-700">
+                <div>
+                  <h3 className="text-base font-semibold text-zinc-900 dark:text-white">Order receipt</h3>
+                  <p className="mt-0.5 text-[10px] text-zinc-500">Order #{orderData.orderId} · {orderPlacedAt}</p>
+                  {restaurantNames.length > 0 && <p className="mt-0.5 text-[10px] font-medium text-zinc-600 dark:text-zinc-300">{restaurantNames.join(" · ")}</p>}
+                </div>
+                <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-semibold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">{items.length} {items.length === 1 ? "item" : "items"}</span>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-3">
                 {items.map((item, idx) => (
                   <div
                     key={idx}
-                    className="bg-zinc-50/50 dark:bg-zinc-800/50 p-3 rounded border border-zinc-100/50 dark:border-zinc-700/50 space-y-3"
+                    className="space-y-1.5 border-b border-dashed border-zinc-200 pb-3 last:border-0 last:pb-0 dark:border-zinc-700"
                   >
                     {/* TOP ROW — image, name, price, review */}
-                    <div className="flex gap-4 items-start">
+                    <div className="flex items-start gap-2.5">
                       
                       {/* Item Image — prefer variant image, fall back to item image_url */}
-                      <div className="relative w-16 h-16 rounded overflow-hidden shadow-inner flex-shrink-0">
+                      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">
                         <img
                           src={item.variant?.image || item.image_url || "/placeholder.jpg"}
                           alt={item.name || item.variant?.name}
@@ -613,11 +617,11 @@ export default function OrderTracking() {
                       <div className="flex-1 min-w-0">
                         {/* Food name — the actual dish name e.g. "Jollof Rice" */}
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="text-sm font-medium text-zinc-900 dark:text-white italic uppercase leading-tight">
+                          <h4 className="text-xs font-semibold leading-tight text-zinc-900 dark:text-white">
                             {item.name || item.variant?.name}
                           </h4>
                           {item.quantity > 1 && (
-                            <span className="text-[10px] font-medium text-white bg-zinc-900 dark:bg-white dark:text-zinc-900 px-1.5 py-0.5 rounded-md italic">
+                          <span className="rounded bg-zinc-100 px-1.5 py-0.5 text-[9px] font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                               x{item.quantity}
                             </span>
                           )}
@@ -629,7 +633,7 @@ export default function OrderTracking() {
                           {item.portion_label && (
                             <div className="flex items-center gap-1.5">
                               <span className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-                              <p className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-tight">
+                            <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
                                 {item.portion_label}
                               </p>
                               {item.portion_quantity > 1 && (
@@ -653,25 +657,16 @@ export default function OrderTracking() {
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                        <div className="font-medium text-sm text-zinc-900 dark:text-white">
-                          ₦{(item.price * item.quantity).toLocaleString()}
+                      <div className="flex shrink-0 flex-col items-end">
+                        <div className="shrink-0 text-xs font-semibold text-zinc-900 dark:text-white">
+                          {formatMoney(Number(item.price ?? item.price_naira ?? item.metadata?.pricing?.final_unit_naira ?? 0) * Number(item.quantity || 1))}
                         </div>
-                        <button
-                          onClick={() => {
-                            setSelectedFoodForReview(item);
-                            setIsReviewModalOpen(true);
-                          }}
-                          className="text-[9px] font-medium uppercase text-orange-600 bg-orange-50 dark:bg-orange-500/10 px-2 py-1 rounded hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-colors"
-                        >
-                          Review
-                        </button>
                       </div>
                     </div>
 
                     {/* SELECTED OPTIONS — broken down by choice group */}
                     {((item.selected_options || item.metadata?.selected_options)?.length > 0) && (
-                      <div className="space-y-3 pt-2"><p className="text-[9px] font-medium uppercase tracking-[0.15em] text-zinc-400">Each order includes</p>
+                      <div className="space-y-1 pt-1"><p className="text-[9px] font-medium uppercase tracking-wider text-zinc-400">Add-ons</p>
                         {Object.entries(
                           (item.selected_options || item.metadata.selected_options).reduce((groups, opt) => {
                             const key = opt.group_name || 'Additional Extras';
@@ -682,32 +677,32 @@ export default function OrderTracking() {
                         ).map(([groupName, options]) => (
                           <div
                             key={groupName}
-                            className="bg-zinc-50 dark:bg-zinc-900/40 rounded border border-zinc-100 dark:border-zinc-800/50 p-3"
+                            className="rounded-lg border border-zinc-100 bg-zinc-50/70 px-2 py-1.5 dark:border-zinc-800/50 dark:bg-zinc-900/40"
                           >
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="mb-1 flex items-center gap-2">
                               <div className="h-0.5 w-3 bg-orange-500 rounded-full" />
                               <p className="text-[9px] font-medium uppercase tracking-[0.15em] text-zinc-400">
                                 {groupName}
                               </p>
                             </div>
-                            <div className="space-y-1.5">
+                            <div className="space-y-1">
                               {options.map((opt, optIdx) => (
                                 <div
                                   key={optIdx}
                                   className="flex items-center justify-between group"
                                 >
                                   <div className="flex items-center gap-2">
-                                    <div className="w-5 h-5 rounded bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 flex items-center justify-center">
-                                      <span className="text-[9px] font-medium text-orange-600 italic">
+                                    <div className="flex h-4 w-4 items-center justify-center rounded border border-zinc-100 bg-white dark:border-zinc-700 dark:bg-zinc-800">
+                                      <span className="text-[8px] font-semibold text-orange-600">
                                         {opt.quantity || 1}
                                       </span>
                                     </div>
-                                    <span className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300 uppercase tracking-tight">
+                                    <span className="text-[10px] font-medium text-zinc-700 dark:text-zinc-300">
                                       {opt.label}
                                     </span>
                                   </div>
                                   {opt.price_modifier_naira > 0 && (
-                                    <span className="text-[10px] font-medium text-zinc-400">
+                                    <span className="text-[9px] text-zinc-400">
                                       + ₦{(opt.price_modifier_naira * (opt.quantity || 1)).toLocaleString()}
                                     </span>
                                   )}
@@ -722,7 +717,7 @@ export default function OrderTracking() {
                     {/* PRICING BREAKDOWN — only when options were added */}
                     {item.metadata?.pricing && 
                      item.metadata.pricing.options_total > 0 && (
-                      <div className="flex items-center justify-between px-3 py-2 bg-white dark:bg-zinc-900/60 rounded border border-zinc-100 dark:border-zinc-700">
+                      <div className="flex items-center justify-between rounded-lg border border-zinc-100 bg-white px-2 py-1.5 dark:border-zinc-700 dark:bg-zinc-900/60">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-bold text-zinc-400">
                             Base ₦{item.metadata.pricing.base_naira?.toLocaleString()}
@@ -752,60 +747,53 @@ export default function OrderTracking() {
               </div>
 
               {/* Enhanced Pricing Breakdown */}
-              <div className="mt-4 pt-4 border-t-2 border-zinc-50 dark:border-zinc-800 space-y-4">
-                {/* Full Order Narrative Statement */}
-                <div className="mb-6 bg-orange-50 dark:bg-orange-950/20 p-3 rounded border border-orange-100 dark:border-orange-900/30">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-orange-600" />
-                    <p className="text-[10px] font-medium uppercase tracking-widest text-orange-600">Order Directive Summary</p>
-                  </div>
-                  <p className="text-[14px] font-medium text-zinc-900 dark:text-white leading-relaxed uppercase italic">
-                    {generateOrderItemsStatement(orderData, { prefix: "You ordered" })}
-                  </p>
+              <div className="mt-3 space-y-2.5 border-t border-dashed border-zinc-200 pt-3 dark:border-zinc-700">
+                <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500 dark:text-zinc-400">Food items</span>
+                    <span className="font-medium text-zinc-900 dark:text-white">{formatMoney(subtotal)}</span>
                 </div>
-
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-zinc-500 dark:text-zinc-400 font-medium">Food items</span>
-                    <span className="font-bold text-zinc-900 dark:text-white">{formatMoney(subtotal)}</span>
-                  </div>
-                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500">This is the price of the food before delivery and service fee.</p>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500 dark:text-zinc-400 font-medium">Delivery</span>
                     <span className={`font-bold ${Number(deliveryFee || 0) === 0 ? "text-green-600" : "text-zinc-900 dark:text-white"}`}>
                       {Number(deliveryFee || 0) === 0 ? (promoWaivedDelivery ? "Free (promo)" : "Free") : formatMoney(deliveryFee)}
                     </span>
-                  </div>
-                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500">This is what was paid to bring the order to you.</p>
                 </div>
                 {promoWaivedDelivery && (
-                  <div className="flex justify-between items-center text-sm">
+                  <div className="flex items-center justify-between text-xs">
                     <span className="text-green-600 font-medium">Delivery promo saved</span>
                     <span className="font-bold text-green-600">-{formatMoney(promoSaved)}</span>
                   </div>
                 )}
-                <div className="space-y-1">
-                  <div className="flex justify-between items-center text-sm">
+                <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-500 dark:text-zinc-400 font-medium">Service fee</span>
-                    <span className="font-bold text-zinc-900 dark:text-white">{formatMoney(serviceFee)}</span>
-                  </div>
-                  <p className="text-[11px] text-zinc-400 dark:text-zinc-500">This small fee helps keep MelaChow running.</p>
+                    <span className="font-medium text-zinc-900 dark:text-white">{formatMoney(serviceFee)}</span>
                 </div>
-                <div className="flex justify-between items-end pt-4">
+                {discountAmount > 0 && (
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-emerald-700 dark:text-emerald-400">Discount</span>
+                    <span className="font-medium text-emerald-700 dark:text-emerald-400">-{formatMoney(discountAmount)}</span>
+                  </div>
+                )}
+                <div className="flex items-end justify-between border-t border-dashed border-zinc-200 pt-3 dark:border-zinc-700">
                   <div>
-                    <p className="text-[10px] font-medium uppercase tracking-[0.3em] text-zinc-300 mb-1 leading-none">Total paid</p>
-                    <h4 className="text-4xl font-medium text-zinc-900 dark:text-white italic tracking-tighter leading-none">{formatMoney(total)}</h4>
+                    <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">{String(paymentStatus || "").toLowerCase() === "paid" ? "Total paid" : "Order total"}</p>
+                    <h4 className="text-2xl font-bold leading-none tracking-tight text-zinc-900 dark:text-white">{formatMoney(total)}</h4>
                   </div>
                   <div className="text-right">
-                    <span className={`text-[10px] font-medium px-3 py-1.5 rounded uppercase tracking-widest ${
-                      orderStatus === 'cancelled' ? 'text-red-500 bg-red-500/10' : 'text-green-500 bg-green-500/10'
+                    <span className={`rounded-full px-2.5 py-1 text-[9px] font-semibold uppercase ${
+                      orderStatus === 'cancelled' ? 'text-red-600 bg-red-50 dark:bg-red-500/10' : 'text-emerald-700 bg-emerald-50 dark:bg-emerald-500/10'
                     }`}>
-                      {orderStatus === 'cancelled' ? 'Order Refunded' : 'Transaction Active'}
+                      {orderStatus === 'cancelled' ? 'Refunded' : String(paymentStatus || 'Payment pending').replace(/_/g, ' ')}
                     </span>
                   </div>
                 </div>
+
+                {(paymentMethod || paymentReference) && (
+                  <div className="grid grid-cols-1 gap-1 border-t border-dashed border-zinc-200 pt-2 text-[10px] text-zinc-500 dark:border-zinc-700 sm:grid-cols-2">
+                    {paymentMethod && <p className="flex items-center gap-1.5"><CreditCard size={12} /> Method: {paymentMethod}</p>}
+                    {paymentReference && <p className="truncate">Payment ref: {paymentReference}</p>}
+                  </div>
+                )}
 
                   {showPaymentRetry && (
                     <div className="mt-4 bg-orange-50 dark:bg-orange-950/10 p-4 rounded-3xl border border-orange-100 dark:border-orange-800/50">
@@ -838,19 +826,15 @@ export default function OrderTracking() {
                   )}
               </div>
             </motion.div>
-            <div className="bg-white dark:bg-zinc-900 p-3 rounded-[8px] border border-zinc-100 dark:border-zinc-800 flex items-center gap-4">
-              <div className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded">
-                <Clock size={20} className="text-zinc-400" />
+            <div className="order-2 rounded-2xl border border-zinc-100 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <MapPin size={16} className="text-orange-500" />
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">Delivery details</h3>
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-[10px] font-medium uppercase text-zinc-400 tracking-widest opacity-60">Placed On</h3>
-                <p className="text-xs font-medium text-zinc-900 dark:text-white truncate uppercase italic mt-0.5">
-                  {orderData.createdAt ? (
-                    <>
-                      {new Date(orderData.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} {" \u2022 "} {new Date(orderData.createdAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-                    </>
-                  ) : "Just Now"}
-                </p>
+              <div className="space-y-1 pl-6 text-xs text-zinc-600 dark:text-zinc-300">
+                {(deliveryAddress?.name || orderData.customerName) && <p className="font-medium text-zinc-900 dark:text-white">{deliveryAddress?.name || orderData.customerName}</p>}
+                {deliveryAddressText ? <p className="leading-relaxed">{deliveryAddressText}</p> : <p className="text-zinc-400">No delivery address was saved with this order.</p>}
+                {(deliveryAddress?.phone || orderData.phone) && <p>{deliveryAddress?.phone || orderData.phone}</p>}
               </div>
             </div>
           </div>
@@ -859,7 +843,7 @@ export default function OrderTracking() {
 
       {/* Floating Action Button - Support */}
       <motion.div
-        className="fixed bottom-20 right-8 z-[100] flex items-center gap-3"
+        className="fixed bottom-4 right-4 z-[100] flex items-center gap-3"
         initial={{ x: 100 }}
         animate={{ x: 0 }}
       >
@@ -875,10 +859,11 @@ export default function OrderTracking() {
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          className="w-16 h-16 bg-orange-600 text-white rounded-[8px] shadow-[0_20px_40px_-10px_rgba(255,102,0,0.5)] flex items-center justify-center border-4 border-white/20 backdrop-blur-sm group relative"
+          onClick={() => router.push("/get-help?orderId=" + encodeURIComponent(orderData.orderId || orderId) + "&paymentReference=" + encodeURIComponent(orderData.paymentReference || ""))}
+          aria-label="Get help with this order"
+          className="relative flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-orange-600 text-white shadow-lg shadow-orange-600/25 backdrop-blur-sm group"
         >
-          <Truck size={28} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
+          <Truck size={20} strokeWidth={2.5} className="transition-transform group-hover:rotate-12" />
         </motion.button>
       </motion.div>
 

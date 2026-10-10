@@ -88,9 +88,7 @@ export default function BottomBar() {
       </div>
 
       {/* ── Nav bar ── no overflow clipping issue since Order button is outside */}
-      <motion.nav
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+      <nav
         className="rounded-t-[24px] border border-gray-200/50 bg-white px-2 pt-2 shadow-[0_-8px_32px_rgba(0,0,0,0.10)] dark:border-white/10 dark:bg-[#09090b] dark:shadow-[0_-8px_32px_rgba(0,0,0,0.3)] pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
       >
         <div className="grid grid-cols-5 items-end">
@@ -157,7 +155,7 @@ export default function BottomBar() {
             );
           })}
         </div>
-      </motion.nav>
+      </nav>
     </div>
   );
 }

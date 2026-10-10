@@ -5,12 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
     Clock,
-    Store,
-    Truck,
-    Sparkles,
     TrendingUp,
-    Wallet,
-    Flame,
     Heart,
     Globe,
     Bike,
@@ -18,7 +13,7 @@ import {
     ChevronRight,
 } from "lucide-react";
 import { getRecommendations } from "@/app/lib/api";
-import { isVendorOpen } from "@/app/lib/utils";
+import { getDeliveryEtaLabel } from "@/app/lib/deliveryEta";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
 
@@ -30,7 +25,7 @@ const DIETARY_COLORS = {
   "non-veg": "bg-red-100 text-red-700",
 };
 
-const RecommendationCard = ({ food, router }) => {
+const RecommendationCard = ({ food, customerAddress }) => {
     const [liked, setLiked] = useState(false);
     const vendor = food.restaurant || food.vendor;
     const status = getVendorOpenAndCloseStatus(vendor?.openingHours);
@@ -40,7 +35,7 @@ const RecommendationCard = ({ food, router }) => {
     return (
         <div
             onClick={() => openFoodModal(food._id, { food })}
-            className={`group shrink-0 bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer snap-center sm:snap-start transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl ${!isOpen ? '' : ''}`}
+            className={`group shrink-0 snap-start bg-white dark:bg-zinc-900 rounded-[16px] overflow-hidden cursor-pointer transition-all duration-300 border border-zinc-100 dark:border-zinc-800 hover:shadow-xl ${!isOpen ? '' : ''}`}
             style={{ width: "72vw", maxWidth: "280px" }}
         >
             {/* Image Container */}
@@ -51,12 +46,11 @@ const RecommendationCard = ({ food, router }) => {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 
-                {/* Popular Badge */}
-                <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-0.5 rounded-lg">
-                    <span className="text-[9px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <Sparkles size={8} fill="currentColor" /> POPULAR
-                    </span>
-                </div>
+                <span className={`absolute left-2 top-2 rounded-full px-2 py-1 text-[9px] font-bold text-white shadow-sm ${
+                    isOpen ? "bg-emerald-600" : "bg-zinc-700"
+                }`}>
+                    {isOpen ? "Open now" : "Closed"}
+                </span>
 
                 {/* Dietary Badge - Bottom Left */}
                 {food.dietary_type && food.dietary_type !== "mixed" && (
@@ -92,10 +86,12 @@ const RecommendationCard = ({ food, router }) => {
                     {vendor?.storeName} {" \u2022 "} {vendor?.city || "Nearby"}
                 </p>
 
-                {/* Row 3: Metadata Line: Globe | Delivery | Status | Rating */}
+                <p className="mt-0.5 text-[10px] font-semibold text-zinc-600 dark:text-zinc-300">
+                    Est. delivery {getDeliveryEtaLabel(customerAddress, vendor, vendor?.estimatedDeliveryTime)}
+                </p>
+                {/* Row 3: Delivery and rating */}
                 <div className="mt-1.5 flex items-center gap-1.5 overflow-hidden">
                     <Globe size={14} className="text-gray-400 dark:text-zinc-500" />
-                    
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
 
                     {/* Delivery */}
@@ -110,13 +106,6 @@ const RecommendationCard = ({ food, router }) => {
                             );
                         })()}
                     </div>
-
-                    <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
-
-                    {/* Status */}
-                    <span className={`text-[10px] font-black uppercase italic whitespace-nowrap ${isOpen ? 'text-emerald-500' : 'text-rose-500'}`}>
-                        {status}
-                    </span>
 
                     <span className="text-zinc-200 dark:text-zinc-700 text-xs">|</span>
 
@@ -159,9 +148,12 @@ const RecommendationSection = ({ title, icon: Icon, items, router, viewAllRoute 
                 </button>
             </div>
  
-            <div className="flex gap-4 scroll overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide no-scrollbar">
+            <div
+                className="flex gap-3 overflow-x-auto scroll pb-3 snap-x snap-mandatory scrollbar-hide no-scrollbar"
+                style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
+            >
                 {items.map((food) => (
-                    <RecommendationCard key={food._id} food={food} router={router} />
+                    <RecommendationCard key={food._id} food={food} customerAddress={customerAddress} />
                 ))}
             </div>
         </div>
@@ -169,8 +161,9 @@ const RecommendationSection = ({ title, icon: Icon, items, router, viewAllRoute 
 };
 
 // --- Main Container ---
-export default function SmartRecommendations() {
+export default function SmartRecommendations({ user }) {
     const router = useRouter();
+    const customerAddress = user?.addresses?.find((address) => address.isDefault) || user?.addresses?.[0];
 
     const { data: recommendations, isLoading } = useQuery({
         queryKey: ["smartRecommendations"],
@@ -202,37 +195,32 @@ export default function SmartRecommendations() {
 
     return (
         <div className="flex flex-col gap-2 pb-2">
-            {/* 1. Time Based Hero */}
+            {/* Popularity is based on completed orders in the customer's city. */}
             <RecommendationSection
-                title={meta?.timeOfDayLabel || "Recommended for you"}
-                icon={Clock}
-                items={arrays.timeOfDay}
+                title="Popular Near You"
+                icon={TrendingUp}
+                items={arrays.trendingNearby}
                 router={router}
-                viewAllRoute="/all-foods"
+                viewAllRoute="/trending-foods"
                 accentColor="text-orange-600"
                 accentBg="bg-orange-100 dark:bg-orange-500/20"
             />
 
-            {/* 2. Hidden Gems */}
+            {/* Time-aware recommendations; use curated/budget items if no tag matches. */}
             <RecommendationSection
-                title="Curated Choices"
-                icon={Sparkles}
-                items={arrays.underrated}
-                router={router}
-                viewAllRoute="/trending-foods"
-                accentColor="text-purple-600"
-                accentBg="bg-purple-100 dark:bg-purple-500/20"
-            />
-
-            {/* 4. Budget Friendly */}
-            <RecommendationSection
-                title="Everyday Favorites"
-                icon={Wallet}
-                items={arrays.budgetFriendly}
+                title={meta?.timeOfDayLabel
+                    ? `Recommended for you · ${meta.timeOfDayLabel}`
+                    : "Recommended for you"}
+                icon={Clock}
+                items={arrays.timeOfDay?.length
+                    ? arrays.timeOfDay
+                    : arrays.underrated?.length
+                        ? arrays.underrated
+                        : arrays.budgetFriendly}
                 router={router}
                 viewAllRoute="/all-foods"
-                accentColor="text-emerald-600"
-                accentBg="bg-emerald-100 dark:bg-emerald-500/20"
+                accentColor="text-orange-600"
+                accentBg="bg-orange-100 dark:bg-orange-500/20"
             />
         </div>
     );

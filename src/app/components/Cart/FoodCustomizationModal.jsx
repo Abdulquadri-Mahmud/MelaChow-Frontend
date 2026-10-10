@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Minus, Plus, ShoppingBag, Check, ShoppingCart } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import { useCart } from "@/app/context/CartContext";
 
@@ -41,6 +42,16 @@ export default function FoodCustomizationModal({
             }
         };
     }, [isOpen, setIsModalOpen]);
+
+    useEffect(() => {
+        if (!isOpen) return undefined;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [isOpen]);
 
     // ── Hardware back-button support (Android + browser back gesture) ──────
     useEffect(() => {
@@ -286,7 +297,7 @@ export default function FoodCustomizationModal({
         onClose();
     };
 
-    return (
+    return typeof document === "undefined" ? null : createPortal((
         <AnimatePresence>
             <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center p-0 sm:p-4">
                 <motion.div
@@ -302,7 +313,7 @@ export default function FoodCustomizationModal({
                     animate={{ y: 0 }}
                     exit={{ y: "100%" }}
                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    className="relative w-full sm:max-w-md bg-white dark:bg-zinc-900 rounded-t-[24px] sm:rounded-[32px] overflow-hidden flex flex-col max-h-[90vh] shadow-2xl border border-zinc-100 dark:border-zinc-800"
+                    className="relative h-[82dvh] max-h-[90dvh] w-full sm:max-w-md bg-white dark:bg-zinc-900 rounded-t-[24px] sm:rounded-[32px] overflow-hidden flex flex-col shadow-2xl border border-zinc-100 dark:border-zinc-800"
                 >
                     {/* Header Image */}
                     <div className="relative h-[140px] shrink-0">
@@ -350,9 +361,9 @@ export default function FoodCustomizationModal({
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto scrollbar-none pb-4 px-4 pt-4 space-y-3">
+                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain scrollbar-none px-4 pt-4 pb-4 space-y-3">
                         {/* Portion Selector */}
-                        {food.portions?.length > 1 && (
+                        {portions.length > 0 && (
                             <div className="space-y-2.5">
                                 <div className="flex items-center gap-2 mb-1 px-1">
                                    <div className="w-1 h-4 bg-orange-500 rounded-full" />
@@ -361,8 +372,8 @@ export default function FoodCustomizationModal({
                                    </p>
                                 </div>
                                 <div className="grid grid-cols-1 gap-2 p-1">
-                                    {food.portions.map(portion => {
-                                        const isSelected = selectedPortion?._id === portion._id;
+                                    {portions.map(portion => {
+                                        const isSelected = normalizeId(selectedPortion) === normalizeId(portion);
                                         return (
                                             <div
                                                 key={portion._id}
@@ -372,21 +383,21 @@ export default function FoodCustomizationModal({
                                                         setPortionQuantity(1);
                                                     }
                                                 }}
-                                                className={`flex items-center justify-between p-2.5 rounded-[16px] border-2 transition-all duration-300 cursor-pointer ${
+                                                className={`flex min-h-14 items-center justify-between gap-2 rounded-2xl border-2 p-3 transition-all duration-200 cursor-pointer ${
                                                     isSelected
                                                         ? "bg-orange-50 dark:bg-orange-500/5 border-orange-500"
                                                         : "bg-zinc-50 dark:bg-zinc-800/50 border-transparent hover:border-zinc-200 dark:hover:border-zinc-700"
                                                 }`}
                                             >
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex min-w-0 items-center gap-3">
                                                     <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-orange-500 bg-orange-500' : 'border-zinc-200 dark:border-zinc-700'}`}>
                                                         {isSelected && <Check size={10} className="text-white" strokeWidth={4} />}
                                                     </div>
-                                                    <div className="flex flex-col">
-                                                        <span className={`text-xs font-bold uppercase tracking-tight italic ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-500'}`}>
+                                                    <div className="flex min-w-0 flex-col">
+                                                        <span className={`truncate text-sm font-bold ${isSelected ? 'text-zinc-900 dark:text-white' : 'text-zinc-600 dark:text-zinc-300'}`}>
                                                             {portion.label}
                                                         </span>
-                                                        <span className="text-[10px] font-bold text-orange-500">
+                                                        <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">
                                                             ₦{portion.price_naira?.toLocaleString()}
                                                         </span>
                                                     </div>
@@ -394,16 +405,16 @@ export default function FoodCustomizationModal({
 
                                                 {isSelected && (
                                                     <div 
-                                                      className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 rounded-[10px] p-0.5 border border-zinc-100 dark:border-zinc-700"
+                                                      className="flex shrink-0 items-center gap-1 rounded-xl border border-zinc-100 bg-white p-1 dark:border-zinc-700 dark:bg-zinc-900"
                                                       onClick={(e) => e.stopPropagation()}
                                                     >
                                                       <button 
                                                         onClick={() => setPortionQuantity(Math.max(1, portionQuantity - 1))}
-                                                        className="w-6 h-6 flex items-center justify-center rounded-[7px] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-orange-600 transition-colors"
+                                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-orange-600 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
                                                       >
                                                         <Minus size={11} strokeWidth={3} />
                                                       </button>
-                                                      <span className="text-xs font-black text-zinc-900 dark:text-white min-w-[14px] text-center tabular-nums">
+                                                      <span className="min-w-5 text-center text-sm font-bold tabular-nums text-zinc-900 dark:text-white">
                                                         {portionQuantity}
                                                       </span>
                                                       <button 
@@ -414,7 +425,7 @@ export default function FoodCustomizationModal({
                                                             setPortionQuantity(portionQuantity + 1);
                                                           }
                                                         }}
-                                                        className="w-6 h-6 flex items-center justify-center rounded-[7px] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-orange-600 transition-colors"
+                                                        className="flex h-8 w-8 items-center justify-center rounded-lg text-orange-600 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
                                                       >
                                                         <Plus size={11} strokeWidth={3} />
                                                       </button>
@@ -426,6 +437,13 @@ export default function FoodCustomizationModal({
                                 </div>
                             </div>
                         )}
+                        {portions.length === 0 && choiceGroups.length === 0 && (
+                            <div className="rounded-2xl border border-zinc-100 bg-zinc-50 px-4 py-5 text-center dark:border-zinc-800 dark:bg-zinc-800/50">
+                                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">No size or add-on choices</p>
+                                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Use the quantity controls below to update how many you want.</p>
+                            </div>
+                        )}
+
                         {/* Choice Groups */}
                         {choiceGroups.map((group, gIdx) => (
                             <div key={group._id} className="space-y-2.5">
@@ -512,7 +530,7 @@ export default function FoodCustomizationModal({
                     </div>
 
                     {/* Footer */}
-                    <div className="absolute bottom-0 left-0 right-0 z-10 p-4 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-t border-zinc-100 dark:border-zinc-800 shadow-2xl">
+                    <div className="z-10 shrink-0 border-t border-zinc-100 bg-white/95 p-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-2xl backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-900/95 sm:p-4">
                         <div className="flex items-center gap-3">
                             <div className="flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800 rounded-[20px] p-1 h-[48px] shadow-inner shrink-0">
                                 <button
@@ -558,5 +576,5 @@ export default function FoodCustomizationModal({
                 </motion.div>
             </div>
         </AnimatePresence>
-    );
+    ), document.body);
 }

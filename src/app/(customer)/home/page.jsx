@@ -42,7 +42,7 @@ export default function HomePage() {
         </div>
         {/* <TrendingFoods user={user} /> */}
         <div className="space-y-4">
-          {/* <SmartRecommendations /> */}
+          <SmartRecommendations user={user} />
           {/* <FoodList user={user} /> */}
         </div>
       </div>

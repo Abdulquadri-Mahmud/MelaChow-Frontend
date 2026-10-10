@@ -4,15 +4,7 @@ import { useApi } from "@/app/context/ApiContext";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  User,
-  Phone,
-  ArrowRight,
   Loader2,
-  Store,
   CheckCircle2,
   AlertCircle,
   X
@@ -20,6 +12,7 @@ import {
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import AuthFrame, { authInputClass, authLabelClass } from "./AuthFrame";
 
 // --- Custom Status Modal Component ---
 const StatusModal = ({ isOpen, type, message, onClose }) => {
@@ -152,49 +145,36 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-y-auto p-3 md:p-8">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md flex flex-col justify-center py-6 px-2"
-      >
-        {/* Header Section */}
-        <div className="text-center space-y-3 mb-10">
-          <h2 className="text-4xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white">
-            Create <span className="text-orange-600">Account</span>
-          </h2>
-          <p className="text-xs font-semibold text-slate-500">
-            Start your gourmet journey today
-          </p>
-        </div>
-
-        {/* Form Section */}
+    <AuthFrame subtitle="Join the food community">
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="mb-6 inline-flex rounded-full bg-orange-50 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-700">Step 1 of 3 · Account info</div>
+        <h2 className="mb-2 text-[28px] font-semibold tracking-tight">Create account</h2>
+        <p className="mb-6 text-base leading-relaxed text-slate-500">Fill in your details. We&apos;ll send a verification code to your email.</p>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid grid-cols-2 gap-2 p-1">
             {/* First Name */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">First Name</label>
+              <label className={authLabelClass}>First name</label>
               <input
                 type="text"
                 name="firstname"
-                placeholder="John"
+                placeholder="Ada"
                 value={formData.firstname}
                 onChange={handleChange}
-                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
+                className={authInputClass}
                 required
               />
             </div>
             {/* Last Name */}
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">Last Name</label>
+              <label className={authLabelClass}>Last name</label>
               <input
                 type="text"
                 name="lastname"
-                placeholder="Michael"
+                placeholder="Okafor"
                 value={formData.lastname}
                 onChange={handleChange}
-                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
+                className={authInputClass}
                 required
               />
             </div>
@@ -202,28 +182,28 @@ export default function Signup() {
 
           {/* Email */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">Email Address</label>
+            <label className={authLabelClass}>Email address</label>
             <input
               type="email"
               name="email"
-              placeholder="name@gmail.com"
+              placeholder="you@example.com"
               value={formData.email}
               onChange={handleChange}
-              className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
+              className={authInputClass}
               required
             />
           </div>
 
           {/* Phone */}
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">Phone Number</label>
+            <label className={authLabelClass}>Phone number</label>
             <input
               type="tel"
               name="phone"
-              placeholder="0800 000 0000"
+              placeholder="+234 800 000 0000"
               value={formData.phone}
               onChange={handleChange}
-              className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
+              className={authInputClass}
               required
             />
           </div>
@@ -234,7 +214,7 @@ export default function Signup() {
             whileTap={{ scale: 0.99 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6 shadow-xl shadow-orange-500/20"
+            className="w-full rounded-[20px] bg-orange-500 py-5 text-base font-semibold text-white shadow-[0_10px_20px_rgba(249,115,22,0.25)] transition hover:bg-orange-600 disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -243,35 +223,18 @@ export default function Signup() {
               </>
             ) : (
               <>
-                <span>Sign Up</span>
-                <ArrowRight size={20} />
+                <span>Create account &amp; get code</span>
               </>
             )}
           </motion.button>
         </form>
 
         {/* Footer Links */}
-        <div className="mt-8 text-center space-y-6">
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-            Already have an account?{" "}
+        <div className="mt-7 text-center">
+          <p className="text-sm text-slate-500">Already have an account?</p>
             <Link href="/auth/signin" className="text-orange-600 hover:text-orange-700 font-bold ml-1">
-              Sign In
+              Sign in instead
             </Link>
-          </p>
-
-          <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
-            <Link
-              href="https://vendor.melachow.com/vendors/auth/register"
-              className="group inline-flex items-center gap-3 px-6 py-4 bg-orange-50/50 dark:bg-orange-500/5 rounded-[1.5rem] hover:bg-orange-100 dark:hover:bg-orange-500/10 transition-all duration-300 border border-transparent hover:border-orange-200"
-            >
-              <Store className="w-5 h-5 text-orange-600" />
-              <div className="text-left">
-                <p className="text-sm font-bold text-slate-800 dark:text-slate-200">Restaurant Owner?</p>
-                <p className="text-[10px] font-black uppercase tracking-wider text-orange-600">Join as Vendor</p>
-              </div>
-              <ArrowRight className="w-4 h-4 text-orange-600 group-hover:translate-x-1 transition-transform ml-2" />
-            </Link>
-          </div>
         </div>
       </motion.div>
 
@@ -282,6 +245,6 @@ export default function Signup() {
         message={statusModal.message}
         onClose={closeModal}
       />
-    </div>
+    </AuthFrame>
   );
 }

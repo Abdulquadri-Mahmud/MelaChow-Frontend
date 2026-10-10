@@ -4,11 +4,12 @@ import { useApi } from "@/app/context/ApiContext";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, Store, CheckCircle2, AlertCircle, X, Bike } from "lucide-react";
+import { Mail, Eye, EyeOff, ArrowRight, Loader2, CheckCircle2, AlertCircle, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { TokenManager } from "@/app/lib/auth-token";
+import AuthFrame, { authInputClass, authLabelClass } from "./AuthFrame";
 
 // --- Custom Status Modal Component ---
 const StatusModal = ({ isOpen, type, message, onClose }) => {
@@ -156,42 +157,30 @@ export default function Signin() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-y-auto p-3 md:p-8">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md flex flex-col justify-center py-6"
-      >
-        <div className="text-center space-y-3 mb-10">
-          <h2 className="text-4xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white">
-            Welcome <span className="text-orange-600">Back</span>
-          </h2>
-          <p className="text-xs font-semibold text-slate-500">
-            Sign in to continue ordering
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6 px-2">
+    <AuthFrame subtitle="Premium food experience">
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+        <h2 className="mb-1 text-[29px] font-semibold tracking-tight">Welcome back</h2>
+        <p className="mb-6 text-base text-slate-500">Sign in to order, pay, and track your rider in real time.</p>
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">Email Address</label>
+            <label className={authLabelClass}>Email or phone</label>
             <input
-              type="email"
+              type="text"
               name="email"
-              placeholder="name@example.com"
+              placeholder="you@example.com"
               value={formData.email}
               onChange={handleChange}
-              className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-slate-200 focus:border-orange-500/20"
+              className={authInputClass}
               required
             />
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between items-center ml-1">
-              <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Password</label>
+              <label className={authLabelClass}>Password</label>
               <Link
                 href="/auth/forgot-password"
-                className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors"
+                className="text-xs font-semibold text-orange-700"
               >
                 Forgot Password?
               </Link>
@@ -200,16 +189,16 @@ export default function Signin() {
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                placeholder="Enter your password"
+                placeholder="Your password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-base font-medium dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all pr-12 border border-slate-200 focus:border-orange-500/20"
+                className={`${authInputClass} pr-12`}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-orange-600 transition-colors"
-                tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-orange-600"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -221,7 +210,7 @@ export default function Signin() {
             whileTap={{ scale: 0.99 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-xl shadow-orange-500/20"
+            className="w-full rounded-[20px] bg-orange-500 py-5 text-base font-semibold text-white shadow-[0_10px_20px_rgba(249,115,22,0.25)] transition hover:bg-orange-600 disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -230,46 +219,22 @@ export default function Signin() {
               </>
             ) : (
               <>
-                <span>Sign In</span>
-                <ArrowRight size={20} />
+                <span>Sign in</span>
               </>
             )}
           </motion.button>
         </form>
 
-        <div className="mt-8 text-center space-y-6">
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
-            Don&apos;t have an account?{" "}
+        <div className="mt-7 text-center">
+          <p className="text-sm text-slate-500">
+            New to MelaChow?
+          </p>
             <Link
               href="/auth/signup"
-              className="text-orange-600 hover:text-orange-700 font-bold ml-1"
+              className="mt-4 inline-block font-semibold text-orange-700"
             >
-              Create One
+              Create an account
             </Link>
-          </p>
-
-          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-4 w-full">
-            <Link
-              href="/auth/partner"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex-1 flex items-center justify-between md:p-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-3xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 group-hover:scale-110 transition-transform shadow-inner">
-                  <Store size={20} />
-                </div>
-                <div className="text-left">
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">Partner Portal</p>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Vendors
-                    {/* & Riders */}
-                  </p>
-                </div>
-              </div>
-              <ArrowRight size={20} className="text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors mr-2" />
-            </Link>
-          </div>
         </div>
       </motion.div>
 
@@ -279,7 +244,7 @@ export default function Signin() {
         message={statusModal.message}
         onClose={closeModal}
       />
-    </div>
+    </AuthFrame>
   );
 }
 

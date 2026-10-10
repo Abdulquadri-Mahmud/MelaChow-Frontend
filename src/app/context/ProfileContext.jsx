@@ -134,7 +134,9 @@ export const ProfileProvider = ({ children }) => {
 
     retryDelay: (attemptIndex) => Math.min(100 * Math.pow(2, attemptIndex), 500),
 
-    refetchOnMount: false,
+    // Revalidate any in-memory profile before protected customer pages render.
+    // This is important when Android resumes a WebView with an expired token.
+    refetchOnMount: "always",
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
   });

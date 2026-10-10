@@ -28,6 +28,7 @@ function OrdersContent() {
   const { user } = useUserStorage();
    const [activeTab, setActiveTab] = useState(initialTab);
    const [swiperInstance, setSwiperInstance] = useState(null);
+   const [orderFilter, setOrderFilter] = useState("all");
 
 
   // Edit State
@@ -82,6 +83,22 @@ function OrdersContent() {
   });
 
   const orders = data?.orders || [];
+  const getOrderStatus = (order) => String(order?.orderStatus || order?.status || "pending").toLowerCase().replace(/[\s-]+/g, "_");
+  const getOrderCategory = (order) => {
+    const status = getOrderStatus(order);
+    if (["delivered", "completed"].includes(status)) return "delivered";
+    if (["cancelled", "canceled", "rejected", "failed", "refunded"].includes(status)) return "cancelled";
+    return "ongoing";
+  };
+  const orderFilterOptions = [
+    { id: "all", label: "All" },
+    { id: "ongoing", label: "Ongoing" },
+    { id: "delivered", label: "Delivered" },
+    { id: "cancelled", label: "Cancelled" },
+  ];
+  const filteredOrders = orderFilter === "all"
+    ? orders
+    : orders.filter((order) => getOrderCategory(order) === orderFilter);
 
   const copyOrderId = async (event, orderId) => {
     event.stopPropagation();
@@ -192,7 +209,7 @@ function OrdersContent() {
                          const plateItems = [...group.items].sort((first, second) => String(first.meal_group_label || "Person 1").localeCompare(String(second.meal_group_label || "Person 1")));
 
                          return (
-                         <div key={vendorId} className="bg-white dark:bg-zinc-900 rounded-[8px] p-3 border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden relative">
+                         <div key={vendorId} className="bg-white dark:bg-zinc-900 rounded-[8px] p-2.5 sm:p-3 border border-zinc-100 dark:border-zinc-800 shadow-sm overflow-hidden relative">
                            {/* Store Header */}
                            <div className="flex justify-between items-center mb-3 pb-3 border-b border-zinc-50 dark:border-zinc-800">
                              <div className="flex items-center gap-2">
@@ -204,20 +221,16 @@ function OrdersContent() {
                              </span>
                            </div>
 
-                           <div className="mb-3 rounded-md border border-orange-100 bg-orange-50/60 p-2.5 dark:border-orange-500/20 dark:bg-orange-500/10">
-                             <p className="text-[10px] font-semibold uppercase tracking-wider text-orange-700 dark:text-orange-300">Ordering for more than one person?</p>
-                             <p className="mt-1 text-[10px] leading-4 text-zinc-600 dark:text-zinc-300">Finish adding everything Person 1 wants, then:</p>
-                             <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-[10px] leading-4 text-zinc-600 dark:text-zinc-300">
-                               <li>Tap Add another person&apos;s order.</li>
-                               <li>Add everything the next person wants.</li>
-                               <li>Repeat as needed, then checkout once.</li>
-                             </ol>
-                             <p className="mt-2 rounded bg-white/80 px-2 py-1.5 text-[10px] text-orange-700 dark:bg-zinc-900 dark:text-orange-300">
-                               Currently adding items for: <span className="font-semibold">{activePlate || "Person 1"}</span>
-                             </p>
-                             <p className="mt-1.5 text-[9px] leading-4 text-zinc-500 dark:text-zinc-400">We&apos;ll group and label each person&apos;s items for easier packing.</p>
-                             <button type="button" onClick={() => { startAnotherPersonPlate(vendorId); router.push(`/restaurants/${encodeURIComponent(vendorId)}`); }} className="mt-2 w-full rounded border border-orange-200 bg-white px-2.5 py-2 text-[9px] font-semibold uppercase tracking-wider text-orange-700 transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300">
-                               Add another person&apos;s order
+                           <div className="mb-2 flex items-center gap-2 rounded-md border border-orange-100 bg-orange-50/60 px-2 py-1.5 dark:border-orange-500/20 dark:bg-orange-500/10">
+                             <div className="min-w-0 flex-1">
+                               <p className="truncate text-[9px] font-semibold uppercase tracking-wide text-orange-700 dark:text-orange-300">Ordering for: {activePlate || "Person 1"}</p>
+                               <details className="group mt-0.5">
+                                 <summary className="cursor-pointer text-[9px] text-zinc-500 dark:text-zinc-400">Ordering for multiple people?</summary>
+                                 <p className="mt-1 text-[9px] leading-4 text-zinc-600 dark:text-zinc-300">Add each person&apos;s items under their own plate, then checkout once. We&apos;ll label the items for easier packing.</p>
+                               </details>
+                             </div>
+                             <button type="button" onClick={() => { startAnotherPersonPlate(vendorId); router.push(`/restaurants/${encodeURIComponent(vendorId)}`); }} className="shrink-0 rounded border border-orange-200 bg-white px-2 py-1.5 text-[8px] font-semibold uppercase tracking-wide text-orange-700 transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-zinc-900 dark:text-orange-300" aria-label="Add another person's order">
+                               Add person
                              </button>
                            </div>
 
@@ -230,7 +243,7 @@ function OrdersContent() {
                                return (
                                  <div key={itemKey}>
                                    {plateLabel !== previousPlateLabel && (
-                                     <div className="mb-2 flex items-center justify-between gap-2 rounded-lg bg-zinc-100 px-3 py-2 dark:bg-zinc-800">
+                                     <div className="mb-1.5 flex items-center justify-between gap-2 rounded-md bg-zinc-100 px-2.5 py-1.5 dark:bg-zinc-800">
                                        <div>
                                          <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-100">{plateLabel}</span>
                                          {activePlate === plateLabel && <span className="ml-2 text-[10px] font-medium text-orange-600">Adding food here</span>}
@@ -248,9 +261,9 @@ function OrdersContent() {
                                        </button>
                                      </div>
                                    )}
-                                 <div className="flex gap-4 group">
+                                 <div className="flex gap-2.5 group">
 
-                                   <div className="relative w-20 h-20 rounded overflow-hidden bg-zinc-50 dark:bg-zinc-800 flex-shrink-0 shadow-inner">
+                                   <div className="relative h-14 w-14 rounded-md overflow-hidden bg-zinc-50 dark:bg-zinc-800 flex-shrink-0 shadow-inner sm:h-16 sm:w-16">
                                      <img
                                        src={item.image_url || "/placeholder.jpg"}
                                        alt={item.name}
@@ -258,13 +271,13 @@ function OrdersContent() {
                                      />
                                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                                    </div>
-                                   <div className="flex-1 min-w-0 flex flex-col justify-start">
-                                     <div className="flex justify-between items-start">
-                                       <div>
-                                         <h4 className="text-sm font-semibold text-zinc-900 dark:text-white leading-tight">{item.name}</h4>
+                                   <div className="flex min-w-0 flex-1 flex-col justify-start">
+                                     <div className="flex min-w-0 items-start justify-between gap-2">
+                                       <div className="min-w-0">
+                                         <h4 className="line-clamp-1 text-xs font-semibold leading-tight text-zinc-900 dark:text-white sm:text-sm">{item.name}</h4>
                                          {/* Portions and Options */}
-                                         <div className="text-[10px] text-zinc-500 mt-1 space-y-0.5">
-                                           <p className="font-medium bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded w-fit text-zinc-700 dark:text-zinc-300">
+                                         <div className="mt-1 space-y-0.5 text-[9px] text-zinc-500">
+                                           <p className="w-fit max-w-full truncate rounded bg-zinc-100 px-1.5 py-0.5 font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
                                              {item.type === 'combo' ? 'Bundle' : `Size: ${item.portion_label}`}
                                            </p>
 
@@ -279,20 +292,20 @@ function OrdersContent() {
                                            )}
                                          </div>
                                        </div>
-                                       <p className="text-sm font-medium text-zinc-900 dark:text-white tabular-nums">₦{(getItemPrice(item) * item.quantity).toLocaleString()}</p>
+                                       <p className="shrink-0 text-xs font-semibold tabular-nums text-zinc-900 dark:text-white sm:text-sm">₦{(getItemPrice(item) * item.quantity).toLocaleString()}</p>
                                      </div>
 
-                                     <div className="flex items-end justify-between mt-auto pt-2">
-                                       <p className="text-[10px] text-zinc-400 font-semibold uppercase tracking-tighter self-center">₦{getItemPrice(item).toLocaleString()} / unit</p>
+                                     <div className="mt-auto flex items-center justify-between gap-1 pt-1.5">
+                                       <p className="min-w-0 truncate text-[9px] font-medium text-zinc-400">₦{getItemPrice(item).toLocaleString()} / unit</p>
 
-                                       <div className="flex items-center gap-3">
+                                       <div className="flex shrink-0 items-center gap-1">
 
                                          {item.type !== "combo" && (
                                            <button
                                              type="button"
                                              onClick={() => handleEditClick(item)}
                                              disabled={isFetchingFood}
-                                             className="flex h-9 items-center gap-1 rounded border border-zinc-100 bg-white px-2 text-[9px] font-semibold uppercase tracking-wider text-zinc-600 shadow-sm transition-all hover:text-orange-600 disabled:cursor-wait disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                                             className="flex h-8 items-center gap-1 rounded border border-zinc-100 bg-white px-1.5 text-[9px] font-semibold text-zinc-600 shadow-sm transition-all hover:text-orange-600 disabled:cursor-wait disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                                              aria-label={`Edit choices for ${item.name}`}
                                            >
                                              {isFetchingFood && editingItem?.cartId === item.cartId ? <Loader2 size={11} className="animate-spin" /> : <Pencil size={11} />}
@@ -300,24 +313,30 @@ function OrdersContent() {
                                            </button>
                                          )}
 
-                                         <div className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 rounded p-1 border border-zinc-100 dark:border-zinc-800 shadow-inner">
+                                         <div className="flex items-center gap-0.5 rounded border border-zinc-100 bg-zinc-50 p-0.5 shadow-inner dark:border-zinc-800 dark:bg-zinc-800/50">
                                            <button
+                                             type="button"
                                              onClick={() => decreaseQuantity(item.foodId, item.portionId, item.variantId, item.cartId)}
-                                             className="w-7 h-7 flex items-center justify-center rounded bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 shadow-sm hover:text-orange-600 transition-all border border-zinc-100 dark:border-zinc-700"
+                                             className="flex h-7 w-7 items-center justify-center rounded bg-white text-zinc-600 shadow-sm transition-all hover:text-orange-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400"
+                                             aria-label={`Decrease quantity of ${item.name}`}
                                            >
                                              <Minus size={12} strokeWidth={3} />
                                            </button>
-                                           <span className="w-6 text-center text-[11px] font-medium text-zinc-900 dark:text-white tabular-nums">{item.quantity}</span>
+                                           <span className="w-5 text-center text-[10px] font-semibold tabular-nums text-zinc-900 dark:text-white">{item.quantity}</span>
                                            <button
+                                             type="button"
                                              onClick={() => increaseQuantity(item.foodId, item.portionId, item.variantId, item.cartId)}
-                                             className="w-7 h-7 flex items-center justify-center rounded bg-orange-500 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600 transition-all"
+                                             className="flex h-7 w-7 items-center justify-center rounded bg-orange-500 text-white shadow-sm shadow-orange-500/20 transition-all hover:bg-orange-600"
+                                             aria-label={`Increase quantity of ${item.name}`}
                                            >
                                              <Plus size={12} strokeWidth={3} />
                                            </button>
                                          </div>
                                          <button
+                                           type="button"
                                            onClick={() => removeFromCart(item.foodId, item.portionId, item.variantId, item.cartId)}
-                                           className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded transition-all active:scale-90 bg-white dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 shadow-sm"
+                                           className="flex h-8 w-8 items-center justify-center rounded border border-zinc-100 bg-white text-rose-500 shadow-sm transition-all hover:bg-rose-50 active:scale-90 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-rose-500/10"
+                                           aria-label={`Remove ${item.name} from cart`}
                                          >
                                            <Trash2 size={14} />
                                          </button>
@@ -398,63 +417,93 @@ function OrdersContent() {
                      <button onClick={() => router.push("/")} className="mt-4 text-orange-500 font-semibold">Browse Restaurants</button>
                    </div>
                  ) : (
-                   orders.map((order) => (
+                   <>
+                   <div className="no-scrollbar -mx-2 flex gap-2 overflow-x-auto px-2 pb-1" role="tablist" aria-label="Filter orders">
+                     {orderFilterOptions.map((option) => {
+                       const count = option.id === "all"
+                         ? orders.length
+                         : orders.filter((order) => getOrderCategory(order) === option.id).length;
+                       const selected = orderFilter === option.id;
+                       return (
+                         <button
+                           key={option.id}
+                           type="button"
+                           role="tab"
+                           aria-selected={selected}
+                           onClick={() => setOrderFilter(option.id)}
+                           className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold transition-colors ${selected
+                             ? "border-orange-500 bg-orange-500 text-white"
+                             : "border-zinc-200 bg-white text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+                           }`}
+                         >
+                           {option.label}
+                           <span className={`text-[10px] tabular-nums ${selected ? "text-white/80" : "text-zinc-400"}`}>{count}</span>
+                         </button>
+                       );
+                     })}
+                   </div>
+                   {filteredOrders.length === 0 ? (
+                     <div className="rounded-xl border border-dashed border-zinc-200 bg-white px-4 py-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
+                       <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">No {orderFilter} orders</p>
+                       <button type="button" onClick={() => setOrderFilter("all")} className="mt-2 text-xs font-semibold text-orange-600">Show all orders</button>
+                     </div>
+                   ) : filteredOrders.map((order) => (
                      <div
                        key={order._id}
                        onClick={() => router.push(`/track-orders/${order.orderId}`)}
-                       className="bg-white dark:bg-zinc-900 rounded p-3 cursor-pointer border border-zinc-100 dark:border-zinc-800 hover:shadow-md hover:border-orange-100 transition-all group"
+                       className="group cursor-pointer rounded-xl border border-zinc-100 bg-white p-2.5 transition-all hover:border-orange-100 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
                      >
-                       <div className="flex justify-between items-start mb-3">
-                         <div className="space-y-0.5">
-                           <div className="flex items-center gap-1.5">
-                             <span className="font-semibold text-zinc-900 dark:text-white text-sm">Order #{order.orderId}</span>
+                       <div className="mb-2 flex items-center justify-between gap-2">
+                         <div className="min-w-0">
+                           <div className="flex items-center gap-1">
+                             <span className="truncate text-xs font-semibold text-zinc-900 dark:text-white">Order #{order.orderId}</span>
                              <button
                                type="button"
                                onClick={(event) => copyOrderId(event, order.orderId)}
-                               className="inline-flex h-7 w-7 items-center justify-center rounded border border-zinc-100 bg-zinc-50 text-zinc-400 transition-all hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 active:scale-95 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-orange-500/30 dark:hover:bg-orange-500/10 dark:hover:text-orange-300"
+                               className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded border border-zinc-100 bg-zinc-50 text-zinc-400 transition-all hover:border-orange-200 hover:bg-orange-50 hover:text-orange-600 active:scale-95 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:border-orange-500/30 dark:hover:bg-orange-500/10 dark:hover:text-orange-300"
                                aria-label="Copy order ID"
                              >
-                               <Copy size={13} />
+                               <Copy size={11} />
                              </button>
-                             <ArrowRight size={12} className="text-zinc-300 dark:text-zinc-600 group-hover:text-orange-500 transition-colors" />
                            </div>
-                           <p className="text-[10px] text-zinc-400">
+                           <p className="mt-0.5 text-[9px] text-zinc-400">
                              {new Date(order.createdAt).toLocaleDateString(undefined, {
                                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                              })}
                            </p>
                          </div>
-                         <div className="flex flex-col items-end gap-1.5">
-                           <div className="flex gap-1.5 items-center">
-                             <span className={`text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-md font-semibold ${order.orderStatus === "pending" ? "bg-amber-50 dark:bg-amber-500/10 text-amber-600 border border-amber-100 dark:border-amber-900/30" :
-                               order.orderStatus === "processing" ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 border border-blue-100 dark:border-blue-900/30" :
-                                 order.orderStatus === "delivered" ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 border border-emerald-100 dark:border-emerald-900/30" :
+                         <div className="flex shrink-0 flex-col items-end gap-1">
+                           <div className="flex items-center gap-1.5">
+                             <span className={`rounded-md border px-2 py-0.5 text-[8px] font-semibold uppercase tracking-wide ${getOrderStatus(order) === "pending" ? "bg-amber-50 dark:bg-amber-500/10 text-amber-600 border-amber-100 dark:border-amber-900/30" :
+                               ["processing", "accepted", "preparing", "ready_for_pickup", "out_for_delivery"].includes(getOrderStatus(order)) ? "bg-blue-50 dark:bg-blue-500/10 text-blue-600 border-blue-100 dark:border-blue-900/30" :
+                                 ["delivered", "completed"].includes(getOrderStatus(order)) ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 border-emerald-100 dark:border-emerald-900/30" :
                                    "bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-100 dark:border-zinc-700"
                                }`}>
-                               {order.orderStatus}
+                               {getOrderStatus(order).replace(/_/g, " ")}
                              </span>
                            </div>
                          </div>
                        </div>
 
-                       <div className="flex justify-between items-center bg-zinc-50/80 dark:bg-zinc-800/80 rounded p-2.5">
+                       <div className="flex items-center justify-between rounded-lg bg-zinc-50/80 px-2 py-1.5 dark:bg-zinc-800/80">
                          <div className="flex -space-x-1.5">
-                           {order.items.slice(0, 4).map((item, i) => (
-                             <img key={i} src={item.image_url || "/placeholder.jpg"} className="w-7 h-7 rounded border-2 border-white dark:border-zinc-800 object-cover" alt="" title={item.name} />
+                           {(Array.isArray(order.items) ? order.items : []).slice(0, 4).map((item, i) => (
+                             <img key={i} src={item.image_url || "/placeholder.jpg"} className="h-6 w-6 rounded border-2 border-white object-cover dark:border-zinc-800" alt="" title={item.name} />
                            ))}
-                           {order.items.length > 4 && (
-                             <div className="w-7 h-7 rounded bg-white dark:bg-zinc-700 border-2 border-zinc-50 dark:border-zinc-800 flex items-center justify-center text-[9px] font-semibold text-zinc-600 dark:text-zinc-300">
+                           {Array.isArray(order.items) && order.items.length > 4 && (
+                             <div className="flex h-6 w-6 items-center justify-center rounded border-2 border-zinc-50 bg-white text-[8px] font-semibold text-zinc-600 dark:border-zinc-800 dark:bg-zinc-700 dark:text-zinc-300">
                                +{order.items.length - 4}
                              </div>
                            )}
                          </div>
                          <div className="text-right">
-                           <p className="text-[10px] text-zinc-400 font-medium">Amount Paid</p>
-                           <p className="text-sm font-semibold text-zinc-900 dark:text-white">₦{order.total?.toLocaleString()}</p>
+                           <p className="text-[9px] font-medium text-zinc-400">Amount paid</p>
+                           <p className="text-xs font-semibold text-zinc-900 dark:text-white">₦{order.total?.toLocaleString()}</p>
                          </div>
                        </div>
                      </div>
-                   ))
+                   ))}
+                   </>
                  )}
                </div>
              </SwiperSlide>

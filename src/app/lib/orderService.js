@@ -129,20 +129,27 @@ export const verifyPaymentV2 = async (reference) => {
      */
     const buildError = (error) => {
         // Business logic failure: payment was not successful at Paystack
-        if (error.response?.status === 400 && error.response.data?.order) {
-            const paymentError = new Error(error.response.data.message || "Payment not successful");
-            paymentError.failedOrder = error.response.data.order;
-            paymentError.code = "PAYMENT_FAILED";
-            return paymentError;
-        }
+      if (error.response?.status === 400 && error.response.data?.order) {
+          const paymentError = new Error(error.response.data.message || "Payment not successful");
+          paymentError.failedOrder = error.response.data.order;
+          paymentError.code = "PAYMENT_FAILED";
+          paymentError.status = error.response.status;
+          paymentError.paystack = error.response.data.paystack || null;
+          paymentError.paymentPending = Boolean(error.response.data.paymentPending);
+          return paymentError;
+      }
 
         const message =
             error.response?.data?.message ||
             error.message ||
             "Payment verification failed";
-        const customError = new Error(message);
-        customError.status = error.response?.status;
-        return customError;
+      const customError = new Error(message);
+      customError.status = error.response?.status;
+      customError.code = error.response?.data?.code;
+      customError.paystack = error.response?.data?.paystack || null;
+      customError.paymentPending = Boolean(error.response?.data?.paymentPending);
+      customError.responseData = error.response?.data || null;
+      return customError;
     };
 
     try {

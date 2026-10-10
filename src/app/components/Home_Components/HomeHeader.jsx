@@ -25,10 +25,12 @@ export default function HomeHeader() {
     else setGreeting("Good Evening");
   }, []);
 
-  const defaultAddress = user?.addresses?.find(addr => addr.isDefault);
+  const defaultAddress = user?.addresses?.find(addr => addr.isDefault) || user?.addresses?.[0];
   const defaultCity = defaultAddress?.city || defaultAddress?.cityName;
   const defaultState = defaultAddress?.state || defaultAddress?.stateName;
-  const defaultLocation = [defaultCity, defaultState].filter(Boolean).join(", ");
+  const defaultLocation = defaultAddress?.addressLine
+    || defaultAddress?.formattedAddress
+    || [defaultCity, defaultState].filter(Boolean).join(", ");
 
   const handleLocationClick = () => {
     if (user) {
@@ -50,7 +52,7 @@ export default function HomeHeader() {
           <div className="flex items-center justify-between">
 
             {/* Left Section: Branding & Location */}
-            <div className="flex items-center gap-4">
+            <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
               {/* Optional: Logo Mark */}
               <Link href="/" className="hidden lg:flex items-center gap-2 group">
                 <div className="w-10 h-10 bg-orange-500 rounded-2xl flex items-center justify-center group-hover:rotate-6 transition-transform">
@@ -63,7 +65,7 @@ export default function HomeHeader() {
                 onClick={handleLocationClick}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex flex-col cursor-pointer group px-2 transition-colors"
+                className="flex min-w-0 flex-col cursor-pointer group px-2 transition-colors"
               >
                 <div className="flex items-center gap-1.5 mb-0.5">
                   <span className="text-[10px] font-black uppercase text-orange-500 tracking-widest italic opacity-80">
@@ -73,7 +75,7 @@ export default function HomeHeader() {
                 </div>
                 <div className="flex items-center gap-1.5">
                   <MapPin size={14} className="text-orange-500" />
-                  <span className="text-sm font-black text-gray-900 dark:text-gray-100 truncate max-w-[140px] sm:max-w-[200px]">
+                  <span className="min-w-0 max-w-[42vw] truncate text-sm font-black text-gray-900 dark:text-gray-100 sm:max-w-[240px]">
                     {!isMounted ? "Select Location" : (defaultLocation || "Select Location")}
                   </span>
                 </div>

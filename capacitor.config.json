@@ -10,11 +10,14 @@
                                           "enabled":  true
                                       },
                     "StatusBar":  {
-                    "style":  "LIGHT",
-                                      "backgroundColor":  "#ffffff"
+                                      "overlaysWebView":  false,
+                                      "backgroundColor": "#ffffff",
+                                      "style":  "LIGHT"
                                   },
                     "SystemBars":  {
-                                       "insetsHandling":  "native",
+                                       "style":  "LIGHT",
+                                       "hidden":  false,
+                                       "insetsHandling":  "disable",
                                        "initialViewportFitValueHint":  "contain"
                                    }
                 }

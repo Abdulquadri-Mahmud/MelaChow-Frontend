@@ -5,17 +5,12 @@ import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-const MINIMUM_SPLASH_MS = 800;
+const MINIMUM_SPLASH_MS = 500;
 
 export default function RootPage() {
   const router = useRouter();
   const { user, hasCheckedSession, isLoading } = useUserStorage();
   const splashStartedAt = useRef(Date.now());
-
-  useEffect(() => {
-    router.prefetch("/home");
-    router.prefetch("/auth/signin");
-  }, [router]);
 
   useEffect(() => {
     // 1. Wait for session check to complete
@@ -26,7 +21,10 @@ export default function RootPage() {
 
     const timer = setTimeout(() => {
       if (!user) {
-        router.replace("/auth/signin");
+        // The Capacitor app serves Next's static export from local assets. A
+        // full document navigation avoids relying on an RSC route-data fetch
+        // for the first screen after an expired session.
+        window.location.replace("/auth/signin/");
         return;
       }
 

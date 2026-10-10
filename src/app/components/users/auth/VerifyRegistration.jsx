@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import AuthFrame from "./AuthFrame";
 import { useApi } from "@/app/context/ApiContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, Loader2, RefreshCw, Clock, CheckCircle2, AlertCircle, X, ArrowRight } from "lucide-react";
+import { ShieldCheck, Mail, Loader2, RefreshCw, Clock, CheckCircle2, AlertCircle, X, ArrowRight } from "lucide-react";
 import axios from "axios";
 
 // --- Custom Status Modal Component ---
@@ -255,26 +256,11 @@ export default function VerifyRegistration() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-y-auto p-3 md:p-8">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="w-full max-w-md flex flex-col justify-center py-6"
-            >
-                <div className="text-center mb-10">
-                    <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                        <ShieldCheck size={36} />
-                    </div>
-
-                    <h1 className="text-4xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-3">
-                        Verify <span className="text-orange-600">Registration</span>
-                    </h1>
-                    <p className="text-xs font-semibold text-slate-500 mb-6 leading-relaxed">
-                        A 6-digit code has been sent to<br />
-                        <span className="text-slate-700 dark:text-slate-300 font-bold">{email}</span>
-                    </p>
-                </div>
+        <AuthFrame subtitle="Verify your email">
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+                <div className="mb-6 inline-flex rounded-full bg-orange-50 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-700">Step 2 of 3 · Verification</div>
+                <h1 className="mb-2 text-[28px] font-semibold tracking-tight">Check your email <Mail className="inline text-orange-500" size={24} /></h1>
+                <p className="mb-7 text-base leading-relaxed text-slate-500">We sent a 6-digit code to <span className="font-semibold text-orange-700">{email}</span>. Enter it below.</p>
 
                 {/* OTP Inputs */}
                 <div className="flex justify-center gap-3 mb-10 py-1">
@@ -289,7 +275,7 @@ export default function VerifyRegistration() {
                             onChange={(e) => handleChange(e.target.value, index)}
                             onKeyDown={(e) => handleKeyDown(e, index)}
                             onPaste={index === 0 ? handlePaste : undefined}
-                            className="w-12 h-14 text-center bg-slate-50 dark:bg-slate-800 rounded-2xl text-2xl font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-transparent focus:border-orange-500/20 shadow-sm"
+                            className="h-[68px] min-w-0 flex-1 rounded-[20px] border-2 border-orange-500 bg-white text-center text-2xl font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-orange-100"
                         />
                     ))}
                 </div>
@@ -300,7 +286,7 @@ export default function VerifyRegistration() {
                         whileTap={{ scale: 0.99 }}
                         onClick={() => handleVerify()}
                         disabled={loading}
-                        className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-orange-500/20"
+                        className="w-full rounded-[20px] bg-orange-500 py-5 text-base font-semibold text-white shadow-[0_10px_20px_rgba(249,115,22,0.25)] transition hover:bg-orange-600 disabled:opacity-50"
                     >
                         {loading ? (
                             <>
@@ -309,8 +295,7 @@ export default function VerifyRegistration() {
                             </>
                         ) : (
                             <>
-                                <span>Verify & Continue</span>
-                                <ArrowRight size={20} />
+                                <span>Verify code</span>
                             </>
                         )}
                     </motion.button>
@@ -318,10 +303,7 @@ export default function VerifyRegistration() {
                     <button
                         onClick={handleResend}
                         disabled={resending || resendCooldown > 0}
-                        className={`w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all border ${resending || resendCooldown > 0
-                            ? "bg-transparent border-slate-100 dark:border-slate-800 text-slate-400 cursor-not-allowed"
-                            : "bg-transparent border-orange-100 dark:border-orange-900/30 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-500/5 shadow-sm"
-                            }`}
+                        className="w-full py-3 text-sm font-semibold text-orange-700 disabled:text-slate-400"
                     >
                         {resending ? (
                             <Loader2 className="animate-spin" size={18} />
@@ -337,9 +319,6 @@ export default function VerifyRegistration() {
                         )}
                     </button>
 
-                    <p className="text-[10px] text-center font-bold text-slate-400 uppercase tracking-widest pt-2">
-                        Secured by MelaChow Auth
-                    </p>
                 </div>
             </motion.div>
 
@@ -350,7 +329,7 @@ export default function VerifyRegistration() {
                 message={statusModal.message}
                 onClose={closeModal}
             />
-        </div>
+        </AuthFrame>
     );
 }
 

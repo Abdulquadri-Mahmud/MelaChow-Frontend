@@ -14,6 +14,7 @@ import {
   ArrowLeft, 
   Star, 
   Plus,
+  Check,
   Heart,
   Globe,
   Bike,
@@ -122,8 +123,8 @@ export default function FoodSearchMobile() {
 
   const [foods, setFoods] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
-  const [query, setQuery] = useState("");
-  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [query, setQuery] = useState(() => searchParams.get("q") || "");
+  const [debouncedQuery, setDebouncedQuery] = useState(() => (searchParams.get("q") || "").trim());
   const [activeCategory, setActiveCategory] = useState("");
   const [sort, setSort] = useState("relevance");
   const [page, setPage] = useState(1);
@@ -131,7 +132,9 @@ export default function FoodSearchMobile() {
   const [loading, setLoading] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [error, setError] = useState(null);
+  const [retrySearch, setRetrySearch] = useState(0);
   const [trending, setTrending] = useState([]);
+  const [recentSearches, setRecentSearches] = useState([]);
   const [autocomplete, setAutocomplete] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -161,6 +164,12 @@ export default function FoodSearchMobile() {
   // Hydration
   useEffect(() => {
     setHydrated(true);
+    try {
+      const savedSearches = JSON.parse(localStorage.getItem("melachow_recent_searches") || "[]");
+      if (Array.isArray(savedSearches)) setRecentSearches(savedSearches.filter((term) => typeof term === "string"));
+    } catch {
+      setRecentSearches([]);
+    }
   }, []);
 
   useEffect(() => {
@@ -174,6 +183,12 @@ export default function FoodSearchMobile() {
     setFoods([]);
     setRestaurants([]);
   }, [selectedCategory, debouncedQuery, sort]);
+
+  useEffect(() => {
+    const nextQuery = searchParams.get("q") || "";
+    setQuery(nextQuery);
+    setDebouncedQuery(nextQuery.trim());
+  }, [searchParams]);
 
   // Fetch trending searches
   useEffect(() => {
@@ -215,14 +230,20 @@ export default function FoodSearchMobile() {
           withCredentials: true,
           signal: controller.signal,
         });
-        const nextFoods = res.data.data || [];
+        const nextFoods = Array.isArray(res.data?.data)
+          ? res.data.data
+          : Array.isArray(res.data?.foods)
+            ? res.data.foods
+            : Array.isArray(res.data?.results)
+              ? res.data.results
+              : [];
         setFoods((current) => page === 1 ? nextFoods : [...current, ...nextFoods.filter((item) => !current.some((existing) => existing._id === item._id))]);
-        if (page === 1) setRestaurants(res.data.vendors || []);
-        setHasMore(Number(res.data.currentPage || page) < Number(res.data.totalPages || 0));
+        if (page === 1) setRestaurants(Array.isArray(res.data?.vendors) ? res.data.vendors : []);
+        setHasMore(Number(res.data?.currentPage || page) < Number(res.data?.totalPages || 0));
       } catch (err) {
         if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") return;
         console.error("Fetch Foods Error:", err?.response?.data || err.message || err);
-        setError("Failed to load foods. Please try again.");
+        setError(err?.response?.data?.message || "Check your connection and try the search again.");
       } finally {
         setLoading(false);
       }
@@ -230,7 +251,7 @@ export default function FoodSearchMobile() {
 
     fetchFoods();
     return () => controller.abort();
-  }, [baseUrl, hydrated, debouncedQuery, selectedCategory, sort, page]);
+  }, [baseUrl, hydrated, debouncedQuery, selectedCategory, sort, page, retrySearch]);
 
   // Autocomplete
   useEffect(() => {
@@ -273,18 +294,10 @@ export default function FoodSearchMobile() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Category grouping — always use all foods, filtered client-side by selectedCategory
+  // The API already applies the selected category. Filtering the response again
+  // on the client can hide valid matches when category metadata is incomplete.
   const hasSearchIntent = Boolean(query.trim() || selectedCategory);
-
-  const displayedFoods = useMemo(() => {
-    if (!selectedCategory || !foods.length) return foods;
-    const lower = selectedCategory.toLowerCase();
-    return foods.filter(food => {
-      const childName = food.platform_category?.name?.toLowerCase() || '';
-      const parentName = food.platform_category?.parent?.name?.toLowerCase() || '';
-      return childName === lower || parentName === lower;
-    });
-  }, [foods, selectedCategory]);
+  const displayedFoods = foods;
 
   const foodsByCategory = useMemo(() => {
     if (!Array.isArray(displayedFoods) || displayedFoods.length === 0) return {};
@@ -300,36 +313,97 @@ export default function FoodSearchMobile() {
     }, {});
   }, [displayedFoods]);
 
-  // Category click — just updates the URL; filtering is handled by displayedFoods memo
+  // Category filtering is performed by the search API.
   const handleCategoryClick = async (category) => {
     if (activeCategory === category) {
       setActiveCategory("");
-      router.push("?");
+      router.push("/search/");
       return;
     }
     setActiveCategory(category);
     setQuery("");
-    router.push(`?category=${encodeURIComponent(category)}`);
-    setTimeout(() => inputRef.current?.focus(), 50);
+    router.push(`/search/?category=${encodeURIComponent(category)}`);
   };
+
+  const rememberSearch = (value) => {
+    const term = String(value || "").trim();
+    if (!term) return;
+    setRecentSearches((current) => {
+      const next = [term, ...current.filter((item) => item.toLowerCase() !== term.toLowerCase())].slice(0, 8);
+      try {
+        localStorage.setItem("melachow_recent_searches", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const submitSearch = (value) => {
+    const term = String(value || "").trim();
+    if (!term) return;
+    rememberSearch(term);
+    setQuery(term);
+    setDebouncedQuery(term);
+    setActiveCategory("");
+    setShowDropdown(false);
+    setAutocomplete([]);
+    router.push(`/search/?q=${encodeURIComponent(term)}`);
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+    try {
+      localStorage.removeItem("melachow_recent_searches");
+    } catch {}
+  };
+
+  const renderCategoryButtons = () => categories.map((category) => {
+    const isSelected = activeCategory === category.name;
+    return (
+      <motion.button
+        key={category._id}
+        type="button"
+        whileTap={{ scale: 0.96 }}
+        onClick={() => handleCategoryClick(category.name)}
+        aria-pressed={isSelected}
+        className={`relative flex shrink-0 flex-col items-center gap-1.5 rounded-2xl border p-1.5 text-xs font-semibold transition-colors ${
+          isSelected
+            ? "border-orange-500 text-orange-700 dark:text-orange-300"
+            : "border-transparent text-zinc-700 dark:text-zinc-200"
+        }`}
+      >
+        <span className="relative grid size-[76px] place-items-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+          {category.image ? (
+            <img src={category.image} alt="" loading="lazy" className="size-full object-cover" />
+          ) : (
+            <Store size={22} className="text-zinc-400" aria-hidden="true" />
+          )}
+          {isSelected && (
+            <span className="absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-orange-500 text-white shadow-md">
+              <Check size={15} strokeWidth={3} aria-hidden="true" />
+            </span>
+          )}
+        </span>
+        <span className="max-w-[76px] truncate text-center">{category.name}</span>
+      </motion.button>
+    );
+  });
 
   // Search submit
   const handleSearchSubmit = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
-    setShowDropdown(false);
-    inputRef.current?.focus();
+    submitSearch(query);
   };
 
   // Dropdown selection
   const handleDropdownSelect = async (value, type) => {
-    setQuery(value);
-    setShowDropdown(false);
-    setAutocomplete([]);
-
     if (type === "category") {
       handleCategoryClick(value);
+    } else {
+      submitSearch(value);
     }
+    setShowDropdown(false);
+    setAutocomplete([]);
     inputRef.current?.blur();
   };
 
@@ -384,7 +458,6 @@ export default function FoodSearchMobile() {
                     setShowDropdown(true);
                   }}
                   onFocus={() => setShowDropdown(true)}
-                  autoFocus
                 />
  
                 <div className="flex items-center gap-2">
@@ -395,35 +468,37 @@ export default function FoodSearchMobile() {
                 </div>
               </div>
 
-              {/* 💧 Dropdown */}
+              {/* Inline search suggestions */}
               <AnimatePresence>
-                {showDropdown && (autocomplete.length > 0 || trending.length > 0) && (
+                {showDropdown && query.trim().length >= 2 && (autocomplete.length > 0 || trending.length > 0) && (
                   <motion.div
                     ref={dropdownRef}
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute top-full left-0 w-full bg-white/95 dark:bg-zinc-950/95 backdrop-blur-3xl border border-zinc-200 dark:border-zinc-800/80 mt-4 rounded-3xl z-[60] shadow-2xl shadow-black/20 overflow-hidden"
+                    initial={{ opacity: 0, height: 0, y: -6 }}
+                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -6 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="relative mt-2 max-h-[min(38dvh,22rem)] w-full overflow-y-auto overscroll-contain rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
                   >
-                    <div className="p-3">
+                    <div className="p-2 sm:p-3">
                         {autocomplete.length > 0 && (
                         <div className="mb-4">
                             <div className="px-4 py-2 flex items-center gap-2">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-orange-500 italic">Matching Now</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-orange-500 italic">Matching now</span>
                             </div>
                             <div className="space-y-1">
                             {autocomplete.map((item, idx) => (
-                                <motion.div
+                                <motion.button
                                     key={`auto-${idx}`}
+                                    type="button"
                                     whileHover={{ x: 4 }}
                                     onClick={() => handleDropdownSelect(item.name, "autocomplete")}
-                                    className="px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl cursor-pointer text-zinc-800 dark:text-zinc-200 text-sm flex items-center gap-3 transition-colors"
+                                    className="w-full px-4 py-3 text-left hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl cursor-pointer text-zinc-800 dark:text-zinc-200 text-sm flex items-center gap-3 transition-colors"
                                 >
                                     <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 ">
                                         <Search size={14} />
                                     </div>
                                     <span className="font-bold">{item.name}</span>
-                                </motion.div>
+                                </motion.button>
                             ))}
                             </div>
                         </div>
@@ -432,12 +507,13 @@ export default function FoodSearchMobile() {
                         {trending.length > 0 && (
                         <div className="pt-2 border-t border-zinc-100 dark:border-zinc-800/50">
                             <div className="px-4 py-2 flex items-center gap-2">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">🔥 Buzzing Searches</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Trending searches</span>
                             </div>
                             <div className="flex flex-wrap gap-2 px-3 pb-2">
                             {trending.map((trend) => (
-                                <motion.div
+                                <motion.button
                                     key={`trend-${trend._id}`}
+                                    type="button"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={() => handleDropdownSelect(trend.keyword, "trending")}
@@ -445,7 +521,7 @@ export default function FoodSearchMobile() {
                                 >
                                     <Flame size={12} className="text-orange-500" />
                                     <span>{trend.keyword}</span>
-                                </motion.div>
+                                </motion.button>
                             ))}
                             </div>
                         </div>
@@ -459,35 +535,16 @@ export default function FoodSearchMobile() {
         </div>
 
         {/* 🚀 Category Pill Navigation (Horizontal Segmented Style) */}
-        <div className="max-w-xl mx-auto border-t border-zinc-100 dark:border-zinc-900">
-          <div className="flex scroll overflow-x-auto no-scrollbar gap-1.5 py-2 px-2 items-center">
-            {categories.map((category) => (
-              <motion.button
-                key={category._id}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => handleCategoryClick(category.name)}
-                className={`relative px-4.5 py-1.5 rounded-xl whitespace-nowrap transition-all duration-500 text-[10px] font-black uppercase tracking-wider
-                  ${activeCategory === category.name
-                    ? "text-white"
-                    : "text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900/50 hover:bg-zinc-200 dark:hover:bg-zinc-800"
-                  }
-                `}
-              >
-                {activeCategory === category.name && (
-                  <motion.div
-                    layoutId="active-pill"
-                    className="absolute inset-0 bg-orange-600 rounded-xl shadow-lg shadow-orange-500/30"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
-                )}
-                <span className="relative z-10">{category.name}</span>
-              </motion.button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* 📊 Refinement Toolbar / Result Counter */}
+      {hasSearchIntent && categories.length > 0 && (
+        <section className="mx-auto max-w-xl px-4 pt-3">
+          <h2 className="mb-2 text-sm font-bold text-zinc-900 dark:text-white">Cuisines</h2>
+          <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">{renderCategoryButtons()}</div>
+        </section>
+      )}
+
       {hasSearchIntent && <div className="max-w-xl mx-auto px-2 pt-2.5">
           <motion.div 
             initial={{ opacity: 0, x: -10 }}
@@ -514,14 +571,55 @@ export default function FoodSearchMobile() {
       {/* 🍱 Results Feed */}
       <div className="max-w-xl mx-auto mt-3.5">
         {!hasSearchIntent ? (
-          <div className="px-8 py-20 text-center">
-            <Search size={32} className="mx-auto mb-4 text-orange-500" />
-            <p className="text-sm font-semibold text-zinc-800 dark:text-white">Search for a dish or restaurant</p>
-            <p className="mt-1 text-xs text-zinc-500">Type what you want to eat to see matching items.</p>
+          <div className="space-y-7 px-4 pb-24 pt-5">
+            <section>
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-base font-bold text-zinc-900 dark:text-white">Recent Searches</h2>
+                  {recentSearches.length > 0 && <button type="button" onClick={clearRecentSearches} className="text-xs font-semibold text-orange-600">Clear All</button>}
+                </div>
+                {recentSearches.length > 0 ? (
+                  <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+                    {recentSearches.map((term) => (
+                      <button key={term} type="button" onClick={() => submitSearch(term)} className="inline-flex shrink-0 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3.5 py-2 text-xs font-medium text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                        <Clock size={14} className="text-zinc-400" />{term}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-zinc-500">Your recent searches will appear here.</p>
+                )}
+            </section>
+
+            {trending.length > 0 && (
+              <section>
+                <h2 className="mb-3 text-base font-bold text-zinc-900 dark:text-white">Popular Searches</h2>
+                <div className="flex flex-wrap gap-2.5">
+                  {trending.map((trend) => (
+                    <button key={trend._id || trend.keyword} type="button" onClick={() => submitSearch(trend.keyword)} className="inline-flex items-center gap-2 rounded-full border border-zinc-100 bg-white px-3.5 py-2.5 text-xs font-semibold text-zinc-800 shadow-sm transition hover:border-orange-200 hover:text-orange-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
+                      <Flame size={15} className="text-orange-500" />{trend.keyword}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {categories.length > 0 && (
+              <section>
+                <h2 className="mb-3 text-base font-bold text-zinc-900 dark:text-white">Cuisines</h2>
+                <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">{renderCategoryButtons()}</div>
+              </section>
+            )}
+
           </div>
         ) : loading ? (
           <div className="px-2">
             <SearchFoodSkeleton items={6} />
+          </div>
+        ) : error ? (
+          <div className="mx-4 rounded-2xl border border-rose-100 bg-white px-5 py-8 text-center dark:border-rose-900/40 dark:bg-zinc-900">
+            <p className="text-sm font-semibold text-zinc-900 dark:text-white">Search couldn&apos;t load</p>
+            <p className="mt-1 text-xs text-zinc-500">{error}</p>
+            <button type="button" onClick={() => setRetrySearch((attempt) => attempt + 1)} className="mt-4 rounded-xl bg-orange-500 px-5 py-2.5 text-xs font-bold text-white hover:bg-orange-600">Try again</button>
           </div>
         ) : displayedFoods.length === 0 && restaurants.length === 0 ? (
           <div className="animate-in fade-in slide-in-from-bottom-5 duration-700">

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect } from 'react';
 import { Capacitor, SystemBarType, SystemBars, SystemBarsStyle } from '@capacitor/core';
-import { StatusBar } from '@capacitor/status-bar';
+import { Animation, StatusBar, Style as StatusBarStyle } from '@capacitor/status-bar';
 
 const ThemeContext = createContext({
     theme: 'light',
@@ -22,9 +22,11 @@ const applyLightTheme = () => {
     if (!Capacitor.isNativePlatform()) return;
 
     Promise.all([
-        SystemBars.setStyle({ bar: SystemBarType.StatusBar, style: SystemBarsStyle.Light }),
-        SystemBars.setStyle({ bar: SystemBarType.NavigationBar, style: SystemBarsStyle.Light }),
-        StatusBar.setBackgroundColor({ color }),
+      SystemBars.setStyle({ bar: SystemBarType.StatusBar, style: SystemBarsStyle.Light }),
+      SystemBars.setStyle({ bar: SystemBarType.NavigationBar, style: SystemBarsStyle.Light }),
+      StatusBar.setStyle({ style: StatusBarStyle.Light }),
+      StatusBar.setBackgroundColor({ color: '#ffffff' }),
+      StatusBar.show({ animation: Animation.None }),
     ]).catch((error) => console.warn('[Theme] Could not update native system bars:', error));
 };
 
