@@ -14,12 +14,12 @@ export default function NotificationBell({ href = '/notifications' }) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => router.push(href)}
-            className="relative p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-orange-500/30 transition-all group"
+            className="relative p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-orange-500/30 transition-all group"
             aria-label="Notifications"
             title={isRealtimeConnected ? 'Real-time updates active' : 'Using fallback polling'}
         >
             <Bell
-                size={20}
+                size={17}
                 className={`transition-all duration-300 ${unreadCount > 0
                     ? 'text-orange-500 scale-110'
                     : 'text-slate-500 dark:text-slate-400 group-hover:text-orange-500'

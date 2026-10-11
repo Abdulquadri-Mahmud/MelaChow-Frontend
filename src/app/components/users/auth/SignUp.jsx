@@ -147,11 +147,11 @@ export default function Signup() {
   return (
     <AuthFrame subtitle="Join the food community">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="mb-6 inline-flex rounded-full bg-orange-50 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-700">Step 1 of 3 · Account info</div>
-        <h2 className="mb-2 text-[28px] font-semibold tracking-tight">Create account</h2>
-        <p className="mb-6 text-base leading-relaxed text-slate-500">Fill in your details. We&apos;ll send a verification code to your email.</p>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid grid-cols-2 gap-2 p-1">
+        <div className="mb-3 inline-flex rounded-full bg-orange-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-orange-700">Step 1 of 3 · Account info</div>
+        <h2 className="mb-1 text-[clamp(22px,3dvh,27px)] font-semibold tracking-tight">Create account</h2>
+        <p className="mb-4 text-sm leading-relaxed text-slate-500">Fill in your details. We&apos;ll send a verification code to your email.</p>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
             {/* First Name */}
             <div className="space-y-2">
               <label className={authLabelClass}>First name</label>
@@ -214,7 +214,7 @@ export default function Signup() {
             whileTap={{ scale: 0.99 }}
             type="submit"
             disabled={loading}
-            className="w-full rounded-[20px] bg-orange-500 py-5 text-base font-semibold text-white shadow-[0_10px_20px_rgba(249,115,22,0.25)] transition hover:bg-orange-600 disabled:opacity-50"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-3.5 text-base font-semibold text-white shadow-[0_8px_16px_rgba(249,115,22,0.2)] transition hover:bg-orange-600 disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -230,7 +230,7 @@ export default function Signup() {
         </form>
 
         {/* Footer Links */}
-        <div className="mt-7 text-center">
+        <div className="mt-4 text-center">
           <p className="text-sm text-slate-500">Already have an account?</p>
             <Link href="/auth/signin" className="text-orange-600 hover:text-orange-700 font-bold ml-1">
               Sign in instead

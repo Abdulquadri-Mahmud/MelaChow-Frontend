@@ -20,7 +20,7 @@ export default function ProfileIconWithBadge({ onClick, className = "" }) {
     return (
         <div onClick={onClick} className={`relative cursor-pointer ${className}`}>
             <div className="p-2 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600 transition-colors hover:bg-orange-100 dark:hover:bg-orange-500/20">
-                <User size={22} strokeWidth={2.5} />
+                <User size={17} strokeWidth={2.5} />
             </div>
 
             {/* Notification Badge - Small subtle indicator */}

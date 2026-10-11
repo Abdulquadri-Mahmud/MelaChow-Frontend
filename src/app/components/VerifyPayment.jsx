@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { verifyPaymentV2 } from "../lib/orderService";
+import { useCart } from "../context/CartContext";
 import toast from "react-hot-toast";
 import Header2 from "./App_Header/Header2";
 import { motion } from "framer-motion";
@@ -22,6 +23,12 @@ export default function VerifyPayment() {
   const inFlightRef = useRef(false);
 
   const router = useRouter();
+  const { clearCart } = useCart();
+  const clearCartRef = useRef(clearCart);
+
+  useEffect(() => {
+    clearCartRef.current = clearCart;
+  }, [clearCart]);
 
   const reference = searchParams.get("reference");
   const formatMoney = (value) => `₦${Number(value || 0).toLocaleString()}`;
@@ -80,6 +87,7 @@ export default function VerifyPayment() {
 
       setOrder(res.order);
       setStatus("success");
+      clearCartRef.current?.();
       retryCountRef.current = 0;
       setRetryCount(0);
       window.__melachowPaymentVerified?.(reference);
@@ -103,7 +111,7 @@ export default function VerifyPayment() {
       // that has not settled yet. Give that ambiguous response a short grace window.
       const legacyUnconfirmed = error.code === "PAYMENT_FAILED" && !paystackStatus && retryCountRef.current < 3;
       const canRetry = paymentStillSettling || transient || legacyUnconfirmed;
-      const maxRetries = paymentStillSettling || transient ? 8 : 3;
+      const maxRetries = paymentStillSettling || transient ? 12 : 3;
 
       if (canRetry && retryCountRef.current < maxRetries) {
         const nextCount = retryCountRef.current + 1;
@@ -115,7 +123,8 @@ export default function VerifyPayment() {
           ? "Paystack is confirming the transaction. We’ll check again shortly."
           : "Verification is temporarily unavailable. We’ll retry automatically.");
         setRetryCount(nextCount);
-        const delay = [2500, 4000, 6000, 8000, 10000, 12000, 15000, 15000][Math.min(nextCount - 1, 7)];
+        const retryDelays = [2500, 4000, 6000, 8000, 10000, 12000, 15000, 15000, 20000, 20000, 30000, 30000];
+        const delay = retryDelays[Math.min(nextCount - 1, retryDelays.length - 1)];
         if (online) scheduleRetry(delay);
         return;
       }

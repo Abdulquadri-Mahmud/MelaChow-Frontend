@@ -34,6 +34,15 @@ export default function NativePushRuntime({ role = "user" }) {
     const tokenChanged = () => {
       const token = localStorage.getItem(nativePushTokenKey(role));
       if (token) void sync(token);
+      void ensureRegistration().catch((error) => console.warn("FCM registration deferred:", error));
+    };
+    const ensureRegistration = async () => {
+      if (!TokenManager.getToken(role)) return;
+      let permission = await PushNotifications.checkPermissions();
+      if (permission.receive === "prompt" || permission.receive === "prompt-with-rationale") permission = await PushNotifications.requestPermissions();
+      if (permission.receive !== "granted") return;
+      if (Capacitor.getPlatform() === "android") await PushNotifications.createChannel({ id: "melachow_orders", name: "MelaChow updates", description: "Order updates and account notifications", importance: 5, visibility: 1, vibration: true });
+      await PushNotifications.register();
     };
     const openNotification = ({ notification }) => {
       const target = notification?.data?.url || notification?.data?.route;
@@ -49,11 +58,7 @@ export default function NativePushRuntime({ role = "user" }) {
       await add("pushNotificationActionPerformed", openNotification);
       const saved = localStorage.getItem(nativePushTokenKey(role));
       if (saved && TokenManager.getToken(role)) await sync(saved);
-      const permission = await PushNotifications.checkPermissions();
-      if (permission.receive === "granted") {
-        if (Capacitor.getPlatform() === "android") await PushNotifications.createChannel({ id: "melachow_orders", name: "MelaChow updates", description: "Order updates and account notifications", importance: 5, visibility: 1, vibration: true });
-        await PushNotifications.register();
-      }
+      await ensureRegistration();
     };
     void setup().catch((error) => console.error("Native push setup failed", error));
     const appState = App.addListener("appStateChange", ({ isActive }) => { if (isActive) tokenChanged(); });

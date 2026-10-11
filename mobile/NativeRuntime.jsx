@@ -17,6 +17,9 @@ export default function NativeRuntime({ children }) {
     installTransport();
 
     let verificationStarted = false;
+    let leftForPayment = false;
+    const handles = [];
+    let disposed = false;
 
     const getPending = () => {
       const payment = parsePendingPayment(localStorage.getItem(pendingPaymentKey));
@@ -44,6 +47,15 @@ export default function NativeRuntime({ children }) {
       router.replace(payment.path);
       return true;
     };
+    const markPaymentBackgrounded = () => {
+      if (getPending()) leftForPayment = true;
+    };
+    const resumePendingPayment = () => {
+      if (leftForPayment && document.visibilityState === "visible") {
+        leftForPayment = false;
+        continuePayment().catch(console.error);
+      }
+    };
     const navigate = async (href) => {
       const mapped = toMobileHref(href);
       if (mapped.startsWith("/") && !mapped.startsWith("//")) {
@@ -69,11 +81,11 @@ export default function NativeRuntime({ children }) {
 
     document.addEventListener("click", click, true);
     window.addEventListener("mobile:payment", readPending);
+    window.addEventListener("blur", markPaymentBackgrounded);
+    window.addEventListener("focus", resumePendingPayment);
+    document.addEventListener("visibilitychange", resumePendingPayment);
     readPending();
 
-    const handles = [];
-    let disposed = false;
-    let leftForPayment = false;
     const listen = async (source, name, fn) => {
       const handle = await source.addListener(name, fn);
       if (disposed) await handle.remove(); else handles.push(handle);
@@ -114,6 +126,9 @@ export default function NativeRuntime({ children }) {
       handles.forEach((handle) => handle.remove());
       document.removeEventListener("click", click, true);
       window.removeEventListener("mobile:payment", readPending);
+      window.removeEventListener("blur", markPaymentBackgrounded);
+      window.removeEventListener("focus", resumePendingPayment);
+      document.removeEventListener("visibilitychange", resumePendingPayment);
       delete window.__melachowNavigate;
       delete window.__melachowPaymentVerified;
     };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getVendorDeliveryQuote, getVendorStorefront } from "@/app/lib/menuApi";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -16,6 +16,7 @@ import { useComboModalStore } from "@/app/store/comboModalStore";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
 import { useCart } from "@/app/context/CartContext";
 import { useProfile } from "@/app/context/ProfileContext";
+import { shareCustomerContent } from "@/app/lib/shareCustomerContent";
 
 const getItemId = (item) => item?._id || item?.id;
 const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
@@ -39,6 +40,7 @@ const FoodItemRow = ({ item, onSelect }) => {
 export default function StorefrontPage({ vendorId: propVendorId }) {
     const params = useParams();
     const vendorId = propVendorId || params.vendorId;
+    const queryClient = useQueryClient();
     const { userProfile } = useProfile();
     const defaultAddress = useMemo(
         () => userProfile?.addresses?.find((address) => address.isDefault) || userProfile?.addresses?.[0],
@@ -54,9 +56,13 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
 
     const [isSearchActive, setIsSearchActive] = useState(false);    const { platformPromo } = useActivePromos();
 
-    const { data, isLoading, isError } = useQuery({
+    const { data, isLoading, isError, isPlaceholderData } = useQuery({
         queryKey: ["vendor-storefront", vendorId],
         queryFn: () => getVendorStorefront(vendorId),
+        placeholderData: () => {
+            const preview = queryClient.getQueryData(["vendor-preview", vendorId]);
+            return preview ? { vendor: preview, sections: [], unsectioned: [], combos: [] } : undefined;
+        },
         enabled: !!vendorId,
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
@@ -106,19 +112,17 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
     };
 
     const handleShare = async () => {
-        if (navigator.share) {
-            try {
-                await navigator.share({
-                    title: `${vendor.storeName} on MelaChow`,
-                    text: `Check out ${vendor.storeName} in ${vendor.address?.city} on MelaChow!`,
-                    url: window.location.href,
-                });
-            } catch (err) {
-                console.error("Error sharing:", err);
-            }
-        } else {
-            navigator.clipboard.writeText(window.location.href);
-            toast.success("Link copied to clipboard!");
+        try {
+            const result = await shareCustomerContent({
+                title: `${vendor.storeName} on MelaChow`,
+                text: `Check out ${vendor.storeName} on MelaChow!`,
+                path: `/restaurants/${vendorId}`,
+                dialogTitle: "Share restaurant",
+            });
+            if (result === "copied") toast.success("Restaurant link copied");
+        } catch (error) {
+            console.error("Restaurant share failed:", error);
+            toast.error("Could not open sharing. Please try again.");
         }
     };
 
@@ -240,15 +244,15 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
                 </div>
                 {!isScrolled && (
                     <div className="absolute top-4 left-4 right-4 z-50 flex items-center justify-between">
-                        <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full bg-medium/20 backdrop-blur-md border border-white/20 text-white">
-                            <ChevronLeft size={24} />
+                        <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-full bg-medium/20 backdrop-blur-md border border-white/20 text-white">
+                            <ChevronLeft size={18} />
                         </button>
                         <div className="flex items-center gap-2">
-                            <button onClick={() => setIsSearchActive(true)} className="w-10 h-10 flex items-center justify-center rounded-full bg-medium/20 backdrop-blur-md border border-white/20 text-white transition-all active:scale-90">
-                                <Search size={20} />
+                            <button onClick={() => setIsSearchActive(true)} className="w-9 h-9 flex items-center justify-center rounded-full bg-medium/20 backdrop-blur-md border border-white/20 text-white transition-all active:scale-90">
+                                <Search size={17} />
                             </button>
-                            <button onClick={handleShare} className="w-10 h-10 flex items-center justify-center rounded-full bg-medium/20 backdrop-blur-md border border-white/20 text-white transition-all active:scale-90">
-                                <Share2 size={20} />
+                            <button onClick={handleShare} className="w-9 h-9 flex items-center justify-center rounded-full bg-medium/20 backdrop-blur-md border border-white/20 text-white transition-all active:scale-90">
+                                <Share2 size={17} />
                             </button>
                         </div>
                     </div>
@@ -438,7 +442,7 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
                     </div>
                 </div>
 
-                <div className="px-4 pt-3">{selectedSection?.items?.length ? <section key={selectedSection._id} className="pb-8"><div className="space-y-0">{selectedSection.items.map((item, index) => <FoodItemRow key={`${selectedSection._id}-${item._id}-${index}`} item={item} onSelect={handleItemTap} />)}</div></section> : <div className="flex flex-col items-center justify-center px-10 py-20 text-center"><Search size={32} className="text-zinc-300" /><p className="mt-3 text-sm font-medium text-zinc-500">No menu items found.</p></div>}</div>
+                <div className="px-4 pt-3">{isPlaceholderData ? <div className="space-y-3" aria-label="Loading restaurant menu">{[0, 1, 2].map((index) => <div key={index} className="flex animate-pulse items-center gap-3 border-b border-zinc-100 py-3 dark:border-zinc-800"><div className="flex-1 space-y-2"><div className="h-4 w-2/3 rounded bg-zinc-200 dark:bg-zinc-800" /><div className="h-3 w-full rounded bg-zinc-100 dark:bg-zinc-800" /><div className="h-3 w-1/3 rounded bg-zinc-100 dark:bg-zinc-800" /></div><div className="h-20 w-20 rounded-lg bg-zinc-200 dark:bg-zinc-800" /></div>)}</div> : selectedSection?.items?.length ? <section key={selectedSection._id} className="pb-8"><div className="space-y-0">{selectedSection.items.map((item, index) => <FoodItemRow key={`${selectedSection._id}-${item._id}-${index}`} item={item} onSelect={handleItemTap} />)}</div></section> : <div className="flex flex-col items-center justify-center px-10 py-20 text-center"><Search size={32} className="text-zinc-300" /><p className="mt-3 text-sm font-medium text-zinc-500">No menu items found.</p></div>}</div>
             </div>
         </div>
     );

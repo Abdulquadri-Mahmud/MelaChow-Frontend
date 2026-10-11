@@ -32,10 +32,10 @@ export default function Header2({ title, subtitle }) {
               whileHover={{ scale: 1.1, x: -2 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => router.back()}
-              className="p-2.5 rounded-2xl bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 text-gray-700 dark:text-gray-200 hover:text-orange-500 transition-all hover:shadow-md"
+              className="p-2 rounded-xl bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700 text-gray-700 dark:text-gray-200 hover:text-orange-500 transition-all hover:shadow-md"
               aria-label="Go back"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-[17px] h-[17px]" />
             </motion.button>
 
             {/* Current Page Title - High Refinement */}

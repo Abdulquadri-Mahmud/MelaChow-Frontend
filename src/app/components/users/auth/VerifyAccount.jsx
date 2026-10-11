@@ -250,19 +250,19 @@ export default function VerifyAccount() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-y-auto p-6 md:p-8">
+    <div className="min-h-[100dvh] w-full overflow-y-auto bg-[#fffaf4] px-4 py-5 pb-[env(safe-area-inset-bottom)] text-slate-900">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md flex flex-col justify-center py-6"
+        className="mx-auto flex w-full max-w-md flex-col"
       >
-        <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+        <div className="mb-5 text-center">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-orange-600 shadow-sm">
             <ShieldCheck size={36} />
           </div>
 
-          <h1 className="text-4xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-3">
+          <h1 className="mb-2 text-[27px] font-black uppercase tracking-tight text-slate-900">
             Verify <span className="text-orange-600">Account</span>
           </h1>
           <p className="text-xs font-semibold text-slate-500 mb-6 leading-relaxed">
@@ -272,7 +272,7 @@ export default function VerifyAccount() {
         </div>
 
         {/* OTP Inputs */}
-        <div className="flex justify-center gap-3 mb-10">
+        <div className="mb-5 flex justify-center gap-1.5 sm:gap-2">
           {otp.map((digit, index) => (
             <input
               key={index}
@@ -284,7 +284,7 @@ export default function VerifyAccount() {
               onChange={(e) => handleChange(e.target.value, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               onPaste={index === 0 ? handlePaste : undefined}
-              className="w-12 h-14 text-center bg-slate-50 dark:bg-slate-800 rounded-2xl text-2xl font-black text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 transition-all border border-transparent focus:border-orange-500/20 shadow-sm"
+              className="h-12 min-w-0 flex-1 rounded-xl border border-orange-200 bg-white text-center text-xl font-bold text-slate-900 outline-none focus:ring-2 focus:ring-orange-500"
             />
           ))}
         </div>
@@ -295,7 +295,7 @@ export default function VerifyAccount() {
             whileTap={{ scale: 0.99 }}
             onClick={handleVerify}
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-orange-500/20"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-600 py-3.5 text-base font-bold text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-700 disabled:opacity-50"
           >
             {loading ? (
               <>

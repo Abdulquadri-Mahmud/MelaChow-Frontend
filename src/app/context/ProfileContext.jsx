@@ -10,21 +10,19 @@ import { refreshCustomerAccessToken } from "../lib/customerApi";
 
 const ProfileContext = createContext(undefined);
 
-// Public routes that don't require authentication
-const PUBLIC_ROUTES = [
-  "/auth/signin",
-  "/auth/login",
-  "/auth/signup",
-  "/auth/register",
-  "/auth/verify-account",
-  "/auth/verify-registration",
-  "/auth/set-password",
-  "/auth/forgot-password",
-  "/auth/reset-password",
-  "/",
-  "/faqs",
-  "/get-help",
-];
+// A cold API instance can take longer than eight seconds to answer the first
+// session request. Only show the startup error after a real retry has failed.
+const PROFILE_REQUEST_TIMEOUT_MS = 20000;
+
+const fetchProfileWithTimeout = async (url, options) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), PROFILE_REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+};
 
 export const ProfileProvider = ({ children }) => {
   const { baseUrl } = useApi();
@@ -41,6 +39,9 @@ export const ProfileProvider = ({ children }) => {
     }
 
     const token = TokenManager.getToken();
+    // Native sessions use bearer tokens. With none saved, there is nothing to
+    // validate and startup can show sign-in without waiting for the API.
+    if (process.env.NEXT_PUBLIC_MOBILE_BUILD === "true" && !token) return null;
 
     const headers = {
       'Content-Type': 'application/json',
@@ -51,7 +52,7 @@ export const ProfileProvider = ({ children }) => {
     }
 
     try {
-      let res = await fetch(`${baseUrl}/user/auth/profile`, {
+      let res = await fetchProfileWithTimeout(`${baseUrl}/user/auth/profile`, {
         credentials: "include",
         headers: headers,
       });
@@ -64,10 +65,17 @@ export const ProfileProvider = ({ children }) => {
       }
 
       if (res.status === 401) {
+        let refreshError = null;
         try {
           const accessToken = await refreshCustomerAccessToken();
-          res = await fetch(`${baseUrl}/user/auth/profile`, { credentials: "include", headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` } });
-        } catch {}
+          res = await fetchProfileWithTimeout(`${baseUrl}/user/auth/profile`, { credentials: "include", headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` } });
+        } catch (error) {
+          refreshError = error;
+        }
+        // A failed network request cannot prove that the saved session expired.
+        if (refreshError && (!refreshError.response || refreshError.response.status >= 500)) {
+          throw refreshError;
+        }
       }
 
       if (res.status === 401) {
@@ -75,16 +83,6 @@ export const ProfileProvider = ({ children }) => {
         // placeholder data the next time the app opens.
         TokenManager.clearToken();
         localStorage.removeItem("melachow_user_cache");
-
-        const isPublicRoute = PUBLIC_ROUTES.some(route =>
-          pathname?.startsWith(route) || pathname === route
-        );
-        const isRestaurantRoute = pathname?.startsWith("/restaurants/");
-        const isFoodDetailsRoute = pathname?.startsWith("/food-details/");
-
-        if (!isPublicRoute && !isRestaurantRoute && !isFoodDetailsRoute) {
-          throw new Error("Session expired");
-        }
 
         return null;
       }
@@ -97,7 +95,9 @@ export const ProfileProvider = ({ children }) => {
         } catch {
           // Not JSON
         }
-        throw new Error(errorMessage);
+        const requestError = new Error(errorMessage);
+        requestError.status = res.status;
+        throw requestError;
       }
 
       const data = await res.json();
@@ -109,7 +109,7 @@ export const ProfileProvider = ({ children }) => {
     }
   };
 
-  const { data, isLoading, error, refetch, status, fetchStatus } = useQuery({
+  const { data, isLoading, isFetching, error, refetch, status, fetchStatus } = useQuery({
     queryKey: ["userProfile"],
     queryFn: fetchProfile,
 
@@ -126,13 +126,17 @@ export const ProfileProvider = ({ children }) => {
     gcTime: Infinity,
 
     retry: (failureCount, error) => {
-      if (error?.message?.includes("Session expired")) return false;
       if (failureCount >= 2) return false;
-      if (error?.message?.includes("Failed to fetch")) return true;
-      return false;
+      return error?.name === "AbortError" ||
+        error?.code === "ERR_NETWORK" ||
+        error?.code === "ECONNABORTED" ||
+        (error?.status >= 500 && error?.status < 600) ||
+        (error?.response?.status >= 500 && error?.response?.status < 600) ||
+        error?.message?.includes("Failed to fetch") ||
+        error?.message?.includes("Network Error");
     },
 
-    retryDelay: (attemptIndex) => Math.min(100 * Math.pow(2, attemptIndex), 500),
+    retryDelay: (attemptIndex) => Math.min(750 * Math.pow(2, attemptIndex), 1500),
 
     // Revalidate any in-memory profile before protected customer pages render.
     // This is important when Android resumes a WebView with an expired token.
@@ -158,6 +162,7 @@ export const ProfileProvider = ({ children }) => {
       console.log('[ProfileContext] 🔍 User Auth State:', {
         hasUserData: !!data,
         isLoading,
+        isFetching,
         hasCheckedSession,
         status,
         fetchStatus,
@@ -177,6 +182,7 @@ export const ProfileProvider = ({ children }) => {
       value={{
         userProfile: data,
         isLoading,
+        isFetching,
         hasCheckedSession,
         error: error ? error.message : null,
         refetchProfile: refetch,

@@ -28,6 +28,7 @@ import 'swiper/css';
 
 import { useCart } from "@/app/context/CartContext";
 import { useProfile } from "@/app/context/ProfileContext";
+import { shareCustomerContent } from "@/app/lib/shareCustomerContent";
 import { isVendorOpen as isVendorOpenFn } from "@/app/lib/utils";
 import { getPublicFoodDetail, getVendorDeliveryQuote } from "@/app/lib/menuApi";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
@@ -150,40 +151,28 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
     staleTime: 60 * 1000,
     retry: 1,
   });
-  const fallbackDeliveryFee = Number(getFoodVendor(food)?.deliveryFee ?? food?.deliveryFee ?? 0);
+  const rawFallbackDeliveryFee = getFoodVendor(food)?.deliveryFee ?? food?.deliveryFee;
+  const fallbackDeliveryFee = Number(rawFallbackDeliveryFee ?? 0);
   const deliveryFeeLoading = Boolean(addressId && deliveryVendorId && isDeliveryFeePending);
   const resolvedDeliveryFee = deliveryFeeLoading
     ? null
     : getFoodVendor(food)?.hasActiveDeliveryPromo
       ? 0
-      : deliveryQuote?.deliveryFee ?? fallbackDeliveryFee;
+      : deliveryQuote?.deliveryFee ?? (rawFallbackDeliveryFee == null ? null : fallbackDeliveryFee);
   const handleShare = async () => {
     const foodName = food?.name || "Check out this dish";
     const storeName = getFoodVendor(food)?.storeName || "MelaChow";
-    const shareUrl = typeof window !== "undefined"
-      ? `${window.location.origin}/food-details/${foodId || food?._id}`
-      : "";
-    const shareData = {
-      title: `${foodName} - ${storeName}`,
-      text: `Order ${foodName} from ${storeName} on MelaChow!`,
-      url: shareUrl,
-    };
-
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        if (err?.name !== "AbortError") {
-          console.error("Share failed:", err);
-        }
-      }
-    } else if (typeof navigator !== "undefined" && navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        toast.success("Food link copied to clipboard!");
-      } catch (err) {
-        toast.error("Failed to copy link.");
-      }
+    try {
+      const result = await shareCustomerContent({
+        title: `${foodName} - ${storeName}`,
+        text: `Order ${foodName} from ${storeName} on MelaChow!`,
+        path: `/food-details/${foodId || food?._id}`,
+        dialogTitle: "Share food",
+      });
+      if (result === "copied") toast.success("Food link copied");
+    } catch (error) {
+      console.error("Food share failed:", error);
+      toast.error("Could not open sharing. Please try again.");
     }
   };
 
@@ -225,6 +214,8 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
         let foodData = res?.food;
 
         if (foodData) {
+          // This endpoint is the complete item response; empty option arrays are valid.
+          foodData._detailsComplete = true;
           const fallbackVendor = getFoodVendor(food);
           if (!foodData.vendor && fallbackVendor) foodData.vendor = fallbackVendor;
           foodData = normalizeFood(foodData);
@@ -531,7 +522,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
     return { available: true };
   };
 
-  if (!isClient) return <div className="min-h-screen bg-white"></div>;
+  if (!isClient) return <FoodDetailsSkeleton />;
 
   const totalItems = cart.length;
 
@@ -561,7 +552,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
             className="p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800 hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-600 dark:text-zinc-400 transition-all active:scale-90"
             aria-label="Go back"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
 
           <div
@@ -581,7 +572,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
             title="Share this dish"
             aria-label="Share dish"
           >
-            <Share2 className="w-5 h-5" />
+            <Share2 className="w-4 h-4" />
           </button>
 
           <button
@@ -591,7 +582,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
             }}
           >
             <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} className="relative bg-zinc-900 dark:bg-zinc-100 p-2 rounded-xl">
-              <BiCartAdd className="text-white dark:text-zinc-900" size={22} />
+              <BiCartAdd className="text-white dark:text-zinc-900" size={18} />
               {totalItems > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-orange-500 ring-4 ring-white dark:ring-zinc-900 text-white text-[9px] w-5 h-5 rounded-full flex items-center justify-center font-medium">
                   {totalItems}
@@ -771,7 +762,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                                     ? "text-green-500"
                                     : "text-zinc-900 dark:text-white"
                                   }`}>
-                                  {deliveryFeeLoading ? "Calculating" : resolvedDeliveryFee === 0 ? "Free" : "\u20A6" + Number(resolvedDeliveryFee).toLocaleString()}</p>
+                                  {!isFoodDetailsReady || deliveryFeeLoading ? <span className="block h-3 w-16 animate-pulse rounded bg-zinc-200 dark:bg-zinc-700" /> : resolvedDeliveryFee == null ? "At checkout" : resolvedDeliveryFee === 0 ? "Free" : "\u20A6" + Number(resolvedDeliveryFee).toLocaleString()}</p>
                               </div>
                             </div>
                           </div>
@@ -836,8 +827,19 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                         </div>
                       )}
 
+                       {!isFoodDetailsReady && !isError && (
+                         <div className="space-y-3 px-1 pb-3" aria-label="Loading food options">
+                           {[0, 1].map((row) => (
+                             <div key={row} className="animate-pulse rounded-xl border border-zinc-100 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+                               <div className="mb-3 h-3 w-28 rounded bg-zinc-200 dark:bg-zinc-700" />
+                               <div className="h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800" />
+                             </div>
+                           ))}
+                         </div>
+                       )}
+
                        {/* Portions Selector */}
-                       {foodPortions.length > 0 && (
+                       {isFoodDetailsReady && foodPortions.length > 0 && (
                          <div className="bg-white dark:bg-zinc-900 rounded-[12px] p-3 border border-zinc-100 dark:border-zinc-800 mb-3">
                            <div className="flex items-center gap-1.5 mb-2">
                              <div className="w-1 h-4 bg-orange-500 rounded-full" />
@@ -911,7 +913,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                       )}
 
                        {/* Choice Groups */}
-                       {(food.choiceGroups?.length > 0 || food.choice_groups?.length > 0) && (
+                       {isFoodDetailsReady && (food.choiceGroups?.length > 0 || food.choice_groups?.length > 0) && (
                          <div className="space-y-2.5 mb-2 relative z-10">
                            {(food.choiceGroups || food.choice_groups).map((group, gIdx) => (
                              <div key={group._id} className="bg-white dark:bg-zinc-900 rounded-[12px] p-3 border border-zinc-100 dark:border-zinc-800 flex flex-col">
@@ -1136,6 +1138,12 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
           <div className="fixed inset-x-0 bottom-0 p-2.5 bg-white/95 dark:bg-zinc-950/90 backdrop-blur-xl border-t border-zinc-100/50 dark:border-zinc-800/80 z-[10001] shadow-[0_-12px_30px_rgba(15,23,42,0.08)]" style={{ paddingBottom: "max(0.625rem, env(safe-area-inset-bottom))" }}>
             <div className="max-w-2xl mx-auto flex items-center gap-3">
 
+              {!isFoodDetailsReady ? (
+                <div className="flex w-full gap-3 animate-pulse" aria-label="Loading add to cart options">
+                  <div className="h-[46px] w-24 rounded-lg bg-zinc-200 dark:bg-zinc-800" />
+                  <div className="h-[46px] flex-1 rounded-lg bg-zinc-200 dark:bg-zinc-800" />
+                </div>
+              ) : <>
               {/* Quantity Control Container */}
               <div className="flex items-center gap-1 bg-zinc-100/80 dark:bg-zinc-900/80 rounded p-0.5 px-1 h-[46px] border border-zinc-200/50 dark:border-zinc-800/50 shadow-inner group transition-colors">
                 <button
@@ -1175,7 +1183,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                   {/* <div className="p-1.5 rounded-xl bg-orange-500 text-white shadow-orange-500/20 group-hover:rotate-12 transition-transform shrink-0">
                           <ShoppingCart size={18} />
                        </div> */}
-                  <span className={`truncate ${itemAvailability.available ? "text-white dark:text-zinc-900 group-hover:text-orange-500" : "text-zinc-400"}`}>
+                  <span className={`truncate ${itemAvailability.available && !deliveryFeeLoading ? "text-white dark:text-zinc-900 group-hover:text-orange-500" : "text-zinc-500 dark:text-zinc-400"}`}>
                     {!itemAvailability.available ? "Sold Out" : !isFoodDetailsReady ? "Loading options" : deliveryFeeLoading ? "Checking delivery" : "Add To Cart"}
                   </span>
                 </div>
@@ -1189,6 +1197,7 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
                   </div>
                 )}
               </button>
+              </>}
             </div>
           </div>
         )}

@@ -130,19 +130,19 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-y-auto p-6 md:p-8">
+    <div className="min-h-[100dvh] w-full overflow-y-auto bg-[#fffaf4] px-4 py-5 pb-[env(safe-area-inset-bottom)] text-slate-900">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md flex flex-col justify-center py-6"
+        className="mx-auto flex w-full max-w-md flex-col"
       >
-        <div className="flex flex-col items-center mb-10">
-          <div className="w-20 h-20 bg-orange-50 dark:bg-orange-500/10 text-orange-600 rounded-3xl flex items-center justify-center mb-8 shadow-sm">
+        <div className="mb-5 flex flex-col items-center">
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-orange-600 shadow-sm">
             <ShieldQuestion size={36} />
           </div>
           <div className="text-center space-y-3">
-            <h1 className="text-4xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-[27px] font-black uppercase tracking-tight text-slate-900">
               Recovery <span className="text-orange-600">Mode</span>
             </h1>
             <p className="text-xs font-semibold text-slate-500 max-w-[280px] mx-auto leading-relaxed">
@@ -151,7 +151,7 @@ export default function ForgotPassword() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-xs font-bold text-slate-600 dark:text-slate-400 ml-1">Email Address</label>
             <input
@@ -169,7 +169,7 @@ export default function ForgotPassword() {
             whileTap={{ scale: 0.99 }}
             type="submit"
             disabled={loading}
-            className="w-full bg-orange-600 hover:bg-orange-700 text-white py-5 rounded-2xl font-bold text-base flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-orange-500/20"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-600 py-3.5 text-base font-bold text-white shadow-lg shadow-orange-500/20 transition hover:bg-orange-700 disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -185,7 +185,7 @@ export default function ForgotPassword() {
           </motion.button>
         </form>
 
-        <div className="mt-10 text-center">
+        <div className="mt-5 text-center">
           <Link
             href="/auth/signin"
             className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-orange-600 transition-all group"

@@ -29,7 +29,7 @@ const formatMinutes = (minutes) => {
 
 export const getDeliveryEtaLabel = (customerLocation, restaurantLocation, fallbackMinutes = 30) => {
   const customer = getCoordinates(customerLocation);
-  const restaurant = getCoordinates(restaurantLocation?.address || restaurantLocation);
+  const restaurant = getCoordinates(restaurantLocation) || getCoordinates(restaurantLocation?.address);
 
   let minMinutes;
   let maxMinutes;

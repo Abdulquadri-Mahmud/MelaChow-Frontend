@@ -175,8 +175,8 @@ export default function OrderTracking() {
       setOrderData(prev => prev ? { 
         ...prev, 
         orderStatus: data.status,
-        riderId: data.rider || prev.riderId,
-        riderAssignment: data.rider
+        riderId: ["delivered", "completed"].includes(data.status) ? null : data.rider || prev.riderId,
+        riderAssignment: ["delivered", "completed"].includes(data.status) ? null : data.rider
           ? { ...(prev.riderAssignment || {}), rider: data.rider }
           : prev.riderAssignment,
         deliveryOtp: data.deliveryOtp || prev.deliveryOtp // ✅ Update OTP if provided
@@ -244,7 +244,8 @@ export default function OrderTracking() {
     return () => window.clearInterval(poll);
   }, [orderId, baseUrl]);
 
-  const assignedRider = orderData?.riderId && typeof orderData.riderId === "object"
+  const deliveryConfirmed = ["delivered", "completed"].includes(String(orderData?.orderStatus || "").toLowerCase());
+  const assignedRider = deliveryConfirmed ? null : orderData?.riderId && typeof orderData.riderId === "object"
     ? orderData.riderId
     : orderData?.riderAssignment?.rider || null;
 
@@ -522,7 +523,7 @@ export default function OrderTracking() {
           <div className="order-1 grid grid-cols-1 gap-3">
 
             {/* Rider Information Section - Real data from backend */}
-            {assignedRider && (
+            {assignedRider && (assignedRider.name || assignedRider.phone) && (
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -555,25 +556,20 @@ export default function OrderTracking() {
                         Live location: {Number(riderLocation.latitude).toFixed(5)}, {Number(riderLocation.longitude).toFixed(5)}
                       </p>
                     )}
-                    <div className="flex items-center gap-3 mt-3">
-                      <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-2 py-1 rounded">
-                        <Star size={10} className="fill-white" />
-                        <span className="text-[10px] font-medium">{assignedRider.rating || "5.0"}</span>
+                    {(assignedRider.rating != null || assignedRider.totalDeliveries != null) && (
+                      <div className="flex items-center gap-3 mt-3">
+                        {assignedRider.rating != null && <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-2 py-1 rounded"><Star size={10} className="fill-white" /><span className="text-[10px] font-medium">{assignedRider.rating}</span></div>}
+                        {assignedRider.totalDeliveries != null && <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-2 py-1 rounded"><span className="text-[10px] font-medium uppercase">{assignedRider.totalDeliveries} Trips</span></div>}
                       </div>
-                      <div className="flex items-center gap-1 bg-white/20 backdrop-blur-md px-2 py-1 rounded">
-                        <span className="text-[10px] font-medium uppercase">
-                          {assignedRider.totalDeliveries || 0}+ Trips
-                        </span>
-                      </div>
-                    </div>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <a 
+                    {assignedRider.phone && <a
                       href={`tel:${assignedRider.phone}`}
                       className="flex items-center justify-center rounded-xl bg-white p-3 text-orange-600 shadow-xl transition-transform hover:scale-105"
                     >
                       <Phone size={18} strokeWidth={2.5} />
-                    </a>
+                    </a>}
                   </div>
                 </div>
               </motion.div>

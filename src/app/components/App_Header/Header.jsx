@@ -79,9 +79,9 @@ export default function Header() {
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-transparent hover:border-orange-200 dark:hover:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-orange-600 transition-all"
+                className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-transparent hover:border-orange-200 dark:hover:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-orange-600 transition-all"
               >
-                <ShoppingBag size={20} />
+                <ShoppingBag size={17} />
               </motion.div>
             </Link>
 
@@ -133,7 +133,7 @@ export default function Header() {
 
           {/* Mobile Menu Trigger */}
           <button className="lg:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors">
-            <Menu size={24} className="text-gray-700 dark:text-gray-200" />
+            <Menu size={18} className="text-gray-700 dark:text-gray-200" />
           </button>
         </div>
       </div>

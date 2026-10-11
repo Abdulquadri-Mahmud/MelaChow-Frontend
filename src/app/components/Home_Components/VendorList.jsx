@@ -26,7 +26,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import FreeDeliveryBadge from "@/components/ui/FreeDeliveryBadge";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getNearbyVendors } from "@/app/lib/userApi";
 import { getDeliveryEtaLabel } from "@/app/lib/deliveryEta";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
@@ -60,12 +60,17 @@ const ChipSkeleton = () => (
 // VENDOR CARD
 // —————————————————————————————————————————————————————————————————————————————
 const VendorCard = ({ vendor, customerAddress, fullWidth = false }) => {
+  const queryClient = useQueryClient();
   const status = getVendorOpenAndCloseStatus(vendor.openingHours);
   const isOpen = status.startsWith("Open now");
 
   return (
     <Link
       href={`/restaurants/${vendor._id}`}
+      onClick={() => queryClient.setQueryData(["vendor-preview", vendor._id], {
+        ...vendor,
+        logo: vendor.image || vendor.logo,
+      })}
       className={`group bg-white dark:bg-zinc-900 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 block ${
         fullWidth ? "w-full" : "flex-shrink-0 snap-start"
       }`}
@@ -164,27 +169,18 @@ const VendorCard = ({ vendor, customerAddress, fullWidth = false }) => {
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SECTION HEADER
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const SectionHeader = ({ title, subtitle, href, hrefLabel = "Explore" }) => (
-  <div className="flex items-center justify-between px-2 mb-3.5">
+const SectionHeader = ({ title, subtitle }) => (
+  <div className="flex items-center justify-between px-2 mb-2.5">
     <div>
-      <h2 className="text-lg font-semibold text-zinc-900 dark:text-white tracking-tight">
+      <h2 className="text-base font-semibold text-zinc-900 dark:text-white tracking-tight">
         {title}
       </h2>
       {subtitle && (
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 mt-0.5">
+        <p className="text-[9px] font-semibold uppercase tracking-wide text-zinc-400 mt-0.5">
           {subtitle}
         </p>
       )}
     </div>
-    {href && (
-      <Link
-        href={href}
-        className="text-orange-600 text-[10px] font-medium uppercase tracking-widest hover:opacity-70 flex items-center gap-1 group"
-      >
-        {hrefLabel}
-        <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-      </Link>
-    )}
   </div>
 );
 
@@ -323,12 +319,13 @@ export default function VendorList({ user }) {
   }, [allVendors]);
 
 
-  const { topRatedVendors } = useMemo(() => {
+  const { topRatedVendors, nearbyVendors } = useMemo(() => {
     const byRating = (a, b) => b.rating - a.rating;
     const topRated = allVendors.filter((v) => v.rating >= 4.0).sort(byRating).slice(0, 10);
 
     return {
       topRatedVendors: topRated,
+      nearbyVendors: allVendors.slice(0, 10),
     };
   }, [allVendors]);
 
@@ -397,7 +394,7 @@ export default function VendorList({ user }) {
   }
 
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-3 pb-1">
       {filterFreeDelivery && (
         <div className="mx-2 mb-1 flex items-center justify-between gap-3 rounded border border-orange-100 bg-orange-50 px-3 py-2 dark:border-orange-500/20 dark:bg-orange-500/10">
           <div className="min-w-0">
@@ -429,10 +426,15 @@ export default function VendorList({ user }) {
               </span>
             }
             subtitle="Highly recommended by local foodies"
-            href="/search?sort=rating"
-            hrefLabel="Explore"
           />
           <VendorRow vendors={topRatedVendors} customerAddress={customerAddress} />
+        </div>
+      )}
+
+      {nearbyVendors.length > 0 && (
+        <div>
+          <SectionHeader title="Restaurants Near You" />
+          <VendorRow vendors={nearbyVendors} customerAddress={customerAddress} />
         </div>
       )}
 

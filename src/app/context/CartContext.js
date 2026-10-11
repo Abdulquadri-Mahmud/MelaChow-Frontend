@@ -366,7 +366,13 @@ export const CartProvider = ({ children }) => {
       const filtered = prev.filter(c => c.cartId !== cartId);
       // Preserve person assignment and checkout metadata that are not part of
       // the customization modal's editable payload.
-      const nextItem = { ...source, ...updatedItem, cartId: source.cartId };
+      const nextItem = {
+        ...source,
+        ...updatedItem,
+        // Editing choices does not recalculate the restaurant delivery fee.
+        deliveryFee: source.deliveryFee ?? updatedItem.deliveryFee ?? 0,
+        cartId: source.cartId,
+      };
 
       // 2. Check if the updated item (with its new options) already exists elsewhere in the cart
       const existingIndex = filtered.findIndex(c => isSameItem(c, nextItem));
@@ -376,6 +382,7 @@ export const CartProvider = ({ children }) => {
         const newCart = [...filtered];
         newCart[existingIndex] = {
           ...newCart[existingIndex],
+          deliveryFee: nextItem.deliveryFee ?? newCart[existingIndex].deliveryFee ?? 0,
           quantity: newCart[existingIndex].quantity + (nextItem.quantity || 1)
         };
         return newCart;

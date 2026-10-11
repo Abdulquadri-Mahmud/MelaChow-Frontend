@@ -258,12 +258,12 @@ export default function VerifyRegistration() {
     return (
         <AuthFrame subtitle="Verify your email">
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full">
-                <div className="mb-6 inline-flex rounded-full bg-orange-50 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-700">Step 2 of 3 · Verification</div>
-                <h1 className="mb-2 text-[28px] font-semibold tracking-tight">Check your email <Mail className="inline text-orange-500" size={24} /></h1>
-                <p className="mb-7 text-base leading-relaxed text-slate-500">We sent a 6-digit code to <span className="font-semibold text-orange-700">{email}</span>. Enter it below.</p>
+                <div className="mb-3 inline-flex rounded-full bg-orange-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-orange-700">Step 2 of 3 · Verification</div>
+                <h1 className="mb-1 text-[clamp(22px,3dvh,27px)] font-semibold tracking-tight">Check your email <Mail className="inline text-orange-500" size={22} /></h1>
+                <p className="mb-4 break-words text-sm leading-relaxed text-slate-500">We sent a 6-digit code to <span className="font-semibold text-orange-700">{email}</span>. Enter it below.</p>
 
                 {/* OTP Inputs */}
-                <div className="flex justify-center gap-3 mb-10 py-1">
+                <div className="mb-5 flex justify-center gap-1.5 sm:gap-2">
                     {otp.map((digit, index) => (
                         <input
                             key={index}
@@ -275,7 +275,7 @@ export default function VerifyRegistration() {
                             onChange={(e) => handleChange(e.target.value, index)}
                             onKeyDown={(e) => handleKeyDown(e, index)}
                             onPaste={index === 0 ? handlePaste : undefined}
-                            className="h-[68px] min-w-0 flex-1 rounded-[20px] border-2 border-orange-500 bg-white text-center text-2xl font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-orange-100"
+                            className="h-12 min-w-0 flex-1 rounded-xl border-2 border-orange-500 bg-white text-center text-xl font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-orange-100"
                         />
                     ))}
                 </div>
@@ -286,7 +286,7 @@ export default function VerifyRegistration() {
                         whileTap={{ scale: 0.99 }}
                         onClick={() => handleVerify()}
                         disabled={loading}
-                        className="w-full rounded-[20px] bg-orange-500 py-5 text-base font-semibold text-white shadow-[0_10px_20px_rgba(249,115,22,0.25)] transition hover:bg-orange-600 disabled:opacity-50"
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-3.5 text-base font-semibold text-white shadow-[0_8px_16px_rgba(249,115,22,0.2)] transition hover:bg-orange-600 disabled:opacity-50"
                     >
                         {loading ? (
                             <>

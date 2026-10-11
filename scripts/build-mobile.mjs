@@ -78,8 +78,8 @@ for (const file of sourceFiles) {
     source = source.slice(0, start) + source.slice(end);
   }
   if (relative === "src/app/layout.jsx") {
-    source = 'import { Suspense } from "react";\nimport NativeRuntime from "@/mobile/NativeRuntime";\n' + source;
-    source = replaceRequired(source, "<ThemeProvider>", '<Suspense fallback={null}><NativeRuntime><ThemeProvider>', relative);
+    source = 'import { Suspense } from "react";\nimport NativeRuntime from "@/mobile/NativeRuntime";\nimport StartupFallback from "@/mobile/StartupFallback";\n' + source;
+    source = replaceRequired(source, "<ThemeProvider>", '<Suspense fallback={<StartupFallback />}><NativeRuntime><ThemeProvider>', relative);
     source = replaceRequired(source, "</ThemeProvider>", "</ThemeProvider></NativeRuntime></Suspense>", relative);
   }
   if (relative.endsWith("/FoodDetailsClient.jsx") || relative.endsWith("/FoodDetailsModal.jsx")) {

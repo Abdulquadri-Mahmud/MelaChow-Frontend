@@ -6,18 +6,27 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 const MINIMUM_SPLASH_MS = 500;
+const LOGOUT_SPLASH_MS = 1200;
 
 export default function RootPage() {
   const router = useRouter();
-  const { user, hasCheckedSession, isLoading } = useUserStorage();
+  const { user, hasCheckedSession, isLoading, isFetching, error, refetchProfile } = useUserStorage();
   const splashStartedAt = useRef(Date.now());
 
   useEffect(() => {
-    // 1. Wait for session check to complete
-    if (!hasCheckedSession || isLoading) return;
-
     const elapsed = Date.now() - splashStartedAt.current;
     const remainingDelay = Math.max(0, MINIMUM_SPLASH_MS - elapsed);
+    if (sessionStorage.getItem("melachow_logout_transition") === "1") {
+      const logoutDelay = Math.max(0, LOGOUT_SPLASH_MS - elapsed);
+      const timer = setTimeout(() => {
+        sessionStorage.removeItem("melachow_logout_transition");
+        window.location.replace("/auth/signin/");
+      }, logoutDelay);
+      return () => clearTimeout(timer);
+    }
+
+    // 1. Wait for session check to complete
+    if (!hasCheckedSession || isLoading || isFetching || error) return;
 
     const timer = setTimeout(() => {
       if (!user) {
@@ -49,7 +58,7 @@ export default function RootPage() {
     }, remainingDelay);
 
     return () => clearTimeout(timer);
-  }, [user, hasCheckedSession, isLoading, router]);
+  }, [user, hasCheckedSession, isLoading, isFetching, error, router]);
 
-  return <SplashScreen user={user} />;
+  return <SplashScreen startupError={hasCheckedSession && !isFetching && Boolean(error)} onRetry={() => refetchProfile()} />;
 }

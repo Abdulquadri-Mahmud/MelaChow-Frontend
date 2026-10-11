@@ -174,12 +174,12 @@ export default function SetPassword() {
     return (
         <AuthFrame subtitle="Secure your account">
             <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full">
-                <div className="mb-6 inline-flex rounded-full bg-orange-50 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-orange-700">Step 3 of 3 · Set password</div>
-                <h1 className="mb-2 text-[28px] font-semibold tracking-tight">Create a password <Lock className="inline text-orange-500" size={23} /></h1>
-                <p className="mb-6 text-base leading-relaxed text-slate-500">Choose a strong password of at least 8 characters. You&apos;ll use it to sign in.</p>
+                <div className="mb-3 inline-flex rounded-full bg-orange-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-orange-700">Step 3 of 3 · Set password</div>
+                <h1 className="mb-1 text-[clamp(22px,3dvh,27px)] font-semibold tracking-tight">Create a password <Lock className="inline text-orange-500" size={22} /></h1>
+                <p className="mb-4 text-sm leading-relaxed text-slate-500">Choose a strong password of at least 8 characters. You&apos;ll use it to sign in.</p>
 
-                <form onSubmit={handleSetPassword} className="space-y-5">
-                    <div className="space-y-2 p-1">
+                <form onSubmit={handleSetPassword} className="space-y-4">
+                    <div className="space-y-1">
                         <label className={authLabelClass}>New password</label>
                         <div className="relative">
                             <input
@@ -201,7 +201,7 @@ export default function SetPassword() {
                         </div>
                     </div>
 
-                    <div className="space-y-2 p-1">
+                    <div className="space-y-1">
                         <label className={authLabelClass}>Confirm password</label>
                         <input
                             type={showPassword ? "text" : "password"}
@@ -218,7 +218,7 @@ export default function SetPassword() {
                         whileTap={{ scale: 0.99 }}
                         type="submit"
                         disabled={loading}
-                        className="w-full rounded-[20px] bg-orange-500 py-5 text-base font-semibold text-white shadow-[0_10px_20px_rgba(249,115,22,0.25)] transition hover:bg-orange-600 disabled:opacity-50"
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 py-3.5 text-base font-semibold text-white shadow-[0_8px_16px_rgba(249,115,22,0.2)] transition hover:bg-orange-600 disabled:opacity-50"
                     >
                         {loading ? (
                             <>

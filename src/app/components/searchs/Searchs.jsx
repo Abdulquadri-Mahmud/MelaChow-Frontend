@@ -139,6 +139,7 @@ export default function FoodSearchMobile() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
+  const committedSearchRef = useRef("");
   const selectedCategory = searchParams.get("category");
   const openFoodModal = useFoodModalStore(state => state.openFoodModal);
   const openComboModal = useComboModalStore(state => state.openComboModal);
@@ -186,6 +187,8 @@ export default function FoodSearchMobile() {
 
   useEffect(() => {
     const nextQuery = searchParams.get("q") || "";
+    committedSearchRef.current = nextQuery.trim();
+    setShowDropdown(false);
     setQuery(nextQuery);
     setDebouncedQuery(nextQuery.trim());
   }, [searchParams]);
@@ -255,10 +258,11 @@ export default function FoodSearchMobile() {
 
   // Autocomplete
   useEffect(() => {
+    const controller = new AbortController();
     const fetchSearch = async () => {
       const sanitizedQuery = (query || "").trim();
 
-      if (sanitizedQuery.length < 2) {
+      if (sanitizedQuery.length < 2 || sanitizedQuery === committedSearchRef.current) {
         setAutocomplete([]);
         setShowDropdown(false);
         return;
@@ -268,11 +272,14 @@ export default function FoodSearchMobile() {
         const res = await axios.get(`${baseUrl}/search/food/autocomplete`, {
           params: { q: sanitizedQuery },
           withCredentials: true,
+          signal: controller.signal,
         });
 
+        if (controller.signal.aborted || sanitizedQuery === committedSearchRef.current) return;
         setAutocomplete(res.data?.suggestions || []);
         setShowDropdown(true);
       } catch (err) {
+        if (controller.signal.aborted) return;
         console.error("Autocomplete Error:", err);
         setAutocomplete([]);
         setShowDropdown(false);
@@ -280,7 +287,7 @@ export default function FoodSearchMobile() {
     };
 
     const timeout = setTimeout(fetchSearch, 300);
-    return () => clearTimeout(timeout);
+    return () => { clearTimeout(timeout); controller.abort(); };
   }, [query, baseUrl]);
 
   // Click outside dropdown
@@ -315,6 +322,10 @@ export default function FoodSearchMobile() {
 
   // Category filtering is performed by the search API.
   const handleCategoryClick = async (category) => {
+    committedSearchRef.current = "";
+    setShowDropdown(false);
+    setAutocomplete([]);
+    inputRef.current?.blur();
     if (activeCategory === category) {
       setActiveCategory("");
       router.push("/search/");
@@ -344,8 +355,10 @@ export default function FoodSearchMobile() {
     setQuery(term);
     setDebouncedQuery(term);
     setActiveCategory("");
+    committedSearchRef.current = term;
     setShowDropdown(false);
     setAutocomplete([]);
+    inputRef.current?.blur();
     router.push(`/search/?q=${encodeURIComponent(term)}`);
   };
 
@@ -371,7 +384,7 @@ export default function FoodSearchMobile() {
             : "border-transparent text-zinc-700 dark:text-zinc-200"
         }`}
       >
-        <span className="relative grid size-[76px] place-items-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+        <span className="relative grid size-[62px] place-items-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
           {category.image ? (
             <img src={category.image} alt="" loading="lazy" className="size-full object-cover" />
           ) : (
@@ -383,7 +396,7 @@ export default function FoodSearchMobile() {
             </span>
           )}
         </span>
-        <span className="max-w-[76px] truncate text-center">{category.name}</span>
+        <span className="max-w-[66px] truncate text-center text-[11px]">{category.name}</span>
       </motion.button>
     );
   });
@@ -416,14 +429,14 @@ export default function FoodSearchMobile() {
 
       {/* 🎭 Premium Floating Search Header */}
       <div className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-2xl border-b border-zinc-200/50 dark:border-zinc-800/50 transition-all duration-300">
-        <div className="max-w-xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between mb-3.5">
+        <div className="max-w-xl mx-auto px-4 py-2">
+          <div className="flex items-center justify-between mb-2">
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => router.back()}
-              className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-800 transition-colors hover:text-orange-500"
+              className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200/50 dark:border-zinc-800 transition-colors hover:text-orange-500"
             >
-              <ArrowLeft size={18} strokeWidth={2.5} />
+              <ArrowLeft size={16} strokeWidth={2.5} />
             </motion.button>
  
             <div className="flex flex-col items-center">
@@ -433,9 +446,9 @@ export default function FoodSearchMobile() {
  
             <motion.button 
                 whileHover={{ rotate: 180 }}
-                className="p-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-400 border border-zinc-200/50 dark:border-zinc-800"
+                className="p-2 rounded-xl bg-zinc-100 dark:bg-zinc-900 text-zinc-400 border border-zinc-200/50 dark:border-zinc-800"
             >
-                <Sparkles size={18} />
+                <Sparkles size={16} />
             </motion.button>
           </div>
 
@@ -445,7 +458,7 @@ export default function FoodSearchMobile() {
               <div className="absolute -inset-1 bg-gradient-to-r from-orange-500/20 to-amber-500/20 rounded-[22px] blur opacity-0 group-focus-within:opacity-100 transition duration-500" />
               
               <div className="relative flex items-center gap-3.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 h-13 px-4.5 rounded-[18px] transition-all duration-300 group-focus-within:border-orange-500/50 group-focus-within:shadow-2xl group-focus-within:shadow-orange-500/10">
-                <Search size={20} className="text-zinc-400 group-focus-within:text-orange-500 transition-colors shrink-0" />
+                <Search size={17} className="text-zinc-400 group-focus-within:text-orange-500 transition-colors shrink-0" />
                 
                 <input
                   ref={inputRef}
@@ -455,15 +468,16 @@ export default function FoodSearchMobile() {
                   value={query || ""}
                   onChange={(e) => {
                     setQuery(e.target.value || "");
+                    committedSearchRef.current = "";
                     setShowDropdown(true);
                   }}
-                  onFocus={() => setShowDropdown(true)}
+                  onFocus={() => { if (query.trim() !== committedSearchRef.current) setShowDropdown(true); }}
                 />
  
                 <div className="flex items-center gap-2">
                     <div className="h-5 w-px bg-zinc-200 dark:bg-zinc-800" />
                     <button type="button" className="p-1.5 text-zinc-400 hover:text-orange-500 shrink-0">
-                        <SlidersHorizontal size={18} strokeWidth={2.5} />
+                        <SlidersHorizontal size={16} strokeWidth={2.5} />
                     </button>
                 </div>
               </div>
@@ -477,12 +491,12 @@ export default function FoodSearchMobile() {
                     animate={{ opacity: 1, height: "auto", y: 0 }}
                     exit={{ opacity: 0, height: 0, y: -6 }}
                     transition={{ duration: 0.18, ease: "easeOut" }}
-                    className="relative mt-2 max-h-[min(38dvh,22rem)] w-full overflow-y-auto overscroll-contain rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
+                    className="relative mt-1 max-h-[min(26dvh,13rem)] w-full overflow-y-auto overscroll-contain rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900"
                   >
-                    <div className="p-2 sm:p-3">
+                    <div className="p-1.5 sm:p-2">
                         {autocomplete.length > 0 && (
-                        <div className="mb-4">
-                            <div className="px-4 py-2 flex items-center gap-2">
+                        <div className="mb-2">
+                            <div className="flex items-center gap-2 px-2 py-1">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-orange-500 italic">Matching now</span>
                             </div>
                             <div className="space-y-1">
@@ -492,9 +506,9 @@ export default function FoodSearchMobile() {
                                     type="button"
                                     whileHover={{ x: 4 }}
                                     onClick={() => handleDropdownSelect(item.name, "autocomplete")}
-                                    className="w-full px-4 py-3 text-left hover:bg-zinc-50 dark:hover:bg-zinc-900 rounded-xl cursor-pointer text-zinc-800 dark:text-zinc-200 text-sm flex items-center gap-3 transition-colors"
+                                    className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs text-zinc-800 transition-colors hover:bg-zinc-50 dark:text-zinc-200 dark:hover:bg-zinc-800"
                                 >
-                                    <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400 ">
+                                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-400 dark:bg-zinc-800">
                                         <Search size={14} />
                                     </div>
                                     <span className="font-bold">{item.name}</span>
@@ -569,9 +583,9 @@ export default function FoodSearchMobile() {
       </div>}
  
       {/* 🍱 Results Feed */}
-      <div className="max-w-xl mx-auto mt-3.5">
+      <div className="max-w-xl mx-auto mt-1">
         {!hasSearchIntent ? (
-          <div className="space-y-7 px-4 pb-24 pt-5">
+          <div className="space-y-4 px-4 pb-24 pt-1">
             <section>
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="text-base font-bold text-zinc-900 dark:text-white">Recent Searches</h2>
@@ -593,9 +607,9 @@ export default function FoodSearchMobile() {
             {trending.length > 0 && (
               <section>
                 <h2 className="mb-3 text-base font-bold text-zinc-900 dark:text-white">Popular Searches</h2>
-                <div className="flex flex-wrap gap-2.5">
+                <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
                   {trending.map((trend) => (
-                    <button key={trend._id || trend.keyword} type="button" onClick={() => submitSearch(trend.keyword)} className="inline-flex items-center gap-2 rounded-full border border-zinc-100 bg-white px-3.5 py-2.5 text-xs font-semibold text-zinc-800 shadow-sm transition hover:border-orange-200 hover:text-orange-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
+                    <button key={trend._id || trend.keyword} type="button" onClick={() => submitSearch(trend.keyword)} className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-zinc-100 bg-white px-3 py-2 text-xs font-semibold text-zinc-800 shadow-sm transition hover:border-orange-200 hover:text-orange-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                       <Flame size={15} className="text-orange-500" />{trend.keyword}
                     </button>
                   ))}

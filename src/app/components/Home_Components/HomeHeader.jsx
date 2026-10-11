@@ -74,7 +74,7 @@ export default function HomeHeader() {
                   <ChevronDown size={10} className="text-orange-400 group-hover:translate-y-0.5 transition-transform" />
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <MapPin size={14} className="text-orange-500" />
+                  <MapPin size={12} className="text-orange-500" />
                   <span className="min-w-0 max-w-[42vw] truncate text-sm font-black text-gray-900 dark:text-gray-100 sm:max-w-[240px]">
                     {!isMounted ? "Select Location" : (defaultLocation || "Select Location")}
                   </span>
@@ -95,9 +95,9 @@ export default function HomeHeader() {
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="relative p-2.5 bg-gray-100 dark:bg-zinc-800 rounded-2xl hover:bg-orange-50 dark:hover:bg-zinc-700 transition-all border border-transparent hover:border-orange-200 dark:hover:border-zinc-700"
+                  className="relative p-2 bg-gray-100 dark:bg-zinc-800 rounded-xl hover:bg-orange-50 dark:hover:bg-zinc-700 transition-all border border-transparent hover:border-orange-200 dark:hover:border-zinc-700"
                 >
-                  <ShoppingBag className="text-gray-700 dark:text-gray-200" size={20} />
+                  <ShoppingBag className="text-gray-700 dark:text-gray-200" size={17} />
                   <AnimatePresence>
                     {totalItems > 0 && (
                       <motion.span

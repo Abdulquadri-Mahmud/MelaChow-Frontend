@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { usePathname, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import SplashScreen from "@/app/components/SplashScreen";
 import CustomerLogoutHandler from "./CustomerLogoutHandler";
 
 // Routes that should be accessible to guests (no auth required)
@@ -25,7 +25,7 @@ export default function CustomerBootstrapper({ children }) {
     const router = useRouter();
 
     // Monitor User Auth State ONLY
-    const { user, hasCheckedSession } = useUserStorage();
+    const { user, hasCheckedSession, error, refetchProfile } = useUserStorage();
 
     // Check if current route is guest-allowed or public resource
     const isGuestAllowedRoute = GUEST_ALLOWED_ROUTES.some(route => pathname === route);
@@ -36,6 +36,13 @@ export default function CustomerBootstrapper({ children }) {
     const isAuthenticated = !!user;
 
     const [isRedirecting, setIsRedirecting] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    useEffect(() => {
+        const showLogoutSplash = () => setIsLoggingOut(true);
+        window.addEventListener("customer:logout-start", showLogoutSplash);
+        return () => window.removeEventListener("customer:logout-start", showLogoutSplash);
+    }, []);
 
     // ✅ Debug logging
     useEffect(() => {
@@ -51,13 +58,14 @@ export default function CustomerBootstrapper({ children }) {
 
     useEffect(() => {
         // Only process after auth is resolved
-        if (!hasCheckedSession) return;
+        if (!hasCheckedSession || error) return;
 
         // Check if this is a protected route
         const isProtectedRoute = !isGuestAllowedRoute && !isRestaurantRoute && !isFoodDetailsRoute;
 
         // Only redirect if route is protected AND user is not authenticated
         if (isProtectedRoute && !isAuthenticated && !isRedirecting) {
+            if (sessionStorage.getItem("melachow_logout_transition") === "1") return;
             console.log('[CustomerBootstrapper] Redirecting unauthenticated user from protected route:', pathname);
             setIsRedirecting(true);
             if (process.env.NEXT_PUBLIC_MOBILE_BUILD === "true") {
@@ -68,6 +76,7 @@ export default function CustomerBootstrapper({ children }) {
         }
     }, [
         hasCheckedSession,
+        error,
         isAuthenticated,
         pathname,
         isGuestAllowedRoute,
@@ -82,20 +91,20 @@ export default function CustomerBootstrapper({ children }) {
         setIsRedirecting(false);
     }, [pathname]);
 
-    // Never paint a protected page until the session check confirms a user.
+    // Keep branded content on screen until a protected page is safe to paint.
     const isProtectedRoute = !isGuestAllowedRoute && !isRestaurantRoute && !isFoodDetailsRoute;
+    if (isLoggingOut) return <SplashScreen />;
+    if (isProtectedRoute && error) {
+        return <SplashScreen startupError onRetry={() => refetchProfile()} />;
+    }
     if (isProtectedRoute && (!hasCheckedSession || !isAuthenticated || isRedirecting)) {
-        return null;
+        return <SplashScreen />;
     }
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-        >
+        <div>
             {children}
             <CustomerLogoutHandler />
-        </motion.div>
+        </div>
     );
 }

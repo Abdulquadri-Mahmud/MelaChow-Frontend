@@ -13,7 +13,6 @@ import CheckoutPageSkeleton from "@/app/components/skeleton/CheckoutPageSkeleton
 import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApi } from "@/app/context/ApiContext";
-import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import OrderErrorDisplay from "@/app/components/Checkout/OrderErrorDisplay";
 import OrderProcessingLoader from "@/app/components/Checkout/OrderProcessingLoader";
 import { useCartValidation, CartValidationErrors } from "@/app/components/Cart/CartValidator";
@@ -41,6 +40,21 @@ function CheckoutContent() {
   const [appliedDiscount, setAppliedDiscount] = useState(null);
   const [verifyingCode, setVerifyingCode] = useState(false);
   const [platformConfig, setPlatformConfig] = useState(null);
+  const [platformConfigStatus, setPlatformConfigStatus] = useState("loading");
+
+  const loadPlatformConfig = useCallback(async () => {
+    setPlatformConfigStatus("loading");
+    try {
+      const res = await getPlatformConfig();
+      if (!res?.success || !res?.data) throw new Error("Platform fee configuration is unavailable.");
+      setPlatformConfig(res.data);
+      setPlatformConfigStatus("ready");
+      return true;
+    } catch (error) {
+      setPlatformConfigStatus("error");
+      return false;
+    }
+  }, []);
 
   // Wallet State
   const [useWallet, setUseWallet] = useState(false);
@@ -71,10 +85,8 @@ function CheckoutContent() {
 
   useEffect(() => {
     setIsMounted(true);
-    getPlatformConfig()
-      .then(res => { if (res?.success) setPlatformConfig(res.data); })
-      .catch(() => { /* service fee unavailable — omit silently */ });
-  }, []);
+    loadPlatformConfig();
+  }, [loadPlatformConfig]);
 
   useEffect(() => {
     if (!isMounted || !selectedRestaurantId) return;
@@ -245,6 +257,10 @@ function CheckoutContent() {
   };
 
   const handleInitializePayment = async () => {
+    if (platformConfigStatus !== "ready") {
+      toast.error("Checkout fees are still loading. Please retry before paying.");
+      return;
+    }
     setShowLocationConfirm(false);
     // Clear any previous errors
     setOrderError(null);
@@ -259,49 +275,9 @@ function CheckoutContent() {
     setLoadingInit(true);
 
     try {
-      // 4. Check if all restaurants are open
+      // The backend validates restaurant availability during order creation.
+      // Avoid repeating those vendor requests here so Paystack opens sooner.
       setProcessingStep("checking");
-      const uniqueRestaurantIds = Object.keys(restaurantDeliveryMap);
-
-      // Check restaurant open status
-      const vendorStatuses = await Promise.all(
-        uniqueRestaurantIds.map(async (id) => {
-          try {
-            const data = await getVendorById(id);
-            return { id, vendor: data.vendor || data, success: true };
-          } catch (e) {
-            console.error(`Failed to fetch vendor ${id}`, e);
-            return { id, success: false };
-          }
-        })
-      );
-
-      const closedRestaurants = [];
-
-      // Check for failed vendor fetches (404s)
-      const failedVendorFetches = vendorStatuses.filter(res => !res.success);
-      if (failedVendorFetches.length > 0) {
-        throw new Error("Unable to verify one or more vendors. Please clear your cart and try again as some items may be from unavailable stores.");
-      }
-
-      vendorStatuses.forEach((res) => {
-        if (!res.success || !res.vendor) return;
-
-        const status = getVendorOpenAndCloseStatus(res.vendor.openingHours);
-        if (!status) return;
-
-        const isClosed =
-          status.toLowerCase().startsWith("closed") ||
-          status.toLowerCase().startsWith("the restaurant has closed");
-
-        if (isClosed) {
-          closedRestaurants.push(res.vendor.storeName || "One of the restaurants");
-        }
-      });
-
-      if (closedRestaurants.length > 0) {
-        throw new Error(`Order cannot be placed. The following restaurants are closed: ${closedRestaurants.join(", ")}`);
-      }
 
       // 5. Transform cart data to V2 format
       setProcessingStep("calculating");
@@ -386,9 +362,6 @@ function CheckoutContent() {
         if (response.orderId) {
           sessionStorage.setItem("pendingOrderId", response.orderId);
         }
-
-        if (selectedRestaurantId && removeRestaurantFromCart) removeRestaurantFromCart(selectedRestaurantId);
-        else clearCart();
 
         const msg = response.orderId
           ? `Processing Order #${response.orderId}... Redirecting!`
@@ -794,12 +767,18 @@ function CheckoutContent() {
               </span>
             </div>
           </div>
-          {serviceFee > 0 && (
-            <div className="flex justify-between items-center text-sm">
-              <span className="flex items-center gap-1 font-semibold text-zinc-400 uppercase tracking-widest text-[10px]">Service Fee</span>
+          <div className="flex justify-between items-center text-sm">
+            <span className="flex items-center gap-1 font-semibold text-zinc-400 uppercase tracking-widest text-[10px]">Service Fee</span>
+            {platformConfigStatus === "loading" ? (
+              <span className="text-zinc-400 font-medium">Loading…</span>
+            ) : platformConfigStatus === "error" ? (
+              <button type="button" onClick={loadPlatformConfig} className="text-orange-500 font-semibold">Retry</button>
+            ) : serviceFee > 0 ? (
               <span className="text-white font-medium">₦{serviceFee.toLocaleString()}</span>
-            </div>
-          )}
+            ) : (
+              <span className="text-green-400 font-semibold">Free</span>
+            )}
+          </div>
           {appliedDiscount && (
             <div className="flex justify-between items-center text-sm">
               <span className="flex items-center gap-1 font-semibold text-green-400 uppercase tracking-widest text-[10px]">Discount</span>
@@ -818,7 +797,7 @@ function CheckoutContent() {
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
             onClick={!defaultAddress ? () => router.push("/profile/address") : handleConfirmLocation}
-            disabled={loadingInit || checkoutCart.length === 0 || isPromoLoading}
+            disabled={loadingInit || checkoutCart.length === 0 || isPromoLoading || platformConfigStatus !== "ready"}
             className={`max-w-xl mx-auto w-full py-4 rounded font-black text-lg flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] ${!defaultAddress ? "bg-red-500 text-white shadow-red-200" : "bg-zinc-900 dark:bg-zinc-100 hover:bg-black dark:hover:bg-white text-white dark:text-zinc-900"}`}
           >
             {loadingInit ? (

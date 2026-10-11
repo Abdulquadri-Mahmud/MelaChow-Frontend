@@ -284,7 +284,7 @@ export default function FoodCustomizationModal({
                 price_modifier_naira: opt.price_modifier_naira || 0,
                 quantity:             opt.quantity,
             })),
-            deliveryFee:  food.vendor?.deliveryFee || food.deliveryFee || 0,
+            deliveryFee:  initialEditItem?.deliveryFee ?? food.vendor?.deliveryFee ?? food.deliveryFee ?? 0,
             dietary_type: food.dietary_type,
             item_type:    food.item_type,
         };

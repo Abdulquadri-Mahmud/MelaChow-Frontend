@@ -111,7 +111,6 @@ const User_Profile = ({ userData, isLoading }) => {
     try {
       setLogoutLoading(true);
       await logout();
-      router.push("/auth/signin");
     } catch (err) {
       console.error("Logout error:", err);
     } finally {

@@ -13,6 +13,7 @@ export const refreshCustomerAccessToken = async () => {
   if (!refreshPromise) {
     refreshPromise = axios.post("/api/user/auth/refresh", {}, {
       withCredentials: true,
+      timeout: 20000,
       headers: { "Content-Type": "application/json" },
     }).then((response) => {
       const accessToken = response.data?.accessToken;
