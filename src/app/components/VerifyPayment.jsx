@@ -116,15 +116,25 @@ export default function VerifyPayment() {
       if (canRetry && retryCountRef.current < maxRetries) {
         const nextCount = retryCountRef.current + 1;
         retryCountRef.current = nextCount;
+        setRetryCount(nextCount);
+        const retryDelays = [1500, 2500, 3500, 5000, 8000, 10000, 12000, 15000, 15000, 20000, 20000, 30000];
+        const delay = retryDelays[Math.min(nextCount - 1, retryDelays.length - 1)];
+
+        // Keep the calm "Verifying Payment" state during the first 3 silent checks
+        // (~7.5s) while Paystack finishes settling after browser return.
+        if (online && nextCount <= 3) {
+          setStatus("verifying");
+          setRetryMessage("Confirming your payment with Paystack...");
+          scheduleRetry(delay);
+          return;
+        }
+
         setStatus("retrying");
         setRetryMessage(!online
           ? "You’re offline. Verification will resume when your connection returns."
           : paymentStillSettling || legacyUnconfirmed
-          ? "Paystack is confirming the transaction. We’ll check again shortly."
-          : "Verification is temporarily unavailable. We’ll retry automatically.");
-        setRetryCount(nextCount);
-        const retryDelays = [2500, 4000, 6000, 8000, 10000, 12000, 15000, 15000, 20000, 20000, 30000, 30000];
-        const delay = retryDelays[Math.min(nextCount - 1, retryDelays.length - 1)];
+          ? "Paystack is still confirming your transaction. We’ll check again shortly."
+          : "Verification is taking a little longer than usual. We’ll retry automatically.");
         if (online) scheduleRetry(delay);
         return;
       }
@@ -153,7 +163,14 @@ export default function VerifyPayment() {
   useEffect(() => {
     if (!reference || didVerify.current) return;
     didVerify.current = true;
-    verifyPayment();
+    // On mobile APK, give the Android WebView network stack and Paystack
+    // callback a brief 700ms settle window before firing the first verify call.
+    const initialDelay = process.env.NEXT_PUBLIC_MOBILE_BUILD === "true" ? 700 : 0;
+    if (initialDelay > 0) {
+      scheduleRetry(initialDelay);
+    } else {
+      verifyPayment();
+    }
 
     const handleOnline = () => {
       setRetryMessage("Connection restored. Retrying payment verification now...");
@@ -199,19 +216,21 @@ export default function VerifyPayment() {
             className="bg-white dark:bg-zinc-900 rounded-2xl p-5 max-w-xs w-full text-center shadow-lg border border-slate-100 dark:border-zinc-800"
           >
             <div className="flex justify-center mb-6">
-              <div className="relative">
+              <div className="relative w-12 h-12">
                 <div className="w-12 h-12 border-[3px] border-orange-100 dark:border-orange-500/10 rounded-full"></div>
                 <div className="w-12 h-12 border-[3px] border-orange-500 rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
-                <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-orange-500" size={17} />
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="text-orange-500 animate-spin" size={18} />
+                </span>
               </div>
             </div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-zinc-100 mb-1 font-display tracking-tight">
-              {status === "retrying" ? "Retrying Verification" : "Verifying Payment"}
+              {status === "retrying" ? "Still Confirming Payment" : "Verifying Payment"}
             </h2>
             <p className="text-sm text-slate-500 dark:text-zinc-400">
               {retryMessage || "Please wait while we confirm your secure transaction..."}
             </p>
-            {retryCount > 0 && (
+            {status === "retrying" && retryCount > 0 && (
               <p className="text-xs text-slate-400 dark:text-zinc-500 mt-2">
                 Check {retryCount} · automatic retry enabled
               </p>

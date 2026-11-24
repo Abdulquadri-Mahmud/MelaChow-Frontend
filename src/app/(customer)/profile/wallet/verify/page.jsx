@@ -15,33 +15,65 @@ function VerifyWalletComponent() {
     const [status, setStatus] = useState("verifying"); // verifying | success | failed
     const [message, setMessage] = useState("Verifying transaction...");
     const didVerify = useRef(false);
+    const retryTimeoutRef = useRef(null);
+    const retryCountRef = useRef(0);
+
+    const runVerification = async () => {
+        if (!reference) return;
+        setStatus("verifying");
+        try {
+            const res = await verifyWalletTransaction(reference);
+            if (res.success) {
+                setStatus("success");
+                window.__melachowPaymentVerified?.(reference);
+                setMessage(res.message || "Wallet funded successfully!");
+                toast.success("Wallet funded successfully!");
+                return;
+            }
+            throw Object.assign(new Error(res.message || "Verification failed."), {
+                paymentPending: Boolean(res.paymentPending),
+                status: res.paymentPending ? 202 : 400,
+            });
+        } catch (error) {
+            const statusCode = error.status || error.response?.status;
+            const retryable = Boolean(error.paymentPending) || !statusCode || statusCode === 202 || statusCode === 408 || statusCode === 429 || statusCode >= 500;
+            const retryDelays = [1500, 2500, 3500, 5000];
+            if (retryable && retryCountRef.current < retryDelays.length) {
+                const delay = retryDelays[retryCountRef.current];
+                retryCountRef.current += 1;
+                setStatus("verifying");
+                setMessage("Confirming your wallet funding with Paystack...");
+                retryTimeoutRef.current = setTimeout(() => {
+                    retryTimeoutRef.current = null;
+                    runVerification();
+                }, delay);
+                return;
+            }
+            console.error(error);
+            setStatus("failed");
+            setMessage(error.response?.data?.message || error.message || "An error occurred during verification.");
+            toast.error(error.response?.data?.message || "An error occurred during verification.");
+        }
+    };
 
     useEffect(() => {
         if (!reference || didVerify.current) return;
         didVerify.current = true;
-
-        const verify = async () => {
-            try {
-                const res = await verifyWalletTransaction(reference);
-                if (res.success) {
-                    setStatus("success");
-                    window.__melachowPaymentVerified?.(reference);
-                    setMessage(res.message || "Wallet funded successfully!");
-                    toast.success("Wallet funded successfully!");
-                } else {
-                    setStatus("failed");
-                    setMessage(res.message || "Verification failed.");
-                    toast.error(res.message || "Verification failed.");
-                }
-            } catch (error) {
-                console.error(error);
-                setStatus("failed");
-                setMessage(error.response?.data?.message || "An error occurred during verification.");
-                toast.error("An error occurred during verification.");
+        const initialDelay = process.env.NEXT_PUBLIC_MOBILE_BUILD === "true" ? 700 : 0;
+        if (initialDelay > 0) {
+            retryTimeoutRef.current = setTimeout(() => {
+                retryTimeoutRef.current = null;
+                runVerification();
+            }, initialDelay);
+        } else {
+            runVerification();
+        }
+        return () => {
+            if (retryTimeoutRef.current) {
+                clearTimeout(retryTimeoutRef.current);
+                retryTimeoutRef.current = null;
             }
         };
-
-        verify();
     }, [reference]);
 
     return (
@@ -53,13 +85,15 @@ function VerifyWalletComponent() {
             >
                 {status === "verifying" && (
                     <div className="flex flex-col items-center">
-                        <div className="relative mb-6">
+                        <div className="relative w-20 h-20 mb-6">
                             <div className="w-20 h-20 border-4 border-orange-100 rounded-full"></div>
                             <div className="w-20 h-20 border-4 border-orange-500 rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
-                            <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-orange-500" size={24} />
+                            <span className="absolute inset-0 flex items-center justify-center">
+                                <Loader2 className="text-orange-500 animate-spin" size={24} />
+                            </span>
                         </div>
                         <h2 className="text-xl font-bold text-gray-900 mb-2">Verifying Payment</h2>
-                        <p className="text-gray-500 text-sm">Please wait while we confirm your wallet funding...</p>
+                        <p className="text-gray-500 text-sm">{message || "Please wait while we confirm your wallet funding..."}</p>
                     </div>
                 )}
 
@@ -88,12 +122,23 @@ function VerifyWalletComponent() {
                         <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Failed</h2>
                         <p className="text-gray-500 text-sm mb-8">{message}</p>
 
-                        <button
-                            onClick={() => router.push("/profile/wallet")}
-                            className="w-full py-3.5 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-all active:scale-[0.98]"
-                        >
-                            Return to Wallet
-                        </button>
+                        <div className="w-full space-y-2.5">
+                            <button
+                                onClick={() => {
+                                    retryCountRef.current = 0;
+                                    runVerification();
+                                }}
+                                className="w-full py-3.5 rounded-xl bg-gray-900 text-white font-bold hover:bg-gray-800 transition-all active:scale-[0.98]"
+                            >
+                                Retry Verification
+                            </button>
+                            <button
+                                onClick={() => router.push("/profile/wallet")}
+                                className="w-full py-3.5 rounded-xl bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 transition-all active:scale-[0.98]"
+                            >
+                                Return to Wallet
+                            </button>
+                        </div>
                     </div>
                 )}
             </motion.div>
