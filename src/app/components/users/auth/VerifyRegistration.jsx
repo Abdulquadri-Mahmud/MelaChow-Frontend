@@ -194,6 +194,9 @@ export default function VerifyRegistration() {
             );
 
             const needsPassword = data.requiresPassword !== false;
+            if (needsPassword && data.passwordSetupToken && typeof window !== "undefined") {
+                try { sessionStorage.setItem("melachow_password_setup_token", data.passwordSetupToken); } catch {}
+            }
             setRequiresPassword(needsPassword);
             setStatusModal({
                 isOpen: true,

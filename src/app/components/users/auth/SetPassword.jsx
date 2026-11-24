@@ -125,9 +125,13 @@ export default function SetPassword() {
                 console.log('[SetPassword] Setting password for:', email);
             }
 
+            const passwordSetupToken =
+                searchParams.get("token") ||
+                (typeof window !== "undefined" ? sessionStorage.getItem("melachow_password_setup_token") : "") ||
+                "";
             const { data } = await axios.post(
                 endpoint,
-                { email, password },
+                { email, password, passwordSetupToken },
                 {
                     headers: { "Content-Type": "application/json" },
                     withCredentials: true,
