@@ -32,29 +32,8 @@ export default function CustomerLayout({ children }) {
     // ✅ Only check route after mount to prevent hydration mismatch
     const isAuthRoute = isMounted && pathname?.startsWith("/auth/");
 
-    // ✅ Show loading state during SSR to prevent hydration mismatch
-    // CRITICAL SEO FIX: We MUST render the children and Footer so Googlebot
-    // actually receives the HTML. We only delay purely client-side features.
-    if (!isMounted) {
-        return (
-            <ProfileProvider>
-                <CartProvider>
-                    {isAuthRoute ? (
-                        <>
-                            {children}
-                        </>
-                    ) : (
-                        <div className="bg-zinc-50 dark:bg-zinc-950 min-h-screen">
-                            {children}
-                        </div>
-                    )}
-                    <GlobalFoodModal />
-                    <GlobalComboModal />
-                </CartProvider>
-            </ProfileProvider>
-        );
-    }
-
+    // Keep the wrapper tree consistent across SSR and client hydration so
+    // RootPage / SplashScreen is never unmounted and remounted on mount.
     return (
         <ProfileProvider>
             <CartProvider>
@@ -62,20 +41,28 @@ export default function CustomerLayout({ children }) {
                     // Auth routes: no bootstrapper, no bottom nav
                     <>
                         {children}
-                        <PWAUpdateManager />
-                        <PWAInstallPrompt />
-                        <PushNotificationPrompt />
-                        <RealtimeNotificationListener />
+                        {isMounted && (
+                            <>
+                                <PWAUpdateManager />
+                                <PWAInstallPrompt />
+                                <PushNotificationPrompt />
+                                <RealtimeNotificationListener />
+                            </>
+                        )}
                     </>
                 ) : (
                     // Protected routes: full bootstrapper
                     <CustomerBootstrapper>
                         {children}
-                        <ConditionalBottomNav />
-                        <PWAUpdateManager />
-                        <PWAInstallPrompt />
-                        <PushNotificationPrompt />
-                        <RealtimeNotificationListener />
+                        {isMounted && (
+                            <>
+                                <ConditionalBottomNav />
+                                <PWAUpdateManager />
+                                <PWAInstallPrompt />
+                                <PushNotificationPrompt />
+                                <RealtimeNotificationListener />
+                            </>
+                        )}
                     </CustomerBootstrapper>
                 )}
                 <GlobalFoodModal />

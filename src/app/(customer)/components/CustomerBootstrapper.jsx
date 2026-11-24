@@ -25,7 +25,7 @@ export default function CustomerBootstrapper({ children }) {
     const router = useRouter();
 
     // Monitor User Auth State ONLY
-    const { user, hasCheckedSession, error, refetchProfile } = useUserStorage();
+    const { user, hasCheckedSession, hasCachedSession, error, refetchProfile } = useUserStorage();
 
     // Check if current route is guest-allowed or public resource
     const isGuestAllowedRoute = GUEST_ALLOWED_ROUTES.some(route => pathname === route);
@@ -92,12 +92,14 @@ export default function CustomerBootstrapper({ children }) {
     }, [pathname]);
 
     // Keep branded content on screen until a protected page is safe to paint.
+    // Returning users with a cached session paint immediately while background
+    // revalidation runs; a 401 clears user and triggers redirect to /auth/signin.
     const isProtectedRoute = !isGuestAllowedRoute && !isRestaurantRoute && !isFoodDetailsRoute;
     if (isLoggingOut) return <SplashScreen />;
-    if (isProtectedRoute && error) {
+    if (isProtectedRoute && !hasCachedSession && error) {
         return <SplashScreen startupError onRetry={() => refetchProfile()} />;
     }
-    if (isProtectedRoute && (!hasCheckedSession || !isAuthenticated || isRedirecting)) {
+    if (isProtectedRoute && ((!hasCheckedSession && !hasCachedSession) || !isAuthenticated || isRedirecting)) {
         return <SplashScreen />;
     }
 

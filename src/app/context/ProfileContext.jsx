@@ -10,9 +10,21 @@ import { refreshCustomerAccessToken } from "../lib/customerApi";
 
 const ProfileContext = createContext(undefined);
 
-// A cold API instance can take longer than eight seconds to answer the first
-// session request. Only show the startup error after a real retry has failed.
-const PROFILE_REQUEST_TIMEOUT_MS = 20000;
+// A cold API instance can take several seconds to answer the first session
+// request, but 12s + 1 retry (~25s worst case) avoids trapping users for >60s.
+const PROFILE_REQUEST_TIMEOUT_MS = 12000;
+
+const readCachedUser = () => {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const cached = localStorage.getItem("melachow_user_cache");
+    if (!cached) return undefined;
+    const parsed = normalizeUserAddresses(JSON.parse(cached));
+    return parsed && (parsed._id || parsed.id || parsed.email) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+};
 
 const fetchProfileWithTimeout = async (url, options) => {
   const controller = new AbortController();
@@ -113,20 +125,13 @@ export const ProfileProvider = ({ children }) => {
     queryKey: ["userProfile"],
     queryFn: fetchProfile,
 
-    placeholderData: () => {
-      if (typeof window !== 'undefined') {
-        const cached = localStorage.getItem("melachow_user_cache");
-        try {
-          return cached ? normalizeUserAddresses(JSON.parse(cached)) : undefined;
-        } catch (e) { return undefined; }
-      }
-    },
+    placeholderData: readCachedUser,
 
     staleTime: 1000 * 60 * 15, // 15 minutes
     gcTime: Infinity,
 
     retry: (failureCount, error) => {
-      if (failureCount >= 2) return false;
+      if (failureCount >= 1) return false;
       return error?.name === "AbortError" ||
         error?.code === "ERR_NETWORK" ||
         error?.code === "ECONNABORTED" ||
@@ -156,6 +161,11 @@ export const ProfileProvider = ({ children }) => {
   }, [fetchStatus, status, hasInitialCheckDone]);
 
   const hasCheckedSession = hasInitialCheckDone;
+  // Returning users with a saved bearer token + cached profile can render /home
+  // immediately while fetchProfile revalidates (and redirects on 401) in the background.
+  const hasCachedSession = Boolean(
+    typeof window !== "undefined" && TokenManager.getToken() && data
+  );
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
@@ -184,6 +194,7 @@ export const ProfileProvider = ({ children }) => {
         isLoading,
         isFetching,
         hasCheckedSession,
+        hasCachedSession,
         error: error ? error.message : null,
         refetchProfile: refetch,
       }}

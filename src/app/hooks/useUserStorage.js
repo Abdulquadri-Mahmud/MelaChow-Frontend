@@ -10,7 +10,7 @@ import { normalizeUserAddresses } from "../lib/addressUtils";
  */
 export const useUserStorage = () => {
   const { baseUrl } = useApi();
-  const { userProfile, isLoading, isFetching, error, refetchProfile, hasCheckedSession } = useProfile();
+  const { userProfile, isLoading, isFetching, error, refetchProfile, hasCheckedSession, hasCachedSession } = useProfile();
   const queryClient = useQueryClient();
 
   // Legacy compatibility: saveUser now optimistically updates the cache
@@ -79,6 +79,7 @@ export const useUserStorage = () => {
     isFetching,
     error,
     hasCheckedSession, // ✅ Expose session check status
+    hasCachedSession,
     refetchProfile,
     saveUser,
     updateUser,

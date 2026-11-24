@@ -5,12 +5,12 @@ import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
-const MINIMUM_SPLASH_MS = 500;
+const MINIMUM_SPLASH_MS = process.env.NEXT_PUBLIC_MOBILE_BUILD === "true" ? 0 : 300;
 const LOGOUT_SPLASH_MS = 1200;
 
 export default function RootPage() {
   const router = useRouter();
-  const { user, hasCheckedSession, isLoading, isFetching, error, refetchProfile } = useUserStorage();
+  const { user, hasCheckedSession, hasCachedSession, isLoading, isFetching, error, refetchProfile } = useUserStorage();
   const splashStartedAt = useRef(Date.now());
 
   useEffect(() => {
@@ -25,8 +25,10 @@ export default function RootPage() {
       return () => clearTimeout(timer);
     }
 
-    // 1. Wait for session check to complete
-    if (!hasCheckedSession || isLoading || isFetching || error) return;
+    // 1. Returning users with a saved token + cached profile navigate immediately
+    // while ProfileContext revalidates (and redirects on 401) in the background.
+    const canFastBoot = hasCachedSession && Boolean(user);
+    if (!canFastBoot && (!hasCheckedSession || isLoading || isFetching || error)) return;
 
     const timer = setTimeout(() => {
       if (!user) {
@@ -58,7 +60,7 @@ export default function RootPage() {
     }, remainingDelay);
 
     return () => clearTimeout(timer);
-  }, [user, hasCheckedSession, isLoading, isFetching, error, router]);
+  }, [user, hasCheckedSession, hasCachedSession, isLoading, isFetching, error, router]);
 
   return <SplashScreen startupError={hasCheckedSession && !isFetching && Boolean(error)} onRetry={() => refetchProfile()} />;
 }

@@ -26,7 +26,6 @@ export default function SplashScreen({ startupError = false, onRetry }) {
     <main
       className="fixed inset-0 z-[10000] overflow-hidden bg-[#fff9ea]"
       aria-label="MelaChow"
-      style={{ backgroundImage: `url(${splashArtwork})`, backgroundSize: "cover", backgroundPosition: "center" }}
     >
       <Image
         src={splashArtwork}
