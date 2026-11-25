@@ -68,8 +68,13 @@ export default function CallOverlay() {
   if (isMinimized && !isIncoming) {
     return (
       <div
-        className="fixed left-4 right-4 z-[99999] flex items-center justify-between rounded-2xl bg-[#4A1E0A] px-4 py-3 text-white shadow-2xl border border-[#FF6B00]/40"
-        style={{ top: "calc(env(safe-area-inset-top, 0px) + 12px)" }}
+        className="fixed left-4 right-4 flex items-center justify-between rounded-2xl border border-[#FF6B00]/40 px-4 py-3 text-white shadow-2xl"
+        style={{
+          top: "calc(env(safe-area-inset-top, 0px) + 12px)",
+          zIndex: 99999,
+          backgroundColor: "#4A1E0A",
+          color: "#ffffff",
+        }}
       >
         <button
           type="button"
@@ -114,8 +119,11 @@ export default function CallOverlay() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 24 }}
-        className="fixed inset-0 z-[99999] flex flex-col justify-between bg-gradient-to-b from-[#4A1E0A] via-[#3A1607] to-[#1F0B03] text-white px-6"
+        className="fixed inset-0 flex flex-col justify-between px-6 text-white"
         style={{
+          zIndex: 99999,
+          background: "linear-gradient(180deg, #4A1E0A 0%, #3A1607 55%, #1F0B03 100%)",
+          color: "#ffffff",
           paddingTop: "calc(env(safe-area-inset-top, 0px) + 20px)",
           paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 32px)",
         }}
