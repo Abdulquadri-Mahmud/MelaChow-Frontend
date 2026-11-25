@@ -1,5 +1,8 @@
 package com.melachow.customer;
 
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -8,9 +11,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.PermissionRequest;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.ViewCompat;
@@ -19,6 +24,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.core.splashscreen.SplashScreen;
 import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.BridgeWebChromeClient;
 import com.getcapacitor.BridgeWebViewClient;
 import com.getcapacitor.WebViewListener;
 import java.util.Map;
@@ -31,6 +37,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(VoiceCallPlugin.class);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         splashScreen.setKeepOnScreenCondition(() -> !initialWebPageVisible);
@@ -91,9 +98,54 @@ public class MainActivity extends BridgeActivity {
         if (bridge != null && bridge.getWebView() != null) {
             // Keep the splash artwork visible through the WebView startup gap.
             bridge.getWebView().setBackgroundResource(R.drawable.native_startup_background);
+            // Grant WebRTC microphone capture inside Capacitor WebView once RECORD_AUDIO is granted.
+            bridge.getWebView().setWebChromeClient(new BridgeWebChromeClient(bridge) {
+                @Override
+                public void onPermissionRequest(final PermissionRequest request) {
+                    runOnUiThread(() -> {
+                        boolean hasMic = ContextCompat.checkSelfPermission(
+                            MainActivity.this,
+                            Manifest.permission.RECORD_AUDIO
+                        ) == PackageManager.PERMISSION_GRANTED;
+                        if (hasMic) {
+                            request.grant(request.getResources());
+                        } else {
+                            super.onPermissionRequest(request);
+                        }
+                    });
+                }
+            });
         }
+        handleIncomingCallIntent(getIntent());
         if (bridge != null && bridge.getServerUrl() == null) {
             bridge.setWebViewClient(new ExportWebViewClient(bridge));
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIncomingCallIntent(intent);
+    }
+
+    private void handleIncomingCallIntent(Intent intent) {
+        if (intent == null) return;
+        String callId = intent.getStringExtra("callId");
+        String callAction = intent.getStringExtra("callAction");
+        if (callId != null && !callId.isEmpty()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                setShowWhenLocked(true);
+                setTurnScreenOn(true);
+            }
+            VoiceCallPlugin.storeOrDispatchCallAction(
+                callAction,
+                callId,
+                intent.getStringExtra("callerName"),
+                intent.getStringExtra("orderCode")
+            );
+            intent.removeExtra("callId");
+            intent.removeExtra("callAction");
         }
     }
 

@@ -15,6 +15,8 @@ import { TokenManager } from "@/app/lib/auth-token";
 import GlobalFoodModal from "@/app/components/modals/GlobalFoodModal";
 import GlobalComboModal from "@/app/components/modals/GlobalComboModal";
 import NavigationFeedback from "@/app/components/NavigationFeedback";
+import { CallProvider } from "@/app/context/CallContext";
+import CallOverlay from "@/app/components/call/CallOverlay";
 
 export default function CustomerLayout({ children }) {
     const pathname = usePathname();
@@ -37,36 +39,39 @@ export default function CustomerLayout({ children }) {
     return (
         <ProfileProvider>
             <CartProvider>
-                {isAuthRoute ? (
-                    // Auth routes: no bootstrapper, no bottom nav
-                    <>
-                        {children}
-                        {isMounted && (
-                            <>
-                                <PWAUpdateManager />
-                                <PWAInstallPrompt />
-                                <PushNotificationPrompt />
-                                <RealtimeNotificationListener />
-                            </>
-                        )}
-                    </>
-                ) : (
-                    // Protected routes: full bootstrapper
-                    <CustomerBootstrapper>
-                        {children}
-                        {isMounted && (
-                            <>
-                                <ConditionalBottomNav />
-                                <PWAUpdateManager />
-                                <PWAInstallPrompt />
-                                <PushNotificationPrompt />
-                                <RealtimeNotificationListener />
-                            </>
-                        )}
-                    </CustomerBootstrapper>
-                )}
-                <GlobalFoodModal />
-                <GlobalComboModal />
+                <CallProvider>
+                    {isAuthRoute ? (
+                        // Auth routes: no bootstrapper, no bottom nav
+                        <>
+                            {children}
+                            {isMounted && (
+                                <>
+                                    <PWAUpdateManager />
+                                    <PWAInstallPrompt />
+                                    <PushNotificationPrompt />
+                                    <RealtimeNotificationListener />
+                                </>
+                            )}
+                        </>
+                    ) : (
+                        // Protected routes: full bootstrapper
+                        <CustomerBootstrapper>
+                            {children}
+                            {isMounted && (
+                                <>
+                                    <ConditionalBottomNav />
+                                    <PWAUpdateManager />
+                                    <PWAInstallPrompt />
+                                    <PushNotificationPrompt />
+                                    <RealtimeNotificationListener />
+                                </>
+                            )}
+                        </CustomerBootstrapper>
+                    )}
+                    <GlobalFoodModal />
+                    <GlobalComboModal />
+                    <CallOverlay />
+                </CallProvider>
             </CartProvider>
         </ProfileProvider>
     );

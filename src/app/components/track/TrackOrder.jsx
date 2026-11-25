@@ -14,6 +14,7 @@ import { useOrderTracking } from "@/app/hooks/useOrderTracking";
 import toast from "react-hot-toast";
 import { verifyPaymentV2 } from "@/app/lib/orderService";
 import customerApi from "@/app/lib/customerApi";
+import { useCall } from "@/app/context/CallContext";
 
 const statusSteps = [
   {
@@ -167,6 +168,7 @@ export default function OrderTracking() {
 
   // Real-time tracking hook
   const { onStatusUpdate, onLocationUpdate } = useOrderTracking(orderId);
+  const { startCall, callState, isInCall, isMinimized, setIsMinimized } = useCall();
 
   useEffect(() => {
     // Listen for real-time status updates
@@ -523,7 +525,7 @@ export default function OrderTracking() {
           <div className="order-1 grid grid-cols-1 gap-3">
 
             {/* Rider Information Section - Real data from backend */}
-            {assignedRider && (assignedRider.name || assignedRider.phone) && (
+            {assignedRider && (assignedRider.name || assignedRider.id || assignedRider._id || assignedRider.phone) && (
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -549,7 +551,7 @@ export default function OrderTracking() {
                       {assignedRider.name || "MelaChow Delivery Partner"}
                     </h3>
                     <p className="text-[10px] font-medium uppercase tracking-[0.2em] opacity-80 mt-1">
-                      Professional Rider {assignedRider.phone && `• ${assignedRider.phone}`}
+                      Professional Rider • In-App Voice Ready
                     </p>
                     {riderLocation?.latitude != null && riderLocation?.longitude != null && (
                       <p className="text-[10px] opacity-80 mt-1">
@@ -564,12 +566,44 @@ export default function OrderTracking() {
                     )}
                   </div>
                   <div className="flex flex-col gap-2">
-                    {assignedRider.phone && <a
-                      href={`tel:${assignedRider.phone}`}
-                      className="flex items-center justify-center rounded-xl bg-white p-3 text-orange-600 shadow-xl transition-transform hover:scale-105"
-                    >
-                      <Phone size={18} strokeWidth={2.5} />
-                    </a>}
+                    {(() => {
+                      const canCallRider = ["rider_assigned", "out_for_delivery"].includes(
+                        String(orderData?.orderStatus || "").toLowerCase()
+                      );
+                      const isInitiating = callState === "initiating" || callState === "ringing";
+                      const canExpandActive = isInCall && isMinimized;
+                      return (
+                        <button
+                          type="button"
+                          disabled={(!canCallRider && !canExpandActive) || (isInCall && !isMinimized)}
+                          onClick={() => {
+                            if (canExpandActive) {
+                              setIsMinimized(false);
+                              return;
+                            }
+                            startCall({
+                              orderId: orderData?._id || orderData?.id || orderId,
+                              deliveryId: orderData?.riderAssignment?.externalDeliveryId || undefined,
+                              peerName: assignedRider.name || "MelaChow Delivery Partner",
+                              peerAvatar: assignedRider.avatar || assignedRider.profileImageUrl || null,
+                            });
+                          }}
+                          aria-label="Call Rider"
+                          className="flex items-center gap-1.5 justify-center rounded-xl bg-white px-3.5 py-3 text-orange-600 font-semibold text-xs shadow-xl transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Phone size={16} strokeWidth={2.5} className={isInitiating ? "animate-pulse" : ""} />
+                          <span>
+                            {canExpandActive
+                              ? "Return to Call"
+                              : isInCall
+                                ? callState === "connected"
+                                  ? "In Call"
+                                  : "Calling..."
+                                : "Call Rider"}
+                          </span>
+                        </button>
+                      );
+                    })()}
                   </div>
                 </div>
               </motion.div>

@@ -48,7 +48,14 @@ export default function NativePushRuntime({ role = "user" }) {
       const target = notification?.data?.url || notification?.data?.route;
       if (typeof target === "string" && target.startsWith("/") && !target.startsWith("//")) window.__melachowNavigate?.(target);
     };
-    const showNotification = (notification) => toast(notification.body || notification.title || "You have a new MelaChow update.", { duration: 7000 });
+    const showNotification = (notification) => {
+      const data = notification?.data || {};
+      if (data.type === "incoming_call" || data.type === "call_cancelled" || data.type === "call_ended") {
+        window.dispatchEvent(new CustomEvent("melachow:call-push", { detail: data }));
+        return;
+      }
+      toast(notification.body || notification.title || "You have a new MelaChow update.", { duration: 7000 });
+    };
     window.addEventListener("melachow:auth-token-set", tokenChanged);
     window.addEventListener("melachow:auth-token-clearing", clear);
     const setup = async () => {
