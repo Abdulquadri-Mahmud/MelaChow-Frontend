@@ -1,20 +1,21 @@
 "use client";
 
 import { useApi } from "@/app/context/ApiContext";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Loader2,
   CheckCircle2,
   AlertCircle,
-  X
+  Gift,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import AuthFrame, { authInputClass, authLabelClass } from "./AuthFrame";
+import { getPromoDeviceId } from "@/app/lib/promoDevice";
 
-// --- Custom Status Modal Component ---
 const StatusModal = ({ isOpen, type, message, onClose }) => {
   if (!isOpen) return null;
 
@@ -32,9 +33,11 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl border border-slate-100 dark:border-slate-800 relative overflow-hidden"
         >
-          {/* Decorative Background */}
-          <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl opacity-20 ${type === 'success' ? 'bg-orange-500' : 'bg-rose-500'
-            }`} />
+          <div
+            className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-3xl opacity-20 ${
+              type === "success" ? "bg-orange-500" : "bg-rose-500"
+            }`}
+          />
 
           <button
             onClick={onClose}
@@ -44,13 +47,18 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
           </button>
 
           <div className="flex flex-col items-center text-center">
-            <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-sm ${type === 'success' ? 'bg-orange-50 text-orange-600' : 'bg-rose-50 text-rose-500'
-              }`}>
-              {type === 'success' ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
+            <div
+              className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-6 shadow-sm ${
+                type === "success"
+                  ? "bg-orange-50 text-orange-600"
+                  : "bg-rose-50 text-rose-500"
+              }`}
+            >
+              {type === "success" ? <CheckCircle2 size={40} /> : <AlertCircle size={40} />}
             </div>
 
             <h3 className="text-2xl font-black italic uppercase tracking-tight text-slate-900 dark:text-white mb-2">
-              {type === 'success' ? 'Success!' : 'Oops!'}
+              {type === "success" ? "Success!" : "Oops!"}
             </h3>
 
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-[240px]">
@@ -61,12 +69,13 @@ const StatusModal = ({ isOpen, type, message, onClose }) => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={onClose}
-              className={`mt-8 w-full py-4 rounded-2xl font-bold text-sm transition-all shadow-lg ${type === 'success'
-                ? 'bg-orange-600 hover:bg-orange-700 text-white shadow-orange-500/20'
-                : 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-slate-900/20'
-                }`}
+              className={`mt-8 w-full py-4 rounded-2xl font-bold text-sm transition-all shadow-lg ${
+                type === "success"
+                  ? "bg-orange-600 hover:bg-orange-700 text-white shadow-orange-500/20"
+                  : "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-slate-900/20"
+              }`}
             >
-              {type === 'success' ? 'Continue' : 'Try Again'}
+              {type === "success" ? "Continue" : "Try Again"}
             </motion.button>
           </div>
         </motion.div>
@@ -85,10 +94,25 @@ export default function Signup() {
     email: "",
     phone: "",
     avatar: "",
+    referralCode: "",
   });
 
   const [loading, setLoading] = useState(false);
-  const [statusModal, setStatusModal] = useState({ isOpen: false, type: 'success', message: '' });
+  const [statusModal, setStatusModal] = useState({ isOpen: false, type: "success", message: "" });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const urlRef = (params.get("ref") || params.get("referralCode") || "").trim().toUpperCase();
+    if (urlRef) {
+      window.localStorage.setItem("melachow_pending_ref", urlRef);
+    }
+    const storedRef = (window.localStorage.getItem("melachow_pending_ref") || "").trim().toUpperCase();
+    const candidate = urlRef || storedRef;
+    if (candidate) {
+      setFormData((prev) => (prev.referralCode ? prev : { ...prev, referralCode: candidate }));
+    }
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -96,8 +120,6 @@ export default function Signup() {
 
   const closeModal = () => {
     setStatusModal({ ...statusModal, isOpen: false });
-    // ❌ REMOVED: Don't redirect on modal close
-    // The redirect now happens automatically in handleSubmit after API success
   };
 
   const handleSubmit = async (e) => {
@@ -105,39 +127,44 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      // ✅ Using the new registration endpoint
       const endpoint = `${baseUrl}/user/auth/register`;
+      const deviceId = typeof window !== "undefined" ? getPromoDeviceId?.() : null;
+      const payload = {
+        ...formData,
+        referralCode: formData.referralCode?.trim().toUpperCase() || undefined,
+      };
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[SignUp] Dispatching registration to:', endpoint);
-      }
-
-      const { data } = await axios.post(endpoint, formData, {
-        headers: { "Content-Type": "application/json" },
+      await axios.post(endpoint, payload, {
+        headers: {
+          "Content-Type": "application/json",
+          ...(deviceId ? { "X-MelaChow-Device-Id": deviceId } : {}),
+        },
         withCredentials: true,
       });
 
-      // Show success message briefly, then redirect
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("melachow_pending_ref");
+      }
+
       setStatusModal({
         isOpen: true,
-        type: 'success',
-        message: "Account created! We've sent a verification code to your email. Redirecting..."
+        type: "success",
+        message: "Account created! We've sent a verification code to your email. Redirecting...",
       });
 
-      // ✅ Auto-redirect after 2 seconds (don't wait for modal close)
       setTimeout(() => {
         setStatusModal({ ...statusModal, isOpen: false });
         router.push(`/auth/verify-registration?email=${encodeURIComponent(formData.email)}`);
       }, 1000);
-
     } catch (err) {
-      console.error('[SignUp] Registration failed:', err);
-      const errorMessage = err.response?.data?.message || "Signup failed. Please check your network or try again.";
+      console.error("[SignUp] Registration failed:", err);
+      const errorMessage =
+        err.response?.data?.message || "Signup failed. Please check your network or try again.";
 
       setStatusModal({
         isOpen: true,
-        type: 'error',
-        message: errorMessage
+        type: "error",
+        message: errorMessage,
       });
     } finally {
       setLoading(false);
@@ -147,12 +174,15 @@ export default function Signup() {
   return (
     <AuthFrame subtitle="Join the food community">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="mb-3 inline-flex rounded-full bg-orange-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-orange-700">Step 1 of 3 · Account info</div>
+        <div className="mb-3 inline-flex rounded-full bg-orange-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-orange-700">
+          Step 1 of 3 · Account info
+        </div>
         <h2 className="mb-1 text-[clamp(22px,3dvh,27px)] font-semibold tracking-tight">Create account</h2>
-        <p className="mb-4 text-sm leading-relaxed text-slate-500">Fill in your details. We&apos;ll send a verification code to your email.</p>
+        <p className="mb-4 text-sm leading-relaxed text-slate-500">
+          Fill in your details. We&apos;ll send a verification code to your email.
+        </p>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
-            {/* First Name */}
             <div className="space-y-2">
               <label className={authLabelClass}>First name</label>
               <input
@@ -165,7 +195,6 @@ export default function Signup() {
                 required
               />
             </div>
-            {/* Last Name */}
             <div className="space-y-2">
               <label className={authLabelClass}>Last name</label>
               <input
@@ -180,7 +209,6 @@ export default function Signup() {
             </div>
           </div>
 
-          {/* Email */}
           <div className="space-y-2">
             <label className={authLabelClass}>Email address</label>
             <input
@@ -194,7 +222,6 @@ export default function Signup() {
             />
           </div>
 
-          {/* Phone */}
           <div className="space-y-2">
             <label className={authLabelClass}>Phone number</label>
             <input
@@ -208,7 +235,23 @@ export default function Signup() {
             />
           </div>
 
-          {/* Submit Button */}
+          <div className="space-y-2">
+            <label className={`${authLabelClass} flex items-center gap-1.5`}>
+              <Gift size={13} className="text-orange-500" />
+              Referral code <span className="font-normal text-slate-400">(optional)</span>
+            </label>
+            <input
+              type="text"
+              name="referralCode"
+              placeholder="e.g. CHOW-7K4P"
+              value={formData.referralCode}
+              onChange={(e) =>
+                setFormData({ ...formData, referralCode: e.target.value.toUpperCase() })
+              }
+              className={`${authInputClass} font-mono uppercase`}
+            />
+          </div>
+
           <motion.button
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
@@ -222,23 +265,19 @@ export default function Signup() {
                 <span>Creating Account...</span>
               </>
             ) : (
-              <>
-                <span>Create account &amp; get code</span>
-              </>
+              <span>Create account &amp; get code</span>
             )}
           </motion.button>
         </form>
 
-        {/* Footer Links */}
         <div className="mt-4 text-center">
           <p className="text-sm text-slate-500">Already have an account?</p>
-            <Link href="/auth/signin" className="text-orange-600 hover:text-orange-700 font-bold ml-1">
-              Sign in instead
-            </Link>
+          <Link href="/auth/signin" className="text-orange-600 hover:text-orange-700 font-bold ml-1">
+            Sign in instead
+          </Link>
         </div>
       </motion.div>
 
-      {/* Custom Status Modal */}
       <StatusModal
         isOpen={statusModal.isOpen}
         type={statusModal.type}

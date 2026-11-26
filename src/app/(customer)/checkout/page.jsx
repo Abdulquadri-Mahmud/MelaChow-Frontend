@@ -3,7 +3,8 @@
 import { Suspense, useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useCart } from "@/app/context/CartContext";
-import { Loader2, Bike, MapPin, Clock, DollarSign, TicketPercent, Tag, Wallet, CreditCard } from "lucide-react";
+import { Loader2, Bike, MapPin, Clock, DollarSign, TicketPercent, Tag, Wallet, CreditCard, Gift } from "lucide-react";
+import { getMyRewardCredits } from "@/app/lib/referralApi";
 import { verifyDiscount, getVendorById, getWallet, getPlatformConfig } from "@/app/lib/api";
 import { createOrderV2 } from "@/app/lib/orderService";
 import { transformCartToOrderV2 } from "@/app/lib/orderTransformers";
@@ -65,6 +66,17 @@ function CheckoutContent() {
     staleTime: 1000 * 60 * 5,
   });
   const walletBalance = walletData?.wallet?.balance || 0;
+
+  // Referral Reward Credits State (Food subtotal only)
+  const [useRewardCredits, setUseRewardCredits] = useState(false);
+  const { data: rewardCreditsData } = useQuery({
+    queryKey: ["userRewardCredits"],
+    queryFn: getMyRewardCredits,
+    retry: false,
+    staleTime: 1000 * 60 * 2,
+  });
+  const availableRewardCredits = Number(rewardCreditsData?.data?.availableNaira || 0);
+  const rewardCreditConfig = rewardCreditsData?.data?.config || {};
 
   // Cart validation hook
   const checkoutCart = useMemo(() => {
@@ -192,7 +204,25 @@ function CheckoutContent() {
 
   // Calculate final total (UI ONLY - Backend re-validates)
   // If discount applied, use verified total, otherwise local calc
-  const finalTotal = appliedDiscount ? appliedDiscount.total : (subtotal + deliveryFee + serviceFee);
+  const preCreditTotal = appliedDiscount ? appliedDiscount.total : (subtotal + deliveryFee + serviceFee);
+  const foodSubtotalAfterDiscount = Math.max(
+    0,
+    subtotal - Number(appliedDiscount?.discountAmount || 0)
+  );
+  const rewardCreditBlockedByCoupon =
+    Boolean(appliedDiscount && couponCode) && rewardCreditConfig.allowStackWithCoupons === false;
+  const maxCreditPerOrder =
+    Number(rewardCreditConfig.maxCreditPerOrderNaira || 0) > 0
+      ? Number(rewardCreditConfig.maxCreditPerOrderNaira)
+      : foodSubtotalAfterDiscount;
+  const appliedRewardCredit =
+    useRewardCredits &&
+    rewardCreditConfig.enabled !== false &&
+    !rewardCreditBlockedByCoupon &&
+    availableRewardCredits > 0
+      ? Math.min(availableRewardCredits, foodSubtotalAfterDiscount, maxCreditPerOrder)
+      : 0;
+  const finalTotal = Math.max(0, Number((preCreditTotal - appliedRewardCredit).toFixed(2)));
 
   // Group items by restaurant
   const groupedCart = checkoutCart.reduce((acc, item) => {
@@ -335,6 +365,11 @@ function CheckoutContent() {
       // Inject Discount Code if valid
       if (appliedDiscount && couponCode) {
         orderPayload.discountCode = couponCode;
+      }
+
+      // Inject Reward Credits flag (strictly capped to food subtotal on backend)
+      if (useRewardCredits && appliedRewardCredit > 0) {
+        orderPayload.useRewardCredits = true;
       }
 
       // 6. Create order using V2 API
@@ -734,6 +769,37 @@ function CheckoutContent() {
           </div>
         )}
 
+        {/* MelaChow Reward Credits Toggle (Food Subtotal Only) */}
+        {availableRewardCredits > 0 && rewardCreditConfig.enabled !== false && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 dark:border-emerald-500/30 dark:bg-emerald-500/10">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300">
+                  <Gift size={17} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-zinc-900 dark:text-white">
+                    Use MelaChow Reward Credits (₦{availableRewardCredits.toLocaleString()} available)
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-zinc-600 dark:text-zinc-400">
+                    {rewardCreditBlockedByCoupon
+                      ? "Remove your coupon code to use reward credits on this order."
+                      : `Applies to food subtotal only (saves ₦${Math.min(availableRewardCredits, foodSubtotalAfterDiscount, maxCreditPerOrder).toLocaleString()}).`}
+                  </p>
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={useRewardCredits && !rewardCreditBlockedByCoupon}
+                disabled={rewardCreditBlockedByCoupon || foodSubtotalAfterDiscount <= 0}
+                onChange={(e) => setUseRewardCredits(e.target.checked)}
+                aria-label="Apply MelaChow Reward Credits"
+                className="h-5 w-5 shrink-0 accent-emerald-600"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Summary */}
         <div className="bg-zinc-900 dark:bg-zinc-800 rounded p-4 space-y-3 shadow-xl">
           <div className="flex justify-between items-center text-sm">
@@ -783,6 +849,12 @@ function CheckoutContent() {
             <div className="flex justify-between items-center text-sm">
               <span className="flex items-center gap-1 font-semibold text-green-400 uppercase tracking-widest text-[10px]">Discount</span>
               <span className="text-green-400 font-medium">-₦{appliedDiscount.discountAmount.toLocaleString()}</span>
+            </div>
+          )}
+          {appliedRewardCredit > 0 && (
+            <div className="flex justify-between items-center text-sm">
+              <span className="flex items-center gap-1 font-semibold text-emerald-400 uppercase tracking-widest text-[10px]">Reward Credits (Food)</span>
+              <span className="text-emerald-400 font-medium">-₦{appliedRewardCredit.toLocaleString()}</span>
             </div>
           )}
           <div className="border-t border-white/10 pt-3 flex justify-between items-center text-lg font-bold">

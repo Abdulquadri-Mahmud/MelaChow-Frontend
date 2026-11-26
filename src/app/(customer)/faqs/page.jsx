@@ -131,6 +131,26 @@ const FAQ_DATA = [
     answer: "Yes. Enter your coupon code in the Promo Code section at checkout and apply it before completing payment. The order total updates after a valid code is verified."
   },
   {
+    category: "promos",
+    question: "How does the MelaChow Invite & Earn referral program work?",
+    answer: "Open Profile > Invite & Earn to get your unique referral code and shareable link. When a new friend signs up with your code and completes their first paid eligible order (minimum ₦2,500 food subtotal, excluding delivery and service fees), you earn MelaChow Reward Credits (₦100 by default). Mere signups without a delivered eligible order do not trigger rewards."
+  },
+  {
+    category: "promos",
+    question: "When do I receive my referral reward credit?",
+    answer: "Your reward credit is issued automatically as soon as the rider marks your friend's first qualifying order as Delivered. Suspicious or duplicate-account referrals may be held briefly for review before crediting."
+  },
+  {
+    category: "promos",
+    question: "How can I spend my MelaChow Reward Credits at checkout?",
+    answer: "Toggle 'Use MelaChow Reward Credits' at checkout to apply your available balance directly to your food subtotal. Reward Credits are non-withdrawable, apply to food subtotal only (they do not cover delivery or service fees), are used earliest-expiring first, and are restored automatically if a pending order is cancelled or fails payment."
+  },
+  {
+    category: "promos",
+    question: "Do referral invitations or reward credits expire?",
+    answer: "Yes. By default, an invited friend must place their first qualifying order within 2 days of signing up, and earned MelaChow Reward Credits are valid for 2 days from the date they are issued. Your Invite & Earn page shows the exact countdown for any active credits."
+  },
+  {
     category: "delivery",
     question: "How much is the delivery fee?",
     answer: "Delivery fees depend on the restaurant, location, and delivery setup. You will see the fee for the restaurant at checkout before you pay. Vendor-sponsored or platform free delivery promos can reduce it to zero when active and eligible."

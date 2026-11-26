@@ -21,6 +21,7 @@ import {
   ArrowLeft,
   Star,
   Wallet,
+  Gift,
 } from "lucide-react";
 import DeleteModal from "./DeleteModal";
 import NeedHelp from "@/app/(customer)/profile/need_help_contact_info/NeedHelp";
@@ -237,6 +238,12 @@ const User_Profile = ({ userData, isLoading }) => {
             title="My Wallet"
             subtitle="Manage funds and view transaction history"
             href="/profile/wallet"
+          />
+          <MobileActionRow
+            icon={Gift}
+            title="Invite & Earn"
+            subtitle="Share your code and earn MelaChow food credits"
+            href="/profile/referrals"
           />
           <MobileActionRow
             icon={Star}
