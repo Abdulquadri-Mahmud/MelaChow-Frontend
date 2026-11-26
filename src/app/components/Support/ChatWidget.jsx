@@ -12,7 +12,7 @@ import { refreshCustomerAccessToken } from "@/app/lib/customerApi";
 const CUSTOMER_GREETING = {
   role: "assistant",
   content:
-    "Hi! I'm Chow, MelaChow's support assistant. Ask me anything about ordering, payments, delivery, or your account.",
+    "Hi! I'm Chow, MelaChow's support assistant. Ask me anything about ordering, restaurant availability & busy times, payments, delivery, or your account.",
 };
 
 export default function ChatWidget() {

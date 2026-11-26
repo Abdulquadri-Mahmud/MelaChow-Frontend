@@ -71,6 +71,21 @@ const FAQ_DATA = [
     answer: "Open Support or Get Help and include your order ID plus the missing item details. The support team can review the order and help with the right resolution."
   },
   {
+    category: "orders",
+    question: "What does it mean when a restaurant says 'Busy' with a prep time?",
+    answer: "Restaurants can enable Busy Mode during peak rush hours to add extra preparation buffer time (for example, 'Open now · Busy (~40 min prep)'). You can still place your order normally, and the updated estimate helps set accurate delivery expectations before you pay."
+  },
+  {
+    category: "orders",
+    question: "Why can't I order from a restaurant that says 'Incoming orders paused' or 'Temporarily closed'?",
+    answer: "Restaurants can briefly pause incoming orders while their kitchen catches up or set a temporary closure for restocking or maintenance. Checkout is blocked during that window so you don't pay for an order the kitchen cannot fulfill. The restaurant status shows when orders will automatically resume or reopen."
+  },
+  {
+    category: "orders",
+    question: "How do restaurant opening and closing hours work?",
+    answer: "Restaurants automatically open and close on MelaChow based on their configured operating hours (Africa/Lagos time). Outside operating hours, checkout is paused and the restaurant page shows the next scheduled opening time. In rare cases, MelaChow administrators may also apply a temporary status override."
+  },
+  {
     category: "payment",
     question: "What payment methods do you accept?",
     answer: "Checkout supports card or transfer payment through Paystack. If your MelaChow wallet balance can cover the full order total, you can also pay with wallet."
