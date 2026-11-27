@@ -552,15 +552,22 @@ export const getFoodReviews = async (foodId, page = 1, limit = 10, rating = null
  * @param {string} weather - Optional weather condition (e.g., "rainy", "sunny")
  * @returns {Object} - { success, meta, data: { timeOfDay, underrated, ... } }
  */
-export const getRecommendations = async (weather = null) => {
+export const getRecommendations = async (options = null) => {
   try {
+    const opts = typeof options === "string" ? { weather: options } : (options || {});
     const params = new URLSearchParams();
-    if (weather) params.append("weather", weather);
+    if (opts.weather) params.append("weather", opts.weather);
+    if (opts.city) params.append("city", opts.city);
+    if (opts.state) params.append("state", opts.state);
+    if (opts.addressId) params.append("addressId", opts.addressId);
+    if (opts.lat != null && Number.isFinite(Number(opts.lat))) params.append("lat", String(opts.lat));
+    if (opts.lng != null && Number.isFinite(Number(opts.lng))) params.append("lng", String(opts.lng));
 
+    const query = params.toString();
     const res = await axios.get(
-      `/api/recommendations?${params}`,
+      query ? `/api/recommendations?${query}` : "/api/recommendations",
       {
-        withCredentials: true, // ✅ Vital for location detection via cookie
+        withCredentials: true, // Vital for location detection via cookie
       }
     );
     return res.data;

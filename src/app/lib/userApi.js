@@ -1,11 +1,15 @@
 import axios from "axios";
 import { getApiUrl } from "./apiConfig";
+import { TokenManager } from "./auth-token";
 
-const getUserAxios = () =>
-  axios.create({
+const getUserAxios = () => {
+  const token = TokenManager.getToken("user");
+  return axios.create({
     baseURL: getApiUrl(),
     withCredentials: true,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
+};
 
 /**
  * Fetch available foods in a given city/state.
@@ -28,10 +32,11 @@ export const getFoodsByLocation = async ({ city, state }) => {
  * @param {Object} params
  * @param {string} params.city
  * @param {string} params.state
+ * @param {string} [params.addressId]
  */
-export const getNearbyVendors = async ({ city, state }) => {
+export const getNearbyVendors = async ({ city, state, addressId }) => {
   const res = await getUserAxios().get("/user/vendors/nearby", {
-    params: { city, state },
+    params: { city, state, ...(addressId ? { addressId } : {}) },
   });
   return res.data;
 };

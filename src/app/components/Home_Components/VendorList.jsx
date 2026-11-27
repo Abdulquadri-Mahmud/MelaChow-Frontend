@@ -247,6 +247,7 @@ export default function VendorList({ user }) {
     searchParams.get("freeDelivery") === "true" ||
     searchParams.get("promo") === "free-delivery";
   const customerAddress = user?.addresses?.find((address) => address.isDefault) || user?.addresses?.[0];
+  const customerAddressId = customerAddress?._id || customerAddress?.id || null;
 
   React.useEffect(() => {
     setMounted(true);
@@ -259,9 +260,9 @@ export default function VendorList({ user }) {
   }, [user, syncWithUserAddress]);
 
   const { data: responseData, isLoading, isError } = useQuery({
-    queryKey: ["vendors-nearby", userLocation?.city, userLocation?.state],
+    queryKey: ["vendors-nearby", userLocation?.city, userLocation?.state, customerAddressId],
     queryFn: () =>
-      getNearbyVendors({ city: userLocation.city, state: userLocation.state }),
+      getNearbyVendors({ city: userLocation.city, state: userLocation.state, addressId: customerAddressId }),
     enabled: !!userLocation?.city && !!userLocation?.state && mounted,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,

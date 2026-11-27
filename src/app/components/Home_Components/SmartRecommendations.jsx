@@ -27,6 +27,13 @@ const DIETARY_COLORS = {
 const RecommendationCard = ({ food, customerAddress, nearbyVendor }) => {
     const [liked, setLiked] = useState(false);
     const vendor = { ...(nearbyVendor || {}), ...(food.restaurant || food.vendor || {}) };
+    const resolvedDeliveryFee = food.hasActiveDeliveryPromo || nearbyVendor?.hasActiveDeliveryPromo
+        ? 0
+        : food.deliveryQuote?.deliveryFee != null
+            ? Number(food.deliveryFee ?? food.deliveryQuote.deliveryFee)
+            : nearbyVendor?.deliveryFee != null
+                ? Number(nearbyVendor.deliveryFee)
+                : Number(food.deliveryFee ?? vendor?.deliveryFee ?? 0);
     const eta = getCoordinates(customerAddress) && (getCoordinates(vendor) || getCoordinates(vendor.address))
         ? getDeliveryEtaLabel(customerAddress, vendor, vendor.estimatedDeliveryTime)
         : "ETA at checkout";
@@ -36,7 +43,7 @@ const RecommendationCard = ({ food, customerAddress, nearbyVendor }) => {
 
     return (
         <div
-            onClick={() => openFoodModal(food._id, { food })}
+            onClick={() => openFoodModal(food._id, { food: { ...food, deliveryFee: resolvedDeliveryFee } })}
             className="group shrink-0 snap-start overflow-hidden rounded-xl border border-zinc-100 bg-white transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900"
             style={{ width: "75vw", maxWidth: "280px" }}
         >
@@ -91,7 +98,7 @@ const RecommendationCard = ({ food, customerAddress, nearbyVendor }) => {
                 <div className="mt-2 flex items-center justify-between gap-2 text-[10px]">
                     <div className="flex min-w-0 items-center gap-1.5 text-zinc-600 dark:text-zinc-300">
                         <Bike size={13} className="shrink-0" />
-                        <span className="shrink-0">{Number(food.deliveryFee ?? vendor?.deliveryFee ?? 0) === 0 ? "Free" : `₦${Number(food.deliveryFee ?? vendor?.deliveryFee).toLocaleString()}`}</span>
+                        <span className="shrink-0">{resolvedDeliveryFee === 0 ? "Free" : `₦${resolvedDeliveryFee.toLocaleString()}`}</span>
                         <span className="text-zinc-300">|</span>
                         <span className="truncate">{eta}</span>
                     </div>
@@ -139,10 +146,15 @@ const RecommendationSection = ({ title, icon: Icon, items, customerAddress, near
 // --- Main Container ---
 export default function SmartRecommendations({ user }) {
     const customerAddress = user?.addresses?.find((address) => address.isDefault) || user?.addresses?.[0];
+    const customerAddressId = customerAddress?._id || customerAddress?.id || null;
+    const customerCoords = getCoordinates(customerAddress);
     const { userLocation } = useLocationStore();
+    const targetCity = userLocation?.city || customerAddress?.city || customerAddress?.cityName || "";
+    const targetState = userLocation?.state || customerAddress?.state || customerAddress?.stateName || "";
+
     const { data: nearbyData } = useQuery({
-        queryKey: ["vendors-nearby", userLocation?.city, userLocation?.state],
-        queryFn: () => getNearbyVendors({ city: userLocation.city, state: userLocation.state }),
+        queryKey: ["vendors-nearby", userLocation?.city, userLocation?.state, customerAddressId],
+        queryFn: () => getNearbyVendors({ city: userLocation.city, state: userLocation.state, addressId: customerAddressId }),
         enabled: Boolean(userLocation?.city && userLocation?.state),
         staleTime: 5 * 60 * 1000,
         gcTime: 10 * 60 * 1000,
@@ -153,8 +165,14 @@ export default function SmartRecommendations({ user }) {
     );
 
     const { data: recommendations, isLoading } = useQuery({
-        queryKey: ["smartRecommendations"],
-        queryFn: () => getRecommendations(),
+        queryKey: ["smartRecommendations", targetCity, targetState, customerAddressId, customerCoords?.lat, customerCoords?.lng],
+        queryFn: () => getRecommendations({
+            city: targetCity || undefined,
+            state: targetState || undefined,
+            addressId: customerAddressId || undefined,
+            lat: customerCoords?.lat,
+            lng: customerCoords?.lng,
+        }),
         staleTime: 1000 * 60 * 5,
         retry: 1,
         refetchOnWindowFocus: false,
