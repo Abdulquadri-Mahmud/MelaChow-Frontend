@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { verifyPaymentV2 } from "../lib/orderService";
 import { useCart } from "../context/CartContext";
 import toast from "react-hot-toast";
@@ -23,6 +24,7 @@ export default function VerifyPayment() {
   const inFlightRef = useRef(false);
 
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { clearCart } = useCart();
   const clearCartRef = useRef(clearCart);
 
@@ -87,6 +89,7 @@ export default function VerifyPayment() {
 
       setOrder(res.order);
       setStatus("success");
+      queryClient.invalidateQueries({ queryKey: ["userWallet"] });
       clearCartRef.current?.();
       retryCountRef.current = 0;
       setRetryCount(0);
@@ -148,7 +151,7 @@ export default function VerifyPayment() {
     } finally {
       inFlightRef.current = false;
     }
-  }, [reference, scheduleRetry]);
+  }, [queryClient, reference, scheduleRetry]);
 
   const retryNow = () => {
     retryCountRef.current = 0;
@@ -413,6 +416,20 @@ export default function VerifyPayment() {
                         <span className="font-bold text-slate-900 dark:text-zinc-200">Total Paid</span>
                         <span className="font-bold text-slate-900 dark:text-zinc-100">{formatMoney(order.total)}</span>
                       </div>
+                      {Number(order.walletAmount || 0) > 0 && (
+                        <div className="mt-2 pt-2 border-t border-dashed border-slate-100 dark:border-zinc-800 space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-orange-600 dark:text-orange-400 font-medium">Paid via Wallet</span>
+                            <span className="font-semibold text-orange-600 dark:text-orange-400">{formatMoney(order.walletAmount)}</span>
+                          </div>
+                          {Number(order.paystackAmount || 0) > 0 && (
+                            <div className="flex justify-between text-xs">
+                              <span className="text-slate-500 dark:text-zinc-400 font-medium">Paid via Paystack</span>
+                              <span className="font-semibold text-slate-900 dark:text-zinc-200">{formatMoney(order.paystackAmount)}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

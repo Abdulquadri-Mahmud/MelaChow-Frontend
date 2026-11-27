@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCart } from "@/app/context/CartContext";
 import { Loader2, Bike, MapPin, Clock, DollarSign, TicketPercent, Tag, Wallet, CreditCard, Gift } from "lucide-react";
 import { getMyRewardCredits } from "@/app/lib/referralApi";
@@ -23,6 +23,7 @@ import { usePromoEligibility } from "@/app/hooks/usePromoEligibility";
 
 function CheckoutContent() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const selectedRestaurantId = searchParams.get("restaurantId");
   const { cart, clearCart, removeRestaurantFromCart } = useCart();
@@ -86,12 +87,19 @@ function CheckoutContent() {
 
   const { validateCart, validationErrors, isValid } = useCartValidation(checkoutCart);
 
-  // Generate ONCE per checkout session — does NOT regenerate
-  // on re-renders or retries. Only resets if user navigates
-  // away and returns.
-  const idempotencyKey = useRef(
-    `order_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
-  );
+  // Generate ONCE per checkout session — only resets if payment method changes
+  // or user navigates away and returns.
+  const createIdempotencyKey = () =>
+    `order_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  const idempotencyKey = useRef(createIdempotencyKey());
+  const handleSelectPaymentMethod = useCallback((nextUseWallet) => {
+    setUseWallet((prev) => {
+      if (prev !== nextUseWallet) {
+        idempotencyKey.current = createIdempotencyKey();
+      }
+      return nextUseWallet;
+    });
+  }, []);
 
   const { vendorPromoCount } = useActivePromos();
 
@@ -223,6 +231,24 @@ function CheckoutContent() {
       ? Math.min(availableRewardCredits, foodSubtotalAfterDiscount, maxCreditPerOrder)
       : 0;
   const finalTotal = Math.max(0, Number((preCreditTotal - appliedRewardCredit).toFixed(2)));
+  const normalizedWalletBalance = Math.max(0, Number(walletBalance || 0));
+  const potentialWalletApplied = normalizedWalletBalance > 0
+    ? Number(Math.min(normalizedWalletBalance, finalTotal).toFixed(2))
+    : 0;
+  const potentialPaystackRemainder = Math.max(
+    0,
+    Number((finalTotal - potentialWalletApplied).toFixed(2))
+  );
+  const walletApplied = useWallet ? potentialWalletApplied : 0;
+  const paystackDue = Math.max(0, Number((finalTotal - walletApplied).toFixed(2)));
+  const isSplitPayment = walletApplied > 0 && paystackDue > 0;
+  const isFullWalletPayment = walletApplied > 0 && paystackDue === 0;
+
+  useEffect(() => {
+    if (useWallet && normalizedWalletBalance <= 0) {
+      setUseWallet(false);
+    }
+  }, [useWallet, normalizedWalletBalance]);
 
   // Group items by restaurant
   const groupedCart = checkoutCart.reduce((acc, item) => {
@@ -354,12 +380,13 @@ function CheckoutContent() {
         notes
       };
 
-      // Add Wallet Payment Flag
+      // Add Wallet / Split Payment Flag
       if (useWallet) {
-        if (walletBalance < finalTotal) {
-          throw new Error("Insufficient wallet balance for this transaction.");
+        if (normalizedWalletBalance <= 0) {
+          throw new Error("Your wallet balance is ₦0. Please pay with Paystack or fund your wallet.");
         }
         orderPayload.useWallet = true;
+        orderPayload.walletAmount = walletApplied;
       }
 
       // Inject Discount Code if valid
@@ -381,6 +408,7 @@ function CheckoutContent() {
 
       if (response?.paymentStatus === "paid" || (isSuccess && !response?.authorization_url)) {
         // Wallet / Immediate Payment Success
+        queryClient.invalidateQueries({ queryKey: ["userWallet"] });
         if (selectedRestaurantId && removeRestaurantFromCart) removeRestaurantFromCart(selectedRestaurantId);
         else clearCart();
         toast.success("Order Placed Successfully! 🎉", { duration: 3000 });
@@ -398,10 +426,14 @@ function CheckoutContent() {
           sessionStorage.setItem("pendingOrderId", response.orderId);
         }
 
-        const msg = response.orderId
+        const serverWalletAmt = Number(response?.payment?.walletAmount ?? walletApplied);
+        const serverPaystackAmt = Number(response?.payment?.paystackAmount ?? paystackDue);
+        const msg = serverWalletAmt > 0 && serverPaystackAmt > 0
+          ? `Applying ₦${serverWalletAmt.toLocaleString()} from wallet — pay remaining ₦${serverPaystackAmt.toLocaleString()} via Paystack...`
+          : response.orderId
           ? `Processing Order #${response.orderId}... Redirecting!`
           : "Redirecting to payment...";
-        toast.success(msg, { duration: 2000 });
+        toast.success(msg, { duration: 2500 });
 
         window.location.href = response.authorization_url;
       } else {
@@ -484,12 +516,17 @@ function CheckoutContent() {
                 <MapPin className="text-orange-500" size={32} />
               </div>
               <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase italic leading-tight">Confirm Location</h3>
-              <p className="text-[11px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mt-2 mb-8">
+              <p className="text-[11px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest mt-2 mb-6">
                 Is your delivery address correct?
                 <span className="block mt-2 text-zinc-900 dark:text-zinc-100 text-xs normal-case font-black italic">
                   {defaultAddress?.addressLine}, {defaultAddress?.city}
                 </span>
               </p>
+              {isSplitPayment && (
+                <div className="mb-6 rounded-xl bg-orange-50 dark:bg-orange-500/10 border border-orange-200/70 dark:border-orange-500/20 px-3 py-2 text-xs font-semibold text-orange-700 dark:text-orange-300">
+                  Split Payment: ₦{walletApplied.toLocaleString()} Wallet + ₦{paystackDue.toLocaleString()} Paystack
+                </div>
+              )}
 
               <div className="grid gap-3">
                 <button
@@ -583,46 +620,61 @@ function CheckoutContent() {
 
           {/* Paystack Option */}
           <div
-            onClick={() => setUseWallet(false)}
+            onClick={() => handleSelectPaymentMethod(false)}
             className={`flex items-center justify-between p-3 rounded border cursor-pointer transition-all ${!useWallet ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10" : "border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
               }`}
           >
             <div className="flex items-center gap-3">
-              <div className={`w-4 h-4 rounded border flex items-center justify-center ${!useWallet ? "border-orange-600" : "border-zinc-300 dark:border-zinc-600"
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${!useWallet ? "border-orange-600" : "border-zinc-300 dark:border-zinc-600"
                 }`}>
                 {!useWallet && <div className="w-2 h-2 bg-orange-600 rounded-full" />}
               </div>
               <div>
                 <p className="font-bold text-sm text-zinc-900 dark:text-white">Pay with Card / Transfer</p>
-                <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Secured by Paystack</p>
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                  Pay full ₦{finalTotal.toLocaleString()} via Paystack
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Wallet Option */}
+          {/* Wallet / Split Payment Option */}
           <div
             onClick={() => {
-              if (walletBalance >= finalTotal) setUseWallet(true);
-              else toast.error("Insufficient balance for this order");
+              if (normalizedWalletBalance > 0) handleSelectPaymentMethod(true);
+              else toast.error("Your wallet balance is ₦0. Fund your wallet or pay with Paystack.");
             }}
-            className={`flex items-center justify-between p-3 rounded border cursor-pointer transition-all ${useWallet ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10" : "border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
-              } ${walletBalance < finalTotal ? "opacity-60 cursor-not-allowed" : ""}`}
+            className={`flex items-center justify-between p-3 rounded border transition-all ${useWallet ? "border-orange-500 bg-orange-50 dark:bg-orange-500/10" : "border-zinc-100 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              } ${normalizedWalletBalance <= 0 ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
           >
             <div className="flex items-center gap-3">
-              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${useWallet ? "border-orange-600" : "border-zinc-300 dark:border-zinc-600"
+              <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${useWallet ? "border-orange-600" : "border-zinc-300 dark:border-zinc-600"
                 }`}>
                 {useWallet && <div className="w-2 h-2 bg-orange-600 rounded-full" />}
               </div>
               <div>
-                <p className="font-bold text-sm text-zinc-900 dark:text-white flex items-center gap-2">
-                  Pay with Wallet <span className="text-orange-600">({walletData ? `₦${walletBalance.toLocaleString()}` : "Loading..."})</span>
+                <p className="font-bold text-sm text-zinc-900 dark:text-white flex items-center flex-wrap gap-1.5">
+                  {normalizedWalletBalance > 0 && normalizedWalletBalance < finalTotal
+                    ? "Wallet + Paystack Split"
+                    : "Pay with Wallet"}
+                  <span className="text-orange-600">
+                    ({walletData ? `₦${normalizedWalletBalance.toLocaleString()}` : "Loading..."})
+                  </span>
                 </p>
-                {walletBalance < finalTotal && (
-                  <p className="text-[10px] text-red-500 font-bold">Insufficient Balance</p>
+                {normalizedWalletBalance <= 0 ? (
+                  <p className="text-[10px] text-red-500 font-bold">Wallet balance is ₦0</p>
+                ) : normalizedWalletBalance < finalTotal ? (
+                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                    Use ₦{potentialWalletApplied.toLocaleString()} from wallet + pay remaining ₦{potentialPaystackRemainder.toLocaleString()} via Paystack
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                    Covers 100% of this order instantly
+                  </p>
                 )}
               </div>
             </div>
-            <Wallet size={18} className={useWallet ? "text-orange-600" : "text-zinc-400 dark:text-zinc-500"} />
+            <Wallet size={18} className={`shrink-0 ${useWallet ? "text-orange-600" : "text-zinc-400 dark:text-zinc-500"}`} />
           </div>
         </div>
 
@@ -861,6 +913,26 @@ function CheckoutContent() {
             <span className="flex items-center gap-1 font-semibold text-white uppercase italic">Total</span>
             <span className="text-orange-500 italic">₦{finalTotal.toLocaleString()}</span>
           </div>
+          {walletApplied > 0 && (
+            <div className="border-t border-white/10 pt-3 space-y-1.5 text-sm">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-orange-400 uppercase tracking-widest text-[10px]">
+                  Wallet Applied
+                </span>
+                <span className="text-orange-400 font-semibold">
+                  -₦{walletApplied.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-zinc-300 uppercase tracking-widest text-[10px]">
+                  Due via Paystack
+                </span>
+                <span className={`font-bold ${paystackDue === 0 ? "text-green-400" : "text-white"}`}>
+                  {paystackDue === 0 ? "₦0 (Paid by Wallet)" : `₦${paystackDue.toLocaleString()}`}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Sticky Pay Button */}
@@ -881,9 +953,26 @@ function CheckoutContent() {
               <div className="flex items-center justify-center w-full px-6 italic">
                 <span className="uppercase tracking-tight">Set Address to Continue</span>
               </div>
+            ) : isSplitPayment ? (
+              <div className="flex items-center justify-between w-full px-6 italic">
+                <div className="flex flex-col items-start leading-tight">
+                  <span className="uppercase tracking-tight text-sm sm:text-base text-white/95 dark:text-zinc-900/95">
+                    Pay via Paystack
+                  </span>
+                  <span className="text-[10px] font-semibold not-italic text-zinc-400 dark:text-zinc-500">
+                    + ₦{walletApplied.toLocaleString()} from Wallet
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
+                  <span className="text-orange-500 tabular-nums">₦{paystackDue.toLocaleString()}</span>
+                </div>
+              </div>
             ) : (
               <div className="flex items-center justify-between w-full px-8 italic">
-                <span className="uppercase tracking-tight text-white/90 dark:text-zinc-900/90">Pay Now</span>
+                <span className="uppercase tracking-tight text-white/90 dark:text-zinc-900/90">
+                  {isFullWalletPayment ? "Pay with Wallet" : "Pay Now"}
+                </span>
                 <div className="flex items-center gap-3">
                   <div className="w-1.5 h-6 bg-orange-500 rounded-full" />
                   <span className="text-orange-500 tabular-nums">₦{finalTotal.toLocaleString()}</span>
