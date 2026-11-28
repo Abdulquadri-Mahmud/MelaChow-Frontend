@@ -1,5 +1,6 @@
 package com.melachow.customer;
 
+import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,6 +12,7 @@ import android.os.Build;
 import androidx.core.app.NotificationCompat;
 import com.capacitorjs.plugins.pushnotifications.MessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,18 +34,41 @@ public class VoiceCallFirebaseMessagingService extends MessagingService {
             if ("incoming_call".equals(type) && callId != null && !callId.isEmpty()) {
                 String callerName = data.get("callerName");
                 String orderCode = data.get("orderCode");
-                showIncomingCallNotification(callId, callerName, orderCode);
+                if (!isAppInForeground()) {
+                    showIncomingCallNotification(callId, callerName, orderCode);
+                }
                 VoiceCallPlugin.storeOrDispatchCallAction("open", callId, callerName, orderCode);
                 return;
             }
 
             if ("call_cancelled".equals(type) || "call_ended".equals(type) || "call_answered".equals(type)) {
                 dismissIncomingCallNotification(callId);
+                if (("call_cancelled".equals(type) || "call_ended".equals(type))
+                    && callId != null && !callId.isEmpty()) {
+                    VoiceCallPlugin.storeOrDispatchCallAction("dismiss", callId, null, null);
+                }
                 return;
             }
         }
 
         super.onMessageReceived(remoteMessage);
+    }
+
+    private boolean isAppInForeground() {
+        try {
+            ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+            if (am == null) return false;
+            List<ActivityManager.RunningAppProcessInfo> processes = am.getRunningAppProcesses();
+            if (processes == null) return false;
+            String pkg = getPackageName();
+            for (ActivityManager.RunningAppProcessInfo proc : processes) {
+                if (pkg.equals(proc.processName)
+                    && proc.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
+                    return true;
+                }
+            }
+        } catch (Throwable ignored) {}
+        return false;
     }
 
     private void showIncomingCallNotification(String callId, String callerName, String orderCode) {

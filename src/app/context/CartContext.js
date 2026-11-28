@@ -1,8 +1,14 @@
 // /context-api/CartContext.js
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import showAnimatedToast from "../components/toast/showAnimatedToast";
+import { ANALYTICS_EVENTS, trackEvent } from "../lib/analytics/posthog";
+import { toNumericAmount } from "../lib/analytics/events";
+import {
+  getFoodDiscoveryContext,
+  getRestaurantDiscoveryContext,
+} from "../lib/analytics/discoveryAttribution";
 
 const CartContext = createContext({
   cart: [],
@@ -143,6 +149,74 @@ export const CartProvider = ({ children }) => {
     try { return JSON.parse(sessionStorage.getItem("melachowActiveMealGroups") || "{}"); } catch { return {}; }
   });
 
+  const cartRef = useRef(cart);
+  useEffect(() => {
+    cartRef.current = cart;
+  }, [cart]);
+
+  const markCartModified = () => {
+    try {
+      if (typeof window !== "undefined") sessionStorage.setItem("melachow_cart_modified", "1");
+    } catch {}
+  };
+
+  const getItemUnitPrice = (item) => toNumericAmount(item?.price_naira ?? item?.price ?? 0) ?? 0;
+
+  const summarizeCart = (items, restaurantId) => {
+    const scoped = restaurantId
+      ? items.filter((entry) => getRestaurantId(entry) === String(restaurantId))
+      : items;
+    const itemCount = scoped.reduce((sum, entry) => sum + (Number(entry?.quantity) || 1), 0);
+    const subtotal = Number(
+      scoped
+        .reduce((sum, entry) => sum + getItemUnitPrice(entry) * (Number(entry?.quantity) || 1), 0)
+        .toFixed(2)
+    );
+    const hasUnavailableItems = scoped.some(
+      (entry) => entry?.is_available === false || entry?.is_in_stock === false
+    );
+    return {
+      item_count: itemCount,
+      cart_subtotal: subtotal,
+      cart_value: subtotal,
+      is_empty: itemCount === 0,
+      contains_unavailable_items: hasUnavailableItems,
+    };
+  };
+
+  const buildItemAnalyticsProps = (item, quantityOverride) => {
+    const itemType = getItemType(item);
+    const foodItemId =
+      itemType === "combo"
+        ? normalizeId(item?.comboId || item?.variantId || item?._id)
+        : normalizeId(item?.foodId || item?._id);
+    const restaurantId = getRestaurantId(item) || undefined;
+    const foodCtx = getFoodDiscoveryContext(foodItemId);
+    const restaurantCtx = getRestaurantDiscoveryContext(restaurantId);
+    const category =
+      item?.category ||
+      item?.platform_category?.parent?.name ||
+      item?.platform_category?.name ||
+      foodCtx?.category_name ||
+      undefined;
+
+    return {
+      food_item_id: foodItemId || undefined,
+      food_item_name: item?.name || undefined,
+      food_item_category: category,
+      item_type: itemType,
+      restaurant_id: restaurantId,
+      item_price: getItemUnitPrice(item),
+      item_availability: item?.is_available !== false && item?.is_in_stock !== false,
+      quantity: Number(quantityOverride ?? item?.quantity) || 1,
+      item_quantity: Number(quantityOverride ?? item?.quantity) || 1,
+      discovery_source: foodCtx?.discovery_source || restaurantCtx?.discovery_source || "direct",
+      is_recommended: foodCtx?.is_recommended || undefined,
+      is_featured: foodCtx?.is_featured || undefined,
+      is_popular: foodCtx?.is_popular || Boolean(item?.is_popular) || undefined,
+    };
+  };
+
   // Store cart to localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -230,6 +304,18 @@ export const CartProvider = ({ children }) => {
   // Add item
   const addToCart = (item) => {
     const itemForPlate = withActiveMealGroup(item);
+    const prevSnapshot = cartRef.current;
+    const existingIdxSnapshot = prevSnapshot.findIndex((cartItem) => isSameItem(cartItem, itemForPlate));
+    const existingSnapshot = existingIdxSnapshot > -1 ? prevSnapshot[existingIdxSnapshot] : null;
+    const requestedQty = Number(itemForPlate.quantity) || 1;
+    const nextQtySnapshot = (Number(existingSnapshot?.quantity) || 0) + requestedQty;
+    const limitSnapshot = getQuantityLimit(itemForPlate);
+    const exceedsSnapshot =
+      limitSnapshot !== null &&
+      ((itemForPlate.track_stock === true &&
+        getReservedStockQuantity(prevSnapshot, itemForPlate) + requestedQty > limitSnapshot) ||
+        nextQtySnapshot > limitSnapshot);
+
     setCart((prev) => {
       const existingIndex = prev.findIndex((cartItem) => isSameItem(cartItem, itemForPlate));
       const existing = existingIndex > -1 ? prev[existingIndex] : null;
@@ -250,6 +336,47 @@ export const CartProvider = ({ children }) => {
       }
       return [...prev, { ...itemForPlate, quantity: Number(itemForPlate.quantity) || 1, cartId: `${Date.now()}-${Math.random()}` }];
     });
+
+    if (!exceedsSnapshot) {
+      markCartModified();
+      const restaurantId = getRestaurantId(itemForPlate);
+      const nextCartSnapshot =
+        existingIdxSnapshot > -1
+          ? prevSnapshot.map((entry, idx) =>
+              idx === existingIdxSnapshot ? { ...entry, ...itemForPlate, quantity: nextQtySnapshot } : entry
+            )
+          : [...prevSnapshot, { ...itemForPlate, quantity: requestedQty }];
+      const summary = summarizeCart(nextCartSnapshot, restaurantId);
+      const itemProps = buildItemAnalyticsProps(itemForPlate, requestedQty);
+
+      if (existingIdxSnapshot > -1) {
+        const prevQty = Number(existingSnapshot?.quantity) || 1;
+        const qtyProps = {
+          ...itemProps,
+          ...summary,
+          cart_id: existingSnapshot?.cartId,
+          previous_quantity: prevQty,
+          new_quantity: nextQtySnapshot,
+          quantity: nextQtySnapshot,
+          item_quantity: nextQtySnapshot,
+          delta: requestedQty,
+          direction: "increase",
+          trigger: "add_to_cart",
+          cart_modified: true,
+        };
+        trackEvent(ANALYTICS_EVENTS.FOOD_ITEM_QUANTITY_UPDATED, qtyProps);
+        trackEvent(ANALYTICS_EVENTS.CART_QUANTITY_UPDATED, qtyProps);
+      } else {
+        const addProps = {
+          ...itemProps,
+          ...summary,
+          cart_modified: true,
+        };
+        trackEvent(ANALYTICS_EVENTS.FOOD_ITEM_ADDED_TO_CART, addProps);
+        trackEvent(ANALYTICS_EVENTS.CART_ITEM_ADDED, addProps);
+      }
+    }
+
     showAnimatedToast("success", "Item added to cart", "cart-add");
   };
   // Add Combo
@@ -277,10 +404,67 @@ export const CartProvider = ({ children }) => {
       return next;
     });
     showAnimatedToast("success", `${comboItem.name} added to cart`, "cart-add-combo");
+    markCartModified();
+    const prevSnapshot = cartRef.current;
+    const existingIdxSnapshot = prevSnapshot.findIndex((item) => isSameItem(item, newItem));
+    const existingSnapshot = existingIdxSnapshot > -1 ? prevSnapshot[existingIdxSnapshot] : null;
+    const restaurantId = getRestaurantId(newItem);
+    const nextQtySnapshot = (Number(existingSnapshot?.quantity) || 0) + newItem.quantity;
+    const nextCartSnapshot =
+      existingIdxSnapshot > -1
+        ? prevSnapshot.map((entry, idx) =>
+            idx === existingIdxSnapshot ? { ...entry, ...newItem, quantity: nextQtySnapshot } : entry
+          )
+        : [...prevSnapshot, newItem];
+    const summary = summarizeCart(nextCartSnapshot, restaurantId);
+    const itemProps = buildItemAnalyticsProps(newItem, newItem.quantity);
+
+    if (existingIdxSnapshot > -1) {
+      const prevQty = Number(existingSnapshot?.quantity) || 1;
+      const qtyProps = {
+        ...itemProps,
+        ...summary,
+        cart_id: existingSnapshot?.cartId,
+        previous_quantity: prevQty,
+        new_quantity: nextQtySnapshot,
+        quantity: nextQtySnapshot,
+        item_quantity: nextQtySnapshot,
+        delta: newItem.quantity,
+        direction: "increase",
+        trigger: "add_to_cart",
+        cart_modified: true,
+      };
+      trackEvent(ANALYTICS_EVENTS.FOOD_ITEM_QUANTITY_UPDATED, qtyProps);
+      trackEvent(ANALYTICS_EVENTS.CART_QUANTITY_UPDATED, qtyProps);
+    } else {
+      const addProps = {
+        ...itemProps,
+        ...summary,
+        cart_id: newItem.cartId,
+        cart_modified: true,
+      };
+      trackEvent(ANALYTICS_EVENTS.FOOD_ITEM_ADDED_TO_CART, addProps);
+      trackEvent(ANALYTICS_EVENTS.CART_ITEM_ADDED, addProps);
+    }
   };
 
   // Increase Quantity
   const increaseQuantity = (foodId, portionId, comboId, cartId) => {
+    const prevSnapshot = cartRef.current;
+    const targetSnapshot = prevSnapshot.find((item) => (
+      cartId ? item.cartId === cartId : item.type === "combo"
+        ? (item.comboId === comboId || item.variantId === comboId)
+        : item.foodId === foodId && item.portionId === portionId
+    ));
+    const limitSnapshot = targetSnapshot ? getQuantityLimit(targetSnapshot) : null;
+    const prevQtySnapshot = Number(targetSnapshot?.quantity) || 0;
+    const exceedsSnapshot =
+      Boolean(targetSnapshot) &&
+      limitSnapshot !== null &&
+      ((targetSnapshot.track_stock === true &&
+        getReservedStockQuantity(prevSnapshot, targetSnapshot) + 1 > limitSnapshot) ||
+        prevQtySnapshot + 1 > limitSnapshot);
+
     setCart((prev) => {
       const target = prev.find((item) => (
         cartId ? item.cartId === cartId : item.type === "combo"
@@ -302,13 +486,44 @@ export const CartProvider = ({ children }) => {
         ? { ...item, quantity: (Number(item.quantity) || 0) + 1 }
         : item);
     });
+
+    if (targetSnapshot && !exceedsSnapshot) {
+      markCartModified();
+      const newQty = prevQtySnapshot + 1;
+      const restaurantId = getRestaurantId(targetSnapshot);
+      const nextCartSnapshot = prevSnapshot.map((item) =>
+        item.cartId === targetSnapshot.cartId ? { ...item, quantity: newQty } : item
+      );
+      const qtyProps = {
+        ...buildItemAnalyticsProps(targetSnapshot, newQty),
+        ...summarizeCart(nextCartSnapshot, restaurantId),
+        cart_id: targetSnapshot.cartId,
+        previous_quantity: prevQtySnapshot,
+        new_quantity: newQty,
+        delta: 1,
+        direction: "increase",
+        trigger: "quantity_button",
+        cart_modified: true,
+      };
+      trackEvent(ANALYTICS_EVENTS.FOOD_ITEM_QUANTITY_UPDATED, qtyProps);
+      trackEvent(ANALYTICS_EVENTS.CART_QUANTITY_UPDATED, qtyProps);
+    }
   };
   // Decrease Quantity
   const decreaseQuantity = (foodId, portionId, comboId, cartId) => {
+    const prevSnapshot = cartRef.current;
+    const targetSnapshot = prevSnapshot.find((item) =>
+      cartId
+        ? item.cartId === cartId
+        : item.type === "combo"
+          ? (item.comboId === comboId || item.variantId === comboId)
+          : item.foodId === foodId && item.portionId === portionId
+    );
+
     setCart((prev) => {
-      const itemToUpdate = prev.find(item => 
-        cartId 
-          ? item.cartId === cartId 
+      const itemToUpdate = prev.find(item =>
+        cartId
+          ? item.cartId === cartId
           : item.type === "combo"
             ? (item.comboId === comboId || item.variantId === comboId)
             : item.foodId === foodId && item.portionId === portionId
@@ -318,9 +533,9 @@ export const CartProvider = ({ children }) => {
 
       if (itemToUpdate.quantity > 1) {
         showAnimatedToast("success", "Quantity decreased", "cart-qty-dec");
-        return prev.map(item => 
-          item.cartId === itemToUpdate.cartId 
-            ? { ...item, quantity: item.quantity - 1 } 
+        return prev.map(item =>
+          item.cartId === itemToUpdate.cartId
+            ? { ...item, quantity: item.quantity - 1 }
             : item
         );
       } else {
@@ -328,13 +543,59 @@ export const CartProvider = ({ children }) => {
         return prev.filter(item => item.cartId !== itemToUpdate.cartId);
       }
     });
+
+    if (targetSnapshot) {
+      markCartModified();
+      const restaurantId = getRestaurantId(targetSnapshot);
+      const prevQty = Number(targetSnapshot.quantity) || 1;
+      if (prevQty > 1) {
+        const newQty = prevQty - 1;
+        const nextCartSnapshot = prevSnapshot.map((item) =>
+          item.cartId === targetSnapshot.cartId ? { ...item, quantity: newQty } : item
+        );
+        const qtyProps = {
+          ...buildItemAnalyticsProps(targetSnapshot, newQty),
+          ...summarizeCart(nextCartSnapshot, restaurantId),
+          cart_id: targetSnapshot.cartId,
+          previous_quantity: prevQty,
+          new_quantity: newQty,
+          delta: -1,
+          direction: "decrease",
+          trigger: "quantity_button",
+          cart_modified: true,
+        };
+        trackEvent(ANALYTICS_EVENTS.FOOD_ITEM_QUANTITY_UPDATED, qtyProps);
+        trackEvent(ANALYTICS_EVENTS.CART_QUANTITY_UPDATED, qtyProps);
+      } else {
+        const nextCartSnapshot = prevSnapshot.filter((item) => item.cartId !== targetSnapshot.cartId);
+        const removeProps = {
+          ...buildItemAnalyticsProps(targetSnapshot, prevQty),
+          ...summarizeCart(nextCartSnapshot, restaurantId),
+          cart_id: targetSnapshot.cartId,
+          removal_trigger: "decrement_to_zero",
+          cart_modified: true,
+        };
+        trackEvent(ANALYTICS_EVENTS.FOOD_ITEM_REMOVED_FROM_CART, removeProps);
+        trackEvent(ANALYTICS_EVENTS.CART_ITEM_REMOVED, removeProps);
+      }
+    }
   };
 
   // Remove item
   const removeFromCart = (foodId, portionId, comboId, cartId) => {
+    const prevSnapshot = cartRef.current;
+    const removedItems = prevSnapshot.filter((item) =>
+      cartId
+        ? item.cartId === cartId
+        : item.type === "combo"
+          ? (item.comboId === comboId || item.variantId === comboId)
+          : item.foodId === foodId && item.portionId === portionId
+    );
+    const nextCartSnapshot = prevSnapshot.filter((item) => !removedItems.includes(item));
+
     setCart((prev) =>
       prev.filter((item) => {
-        const isMatch = cartId 
+        const isMatch = cartId
           ? item.cartId === cartId
           : item.type === "combo"
             ? (item.comboId === comboId || item.variantId === comboId)
@@ -342,6 +603,22 @@ export const CartProvider = ({ children }) => {
         return !isMatch;
       })
     );
+
+    if (removedItems.length > 0) {
+      markCartModified();
+      const target = removedItems[0];
+      const restaurantId = getRestaurantId(target);
+      const removeProps = {
+        ...buildItemAnalyticsProps(target, target.quantity),
+        ...summarizeCart(nextCartSnapshot, restaurantId),
+        cart_id: target.cartId,
+        removal_trigger: "remove_button",
+        cart_modified: true,
+      };
+      trackEvent(ANALYTICS_EVENTS.FOOD_ITEM_REMOVED_FROM_CART, removeProps);
+      trackEvent(ANALYTICS_EVENTS.CART_ITEM_REMOVED, removeProps);
+    }
+
     showAnimatedToast("error", "Item removed from cart", "cart-remove");
   };
 
@@ -411,9 +688,24 @@ export const CartProvider = ({ children }) => {
   };
 
   // Clear cart
-  const clearCart = () => {
+  const clearCart = (options = {}) => {
+    const prevSnapshot = cartRef.current;
+    const reason = options?.reason || "user_action";
+    if (reason !== "order_completed" && prevSnapshot.length > 0) {
+      const restaurantIds = [...new Set(prevSnapshot.map(getRestaurantId).filter(Boolean))];
+      const summary = summarizeCart(prevSnapshot);
+      trackEvent(ANALYTICS_EVENTS.CART_CLEARED, {
+        ...summary,
+        restaurant_id: restaurantIds[0],
+        restaurant_count: restaurantIds.length,
+        clear_reason: reason,
+      });
+    }
     // Remove persisted cart immediately so a fresh add cannot revive an old line.
-    if (typeof window !== "undefined") localStorage.removeItem("melachowCart");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("melachowCart");
+      sessionStorage.removeItem("melachow_cart_modified");
+    }
     setCart([]);
     setActiveMealGroups({});
     showAnimatedToast("success", "Cart cleared", "cart-clear");

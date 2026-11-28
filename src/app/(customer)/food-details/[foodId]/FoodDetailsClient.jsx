@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { ANALYTICS_EVENTS, trackEvent } from "@/app/lib/analytics/posthog";
+import { toNumericAmount } from "@/app/lib/analytics/events";
+import { getFoodDiscoveryContext, getRestaurantDiscoveryContext } from "@/app/lib/analytics/discoveryAttribution";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
@@ -175,6 +178,55 @@ export default function FoodDetails({ initialData, foodId: propFoodId, isModal, 
       toast.error("Could not open sharing. Please try again.");
     }
   };
+
+  // Track food_item_viewed once per opened food item
+  const viewedFoodRef = useRef(null);
+  useEffect(() => {
+    const resolvedFoodId = food?._id || food?.id || foodId;
+    if (!food || !resolvedFoodId) return;
+    const idStr = String(resolvedFoodId);
+    if (viewedFoodRef.current === idStr) return;
+    viewedFoodRef.current = idStr;
+
+    const vendorObj = getFoodVendor(food);
+    const restaurantId = getFoodVendorId(food) || undefined;
+    const foodCtx = getFoodDiscoveryContext(idStr) || {};
+    const restCtx = getRestaurantDiscoveryContext(restaurantId) || {};
+    const firstPortionPrice = Array.isArray(food.portions) && food.portions.length > 0
+      ? (food.portions[0]?.price_naira ?? (food.portions[0]?.price != null ? food.portions[0].price / 100 : undefined))
+      : undefined;
+    const itemPrice = toNumericAmount(food.price_naira ?? firstPortionPrice ?? food.price);
+    const category =
+      food.platform_category?.parent?.name ||
+      food.platform_category?.name ||
+      (Array.isArray(food.categories) ? food.categories[0] : food.category) ||
+      foodCtx.category_name ||
+      undefined;
+    const restaurantCategory =
+      Array.isArray(vendorObj?.cuisineTypes) && vendorObj.cuisineTypes.length > 0
+        ? vendorObj.cuisineTypes[0]
+        : undefined;
+
+    trackEvent(
+      ANALYTICS_EVENTS.FOOD_ITEM_VIEWED,
+      {
+        food_item_id: idStr,
+        food_item_name: food.name,
+        food_item_category: category,
+        item_type: "food",
+        restaurant_id: restaurantId,
+        restaurant_category: restaurantCategory,
+        item_price: itemPrice,
+        item_availability: food.is_available !== false && food.is_in_stock !== false,
+        discovery_source: foodCtx.discovery_source || restCtx.discovery_source || "direct",
+        position: foodCtx.position,
+        is_recommended: Boolean(foodCtx.is_recommended),
+        is_featured: Boolean(foodCtx.is_featured || food.is_featured),
+        is_popular: Boolean(foodCtx.is_popular || food.is_popular),
+      },
+      { dedupeKey: `food_item_viewed:${idStr}`, dedupeWindowMs: 1500 }
+    );
+  }, [food, foodId]);
 
   // Reset base customizer when food fetches
   useEffect(() => {

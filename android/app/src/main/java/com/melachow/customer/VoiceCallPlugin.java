@@ -9,7 +9,12 @@ import android.media.AudioAttributes;
 import android.media.AudioDeviceInfo;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.os.Build;
+import android.util.Log;
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
@@ -28,10 +33,28 @@ import java.util.List;
     }
 )
 public class VoiceCallPlugin extends Plugin {
+    private static final String TAG = "VoiceCallPlugin";
     private static volatile VoiceCallPlugin activeInstance;
     private static volatile JSObject pendingCallAction;
 
     private AudioFocusRequest audioFocusRequest;
+    private ConnectivityManager.NetworkCallback networkCallback;
+    private String lastNetworkType = "";
+
+    private final AudioManager.OnAudioFocusChangeListener audioFocusChangeListener = focusChange -> {
+        JSObject payload = new JSObject();
+        if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
+            payload.put("focus", "gain");
+        } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+            payload.put("focus", "loss");
+        } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT
+            || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
+            payload.put("focus", "loss_transient");
+        } else {
+            return;
+        }
+        notifyListeners("audioFocusChange", payload, false);
+    };
 
     @Override
     public void load() {
@@ -44,6 +67,7 @@ public class VoiceCallPlugin extends Plugin {
         if (activeInstance == this) {
             activeInstance = null;
         }
+        unregisterNetworkMonitor();
         releaseAudioFocus();
         super.handleOnDestroy();
     }
@@ -56,10 +80,15 @@ public class VoiceCallPlugin extends Plugin {
         if (callerName != null) payload.put("callerName", callerName);
         if (orderCode != null) payload.put("orderCode", orderCode);
 
-        pendingCallAction = payload;
         VoiceCallPlugin instance = activeInstance;
-        if (instance != null) {
-            instance.notifyListeners("callAction", payload, true);
+        if (instance != null && instance.hasListeners("callAction")) {
+            pendingCallAction = null;
+            instance.notifyListeners("callAction", payload, false);
+        } else {
+            pendingCallAction = payload;
+            if (instance != null) {
+                instance.notifyListeners("callAction", payload, true);
+            }
         }
     }
 
@@ -103,10 +132,16 @@ public class VoiceCallPlugin extends Plugin {
             if ("in_call".equals(mode)) {
                 requestVoiceAudioFocus(audioManager);
                 audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+                registerNetworkMonitor();
             } else {
+                unregisterNetworkMonitor();
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     audioManager.clearCommunicationDevice();
                 } else {
+                    try {
+                        audioManager.stopBluetoothSco();
+                        audioManager.setBluetoothScoOn(false);
+                    } catch (Exception ignored) {}
                     audioManager.setSpeakerphoneOn(false);
                 }
                 audioManager.setMode(AudioManager.MODE_NORMAL);
@@ -132,12 +167,23 @@ public class VoiceCallPlugin extends Plugin {
                         }
                     }
                 } else {
-                    // Prefer Bluetooth SCO if connected, otherwise built-in earpiece
+                    // Priority: Bluetooth headset -> Wired/USB headset -> Built-in earpiece
                     for (AudioDeviceInfo dev : devices) {
-                        if (dev.getType() == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-                            || dev.getType() == AudioDeviceInfo.TYPE_BLE_HEADSET) {
+                        int type = dev.getType();
+                        if (type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+                            || type == AudioDeviceInfo.TYPE_BLE_HEADSET) {
                             preferred = dev;
                             break;
+                        }
+                    }
+                    if (preferred == null) {
+                        for (AudioDeviceInfo dev : devices) {
+                            int type = dev.getType();
+                            if (type == AudioDeviceInfo.TYPE_WIRED_HEADSET
+                                || type == AudioDeviceInfo.TYPE_USB_HEADSET) {
+                                preferred = dev;
+                                break;
+                            }
                         }
                     }
                     if (preferred == null) {
@@ -155,7 +201,21 @@ public class VoiceCallPlugin extends Plugin {
                     audioManager.clearCommunicationDevice();
                 }
             } else {
-                audioManager.setSpeakerphoneOn(enabled);
+                if (enabled) {
+                    try {
+                        audioManager.stopBluetoothSco();
+                        audioManager.setBluetoothScoOn(false);
+                    } catch (Exception ignored) {}
+                    audioManager.setSpeakerphoneOn(true);
+                } else {
+                    audioManager.setSpeakerphoneOn(false);
+                    if (audioManager.isBluetoothScoAvailableOffCall()) {
+                        try {
+                            audioManager.startBluetoothSco();
+                            audioManager.setBluetoothScoOn(true);
+                        } catch (Exception ignored) {}
+                    }
+                }
             }
         }
         JSObject result = new JSObject();
@@ -167,22 +227,66 @@ public class VoiceCallPlugin extends Plugin {
     public void startCallService(PluginCall call) {
         String callId = call.getString("callId", "");
         String callerName = call.getString("callerName", "MelaChow Call");
+        String status = call.getString("status", "ringing");
+        Long connectedAtObj = call.getLong("connectedAtMs", 0L);
+        long connectedAtMs = connectedAtObj != null ? connectedAtObj : 0L;
         Context ctx = getContext();
+
+        if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO)
+            != PackageManager.PERMISSION_GRANTED) {
+            call.resolve();
+            return;
+        }
+
         Intent serviceIntent = new Intent(ctx, VoiceCallForegroundService.class);
+        serviceIntent.setAction(VoiceCallForegroundService.ACTION_START);
         serviceIntent.putExtra("callId", callId);
         serviceIntent.putExtra("callerName", callerName);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            ctx.startForegroundService(serviceIntent);
-        } else {
+        serviceIntent.putExtra("status", status);
+        serviceIntent.putExtra("connectedAtMs", connectedAtMs);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ctx.startForegroundService(serviceIntent);
+            } else {
+                ctx.startService(serviceIntent);
+            }
+            registerNetworkMonitor();
+        } catch (Exception ex) {
+            Log.w(TAG, "Failed to start call foreground service: " + ex.getMessage());
+        }
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void updateCallService(PluginCall call) {
+        String callId = call.getString("callId", "");
+        String callerName = call.getString("callerName", "MelaChow Call");
+        String status = call.getString("status", "connected");
+        Long connectedAtObj = call.getLong("connectedAtMs", 0L);
+        long connectedAtMs = connectedAtObj != null ? connectedAtObj : 0L;
+        Context ctx = getContext();
+
+        Intent serviceIntent = new Intent(ctx, VoiceCallForegroundService.class);
+        serviceIntent.setAction(VoiceCallForegroundService.ACTION_UPDATE);
+        serviceIntent.putExtra("callId", callId);
+        serviceIntent.putExtra("callerName", callerName);
+        serviceIntent.putExtra("status", status);
+        serviceIntent.putExtra("connectedAtMs", connectedAtMs);
+        try {
             ctx.startService(serviceIntent);
+        } catch (Exception ex) {
+            Log.w(TAG, "Failed to update call foreground service: " + ex.getMessage());
         }
         call.resolve();
     }
 
     @PluginMethod
     public void stopCallService(PluginCall call) {
+        unregisterNetworkMonitor();
         Context ctx = getContext();
-        ctx.stopService(new Intent(ctx, VoiceCallForegroundService.class));
+        try {
+            ctx.stopService(new Intent(ctx, VoiceCallForegroundService.class));
+        } catch (Exception ignored) {}
         call.resolve();
     }
 
@@ -199,6 +303,83 @@ public class VoiceCallPlugin extends Plugin {
         call.resolve();
     }
 
+    private void registerNetworkMonitor() {
+        if (networkCallback != null || Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return;
+        ConnectivityManager cm = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm == null) return;
+
+        lastNetworkType = resolveActiveNetworkType(cm);
+        networkCallback = new ConnectivityManager.NetworkCallback() {
+            @Override
+            public void onAvailable(@NonNull Network network) {
+                emitNetworkChange(cm, true);
+            }
+
+            @Override
+            public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities caps) {
+                String nextType = classifyCapabilities(caps);
+                if (!nextType.equals(lastNetworkType)) {
+                    lastNetworkType = nextType;
+                    JSObject payload = new JSObject();
+                    payload.put("connected", true);
+                    payload.put("type", nextType);
+                    notifyListeners("networkChange", payload, false);
+                }
+            }
+
+            @Override
+            public void onLost(@NonNull Network network) {
+                emitNetworkChange(cm, false);
+            }
+        };
+        try {
+            cm.registerDefaultNetworkCallback(networkCallback);
+        } catch (Exception ex) {
+            Log.w(TAG, "Could not register network monitor: " + ex.getMessage());
+            networkCallback = null;
+        }
+    }
+
+    private void emitNetworkChange(ConnectivityManager cm, boolean connected) {
+        String nextType = resolveActiveNetworkType(cm);
+        lastNetworkType = nextType;
+        JSObject payload = new JSObject();
+        payload.put("connected", connected);
+        payload.put("type", nextType);
+        notifyListeners("networkChange", payload, false);
+    }
+
+    private String resolveActiveNetworkType(ConnectivityManager cm) {
+        try {
+            Network active = cm.getActiveNetwork();
+            if (active == null) return "none";
+            NetworkCapabilities caps = cm.getNetworkCapabilities(active);
+            return classifyCapabilities(caps);
+        } catch (Exception ignored) {
+            return "unknown";
+        }
+    }
+
+    private String classifyCapabilities(NetworkCapabilities caps) {
+        if (caps == null) return "none";
+        if (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return "wifi";
+        if (caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) return "cellular";
+        if (caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) return "ethernet";
+        return "other";
+    }
+
+    private void unregisterNetworkMonitor() {
+        if (networkCallback == null) return;
+        try {
+            ConnectivityManager cm = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm != null) {
+                cm.unregisterNetworkCallback(networkCallback);
+            }
+        } catch (Exception ignored) {}
+        networkCallback = null;
+        lastNetworkType = "";
+    }
+
     private void requestVoiceAudioFocus(AudioManager audioManager) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             AudioAttributes attrs = new AudioAttributes.Builder()
@@ -207,17 +388,29 @@ public class VoiceCallPlugin extends Plugin {
                 .build();
             audioFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE)
                 .setAudioAttributes(attrs)
+                .setOnAudioFocusChangeListener(audioFocusChangeListener)
                 .setAcceptsDelayedFocusGain(false)
                 .build();
             audioManager.requestAudioFocus(audioFocusRequest);
+        } else {
+            audioManager.requestAudioFocus(
+                audioFocusChangeListener,
+                AudioManager.STREAM_VOICE_CALL,
+                AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE
+            );
         }
     }
 
     private void releaseAudioFocus() {
         AudioManager audioManager = (AudioManager) getContext().getSystemService(Context.AUDIO_SERVICE);
-        if (audioManager != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && audioFocusRequest != null) {
-            audioManager.abandonAudioFocusRequest(audioFocusRequest);
-            audioFocusRequest = null;
+        if (audioManager == null) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (audioFocusRequest != null) {
+                audioManager.abandonAudioFocusRequest(audioFocusRequest);
+                audioFocusRequest = null;
+            }
+        } else {
+            audioManager.abandonAudioFocus(audioFocusChangeListener);
         }
     }
 }

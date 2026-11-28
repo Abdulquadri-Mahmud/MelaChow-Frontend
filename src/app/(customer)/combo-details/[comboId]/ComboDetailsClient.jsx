@@ -1,6 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { ANALYTICS_EVENTS, trackEvent } from "@/app/lib/analytics/posthog";
+import { toNumericAmount } from "@/app/lib/analytics/events";
+import { getFoodDiscoveryContext, getRestaurantDiscoveryContext } from "@/app/lib/analytics/discoveryAttribution";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -175,6 +178,34 @@ export default function ComboDetailsPage({ initialData, comboId: propComboId, is
             }
         }
     }, [storefrontData, comboId, combo]);
+
+    const viewedComboRef = useRef(null);
+    useEffect(() => {
+        const resolvedComboId = combo?._id || combo?.id || comboId;
+        if (!combo || !resolvedComboId) return;
+        const idStr = String(resolvedComboId);
+        if (viewedComboRef.current === idStr) return;
+        viewedComboRef.current = idStr;
+
+        const foodCtx = getFoodDiscoveryContext(idStr) || {};
+        const restCtx = getRestaurantDiscoveryContext(vendorId) || {};
+        trackEvent(
+            ANALYTICS_EVENTS.FOOD_ITEM_VIEWED,
+            {
+                food_item_id: idStr,
+                food_item_name: combo.name,
+                food_item_category: "Deals & Combos",
+                item_type: "combo",
+                restaurant_id: vendorId || undefined,
+                restaurant_category: Array.isArray(vendor?.cuisineTypes) ? vendor.cuisineTypes[0] : undefined,
+                item_price: toNumericAmount(comboPriceNaira),
+                item_availability: combo.is_available !== false && combo.is_in_stock !== false,
+                discovery_source: foodCtx.discovery_source || restCtx.discovery_source || "restaurant_menu",
+                is_featured: true,
+            },
+            { dedupeKey: `food_item_viewed:combo:${idStr}`, dedupeWindowMs: 1500 }
+        );
+    }, [combo, comboId, vendorId, vendor, comboPriceNaira]);
 
     // Reset on combo change
     useEffect(() => {

@@ -14,6 +14,8 @@ import { useApi } from "@/app/context/ApiContext";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { LocationService } from "@/app/lib/locationService";
 import { normalizeAddress } from "@/app/lib/addressUtils";
+import { ANALYTICS_EVENTS, trackEvent } from "@/app/lib/analytics/posthog";
+import { extractCoarseDeliveryArea } from "@/app/lib/analytics/events";
 import AddressSkeleton from "../skeleton/AddressSkeleton";
 import DeliveryPinField from "../DeliveryPinField";
 import { getDeliveryPosition, reverseGeocodeWithOpenStreetMap } from "@/app/lib/deliveryGeolocation";
@@ -201,6 +203,11 @@ export default function AddressPage() {
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
       setAddresses((res.data.addresses || []).map(normalizeAddress));
       toast.success("Default address updated");
+      const updatedDefault = (res.data.addresses || []).map(normalizeAddress).find((a) => a._id === id || a.isDefault);
+      trackEvent(ANALYTICS_EVENTS.CHECKOUT_DELIVERY_ADDRESS_CHANGED, {
+        source: "address_book",
+        ...extractCoarseDeliveryArea(updatedDefault),
+      });
     } catch (err) {
       toast.error("Failed to update default");
     } finally {

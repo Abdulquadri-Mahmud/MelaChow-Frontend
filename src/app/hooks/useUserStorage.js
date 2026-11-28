@@ -3,6 +3,7 @@ import { useProfile } from "../context/ProfileContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { TokenManager } from "../lib/auth-token";
 import { normalizeUserAddresses } from "../lib/addressUtils";
+import { ANALYTICS_EVENTS, resetAnalyticsIdentity, trackEvent } from "../lib/analytics/posthog";
 
 /**
  * Hook for managing user data via ProfileContext (Server-Sourced Identity).
@@ -40,6 +41,13 @@ export const useUserStorage = () => {
 
   // Full logout: clear user + optional data
   const logout = async () => {
+    trackEvent(
+      ANALYTICS_EVENTS.LOGOUT_COMPLETED,
+      { is_authenticated: Boolean(userProfile?._id || userProfile?.id) },
+      { dedupeKey: "logout_completed", dedupeWindowMs: 3000 }
+    );
+    resetAnalyticsIdentity();
+
     sessionStorage.setItem("melachow_logout_transition", "1");
     window.dispatchEvent(new Event("customer:logout-start"));
 

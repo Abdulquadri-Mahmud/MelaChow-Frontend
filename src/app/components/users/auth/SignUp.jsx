@@ -1,8 +1,9 @@
 "use client";
 
 import { useApi } from "@/app/context/ApiContext";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ANALYTICS_EVENTS, trackEvent } from "@/app/lib/analytics/posthog";
 import {
   Loader2,
   CheckCircle2,
@@ -99,6 +100,23 @@ export default function Signup() {
 
   const [loading, setLoading] = useState(false);
   const [statusModal, setStatusModal] = useState({ isOpen: false, type: "success", message: "" });
+  const signupStartedTrackedRef = useRef(false);
+  const referralSourceRef = useRef("organic");
+
+  const trackSignupStartedOnce = (hasReferralCode) => {
+    if (signupStartedTrackedRef.current) return;
+    signupStartedTrackedRef.current = true;
+    trackEvent(
+      ANALYTICS_EVENTS.SIGNUP_STARTED,
+      {
+        has_referral_code: Boolean(hasReferralCode),
+        referral_source: referralSourceRef.current,
+        landing_page: "/auth/signup",
+        is_authenticated: false,
+      },
+      { dedupeKey: "signup_started", dedupeWindowMs: 5000 }
+    );
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -106,15 +124,18 @@ export default function Signup() {
     const urlRef = (params.get("ref") || params.get("referralCode") || "").trim().toUpperCase();
     if (urlRef) {
       window.localStorage.setItem("melachow_pending_ref", urlRef);
+      referralSourceRef.current = "referral_link";
     }
     const storedRef = (window.localStorage.getItem("melachow_pending_ref") || "").trim().toUpperCase();
     const candidate = urlRef || storedRef;
     if (candidate) {
+      if (referralSourceRef.current === "organic") referralSourceRef.current = "referral_code";
       setFormData((prev) => (prev.referralCode ? prev : { ...prev, referralCode: candidate }));
     }
   }, []);
 
   const handleChange = (e) => {
+    trackSignupStartedOnce(Boolean(formData.referralCode?.trim()));
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -124,6 +145,7 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    trackSignupStartedOnce(Boolean(formData.referralCode?.trim()));
     setLoading(true);
 
     try {

@@ -16,12 +16,17 @@ import {
 import { useCall } from "@/app/context/CallContext";
 
 function formatDuration(totalSeconds) {
-  const mins = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60;
+  const safe = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  const hrs = Math.floor(safe / 3600);
+  const mins = Math.floor((safe % 3600) / 60);
+  const secs = safe % 60;
+  if (hrs > 0) {
+    return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  }
   return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 }
 
-function statusLabel(callState, durationSeconds) {
+function statusLabel(callState, durationSeconds, hasConnectedOnce) {
   switch (callState) {
     case "initiating":
       return "Connecting to rider...";
@@ -32,7 +37,9 @@ function statusLabel(callState, durationSeconds) {
     case "connecting":
       return "Connecting audio...";
     case "reconnecting":
-      return "Reconnecting...";
+      return hasConnectedOnce
+        ? `Reconnecting... • ${formatDuration(durationSeconds)}`
+        : "Reconnecting...";
     case "connected":
       return formatDuration(durationSeconds);
     default:
@@ -44,6 +51,9 @@ export default function CallOverlay() {
   const {
     callSession,
     callState,
+    connectionQuality,
+    hasConnectedOnce,
+    isActionBusy,
     isInCall,
     isMuted,
     isSpeakerOn,
@@ -63,6 +73,7 @@ export default function CallOverlay() {
   const peerAvatar = callSession?.peerAvatar || callSession?.riderAvatar || null;
   const orderCode = callSession?.orderCode || null;
   const isIncoming = callState === "incoming";
+  const showPoorConnection = callState === "connected" && connectionQuality === "poor";
 
   // Minimized floating bar during active call so customer can still view order tracking
   if (isMinimized && !isIncoming) {
@@ -86,7 +97,16 @@ export default function CallOverlay() {
           </span>
           <div className="min-w-0">
             <p className="text-sm font-semibold truncate">{peerName}</p>
-            <p className="text-xs text-[#FFA500]">{statusLabel(callState, durationSeconds)}</p>
+            <p
+              className={`text-xs tabular-nums ${
+                callState === "reconnecting" || showPoorConnection
+                  ? "text-amber-300"
+                  : "text-[#FFA500]"
+              }`}
+            >
+              {statusLabel(callState, durationSeconds, hasConnectedOnce)}
+              {showPoorConnection ? " • Poor connection" : ""}
+            </p>
           </div>
         </button>
         <div className="ml-2 flex items-center gap-2 shrink-0">
@@ -143,9 +163,21 @@ export default function CallOverlay() {
             <div className="w-11" />
           )}
 
-          <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-medium text-[#FFA500]">
+          <div
+            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium ${
+              callState === "reconnecting" || showPoorConnection
+                ? "bg-amber-500/20 text-amber-300"
+                : "bg-white/10 text-[#FFA500]"
+            }`}
+          >
             <Wifi size={13} />
-            <span>MelaChow In-App Call</span>
+            <span>
+              {callState === "reconnecting"
+                ? "Reconnecting..."
+                : showPoorConnection
+                  ? "Poor connection"
+                  : "MelaChow In-App Call"}
+            </span>
           </div>
 
           <div className="w-11" />
@@ -179,8 +211,12 @@ export default function CallOverlay() {
               Order #{orderCode}
             </p>
           )}
-          <p className={`mt-3 text-base font-medium ${callState === "reconnecting" ? "text-amber-300" : "text-[#FFA500]"}`}>
-            {statusLabel(callState, durationSeconds)}
+          <p
+            className={`mt-3 text-base font-medium tabular-nums ${
+              callState === "reconnecting" ? "text-amber-300" : "text-[#FFA500]"
+            }`}
+          >
+            {statusLabel(callState, durationSeconds, hasConnectedOnce)}
           </p>
           {callState === "connected" && (
             <div className="mt-3 flex items-end justify-center gap-1 h-4" aria-hidden="true">
@@ -191,7 +227,11 @@ export default function CallOverlay() {
             </div>
           )}
           <p className="mt-2 text-xs text-white/55">
-            {isMuted && callState === "connected" ? "Microphone muted" : "Encrypted in-app voice • Phone number stays private"}
+            {callState === "reconnecting"
+              ? "Connection interrupted • Attempting to restore audio"
+              : isMuted && callState === "connected"
+                ? "Microphone muted"
+                : "Encrypted in-app voice • Phone number stays private"}
           </p>
         </div>
 
@@ -202,9 +242,10 @@ export default function CallOverlay() {
               <div className="flex flex-col items-center gap-2">
                 <button
                   type="button"
+                  disabled={isActionBusy}
                   onClick={() => rejectIncomingCall()}
                   aria-label="Decline call"
-                  className="flex h-16 w-16 items-center justify-center rounded-full bg-red-600 text-white shadow-xl shadow-red-600/30 active:scale-95 transition-transform"
+                  className="flex h-16 w-16 items-center justify-center rounded-full bg-red-600 text-white shadow-xl shadow-red-600/30 active:scale-95 transition-transform disabled:opacity-60"
                 >
                   <PhoneOff size={28} />
                 </button>
@@ -214,9 +255,10 @@ export default function CallOverlay() {
               <div className="flex flex-col items-center gap-2">
                 <button
                   type="button"
+                  disabled={isActionBusy}
                   onClick={() => acceptIncomingCall()}
                   aria-label="Accept call"
-                  className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-xl shadow-emerald-500/30 active:scale-95 transition-transform"
+                  className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-xl shadow-emerald-500/30 active:scale-95 transition-transform disabled:opacity-60"
                 >
                   <Phone size={28} />
                 </button>

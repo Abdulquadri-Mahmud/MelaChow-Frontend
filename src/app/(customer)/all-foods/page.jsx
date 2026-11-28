@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ANALYTICS_EVENTS, trackEvent } from "@/app/lib/analytics/posthog";
+import { setFoodDiscoveryContext } from "@/app/lib/analytics/discoveryAttribution";
 import {
     ArrowLeft, Utensils, Clock, Truck, Store, Plus, MapPin, Star,
     Search, SlidersHorizontal, AlertCircle, SearchX, RefreshCw, X
@@ -78,6 +80,24 @@ export default function AllFoods() {
             (f.restaurant?.storeName || f.vendor?.storeName || "").toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [foods, searchQuery]);
+
+    useEffect(() => {
+        const trimmed = searchQuery.trim();
+        if (trimmed.length < 2) return;
+        const timer = window.setTimeout(() => {
+            trackEvent(
+                ANALYTICS_EVENTS.FOOD_ITEM_SEARCH_PERFORMED,
+                {
+                    search_query: trimmed,
+                    results_count: filteredFoods.length,
+                    search_scope: "all_foods",
+                },
+                { dedupeKey: `all_foods_search:${trimmed}:${filteredFoods.length}`, dedupeWindowMs: 1500 }
+            );
+        }, 500);
+        return () => window.clearTimeout(timer);
+    }, [searchQuery, filteredFoods.length]);
+
 
     return (
         <div className="min-h-screen bg-zinc-50/50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-display pb-20 transition-colors duration-300">
@@ -205,15 +225,26 @@ export default function AllFoods() {
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        {filteredFoods.map((food) => {
+                        {filteredFoods.map((food, idx) => {
                             const hours = food?.restaurant?.openingHours || {};
                             const status = getVendorOpenAndCloseStatus(hours);
                             const isOpen = status.startsWith("Open now");
 
-                            return (
+
+
+
+    return (
                                 <div
                                     key={food._id}
-                                    onClick={() => openFoodModal(food._id, { food })}
+                                    onClick={() => {
+                                        setFoodDiscoveryContext(food._id, {
+                                            discovery_source: searchQuery.trim() ? "all_foods_search" : "all_foods",
+                                            position: idx + 1,
+                                            is_popular: Boolean(food.is_popular),
+                                            search_query: searchQuery.trim() || undefined,
+                                        });
+                                        openFoodModal(food._id, { food });
+                                    }}
                                     className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-100/50 dark:border-zinc-800 shadow-sm hover:shadow-2xl hover:shadow-zinc-200/40 dark:hover:shadow-none hover:border-orange-600/10 transition-all duration-500 cursor-pointer group hover:-translate-y-1 active:scale-[0.98]"
                                 >
                                     {/* Image Section */}

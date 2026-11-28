@@ -10,6 +10,7 @@ import axios from "axios";
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { TokenManager } from "@/app/lib/auth-token";
 import AuthFrame, { authInputClass, authLabelClass } from "./AuthFrame";
+import { ANALYTICS_EVENTS, identifyCustomer, trackEvent } from "@/app/lib/analytics/posthog";
 
 export default function Signin() {
   const { baseUrl } = useApi();
@@ -57,7 +58,17 @@ export default function Signin() {
       }
 
       if (userData && (userData.user || userData._id)) {
-        saveUser(userData.user || userData);
+        const resolvedUser = userData.user || userData;
+        saveUser(resolvedUser);
+        identifyCustomer(resolvedUser);
+        trackEvent(
+          ANALYTICS_EVENTS.LOGIN_COMPLETED,
+          {
+            auth_method: "password",
+            is_authenticated: true,
+          },
+          { dedupeKey: "login_completed", dedupeWindowMs: 3000 }
+        );
       }
 
       navigating = true;

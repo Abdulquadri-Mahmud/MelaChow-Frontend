@@ -17,6 +17,9 @@ import { useActivePromos } from "@/app/hooks/useActivePromos";
 import { useCart } from "@/app/context/CartContext";
 import { useProfile } from "@/app/context/ProfileContext";
 import { shareCustomerContent } from "@/app/lib/shareCustomerContent";
+import { ANALYTICS_EVENTS, trackEvent } from "@/app/lib/analytics/posthog";
+import { toNumericAmount } from "@/app/lib/analytics/events";
+import { getRestaurantDiscoveryContext, setFoodDiscoveryContext } from "@/app/lib/analytics/discoveryAttribution";
 
 const getItemId = (item) => item?._id || item?.id;
 const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
@@ -93,13 +96,24 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
     const unsectioned = data?.unsectioned || [];
     const combos      = data?.combos || [];
 
-    const selectMenuTab = (id) => {
+    const selectMenuTab = (id, name) => {
         setActiveSectionId(id);
+        trackEvent(ANALYTICS_EVENTS.FOOD_CATEGORY_SELECTED, {
+            restaurant_id: String(vendorId),
+            category_id: String(id),
+            category_name: name || String(id),
+            discovery_source: "restaurant_menu",
+        });
     };
     const handleComboTap = (combo) => {
         if (combo.is_available === false) return;
         const selectedComboId = getItemId(combo);
         if (!selectedComboId) return;
+        setFoodDiscoveryContext(selectedComboId, {
+            discovery_source: searchQuery.trim() ? "restaurant_menu_search" : "restaurant_menu",
+            category_name: "Deals & Combos",
+            search_query: searchQuery.trim() || undefined,
+        });
         openComboModal(selectedComboId, { combo, vendor });
     };
 
@@ -108,6 +122,13 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
         if (item.is_available === false || item.is_in_stock === false) return;
         const selectedFoodId = getItemId(item);
         if (!selectedFoodId) return;
+        setFoodDiscoveryContext(selectedFoodId, {
+            discovery_source: searchQuery.trim() ? "restaurant_menu_search" : "restaurant_menu",
+            category_name: selectedSection?.name || undefined,
+            is_popular: Boolean(item.is_popular),
+            is_featured: Boolean(item.is_featured),
+            search_query: searchQuery.trim() || undefined,
+        });
         openFoodModal(selectedFoodId, { food: item });
     };
 
@@ -210,6 +231,83 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
     }, [sections, unsectioned, combos, searchQuery]);
 
     const selectedSection = allSections.find((section) => section._id === activeSectionId) || allSections[0];
+
+    // Track restaurant_viewed (deduped per vendorId) and menu_viewed once storefront loads
+    const trackedRestaurantRef = useRef(null);
+    const trackedMenuRef = useRef(null);
+
+    useEffect(() => {
+        if (!vendor || !vendorId) return;
+        const vid = String(vendorId);
+        if (trackedRestaurantRef.current === vid) return;
+        trackedRestaurantRef.current = vid;
+
+        const attribution = getRestaurantDiscoveryContext(vid) || {};
+        const openStatus = getVendorOpenAndCloseStatus(vendor.openingHours);
+        const primaryCategory = Array.isArray(vendor.cuisineTypes) && vendor.cuisineTypes.length > 0
+            ? vendor.cuisineTypes[0]
+            : undefined;
+
+        trackEvent(
+            ANALYTICS_EVENTS.RESTAURANT_VIEWED,
+            {
+                restaurant_id: vid,
+                restaurant_name: vendor.storeName,
+                restaurant_category: primaryCategory,
+                restaurant_availability: openStatus.startsWith("Open now"),
+                delivery_fee: toNumericAmount(vendor.deliveryFee ?? vendor.distanceBasedDeliveryFee),
+                city: vendor.address?.city,
+                state: vendor.address?.state,
+                discovery_source: attribution.discovery_source || "direct",
+                position: attribution.position,
+                is_featured: Boolean(attribution.is_featured || vendor.hasActiveDeliveryPromo),
+                is_recommended: Boolean(attribution.is_recommended),
+                arrived_via_search: Boolean(attribution.arrived_via_search),
+                arrived_via_category: Boolean(attribution.arrived_via_category),
+                arrived_via_promo: Boolean(attribution.arrived_via_promo || vendor.hasActiveDeliveryPromo),
+            },
+            { dedupeKey: `restaurant_viewed:${vid}`, dedupeWindowMs: 2000 }
+        );
+    }, [vendor, vendorId]);
+
+    useEffect(() => {
+        if (isLoading || isPlaceholderData || !vendor || !vendorId) return;
+        const vid = String(vendorId);
+        if (trackedMenuRef.current === vid) return;
+        trackedMenuRef.current = vid;
+
+        const allItemsCount = allSections[0]?.items?.length || 0;
+        trackEvent(
+            ANALYTICS_EVENTS.MENU_VIEWED,
+            {
+                restaurant_id: vid,
+                restaurant_name: vendor.storeName,
+                section_count: Math.max(0, allSections.length - 1),
+                menu_item_count: allItemsCount,
+                combo_count: combos.length,
+            },
+            { dedupeKey: `menu_viewed:${vid}`, dedupeWindowMs: 2000 }
+        );
+    }, [isLoading, isPlaceholderData, vendor, vendorId, allSections, combos.length]);
+
+    useEffect(() => {
+        const trimmed = searchQuery.trim();
+        if (trimmed.length < 2 || !vendorId) return;
+        const timer = window.setTimeout(() => {
+            const matchedCount = allSections.find((s) => s._id === "all")?.items?.length || 0;
+            trackEvent(
+                ANALYTICS_EVENTS.FOOD_ITEM_SEARCH_PERFORMED,
+                {
+                    restaurant_id: String(vendorId),
+                    search_query: trimmed,
+                    results_count: matchedCount,
+                    search_scope: "restaurant_menu",
+                },
+                { dedupeKey: `menu_search:${vendorId}:${trimmed}:${matchedCount}`, dedupeWindowMs: 1500 }
+            );
+        }, 500);
+        return () => window.clearTimeout(timer);
+    }, [searchQuery, vendorId, allSections]);
 
     if (isLoading) {
         return <ViewVendorSkeleton />;
@@ -435,7 +533,7 @@ export default function StorefrontPage({ vendorId: propVendorId }) {
                 <div className="sticky top-0 z-[70] border-y border-zinc-100 bg-white/95 px-4 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/95">
                     <div className="flex gap-4 overflow-x-auto scrollbar-none">
                         {allSections.map((section) => (
-                            <button key={section._id} onClick={() => selectMenuTab(section._id)} className={`shrink-0 border-b-2 py-3 text-[14px] font-medium capitalize transition-all ${activeSectionId === section._id ? 'border-orange-500 text-orange-600' : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white'}`}>
+                            <button key={section._id} onClick={() => selectMenuTab(section._id, section.name)} className={`shrink-0 border-b-2 py-3 text-[14px] font-medium capitalize transition-all ${activeSectionId === section._id ? 'border-orange-500 text-orange-600' : 'border-transparent text-zinc-500 hover:text-zinc-900 dark:hover:text-white'}`}>
                                 {section.name}
                             </button>
                         ))}

@@ -17,6 +17,7 @@ import GlobalComboModal from "@/app/components/modals/GlobalComboModal";
 import NavigationFeedback from "@/app/components/NavigationFeedback";
 import { CallProvider } from "@/app/context/CallContext";
 import CallOverlay from "@/app/components/call/CallOverlay";
+import PostHogProvider from "@/app/providers/PostHogProvider";
 
 export default function CustomerLayout({ children }) {
     const pathname = usePathname();
@@ -38,6 +39,7 @@ export default function CustomerLayout({ children }) {
     // RootPage / SplashScreen is never unmounted and remounted on mount.
     return (
         <ProfileProvider>
+            <PostHogProvider>
             <CartProvider>
                 <CallProvider>
                     {isAuthRoute ? (
@@ -73,6 +75,7 @@ export default function CustomerLayout({ children }) {
                     <CallOverlay />
                 </CallProvider>
             </CartProvider>
+            </PostHogProvider>
         </ProfileProvider>
     );
 }

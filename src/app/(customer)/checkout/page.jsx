@@ -20,6 +20,8 @@ import { useCartValidation, CartValidationErrors } from "@/app/components/Cart/C
 import { useUserStorage } from "@/app/hooks/useUserStorage";
 import { useActivePromos } from "@/app/hooks/useActivePromos";
 import { usePromoEligibility } from "@/app/hooks/usePromoEligibility";
+import { ANALYTICS_EVENTS, trackEvent } from "@/app/lib/analytics/posthog";
+import { extractCoarseDeliveryArea, toNumericAmount } from "@/app/lib/analytics/events";
 
 function CheckoutContent() {
   const router = useRouter();
@@ -92,10 +94,32 @@ function CheckoutContent() {
   const createIdempotencyKey = () =>
     `order_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
   const idempotencyKey = useRef(createIdempotencyKey());
+  const paymentSummaryRef = useRef({
+    normalizedWalletBalance: 0,
+    finalTotal: 0,
+    potentialWalletApplied: 0,
+    potentialPaystackRemainder: 0,
+    restaurantId: undefined,
+  });
   const handleSelectPaymentMethod = useCallback((nextUseWallet) => {
     setUseWallet((prev) => {
       if (prev !== nextUseWallet) {
         idempotencyKey.current = createIdempotencyKey();
+        const snap = paymentSummaryRef.current;
+        const method = nextUseWallet
+          ? (snap.normalizedWalletBalance > 0 && snap.normalizedWalletBalance < snap.finalTotal ? "wallet_paystack_split" : "wallet")
+          : "paystack";
+        const methodProps = {
+          payment_method: method,
+          use_wallet: Boolean(nextUseWallet),
+          is_split_payment: method === "wallet_paystack_split",
+          wallet_amount: nextUseWallet ? toNumericAmount(snap.potentialWalletApplied) : 0,
+          paystack_amount: nextUseWallet ? toNumericAmount(snap.potentialPaystackRemainder) : toNumericAmount(snap.finalTotal),
+          total_amount: toNumericAmount(snap.finalTotal),
+          restaurant_id: snap.restaurantId,
+        };
+        trackEvent(ANALYTICS_EVENTS.CHECKOUT_PAYMENT_METHOD_SELECTED, methodProps);
+        trackEvent(ANALYTICS_EVENTS.PAYMENT_METHOD_SELECTED, methodProps);
       }
       return nextUseWallet;
     });
@@ -250,6 +274,88 @@ function CheckoutContent() {
     }
   }, [useWallet, normalizedWalletBalance]);
 
+  // Track checkout_started once per checkout session once cart & fee config are ready
+  const checkoutStartedTrackedRef = useRef(false);
+  const checkoutAddressTrackedRef = useRef(null);
+  const currentPaymentMethod = isSplitPayment ? "wallet_paystack_split" : isFullWalletPayment ? "wallet" : "paystack";
+  const checkoutRestaurantId = selectedRestaurantId || checkoutCart[0]?.vendorId || checkoutCart[0]?.restaurantId;
+  const checkoutItemCount = checkoutCart.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0);
+
+  useEffect(() => {
+    paymentSummaryRef.current = {
+      normalizedWalletBalance,
+      finalTotal,
+      potentialWalletApplied,
+      potentialPaystackRemainder,
+      restaurantId: checkoutRestaurantId,
+    };
+  }, [normalizedWalletBalance, finalTotal, potentialWalletApplied, potentialPaystackRemainder, checkoutRestaurantId]);
+
+  useEffect(() => {
+    if (!isMounted || isUserLoading || platformConfigStatus !== "ready" || checkoutCart.length === 0) return;
+    if (checkoutStartedTrackedRef.current) return;
+    checkoutStartedTrackedRef.current = true;
+
+    trackEvent(
+      ANALYTICS_EVENTS.CHECKOUT_STARTED,
+      {
+        restaurant_id: checkoutRestaurantId,
+        cart_subtotal: toNumericAmount(subtotal),
+        delivery_fee: toNumericAmount(deliveryFee),
+        service_fee: toNumericAmount(serviceFee),
+        discount_amount: toNumericAmount(appliedDiscount?.discountAmount || 0),
+        reward_credit_amount: toNumericAmount(appliedRewardCredit),
+        total_amount: toNumericAmount(finalTotal),
+        item_count: checkoutItemCount,
+        payment_method: currentPaymentMethod,
+        checkout_source: selectedRestaurantId ? "cart_restaurant" : "cart",
+        use_wallet: Boolean(useWallet),
+        is_split_payment: Boolean(isSplitPayment),
+        has_discount: Boolean(appliedDiscount?.discountAmount > 0),
+        has_free_delivery_promo: Boolean(isPlatformPromoEligible || Object.values(vendorFreePromoMap).some(Boolean)),
+        has_delivery_address: Boolean(defaultAddress),
+        ...extractCoarseDeliveryArea(defaultAddress),
+      },
+      { dedupeKey: `checkout_started:${checkoutRestaurantId || "cart"}`, dedupeWindowMs: 2500 }
+    );
+  }, [
+    isMounted,
+    isUserLoading,
+    platformConfigStatus,
+    checkoutCart.length,
+    checkoutRestaurantId,
+    subtotal,
+    deliveryFee,
+    serviceFee,
+    appliedDiscount,
+    appliedRewardCredit,
+    finalTotal,
+    checkoutItemCount,
+    currentPaymentMethod,
+    selectedRestaurantId,
+    useWallet,
+    isSplitPayment,
+    isPlatformPromoEligible,
+    vendorFreePromoMap,
+    defaultAddress,
+  ]);
+
+  useEffect(() => {
+    if (!isMounted || !defaultAddress) return;
+    const addrKey = String(defaultAddress._id || defaultAddress.id || `${defaultAddress.city || ""}:${defaultAddress.state || ""}`);
+    if (!addrKey || checkoutAddressTrackedRef.current === addrKey) return;
+    const hadPrevious = Boolean(checkoutAddressTrackedRef.current);
+    checkoutAddressTrackedRef.current = addrKey;
+    trackEvent(
+      hadPrevious ? ANALYTICS_EVENTS.CHECKOUT_DELIVERY_ADDRESS_CHANGED : ANALYTICS_EVENTS.CHECKOUT_DELIVERY_ADDRESS_SELECTED,
+      {
+        restaurant_id: checkoutRestaurantId,
+        ...extractCoarseDeliveryArea(defaultAddress),
+      },
+      { dedupeKey: `checkout_addr:${addrKey}`, dedupeWindowMs: 2000 }
+    );
+  }, [isMounted, defaultAddress, checkoutRestaurantId]);
+
   // Group items by restaurant
   const groupedCart = checkoutCart.reduce((acc, item) => {
     const store = item.storeName || "Unknown Store";
@@ -401,6 +507,27 @@ function CheckoutContent() {
 
       // 6. Create order using V2 API
       setProcessingStep("preparing");
+      trackEvent(
+        ANALYTICS_EVENTS.CHECKOUT_PAYMENT_INITIATED,
+        {
+          restaurant_id: checkoutRestaurantId,
+          cart_subtotal: toNumericAmount(subtotal),
+          delivery_fee: toNumericAmount(deliveryFee),
+          service_fee: toNumericAmount(serviceFee),
+          discount_amount: toNumericAmount(appliedDiscount?.discountAmount || 0),
+          reward_credit_amount: toNumericAmount(appliedRewardCredit),
+          total_amount: toNumericAmount(finalTotal),
+          item_count: checkoutItemCount,
+          payment_method: currentPaymentMethod,
+          use_wallet: Boolean(useWallet),
+          is_split_payment: Boolean(isSplitPayment),
+          wallet_amount: toNumericAmount(walletApplied),
+          paystack_amount: toNumericAmount(paystackDue),
+          has_discount: Boolean(appliedDiscount?.discountAmount > 0),
+          ...extractCoarseDeliveryArea(defaultAddress),
+        },
+        { dedupeKey: `checkout_pay_init:${idempotencyKey.current}`, dedupeWindowMs: 2000 }
+      );
       const response = await createOrderV2(orderPayload);
 
       // 7. Handle Response (Redirect to Paystack OR Success)
@@ -410,7 +537,26 @@ function CheckoutContent() {
         // Wallet / Immediate Payment Success
         queryClient.invalidateQueries({ queryKey: ["userWallet"] });
         if (selectedRestaurantId && removeRestaurantFromCart) removeRestaurantFromCart(selectedRestaurantId);
-        else clearCart();
+        else clearCart({ reason: "order_completed" });
+        const confirmedOrderId = response.order?.orderId || response.orderId;
+        trackEvent(
+          ANALYTICS_EVENTS.CHECKOUT_COMPLETED,
+          {
+            order_id: confirmedOrderId,
+            restaurant_id: checkoutRestaurantId,
+            cart_subtotal: toNumericAmount(response.order?.subtotal ?? subtotal),
+            delivery_fee: toNumericAmount(response.order?.deliveryFee ?? deliveryFee),
+            service_fee: toNumericAmount(response.order?.serviceFee ?? serviceFee),
+            discount_amount: toNumericAmount(appliedDiscount?.discountAmount || 0),
+            total_amount: toNumericAmount(response.order?.total ?? finalTotal),
+            item_count: checkoutItemCount,
+            payment_method: "wallet",
+            use_wallet: true,
+            is_split_payment: false,
+            ...extractCoarseDeliveryArea(defaultAddress),
+          },
+          { dedupeKey: `checkout_completed:${confirmedOrderId || idempotencyKey.current}`, dedupeWindowMs: 5000 }
+        );
         toast.success("Order Placed Successfully! 🎉", { duration: 3000 });
 
         const paramOrderId = response.order?.orderId || response.orderId;
@@ -471,6 +617,24 @@ function CheckoutContent() {
       }
 
       setOrderError(errorMessage);
+      const failureCategory = errorMessage.includes("Wallet not found")
+        ? "wallet_not_found"
+        : errorMessage.includes("Insufficient wallet balance")
+          ? "insufficient_wallet_balance"
+          : errorMessage.includes("Email required")
+            ? "email_required"
+            : err.response?.status === 503
+              ? "timeout"
+              : "initialization_failed";
+      trackEvent(ANALYTICS_EVENTS.CHECKOUT_PAYMENT_FAILED, {
+        restaurant_id: checkoutRestaurantId,
+        payment_method: currentPaymentMethod,
+        total_amount: toNumericAmount(finalTotal),
+        use_wallet: Boolean(useWallet),
+        is_split_payment: Boolean(isSplitPayment),
+        failure_stage: "initialization",
+        failure_reason_category: failureCategory,
+      });
     } finally {
       setLoadingInit(false);
     }

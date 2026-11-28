@@ -30,6 +30,8 @@ import { useCategories } from "@/app/hooks/useCategories";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
 import { useComboModalStore } from "@/app/store/comboModalStore";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
+import { ANALYTICS_EVENTS, trackEvent } from "@/app/lib/analytics/posthog";
+import { setFoodDiscoveryContext, setRestaurantDiscoveryContext } from "@/app/lib/analytics/discoveryAttribution";
 
 export const dynamic = "force-dynamic";
 
@@ -146,7 +148,17 @@ export default function FoodSearchMobile() {
   const isComboItem = (item) => item?.type === "combo" || item?.item_type === "combo";
   const getItemId = (item) => item?._id || item?.id;
 
-  const handleItemTap = (item) => {
+  const handleItemTap = (item, position) => {
+    const selectedId = getItemId(item);
+    if (selectedId) {
+      setFoodDiscoveryContext(selectedId, {
+        discovery_source: debouncedQuery ? "search" : selectedCategory ? "category" : "search_page",
+        position,
+        is_popular: Boolean(item.is_popular),
+        search_query: debouncedQuery || undefined,
+        category_name: selectedCategory || undefined,
+      });
+    }
     if (isComboItem(item)) {
       if (item.is_available === false) return;
       const selectedComboId = getItemId(item);
@@ -241,7 +253,33 @@ export default function FoodSearchMobile() {
               ? res.data.results
               : [];
         setFoods((current) => page === 1 ? nextFoods : [...current, ...nextFoods.filter((item) => !current.some((existing) => existing._id === item._id))]);
-        if (page === 1) setRestaurants(Array.isArray(res.data?.vendors) ? res.data.vendors : []);
+        const nextVendors = Array.isArray(res.data?.vendors) ? res.data.vendors : [];
+        if (page === 1) setRestaurants(nextVendors);
+        if (page === 1 && debouncedQuery) {
+          trackEvent(
+            ANALYTICS_EVENTS.FOOD_ITEM_SEARCH_PERFORMED,
+            {
+              search_query: debouncedQuery,
+              results_count: nextFoods.length,
+              restaurant_results_count: nextVendors.length,
+              category_name: selectedCategory || undefined,
+              sort_by: sort,
+              search_scope: "global",
+            },
+            { dedupeKey: `food_search:${debouncedQuery}:${selectedCategory || ""}:${sort}`, dedupeWindowMs: 1500 }
+          );
+          if (nextVendors.length > 0) {
+            trackEvent(
+              ANALYTICS_EVENTS.RESTAURANT_SEARCH_PERFORMED,
+              {
+                search_query: debouncedQuery,
+                results_count: nextVendors.length,
+                search_scope: "global",
+              },
+              { dedupeKey: `rest_search_global:${debouncedQuery}`, dedupeWindowMs: 1500 }
+            );
+          }
+        }
         setHasMore(Number(res.data?.currentPage || page) < Number(res.data?.totalPages || 0));
       } catch (err) {
         if (err?.name === "CanceledError" || err?.code === "ERR_CANCELED") return;
@@ -332,6 +370,10 @@ export default function FoodSearchMobile() {
       return;
     }
     setActiveCategory(category);
+    trackEvent(ANALYTICS_EVENTS.FOOD_CATEGORY_SELECTED, {
+      category_name: category,
+      discovery_source: "search_page",
+    });
     setQuery("");
     router.push(`/search/?category=${encodeURIComponent(category)}`);
   };
@@ -644,7 +686,7 @@ export default function FoodSearchMobile() {
             {restaurants.length > 0 && (
               <section className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
                 <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-zinc-500">Restaurants</p>
-                {restaurants.slice(0, 3).map((restaurant) => <button key={restaurant._id} type="button" onClick={() => router.push(`/restaurants/${restaurant._id}`)} className="flex w-full items-center gap-3 border-t border-zinc-100 py-2 text-left first:border-t-0 dark:border-zinc-800"><div className="size-9 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">{restaurant.logo && <img src={restaurant.logo} alt="" className="h-full w-full object-cover" />}</div><span className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900 dark:text-white">{restaurant.storeName}</span><span className="text-xs text-zinc-500">★ {Number(restaurant.rating || 0).toFixed(1)}</span></button>)}
+                {restaurants.slice(0, 3).map((restaurant, rIdx) => <button key={restaurant._id} type="button" onClick={() => { setRestaurantDiscoveryContext(restaurant._id, { discovery_source: "search", position: rIdx + 1, arrived_via_search: true, search_query: debouncedQuery || undefined }); trackEvent(ANALYTICS_EVENTS.RESTAURANT_SEARCH_RESULT_CLICKED, { restaurant_id: restaurant._id, restaurant_name: restaurant.storeName, search_query: debouncedQuery || undefined, position: rIdx + 1, search_scope: "global" }); router.push(`/restaurants/${restaurant._id}`); }} className="flex w-full items-center gap-3 border-t border-zinc-100 py-2 text-left first:border-t-0 dark:border-zinc-800"><div className="size-9 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">{restaurant.logo && <img src={restaurant.logo} alt="" className="h-full w-full object-cover" />}</div><span className="min-w-0 flex-1 truncate text-sm font-semibold text-zinc-900 dark:text-white">{restaurant.storeName}</span><span className="text-xs text-zinc-500">★ {Number(restaurant.rating || 0).toFixed(1)}</span></button>)}
               </section>
             )}
             <AnimatePresence mode="popLayout">
@@ -670,7 +712,7 @@ export default function FoodSearchMobile() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: (sectionIdx * 0.1) + (foodIdx * 0.05) }}
                         >
-                            <FoodItemRow food={food} onSelect={handleItemTap} />
+                            <FoodItemRow food={food} onSelect={(selectedFood) => handleItemTap(selectedFood, foodIdx + 1)} />
                         </motion.div>
                     ))}
                     </div>

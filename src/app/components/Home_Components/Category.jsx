@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from 'framer-motion';
 import { useCategories } from "@/app/hooks/useCategories";
+import { ANALYTICS_EVENTS, trackEvent } from "@/app/lib/analytics/posthog";
 import {
     Flame,
     UtensilsCrossed,
@@ -18,7 +19,13 @@ export default function CategoryList() {
     const visibleCategories = categories.slice(0, 15);
     const [activeCategory, setActiveCategory] = useState(null);
 
-    const handleCategoryClick = (category) => {
+    const handleCategoryClick = (category, idx) => {
+        trackEvent(ANALYTICS_EVENTS.FOOD_CATEGORY_SELECTED, {
+            category_id: category._id || category.id,
+            category_name: category.name,
+            position: typeof idx === "number" ? idx + 1 : undefined,
+            discovery_source: "home_categories",
+        });
         setActiveCategory(category.name);
         // Prefer slug for URL, fallback to name
         const query = category.name;
@@ -92,7 +99,7 @@ export default function CategoryList() {
                             transition={{ delay: idx * 0.05, duration: 0.5 }}
                             whileHover={{ y: -5, scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => handleCategoryClick(category)}
+                            onClick={() => handleCategoryClick(category, idx)}
                             className={`flex flex-col items-center gap-2 min-w-[64px] sm:gap-3 sm:min-w-[85px] group snap-center`}
                         >
                             {/* Icon/Image Container with Multi-layer Glow */}

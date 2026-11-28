@@ -31,6 +31,8 @@ import { getNearbyVendors } from "@/app/lib/userApi";
 import { getDeliveryEtaLabel } from "@/app/lib/deliveryEta";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import { useLocationStore } from "@/app/store/userLocationStore";
+import { ANALYTICS_EVENTS, trackEvent } from "@/app/lib/analytics/posthog";
+import { setRestaurantDiscoveryContext } from "@/app/lib/analytics/discoveryAttribution";
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // SKELETON
@@ -59,7 +61,7 @@ const ChipSkeleton = () => (
 // —————————————————————————————————————————————————————————————————————————————
 // VENDOR CARD
 // —————————————————————————————————————————————————————————————————————————————
-const VendorCard = ({ vendor, customerAddress, fullWidth = false }) => {
+const VendorCard = ({ vendor, customerAddress, fullWidth = false, discoverySource = "home_nearby", position, isRecommended = false, arrivedViaPromo = false }) => {
   const queryClient = useQueryClient();
   const status = getVendorOpenAndCloseStatus(vendor.openingHours);
   const isOpen = status.startsWith("Open now");
@@ -67,10 +69,19 @@ const VendorCard = ({ vendor, customerAddress, fullWidth = false }) => {
   return (
     <Link
       href={`/restaurants/${vendor._id}`}
-      onClick={() => queryClient.setQueryData(["vendor-preview", vendor._id], {
-        ...vendor,
-        logo: vendor.image || vendor.logo,
-      })}
+      onClick={() => {
+        setRestaurantDiscoveryContext(vendor._id, {
+          discovery_source: discoverySource,
+          position,
+          is_featured: Boolean(vendor.hasActiveDeliveryPromo),
+          is_recommended: isRecommended,
+          arrived_via_promo: Boolean(arrivedViaPromo || vendor.hasActiveDeliveryPromo),
+        });
+        queryClient.setQueryData(["vendor-preview", vendor._id], {
+          ...vendor,
+          logo: vendor.image || vendor.logo,
+        });
+      }}
       className={`group bg-white dark:bg-zinc-900 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 block ${
         fullWidth ? "w-full" : "flex-shrink-0 snap-start"
       }`}
@@ -187,13 +198,13 @@ const SectionHeader = ({ title, subtitle }) => (
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // HORIZONTAL VENDOR ROW
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const VendorRow = ({ vendors, customerAddress }) => (
+const VendorRow = ({ vendors, customerAddress, discoverySource = "home_nearby", isRecommended = false, arrivedViaPromo = false }) => (
   <div
     className="flex overflow-x-auto scroll gap-3 pb-3 scrollbar-hide no-scrollbar"
     style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
   >
-    {vendors.map((v) => (
-      <VendorCard key={v._id} vendor={v} customerAddress={customerAddress} />
+    {vendors.map((v, idx) => (
+      <VendorCard key={v._id} vendor={v} customerAddress={customerAddress} discoverySource={discoverySource} position={idx + 1} isRecommended={isRecommended} arrivedViaPromo={arrivedViaPromo} />
     ))}
   </div>
 );
@@ -330,6 +341,40 @@ export default function VendorList({ user }) {
     };
   }, [allVendors]);
 
+  const lastListTrackedKeyRef = React.useRef(null);
+  React.useEffect(() => {
+    if (!mounted || isLoading || isError) return;
+    const listKey = `${userLocation?.city || ""}|${userLocation?.state || ""}|${filterFreeDelivery}|${allVendors.length}`;
+    if (lastListTrackedKeyRef.current === listKey) return;
+    lastListTrackedKeyRef.current = listKey;
+
+    trackEvent(
+      ANALYTICS_EVENTS.RESTAURANT_LIST_VIEWED,
+      {
+        list_source: filterFreeDelivery ? "home_promo_free_delivery" : "home_nearby",
+        restaurant_count: allVendors.length,
+        top_rated_count: topRatedVendors.length,
+        city: userLocation?.city,
+        state: userLocation?.state,
+        filter_free_delivery: filterFreeDelivery,
+      },
+      { dedupeKey: `restaurant_list_viewed:${listKey}`, dedupeWindowMs: 2000 }
+    );
+
+    if (filterFreeDelivery) {
+      trackEvent(
+        ANALYTICS_EVENTS.RESTAURANT_FILTER_APPLIED,
+        {
+          filter_type: "promo",
+          filter_value: "free_delivery",
+          results_count: allVendors.length,
+          list_source: "home_nearby",
+        },
+        { dedupeKey: `restaurant_filter_free_delivery:${listKey}`, dedupeWindowMs: 2000 }
+      );
+    }
+  }, [mounted, isLoading, isError, allVendors.length, topRatedVendors.length, userLocation?.city, userLocation?.state, filterFreeDelivery]);
+
   // ── Loading ──────────────────────────────────────────────────────────────────────────────────
   if (!mounted || isLoading) {
     return (
@@ -428,14 +473,14 @@ export default function VendorList({ user }) {
             }
             subtitle="Highly recommended by local foodies"
           />
-          <VendorRow vendors={topRatedVendors} customerAddress={customerAddress} />
+          <VendorRow vendors={topRatedVendors} customerAddress={customerAddress} discoverySource="home_top_rated" isRecommended={true} arrivedViaPromo={filterFreeDelivery} />
         </div>
       )}
 
       {nearbyVendors.length > 0 && (
         <div>
           <SectionHeader title="Restaurants Near You" />
-          <VendorRow vendors={nearbyVendors} customerAddress={customerAddress} />
+          <VendorRow vendors={nearbyVendors} customerAddress={customerAddress} discoverySource={filterFreeDelivery ? "home_promo_free_delivery" : "home_nearby"} arrivedViaPromo={filterFreeDelivery} />
         </div>
       )}
 

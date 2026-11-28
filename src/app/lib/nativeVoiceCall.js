@@ -40,15 +40,40 @@ export const nativeVoiceCall = {
     }
   },
 
-  async startCallService({ callId, callerName }) {
+  async startCallService({ callId, callerName, status = "ringing", connectedAtMs = 0 }) {
     if (!VoiceCallNative) return;
     try {
       await VoiceCallNative.startCallService({
         callId: String(callId || ""),
         callerName: String(callerName || "MelaChow Call"),
+        status: String(status || "ringing"),
+        connectedAtMs: Number(connectedAtMs) || 0,
       });
     } catch (err) {
       console.warn("[VoiceCall] startCallService failed:", err?.message || err);
+    }
+  },
+
+  async updateCallService({ callId, callerName, status = "connected", connectedAtMs = 0 }) {
+    if (!VoiceCallNative) return;
+    try {
+      if (typeof VoiceCallNative.updateCallService === "function") {
+        await VoiceCallNative.updateCallService({
+          callId: String(callId || ""),
+          callerName: String(callerName || "MelaChow Call"),
+          status: String(status || "connected"),
+          connectedAtMs: Number(connectedAtMs) || 0,
+        });
+      } else {
+        await VoiceCallNative.startCallService({
+          callId: String(callId || ""),
+          callerName: String(callerName || "MelaChow Call"),
+          status: String(status || "connected"),
+          connectedAtMs: Number(connectedAtMs) || 0,
+        });
+      }
+    } catch (err) {
+      console.warn("[VoiceCall] updateCallService failed:", err?.message || err);
     }
   },
 
@@ -86,6 +111,24 @@ export const nativeVoiceCall = {
     if (!VoiceCallNative) return { remove: () => {} };
     try {
       return await VoiceCallNative.addListener("callAction", callback);
+    } catch {
+      return { remove: () => {} };
+    }
+  },
+
+  async addAudioFocusListener(callback) {
+    if (!VoiceCallNative) return { remove: () => {} };
+    try {
+      return await VoiceCallNative.addListener("audioFocusChange", callback);
+    } catch {
+      return { remove: () => {} };
+    }
+  },
+
+  async addNetworkChangeListener(callback) {
+    if (!VoiceCallNative) return { remove: () => {} };
+    try {
+      return await VoiceCallNative.addListener("networkChange", callback);
     } catch {
       return { remove: () => {} };
     }

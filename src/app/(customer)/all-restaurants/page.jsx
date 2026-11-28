@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ANALYTICS_EVENTS, trackEvent } from "@/app/lib/analytics/posthog";
+import { setRestaurantDiscoveryContext } from "@/app/lib/analytics/discoveryAttribution";
 import {
     ArrowLeft, Clock, MapPin, Star,
     Search, AlertCircle, X, Utensils,
@@ -118,6 +120,41 @@ export default function AllRestaurants() {
         return result;
     }, [allVendors, searchQuery, selectedCuisine, activeFilter]);
 
+    const listTrackedRef = useRef(null);
+    useEffect(() => {
+        if (isLoading || isError) return;
+        const key = `${defaultAddr?.city || "all"}|${allVendors.length}`;
+        if (listTrackedRef.current === key) return;
+        listTrackedRef.current = key;
+        trackEvent(
+            ANALYTICS_EVENTS.RESTAURANT_LIST_VIEWED,
+            {
+                list_source: "all_restaurants",
+                restaurant_count: allVendors.length,
+                city: defaultAddr?.city,
+                state: defaultAddr?.state,
+            },
+            { dedupeKey: `all_restaurants_list:${key}`, dedupeWindowMs: 2000 }
+        );
+    }, [isLoading, isError, allVendors.length, defaultAddr?.city, defaultAddr?.state]);
+
+    useEffect(() => {
+        const trimmed = searchQuery.trim();
+        if (trimmed.length < 2) return;
+        const timer = window.setTimeout(() => {
+            trackEvent(
+                ANALYTICS_EVENTS.RESTAURANT_SEARCH_PERFORMED,
+                {
+                    search_query: trimmed,
+                    results_count: filteredVendors.length,
+                    search_scope: "all_restaurants",
+                },
+                { dedupeKey: `rest_search:${trimmed}:${filteredVendors.length}`, dedupeWindowMs: 1500 }
+            );
+        }, 500);
+        return () => window.clearTimeout(timer);
+    }, [searchQuery, filteredVendors.length]);
+
     return (
         <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-display pb-24 transition-colors duration-300">
             {/* Header Section */}
@@ -209,7 +246,14 @@ export default function AllRestaurants() {
                             {["All", "Open Now", "Top Rated"].map((filter) => (
                                 <button
                                     key={filter}
-                                    onClick={() => setActiveFilter(filter)}
+                                    onClick={() => {
+                                        setActiveFilter(filter);
+                                        trackEvent(ANALYTICS_EVENTS.RESTAURANT_FILTER_APPLIED, {
+                                            filter_type: "status",
+                                            filter_value: filter,
+                                            list_source: "all_restaurants",
+                                        });
+                                    }}
                                     className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
                                         activeFilter === filter
                                             ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-md scale-105"
@@ -227,7 +271,13 @@ export default function AllRestaurants() {
                                 {cuisineOptions.map((cuisine) => (
                                     <button
                                         key={cuisine}
-                                        onClick={() => setSelectedCuisine(cuisine)}
+                                        onClick={() => {
+                                            setSelectedCuisine(cuisine);
+                                            trackEvent(ANALYTICS_EVENTS.RESTAURANT_CATEGORY_SELECTED, {
+                                                category_name: cuisine,
+                                                discovery_source: "all_restaurants",
+                                            });
+                                        }}
                                         className={`px-3 py-1 rounded-full text-[11px] font-bold flex-shrink-0 transition-all ${
                                             selectedCuisine === cuisine
                                                 ? "bg-orange-600 text-white shadow-sm"
@@ -282,10 +332,13 @@ export default function AllRestaurants() {
 
                         {/* VERTICAL STACKED CARDS LIST */}
                         <div className="space-y-4 w-full">
-                            {filteredVendors.map((vendor) => (
+                            {filteredVendors.map((vendor, idx) => (
                                 <VendorCard
                                     key={vendor._id}
                                     vendor={vendor}
+                                    position={idx + 1}
+                                    searchQuery={searchQuery}
+                                    selectedCuisine={selectedCuisine}
                                     imgLoaded={imgLoaded}
                                     setImgLoaded={setImgLoaded}
                                 />
@@ -300,10 +353,35 @@ export default function AllRestaurants() {
 
 // ── Shared Full-Width Vendor Card Component (Vertically Stacked) ───────────────
 
-const VendorCard = ({ vendor, imgLoaded, setImgLoaded }) => {
+const VendorCard = ({ vendor, position, searchQuery = "", selectedCuisine = "All", imgLoaded, setImgLoaded }) => {
+    const handleCardClick = () => {
+        const trimmedSearch = searchQuery.trim();
+        const isCategoryFiltered = selectedCuisine && selectedCuisine !== "All";
+        setRestaurantDiscoveryContext(vendor._id, {
+            discovery_source: trimmedSearch ? "restaurant_search" : isCategoryFiltered ? "restaurant_category" : "all_restaurants",
+            position,
+            is_featured: Boolean(vendor.hasActiveDeliveryPromo),
+            arrived_via_search: Boolean(trimmedSearch),
+            arrived_via_category: Boolean(isCategoryFiltered),
+            arrived_via_promo: Boolean(vendor.hasActiveDeliveryPromo),
+            category_name: isCategoryFiltered ? selectedCuisine : undefined,
+            search_query: trimmedSearch || undefined,
+        });
+        if (trimmedSearch) {
+            trackEvent(ANALYTICS_EVENTS.RESTAURANT_SEARCH_RESULT_CLICKED, {
+                restaurant_id: vendor._id,
+                restaurant_name: vendor.storeName,
+                search_query: trimmedSearch,
+                position,
+                search_scope: "all_restaurants",
+            });
+        }
+    };
+
     return (
         <Link
             href={`/restaurants/${vendor._id}`}
+            onClick={handleCardClick}
             className="group w-full bg-white dark:bg-zinc-900 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 block border border-zinc-100 dark:border-zinc-800 shadow-sm hover:shadow-xl"
         >
             <div className="relative h-48 sm:h-56 w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">

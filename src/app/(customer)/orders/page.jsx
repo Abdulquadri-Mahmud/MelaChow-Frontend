@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
+import { ANALYTICS_EVENTS, trackEvent } from "@/app/lib/analytics/posthog";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCart } from "@/app/context/CartContext";
@@ -124,6 +125,40 @@ function OrdersContent() {
     acc[key].items.push(item);
     return acc;
   }, {});
+
+  // Track cart_viewed once per visit to the Cart tab (deduped across re-renders)
+  const cartViewTrackedRef = useRef(false);
+  useEffect(() => {
+    if (activeTab !== "cart") {
+      cartViewTrackedRef.current = false;
+      return;
+    }
+    if (cartViewTrackedRef.current) return;
+    cartViewTrackedRef.current = true;
+
+    const restaurantIds = Object.keys(groupedCart).filter((id) => id && id !== "unknown");
+    const totalItems = cart.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0);
+    const totalSubtotal = Number(
+      cart.reduce((sum, item) => sum + getItemPrice(item) * (Number(item.quantity) || 1), 0).toFixed(2)
+    );
+    const hasUnavailable = cart.some((item) => item?.is_available === false || item?.is_in_stock === false);
+    const cartModified = typeof window !== "undefined" && sessionStorage.getItem("melachow_cart_modified") === "1";
+
+    trackEvent(
+      ANALYTICS_EVENTS.CART_VIEWED,
+      {
+        restaurant_id: restaurantIds[0],
+        restaurant_count: restaurantIds.length,
+        item_count: totalItems,
+        cart_subtotal: totalSubtotal,
+        cart_value: totalSubtotal,
+        is_empty: totalItems === 0,
+        contains_unavailable_items: hasUnavailable,
+        cart_modified: cartModified,
+      },
+      { dedupeKey: "cart_viewed", dedupeWindowMs: 1200 }
+    );
+  }, [activeTab, cart, groupedCart]);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col transition-colors duration-300">
@@ -354,7 +389,21 @@ function OrdersContent() {
                                <p className="text-lg font-medium italic text-zinc-900 dark:text-white">₦{groupSubtotal.toLocaleString()}</p>
                              </div>
                              <button
-                               onClick={() => router.push(`/checkout?restaurantId=${encodeURIComponent(vendorId)}`)}
+                               onClick={() => {
+                                 const groupItemCount = group.items.reduce((sum, entry) => sum + (Number(entry.quantity) || 1), 0);
+                                 const hasUnavailable = group.items.some((entry) => entry?.is_available === false || entry?.is_in_stock === false);
+                                 const cartModified = typeof window !== "undefined" && sessionStorage.getItem("melachow_cart_modified") === "1";
+                                 trackEvent(ANALYTICS_EVENTS.CART_CHECKOUT_CLICKED, {
+                                   restaurant_id: vendorId,
+                                   item_count: groupItemCount,
+                                   cart_subtotal: Number(groupSubtotal.toFixed(2)),
+                                   cart_value: Number(groupSubtotal.toFixed(2)),
+                                   is_empty: groupItemCount === 0,
+                                   contains_unavailable_items: hasUnavailable,
+                                   cart_modified: cartModified,
+                                 });
+                                 router.push(`/checkout?restaurantId=${encodeURIComponent(vendorId)}`);
+                               }}
                                className="h-11 px-5 rounded bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-medium uppercase tracking-widest flex items-center gap-2 active:scale-95 transition-all shadow-lg dark:shadow-none"
                              >
                                Checkout

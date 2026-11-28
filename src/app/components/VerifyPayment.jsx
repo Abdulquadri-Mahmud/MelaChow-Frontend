@@ -5,6 +5,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { verifyPaymentV2 } from "../lib/orderService";
 import { useCart } from "../context/CartContext";
+import { ANALYTICS_EVENTS, trackEvent } from "../lib/analytics/posthog";
+import { extractCoarseDeliveryArea, toNumericAmount } from "../lib/analytics/events";
 import toast from "react-hot-toast";
 import Header2 from "./App_Header/Header2";
 import { motion } from "framer-motion";
@@ -78,6 +80,15 @@ export default function VerifyPayment() {
       if (!res.order) {
         const msg = "Payment verified but order was not created.";
         setStatus("failed");
+        trackEvent(
+          ANALYTICS_EVENTS.CHECKOUT_PAYMENT_FAILED,
+          {
+            payment_reference: reference,
+            failure_stage: "verification",
+            failure_reason_category: "order_missing_after_verify",
+          },
+          { dedupeKey: `checkout_verify_missing_order:${reference}`, dedupeWindowMs: 5000 }
+        );
         setErrorMessage(msg);
         toast.error(msg);
         return;
@@ -90,7 +101,33 @@ export default function VerifyPayment() {
       setOrder(res.order);
       setStatus("success");
       queryClient.invalidateQueries({ queryKey: ["userWallet"] });
-      clearCartRef.current?.();
+      clearCartRef.current?.({ reason: "order_completed" });
+      const verifiedWalletAmt = Number(res.order?.walletAmount || 0);
+      const verifiedPaystackAmt = Number(res.order?.paystackAmount || 0);
+      const verifiedMethod =
+        verifiedWalletAmt > 0 && verifiedPaystackAmt > 0
+          ? "wallet_paystack_split"
+          : verifiedWalletAmt > 0
+            ? "wallet"
+            : "paystack";
+      trackEvent(
+        ANALYTICS_EVENTS.CHECKOUT_COMPLETED,
+        {
+          order_id: res.order?.orderId || res.order?._id,
+          payment_reference: reference,
+          payment_method: verifiedMethod,
+          cart_subtotal: toNumericAmount(res.order?.subtotal),
+          delivery_fee: toNumericAmount(res.order?.deliveryFee),
+          service_fee: toNumericAmount(res.order?.serviceFee),
+          total_amount: toNumericAmount(res.order?.total),
+          wallet_amount: toNumericAmount(verifiedWalletAmt),
+          paystack_amount: toNumericAmount(verifiedPaystackAmt),
+          use_wallet: verifiedWalletAmt > 0,
+          is_split_payment: verifiedWalletAmt > 0 && verifiedPaystackAmt > 0,
+          ...extractCoarseDeliveryArea(res.order?.deliveryAddress),
+        },
+        { dedupeKey: `checkout_completed:${reference}`, dedupeWindowMs: 60000 }
+      );
       retryCountRef.current = 0;
       setRetryCount(0);
       window.__melachowPaymentVerified?.(reference);
@@ -143,6 +180,16 @@ export default function VerifyPayment() {
       }
 
       setStatus("failed");
+      trackEvent(
+        ANALYTICS_EVENTS.CHECKOUT_PAYMENT_FAILED,
+        {
+          payment_reference: reference,
+          failure_stage: "verification",
+          failure_reason_category: !online ? "offline" : error.code || "verification_failed",
+          retry_count: retryCountRef.current,
+        },
+        { dedupeKey: `checkout_verify_failed:${reference}:${retryCountRef.current}`, dedupeWindowMs: 5000 }
+      );
       const msg = !online
         ? "You’re offline. Reconnect and retry verification."
         : error.message || "Something went wrong while verifying your payment.";

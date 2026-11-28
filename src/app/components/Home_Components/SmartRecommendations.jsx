@@ -15,6 +15,7 @@ import { getNearbyVendors } from "@/app/lib/userApi";
 import { useLocationStore } from "@/app/store/userLocationStore";
 import { getVendorOpenAndCloseStatus } from "@/app/lib/vendor-time/OpenOrClose";
 import { useFoodModalStore } from "@/app/store/foodModalStore";
+import { setFoodDiscoveryContext } from "@/app/lib/analytics/discoveryAttribution";
 
 const DIETARY_COLORS = {
   veg: "bg-green-100 text-green-700",
@@ -24,7 +25,7 @@ const DIETARY_COLORS = {
   "non-veg": "bg-red-100 text-red-700",
 };
 
-const RecommendationCard = ({ food, customerAddress, nearbyVendor }) => {
+const RecommendationCard = ({ food, customerAddress, nearbyVendor, discoverySource = "home_recommended", position }) => {
     const [liked, setLiked] = useState(false);
     const vendor = { ...(nearbyVendor || {}), ...(food.restaurant || food.vendor || {}) };
     const resolvedDeliveryFee = food.hasActiveDeliveryPromo || nearbyVendor?.hasActiveDeliveryPromo
@@ -43,7 +44,16 @@ const RecommendationCard = ({ food, customerAddress, nearbyVendor }) => {
 
     return (
         <div
-            onClick={() => openFoodModal(food._id, { food: { ...food, deliveryFee: resolvedDeliveryFee } })}
+            onClick={() => {
+                setFoodDiscoveryContext(food._id, {
+                    discovery_source: discoverySource,
+                    position,
+                    is_recommended: discoverySource === "home_recommended",
+                    is_popular: discoverySource === "home_popular_nearby" || Boolean(food.is_popular),
+                    is_featured: Boolean(food.is_featured),
+                });
+                openFoodModal(food._id, { food: { ...food, deliveryFee: resolvedDeliveryFee } });
+            }}
             className="group shrink-0 snap-start overflow-hidden rounded-xl border border-zinc-100 bg-white transition-all duration-300 dark:border-zinc-800 dark:bg-zinc-900"
             style={{ width: "75vw", maxWidth: "280px" }}
         >
@@ -113,7 +123,7 @@ const RecommendationCard = ({ food, customerAddress, nearbyVendor }) => {
 };
 
 // --- Recommendation Section Layout ---
-const RecommendationSection = ({ title, icon: Icon, items, customerAddress, nearbyVendorById, accentColor = "text-orange-600", accentBg = "bg-orange-100" }) => {
+const RecommendationSection = ({ title, icon: Icon, items, customerAddress, nearbyVendorById, discoverySource = "home_recommended", accentColor = "text-orange-600", accentBg = "bg-orange-100" }) => {
     if (!items || items.length === 0) return null;
  
     return (
@@ -135,8 +145,8 @@ const RecommendationSection = ({ title, icon: Icon, items, customerAddress, near
                 className="flex gap-3 overflow-x-auto scroll pb-3 snap-x snap-mandatory scrollbar-hide no-scrollbar"
                 style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
             >
-                {items.map((food) => (
-                    <RecommendationCard key={food._id} food={food} customerAddress={customerAddress} nearbyVendor={nearbyVendorById.get(String((food.restaurant || food.vendor)?._id))} />
+                {items.map((food, idx) => (
+                    <RecommendationCard key={food._id} food={food} customerAddress={customerAddress} nearbyVendor={nearbyVendorById.get(String((food.restaurant || food.vendor)?._id))} discoverySource={discoverySource} position={idx + 1} />
                 ))}
             </div>
         </div>
@@ -207,6 +217,7 @@ export default function SmartRecommendations({ user }) {
                 items={arrays.trendingNearby}
                 customerAddress={customerAddress}
                 nearbyVendorById={nearbyVendorById}
+                discoverySource="home_popular_nearby"
                 accentColor="text-orange-600"
                 accentBg="bg-orange-100 dark:bg-orange-500/20"
             />

@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Lock, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle, X, ArrowRight } from "lucide-react";
 import { TokenManager } from "@/app/lib/auth-token";
 import axios from "axios";
+import { identifyCustomer } from "@/app/lib/analytics/posthog";
 
 // --- Custom Status Modal Component ---
 const StatusModal = ({ isOpen, type, message, onClose }) => {
@@ -146,6 +147,12 @@ export default function SetPassword() {
                     message: data.message || "Failed to set password."
                 });
                 return;
+            }
+
+            // Stitch anonymous pre-signup browsing to the newly created customer ID.
+            // Authoritative signup_completed is recorded server-side in setPassword.
+            if (data?.user) {
+                identifyCustomer(data.user);
             }
 
             // ✅ SECURITY: No auto-login! User must login to confirm they know their password
