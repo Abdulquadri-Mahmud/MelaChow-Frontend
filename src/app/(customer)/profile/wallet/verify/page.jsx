@@ -85,12 +85,20 @@ function VerifyWalletComponent() {
             >
                 {status === "verifying" && (
                     <div className="flex flex-col items-center">
-                        <div className="relative w-20 h-20 mb-6">
-                            <div className="w-20 h-20 border-4 border-orange-100 rounded-full"></div>
-                            <div className="w-20 h-20 border-4 border-orange-500 rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
-                            <span className="absolute inset-0 flex items-center justify-center">
-                                <Loader2 className="text-orange-500 animate-spin" size={24} />
-                            </span>
+                        <div className="relative w-20 h-20 mb-6 flex items-center justify-center">
+                            <div className="w-20 h-20 border-4 border-orange-100 rounded-full" />
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ repeat: Infinity, duration: 0.95, ease: "linear" }}
+                                className="w-20 h-20 border-4 border-orange-500 rounded-full border-t-transparent border-l-transparent absolute inset-0"
+                            />
+                            <motion.span
+                                animate={{ rotate: -360 }}
+                                transition={{ repeat: Infinity, duration: 1.6, ease: "linear" }}
+                                className="absolute inset-0 flex items-center justify-center"
+                            >
+                                <Loader2 className="text-orange-500" size={24} />
+                            </motion.span>
                         </div>
                         <h2 className="text-xl font-bold text-gray-900 mb-2">Verifying Payment</h2>
                         <p className="text-gray-500 text-sm">{message || "Please wait while we confirm your wallet funding..."}</p>

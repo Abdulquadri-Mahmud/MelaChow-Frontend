@@ -219,12 +219,20 @@ export default function VerifyPayment() {
             className="bg-white dark:bg-zinc-900 rounded-2xl p-5 max-w-xs w-full text-center shadow-lg border border-slate-100 dark:border-zinc-800"
           >
             <div className="flex justify-center mb-6">
-              <div className="relative w-12 h-12">
-                <div className="w-12 h-12 border-[3px] border-orange-100 dark:border-orange-500/10 rounded-full"></div>
-                <div className="w-12 h-12 border-[3px] border-orange-500 rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
-                <span className="absolute inset-0 flex items-center justify-center">
-                  <Loader2 className="text-orange-500 animate-spin" size={18} />
-                </span>
+              <div className="relative w-14 h-14 flex items-center justify-center">
+                <div className="w-14 h-14 border-[3px] border-orange-100 dark:border-orange-500/15 rounded-full" />
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 0.95, ease: "linear" }}
+                  className="w-14 h-14 border-[3px] border-orange-500 rounded-full border-t-transparent border-l-transparent absolute inset-0"
+                />
+                <motion.span
+                  animate={{ rotate: -360 }}
+                  transition={{ repeat: Infinity, duration: 1.6, ease: "linear" }}
+                  className="absolute inset-0 flex items-center justify-center"
+                >
+                  <Loader2 className="text-orange-500" size={20} />
+                </motion.span>
               </div>
             </div>
             <h2 className="text-lg font-bold text-slate-900 dark:text-zinc-100 mb-1 font-display tracking-tight">

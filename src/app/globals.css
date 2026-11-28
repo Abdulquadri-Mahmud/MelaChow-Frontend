@@ -394,18 +394,15 @@ html, body, * {
   backface-visibility: hidden;
 }
 
-/* Framer Motion & Animated Elements */
+/* Framer Motion & Animated Elements (never override transform property) */
 [style*="transform"], [style*="translate"], [style*="scale"], [style*="rotate"] {
   will-change: transform;
-  transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-/* Fixed scanline flickering on sections with rapid repaints */
-.bg-white, .dark .bg-zinc-900,
-[class*="shadow"], [class*="border"] {
-  -webkit-transform: translate3d(0, 0, 0);
-  transform: translate3d(0, 0, 0);
+/* Fixed scanline flickering on static card surfaces (never override animated transforms) */
+.bg-white:not([class*="animate"]), .dark .bg-zinc-900:not([class*="animate"]) {
+  backface-visibility: hidden;
 }
 
 /* Reduce paint thrashing on list items */
@@ -416,7 +413,6 @@ html, body, * {
 /* Motion div GPU acceleration */
 .framer-motion-div {
   will-change: transform, opacity;
-  transform: translateZ(0);
 }
 
 /* Prevent browser reflow cascades during animations */
@@ -425,14 +421,20 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Chrome specific fix for animation scanlines */
-@supports (will-change: transform) {
-  .animate-pulse, [class*="animate"] {
-    will-change: auto;
-    transform: translateZ(0);
+/* Ensure CSS spin animations always rotate smoothly on Android WebViews */
+@keyframes melachow-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
+.animate-spin {
+  animation: melachow-spin 0.9s linear infinite !important;
+  will-change: transform;
+}
 
 /* Keep the installed customer app comfortable to read on phone screens. */
 @media (max-width: 640px) {

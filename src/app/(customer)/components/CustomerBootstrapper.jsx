@@ -18,6 +18,8 @@ const GUEST_ALLOWED_ROUTES = [
     "/trending-restaurants",
     "/faqs",
     "/get-help",
+    "/verify-payment",
+    "/profile/wallet/verify",
 ];
 
 export default function CustomerBootstrapper({ children }) {
@@ -28,7 +30,11 @@ export default function CustomerBootstrapper({ children }) {
     const { user, hasCheckedSession, hasCachedSession, error, refetchProfile } = useUserStorage();
 
     // Check if current route is guest-allowed or public resource
-    const isGuestAllowedRoute = GUEST_ALLOWED_ROUTES.some(route => pathname === route);
+    const normalizedPath = (pathname || "").replace(/\/+$/, "") || "/";
+    const isGuestAllowedRoute = GUEST_ALLOWED_ROUTES.some(route => normalizedPath === route);
+    const isPaymentVerifyRoute =
+        normalizedPath.startsWith("/verify-payment") ||
+        normalizedPath.startsWith("/profile/wallet/verify");
     const isRestaurantRoute = pathname?.startsWith("/restaurants/");
     const isFoodDetailsRoute = pathname?.startsWith("/food-details/");
 
@@ -61,7 +67,7 @@ export default function CustomerBootstrapper({ children }) {
         if (!hasCheckedSession || error) return;
 
         // Check if this is a protected route
-        const isProtectedRoute = !isGuestAllowedRoute && !isRestaurantRoute && !isFoodDetailsRoute;
+        const isProtectedRoute = !isGuestAllowedRoute && !isPaymentVerifyRoute && !isRestaurantRoute && !isFoodDetailsRoute;
 
         // Only redirect if route is protected AND user is not authenticated
         if (isProtectedRoute && !isAuthenticated && !isRedirecting) {
@@ -80,6 +86,7 @@ export default function CustomerBootstrapper({ children }) {
         isAuthenticated,
         pathname,
         isGuestAllowedRoute,
+        isPaymentVerifyRoute,
         isRestaurantRoute,
         isFoodDetailsRoute,
         router,
@@ -94,7 +101,7 @@ export default function CustomerBootstrapper({ children }) {
     // Keep branded content on screen until a protected page is safe to paint.
     // Returning users with a cached session paint immediately while background
     // revalidation runs; a 401 clears user and triggers redirect to /auth/signin.
-    const isProtectedRoute = !isGuestAllowedRoute && !isRestaurantRoute && !isFoodDetailsRoute;
+    const isProtectedRoute = !isGuestAllowedRoute && !isPaymentVerifyRoute && !isRestaurantRoute && !isFoodDetailsRoute;
     if (isLoggingOut) return <SplashScreen />;
     if (isProtectedRoute && !hasCachedSession && error) {
         return <SplashScreen startupError onRetry={() => refetchProfile()} />;
