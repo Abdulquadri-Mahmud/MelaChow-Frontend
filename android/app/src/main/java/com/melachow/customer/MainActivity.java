@@ -33,11 +33,23 @@ import java.util.Map;
 public class MainActivity extends BridgeActivity {
     private volatile boolean initialWebPageVisible = false;
     private final Handler startupHandler = new Handler(Looper.getMainLooper());
-    private final Runnable startupTimeout = () -> initialWebPageVisible = true;
+    private final Runnable startupTimeout = () -> {
+        initialWebPageVisible = true;
+        clearStartupWebViewBackground();
+    };
+
+    private void clearStartupWebViewBackground() {
+        runOnUiThread(() -> {
+            if (bridge != null && bridge.getWebView() != null) {
+                bridge.getWebView().setBackgroundColor(Color.WHITE);
+            }
+        });
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(VoiceCallPlugin.class);
+        VoiceCallFirebaseMessagingService.ensureCustomerNotificationChannels(this);
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         splashScreen.setKeepOnScreenCondition(() -> !initialWebPageVisible);
@@ -52,6 +64,7 @@ public class MainActivity extends BridgeActivity {
                     && local.getPort() == committed.getPort()) {
                     initialWebPageVisible = true;
                     startupHandler.removeCallbacks(startupTimeout);
+                    clearStartupWebViewBackground();
                 }
             }
         });
@@ -96,8 +109,10 @@ public class MainActivity extends BridgeActivity {
         ViewCompat.requestApplyInsets(content);
 
         if (bridge != null && bridge.getWebView() != null) {
-            // Keep the splash artwork visible through the WebView startup gap.
-            bridge.getWebView().setBackgroundResource(R.drawable.native_startup_background);
+            // Keep the splash artwork visible only through the initial WebView startup gap.
+            if (!initialWebPageVisible) {
+                bridge.getWebView().setBackgroundResource(R.drawable.native_startup_background);
+            }
             // Grant WebRTC microphone capture inside Capacitor WebView once RECORD_AUDIO is granted.
             bridge.getWebView().setWebChromeClient(new BridgeWebChromeClient(bridge) {
                 @Override

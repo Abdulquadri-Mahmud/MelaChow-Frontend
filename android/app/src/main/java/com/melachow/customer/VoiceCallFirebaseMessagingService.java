@@ -21,11 +21,57 @@ import java.util.Map;
  * backgrounded or terminated, while delegating all standard order pushes.
  */
 public class VoiceCallFirebaseMessagingService extends MessagingService {
+    public static final String ORDER_UPDATES_CHANNEL_ID = "melachow_order_updates_v1";
+    public static final String LEGACY_ORDERS_CHANNEL_ID = "melachow_orders";
     public static final String INCOMING_CALL_CHANNEL_ID = "melachow_incoming_voice_calls";
     public static final int INCOMING_CALL_NOTIFICATION_ID = 42002;
 
+    /**
+     * Ensures customer push notification channels exist on Android 8+ before
+     * FCM delivers background/killed-state notifications. Must match the
+     * channelId ("melachow_order_updates_v1") sent by MelaChow-API.
+     */
+    public static void ensureCustomerNotificationChannels(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || context == null) return;
+        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm == null) return;
+
+        AudioAttributes audioAttrs = new AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build();
+
+        if (nm.getNotificationChannel(ORDER_UPDATES_CHANNEL_ID) == null) {
+            NotificationChannel orderUpdates = new NotificationChannel(
+                ORDER_UPDATES_CHANNEL_ID,
+                "Order Updates",
+                NotificationManager.IMPORTANCE_HIGH
+            );
+            orderUpdates.setDescription("Real-time order confirmations, kitchen updates, and delivery alerts");
+            orderUpdates.enableVibration(true);
+            orderUpdates.setVibrationPattern(new long[] { 0, 250, 150, 250 });
+            orderUpdates.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
+            orderUpdates.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), audioAttrs);
+            nm.createNotificationChannel(orderUpdates);
+        }
+
+        if (nm.getNotificationChannel(LEGACY_ORDERS_CHANNEL_ID) == null) {
+            NotificationChannel legacyOrders = new NotificationChannel(
+                LEGACY_ORDERS_CHANNEL_ID,
+                "MelaChow Updates",
+                NotificationManager.IMPORTANCE_HIGH
+            );
+            legacyOrders.setDescription("Order updates and account notifications");
+            legacyOrders.enableVibration(true);
+            legacyOrders.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
+            legacyOrders.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), audioAttrs);
+            nm.createNotificationChannel(legacyOrders);
+        }
+    }
+
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+        ensureCustomerNotificationChannels(this);
         Map<String, String> data = remoteMessage.getData();
         if (data != null && data.containsKey("type")) {
             String type = data.get("type");

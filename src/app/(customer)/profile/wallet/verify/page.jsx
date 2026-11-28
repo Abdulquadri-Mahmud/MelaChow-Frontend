@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 function VerifyWalletComponent() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const reference = searchParams.get("reference");
+    const reference = searchParams.get("reference") || searchParams.get("trxref");
 
     const [status, setStatus] = useState("verifying"); // verifying | success | failed
     const [message, setMessage] = useState("Verifying transaction...");

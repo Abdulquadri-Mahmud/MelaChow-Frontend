@@ -2,7 +2,16 @@ export const pendingPaymentKey = "melachow.mobile.pending-payment";
 export const pendingPaymentMaxAgeMs = 24 * 60 * 60 * 1000;
 
 export function isPaymentVerificationPath(path) {
-  return /^\/(verify-payment|profile\/wallet\/verify)\?reference=[^&]+/.test(path || "");
+  if (typeof path !== "string" || !path.startsWith("/") || path.startsWith("//")) return false;
+  try {
+    const url = new URL(path, "https://melachow.local");
+    const normalizedPath = url.pathname.replace(/\/+$/, "");
+    if (normalizedPath !== "/verify-payment" && normalizedPath !== "/profile/wallet/verify") return false;
+    const reference = url.searchParams.get("reference") || url.searchParams.get("trxref");
+    return Boolean(reference && reference.trim());
+  } catch {
+    return false;
+  }
 }
 
 export function parsePendingPayment(value, now = Date.now()) {

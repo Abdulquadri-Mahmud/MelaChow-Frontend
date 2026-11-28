@@ -4,9 +4,13 @@ import { isPaymentVerificationPath, parsePendingPayment, pendingPaymentMaxAgeMs 
 
 test("accepts only mobile order and wallet verification routes", () => {
   assert.equal(isPaymentVerificationPath("/verify-payment?reference=order-1"), true);
+  assert.equal(isPaymentVerificationPath("/verify-payment/?trxref=order-1&reference=order-1"), true);
+  assert.equal(isPaymentVerificationPath("/verify-payment?trxref=order-1"), true);
   assert.equal(isPaymentVerificationPath("/profile/wallet/verify?reference=wallet-1"), true);
+  assert.equal(isPaymentVerificationPath("/profile/wallet/verify/?trxref=wallet-1&reference=wallet-1"), true);
   assert.equal(isPaymentVerificationPath("/verify-payment"), false);
   assert.equal(isPaymentVerificationPath("https://evil.example/verify-payment?reference=x"), false);
+  assert.equal(isPaymentVerificationPath("//evil.example/verify-payment?reference=x"), false);
 });
 
 test("pending payments are validated and expire after one day", () => {

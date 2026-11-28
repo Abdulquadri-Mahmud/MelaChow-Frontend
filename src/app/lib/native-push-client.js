@@ -8,7 +8,8 @@ export async function requestNativePush(role = "user") {
   if (permission.receive !== "granted") throw new Error("Notifications are blocked. Enable them in your device settings.");
 
   if (Capacitor.getPlatform() === "android") {
-    await PushNotifications.createChannel({ id: "melachow_orders", name: "MelaChow updates", description: "Order updates and account notifications", importance: 5, visibility: 1, vibration: true });
+    await PushNotifications.createChannel({ id: "melachow_order_updates_v1", name: "Order Updates", description: "Real-time order confirmations, kitchen updates, and delivery alerts", importance: 5, visibility: 1, vibration: true, sound: "default" });
+    await PushNotifications.createChannel({ id: "melachow_orders", name: "MelaChow Updates", description: "Order updates and account notifications", importance: 5, visibility: 1, vibration: true, sound: "default" });
   }
 
   const tokenKey = nativePushTokenKey(role);

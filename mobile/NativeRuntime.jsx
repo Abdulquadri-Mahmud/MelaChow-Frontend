@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter } from "./navigation";
 import { App } from "@capacitor/app";
 import { Browser } from "@capacitor/browser";
@@ -94,6 +94,8 @@ export default function NativeRuntime({ children }) {
       const path = fromAppUrl(url);
       if (!path) return;
       if (isPaymentVerificationPath(path)) {
+        verificationStarted = true;
+        leftForPayment = false;
         setPending(null);
         try { await Browser.close(); } catch {}
         router.replace(path);
@@ -136,7 +138,7 @@ export default function NativeRuntime({ children }) {
 
   return <>
     <NativePushRuntime role="user" />
-    {children}
+    <Suspense fallback={null}>{children}</Suspense>
     {pending && <aside className="fixed bottom-24 left-4 right-4 z-[10002] rounded-xl bg-white text-zinc-900 p-4 shadow-xl border border-orange-200" aria-label="Pending payment">
       <p className="text-sm mb-2">You have a payment awaiting confirmation.</p>
       <button className="rounded-lg bg-orange-600 text-white px-4 py-2" onClick={() => {

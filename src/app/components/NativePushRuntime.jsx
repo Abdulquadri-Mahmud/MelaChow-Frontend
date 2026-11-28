@@ -41,7 +41,14 @@ export default function NativePushRuntime({ role = "user" }) {
       let permission = await PushNotifications.checkPermissions();
       if (permission.receive === "prompt" || permission.receive === "prompt-with-rationale") permission = await PushNotifications.requestPermissions();
       if (permission.receive !== "granted") return;
-      if (Capacitor.getPlatform() === "android") await PushNotifications.createChannel({ id: "melachow_orders", name: "MelaChow updates", description: "Order updates and account notifications", importance: 5, visibility: 1, vibration: true });
+      if (Capacitor.getPlatform() === "android") {
+        try {
+          await PushNotifications.createChannel({ id: "melachow_order_updates_v1", name: "Order Updates", description: "Real-time order confirmations, kitchen updates, and delivery alerts", importance: 5, visibility: 1, vibration: true, sound: "default" });
+          await PushNotifications.createChannel({ id: "melachow_orders", name: "MelaChow Updates", description: "Order updates and account notifications", importance: 5, visibility: 1, vibration: true, sound: "default" });
+        } catch (channelErr) {
+          console.warn("Android push channel creation warning:", channelErr?.message || channelErr);
+        }
+      }
       await PushNotifications.register();
     };
     const openNotification = ({ notification }) => {

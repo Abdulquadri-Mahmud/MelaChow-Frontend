@@ -34,7 +34,7 @@ export default function VerifyPayment() {
     clearCartRef.current = clearCart;
   }, [clearCart]);
 
-  const reference = searchParams.get("reference");
+  const reference = searchParams.get("reference") || searchParams.get("trxref");
   const formatMoney = (value) => `₦${Number(value || 0).toLocaleString()}`;
   const promoWaivedDelivery =
     Number(order?.deliveryFee || 0) === 0 &&
@@ -499,7 +499,7 @@ export default function VerifyPayment() {
                   Track Order <ArrowRight size={18} />
                 </button>
                 <button
-                  onClick={() => router.push("/")}
+                  onClick={() => router.replace("/home")}
                   className="flex-1 py-3.5 px-6 rounded-xl bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 font-bold hover:bg-slate-50 dark:hover:bg-zinc-700 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                   <Home size={16} /> Continue Shopping

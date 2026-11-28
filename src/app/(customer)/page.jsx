@@ -25,6 +25,21 @@ export default function RootPage() {
       return () => clearTimeout(timer);
     }
 
+    if (process.env.NEXT_PUBLIC_MOBILE_BUILD === "true") {
+      try {
+        const rawPending = localStorage.getItem("melachow.mobile.pending-payment");
+        if (rawPending) {
+          const parsed = JSON.parse(rawPending);
+          if (parsed?.path && typeof parsed.path === "string" && parsed.path.startsWith("/") && Date.now() - Number(parsed.createdAt || 0) < 24 * 60 * 60 * 1000) {
+            router.replace(parsed.path);
+            return undefined;
+          }
+        }
+      } catch {
+        // Ignore malformed localStorage entries
+      }
+    }
+
     // 1. Returning users with a saved token + cached profile navigate immediately
     // while ProfileContext revalidates (and redirects on 401) in the background.
     const canFastBoot = hasCachedSession && Boolean(user);

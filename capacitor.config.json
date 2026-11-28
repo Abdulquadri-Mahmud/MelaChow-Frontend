@@ -9,6 +9,13 @@
                     "CapacitorHttp":  {
                                           "enabled":  true
                                       },
+                    "PushNotifications":  {
+                                              "presentationOptions":  [
+                                                                          "badge",
+                                                                          "sound",
+                                                                          "alert"
+                                                                      ]
+                                          },
                     "StatusBar":  {
                                       "overlaysWebView":  false,
                                       "backgroundColor": "#ffffff",
