@@ -91,6 +91,9 @@ export function initPostHog() {
       // Native Capacitor WebViews run on http(s)://localhost or capacitor://localhost
       // where cookies can be restricted; localStorage persistence is reliable there.
       persistence: isNativeOrigin ? "localStorage" : "localStorage+cookie",
+      // CapacitorHttp patches fetch/XHR and drops gzip Blob payloads; disable compression on native builds.
+      disable_compression: isNativeOrigin,
+      ...(isNativeOrigin ? { api_transport: "fetch" } : {}),
       person_profiles: "identified_only",
       disable_session_recording: !SESSION_RECORDING_ENABLED,
       respect_dnt: false,
